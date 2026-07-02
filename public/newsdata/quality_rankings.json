@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 7
+            "itemCount": 9
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 7,
-        "parentClusters": 7,
-        "strongParents": 7,
+        "inputCandidateCount": 9,
+        "parentClusters": 9,
+        "strongParents": 9,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3839,
+      "qualityScore": 0.3825,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -203,6 +203,120 @@
           ],
           "score": 0.505,
           "title": "From niche to mainstream: How India's bond market reinvented itself over the last 10 years"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 2
+              },
+              "name": "angleDiversity",
+              "reason": "usable angle diversity",
+              "score": 0.78,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:dfd173ed36",
+          "item": {
+            "angleCount": 2,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:dfd173ed36",
+            "representativeId": "4c9ab3d81abefd81",
+            "representativeTitle": "Stock Market Live Updates Today: BSE Sensex up over 300 points up, Nifty50 above 24,100; crude oil prices continue to drop - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.78,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.55,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "4c9ab3d81abefd81",
+              "57ce5b660a01dfe3"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 1
+              },
+              {
+                "angle": "market_reaction",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "stock",
+              "market",
+              "live",
+              "updates"
+            ],
+            "topicKey": "stock|market|live"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "usable angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.505,
+          "title": "Stock Market Live Updates Today: BSE Sensex up over 300 points up, Nifty50 above 24,100; crude oil prices continue to drop - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -598,6 +712,117 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:0315e8690b",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:0315e8690b",
+            "representativeId": "76b3a07256b38d35",
+            "representativeTitle": "Indian shares rise as crude prices drop, IT stocks rebound - Reuters",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus12h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "reuters"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "76b3a07256b38d35",
+              "f361524d518b2861"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "indian",
+              "shares",
+              "rise",
+              "crude",
+              "autos"
+            ],
+            "topicKey": "indian|shares|rise"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Indian shares rise as crude prices drop, IT stocks rebound - Reuters"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:3eb0333812",
           "item": {
             "angleCount": 1,
@@ -768,7 +993,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 4
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -805,7 +1030,7 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 4
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -830,7 +1055,7 @@
             "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 0.83,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -845,10 +1070,9 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 5,
+            "storyCount": 4,
             "storyIds": [
               "df71bc9e8f9d5353",
-              "4cca4280284d2e54",
               "bf952c0b99344c4d",
               "799aa9b7edec72f4",
               "fff45325db82b942"
@@ -856,7 +1080,7 @@
             "topAngles": [
               {
                 "angle": "base_report",
-                "count": 5
+                "count": 4
               }
             ],
             "topTokens": [
@@ -871,19 +1095,19 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.2155,
+          "score": 0.2021,
           "title": "Top news of the day on June 20, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3257,
-        "eventImportanceScore": 0.6929,
+        "angleDiversityScore": 0.3678,
+        "eventImportanceScore": 0.6567,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4643,
-        "sourceAuthorityScore": 0.4143,
-        "sourceDiversityScore": 0.4029,
-        "temporalEvolutionScore": 0.3871
+        "noveltyDeltaScore": 0.4722,
+        "sourceAuthorityScore": 0.4067,
+        "sourceDiversityScore": 0.3911,
+        "temporalEvolutionScore": 0.3833
       }
     },
     "localTravel": {
@@ -943,10 +1167,9 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
@@ -958,12 +1181,12 @@
         "Amazon to sell Echo speakers at up to 50 per cent off in Prime Day 2026 sale, details here - India Today: location failed — offline/local item lacks configured location match",
         "Lumio announces deals on Vision 9, Arc 5, Arc 7 for Amazon Prime day sale - 91mobiles.com: location failed — offline/local item lacks configured location match",
         "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
-        "Mangaluru-Chennai Express train stopped at Avadi due to technical fault: futureValidity failed — expired display window",
-        "Mangaluru-Chennai Express train stopped at Avadi due to technical fault: alertUrgency failed — alert expired",
         "Best Amazon Prime Day Echo and Alexa deals 2026: Shop smart speakers, smart displays, and bedside clocks - Mashable: location failed — offline/local item lacks configured location match",
         "Best portable speaker deal: Get two Bose portable speakers for their lowest prices ever - Mashable: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026 Sale Announced: Check Date, Time, Top Smartphone & iPhone Deals, Bank Offers & Discounts - Goodreturns: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: futureValidity failed — expired display window",
         "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: offerValidity failed — offer expired",
         "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match",
         "Pulkit Samrat recalls Salman Khan's blunt advice before his debut: 'Even I don't have guarantee of my next Friday': location failed — offline/local item lacks configured location match"
       ],
@@ -980,26 +1203,28 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 28,
+              "weather_alerts": 2
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 28,
+          "weather_alerts": 2
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 69,
+        "inputItemCount": 68,
         "locationCounts": {
-          "chennai": 20,
-          "trichy": 10
+          "chennai": 19,
+          "trichy": 11
         },
         "locationsCovered": [
           "chennai",
@@ -1009,10 +1234,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 15
+        "suppressedItemCount": 14
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8607,
+      "qualityScore": 0.8605,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1710,351 +1935,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "d61ef1b2e5fbc7fc"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1782973608000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "53f0372b92d78606",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1782973608000,
-            "id": "53f0372b92d78606",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783578408000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1782973608000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782887208000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "City hospital performs scarless hysterectomy",
-            "url": "https://www.thehindu.com/news/cities/chennai/city-hospital-performs-scarless-hysterectomy/article71166076.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "City hospital performs scarless hysterectomy"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "bd56018cb525e42e"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1782980452000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "15434abac624417c",
-          "item": {
-            "actionabilityScore": 0.5,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1782980452000,
-            "id": "15434abac624417c",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783585252000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1782980452000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782894052000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "According to the complaint, John Arockiasamy and Vishnu Reddy, described as “close associates of the Chief Minister and residents of Andhra Pradesh”, had regularly attended Cabinet meetings, official review meetings and other high-level government deliberations held at the Secretariat.",
-            "suppressionReason": null,
-            "title": "DMK seeks FIR over alleged participation of private individuals in Cabinet meetings",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/dmk-seeks-fir-over-alleged-participation-of-private-individuals-in-cabinet-meetings/article71166284.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "DMK seeks FIR over alleged participation of private individuals in Cabinet meetings"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "de390b2797a4b6af"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1782977918000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "4d8afd1112a067b5",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1782977918000,
-            "id": "4d8afd1112a067b5",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783582718000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1782977918000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782891518000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "In Urdu, Darkhast means a petition or request, and in East India Company terms it came to mean, particularly in Madras Presidency, grant by the government of poromboke lands to homeless or downtrodden individuals.",
-            "suppressionReason": null,
-            "title": "Darkhast land and the Church of Our Lady of Assumption in Chennai",
-            "url": "https://www.thehindu.com/news/cities/chennai/darkhast-land-and-the-church-of-our-lady-of-assumption-in-chennai/article71169091.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Darkhast land and the Church of Our Lady of Assumption in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "c142e5540ecc4ea3"
               },
               "name": "dedup",
@@ -2409,7 +2289,7 @@
             },
             {
               "details": {
-                "displayUntil": 1782989894000
+                "displayUntil": 1783053810000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2465,13 +2345,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1782989894000,
+            "expiryAt": 1783053810000,
             "id": "963714d3912856fa",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1783594694000,
+              "archiveUntil": 1783658610000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1782989894000,
+              "displayUntil": 1783053810000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2482,7 +2362,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1782903494000,
+            "publishedAt": 1782967410000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2630,7 +2510,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "8e0084e9043cd556"
+                "dedupKey": "865a7c1da127db12"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -2639,122 +2519,7 @@
             },
             {
               "details": {
-                "displayUntil": 1782977012000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "890277c9256f6e0e",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1782977012000,
-            "id": "890277c9256f6e0e",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783581812000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1782977012000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782890612000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Presented by Madras Art Weekend the exhibition brings together artists across painting, photography, mixed media, ceramics and sculpture",
-            "suppressionReason": null,
-            "title": "Landscapes of Belonging at Lalit Kala Akademi explores the meaning of home through art",
-            "url": "https://www.thehindu.com/entertainment/art/landscapes-of-belonging-at-lalit-kala-akademi-explores-the-meaning-of-home-through-art/article71149206.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Landscapes of Belonging at Lalit Kala Akademi explores the meaning of home through art"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "11043f5362583bfa"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783048726000
+                "displayUntil": 1783063941000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2810,13 +2575,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783048726000,
+            "expiryAt": 1783063941000,
             "id": "64257dc388d25d8b",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1783653526000,
+              "archiveUntil": 1783668741000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783048726000,
+              "displayUntil": 1783063941000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2827,7 +2592,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1782962326000,
+            "publishedAt": 1782977541000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2842,7 +2607,7 @@
             "sourceGroup": "the_hindu",
             "summary": "Chief Justice Sushrut Arvind Dharmadhikari and Justice G. Arul Murugan say court’s jurisdiction must not be abused by individuals who pretend to fight for justice while acting on personal or hidden motives",
             "suppressionReason": null,
-            "title": "Madras High Court dismisses Savukku Shankar’s plea for a CBI probe against Arun IPS",
+            "title": "Madras High Court dismisses ’Savukku’ Shankar’s plea for a CBI probe against former Chennai Police Commissioner Arun",
             "url": "https://www.thehindu.com/news/national/tamil-nadu/madras-high-court-dismisses-savukku-shankars-plea-for-a-cbi-probe-against-arun-ips/article71170407.ece"
           },
           "locationKey": "chennai",
@@ -2853,7 +2618,7 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Madras High Court dismisses Savukku Shankar’s plea for a CBI probe against Arun IPS"
+          "title": "Madras High Court dismisses ’Savukku’ Shankar’s plea for a CBI probe against former Chennai Police Commissioner Arun"
         },
         {
           "category": "alerts",
@@ -3084,121 +2849,6 @@
           ],
           "score": 0.8485,
           "title": "Missing woman found murdered with hands and legs tied"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "1334d617f53439a9"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1782976680000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "c30959057b975954",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1782976680000,
-            "id": "c30959057b975954",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783581480000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1782976680000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782890280000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Was the Nimishamba temple in Chennai built when the first wave of settlers came? Or was it in the second wave when the company induced them to stay?",
-            "suppressionReason": null,
-            "title": "Nimishamba: Chennai’s goddess of instant gratification",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/the-goddess-of-instant-gratification/article71139131.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Nimishamba: Chennai’s goddess of instant gratification"
         },
         {
           "category": "alerts",
@@ -3774,6 +3424,121 @@
           ],
           "score": 0.8485,
           "title": "Tamil Nadu government issues guidelines for private participation in restoration of waterbodies"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "954fc12a8882c8cd"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783065181000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "172cb81d14871adb",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783065181000,
+            "id": "172cb81d14871adb",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783669981000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783065181000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1782978781000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Chairman N. Murali congratulated the Chief Minister on the TVK’s historic victory in the 2026 Assembly elections",
+            "suppressionReason": null,
+            "title": "The Hindu Group’s Chairman, Director call on Tamil Nadu CM Vijay",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/the-hindu-groups-chairman-director-call-on-tamil-nadu-cm-vijay/article71173403.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "The Hindu Group’s Chairman, Director call on Tamil Nadu CM Vijay"
         },
         {
           "category": "alerts",
@@ -4464,12 +4229,472 @@
           ],
           "score": 0.8485,
           "title": "Water level in Mettur Dam stands at 78.17 feet"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "4172329537b85e01"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783064226000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "78d59dc61daa2584",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783064226000,
+            "id": "78d59dc61daa2584",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783669026000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783064226000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1782977826000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Coffee connoisseurs will bet on their life that a cup of instant coffee tastes burnt, even putrid. Yettu, a craft coffee that can be brewed in seconds, attempts to challenge this notion",
+            "suppressionReason": null,
+            "title": "Yettu, an instant Indian coffee that elevates  your morning cuppa with craft quality",
+            "url": "https://www.thehindu.com/food/features/yettu-an-instant-indian-coffee-that-elevates-your-morning-cuppa-with-craft-quality/article71164969.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Yettu, an instant Indian coffee that elevates  your morning cuppa with craft quality"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "ea407eac8b5a2cd6"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1782991824000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "ec150936f52b7303",
+          "item": {
+            "actionabilityScore": 0.5,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1782991824000,
+            "id": "ec150936f52b7303",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783596624000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1782991824000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1782905424000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "Tiruchi MP Durai Vaiko holds meeting with officials to review progress of various ongoing projects in the city",
+            "suppressionReason": null,
+            "title": "‘Repairs to Cauvery bridge will be completed by end of September’",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/repairs-to-cauvery-bridge-will-be-completed-by-end-of-september/article71169852.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "‘Repairs to Cauvery bridge will be completed by end of September’"
+        },
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "69b50a0eeb5adb7e"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783062495000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "215db1e67b72eb6c",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783062495000,
+            "id": "215db1e67b72eb6c",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783667295000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783062495000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1782976095000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMitAFBVV95cUxPcVVxOEtESm9kaUQwQVBHOEE4VHhoTEdab01wYk9EN3RnTW1aQXZxSWI2R3cxbW8zNTlaQTI4a1gzY2gtdjNfb3VicVdjZnNjY1lOaC1mVFpaYklJYnJYNmtsTHhYWGRkT2tidUZYWXo4dkQwXzZSTExLTUxMd0Z5WVQ5dG12Z3FSYi1XR3Mwem5ENm5PZFdmU1l5cGRfR1VjOTQxVGlCN2lKNF94Z3lwRnFFSC0?oc=5\" target=\"_blank\">Heavy rain likely in TN’s Coimbatore, Nilgiris over next two days; IMD issues weather alert</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">DD News</font>",
+            "suppressionReason": null,
+            "title": "Heavy rain likely in TN’s Coimbatore, Nilgiris over next two days; IMD issues weather alert - DD News",
+            "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPcVVxOEtESm9kaUQwQVBHOEE4VHhoTEdab01wYk9EN3RnTW1aQXZxSWI2R3cxbW8zNTlaQTI4a1gzY2gtdjNfb3VicVdjZnNjY1lOaC1mVFpaYklJYnJYNmtsTHhYWGRkT2tidUZYWXo4dkQwXzZSTExLTUxMd0Z5WVQ5dG12Z3FSYi1XR3Mwem5ENm5PZFdmU1l5cGRfR1VjOTQxVGlCN2lKNF94Z3lwRnFFSC0?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Heavy rain likely in TN’s Coimbatore, Nilgiris over next two days; IMD issues weather alert - DD News"
+        },
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "35e23633bd12cc64"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783011704000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "44be3d2b3449d56c",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783011704000,
+            "id": "44be3d2b3449d56c",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783616504000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783011704000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1782925304000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2wFBVV95cUxPd2U5VC1fRVBaXzZPSFo1LWcxV0N2dDdwSlEya0ktNjZjRzJOQllaZFU5VHFoMzdmWUdqa25EMF80YjFDeGdTSXlYWlJyeVJXT0RDUDZobnRWSXBMRVVZM0M4T0dwVUpXZmlKakNZbGNWOFFGaTRhMmF2b3NIdnFUVFoweWUxRGtxWXRmM2xFOFNLYmpseHcybnd1OHlpY1pyalZiVENybXpoZGRiN1dxOG83dGtXWFV2OEtjOXNLUDR4ODN5aktxeGZ4emhmbWlmbWdiLVRITXhFYzg?oc=5\" target=\"_blank\">Kerala Rain Update: Is School Holiday on July 2? IMD Issues Orange Alert; District-Wise Weather Forecast</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Goodreturns</font>",
+            "suppressionReason": null,
+            "title": "Kerala Rain Update: Is School Holiday on July 2? IMD Issues Orange Alert; District-Wise Weather Forecast - Goodreturns",
+            "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxPd2U5VC1fRVBaXzZPSFo1LWcxV0N2dDdwSlEya0ktNjZjRzJOQllaZFU5VHFoMzdmWUdqa25EMF80YjFDeGdTSXlYWlJyeVJXT0RDUDZobnRWSXBMRVVZM0M4T0dwVUpXZmlKakNZbGNWOFFGaTRhMmF2b3NIdnFUVFoweWUxRGtxWXRmM2xFOFNLYmpseHcybnd1OHlpY1pyalZiVENybXpoZGRiN1dxOG83dGtXWFV2OEtjOXNLUDR4ODN5aktxeGZ4emhmbWlmbWdiLVRITXhFYzg?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Kerala Rain Update: Is School Holiday on July 2? IMD Issues Orange Alert; District-Wise Weather Forecast - Goodreturns"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "categoryPriorityScore": 0.9987,
         "lifecycleScore": 0.65,
         "locationScore": 1.0,
         "plannerFitScore": 1.0,
@@ -4478,7 +4703,7 @@
       }
     }
   },
-  "generatedAt": 1782970393396,
+  "generatedAt": 1782985471392,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4497,10 +4722,9 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4512,9 +4736,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3839,
+      "insight": 0.3825,
       "localTravel": 0.0,
-      "upAhead": 0.8607
+      "upAhead": 0.8605
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4522,7 +4746,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3112,
+    "overallScore": 0.3108,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4539,12 +4763,12 @@
       "Amazon to sell Echo speakers at up to 50 per cent off in Prime Day 2026 sale, details here - India Today: location failed — offline/local item lacks configured location match",
       "Lumio announces deals on Vision 9, Arc 5, Arc 7 for Amazon Prime day sale - 91mobiles.com: location failed — offline/local item lacks configured location match",
       "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
-      "Mangaluru-Chennai Express train stopped at Avadi due to technical fault: futureValidity failed — expired display window",
-      "Mangaluru-Chennai Express train stopped at Avadi due to technical fault: alertUrgency failed — alert expired",
       "Best Amazon Prime Day Echo and Alexa deals 2026: Shop smart speakers, smart displays, and bedside clocks - Mashable: location failed — offline/local item lacks configured location match",
       "Best portable speaker deal: Get two Bose portable speakers for their lowest prices ever - Mashable: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026 Sale Announced: Check Date, Time, Top Smartphone & iPhone Deals, Bank Offers & Discounts - Goodreturns: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: futureValidity failed — expired display window",
       "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day 2026: Top 5 smartphone deals worth looking out for - Business Today: offerValidity failed — offer expired",
       "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match",
       "Pulkit Samrat recalls Salman Khan's blunt advice before his debut: 'Even I don't have guarantee of my next Friday': location failed — offline/local item lacks configured location match"
     ]

@@ -1,11 +1,11 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1782970392582,
-  "contentHash": "af76191c4f02439b",
+  "generatedAt": 1782985470644,
+  "contentHash": "ef5f824e1616feeb",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 580,
+  "storyCount": 614,
   "sourceGroupCount": 11,
   "grade": "D",
   "parentCount": 10,
@@ -23,10 +23,10 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 23,
+      "signalScore": 21,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 526,
+      "storyCount": 557,
       "risingCount": 0,
       "thinCount": 8,
       "multiAngleCount": 2,
@@ -34,27 +34,27 @@
       "strongAngleCount": 0,
       "avgAngles": 1.2,
       "avgChildren": 1.5,
-      "avgScore": 0.685709930007991,
+      "avgScore": 0.7009072739649905,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 2,
+      "snapshotCoverage": 0,
       "coverageLabel": "2/10",
       "warnings": [
         "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "8 cluster(s) have weak snapshot coverage.",
+        "10 cluster(s) have weak snapshot coverage.",
         "8 cluster(s) are marked thin.",
-        "540 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "570 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 23,
+      "signalScore": 21,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 526,
+      "storyCount": 557,
       "risingCount": 0,
       "thinCount": 8,
       "multiAngleCount": 2,
@@ -62,15 +62,15 @@
       "strongAngleCount": 0,
       "avgAngles": 1.2,
       "avgChildren": 1.5,
-      "avgScore": 0.685709930007991,
+      "avgScore": 0.7009072739649905,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 2,
+      "snapshotCoverage": 0,
       "coverageLabel": "2/10",
       "warnings": [
         "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "8 cluster(s) have weak snapshot coverage.",
+        "10 cluster(s) have weak snapshot coverage.",
         "8 cluster(s) are marked thin."
       ]
     },
@@ -85,7 +85,28 @@
   },
   "parents": [
     {
-      "parentId": "cluster_340_f46504574f5f4eb1",
+      "parentId": "cluster_241_5702ba20082b464e",
+      "headline": "Three held for bid to bribe TVK MLA to vote against Speaker in no-confidence motion",
+      "score": 0.6814967197849984,
+      "postTreeScore": 1.0615,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "investigative_detail"
+      ],
+      "temporalTiers": [
+        "developing",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "official_response"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_421_f46504574f5f4eb1",
       "headline": "ATF price cut by ₹5/litre to ₹110 on softer global oil prices",
       "score": 0.6714967197849984,
       "postTreeScore": 1.0515,
@@ -105,28 +126,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_164_5702ba20082b464e",
-      "headline": "Three held for bid to bribe TVK MLA to vote against Speaker in no-confidence motion",
-      "score": 0.60551,
-      "postTreeScore": 1.0055,
-      "childCount": 2,
-      "angles": [
-        "base_report",
-        "investigative_detail"
-      ],
-      "temporalTiers": [
-        "developing",
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "official_response"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_326_db0dab3925a2db09",
+      "parentId": "cluster_407_db0dab3925a2db09",
       "headline": "TVS extends lead as India’s electric two-wheeler registrations surge 74% in June",
       "score": 0.7535467197849983,
       "postTreeScore": 0.6435,
@@ -145,10 +145,10 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_133_4661f654d1ee685a",
+      "parentId": "cluster_209_4661f654d1ee685a",
       "headline": "Ritabrata Banerjee-led Trinamool faction to meet Election Commission",
-      "score": 0.60326,
-      "postTreeScore": 0.5133,
+      "score": 0.6792467197849983,
+      "postTreeScore": 0.5692,
       "childCount": 2,
       "angles": [
         "official_response"
@@ -165,7 +165,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_329_9a8cc9d6e0be5bf0",
+      "parentId": "cluster_410_9a8cc9d6e0be5bf0",
       "headline": "'Don't want to look like America': 5 reasons why Europe is against ACs despite melting summers",
       "score": 0.6098300531183317,
       "postTreeScore": 0.4998,
@@ -184,7 +184,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_2_1030ad9940753103",
+      "parentId": "cluster_68_1030ad9940753103",
       "headline": "Tamilnad Mercantile Bank shares surge 5% after strong Q1FY27 business update",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -202,7 +202,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_21_6cb6e6b457859602",
+      "parentId": "cluster_88_6cb6e6b457859602",
       "headline": "Infosys, TCS and other IT stocks jump up to 5% on dip buying. Is the worst over?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -220,7 +220,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_180_a61d184113499818",
+      "parentId": "cluster_257_a61d184113499818",
       "headline": "Shutterstock shares crash 29% after Getty Images calls off $3.7 billion merger",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -238,7 +238,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_310_cc287fac50234fa8",
+      "parentId": "cluster_391_cc287fac50234fa8",
       "headline": "Why Paisalo Digital shares hit 20% upper circuit on Wednesday",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -256,7 +256,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_383_268572db95827f89",
+      "parentId": "cluster_464_268572db95827f89",
       "headline": "Vedanta Iron & Steel shares skyrocket 89% in 12 days since listing. What’s fuelling the surge?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -368,7 +368,7 @@
       "weakParentRatio": 0.8,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 580,
+      "storyCount": 614,
       "sourceGroupCount": 11
     }
   }
