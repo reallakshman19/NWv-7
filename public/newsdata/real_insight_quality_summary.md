@@ -2,64 +2,61 @@
 
 - Status: **PASS**
 - Reason: -
-- Grade: `D`
+- Grade: `C`
 - Parents: `10`
-- Average angles: `1.5`
-- Average temporal tiers: `1.5`
-- Average evolution roles: `1.5`
-- Base report share: `0.0625`
-- Multi-angle parents: `5`
-- Weak parents: `5`
-- Story count: `592`
-- Source groups: `9`
-- Content hash: `4ee8a04031017093`
+- Average angles: `1.6`
+- Average temporal tiers: `1.9`
+- Average evolution roles: `1.7`
+- Base report share: `0.1`
+- Multi-angle parents: `6`
+- Weak parents: `4`
+- Story count: `665`
+- Source groups: `10`
+- Content hash: `938b57dd3c8ef749`
 
 ## Top parents
 
 | # | Headline | Children | Angles | Weak | Score |
 |---:|---|---:|---|---|---:|
 | 1 | Seven killed as boulder collapses at stone quarry on outskirts of Bengaluru, death toll likely to rise | 2 | regional_followup, fact_update | NO | 0.6814967197849984 |
-| 2 | India's Skyroot Aerospace readies country's first private orbital rocket launch - Reuters | 2 | fact_update, investigative_detail | NO | 0.63026 |
-| 3 | Monsoon Session of Parliament of India Set to Begin July 20 – High-Stakes Agenda Ahead - News18 | 2 | regional_followup, fact_update | NO | 0.6385800531183317 |
-| 4 | Vatican excommunicates followers of global Catholic sect | 2 | base_report, fact_update | NO | 0.6072600000000001 |
-| 5 | Iran's Supreme Leader Mojtaba Khamenei absent from wife's funeral: Report | 2 | market_reaction, official_response | NO | 0.6265800531183316 |
-| 6 | Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz | 2 | official_response | YES | 0.60101 |
-| 7 | PB Fintech shares slide up to 8% after Temasek arm likely sells over 2% stake via block deal | 1 | market_reaction | YES | 0.7226911614783158 |
-| 8 | Union Bank of India shares drop 5% post Q1 business update, global business decline marginally on quarterly basis | 1 | market_reaction | YES | 0.7226911614783158 |
-| 9 | Bajaj Housing Finance shares rally 5% as Q1 AUM climbs 24% YoY | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | PC Jeweller shares rally 5% after Q1 update; firm eyes debt-free status this quarter | 1 | market_reaction | YES | 0.7226911614783158 |
-
-## Warnings
-
-- Real snapshot still produces low Insight grade.
+| 2 | Vatican excommunicates followers of global Catholic sect | 2 | base_report, fact_update | NO | 0.6632467197849983 |
+| 3 | India's Skyroot Aerospace readies country's first private orbital rocket launch - Reuters | 2 | fact_update, investigative_detail | NO | 0.63026 |
+| 4 | Monsoon Session of Parliament of India Set to Begin July 20 – High-Stakes Agenda Ahead - News18 | 2 | regional_followup, fact_update | NO | 0.6385800531183317 |
+| 5 | Indian dignitaries pay tribute to late Iran supreme leader Ayatollah Khamenei ahead of funeral - The Times of India | 2 | market_reaction, fact_update | NO | 0.6265800531183316 |
+| 6 | France records 2,025 excess deaths at peak of heatwave as Europe braces for more extreme weather | 2 | market_reaction, base_report | NO | 0.5683399468816684 |
+| 7 | Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz | 2 | official_response | YES | 0.60101 |
+| 8 | New Zealand PM Luxon | 2 | official_response | YES | 0.5952732802150018 |
+| 9 | Pakistan PM Shehbaz Sharif to attend Iran supreme leader Ali Khamenei's funeral | 2 | official_response | YES | 0.5873433333333333 |
+| 10 | Coal-fired power output in June rises to highest since November 2023 | 2 | fact_update | YES | 0.5742732802150019 |
 
 ## Real Snapshot Ratchet Gate
 
-- Status: **FAIL**
+- Status: **PASS**
 - Gate version: `real-insight-snapshot-ratchet-v1`
-- Grade: `D`
-- Score: `28`
+- Grade: `C`
+- Score: `100`
 - Parents: `10`
-- Average angles: `1.5`
-- Average temporal tiers: `1.5`
-- Average evolution roles: `1.5`
-- Base report share: `0.063`
-- Multi-angle parents: `5`
+- Average angles: `1.6`
+- Average temporal tiers: `1.9`
+- Average evolution roles: `1.7`
+- Base report share: `0.1`
+- Multi-angle parents: `6`
 - Top parent angles: `2`
 - Top parent children: `2`
 
 ### Failed gates
 
-- **Real snapshot grade floor** — actual `D`, required `A/B/C`. Fix: Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake.
-- **Average temporal tier count** — actual `1.5`, required `>= 1.8`. Fix: C+E output should cover multiple event-time tiers, not only source buckets.
-- **Average evolution role count** — actual `1.5`, required `>= 1.6`. Fix: C+E output should include distinct event evolution roles.
+- None
 
 ### Passed gates
 
+- Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
-- Average visible angle count: `1.5` / `>= 1.4`
-- Base report share: `0.063` / `<= 0.55`
-- Multi-angle parent count: `5` / `>= 1`
+- Average visible angle count: `1.6` / `>= 1.4`
+- Average temporal tier count: `1.9` / `>= 1.8`
+- Average evolution role count: `1.7` / `>= 1.6`
+- Base report share: `0.1` / `<= 0.55`
+- Multi-angle parent count: `6` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `2` / `>= 2`
-- Weak parent ratio: `0.5` / `<= 0.5`
+- Weak parent ratio: `0.4` / `<= 0.5`
