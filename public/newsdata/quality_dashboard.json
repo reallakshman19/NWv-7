@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1783079509821,
+  "generatedAt": 1783089751114,
   "windowDays": 7,
   "latest": {
     "insightGrade": "C",
     "insightScore": 0,
-    "totalStories": 665,
-    "usableStories36h": 638,
-    "sourceGroups": 10,
+    "totalStories": 671,
+    "usableStories36h": 665,
+    "sourceGroups": 9,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3052,
+    "rankingOverallScore": 0.2986,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3052,
+    "overallScore": 0.2986,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1783079509124,
+    "generatedAt": 1783089749895,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.36,
+      "insight": 0.3531,
       "localTravel": 0,
-      "upAhead": 0.8607
+      "upAhead": 0.8413
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.36,
+        "score": 0.3531,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8607,
+        "score": 0.8413,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,8 +74,8 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 8,
-        "strongParents": 8,
+        "parentClusters": 5,
+        "strongParents": 5,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
         "baseReportHeavyParents": 2,
@@ -92,19 +92,22 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 20,
-        "events": 0,
-        "onlineOffers": 0,
-        "offlineOffers": 0,
-        "alerts": 30,
+        "suppressedItemCount": 24,
+        "events": 1,
+        "onlineOffers": 1,
+        "offlineOffers": 4,
+        "alerts": 24,
         "festivals": 0,
         "locationsCovered": [
           "chennai",
+          "muscat",
+          "online",
           "trichy"
         ]
       }
     },
     "topFindings": [
+      "Best tablets under 20000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 30,000 - Gadgets 360: location failed — offline/local item lacks configured location match",
       "Hisense India Announces Up to 40% Discounts on TVs and Air Conditioners During Amazon Prime Day and Flipkart GOAT Sale - Business Standard: location failed — offline/local item lacks configured location match",
       "These Fourth of July Sales Set Up to 75% Off Mattresses, Nike Sneakers and Designer Fashion [Updating] - Rolling Stone: location failed — offline/local item lacks configured location match",
@@ -112,17 +115,13 @@
       "These 27+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
       "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: location failed — offline/local item lacks configured location match",
       "Yezdi Scrambler To Be Available On Sale On Amazon From July 4 - Car and Bike: location failed — offline/local item lacks configured location match",
-      "Oura Ring 4 Offered at Significant Discount During Amazon Prime Day Sale - The CSR Journal: location failed — offline/local item lacks configured location match",
-      "Amazon Prime Day Sale 2026: Best Monitors, Chairs And Other Accessories Available At Best Discounts - News18: location failed — offline/local item lacks configured location match",
-      "Govt. urged to repair and renovate classrooms at a school in Peravurani: futureValidity failed — expired display window",
-      "Govt. urged to repair and renovate classrooms at a school in Peravurani: alertUrgency failed — alert expired",
-      "Chennai Corporation to privatise operations of six Muthalvar Padaippagams: futureValidity failed — expired display window"
+      "The case for equitable development in Tamil Nadu should apply to airport too: Poovulagin Nanbargal: futureValidity failed — expired display window",
+      "The case for equitable development in Tamil Nadu should apply to airport too: Poovulagin Nanbargal: alertUrgency failed — alert expired",
+      "Tiruchi Corporation Revenue Assistant arrested on bribery charge: futureValidity failed — expired display window",
+      "Tiruchi Corporation Revenue Assistant arrested on bribery charge: alertUrgency failed — alert expired"
     ],
     "actionRequired": [
-      "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
-      "no active offer items in ranked Up Ahead set",
-      "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
+      "24 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -130,7 +129,10 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "2 base-report-heavy Insight parent(s) demoted",
+      "buzz: no local Buzz item in ranked set",
+      "buzz: no travel Buzz item in ranked set",
+      "insight: 2 base-report-heavy Insight parent(s) demoted"
     ]
   },
   "sourceHealth": {
@@ -256,16 +258,16 @@
     },
     {
       "date": "2026-07-03",
-      "generatedAt": 1783079509821,
+      "generatedAt": 1783089751114,
       "insightGrade": "C",
       "insightScore": 0,
-      "totalStories": 665,
-      "usableStories36h": 638,
-      "sourceGroups": 10,
+      "totalStories": 671,
+      "usableStories36h": 665,
+      "sourceGroups": 9,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3052,
+      "rankingOverallScore": 0.2986,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
