@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783095863333,
-  "contentHash": "f0207c356a58a937",
+  "generatedAt": 1783102347448,
+  "contentHash": "07828eee488ba829",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 727,
+  "storyCount": 704,
   "sourceGroupCount": 9,
   "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.7,
+  "avgAngles": 1.8,
   "avgTemporalTiers": 1.8,
-  "avgEvolutionRoles": 1.8,
+  "avgEvolutionRoles": 1.9,
   "baseReportShare": 0.1,
-  "multiAngleCount": 7,
-  "weakParentCount": 3,
+  "multiAngleCount": 8,
+  "weakParentCount": 2,
   "runtimeQualityGate": {
     "attempted": false,
     "recovered": false,
@@ -23,60 +23,81 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 53,
+      "signalScore": 56,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 650,
+      "storyCount": 635,
       "risingCount": 0,
-      "thinCount": 3,
-      "multiAngleCount": 7,
-      "lowAngleCount": 3,
+      "thinCount": 2,
+      "multiAngleCount": 8,
+      "lowAngleCount": 2,
       "strongAngleCount": 0,
-      "avgAngles": 1.7,
+      "avgAngles": 1.8,
       "avgChildren": 2,
-      "avgScore": 0.6314530212473326,
+      "avgScore": 0.6403516932258325,
       "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 4,
-      "coverageLabel": "7/10",
+      "snapshotCoverage": 3,
+      "coverageLabel": "8/10",
       "warnings": [
-        "3 cluster(s) have fewer than two visible child angles.",
+        "2 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "3 cluster(s) are marked thin.",
-        "770 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "7 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are marked thin.",
+        "690 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 53,
+      "signalScore": 56,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 650,
+      "storyCount": 635,
       "risingCount": 0,
-      "thinCount": 3,
-      "multiAngleCount": 7,
-      "lowAngleCount": 3,
+      "thinCount": 2,
+      "multiAngleCount": 8,
+      "lowAngleCount": 2,
       "strongAngleCount": 0,
-      "avgAngles": 1.7,
+      "avgAngles": 1.8,
       "avgChildren": 2,
-      "avgScore": 0.6314530212473326,
+      "avgScore": 0.6403516932258325,
       "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 4,
-      "coverageLabel": "7/10",
+      "snapshotCoverage": 3,
+      "coverageLabel": "8/10",
       "warnings": [
-        "3 cluster(s) have fewer than two visible child angles.",
+        "2 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "3 cluster(s) are marked thin.",
-        "770 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "7 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are marked thin.",
+        "690 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_472_04987bd31e1171fa",
+      "parentId": "cluster_307_392710e2880e2e07",
+      "headline": "Nayara's gasoline sold to Russia via traders, sources say",
+      "score": 0.6952467197849983,
+      "postTreeScore": 1.0752,
+      "childCount": 2,
+      "angles": [
+        "investigative_detail",
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_503_04987bd31e1171fa",
       "headline": "Seven killed as boulder collapses at stone quarry on outskirts of Bengaluru, death toll likely to rise",
       "score": 0.6814967197849984,
       "postTreeScore": 1.0615,
@@ -97,7 +118,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_350_4bc52bbfd96fbacc",
+      "parentId": "cluster_379_4bc52bbfd96fbacc",
       "headline": "Vatican excommunicates followers of global Catholic sect",
       "score": 0.6632467197849983,
       "postTreeScore": 1.0432,
@@ -117,7 +138,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_527_f424d38689695b22",
+      "parentId": "cluster_558_f424d38689695b22",
       "headline": "India's Skyroot Aerospace readies country's first private orbital rocket launch - Reuters",
       "score": 0.63026,
       "postTreeScore": 1.0303,
@@ -137,7 +158,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_186_a54bff2ec929dcba",
+      "parentId": "cluster_212_a54bff2ec929dcba",
       "headline": "Monsoon Session of Parliament of India Set to Begin July 20 – High-Stakes Agenda Ahead - News18",
       "score": 0.6385800531183317,
       "postTreeScore": 1.0186,
@@ -158,7 +179,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_176_56d88d849f4b155b",
+      "parentId": "cluster_202_56d88d849f4b155b",
       "headline": "Indian dignitaries pay tribute to late Iran supreme leader Ayatollah Khamenei ahead of funeral - The Times of India",
       "score": 0.6265800531183316,
       "postTreeScore": 1.0066,
@@ -179,7 +200,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_2_15e4ea1f075f3268",
+      "parentId": "cluster_23_15e4ea1f075f3268",
       "headline": "IT Ministry to summon Meta officials over report on child sexual abuse advertisements on Instagram",
       "score": 0.59551,
       "postTreeScore": 0.9955,
@@ -199,7 +220,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_127_b825dfce7ba47740",
+      "parentId": "cluster_153_b825dfce7ba47740",
       "headline": "France records 2,025 excess deaths at peak of heatwave as Europe braces for more extreme weather",
       "score": 0.5683399468816684,
       "postTreeScore": 0.9483,
@@ -220,7 +241,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_269_88994b07157f8f43",
+      "parentId": "cluster_296_88994b07157f8f43",
       "headline": "Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz",
       "score": 0.6769967197849983,
       "postTreeScore": 0.567,
@@ -240,7 +261,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_204_978ffc7a61eccfc2",
+      "parentId": "cluster_231_978ffc7a61eccfc2",
       "headline": "New Zealand PM Luxon",
       "score": 0.6272599999999999,
       "postTreeScore": 0.5373,
@@ -255,25 +276,6 @@
       "evolutionRoles": [
         "corroboration",
         "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_217_f73745969f50850a",
-      "headline": "Coal-fired power output in June rises to highest since November 2023",
-      "score": 0.60626,
-      "postTreeScore": 0.5163,
-      "childCount": 2,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "fact_update"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -302,7 +304,7 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.7,
+        "actual": 1.8,
         "required": ">= 1.4"
       },
       {
@@ -314,7 +316,7 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.6"
       },
       {
@@ -326,7 +328,7 @@
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 7,
+        "actual": 8,
         "required": ">= 1"
       },
       {
@@ -344,23 +346,23 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.3,
+        "actual": 0.2,
         "required": "<= 0.5"
       }
     ],
     "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.7,
+      "avgAngles": 1.8,
       "avgTemporalTiers": 1.8,
-      "avgEvolutionRoles": 1.8,
+      "avgEvolutionRoles": 1.9,
       "baseReportShare": 0.1,
-      "multiAngleCount": 7,
-      "weakParentCount": 3,
-      "weakParentRatio": 0.3,
+      "multiAngleCount": 8,
+      "weakParentCount": 2,
+      "weakParentRatio": 0.2,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 727,
+      "storyCount": 704,
       "sourceGroupCount": 9
     }
   }

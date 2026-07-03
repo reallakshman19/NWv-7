@@ -15,7 +15,7 @@
 
 ## Findings
 
-- 19 invalid/expired/duplicate Up Ahead item(s) suppressed
+- 18 invalid/expired/duplicate Up Ahead item(s) suppressed
 - no local Buzz item in ranked set
 - no travel Buzz item in ranked set
 - no active local/travel disruption item
