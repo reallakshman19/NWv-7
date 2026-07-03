@@ -5,14 +5,14 @@
 - Grade: `C`
 - Parents: `10`
 - Average angles: `1.7`
-- Average temporal tiers: `1.9`
+- Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
 - Base report share: `0.1`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `671`
+- Story count: `727`
 - Source groups: `9`
-- Content hash: `91c40ad44aa3bd33`
+- Content hash: `f0207c356a58a937`
 
 ## Top parents
 
@@ -23,11 +23,11 @@
 | 3 | India's Skyroot Aerospace readies country's first private orbital rocket launch - Reuters | 2 | fact_update, investigative_detail | NO | 0.63026 |
 | 4 | Monsoon Session of Parliament of India Set to Begin July 20 – High-Stakes Agenda Ahead - News18 | 2 | regional_followup, fact_update | NO | 0.6385800531183317 |
 | 5 | Indian dignitaries pay tribute to late Iran supreme leader Ayatollah Khamenei ahead of funeral - The Times of India | 2 | market_reaction, fact_update | NO | 0.6265800531183316 |
-| 6 | Nayara's gasoline sold to Russia via traders, sources say | 2 | investigative_detail, official_response | NO | 0.5952732802150018 |
+| 6 | IT Ministry to summon Meta officials over report on child sexual abuse advertisements on Instagram | 2 | investigative_detail, official_response | NO | 0.59551 |
 | 7 | France records 2,025 excess deaths at peak of heatwave as Europe braces for more extreme weather | 2 | market_reaction, base_report | NO | 0.5683399468816684 |
-| 8 | Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz | 2 | official_response | YES | 0.60101 |
-| 9 | New Zealand PM Luxon | 2 | official_response | YES | 0.5952732802150018 |
-| 10 | Pakistan PM Shehbaz Sharif to attend Iran supreme leader Ali Khamenei's funeral | 2 | official_response | YES | 0.5873433333333333 |
+| 8 | Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz | 2 | official_response | YES | 0.6769967197849983 |
+| 9 | New Zealand PM Luxon | 2 | official_response | YES | 0.6272599999999999 |
+| 10 | Coal-fired power output in June rises to highest since November 2023 | 2 | fact_update | YES | 0.60626 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -37,7 +37,7 @@
 - Score: `100`
 - Parents: `10`
 - Average angles: `1.7`
-- Average temporal tiers: `1.9`
+- Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
 - Base report share: `0.1`
 - Multi-angle parents: `7`
@@ -53,7 +53,7 @@
 - Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
 - Average visible angle count: `1.7` / `>= 1.4`
-- Average temporal tier count: `1.9` / `>= 1.8`
+- Average temporal tier count: `1.8` / `>= 1.8`
 - Average evolution role count: `1.8` / `>= 1.6`
 - Base report share: `0.1` / `<= 0.55`
 - Multi-angle parent count: `7` / `>= 1`
