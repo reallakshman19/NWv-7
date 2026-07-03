@@ -53,18 +53,18 @@
     },
     "insight": {
       "actionableFindings": [
-        "Insight event/angle ranking has no critical demotion finding"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 5
+            "itemCount": 6
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
-          "score": 0.8333,
+          "score": 1.0,
           "status": "PASS"
         },
         {
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 0,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 5,
-        "parentClusters": 5,
-        "strongParents": 5,
+        "inputCandidateCount": 6,
+        "parentClusters": 6,
+        "strongParents": 6,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3697,
+      "qualityScore": 0.3662,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -208,7 +208,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 6
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -245,7 +245,7 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 6
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -266,11 +266,11 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "f71938da5fd56827",
-            "representativeTitle": "Breaking News Live Updates: Worker killed in quarry blast during drilling in Karnataka's Chikkaballapur - The Times of India",
+            "representativeId": "ad3a0769d48a4a20",
+            "representativeTitle": "Breaking News Live Updates: PM Modi to visit to New Zealand next week - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 1.0,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -285,8 +285,9 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 5,
+            "storyCount": 6,
             "storyIds": [
+              "ad3a0769d48a4a20",
               "f71938da5fd56827",
               "3f4614cfb237e7a1",
               "86e809c754b9139e",
@@ -296,18 +297,18 @@
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 5
+                "count": 6
               }
             ],
             "topTokens": [
               "breaking",
               "live",
               "updates",
+              "modi",
               "worker",
               "japan",
               "brazil",
-              "strong",
-              "govt"
+              "strong"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -317,8 +318,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.479,
-          "title": "Breaking News Live Updates: Worker killed in quarry blast during drilling in Karnataka's Chikkaballapur - The Times of India"
+          "score": 0.4915,
+          "title": "Breaking News Live Updates: PM Modi to visit to New Zealand next week - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -649,14 +650,124 @@
           ],
           "score": 0.389,
           "title": "Lightstorm’s new high-speed subsea cable to connect India’s east coast to Malaysia and Singapore"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:7ce8b0bc7c",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:7ce8b0bc7c",
+            "representativeId": "b00f5b2eca133ad4",
+            "representativeTitle": "Piyush Goyal Recalls \"Nightmare\" His Team Faced During US-India Trade Talks - NDTV",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "b00f5b2eca133ad4",
+              "b4b4d2c82d6c1bee"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "piyush",
+              "goyal",
+              "recalls",
+              "nightmare"
+            ],
+            "topicKey": "piyush|goyal|recalls"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1751,
+          "title": "Piyush Goyal Recalls \"Nightmare\" His Team Faced During US-India Trade Talks - NDTV"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.356,
-        "eventImportanceScore": 0.662,
+        "angleDiversityScore": 0.3383,
+        "eventImportanceScore": 0.6583,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.47,
+        "noveltyDeltaScore": 0.4667,
         "sourceAuthorityScore": 0.38,
         "sourceDiversityScore": 0.35,
         "temporalEvolutionScore": 0.37
@@ -719,25 +830,31 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "17 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
+        "Hisense India Announces Up to 40% Discounts on TVs and Air Conditioners During Amazon Prime Day and Flipkart GOAT Sale - Business Standard: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day 2026 Prime Membership Plans: Benefits, Prices and Which Plan is Right for You - News18: location failed — offline/local item lacks configured location match",
         "These 27+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
         "Yezdi Scrambler To Be Available On Sale On Amazon From July 4 - Car and Bike: location failed — offline/local item lacks configured location match",
         "Oura Ring 4 Offered at Significant Discount During Amazon Prime Day Sale - The CSR Journal: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Sale 2026: Best Monitors, Chairs And Other Accessories Available At Best Discounts - News18: location failed — offline/local item lacks configured location match",
         "30 best-selling phone discounts and prices compared across Amazon Prime Day 2026 and Flipkart GOAT Sale - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+        "The rise of Bengaluru-style darshinis in Chennai: Inside the city’s newest food obsession: futureValidity failed — expired display window",
+        "The rise of Bengaluru-style darshinis in Chennai: Inside the city’s newest food obsession: alertUrgency failed — alert expired",
         "FitsAir Partners with Amadeus for Global Distribution System Expansion - Nomad Lawyer: location failed — offline/local item lacks configured location match",
         "Amazon’s Early 4th of July Sale Is Here With Up to 50% Off Tech From Samsung, TP-Link, and More - PCMag: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026: iPhone 17 Pro gets Rs 22,000 discount - Moneycontrol.com: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026 Sale: Dates, Offers and Everything You Need to Know - News18: location failed — offline/local item lacks configured location match",
         "Amazon to sell Echo speakers at up to 50 per cent off in Prime Day 2026 sale, details here - India Today: location failed — offline/local item lacks configured location match",
         "Lumio announces deals on Vision 9, Arc 5, Arc 7 for Amazon Prime day sale - 91mobiles.com: location failed — offline/local item lacks configured location match",
+        "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: futureValidity failed — expired display window",
         "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+        "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: offerValidity failed — offer expired",
         "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match",
         "Pulkit Samrat recalls Salman Khan's blunt advice before his debut: 'Even I don't have guarantee of my next Friday': location failed — offline/local item lacks configured location match"
       ],
@@ -770,10 +887,10 @@
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 83,
+        "inputItemCount": 89,
         "locationCounts": {
-          "chennai": 20,
-          "trichy": 10
+          "chennai": 21,
+          "trichy": 9
         },
         "locationsCovered": [
           "chennai",
@@ -783,7 +900,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 14
+        "suppressedItemCount": 17
       },
       "qualityGrade": "B",
       "qualityScore": 0.8617,
@@ -1133,6 +1250,121 @@
           ],
           "score": 0.8705,
           "title": "When a branch of lending library in Chennai takes its leave"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "44a0790372d490c8"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783149809000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "48c6db592d19c25e",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783149809000,
+            "id": "48c6db592d19c25e",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783754609000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783149809000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783063409000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Currently, 14 women are undergoing treatment – one each on ventilator support and oxygen support, and 12 stable",
+            "suppressionReason": null,
+            "title": "Ammonia gas leak: Death toll rises to 18",
+            "url": "https://www.thehindu.com/news/cities/chennai/ammonia-gas-leak-death-toll-rises-to-18/article71177445.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Ammonia gas leak: Death toll rises to 18"
         },
         {
           "category": "alerts",
@@ -2749,121 +2981,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "865a7c1da127db12"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783063941000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "64257dc388d25d8b",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783063941000,
-            "id": "64257dc388d25d8b",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783668741000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783063941000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1782977541000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Chief Justice Sushrut Arvind Dharmadhikari and Justice G. Arul Murugan say court’s jurisdiction must not be abused by individuals who pretend to fight for justice while acting on personal or hidden motives",
-            "suppressionReason": null,
-            "title": "Madras High Court dismisses ’Savukku’ Shankar’s plea for a CBI probe against former Chennai Police Commissioner Arun",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/madras-high-court-dismisses-savukku-shankars-plea-for-a-cbi-probe-against-arun-ips/article71170407.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Madras High Court dismisses ’Savukku’ Shankar’s plea for a CBI probe against former Chennai Police Commissioner Arun"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "a58709426fb1b500"
               },
               "name": "dedup",
@@ -3433,6 +3550,121 @@
           ],
           "score": 0.8485,
           "title": "Most TNEA toppers opt for computer science course in government school quota this year"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "611d318a7699829d"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783145333000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "bed15a4dee1c428f",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783145333000,
+            "id": "bed15a4dee1c428f",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783750133000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783145333000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783058933000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Radio-tagged and named Z25, this White-rumped vulture was saved many a time by critical data relayed by conservation scientists to forest personnel and NGO partners at Mudumalai Tiger Reserve. But before a life-saving decision could be implemented based on that data, Z25 ran into a power transmission line",
+            "suppressionReason": null,
+            "title": "Radio telemetry almost saved this vulture",
+            "url": "https://www.thehindu.com/sci-tech/energy-and-environment/radio-telemetry-almost-saved-this-vulture/article71177320.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Radio telemetry almost saved this vulture"
         },
         {
           "category": "alerts",
@@ -4123,121 +4355,6 @@
           ],
           "score": 0.8485,
           "title": "Three new stone inscriptions about Emperor Raja Raja Cholan’s grandson found"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "d3bda4b5cf2f64a4"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783087437000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "3a9327401851859d",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783087437000,
-            "id": "3a9327401851859d",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783692237000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783087437000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783001037000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Tiruchi Corporation Revenue Assistant arrested on bribery charge",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/tiruchi-corporation-revenue-assistant-arrested-on-bribery-charge/article71174374.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Tiruchi Corporation Revenue Assistant arrested on bribery charge"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4252,7 +4369,7 @@
       }
     }
   },
-  "generatedAt": 1783056452379,
+  "generatedAt": 1783067809378,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4271,7 +4388,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "17 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4282,11 +4399,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3697,
+      "insight": 0.3662,
       "localTravel": 0.0,
       "upAhead": 0.8617
     },
@@ -4296,7 +4413,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3079,
+    "overallScore": 0.307,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4305,18 +4422,24 @@
       "upAhead": "upAhead-v2-lifecycle-location-category"
     },
     "topFindings": [
+      "Hisense India Announces Up to 40% Discounts on TVs and Air Conditioners During Amazon Prime Day and Flipkart GOAT Sale - Business Standard: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day 2026 Prime Membership Plans: Benefits, Prices and Which Plan is Right for You - News18: location failed — offline/local item lacks configured location match",
       "These 27+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
       "Yezdi Scrambler To Be Available On Sale On Amazon From July 4 - Car and Bike: location failed — offline/local item lacks configured location match",
       "Oura Ring 4 Offered at Significant Discount During Amazon Prime Day Sale - The CSR Journal: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Sale 2026: Best Monitors, Chairs And Other Accessories Available At Best Discounts - News18: location failed — offline/local item lacks configured location match",
       "30 best-selling phone discounts and prices compared across Amazon Prime Day 2026 and Flipkart GOAT Sale - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+      "The rise of Bengaluru-style darshinis in Chennai: Inside the city’s newest food obsession: futureValidity failed — expired display window",
+      "The rise of Bengaluru-style darshinis in Chennai: Inside the city’s newest food obsession: alertUrgency failed — alert expired",
       "FitsAir Partners with Amadeus for Global Distribution System Expansion - Nomad Lawyer: location failed — offline/local item lacks configured location match",
       "Amazon’s Early 4th of July Sale Is Here With Up to 50% Off Tech From Samsung, TP-Link, and More - PCMag: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026: iPhone 17 Pro gets Rs 22,000 discount - Moneycontrol.com: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026 Sale: Dates, Offers and Everything You Need to Know - News18: location failed — offline/local item lacks configured location match",
       "Amazon to sell Echo speakers at up to 50 per cent off in Prime Day 2026 sale, details here - India Today: location failed — offline/local item lacks configured location match",
       "Lumio announces deals on Vision 9, Arc 5, Arc 7 for Amazon Prime day sale - 91mobiles.com: location failed — offline/local item lacks configured location match",
+      "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: futureValidity failed — expired display window",
       "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+      "Best laptop deals for Amazon Prime Day sale (2026) - Sportskeeda Tech: offerValidity failed — offer expired",
       "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match",
       "Pulkit Samrat recalls Salman Khan's blunt advice before his debut: 'Even I don't have guarantee of my next Friday': location failed — offline/local item lacks configured location match"
     ]
