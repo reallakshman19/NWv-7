@@ -4,7 +4,7 @@ import {
   ENVELOPE_FRESHNESS,
 } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
-import { fetchSectionNews } from '../../services/rssSectionLifecycleFetcher.js';
+import { fetchSectionNews } from '../../services/rssAggregator.js';
 import { composeBalancedFeed } from '../../services/frontPageComposer.js';
 import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
