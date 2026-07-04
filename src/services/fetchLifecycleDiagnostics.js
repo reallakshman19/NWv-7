@@ -1,5 +1,6 @@
 export const SERVED_FROM = Object.freeze({
   MEMORY_CACHE: 'memory-cache',
+  IN_FLIGHT: 'in-flight',
   STATIC_SNAPSHOT: 'static-snapshot',
   STALE_FALLBACK: 'stale-fallback',
   LIVE_FALLBACK: 'live-fallback',
