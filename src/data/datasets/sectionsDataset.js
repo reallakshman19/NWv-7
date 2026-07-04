@@ -4,7 +4,7 @@ import {
   ENVELOPE_FRESHNESS,
 } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
-import { fetchSectionNews } from '../../services/rssAggregator.js';
+import { fetchSectionNews } from '../../services/rssSectionLifecycleFetcher.js';
 import { composeBalancedFeed } from '../../services/frontPageComposer.js';
 import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
@@ -78,207 +78,137 @@ function countSources(items = []) {
 
 function getDuplicateHints(items = []) {
   const seen = new Map();
-  const hints = [];
+  const duplicates = [];
 
   items.forEach(item => {
-    const key = String(item?.title || item?.headline || '')
-      .toLowerCase()
-      .replace(/\s+/g, ' ')
-      .trim();
-
+    const key = item?.canonicalId || item?.id || item?.url || item?.title;
     if (!key) return;
-
-    if (seen.has(key)) {
-      hints.push({
-        title: item.title || item.headline,
-        firstId: seen.get(key),
-        duplicateId: item.id,
-      });
-      return;
-    }
-
-    seen.set(key, item.id);
+    if (seen.has(key)) duplicates.push({ key, title: item?.title || '' });
+    seen.set(key, true);
   });
 
-  return hints.slice(0, 25);
+  return duplicates.slice(0, 20);
 }
 
-function normalizeSectionBuckets(items, fallbackSections) {
-  const buckets = {};
-
-  fallbackSections.forEach(section => {
-    buckets[section] = [];
-  });
-
-  items.forEach(item => {
-    const section = item?.section || 'uncategorized';
-
-    if (!buckets[section]) buckets[section] = [];
-    buckets[section].push(item);
-  });
-
-  Object.keys(buckets).forEach(section => {
-    buckets[section].sort((a, b) => Number(b?.impactScore || 0) - Number(a?.impactScore || 0));
-  });
-
-  return buckets;
-}
-
-function getSectionSnapshotStaleness(sectionHealth = {}) {
-  const staleRows = Object.entries(sectionHealth)
-    .filter(([, meta]) => Boolean(
-      meta?.staleReason ||
-      meta?.snapshotStale ||
-      meta?.snapshotRuntimeSummary?.stale
-    ))
-    .map(([section, meta]) => ({
-      section,
-      staleReason: meta?.staleReason || 'snapshot_stale',
-      snapshotAgeMs: meta?.snapshotRuntimeSummary?.ageMs ?? null,
-    }));
+function summarizeSection(section, result) {
+  const items = Array.isArray(result) ? result : [];
+  const sectionItems = items.map(item => ({
+    ...item,
+    section: item.section || section,
+    sourceSection: result?.prefetchSourceSection || item.sourceSection || section,
+  }));
 
   return {
-    stale: staleRows.length > 0,
-    rows: staleRows,
+    section,
+    ok: true,
+    items: sectionItems,
+    count: sectionItems.length,
+    sourceCounts: countSources(sectionItems),
+    health: result?.health || null,
+    isSingleSource: Boolean(result?.isSingleSource),
+    prefetched: Boolean(result?.prefetched),
+    sourceSection: result?.prefetchSourceSection || section,
+    staleReason: result?.staleReason || null,
+    fetchDiagnostics: result?.fetchDiagnostics || null,
+    sectionQuality: result?.sectionQuality || null,
+    snapshotRuntimeSummary: result?.snapshotRuntimeSummary || null,
+    duplicateHints: getDuplicateHints(sectionItems),
   };
 }
 
-export async function load(options = {}) {
-  const settings = safeGetSettings();
-  const diagnostics = [];
-  const requestedSections = getRequestedSections(settings, options, diagnostics);
-
-  const results = await Promise.allSettled(
-    requestedSections.map(async section => {
-      const count = getSectionLimit(settings, section);
-      const items = await fetchSectionNews(section, count, settings.newsSources);
-
-      return {
-        section,
-        items: Array.isArray(items) ? items : [],
-        metadata: {
-          prefetched: items?.prefetched === true,
-          prefetchSourceSection: items?.prefetchSourceSection || null,
-          sectionQuality: items?.sectionQuality || null,
-          snapshotRuntimeSummary: items?.snapshotRuntimeSummary || null,
-          staleReason: items?.staleReason || null,
-          snapshotStale: Boolean(items?.staleReason || items?.snapshotRuntimeSummary?.stale),
-          health: items?.health || null,
-          isSingleSource: items?.isSingleSource || false,
-        },
-      };
-    })
-  );
-
-  const raw = {};
-  const sectionHealth = {};
-  const failedSections = [];
-
-  results.forEach((result, index) => {
-    const section = requestedSections[index];
-
-    if (result.status === 'fulfilled') {
-      raw[section] = result.value.items;
-      sectionHealth[section] = result.value.metadata;
-
-      diagnostics.push({
-        event: 'sectionsDataset.section_loaded',
-        severity: result.value.items.length > 0 ? 'info' : 'warn',
-        message: `${section}: ${result.value.items.length} item(s)`,
-        details: result.value.metadata,
-      });
-      return;
-    }
-
-    raw[section] = [];
-    failedSections.push(section);
-
-    diagnostics.push({
-      event: 'sectionsDataset.section_failed',
-      severity: 'error',
-      message: result.reason?.message || String(result.reason),
-      details: { section },
-    });
-  });
-
-  const allFetched = Object.values(raw).flat();
-
-  const deduplicated = deduplicateAndCluster(
-    allFetched,
-    settings.storyDeduplication
-  );
-
-  const sections = normalizeSectionBuckets(deduplicated, requestedSections);
-
-  const frontPage = composeBalancedFeed(
-    deduplicated,
-    options.frontPageLimit || 20,
-    settings.maxTopicPercent || 40,
-    settings.maxGeoPercent || 30
-  );
-
-  const sectionCounts = Object.fromEntries(
-    Object.entries(sections).map(([section, items]) => [section, items.length])
-  );
-
-  const sourceCounts = countSources(deduplicated);
-  const duplicateHints = getDuplicateHints(allFetched);
-  const ok = frontPage.length > 0 || deduplicated.length > 0;
-  const sectionSnapshotStaleness = getSectionSnapshotStaleness(sectionHealth);
-
-  const envelope = makeEnvelope({
-    ok,
-    datasetId: 'sections',
-    data: {
-      sections,
-      frontPage,
-      sectionCounts,
-      sourceCounts,
-      duplicateHints,
-      failedSections,
-      sectionHealth,
-      sectionSnapshotStaleness,
-      requestedSections,
-      raw,
-    },
-    source: Object.values(sectionHealth).some(meta => meta?.prefetched)
-      ? ENVELOPE_SOURCES.SNAPSHOT
-      : ENVELOPE_SOURCES.LIVE,
-    freshness: ok
-      ? (sectionSnapshotStaleness.stale ? ENVELOPE_FRESHNESS.STALE : ENVELOPE_FRESHNESS.FRESH)
-      : ENVELOPE_FRESHNESS.EMPTY,
-    error: ok ? null : 'sections unavailable',
-    validation: {
-      passed: ok && !sectionSnapshotStaleness.stale,
-      errors: ok ? [] : ['sections_unavailable'],
-      warnings: [
-        ...failedSections.map(section => `section_failed:${section}`),
-        ...Object.entries(sectionCounts)
-          .filter(([, count]) => count === 0)
-          .map(([section]) => `section_empty:${section}`),
-        ...sectionSnapshotStaleness.rows.map(row => `section_snapshot_stale:${row.section}:${row.staleReason}`),
-      ],
-    },
-    diagnostics: [
-      ...diagnostics,
-      ...(sectionSnapshotStaleness.stale ? [{
-        event: 'sectionsDataset.snapshot_stale',
-        severity: 'warn',
-        message: 'One or more prefetched section snapshots are stale or degraded.',
-        details: sectionSnapshotStaleness,
-      }] : []),
-    ],
-  });
-
-  return applyDatasetSlo(envelope);
+function summarizeFailure(section, error) {
+  return {
+    section,
+    ok: false,
+    items: [],
+    count: 0,
+    error: error?.message || String(error),
+    sourceCounts: {},
+    health: null,
+    isSingleSource: false,
+    duplicateHints: [],
+  };
 }
 
-export const __sectionsDatasetInternalsForTest = {
-  DEFAULT_SECTIONS,
-  DEFAULT_MAX_SECTIONS,
-  countSources,
-  getDuplicateHints,
-  normalizeSectionBuckets,
-  getRequestedSections,
-  getSectionSnapshotStaleness,
+function getEnvelopeSource(summaries) {
+  if (summaries.some(summary => summary.prefetched)) return ENVELOPE_SOURCES.SNAPSHOT;
+  return ENVELOPE_SOURCES.LIVE;
+}
+
+function getEnvelopeFreshness(summaries) {
+  if (summaries.every(summary => summary.count === 0)) return ENVELOPE_FRESHNESS.EMPTY;
+  if (summaries.some(summary => summary.staleReason)) return ENVELOPE_FRESHNESS.STALE;
+  return ENVELOPE_FRESHNESS.FRESH;
+}
+
+function getValidationWarnings(summaries) {
+  return summaries
+    .filter(summary => summary.staleReason || summary.isSingleSource)
+    .map(summary => ({
+      section: summary.section,
+      reason: summary.staleReason || 'single_source_section',
+      severity: summary.staleReason ? 'warn' : 'info',
+    }));
+}
+
+export const sectionsDataset = {
+  id: 'sections',
+  description: 'Section news dataset with snapshot-first Hybrid support',
+
+  async load(options = {}) {
+    const diagnostics = [];
+    const settings = safeGetSettings();
+    const sections = getRequestedSections(settings, options, diagnostics);
+
+    const settled = await Promise.allSettled(sections.map(async section => {
+      const limit = getSectionLimit(settings, section);
+      const result = await fetchSectionNews(section, limit, settings.newsSources);
+      return summarizeSection(section, result);
+    }));
+
+    const summaries = settled.map((entry, index) => {
+      if (entry.status === 'fulfilled') return entry.value;
+      return summarizeFailure(sections[index], entry.reason);
+    });
+
+    const fulfilled = summaries.filter(summary => summary.ok);
+    const failed = summaries.filter(summary => !summary.ok);
+    const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
+    const allItems = summaries.flatMap(summary => summary.items);
+    const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
+    const frontPage = composeBalancedFeed(
+      dedupedItems,
+      options.frontPageLimit || 20,
+      settings.maxTopicPercent || 40,
+      settings.maxGeoPercent || 30
+    );
+
+    const payload = {
+      sections: sectionItems,
+      frontPage,
+      summaries,
+      loadedSections: sections,
+      failedSections: failed.map(summary => ({ section: summary.section, error: summary.error })),
+      duplicateHints: getDuplicateHints(dedupedItems),
+    };
+
+    const envelope = makeEnvelope({
+      datasetId: 'sections',
+      ok: fulfilled.length > 0,
+      source: getEnvelopeSource(summaries),
+      freshness: getEnvelopeFreshness(summaries),
+      data: payload,
+      diagnostics,
+      validation: {
+        passed: failed.length === 0,
+        warnings: getValidationWarnings(summaries),
+        errors: failed.map(summary => summary.error),
+      },
+    });
+
+    return applyDatasetSlo(envelope, {
+      maxAgeMs: options.maxAgeMs,
+      minScore: options.minScore,
+    });
+  },
 };
