@@ -1,0 +1,43 @@
+name: Data Freshness Contracts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'public/data/**'
+      - 'public/newsdata/**'
+      - 'scripts/dataContracts/**'
+      - 'scripts/data_freshness_contracts.mjs'
+      - 'scripts/probe_deployed_data_freshness.mjs'
+      - 'src/viewModels/topStoriesRecency.js'
+      - 'src/viewModels/useMainTabViewModel.recency.cert.test.mjs'
+      - 'package.json'
+      - '.github/workflows/data_freshness_contracts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  data-freshness-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate static data freshness contracts
+        run: npm run test:data-freshness-contracts
+
+      - name: Certify Main Top Stories recency guardrail
+        run: node src/viewModels/useMainTabViewModel.recency.cert.test.mjs
