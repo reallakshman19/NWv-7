@@ -76,25 +76,30 @@ describe('Main ViewModel internals', () => {
     expect(asRecord({ a: 1 })).toEqual({ a: 1 });
   });
 
-  it('returns standard front-page stories when custom sort is disabled', () => {
+  it('applies recency guardrail even when custom sort is disabled', () => {
+    const now = Date.now();
     const stories = [
-      { id: 'a', impactScore: 1 },
-      { id: 'b', impactScore: 5 },
+      { id: 'old', impactScore: 100, publishedAt: now - 30 * 60 * 60 * 1000 },
+      { id: 'fresh', impactScore: 1, publishedAt: now - 60 * 60 * 1000 },
     ];
 
-    expect(filterLatestStories(stories, false)).toBe(stories);
+    const result = filterLatestStories(stories, false);
+
+    expect(result[0].id).toBe('fresh');
   });
 
-  it('sorts custom latest stories by impact score and preserves fallback minimum', () => {
+  it('sorts custom latest stories by recency-aware score and preserves fallback minimum', () => {
+    const now = Date.now();
     const stories = Array.from({ length: 12 }).map((_, index) => ({
       id: `story-${index}`,
       impactScore: index,
+      publishedAt: now - index * 60 * 1000,
     }));
 
     const result = filterLatestStories(stories, true);
 
     expect(result).toHaveLength(12);
-    expect(result[0].impactScore).toBe(11);
+    expect(result[0].id).toBe('story-11');
   });
 
   it('builds navigation sections from enabled settings', () => {
