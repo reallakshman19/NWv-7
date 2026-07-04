@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -7,6 +9,19 @@ import {
   withInFlightCleanup,
 } from './fetchLifecycleDiagnostics.js';
 import { selectPrefetchedSectionItems } from '../adapters/sectionsSnapshotFetcher.js';
+
+function readRepoFile(filePath) {
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function listFiles(dirPath) {
+  if (!fs.existsSync(dirPath)) return [];
+  return fs.readdirSync(dirPath, { withFileTypes: true }).flatMap(entry => {
+    const nextPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) return listFiles(nextPath);
+    return nextPath;
+  });
+}
 
 async function testCleanupOnReturn() {
   const map = new Map([['india', Promise.resolve()]]);
@@ -51,9 +66,36 @@ function testDiagnostics() {
   assert.equal(result.fetchDiagnostics.phases[0].phase, 'snapshot-fetch');
 }
 
+function testAggregatorPostMarkerCleanupWrapper() {
+  const src = readRepoFile('src/services/rssAggregator.js');
+  const marker = 'inFlightFetches.set(cacheKey, inFlightPromise);';
+  const markerIndex = src.indexOf(marker);
+  const wrapperIndex = src.indexOf('return withInFlightCleanup(inFlightFetches, cacheKey, resolveInFlight, async () => {', markerIndex);
+  const between = src.slice(markerIndex + marker.length, wrapperIndex);
+  assert.ok(markerIndex > 0, 'rssAggregator must set in-flight marker');
+  assert.ok(wrapperIndex > markerIndex, 'post-marker paths must enter cleanup wrapper');
+  assert.doesNotMatch(between, /return\s+/, 'no post-marker return may precede cleanup wrapper');
+}
+
+function testSectionsDatasetCanonicalPath() {
+  const src = readRepoFile('src/data/datasets/sectionsDataset.js');
+  assert.match(src, /from '..\/..\/services\/rssAggregator\.js'/);
+  assert.doesNotMatch(src, /rssSectionLifecycleFetcher/);
+}
+
+function testNoLifecycleFetcherReferencesRemain() {
+  assert.equal(fs.existsSync('src/services/rssSectionLifecycleFetcher.js'), false);
+  const files = listFiles('src').filter(file => /\.(js|jsx|mjs|ts|tsx)$/.test(file));
+  const hits = files.filter(file => readRepoFile(file).includes('rssSectionLifecycleFetcher'));
+  assert.deepEqual(hits, []);
+}
+
 await testCleanupOnReturn();
 await testCleanupOnFailure();
 testStaleFallbackKeepsRows();
 testDiagnostics();
+testAggregatorPostMarkerCleanupWrapper();
+testSectionsDatasetCanonicalPath();
+testNoLifecycleFetcherReferencesRemain();
 
 console.log('PASS: RSS Hybrid fetch lifecycle guardrails');
