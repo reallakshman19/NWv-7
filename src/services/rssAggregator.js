@@ -28,6 +28,7 @@ import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 import { isLiveMode } from '../utils/fetchMode.js';
 import { severityHits, matchesEntertainmentGuard, DEFAULT_RANKING_POLICY } from '../config/rankingPolicy.js';
 import { temporalScore } from './temporalScorer.js';
+import { withInFlightCleanup } from './fetchLifecycleDiagnostics.js';
 
 /**
  * @typedef {Object} NewsItem
@@ -565,6 +566,8 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     const inFlightPromise = new Promise(resolve => { resolveInFlight = resolve; });
     inFlightFetches.set(cacheKey, inFlightPromise);
 
+    return withInFlightCleanup(inFlightFetches, cacheKey, resolveInFlight, async () => {
+
     // Static-host / GitHub Pages path: prefer pre-generated section JSON.
     // This avoids browser RSS/proxy failures and uses workflow-produced quality data.
     if (!isLiveMode() && settings.usePrefetchedSections !== false) {
@@ -797,11 +800,9 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
         recordFetchCount(section, fallbackItems.length);
 
         return fallbackItems;
-    } finally {
-        // Always clear the in-flight marker so future callers are not blocked indefinitely
-        inFlightFetches.delete(cacheKey);
-        if (resolveInFlight) resolveInFlight();
     }
+
+    });
 }
 
 /* ---------- Core Logic ---------- */
