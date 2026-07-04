@@ -1,82 +1,91 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783123426620,
-  "contentHash": "892c08e0e1054834",
+  "generatedAt": 1783141877048,
+  "contentHash": "fc323e735480c543",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 649,
-  "sourceGroupCount": 9,
-  "grade": "C",
+  "storyCount": 605,
+  "sourceGroupCount": 10,
+  "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.6,
+  "avgAngles": 1.5,
   "avgTemporalTiers": 1.7,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.14285714285714285,
-  "multiAngleCount": 6,
-  "weakParentCount": 4,
+  "avgEvolutionRoles": 1.6,
+  "baseReportShare": 0.05263157894736842,
+  "multiAngleCount": 5,
+  "weakParentCount": 5,
   "runtimeQualityGate": {
-    "attempted": false,
+    "attempted": true,
     "recovered": false,
-    "reason": "first-pass acceptable",
+    "reason": "relaxed-tree recovery could not produce acceptable output",
     "before": {
-      "grade": "C",
-      "tone": "warn",
-      "title": "Thin but usable signal",
-      "signalScore": 50,
+      "grade": "D",
+      "tone": "danger",
+      "title": "Weak insight signal",
+      "signalScore": 42,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 588,
+      "storyCount": 537,
       "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2.1,
-      "avgScore": 0.6286130920216643,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 5,
-      "coverageLabel": "6/10",
+      "avgAngles": 1.5,
+      "avgChildren": 1.9,
+      "avgScore": 0.6214961373951642,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 3,
+      "coverageLabel": "5/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "5 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "610 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "1 cluster(s) are below source-diversity target.",
+        "7 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin.",
+        "680 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
-      "grade": "C",
-      "tone": "warn",
-      "title": "Thin but usable signal",
-      "signalScore": 50,
+      "grade": "D",
+      "tone": "danger",
+      "title": "Weak insight signal",
+      "signalScore": 42,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 588,
+      "storyCount": 537,
       "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2.1,
-      "avgScore": 0.6286130920216643,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 5,
-      "coverageLabel": "6/10",
+      "avgAngles": 1.5,
+      "avgChildren": 1.9,
+      "avgScore": 0.6214961373951642,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 3,
+      "coverageLabel": "5/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "5 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "610 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "1 cluster(s) are below source-diversity target.",
+        "7 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin."
       ]
+    },
+    "recoveryConfig": {
+      "MIN_CHILD_INFO_GAIN": 0.08,
+      "WEAK_TREE_CHILD_MIN": 2,
+      "MIN_SOURCES_PER_TREE": 2,
+      "MAX_PER_SOURCE_GROUP": 3,
+      "MAX_PER_ANGLE": 4,
+      "TIER_D_EXCLUDE": false
     }
   },
   "parents": [
     {
-      "parentId": "cluster_148_b820bbc4f50f448a",
+      "parentId": "cluster_205_b820bbc4f50f448a",
       "headline": "IIT-Madras, IIT-Kanpur launch practice oriented cybersecurity course",
       "score": 0.6714967197849984,
       "postTreeScore": 1.0515,
@@ -96,48 +105,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_439_4bc52bbfd96fbacc",
-      "headline": "Vatican excommunicates followers of global Catholic sect",
-      "score": 0.6632467197849983,
-      "postTreeScore": 1.0432,
-      "childCount": 2,
-      "angles": [
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "fact_update"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_206_b825dfce7ba47740",
-      "headline": "France records 2,025 excess deaths at peak of heatwave as Europe braces for more extreme weather",
-      "score": 0.6363266666666667,
-      "postTreeScore": 1.0363,
+      "parentId": "cluster_20_3b076a3d70f989f4",
+      "headline": "France reports 2,025 excess deaths amid Europe’s record-breaking heatwave - The Indian Express",
+      "score": 0.6456467197849983,
+      "postTreeScore": 1.0256,
       "childCount": 2,
       "angles": [
         "market_reaction",
-        "base_report"
+        "fact_update"
       ],
       "temporalTiers": [
         "breaking",
-        "developing"
+        "reaction"
       ],
       "evolutionRoles": [
         "first_report",
         "corroboration"
       ],
-      "baseReportShare": 0.5,
+      "baseReportShare": 0,
       "weakTree": false
     },
     {
-      "parentId": "cluster_269_a54bff2ec929dcba",
+      "parentId": "cluster_330_a54bff2ec929dcba",
       "headline": "Monsoon Session of Parliament of India Set to Begin July 20 – High-Stakes Agenda Ahead - News18",
       "score": 0.6385800531183317,
       "postTreeScore": 1.0186,
@@ -158,7 +147,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_71_15e4ea1f075f3268",
+      "parentId": "cluster_315_56d88d849f4b155b",
+      "headline": "Indian dignitaries pay tribute to late Iran supreme leader Ayatollah Khamenei ahead of funeral - The Times of India",
+      "score": 0.6265800531183316,
+      "postTreeScore": 1.0066,
+      "childCount": 2,
+      "angles": [
+        "market_reaction",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_126_15e4ea1f075f3268",
       "headline": "IT Ministry to summon Meta officials over report on child sexual abuse advertisements on Instagram",
       "score": 0.59551,
       "postTreeScore": 0.9955,
@@ -178,48 +188,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_62_b4cee250495e753c",
-      "headline": "Iran prepares for weeklong funeral of late Supreme Leader Ayatollah Ali Khamenei, killed in war",
-      "score": 0.5511239879583164,
-      "postTreeScore": 0.9911,
-      "childCount": 3,
-      "angles": [
-        "market_reaction",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "reaction"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_355_88994b07157f8f43",
-      "headline": "Iran warns of ‘forceful response’ if oil tankers deviate from approved routes in Strait of Hormuz",
-      "score": 0.6769967197849983,
-      "postTreeScore": 0.567,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_301_f73745969f50850a",
+      "parentId": "cluster_364_f73745969f50850a",
       "headline": "Coal-fired power output in June rises to highest since November 2023",
       "score": 0.6742467197849984,
       "postTreeScore": 0.5642,
@@ -238,7 +207,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_288_978ffc7a61eccfc2",
+      "parentId": "cluster_350_978ffc7a61eccfc2",
       "headline": "New Zealand PM Luxon",
       "score": 0.6272599999999999,
       "postTreeScore": 0.5373,
@@ -258,10 +227,29 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_17_e4511ddeb3bf4eb3",
+      "parentId": "cluster_53_894999f95047a0a3",
+      "headline": "Overnight lines to pay respects to Khamenei",
+      "score": 0.5175933333333333,
+      "postTreeScore": 0.4276,
+      "childCount": 2,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_72_e4511ddeb3bf4eb3",
       "headline": "Bihar Guv. Hasnain and MoS Margherita attend Ali Khamenei's funeral ceremony in Tehran",
-      "score": 0.5513433333333333,
-      "postTreeScore": 0.4613,
+      "score": 0.49535661354833516,
+      "postTreeScore": 0.3854,
       "childCount": 2,
       "angles": [
         "official_response"
@@ -275,22 +263,36 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
+    },
+    {
+      "parentId": "cluster_4_fb02c7c8fdc92b7b",
+      "headline": "SBI Funds Management seeks Rs 2,000 crore in pre-IPO round",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
     }
   ],
-  "warnings": [],
+  "warnings": [
+    "Real snapshot still produces low Insight grade."
+  ],
   "errors": [],
   "ratchetGate": {
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
-    "grade": "C",
-    "score": 76,
+    "grade": "D",
+    "score": 52,
     "passed": [
-      {
-        "id": "grade-floor",
-        "label": "Real snapshot grade floor",
-        "actual": "C",
-        "required": "A/B/C"
-      },
       {
         "id": "parent-count",
         "label": "Parent cluster count",
@@ -300,25 +302,25 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.6,
+        "actual": 1.5,
         "required": ">= 1.4"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.6,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.143,
+        "actual": 0.053,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 6,
+        "actual": 5,
         "required": ">= 1"
       },
       {
@@ -336,11 +338,19 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.4,
+        "actual": 0.5,
         "required": "<= 0.5"
       }
     ],
     "failed": [
+      {
+        "id": "grade-floor",
+        "label": "Real snapshot grade floor",
+        "actual": "D",
+        "required": "A/B/C",
+        "severity": "fail",
+        "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
+      },
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
@@ -352,17 +362,17 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.6,
+      "avgAngles": 1.5,
       "avgTemporalTiers": 1.7,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.143,
-      "multiAngleCount": 6,
-      "weakParentCount": 4,
-      "weakParentRatio": 0.4,
+      "avgEvolutionRoles": 1.6,
+      "baseReportShare": 0.053,
+      "multiAngleCount": 5,
+      "weakParentCount": 5,
+      "weakParentRatio": 0.5,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 649,
-      "sourceGroupCount": 9
+      "storyCount": 605,
+      "sourceGroupCount": 10
     }
   }
 }
