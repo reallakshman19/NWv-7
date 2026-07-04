@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.403,
+      "qualityScore": 0.3981,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -995,118 +995,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 6
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 6
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "df71bc9e8f9d5353",
-            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 1.0,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 6,
-            "storyIds": [
-              "df71bc9e8f9d5353",
-              "573c76f7c04320cb",
-              "dadd53c1bc76741b",
-              "4cca4280284d2e54",
-              "bf952c0b99344c4d",
-              "fff45325db82b942"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 6
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2212,
-          "title": "Top news of the day on June 20, 2026 - The Hindu"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -1216,6 +1104,116 @@
           ],
           "score": 0.2195,
           "title": "Amazon Prime Day 2026: Top Deals on 65-inch Smart TVs From Sony, TCL and Samsung"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:3daa6b9864",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:3daa6b9864",
+            "representativeId": "8de4d1f58619a4e4",
+            "representativeTitle": "'They're best team by a mile': Pakistan coach calls out India obsession in judging his team - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "8de4d1f58619a4e4",
+              "094238ee548c2751"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "team",
+              "india",
+              "they",
+              "best"
+            ],
+            "topicKey": "team|india|they"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1751,
+          "title": "'They're best team by a mile': Pakistan coach calls out India obsession in judging his team - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -1441,7 +1439,7 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.3383,
-        "eventImportanceScore": 0.6342,
+        "eventImportanceScore": 0.6,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.475,
         "sourceAuthorityScore": 0.46,
@@ -1506,7 +1504,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -1526,6 +1524,8 @@
         "Hisense India Announces Up to 40% Discounts on TVs and Air Conditioners During Amazon Prime Day and Flipkart GOAT Sale - Business Standard: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026 Prime Membership Plans: Benefits, Prices and Which Plan is Right for You - News18: location failed — offline/local item lacks configured location match",
         "Saatva Promo Codes And Deals: Save Up To $625 On Beds This 4th Of July - Forbes: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day 2026 Offers: Best Prepaid Plans, SIM Deals and Recharge Offers During the Sale - News18: futureValidity failed — expired display window",
+        "Amazon Prime Day 2026 Offers: Best Prepaid Plans, SIM Deals and Recharge Offers During the Sale - News18: offerValidity failed — offer expired",
         "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: futureValidity failed — expired display window",
         "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: location failed — offline/local item lacks configured location match",
         "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: offerValidity failed — offer expired",
@@ -1573,7 +1573,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 14
+        "suppressedItemCount": 15
       },
       "qualityGrade": "B",
       "qualityScore": 0.8551,
@@ -5042,7 +5042,7 @@
       }
     }
   },
-  "generatedAt": 1783184437216,
+  "generatedAt": 1783185203312,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5061,7 +5061,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -5076,7 +5076,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.403,
+      "insight": 0.3981,
       "localTravel": 0.0,
       "upAhead": 0.8551
     },
@@ -5086,7 +5086,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3145,
+    "overallScore": 0.3133,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5108,6 +5108,8 @@
       "Hisense India Announces Up to 40% Discounts on TVs and Air Conditioners During Amazon Prime Day and Flipkart GOAT Sale - Business Standard: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026 Prime Membership Plans: Benefits, Prices and Which Plan is Right for You - News18: location failed — offline/local item lacks configured location match",
       "Saatva Promo Codes And Deals: Save Up To $625 On Beds This 4th Of July - Forbes: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day 2026 Offers: Best Prepaid Plans, SIM Deals and Recharge Offers During the Sale - News18: futureValidity failed — expired display window",
+      "Amazon Prime Day 2026 Offers: Best Prepaid Plans, SIM Deals and Recharge Offers During the Sale - News18: offerValidity failed — offer expired",
       "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: futureValidity failed — expired display window",
       "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: location failed — offline/local item lacks configured location match",
       "Best Tablet Deals of the Flipkart GOAT & Amazon Prime Day Sales 2026 - PaidFreeDroid: offerValidity failed — offer expired",
