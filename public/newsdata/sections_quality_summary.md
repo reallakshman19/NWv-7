@@ -2,7 +2,7 @@
 
 - Status: **WARN**
 - Schema: `2`
-- Content hash: `f39b8ff1cdd2`
+- Content hash: `525376ae56ee`
 - Sections: `10`
 - Stories: `289`
 - Source groups: `11`
