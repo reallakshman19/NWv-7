@@ -9,6 +9,8 @@ on:
       - 'scripts/dataContracts/**'
       - 'scripts/data_freshness_contracts.mjs'
       - 'scripts/probe_deployed_data_freshness.mjs'
+      - 'src/services/fetchLifecycleDiagnostics.js'
+      - 'src/services/rssAggregator.lifecycle.cert.test.mjs'
       - 'src/viewModels/topStoriesRecency.js'
       - 'src/viewModels/useMainTabViewModel.recency.cert.test.mjs'
       - 'package.json'
@@ -41,3 +43,6 @@ jobs:
 
       - name: Certify Main Top Stories recency guardrail
         run: node src/viewModels/useMainTabViewModel.recency.cert.test.mjs
+
+      - name: Certify Hybrid fetch lifecycle guardrails
+        run: node src/services/rssAggregator.lifecycle.cert.test.mjs
