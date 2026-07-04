@@ -1,5 +1,5 @@
 {
-  "generatedAt": 1783179218429,
+  "generatedAt": 1783180758810,
   "policyVersion": "section-source-policy-v1",
   "reportVersion": "section-source-policy-report-v1",
   "schemaVersion": 1,
@@ -31,17 +31,17 @@
     },
     "entertainment": {
       "sourceGroupCount": 1,
-      "storyCount": 18,
+      "storyCount": 19,
       "thin": true,
       "topCategories": [
         {
           "category": "entertainment",
-          "count": 18
+          "count": 19
         }
       ],
       "topSources": [
         {
-          "count": 18,
+          "count": 19,
           "sourceGroup": "google_news"
         }
       ]
@@ -63,11 +63,11 @@
         },
         {
           "count": 6,
-          "sourceGroup": "ndtv"
+          "sourceGroup": "times_of_india"
         },
         {
           "count": 4,
-          "sourceGroup": "times_of_india"
+          "sourceGroup": "ndtv"
         }
       ]
     },
@@ -104,7 +104,7 @@
       ],
       "topSources": [
         {
-          "count": 15,
+          "count": 16,
           "sourceGroup": "bbc"
         },
         {
@@ -112,7 +112,7 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 5,
+          "count": 4,
           "sourceGroup": "google_news"
         }
       ]
@@ -196,11 +196,11 @@
       ],
       "topSources": [
         {
-          "count": 18,
+          "count": 16,
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 10,
+          "count": 12,
           "sourceGroup": "google_news"
         },
         {
@@ -221,12 +221,12 @@
       ],
       "topSources": [
         {
-          "count": 16,
-          "sourceGroup": "bbc"
+          "count": 15,
+          "sourceGroup": "the_hindu"
         },
         {
-          "count": 14,
-          "sourceGroup": "the_hindu"
+          "count": 15,
+          "sourceGroup": "bbc"
         }
       ]
     }
@@ -716,9 +716,10 @@
     {
       "configuredFeeds": 1,
       "health": {
+        "error": "HTTPSConnectionPool(host='www.omanobserver.om', port=443): Max retries exceeded with url: /rss (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.omanobserver.om', port=443) at 0x7f3bf8d0d750>, 'Connection to www.omanobserver.om timed out. (connect timeout=15)'))",
         "feedUrl": "https://www.omanobserver.om/rss",
         "items": 0,
-        "ok": true,
+        "ok": false,
         "section": "muscat"
       },
       "sections": [

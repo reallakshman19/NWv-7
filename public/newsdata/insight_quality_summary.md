@@ -3,12 +3,12 @@
 - Status: **WARN**
 - Schema: `3`
 - Collector: `insight-collector-json-v4`
-- Content hash: `a4277d4077ca4f9f`
-- Stories: `644`
-- Usable 36h stories: `644`
+- Content hash: `28abab02d10f653d`
+- Stories: `684`
+- Usable 36h stories: `664`
 - Source groups: `9`
 - Angle hint coverage: `100%`
-- Non-base angle stories: `438`
+- Non-base angle stories: `454`
 - Event sketches: `12`
 - Multi-source sketches: `4`
 
@@ -16,26 +16,26 @@
 
 | Slot | Story IDs | Linked | Sources | Thin |
 |---|---:|---:|---:|---|
-| now | 53 | 53 | 3 | False |
+| now | 60 | 60 | 3 | False |
 | minus4h | 40 | 40 | 2 | True |
-| minus12h | 68 | 68 | 5 | False |
+| minus12h | 80 | 80 | 5 | False |
 | minus24h | 40 | 40 | 2 | True |
 
 ## Warnings
 
-- feed 'ndtv' has returned zero items for 29 consecutive runs
-- feed 'financial_express' has returned zero items for 242 consecutive runs
-- feed 'muscat_daily' has returned zero items for 224 consecutive runs (last zero at 1783176572567)
+- feed 'ndtv' has returned zero items for 30 consecutive runs
+- feed 'financial_express' has returned zero items for 243 consecutive runs
+- feed 'muscat_daily' has returned zero items for 225 consecutive runs (last zero at 1783179207258)
 
 ## Top angles
 
-- base_report: 206
-- official_response: 144
-- fact_update: 103
+- base_report: 230
+- official_response: 152
+- fact_update: 104
 - market_reaction: 71
 - regional_followup: 47
-- investigative_detail: 30
-- reaction_public: 18
-- expert_analysis: 16
+- investigative_detail: 33
+- reaction_public: 21
+- expert_analysis: 17
 - correction: 6
 - background_context: 3
