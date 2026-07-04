@@ -10,6 +10,8 @@ import {
 } from './fetchLifecycleDiagnostics.js';
 import { selectPrefetchedSectionItems } from '../adapters/sectionsSnapshotFetcher.js';
 
+const THIS_CERT = path.normalize('src/services/rssAggregator.lifecycle.cert.test.mjs');
+
 function readRepoFile(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
@@ -85,7 +87,9 @@ function testSectionsDatasetCanonicalPath() {
 
 function testNoLifecycleFetcherReferencesRemain() {
   assert.equal(fs.existsSync('src/services/rssSectionLifecycleFetcher.js'), false);
-  const files = listFiles('src').filter(file => /\.(js|jsx|mjs|ts|tsx)$/.test(file));
+  const files = listFiles('src')
+    .filter(file => /\.(js|jsx|mjs|ts|tsx)$/.test(file))
+    .filter(file => path.normalize(file) !== THIS_CERT);
   const hits = files.filter(file => readRepoFile(file).includes('rssSectionLifecycleFetcher'));
   assert.deepEqual(hits, []);
 }
