@@ -1,0 +1,31 @@
+check_id: U2.3-DTE-04
+invariant: >
+  Date edge-cases are handled without silent corruption, and the two JS date engines
+  (dateAware parsers vs the legacy dateExtractor) agree on overlapping inputs.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.3 (Feb29 / rollover battery); src/intelligence/dateAware.js:32-42
+  (inferYearForShortDate) + :77-88 (next week); src/utils/dateExtractor.js:61-68 (inferYear) + :169-175 (next week).
+input:
+  snapshot: "synthetic (29/02; 'next week' at a Sunday ref)"
+  asOfDate: ["2026-06-24", "2026-06-28 (Sunday)"]
+  mode: { mode: offline, host: live, locale: n/a }
+  tz_runs: [Asia/Kolkata]
+procedure: "Battery items B-FEB29 + the parity probe in u2_3_date_battery.mjs (dateAware vs extractDate on 'next week' at a Sunday)."
+result:
+  feb29_non_leap: >
+    '29/02' with ref in 2026 (non-leap) => 2027-03-01. JS Date overflow silently coerces Feb 29 to
+    Mar 1, then the -30d rule flips the year. No error, no flag — an invalid calendar date becomes a
+    valid wrong one. Deterministic but a silent-coercion edge.
+  two_engine_next_week_divergence: >
+    'next week' at ref Sunday 2026-06-28: dateAware => 2026-06-29 (next Monday); legacy extractDate
+    => 2026-07-06 (Monday a week later). They DISAGREE by 7 days. Cause: dateAware uses
+    ((8-getDay())%7)||7; legacy uses (8-getDay()) without the %7. Latent because dateAware's parser
+    runs first and wins; but any direct extractDate caller (or the Python port if it mirrors the
+    legacy formula) is a week off on Sundays.
+verdict: FAIL (two latent edge defects)
+user_impact: >
+  Feb29: low — rare, and lands one day off in a non-leap year. next-week divergence: low while
+  dateAware wins ordering, but it is a concrete consistency gap between the two engines and a
+  candidate source of JS<->Python disagreement (U2.7). Both are wrong-day risks on the planner.
+benchmark_hook: "§V4 date_year_inference (Feb29) + date_relative_week (next-week Sunday) strata. U2.7 checks whether the Python port reproduces dateAware's or the legacy formula."
+issue_matrix_id: I020

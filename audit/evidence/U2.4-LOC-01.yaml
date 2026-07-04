@@ -1,0 +1,36 @@
+check_id: U2.4-LOC-01
+invariant: >
+  Location score ladder is as documented (1.0 exact / 0.95 word-boundary city / 0.82
+  word-boundary non-city alias) and alias collisions do not mis-attribute items. Adjudicates
+  the I018 risk list against the SHIPPED matcher.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.4; src/intelligence/locationAware.js:23-32 (scoreMatch),
+  :34-122 (detectCanonicalLocation); src/config/locationLibrary.js; audit/evidence/U1.4-LOC-01.yaml (I018).
+input:
+  snapshot: "deterministic synthetic probes (inline) + frozen/up_ahead_2026-06-24.json for real-cycle"
+  asOfDate: "N/A — location matching is clock-invariant"
+  mode: { mode: offline (strict), host: both, locale: Chennai/Trichy/Muscat }
+  tz_runs: [Asia/Kolkata]
+procedure: "audit/evidence/u2_4_location_probes.mjs Part A + C. Reproduce: TZ=Asia/Kolkata node audit/evidence/u2_4_location_probes.mjs."
+result:
+  ladder_values_correct_but_rung_mischaracterized: >
+    scoreMatch returns 1.0 when whole text == alias; else 0.95 if alias===city AND the regex
+    `(^|\s)alias(\s|$)` matches; else 0.82 if alias!==city AND that SAME regex matches; else 0.
+    The 0.95/0.82 rungs use the IDENTICAL word-boundary regex — they differ ONLY by alias===city.
+    Plan §U2.4's "0.82 substring" is WRONG: there is NO substring rung. The matcher is whole-token.
+  I018_adjudication:
+    cantonment: "CONFIRMED collision — 'Delhi Cantonment railway station' -> Trichy @0.82 via alias 'cantonment'. Mechanism-independent (generic word is a standalone alias)."
+    omr_ecr_substring: "NULLIFIED — 'omr'/'ecr' inside other words (genomresearch/ecru) -> NO match (word-boundary). Only whole-token 'OMR' matches (legitimate)."
+    al_hail: "NULLIFIED — weather 'hail storm' does NOT match Muscat 'al hail' (contiguous phrase required)."
+    nagar: "NULLIFIED — unlisted 'Gandhi Nagar' -> NO match (there is no bare 'nagar' alias; only full 'anna nagar'/'thillai nagar' etc.)."
+    controls: "'Anna Nagar'/'T Nagar' -> Chennai @0.82; whole-text 'chennai' -> 1.0 (ladder works)."
+  real_cycle_contamination: "frozen up_ahead: 11/92 items text-matched a city offline; 11/11 agree with the stored city; 0 cross-locale mismatches. No contamination observed on this corpus."
+  artifacts: ["audit/evidence/U2.4-location-probes-report.json", "audit/evidence/u2_4_location_probes.mjs"]
+verdict: PASS (matcher safe, ladder correct) with ONE confirmed alias defect ('cantonment') and a plan-doc correction
+user_impact: >
+  Location matching is materially SAFER than I018 feared — the word-boundary matcher prevents the
+  short-alias / 'al hail' / 'nagar' contamination class entirely. The single real defect is
+  'cantonment' (any city's cantonment -> Trichy). True falseLocationAcceptance vs the 0.05 gate
+  needs a gold-labelled set (no contamination on this date-poor real cycle; deferred to the benchmark).
+benchmark_hook: "§V4 location false-acceptance per locale on the gold corpus enforces 0.05. Remove/qualify 'cantonment'. Plan §U2.4 '0.82 substring' wording corrected to 'word-boundary non-city alias'."
+issue_matrix_id: I018 (refined: cantonment confirmed Low; substring tail nullified)

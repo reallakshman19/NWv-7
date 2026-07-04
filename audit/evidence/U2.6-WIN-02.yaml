@@ -1,0 +1,34 @@
+check_id: U2.6-WIN-02
+invariant: >
+  (a) The weather text gate requires >=2 genuine weather-context signals before an item enters the
+  Weather tab; (b) the display horizon (plan §U2.6: 14d) bounds movies/events/festivals.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.6; src/services/upAheadService.js:311-324 (isActualWeatherAlertText);
+  src/config/settings_upahead.js:25-27 (ambiguousKeywords vs contextKeywords) + :56 (weather_alerts positives);
+  src/viewModels/useUpAheadPageViewModel.js:350-355 (movies/events/festivals — no window).
+input:
+  snapshot: "synthetic 'Cyber scam warning issued' (no weather context) + a 5-year-future movie"
+  asOfDate: "Date.now() at run"
+  mode: { mode: offline, host: static display projection, locale: Chennai }
+  tz_runs: [Asia/Kolkata]
+procedure: "audit/evidence/u2_6_windowing.harness.test.mjs (CAP-WEATHER-TEXT, NO-WINDOW-MOVIES)."
+result:
+  weather_gate_defeated: >
+    FAIL — 'Cyber scam warning issued / beware of fraud' (zero weather context) ENTERS the Weather tab.
+    isActualWeatherAlertText counts matches over contextKeywords + ambiguousKeywords + weather_alerts
+    POSITIVES using substring includes(). 'warning' (and 'alert'/'advisory'/'watch') is in BOTH
+    ambiguousKeywords AND the weather positives list, so ONE occurrence counts as 2 matches and clears
+    minimumMatches:2. The documented ">=2 context keywords" is effectively ">=1 ambiguous word".
+    Control: an item with zero weather words is correctly excluded (PASS).
+  no_upper_window: >
+    FAIL — a movie dated 5 YEARS in the future appears in movieCards (the static "7-day" Up Ahead).
+    getVisibleUpAheadProjection applies NO upper 7/14d window to movies/events/festivals (only
+    alerts/offers/civic are age-filtered). Past-dated items ARE dropped (sanitizeUpAheadData past-date
+    filter), but future items are unbounded. Plan §U2.6 "display 14d" is not enforced for these categories.
+verdict: FAIL (two defects)
+user_impact: >
+  (1) Weather tab precision hole: non-weather "warning/alert/advisory/watch" items (health warning,
+  scam alert, security advisory) are mis-shown as weather alerts. (2) Far-future movies/events/festivals
+  pollute the 7-day horizon — a release months/years out appears alongside this-week items.
+benchmark_hook: "§V4 weather-tab precision + a horizon-window stratum catch both. Fixes: de-duplicate ambiguous vs positive weather words (or require >=1 contextKeyword specifically); add an upper display-window bound to movies/events/festivals."
+issue_matrix_id: I023 (weather gate), I024 (no upper window)

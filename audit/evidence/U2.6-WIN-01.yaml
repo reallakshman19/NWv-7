@@ -1,0 +1,25 @@
+check_id: U2.6-WIN-01
+invariant: >
+  Per-tab age caps are enforced at the boundary (weather 36h, alerts 48h, online offers 30d,
+  civic 365d + cap 20) and the Suggested feed is cross-category deduped, soonest-first, capped 24.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.6; src/viewModels/useUpAheadPageViewModel.js:39-43 (caps),
+  :281-346 (filters), :244-275 (buildSuggestedItems), :277-394 (getVisibleUpAheadProjection);
+  src/services/upAheadService.js (sanitizeUpAheadData).
+input:
+  snapshot: "synthetic items at each cap boundary; ages set RELATIVE to Date.now()"
+  asOfDate: "Date.now() at run (caps are relative; clock-injection gap is I012 — caps read Date.now() directly)"
+  mode: { mode: offline, host: static display projection, locale: Chennai }
+  tz_runs: [Asia/Kolkata]
+procedure: "audit/evidence/u2_6_windowing.harness.test.mjs via vitest. Reproduce: TZ=Asia/Kolkata node_modules/.bin/vitest run --config audit/evidence/u2.vitest.config.ts."
+result:
+  CAP-ALERT-48h: "PASS — alert at 47h55m kept, 49h dropped (boundary inclusive at 48h)."
+  CAP-WEATHER-36h: "PASS — weather (>=2 ctx kw) at <36h kept, >36h dropped."
+  CAP-OFFER-30d: "PASS — online offer at <30d kept, >30d dropped."
+  CAP-CIVIC-20: "PASS — 25 civic items capped to 20 (CIVIC_MAX_ITEMS), newest-first."
+  SUGGESTED-CAP24: "PASS — 30 cross-category items + 1 duplicate -> 24 unique, dedup by id/link/url/title, soonest-upcoming-first."
+  clock_note: "every age filter reads Date.now() directly (useUpAheadPageViewModel.js:284/289/302/319/343 + buildSuggestedItems:263) — hardwired, per I012; relative caps are still testable without a clock shim."
+verdict: PASS
+user_impact: "The documented age caps and Suggested cap/dedupe behave correctly at the boundary. (Clock hardwiring is I012; does not affect cap correctness in production.)"
+benchmark_hook: "§V4 freshness/age-cap strata regression-guard these boundaries; replay at a dated clock needs the I012 shim."
+issue_matrix_id: n/a (PASS)

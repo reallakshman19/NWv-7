@@ -1,0 +1,30 @@
+check_id: U2.3-DTE-02
+invariant: >
+  "ends today/tomorrow/Friday" deadlines resolve against the injected asOfDate, NOT the wall
+  clock; reference fallback order asOfDate -> publishDate -> today is honored.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.3 (worked sample U2.3-DTE-04); src/intelligence/dateAware.js:28-30
+  (chooseReferenceDate), :106-157 (deadline parsers), :135-157 (parseWeekdayDeadline).
+input:
+  snapshot: "synthetic 'Offer ends Friday' (inline)"
+  asOfDate: ["2026-06-24 (Wed)", "2026-06-27 (Sat)"]
+  mode: { mode: offline, host: live, locale: Chennai }
+  tz_runs: [Asia/Kolkata]
+procedure: >
+  Run analyzeDateText('Offer ends Friday') at asOfDate Wed 2026-06-24 and at Sat 2026-06-27;
+  assert both resolve to a Friday and to DIFFERENT absolute dates (proving wall-clock independence
+  when a clock is injected). Part of audit/evidence/u2_3_date_battery.mjs (B-ENDS-FRI).
+result:
+  run_wed: { asOfDate: "2026-06-24", eventDateEndKey: "2026-06-26", dow: Friday }
+  run_sat: { asOfDate: "2026-06-27", eventDateEndKey: "2026-07-03", dow: Friday }
+  verdict_detail: "both Friday, different dates -> deadline IS asOfDate-relative. chooseReferenceDate fallback asOfDate->publishDate->today confirmed at dateAware.js:28-30."
+verdict: PASS
+user_impact: >
+  Deadline resolution is correct GIVEN an injected clock. The residual risk is NOT in dateAware —
+  it is that the static display projection never injects asOfDate (I012), so on the static host
+  "ends Friday" falls back to the browser wall clock (chooseReferenceDate's third branch). For a
+  session that spans the parse-time week boundary this reproduces the wrong-day class of I012/I013.
+  dateAware itself is on the CORRECT side: it files keys via toLocalDateKey (local), unlike the
+  static transform's UTC slice (I013).
+benchmark_hook: "§V4 date_relative_week stratum (deadline wrong-day) catches regressions; replay requires the global-clock shim on the static path per I012 exit gate."
+issue_matrix_id: I012 (static path lacks injected clock — dateAware is correct; no new defect here)

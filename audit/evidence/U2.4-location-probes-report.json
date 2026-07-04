@@ -1,0 +1,115 @@
+{
+  "partA_aliasProbes": [
+    {
+      "id": "A-CANTONMENT",
+      "desc": "'Delhi Cantonment' mis-maps to Trichy (generic word alias)",
+      "expected": "Trichy @0.82",
+      "actual": "Trichy @0.82 (alias=cantonment)",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-OMR-TOKEN",
+      "desc": "'OMR' as a standalone token -> Chennai (whole-token match, expected)",
+      "expected": "Chennai",
+      "actual": "Chennai @0.82",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-OMR-SUBSTRING",
+      "desc": "'omr'/'ecr' inside other words -> NO match (boundary, not substring)",
+      "expected": "no match",
+      "actual": "none @0",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-HAIL",
+      "desc": "weather 'hail' does NOT match Muscat alias 'al hail' (contiguous required)",
+      "expected": "no match",
+      "actual": "none @0",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-NAGAR",
+      "desc": "unlisted 'X Nagar' does NOT match (no bare 'nagar' alias)",
+      "expected": "no match",
+      "actual": "none @0",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-CONTROL",
+      "desc": "listed 'Anna Nagar'/'T Nagar' -> Chennai @0.82 (control)",
+      "expected": "Chennai @0.82",
+      "actual": "Chennai @0.82",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-EXACT",
+      "desc": "whole-text 'chennai' -> 1.0",
+      "expected": "Chennai @1",
+      "actual": "Chennai @1",
+      "verdict": "PASS"
+    }
+  ],
+  "partB_onlineBypass": [
+    {
+      "id": "B-shopping",
+      "desc": "online 'shopping' bare-city: bypass=true",
+      "expected": "bypass=true",
+      "actual": "bypass=true city=null",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-airlines",
+      "desc": "online 'airlines' bare-city: bypass=true",
+      "expected": "bypass=true",
+      "actual": "bypass=true city=null",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-movies",
+      "desc": "online 'movies' bare-city: bypass=false",
+      "expected": "bypass=false",
+      "actual": "bypass=false city=Chennai",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-events",
+      "desc": "online 'events' bare-city: bypass=false",
+      "expected": "bypass=false",
+      "actual": "bypass=false city=Chennai",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-civic",
+      "desc": "online 'civic' bare-city: bypass=false",
+      "expected": "bypass=false",
+      "actual": "bypass=false city=Chennai",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-alerts",
+      "desc": "online 'alerts' bare-city: bypass=false",
+      "expected": "bypass=false",
+      "actual": "bypass=false city=Chennai",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-VETO",
+      "desc": "neighbourhood 'T Nagar' vetoes online bypass (keeps location)",
+      "expected": "vetoed + Chennai",
+      "actual": "vetoed=true city=Chennai",
+      "verdict": "PASS"
+    }
+  ],
+  "partC_realCycle": {
+    "total": 92,
+    "offline_accept": 11,
+    "agree_with_stored": 11,
+    "disagree": 0,
+    "mismatches": []
+  },
+  "summary": {
+    "probes_pass": 14,
+    "probes_fail": 0
+  }
+}

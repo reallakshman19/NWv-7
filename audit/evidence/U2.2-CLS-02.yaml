@@ -1,0 +1,41 @@
+check_id: U2.2-CLS-02
+invariant: >
+  The JS classifier and the Python prefetch classifier agree on the category of real items
+  (else static-host users see a different product — U9-7). Measured as JS-recomputed category
+  vs the category stored in the static prefetch output.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.2 (real-data distribution) + §U2.7 (parity); src/intelligence/classification.js;
+  static output audit/evidence/frozen/up_ahead_2026-06-24.json (.items[].category = Python's verdict).
+input:
+  snapshot: "frozen/up_ahead_2026-06-24.json (92 items; contentHash sha256:52e90023b5150af6…)"
+  asOfDate: "N/A — classification clock-invariant"
+  mode: { mode: offline, host: static-output(Python) vs JS-recompute, locale: Chennai+Muscat }
+procedure: >
+  For each item, classify (title+summary) with JS classifyItemCategory after STRIPPING the stored
+  category field (so JS is independent, no explicitCategory bonus), compare to the stored category.
+  audit/evidence/u2_2_classification.mjs Part C.
+result:
+  agreement: "22.8% (21/92)"
+  js_distribution: { general: 65, shopping: 17, alerts: 5, events: 3, sports: 1, civic: 1 }
+  python_stored_distribution: { shopping: 58, alerts: 32, airlines: 1, civic: 1 }
+  direction: "JS sends 65/92 to 'general' (would be dropped/not-shown) that Python filed into alerts/shopping. JS is far STRICTER on text alone."
+  per_item_quality_mixed: >
+    Some JS 'general' verdicts look correct (Python over-includes): 'Tiruvallur ammonia gas leak: death
+    toll rises' (news, not an actionable alert; 'death toll' global-negative correctly suppresses).
+    Others look WRONG for JS (real items dropped): 'Rainbow Pride March on June 28' -> JS general;
+    'Madras Art Weekend exhibition' -> JS events (correct, Python mis-filed as alerts).
+  caveat: >
+    This JS run is TEXT-ONLY: the frozen items do not carry the original feed sourceType, so the
+    detectBySourceType bonus (0.9) and airline/weather source bonuses did NOT apply. The live JS path
+    has that context, so true live-vs-static agreement is >= 22.8%. This number is a text-only LOWER
+    BOUND and the U2.7 deliverable (full live path on frozen raw items) will refine it.
+verdict: FAIL (large static<->live classification divergence; magnitude is a U2.7 lead, not a final per-item quality verdict)
+user_impact: >
+  Static-host and live users can see materially different category assignments for the same items.
+  Up to 65/92 items classified differently (mostly Python-includes / JS-drops on text alone). Whether
+  Python over-includes noise or JS drops real items is per-item mixed — the divergence itself is the risk.
+benchmark_hook: >
+  U2.7 runs the JS path WITH feed context (sourceType) on the same raw items and computes per-field
+  (category/date/location) disagreement; that number decides which implementation the §V4 benchmark
+  treats as system-under-test.
+issue_matrix_id: I022

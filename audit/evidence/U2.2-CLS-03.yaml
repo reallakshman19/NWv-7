@@ -1,0 +1,27 @@
+check_id: U2.2-CLS-03
+invariant: >
+  Quantify the U9-2 risk: how many REAL items change category if the I014 keyword contradictions
+  are fixed (sizes whether the contradictions matter in practice).
+source_of_truth: "audit/UPAHEAD_AUDIT_PLAN.md §U2.2 (exit: collision flip quantification); audit/evidence/U1.1-KWD-01.yaml (I014); src/intelligence/classification.js."
+input:
+  snapshot: "frozen/up_ahead_2026-06-24.json (92 items)"
+  asOfDate: "N/A"
+  mode: { mode: offline, host: JS classifier, locale: Chennai+Muscat }
+procedure: >
+  Re-classify all 92 items twice: (1) shipped keywords; (2) 'fog'/'mist' removed from global
+  negatives (I014 fog fix); (3) additionally 'launches' removed (I014 dead-negative). Count category
+  changes. audit/evidence/u2_2_classification.mjs Part D.
+result:
+  flips_from_fog_mist_fix: 0
+  flips_from_launches_fix: 0
+  launches_dead_confirmed: true
+  interpretation: >
+    The I014 contradictions are REAL in code but flip ZERO classifications on this corpus, because the
+    corpus has 0 weather_alerts items (so 'fog'/'mist' suppression is never exercised) and 'launches'
+    is provably dead (removing it changes nothing — corroborates U1.1 CLASS4). The practical U9-2 risk
+    on the CURRENT real cycle is nil; it is latent/conditional on a weather- or launch-bearing cycle.
+  corpus_limitation: "98% offers/alerts, 0 movies/events/festivals/weather. A richer cycle is required to exercise fog (weather) and the movies/events cross-category co-fires. Handoff to a fuller capture / U2.7."
+verdict: PASS (risk quantified = 0 flips on this corpus; I014 right-sized to latent/conditional)
+user_impact: "On the current real corpus the keyword contradictions cause no mis-classification. I014 remains a code-correctness fix but is downgraded in practical urgency until a weather/movies cycle exercises it."
+benchmark_hook: "§V4 per-category precision on a weather-bearing cycle will surface the fog suppression; re-run Part D on that cycle to get a non-zero flip count if present."
+issue_matrix_id: I014 (flip impact = 0 on this corpus; finding stands at code level)

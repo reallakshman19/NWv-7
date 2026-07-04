@@ -1,0 +1,76 @@
+{
+  "tz": "Asia/Kolkata",
+  "caps": [
+    {
+      "id": "CAP-ALERT-48h",
+      "desc": "alert <48h kept, >48h dropped",
+      "expected": "keep present & drop absent",
+      "actual": "kept=true dropAbsent=true",
+      "verdict": "PASS"
+    },
+    {
+      "id": "CAP-WEATHER-36h",
+      "desc": "weather (>=2 ctx kw) <36h kept, >36h dropped",
+      "expected": "keep present & drop absent",
+      "actual": "kept=true dropAbsent=true",
+      "verdict": "PASS"
+    },
+    {
+      "id": "CAP-WEATHER-TEXT",
+      "desc": "INVARIANT: weather needs >=2 weather-context kw -> FAILS (1 ambiguous word admitted via list overlap)",
+      "expected": "exclude non-weather \"scam warning\" (invariant)",
+      "actual": "weatherAlerts=1 (defect reproduces=true)",
+      "verdict": "FAIL"
+    },
+    {
+      "id": "CAP-WEATHER-CONTROL",
+      "desc": "item with zero weather words excluded (control)",
+      "expected": "0 weatherAlerts",
+      "actual": "count=0",
+      "verdict": "PASS"
+    },
+    {
+      "id": "CAP-OFFER-30d",
+      "desc": "online offer <30d kept, >30d dropped",
+      "expected": "keep present & drop absent",
+      "actual": "kept=true dropAbsent=true",
+      "verdict": "PASS"
+    },
+    {
+      "id": "CAP-CIVIC-20",
+      "desc": "25 civic items -> capped 20",
+      "expected": "<=20",
+      "actual": "count=20",
+      "verdict": "PASS"
+    },
+    {
+      "id": "SUGGESTED-CAP24",
+      "desc": "Suggested capped 24 & deduped",
+      "expected": "count<=24 & unique ids",
+      "actual": "count=24 unique=true",
+      "verdict": "PASS"
+    },
+    {
+      "id": "NO-WINDOW-MOVIES",
+      "desc": "INVARIANT: display window 14d -> FAILS for movies (5yr-future item present)",
+      "expected": "far-future excluded (invariant)",
+      "actual": "farFuturePresent=true oldDroppedUpstream=true",
+      "verdict": "FAIL"
+    }
+  ],
+  "suggested": {
+    "count": 24,
+    "capOK": true,
+    "unique": true
+  },
+  "unwindowed": {
+    "movieCount": 1,
+    "farFuturePresent": true,
+    "oldFilteredUpstream": true,
+    "note": "static projection applies NO upper 7/14d window to movies/events/festivals: a movie dated 5 YEARS out passes. Past-dated items ARE dropped upstream by sanitizeUpAheadData. Plan §U2.6 \"display 14d\" is NOT enforced for these categories on the static path."
+  },
+  "summary": {
+    "pass": 6,
+    "fail": 2
+  }
+}

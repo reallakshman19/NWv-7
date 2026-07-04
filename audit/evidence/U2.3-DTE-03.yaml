@@ -1,0 +1,40 @@
+check_id: U2.3-DTE-03
+invariant: >
+  The date engine extracts an event date from a meaningful share of REAL items per category
+  (a parser that passes the battery but extracts nothing from real notices still fails the
+  product), AND the static prefetch output carries the dates it should.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.3 (real-cycle extraction-rate exit); src/intelligence/dateAware.js
+  (analyzeDateText); frozen static output audit/evidence/frozen/up_ahead_2026-06-24.json.
+input:
+  snapshot: "audit/evidence/frozen/up_ahead_2026-06-24.json (92 items, contentHash sha256:52e90023b5150af6…)"
+  asOfDate: "2026-06-24"
+  mode: { mode: offline, host: static (the frozen file IS the static prefetch output), locale: Chennai+Muscat }
+  tz_runs: [Asia/Kolkata]
+procedure: >
+  (a) Run analyzeDateText on every frozen item's (title+summary) at asOf 2026-06-24; count
+  non-null eventDate per category. (b) Read the frozen output's own date fields (eventStartAt,
+  dateConfidence, dateSource, plannerEligible). Compare. Part of u2_3_date_battery.mjs.
+result:
+  js_engine_extraction_rate: "15/92 (16.3%) overall — alerts 6/32 (18.8%), shopping 8/58 (13.8%), airlines 1/1, civic 0/1"
+  js_extractions_are_real: >
+    NOT noise: e.g. 'Chennai's Rainbow Pride March on June 28' -> 2026-06-28; 'Madras Art Weekend's
+    upcoming exhibition' -> 2026-06-26; 'Riyadh Air ... First Flight on 10' -> 2026-06-10 (legacy_named parser).
+  static_output_date_state: >
+    The SAME frozen prefetch file has dateSource='none' (92/92), dateConfidence='unknown' (92/92),
+    eventStartAt=null (92/92), eventEndAt=null (92/92) — ZERO event dates — yet plannerEligible=true
+    (88/92) and expiryAt set (92/92). The static Up Ahead is EXPIRY-driven (horizon.offerFallbackHours
+    48 / alertFallbackHours 24), not event-date-driven.
+  divergence: "JS engine would date 15 real items (incl. genuine future events) that the static prefetch surfaces as undated. Also: 88 items are plannerEligible WITHOUT any event date — contradicts the JS eligibility contract (no eventDate -> plannerEligible:false)."
+  corpus_caveat: "this real cycle is 98% offers/alerts (shopping 58 + alerts 32); 0 movies/events/festivals/weather. Extraction rate is measured on a date-poor corpus; a richer cycle is needed for movies/events rates (handoff to a fuller capture)."
+verdict: FAIL (static-host date-extraction gap)
+user_impact: >
+  Static-host users (the majority per MODE_MATRIX) see real upcoming events (Pride March Jun 28,
+  art exhibition Jun 26) with NO date — they cannot be sorted by day, placed on the 7-day horizon,
+  or added to the planner with a date. The planner-eligible-without-date flag risks dateless items
+  entering the planner. The JS live path would date them; the static path does not.
+benchmark_hook: >
+  Root cause (Python prefetch date layer vs JS analyzeDateText) is the U2.7 parity deliverable —
+  this record is the lead with the divergence already measured (15 JS vs 0 static). §V4 extraction-rate
+  + wrong-day strata must be run on BOTH implementations (system-under-test decision).
+issue_matrix_id: I019

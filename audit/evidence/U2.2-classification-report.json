@@ -1,0 +1,136 @@
+{
+  "partA_formula": [
+    {
+      "id": "A-F1",
+      "desc": "score=pos-1.0*catNeg-0.65*gNeg+bonuses; conf=clamp(score/4) [A special sneak peek event]",
+      "expected": "conf==clamp(1.000)=0.250 (or documented floor)",
+      "actual": "cat=movies conf=0.25 recomputedScore=1.000",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-F2",
+      "desc": "score=pos-1.0*catNeg-0.65*gNeg+bonuses; conf=clamp(score/4) [release date set, but it is a sc]",
+      "expected": "conf==clamp(1.350)=0.338 (or documented floor)",
+      "actual": "cat=movies conf=0.3375 recomputedScore=1.350",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-F3",
+      "desc": "score=pos-1.0*catNeg-0.65*gNeg+bonuses; conf=clamp(score/4) [flash sale clearance with coupon]",
+      "expected": "conf==clamp(5.900)=1.000 (or documented floor)",
+      "actual": "cat=shopping conf=1 recomputedScore=5.900",
+      "verdict": "PASS"
+    },
+    {
+      "id": "A-DOUBLECOUNT",
+      "desc": "'release date' also fires 'release' -> positive double-counts (+2)",
+      "expected": "matchedPositive includes BOTH 'release' and 'release date'",
+      "actual": "matchedPositive=[\"release date\",\"release\"] positive=2",
+      "verdict": "PASS"
+    }
+  ],
+  "partB_phaseB": [
+    {
+      "id": "B-FIRES",
+      "desc": "globalNeg>=2 & score<2.25 -> general",
+      "expected": "general",
+      "actual": "cat=general (pos=2 globalNeg=2)",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-CONTROL",
+      "desc": "no global neg -> category retained",
+      "expected": "movies",
+      "actual": "cat=movies",
+      "verdict": "PASS"
+    },
+    {
+      "id": "B-ESCAPE",
+      "desc": "overlap-inflated score can exceed 2.25 ceiling and escape Phase-B",
+      "expected": "movies (score>2.25 despite 2 global negatives)",
+      "actual": "cat=movies pos=6",
+      "verdict": "PASS"
+    }
+  ],
+  "partC_realDistribution": {
+    "total": 92,
+    "agreementRate": "22.8%",
+    "jsDistribution": {
+      "general": 65,
+      "events": 3,
+      "shopping": 17,
+      "sports": 1,
+      "alerts": 5,
+      "civic": 1
+    },
+    "storedPythonDistribution": {
+      "alerts": 32,
+      "shopping": 58,
+      "airlines": 1,
+      "civic": 1
+    },
+    "sampleDisagreements": [
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "Japan University and SASTRA ink MoU"
+      },
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "Get ready for Chennai’s Rainbow Pride March on June 28"
+      },
+      {
+        "stored": "alerts",
+        "js": "events",
+        "title": "Madras Art Weekend’s upcoming exhibition offers a fresh"
+      },
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "The Lab, Chennai’s new resto cafe attempts experimental"
+      },
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "Tiruvallur ammonia gas leak: Death toll rises to 10"
+      },
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "When Chennai’s Veeranam drinking water project hogged t"
+      },
+      {
+        "stored": "alerts",
+        "js": "sports",
+        "title": "Chennai Metro Rail stations on Poonamallee-Vadapalani s"
+      },
+      {
+        "stored": "alerts",
+        "js": "general",
+        "title": "Do not fall prey to drugs, DGP Mahesh Kumar Aggarwal to"
+      },
+      {
+        "stored": "shopping",
+        "js": "general",
+        "title": "20+ Prime Day sneaker deals we’re adding to cart from N"
+      },
+      {
+        "stored": "shopping",
+        "js": "general",
+        "title": "Mark your calendars: Prime Day is happening now through"
+      }
+    ]
+  },
+  "partD_i014Flips": {
+    "note": "baseline = shipped keywords; fog-fix removes fog/mist from global negatives; launch-fix additionally removes dead \"launches\"",
+    "flips_from_fog_mist_fix": 0,
+    "flip_examples": [],
+    "flips_from_launches_fix": 0,
+    "launches_is_dead_confirmed": true
+  },
+  "summary": {
+    "pass": 7,
+    "fail": 0
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "tz": "Asia/Kolkata",
+  "battery": [
+    {
+      "id": "B-WIN-1d",
+      "invariant": "ISO date at asOf-1d -> before_window",
+      "expected": "before_window",
+      "actual": "before_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2026-06-23 plannerEligible=false upAhead=false"
+    },
+    {
+      "id": "B-WIN+0d",
+      "invariant": "ISO date at asOf+0d -> inside_window",
+      "expected": "inside_window",
+      "actual": "inside_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2026-06-24 plannerEligible=true upAhead=true"
+    },
+    {
+      "id": "B-WIN+6d",
+      "invariant": "ISO date at asOf+6d -> inside_window",
+      "expected": "inside_window",
+      "actual": "inside_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2026-06-30 plannerEligible=true upAhead=true"
+    },
+    {
+      "id": "B-WIN+7d",
+      "invariant": "ISO date at asOf+7d -> after_window",
+      "expected": "after_window",
+      "actual": "after_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2027-01-07 plannerEligible=false upAhead=true"
+    },
+    {
+      "id": "B-WIN+13d",
+      "invariant": "ISO date at asOf+13d -> after_window",
+      "expected": "after_window",
+      "actual": "after_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2026-07-07 plannerEligible=false upAhead=true"
+    },
+    {
+      "id": "B-WIN+14d",
+      "invariant": "ISO date at asOf+14d -> after_window",
+      "expected": "after_window",
+      "actual": "after_window",
+      "verdict": "PASS",
+      "note": "eventDateKey=2026-08-07 plannerEligible=false upAhead=true"
+    },
+    {
+      "id": "B-YEAR-30d",
+      "invariant": "short DD/MM at exactly -30d: year-flip=false",
+      "expected": "flip=false",
+      "actual": "flip=false key=2026-05-25",
+      "verdict": "PASS",
+      "note": "parser=short_numeric_without_year"
+    },
+    {
+      "id": "B-YEAR-31d",
+      "invariant": "short DD/MM at exactly -31d: year-flip=true",
+      "expected": "flip=true",
+      "actual": "flip=true key=2027-05-24",
+      "verdict": "PASS",
+      "note": "parser=short_numeric_without_year"
+    },
+    {
+      "id": "B-FEB29",
+      "invariant": "short 29/02 in non-leap year -> JS overflow behavior (documented, not asserted-correct)",
+      "expected": "2027-03-01 (overflow Feb29->Mar1 + year flip)",
+      "actual": "2027-03-01",
+      "verdict": "PASS",
+      "note": "documents silent Feb29->Mar1 rollover"
+    },
+    {
+      "id": "B-ROLL-JAN",
+      "invariant": "short 05/01 with ref 2026-12-28 -> 2027-01-05",
+      "expected": "2027-01-05",
+      "actual": "2027-01-05",
+      "verdict": "PASS",
+      "note": "Dec->Jan rollover"
+    },
+    {
+      "id": "B-ROLL-TODAY",
+      "invariant": "short 28/12 with ref 2026-12-28 -> 2026-12-28 (no flip at 0d)",
+      "expected": "2026-12-28",
+      "actual": "2026-12-28",
+      "verdict": "PASS",
+      "note": "boundary at 0d: not in past"
+    },
+    {
+      "id": "B-DMY-1",
+      "invariant": "\"03/02\" parsed DMY (3 Feb), NOT MDY (Mar 2)",
+      "expected": "month=02 (Feb)",
+      "actual": "month=02 key=2027-02-03",
+      "verdict": "PASS",
+      "note": "DMY day-first"
+    },
+    {
+      "id": "B-DMY-2",
+      "invariant": "\"02/13\" rejected (no MDY fallback to Feb 13)",
+      "expected": "no eventDate",
+      "actual": "eventDate=null",
+      "verdict": "PASS",
+      "note": "month>12 rejected, not reinterpreted"
+    },
+    {
+      "id": "B-ENDS-FRI",
+      "invariant": "\"ends Friday\" is asOfDate-relative: two clocks -> two different Fridays",
+      "expected": "both Friday(getDay=5) AND f1!=f2",
+      "actual": "f1=2026-06-26 f2=2026-07-03 bothFri=true",
+      "verdict": "PASS",
+      "note": "proves wall-clock independence when asOfDate injected"
+    },
+    {
+      "id": "B-THISWEEK",
+      "invariant": "\"this week\" -> [today, Saturday], tentative",
+      "expected": "2026-06-24..2026-06-27 tentative",
+      "actual": "2026-06-24..2026-06-27 tentative",
+      "verdict": "PASS",
+      "note": null
+    }
+  ],
+  "realCycle": {
+    "source": "frozen/up_ahead_2026-06-24.json",
+    "asOfDate": "2026-06-24",
+    "tz": "Asia/Kolkata",
+    "byCategory": {
+      "alerts": {
+        "total": 32,
+        "extracted": 6,
+        "examples": [
+          {
+            "title": "Get ready for Chennai’s Rainbow Pride March on June 28",
+            "key": "2026-06-28",
+            "parser": "legacy_named"
+          },
+          {
+            "title": "Madras Art Weekend’s upcoming exhibition offers a fresh port",
+            "key": "2026-06-26",
+            "parser": "legacy_named"
+          }
+        ],
+        "rate": "18.8%"
+      },
+      "shopping": {
+        "total": 58,
+        "extracted": 8,
+        "examples": [
+          {
+            "title": "Mark your calendars: Prime Day is happening now through June",
+            "key": "2026-06-26",
+            "parser": "legacy_named"
+          },
+          {
+            "title": "Hourly Updates: I’m Live Tracking The 54 Best Prime Day Deal",
+            "key": "2026-06-24",
+            "parser": "legacy_relative"
+          }
+        ],
+        "rate": "13.8%"
+      },
+      "airlines": {
+        "total": 1,
+        "extracted": 1,
+        "examples": [
+          {
+            "title": "Riyadh Air Opens Bookings for New Routes, First Flight on 10",
+            "key": "2026-06-10",
+            "parser": "legacy_named"
+          }
+        ],
+        "rate": "100.0%"
+      },
+      "civic": {
+        "total": 1,
+        "extracted": 0,
+        "examples": [],
+        "rate": "0.0%"
+      }
+    },
+    "overall": "15/92"
+  },
+  "parity": {
+    "next_week_sunday": {
+      "ref": "2026-06-28",
+      "dateAware_start": "2026-06-29",
+      "legacy_start": "2026-07-06",
+      "agree": false
+    }
+  },
+  "summary": {
+    "battery_pass": 15,
+    "battery_fail": 0
+  }
+}

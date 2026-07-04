@@ -1,0 +1,29 @@
+check_id: U2.2-CLS-01
+invariant: >
+  Scoring formula is as documented (score = positives - 1.0*categoryNeg - 0.65*globalNeg +
+  sourceTypeBonus + explicitBonus; confidence = clamp(score/4)); Phase-B suppression
+  (globalNegative >= 2 AND score < 2.25 -> 'general') actually fires.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.2; src/intelligence/classification.js:107-152 (scoreCategory),
+  :166 (confidence clamp), :168-172 (Phase-B), :181-188 (confidence floors).
+input:
+  snapshot: "crafted minimal items (inline)"
+  asOfDate: "N/A — classification is clock-invariant"
+  mode: { mode: n/a, host: both (JS classifier), locale: n/a }
+procedure: "audit/evidence/u2_2_classification.mjs Parts A+B: recompute score from the returned breakdown and assert confidence = clamp(score/4) (or a documented floor); craft a Phase-B trigger with non-overlapping positives. Reproduce: node audit/evidence/u2_2_classification.mjs."
+result:
+  formula_verified: "A-F1 score1->conf0.25; A-F2 score1.35->conf0.3375; A-F3 score5.9->conf1.0 (capped). Recomputed score == engine confidence for all. PASS."
+  phaseB_fires: "B-FIRES: 'fdfs sneak peek - scam fraud' (pos2, globalNeg2, score0.7<2.25) -> demoted to general. B-CONTROL (no global neg) -> stays movies. PASS."
+  finding_double_count: >
+    A-DOUBLECOUNT: 'release date' fires BOTH the multi-word positive 'release date' AND the
+    single-word positive 'release' (\brelease\b matches inside 'release date') -> positive=2 for a
+    single concept. Confidence is inflated (0.5 vs 0.25). B-ESCAPE: this inflation lifts scores above
+    the 2.25 Phase-B ceiling, weakening the planner-pollution guard.
+verdict: PASS (formula + Phase-B correct) with FINDING (intra-category positive double-count)
+user_impact: >
+  The documented scoring contract holds. But overlapping positives ('release'/'release date', and
+  similar single-token subsets of multi-word positives) double-count, inflating classificationConfidence
+  and helping marginal items clear thresholds and escape Phase-B suppression -> a P001 (planner
+  precision) erosion vector.
+benchmark_hook: "§V4 per-category precision + a confidence-calibration check. De-duplicate overlapping positives (drop bare 'release' or make matching longest-match-wins)."
+issue_matrix_id: I021

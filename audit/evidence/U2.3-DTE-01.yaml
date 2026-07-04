@@ -1,0 +1,36 @@
+check_id: U2.3-DTE-01
+invariant: >
+  Each date parser is correct AT its boundary: (i) short-numeric year inference flips year
+  only BEYOND the -30d edge; (ii) planner window is inclusive [asOf, asOf+6] so +7d is outside;
+  (iii) Dec->Jan short-date rollover correct; (iv) DMY-vs-MDY policy stated & consistent;
+  (v) "this week" is IST-week-correct.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.3; src/intelligence/dateAware.js:32-42 (inferYearForShortDate),
+  :44-61 (parseShortNumericWithoutYear DMY), :63-104 (relative week), :247-274 (classifyPlannerWindow);
+  src/utils/dateExtractor.js:43-83 (ISO/DMY); src/intelligence/eligibilityWindowing.js:26-142.
+input:
+  snapshot: "synthetic minimal battery items (inline in harness)"
+  contentHash: "n/a (synthetic)"
+  asOfDate: ["2026-06-24T00:00 (Wed, primary)", "2026-12-28T00:00 (Dec->Jan rollover)"]
+  mode: { mode: offline, host: live (engine threads asOfDate), locale: Chennai }
+  tz_runs: [Asia/Kolkata]
+procedure: >
+  audit/evidence/u2_3_date_battery.mjs runs each battery item through analyzeDateText at the fixed
+  asOfDate, then through evaluateEligibility, asserting windowStatus / eventDateKey / year-flip against
+  an independently computed expectation. Reproduce: `TZ=Asia/Kolkata node audit/evidence/u2_3_date_battery.mjs`.
+result:
+  battery: "15/15 PASS"
+  window_edges: "asOf-1d=before_window; asOf+0..+6d=inside_window (plannerEligible); asOf+7d/+13d/+14d=after_window (upAhead only). Planner window confirmed inclusive [asOf, asOf+6]; +7d is OUTSIDE."
+  year_inference_boundary: "short DD/MM at exactly -30d => NO flip (2026-05-25, stays this year => before_window); at -31d => flip +1yr (2027-05-24 => future). Clean boundary at 30 (strict <)."
+  dec_jan_rollover: "'05/01' with ref 2026-12-28 => 2027-01-05 (correct next-Jan); '28/12' (0d) => 2026-12-28 (no flip)."
+  dmy_policy: "'03/02' => 2027-02-03 (DMY day-first, Feb); '02/13' => REJECTED (month=13>12, NO MDY fallback). Policy EXISTS and is CONSISTENT across dateAware + dateExtractor — but is implicit (no documented statement)."
+  this_week: "'this week' => [2026-06-24, 2026-06-27(Sat)] tentative (IST-week-correct under TZ=Asia/Kolkata)."
+  artifacts: ["audit/evidence/U2.3-date-battery-report.json", "audit/evidence/u2_3_date_battery.mjs"]
+verdict: PASS
+user_impact: >
+  The date engine is correct at every tested edge for the INJECTED-clock (live) path. DMY is the
+  right default for an India/Oman product and is applied consistently with no silent MDY
+  reinterpretation. Caveat: correctness depends on a reference date being injected — the static
+  display path does not inject one (I012), so these guarantees hold for the live path only.
+benchmark_hook: "§V4 wrong-day-rate + date_relative_week + date_year_inference strata regression-guard these boundaries. DMY policy should be documented (one-line) so future tuning doesn't add an MDY fallback."
+issue_matrix_id: n/a (PASS — no defect; DMY-undocumented is a doc nit folded into I020)

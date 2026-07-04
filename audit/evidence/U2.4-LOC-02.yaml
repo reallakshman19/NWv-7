@@ -1,0 +1,26 @@
+check_id: U2.4-LOC-02
+invariant: >
+  The online-category location bypass fires ONLY for online-friendly categories
+  (offer/airline_offer/shopping/airlines) and nothing else leaks through it; a neighbourhood-level
+  alias vetoes the bypass; every verdict carries a decisionTrace.
+source_of_truth: >
+  audit/UPAHEAD_AUDIT_PLAN.md §U2.4 (designed-hole verification); src/intelligence/locationAware.js:15-17
+  (isOnlineFriendlyCategory), :54 (bypassRequested), :83-102 (veto), decisionTrace throughout.
+input:
+  snapshot: "synthetic 'fare sale from Chennai' across categories x modes (inline)"
+  asOfDate: "N/A — clock-invariant"
+  mode: { mode: online (bypass path) + offline, host: both, locale: Chennai }
+  tz_runs: [Asia/Kolkata]
+procedure: "audit/evidence/u2_4_location_probes.mjs Part B: run detectCanonicalLocation for a bare-city text in online mode across {shopping,airlines,movies,events,civic,alerts}; assert online_location_bypass appears only for online-friendly cats; assert a neighbourhood alias vetoes it."
+result:
+  bypass_matrix: "shopping -> bypass (accept, city null); airlines -> bypass; movies/events/civic/alerts -> NO bypass, location-strict (Chennai matched). 7/7 PASS."
+  veto: "'Flat 50% off at our T Nagar store' (online, shopping) -> online_bypass_vetoed:t nagar, keeps Chennai. PASS."
+  decisionTrace_present: "every branch emits a decisionTrace (online_location_bypass / online_bypass_vetoed / matched_alias / no_location_match / empty_location_text)."
+  leak_check: "the bypass is bounded to the 4 designed categories; non-offer categories cannot accept a wrong/empty location via this hole in online mode."
+verdict: PASS
+user_impact: >
+  The designed online bypass (offers/airlines may be city-agnostic) behaves exactly as intended and
+  does not leak: an online MOVIE/EVENT/CIVIC/ALERT item is still location-checked, and a physical-store
+  neighbourhood mention pulls an online offer back to its city. No defect.
+benchmark_hook: "§V4 online-mode precision per category guards against the bypass widening to non-offer categories in future edits."
+issue_matrix_id: n/a (PASS — no defect)

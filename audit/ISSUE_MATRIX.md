@@ -202,14 +202,70 @@
   Exit gate: reconcile plan locators + cache-cadence comment during U6; annotate Agent-10 doc as historical.
 
 - ID: I018
-  Area: Location alias collision risk (input to U2.4)
+  Area: Location alias collision — 'cantonment' generic-word alias (refined by U2.4)
   Severity: Low
-  Owner file(s): src/config/locationLibrary.js (15 'cantonment'; 8 'omr'/'ecr'; 22-26 short Muscat aliases; 'nagar' shared tokens across Chennai+Trichy)
-  Detection: audit/evidence/U1.4-LOC-01.yaml
-  Root cause: 'cantonment' (Trichy alias) is a generic military-area term -> mechanism-INDEPENDENT mis-attribution of any 'X cantonment' item to Trichy (confirmed). Mechanism-DEPENDENT tail pending U2.4 match-ladder execution: short aliases omr/ecr/ruwi/seeb (0.82 substring rung), shared token 'nagar' (Chennai<->Trichy contamination), 'al hail' contains weather token 'hail'.
-  User impact: non-Trichy cantonment items mis-routed into Trichy locale (P004 falseLocation surface); remainder UNVERIFIED pending U2.4.
-  Exit gate: U2.4 executes alias probes on real data per locale vs falseLocationAcceptance 0.05; remove/qualify 'cantonment'; characterize the substring-rung risks.
+  Owner file(s): src/config/locationLibrary.js (15 'cantonment' under Trichy)
+  Detection: audit/evidence/U1.4-LOC-01.yaml (catalogue) + audit/evidence/U2.4-LOC-01.yaml (execution) + U2.4-location-probes-report.json
+  Root cause: 'cantonment' (Trichy alias) is a generic military-area term -> 'Delhi Cantonment' etc. map to Trichy @0.82 (mechanism-independent; CONFIRMED by execution). U2.4 NULLIFIED the rest of the U1 tail: the matcher uses a word-boundary regex `(^|\s)alias(\s|$)` (NOT substring) for both the 0.95 and 0.82 rungs, so 'omr'/'ecr' inside other words, weather 'hail' vs 'al hail', and unlisted 'X Nagar' do NOT match. Plan §U2.4's "0.82 substring" wording is incorrect (it is word-boundary, non-city alias) -> doc fix folded into I017.
+  User impact: any city's cantonment text mis-routes to the Trichy locale (P004 falseLocation surface). Narrow; no contamination seen on the real frozen cycle (0 mismatches / 11 accepts).
+  Exit gate: remove/qualify 'cantonment'; benchmark §V4 enforces falseLocationAcceptance 0.05 per locale on a gold set (true rate UNVERIFIED on the date-poor real cycle here).
 
 # NOTE: Phase U1 PASSES with findings (each U1 target has a ternary-verdict evidence record U1.1-U1.6). P005 trust-filter regression VERIFIED-NOT-PRESENT (U1.3-FEED-01). Keyword word-boundary matching neutralizes the U9-2 single-token substring class (U1.1-KWD-01). See audit/evidence/U1.{1-6}-*.yaml + audit/U1_CONTRACT_SUMMARY.md.
 # U1 EXIT GATE MET → keyword-collision report delivered (input to U2.2); alias collision catalogue delivered (input to U2.4); threshold/coverage/doc drift ticketed (I014-I018).
+
+# ── Stage-by-stage audit findings (Phase U2 — IN PROGRESS: U2.3 done) ──
+
+- ID: I019
+  Area: Static-host Up Ahead carries no event dates (expiry-driven) while the JS engine extracts real ones
+  Severity: Medium
+  Owner file(s): scripts (Python prefetch date layer — to be pinned in U2.7), src/intelligence/dateAware.js (JS engine, correct), public/data/up_ahead*.json
+  Detection: audit/evidence/U2.3-DTE-03.yaml + U2.3-date-battery-report.json — frozen static output up_ahead_2026-06-24.json has dateSource='none' (92/92), dateConfidence='unknown' (92/92), eventStartAt=null (92/92), yet plannerEligible=true (88/92) and expiryAt set (92/92). JS analyzeDateText on the SAME items extracts a real event date for 15/92 (incl. 'Rainbow Pride March on June 28' -> 2026-06-28, 'Madras Art Weekend exhibition' -> 2026-06-26).
+  Root cause: static Up Ahead is expiry-windowed (horizon.offerFallbackHours 48 / alertFallbackHours 24), not event-date-driven; the Python prefetch date extraction surfaces 0 dates where the JS engine finds 15. Full root cause is the U2.7 JS<->Python parity deliverable. Also: 88 items are plannerEligible WITHOUT an event date, contradicting the JS eligibility contract (no eventDate -> plannerEligible:false).
+  User impact: static-host users (the majority) see genuine upcoming events undated — not sortable by day, not placeable on the 7-day horizon, not addable to the planner with a date.
+  Exit gate: U2.7 runs the Python categorizer/date path on the same frozen raw items and quantifies the date-field disagreement per item; reconcile the static date layer to the JS engine OR document the expiry-only design; §V4 extraction-rate + wrong-day strata run on both implementations.
+
+- ID: I020
+  Area: Date engine edge-cases — Feb29 silent coercion + two-engine "next week" divergence
+  Severity: Low
+  Owner file(s): src/intelligence/dateAware.js (32-42 inferYearForShortDate, 77-88 next week), src/utils/dateExtractor.js (61-68 inferYear, 169-175 next week)
+  Detection: audit/evidence/U2.3-DTE-04.yaml — '29/02' in non-leap 2026 => 2027-03-01 (JS Date overflow Feb29->Mar1 + year flip, no error/flag); 'next week' at a Sunday ref => dateAware 2026-06-29 vs legacy extractDate 2026-07-06 (7-day disagreement; dateAware uses ((8-getDay())%7)||7, legacy uses 8-getDay()).
+  Root cause: invalid-date overflow is unguarded; the two JS date engines use different next-week formulas. Latent because dateAware parsers win ordering, but a concrete consistency gap and a candidate JS<->Python disagreement source.
+  User impact: Low — rare Feb29 lands one day off; next-week divergence only bites a direct legacy caller / a Python port that mirrors the legacy formula. Both are wrong-day risks.
+  Exit gate: guard Feb29 (reject or flag) ; converge the two next-week formulas OR document which is canonical; U2.7 checks the Python port's formula. Also document the (correct, consistent) DMY policy so future tuning doesn't add an MDY fallback.
+
+- ID: I021
+  Area: Intra-category positive double-count inflates confidence + weakens Phase-B
+  Severity: Low
+  Owner file(s): src/config/settings_upahead.js (49 movies positives 'release' & 'release date'), src/intelligence/classification.js (107-152 scoreCategory, 168-172 Phase-B)
+  Detection: audit/evidence/U2.2-CLS-01.yaml + U2.2-classification-report.json — 'release date' fires BOTH the multi-word positive 'release date' AND the single-word positive 'release' (\brelease\b inside it) -> positive=2 for one concept; confidence 0.5 vs 0.25. B-ESCAPE shows the inflation can lift a score past the 2.25 Phase-B ceiling.
+  Root cause: overlapping positives where a single token is a subset of a multi-word positive; matching counts both. Phase-B (planner-pollution guard) keys on score, so inflation weakens it.
+  User impact: marginal items gain confidence and can clear planner/eligibility thresholds and escape Phase-B suppression -> P001 planner-precision erosion. Low (one clear instance found; magnitude small).
+  Exit gate: de-duplicate overlapping positives (drop bare 'release', or longest-match-wins in countMatches); §V4 confidence-calibration + per-category precision guard.
+
+- ID: I022
+  Area: JS<->Python classification divergence on real items (U9-7) — static vs live are different products
+  Severity: Medium
+  Owner file(s): src/intelligence/classification.js (JS), scripts (Python prefetch categorizer — pin in U2.7), public/data/up_ahead*.json
+  Detection: audit/evidence/U2.2-CLS-02.yaml + U2.2-classification-report.json — JS-recomputed category (text-only, category field stripped) agrees with the stored Python category for only 22.8% (21/92). JS sends 65/92 to 'general' that Python filed into alerts/shopping. Quality is per-item mixed (some JS-general correct e.g. 'death toll' news; some wrong e.g. 'Rainbow Pride March' dropped).
+  Root cause: the two implementations classify differently; Python is far more permissive on this corpus. NOTE caveat: the JS run was TEXT-ONLY (frozen items lack feed sourceType), so detectBySourceType / source bonuses did not apply -> 22.8% is a LOWER BOUND on agreement; U2.7 refines with full feed context.
+  User impact: static-host (majority) and live users can see materially different category assignments for the same items; the static/live divergence is the U9-7 risk quantified.
+  Exit gate: U2.7 runs the JS path WITH sourceType on the same frozen raw items, computes per-field (category/date/location) disagreement, and that number decides the §V4 benchmark system-under-test. Reconcile or document the dual-implementation divergence.
+
+- ID: I023
+  Area: Weather-alert text gate defeated by keyword-list overlap (precision hole)
+  Severity: Medium
+  Owner file(s): src/services/upAheadService.js (311-324 isActualWeatherAlertText), src/config/settings_upahead.js (25 ambiguousKeywords, 56 weather_alerts positives)
+  Detection: audit/evidence/U2.6-WIN-02.yaml + U2.6-windowing-report.json (CAP-WEATHER-TEXT) — 'Cyber scam warning issued / beware of fraud' (zero weather context) ENTERS the Weather tab.
+  Root cause: isActualWeatherAlertText counts substring matches over contextKeywords + ambiguousKeywords + weather_alerts POSITIVES; 'warning'/'alert'/'advisory'/'watch' are in BOTH ambiguousKeywords and the weather positives list, so a SINGLE such word counts as 2 matches and clears minimumMatches:2. Documented ">=2 weather-context keywords" is effectively ">=1 ambiguous word".
+  User impact: non-weather "warning/alert/advisory/watch" items (health warning, scam alert, security advisory) are mis-shown as weather alerts -> Weather tab precision hole.
+  Exit gate: require >=1 genuine contextKeyword (not just ambiguous), or de-duplicate ambiguous vs positive weather words so one occurrence counts once; §V4 weather-tab precision guard.
+
+- ID: I024
+  Area: No upper display window on movies/events/festivals (far-future items pollute the 7-day horizon)
+  Severity: Low
+  Owner file(s): src/viewModels/useUpAheadPageViewModel.js (350-355 movieCards/festivalCards/eventItems — mapped with no date window)
+  Detection: audit/evidence/U2.6-WIN-02.yaml (NO-WINDOW-MOVIES) — a movie dated 5 YEARS in the future appears in movieCards; past-dated items ARE dropped upstream by sanitizeUpAheadData, but future items are unbounded.
+  Root cause: getVisibleUpAheadProjection age-filters only alerts/offers/civic; movies/events/festivals get no upper 7/14d bound. Plan §U2.6 "display 14d" is not enforced for these categories on the static path. (Corroborates I019: static Up Ahead is expiry/recency-driven, not a true event horizon.)
+  User impact: a release months/years out appears alongside this-week items in the "7-day" Up Ahead; low (data is currently date-poor) but a horizon-correctness gap.
+  Exit gate: add an upper display-window bound (14d) to movies/events/festivals; §V4 horizon-window stratum.
 
