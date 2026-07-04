@@ -140,7 +140,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.blockedBySnapshotStaleness).toBe(true);
   });
 
-  it('rejects missing or low-confidence timestamps for Top Stories', () => {
+  it('serves low-confidence Top Stories rows as labelled stale fallback', () => {
     const topStoriesSnapshot = {
       schemaVersion: 2,
       fetchedAt: Date.now(),
@@ -162,8 +162,10 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(topStoriesSnapshot, 'topStories', 10);
 
-    expect(result.items).toEqual([]);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].publishedAtSource).toBe('fetch_time_fallback');
     expect(result.stale).toBe(true);
+    expect(result.staleFallback).toBe(true);
     expect(result.staleReason).toBe('section_items_stale');
     expect(result.lowConfidenceTimestampCount).toBe(1);
   });
@@ -194,7 +196,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.items[0].section).toBe('local');
   });
 
-  it('marks sections stale when every item is older than the item freshness gate', () => {
+  it('serves stale normal-section rows as labelled fallback', () => {
     const oldItemsSnapshot = {
       ...snapshot,
       fetchedAt: Date.now(),
@@ -212,8 +214,10 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(oldItemsSnapshot, 'chennai', 10);
 
-    expect(result.items).toEqual([]);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0]._prefetchedSection).toBe(true);
     expect(result.stale).toBe(true);
+    expect(result.staleFallback).toBe(true);
     expect(result.staleReason).toBe('section_items_stale');
   });
 });
