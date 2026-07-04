@@ -3,16 +3,20 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import plannerStorage from './plannerStorage.js';
 
 const originalTz = process.env.TZ;
+const referenceDate = new Date(2026, 4, 29, 12, 0, 0);
 
 describe('plannerStorage local date keys', () => {
   beforeEach(() => {
     process.env.TZ = 'Asia/Kolkata';
+    vi.useFakeTimers();
+    vi.setSystemTime(referenceDate);
     localStorage.clear();
     vi.spyOn(plannerStorage, 'savePlanToApi').mockResolvedValue(true);
   });
 
   afterEach(() => {
     process.env.TZ = originalTz;
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 

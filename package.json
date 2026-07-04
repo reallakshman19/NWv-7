@@ -66,6 +66,7 @@
     "test:weather-signal-precision": "node scripts/test_weather_signal_precision_static.mjs && vitest run --config vitest.config.js src/services/weatherSignalPrecision.cert.test.js",
     "test:weather-integration-hardening": "node scripts/test_weather_integration_hardening_static.mjs && vitest run --config vitest.config.js src/services/weatherIntegrationHardening.cert.test.js",
     "test:snapshot-freshness": "node scripts/test_public_snapshot_freshness_static.mjs",
+    "test:data-freshness-contracts": "node scripts/probe_deployed_data_freshness.mjs --base-dir public",
     "test:weather-snapshot-freshness": "SNAPSHOT_FRESHNESS_FILES=weather_snapshot.json node scripts/test_public_snapshot_freshness_static.mjs",
     "test:weather-final-closure": "node scripts/test_weather_final_closure_static.mjs && vitest run --config vitest.config.js src/services/weatherFinalClosure.cert.test.js",
     "test:weather-manager-clarity": "node scripts/test_weather_manager_clarity_static.mjs && vitest run --config vitest.config.js src/components/weather/WeatherLocationManagerClarity.cert.test.js",

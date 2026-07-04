@@ -45,4 +45,16 @@ jobs:
         run: pip install pytest
 
       - name: Run full certification gate
-        run: npm run test:certify
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          npm run test:certify 2>&1 | tee reports/certification_gate.log
+
+      - name: Upload certification failure log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: certification-failure-log
+          path: reports/certification_gate.log
+          if-no-files-found: ignore
