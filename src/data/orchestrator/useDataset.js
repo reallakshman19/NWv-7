@@ -6,18 +6,32 @@ import { getFetchMode, isLiveMode } from '../../utils/fetchMode.js';
 
 const envelopeCache = new Map();
 const inFlight = new Map();
+const fetchLifecycleByEnvelope = new WeakMap();
 
-function decorateDatasetEnvelope(env, details) {
-  if (!env || typeof env !== 'object') return env;
-  env.fetchLifecycle = {
-    ...(env.fetchLifecycle || {}),
+function makeFetchLifecycle(env, details) {
+  return {
+    ...(env.fetchLifecycle || fetchLifecycleByEnvelope.get(env) || {}),
     datasetId: details.datasetId,
     fetchMode: details.fetchMode,
     servedFrom: details.servedFrom,
     durationMs: Math.max(0, Date.now() - details.startedAt),
     force: details.force,
   };
+}
+
+function decorateDatasetEnvelope(env, details) {
+  if (!env || typeof env !== 'object') return env;
+  const fetchLifecycle = makeFetchLifecycle(env, details);
+  if (Object.isExtensible(env)) {
+    env.fetchLifecycle = fetchLifecycle;
+  } else {
+    fetchLifecycleByEnvelope.set(env, fetchLifecycle);
+  }
   return env;
+}
+
+function getFetchLifecycle(env) {
+  return env?.fetchLifecycle || fetchLifecycleByEnvelope.get(env) || null;
 }
 
 export async function loadDataset(datasetId, force = false) {
@@ -71,7 +85,7 @@ export async function loadDataset(datasetId, force = false) {
           freshness: decorated.freshness,
           source: decorated.source,
           payloadHash: decorated.payloadHash,
-          fetchLifecycle: decorated.fetchLifecycle,
+          fetchLifecycle: getFetchLifecycle(decorated),
         },
       });
 
