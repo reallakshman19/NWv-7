@@ -24,11 +24,14 @@ describe('filterLatestStories — temporal decay sort (RC-2 fix)', () => {
     expect(out[0].id).toBe('new');
   });
 
-  it('returns stories in their original order when custom sort is off', () => {
+  it('applies recency guardrail when custom sort is off', () => {
+    const now = Date.now();
     const stories = [
-      { id: 'a', impactScore: 5, publishedAt: Date.now() - 1000 },
-      { id: 'b', impactScore: 10, publishedAt: Date.now() - 500 },
+      { id: 'old-high-impact', impactScore: 80, publishedAt: now - 30 * 3_600_000 },
+      { id: 'fresh-low-impact', impactScore: 5, publishedAt: now - 500 },
     ];
-    expect(filterLatestStories(stories, false)).toBe(stories);
+    const out = filterLatestStories(stories, false);
+    expect(out).not.toBe(stories);
+    expect(out[0].id).toBe('fresh-low-impact');
   });
 });
