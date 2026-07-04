@@ -50,9 +50,22 @@ function testUndatedStoriesDoNotOutrankFreshDatedStories() {
   assert.deepEqual(ids(ranked), ['fresh-dated', 'undated-high-impact']);
 }
 
+function testLowConfidenceTimestampsBehaveAsUndated() {
+  const ranked = rankTopStoriesByRecency([
+    story('fallback-timestamp', 0, {
+      impactScore: 1000,
+      publishedAtSource: 'fetch_time_fallback',
+      timestampConfidence: 'low',
+    }),
+    story('trusted-fresh', 2, { impactScore: 1 }),
+  ], { nowMs: now });
+  assert.deepEqual(ids(ranked), ['trusted-fresh', 'fallback-timestamp']);
+}
+
 testFreshStoriesBeatRawOrder();
 testOldStoriesAreDemotedBehindFresh();
 testBreakingPinIsFreshnessBounded();
 testUndatedStoriesDoNotOutrankFreshDatedStories();
+testLowConfidenceTimestampsBehaveAsUndated();
 
 console.log('PASS: Main Top Stories recency guardrail');
