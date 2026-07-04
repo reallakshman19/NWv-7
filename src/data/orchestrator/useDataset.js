@@ -2,12 +2,41 @@ import { useCallback, useEffect, useState } from 'react';
 import { getDatasetLoader } from '../datasets/index.js';
 import { recordDiagnostic } from '../diagnosticsStore.js';
 import { useMountedRef } from '../../hooks/useMountedRef.js';
-import { isLiveMode } from '../../utils/fetchMode.js';
+import { getFetchMode, isLiveMode } from '../../utils/fetchMode.js';
 
 const envelopeCache = new Map();
 const inFlight = new Map();
+const fetchLifecycleByEnvelope = new WeakMap();
+
+function makeFetchLifecycle(env, details) {
+  return {
+    ...(env.fetchLifecycle || fetchLifecycleByEnvelope.get(env) || {}),
+    datasetId: details.datasetId,
+    fetchMode: details.fetchMode,
+    servedFrom: details.servedFrom,
+    durationMs: Math.max(0, Date.now() - details.startedAt),
+    force: details.force,
+  };
+}
+
+function decorateDatasetEnvelope(env, details) {
+  if (!env || typeof env !== 'object') return env;
+  const fetchLifecycle = makeFetchLifecycle(env, details);
+  if (Object.isExtensible(env)) {
+    env.fetchLifecycle = fetchLifecycle;
+  } else {
+    fetchLifecycleByEnvelope.set(env, fetchLifecycle);
+  }
+  return env;
+}
+
+function getFetchLifecycle(env) {
+  return env?.fetchLifecycle || fetchLifecycleByEnvelope.get(env) || null;
+}
 
 export async function loadDataset(datasetId, force = false) {
+  const startedAt = Date.now();
+  const fetchMode = getFetchMode();
   const loader = getDatasetLoader(datasetId);
 
   if (!loader?.load) {
@@ -17,30 +46,50 @@ export async function loadDataset(datasetId, force = false) {
   const effectiveForce = force || isLiveMode();
 
   if (!effectiveForce && envelopeCache.has(datasetId)) {
-    return envelopeCache.get(datasetId);
+    return decorateDatasetEnvelope(envelopeCache.get(datasetId), {
+      datasetId,
+      fetchMode,
+      servedFrom: 'memory-cache',
+      startedAt,
+      force: effectiveForce,
+    });
   }
 
   if (!effectiveForce && inFlight.has(datasetId)) {
-    return inFlight.get(datasetId);
+    return inFlight.get(datasetId).then(env => decorateDatasetEnvelope(env, {
+      datasetId,
+      fetchMode,
+      servedFrom: 'in-flight',
+      startedAt,
+      force: effectiveForce,
+    }));
   }
 
   const promise = loader.load()
     .then(env => {
-      envelopeCache.set(datasetId, env);
+      const decorated = decorateDatasetEnvelope(env, {
+        datasetId,
+        fetchMode,
+        servedFrom: effectiveForce ? 'loader-force' : 'loader',
+        startedAt,
+        force: effectiveForce,
+      });
+      envelopeCache.set(datasetId, decorated);
 
       recordDiagnostic({
         datasetId,
-        severity: env.ok ? 'info' : 'warn',
+        severity: decorated.ok ? 'info' : 'warn',
         event: 'dataset_loaded',
-        message: env.ok ? 'Dataset loaded' : (env.error || 'Dataset degraded'),
+        message: decorated.ok ? 'Dataset loaded' : (decorated.error || 'Dataset degraded'),
         details: {
-          freshness: env.freshness,
-          source: env.source,
-          payloadHash: env.payloadHash,
+          freshness: decorated.freshness,
+          source: decorated.source,
+          payloadHash: decorated.payloadHash,
+          fetchLifecycle: getFetchLifecycle(decorated),
         },
       });
 
-      return env;
+      return decorated;
     })
     .finally(() => {
       inFlight.delete(datasetId);
