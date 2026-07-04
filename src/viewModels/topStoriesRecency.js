@@ -3,7 +3,21 @@ export const TOP_STORY_FRESH_MS = 24 * 60 * 60 * 1000;
 export const BREAKING_PIN_MS = 3 * 60 * 60 * 1000;
 export const TOP_STORY_HALF_LIFE_HOURS = 10;
 
+const LOW_CONFIDENCE_SOURCES = new Set([
+  'fetch_time_fallback',
+  'missing',
+  'invalid',
+  'unknown',
+]);
+
+export function hasLowConfidenceTimestamp(story) {
+  if (String(story?.timestampConfidence || '').toLowerCase() === 'low') return true;
+  const source = String(story?.publishedAtSource || story?.timestampSource || '').toLowerCase();
+  return LOW_CONFIDENCE_SOURCES.has(source);
+}
+
 export function storyTimestamp(story) {
+  if (hasLowConfidenceTimestamp(story)) return 0;
   const raw = story?.publishedAt || story?.pubDate || story?.date || story?.fetchedAt;
   if (typeof raw === 'number' && Number.isFinite(raw)) return raw < 10_000_000_000 ? raw * 1000 : raw;
   if (typeof raw === 'string' && raw.trim()) {
