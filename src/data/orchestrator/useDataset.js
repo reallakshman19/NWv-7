@@ -9,17 +9,15 @@ const inFlight = new Map();
 
 function decorateDatasetEnvelope(env, details) {
   if (!env || typeof env !== 'object') return env;
-  return {
-    ...env,
-    fetchLifecycle: {
-      ...(env.fetchLifecycle || {}),
-      datasetId: details.datasetId,
-      fetchMode: details.fetchMode,
-      servedFrom: details.servedFrom,
-      durationMs: Math.max(0, Date.now() - details.startedAt),
-      force: details.force,
-    },
+  env.fetchLifecycle = {
+    ...(env.fetchLifecycle || {}),
+    datasetId: details.datasetId,
+    fetchMode: details.fetchMode,
+    servedFrom: details.servedFrom,
+    durationMs: Math.max(0, Date.now() - details.startedAt),
+    force: details.force,
   };
+  return env;
 }
 
 export async function loadDataset(datasetId, force = false) {
