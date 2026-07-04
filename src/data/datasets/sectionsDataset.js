@@ -9,6 +9,9 @@ import { composeBalancedFeed } from '../../services/frontPageComposer.js';
 import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
 
+export const id = 'sections';
+export const description = 'Section news dataset with snapshot-first Hybrid support';
+
 const DEFAULT_SECTIONS = [
   'world',
   'india',
@@ -40,24 +43,16 @@ function getRequestedSections(settings, options = {}, diagnostics = []) {
   const rawSections = Array.isArray(options.sections) && options.sections.length > 0
     ? options.sections
     : getEnabledSections(settings);
-
   const maxSections = Math.max(1, Number(options.maxSections || DEFAULT_MAX_SECTIONS));
   const boundedSections = rawSections.slice(0, maxSections);
-
   if (rawSections.length > boundedSections.length) {
     diagnostics.push({
       event: 'sectionsDataset.section_limit_applied',
       severity: 'info',
       message: `Bounded section loading from ${rawSections.length} to ${boundedSections.length}`,
-      details: {
-        requestedCount: rawSections.length,
-        maxSections,
-        requestedSections: rawSections,
-        loadedSections: boundedSections,
-      },
+      details: { requestedCount: rawSections.length, maxSections, requestedSections: rawSections, loadedSections: boundedSections },
     });
   }
-
   return boundedSections;
 }
 
@@ -67,26 +62,22 @@ function getSectionLimit(settings, section) {
 
 function countSources(items = []) {
   const counts = {};
-
   items.forEach(item => {
     const source = item?.source || 'Unknown';
     counts[source] = (counts[source] || 0) + 1;
   });
-
   return counts;
 }
 
 function getDuplicateHints(items = []) {
   const seen = new Map();
   const duplicates = [];
-
   items.forEach(item => {
     const key = item?.canonicalId || item?.id || item?.url || item?.title;
     if (!key) return;
     if (seen.has(key)) duplicates.push({ key, title: item?.title || '' });
     seen.set(key, true);
   });
-
   return duplicates.slice(0, 20);
 }
 
@@ -97,7 +88,6 @@ function summarizeSection(section, result) {
     section: item.section || section,
     sourceSection: result?.prefetchSourceSection || item.sourceSection || section,
   }));
-
   return {
     section,
     ok: true,
@@ -151,64 +141,43 @@ function getValidationWarnings(summaries) {
     }));
 }
 
-export const sectionsDataset = {
-  id: 'sections',
-  description: 'Section news dataset with snapshot-first Hybrid support',
-
-  async load(options = {}) {
-    const diagnostics = [];
-    const settings = safeGetSettings();
-    const sections = getRequestedSections(settings, options, diagnostics);
-
-    const settled = await Promise.allSettled(sections.map(async section => {
-      const limit = getSectionLimit(settings, section);
-      const result = await fetchSectionNews(section, limit, settings.newsSources);
-      return summarizeSection(section, result);
-    }));
-
-    const summaries = settled.map((entry, index) => {
-      if (entry.status === 'fulfilled') return entry.value;
-      return summarizeFailure(sections[index], entry.reason);
-    });
-
-    const fulfilled = summaries.filter(summary => summary.ok);
-    const failed = summaries.filter(summary => !summary.ok);
-    const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
-    const allItems = summaries.flatMap(summary => summary.items);
-    const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
-    const frontPage = composeBalancedFeed(
-      dedupedItems,
-      options.frontPageLimit || 20,
-      settings.maxTopicPercent || 40,
-      settings.maxGeoPercent || 30
-    );
-
-    const payload = {
+export async function load(options = {}) {
+  const diagnostics = [];
+  const settings = safeGetSettings();
+  const sections = getRequestedSections(settings, options, diagnostics);
+  const settled = await Promise.allSettled(sections.map(async section => {
+    const limit = getSectionLimit(settings, section);
+    const result = await fetchSectionNews(section, limit, settings.newsSources);
+    return summarizeSection(section, result);
+  }));
+  const summaries = settled.map((entry, index) => {
+    if (entry.status === 'fulfilled') return entry.value;
+    return summarizeFailure(sections[index], entry.reason);
+  });
+  const failed = summaries.filter(summary => !summary.ok);
+  const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
+  const allItems = summaries.flatMap(summary => summary.items);
+  const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
+  const frontPage = composeBalancedFeed(dedupedItems, options.frontPageLimit || 20, settings.maxTopicPercent || 40, settings.maxGeoPercent || 30);
+  const envelope = makeEnvelope({
+    datasetId: 'sections',
+    ok: summaries.some(summary => summary.ok),
+    source: getEnvelopeSource(summaries),
+    freshness: getEnvelopeFreshness(summaries),
+    data: {
       sections: sectionItems,
       frontPage,
       summaries,
       loadedSections: sections,
       failedSections: failed.map(summary => ({ section: summary.section, error: summary.error })),
       duplicateHints: getDuplicateHints(dedupedItems),
-    };
-
-    const envelope = makeEnvelope({
-      datasetId: 'sections',
-      ok: fulfilled.length > 0,
-      source: getEnvelopeSource(summaries),
-      freshness: getEnvelopeFreshness(summaries),
-      data: payload,
-      diagnostics,
-      validation: {
-        passed: failed.length === 0,
-        warnings: getValidationWarnings(summaries),
-        errors: failed.map(summary => summary.error),
-      },
-    });
-
-    return applyDatasetSlo(envelope, {
-      maxAgeMs: options.maxAgeMs,
-      minScore: options.minScore,
-    });
-  },
-};
+    },
+    diagnostics,
+    validation: {
+      passed: failed.length === 0,
+      warnings: getValidationWarnings(summaries),
+      errors: failed.map(summary => summary.error),
+    },
+  });
+  return applyDatasetSlo(envelope, { maxAgeMs: options.maxAgeMs, minScore: options.minScore });
+}
