@@ -17,8 +17,7 @@ import {
   mergeTravelNewsIntoNewsData,
 } from '../services/travelNewsIngestion.js';
 import { auditMainTabQuality } from '../services/pageAuditGrading.js';
-import { isBreakingStory } from '../services/breakingNewsService.js';
-import { temporalScore } from '../services/temporalScorer.js';
+import { rankTopStoriesByRecency } from './topStoriesRecency.js';
 
 const MIN_CUSTOM_TOP_STORIES = 10;
 const MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES = 3;
@@ -40,45 +39,24 @@ function getBrowserNotificationPermission() {
 }
 
 function filterLatestStories(frontPage = [], customSortTopStories = false) {
-  const stories = asArray(frontPage);
+  const ranked = rankTopStoriesByRecency(asArray(frontPage));
+  if (!customSortTopStories) return ranked;
 
-  if (!customSortTopStories) return stories;
+  const preferred = [];
+  const viewed = [];
 
-  // Sort by temporal-decayed score (freshness + impact), not raw impact score (RC-2 fix)
-  const now = Date.now();
-  const decayed = (a) => temporalScore(a.impactScore || 0, a.publishedAt, now);
-  const sorted = [...stories].sort((a, b) => decayed(b) - decayed(a));
-
-  const breaking = [];
-  const fresh = [];
-  const rest = [];
-
-  for (const item of sorted) {
-    // L3 — breaking news is always pinned to the top and is exempt from the
-    // "seen / over-viewed" demotion, so a major story can't be pushed down just
-    // because the user already glanced at it.
-    if (isBreakingStory(item)) {
-      breaking.push(item);
-    } else if (item?.id && (isArticleRead(item.id) || getViewCount(item.id) > MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES)) {
-      rest.push(item);
+  for (const item of ranked) {
+    if (item?.id && (isArticleRead(item.id) || getViewCount(item.id) > MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES)) {
+      viewed.push(item);
     } else {
-      fresh.push(item);
+      preferred.push(item);
     }
   }
 
-  // Keep breaking pinned at the top, ranked by breaking score.
-  breaking.sort((a, b) =>
-    (Number(b.breakingScore || 0) - Number(a.breakingScore || 0)) ||
-    (Number(b.publishedAt || 0) - Number(a.publishedAt || 0)));
-
-  if (breaking.length + fresh.length >= MIN_CUSTOM_TOP_STORIES) {
-    return [...breaking, ...fresh];
-  }
-
+  if (preferred.length >= MIN_CUSTOM_TOP_STORIES) return preferred;
   return [
-    ...breaking,
-    ...fresh,
-    ...rest.slice(0, Math.max(0, MIN_CUSTOM_TOP_STORIES - breaking.length - fresh.length)),
+    ...preferred,
+    ...viewed.slice(0, Math.max(0, MIN_CUSTOM_TOP_STORIES - preferred.length)),
   ];
 }
 
