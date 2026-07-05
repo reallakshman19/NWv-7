@@ -8,6 +8,7 @@ const browserRuntime = {
   isStaticFrontend: false,
   allowWideFeedFetch: true,
   canUseDatasetApi: true,
+  configuredBackendUrl: 'https://api.example.com',
 };
 
 const staticOnlyRuntime = {
@@ -22,6 +23,7 @@ const staticWithApiRuntime = {
   isStaticFrontend: true,
   canUseDatasetApi: true,
   browserWideFeedFetchAllowed: false,
+  configuredBackendUrl: 'https://api.example.com',
 };
 
 function decision(input) {
@@ -134,5 +136,70 @@ describe('NW-DP-003 Up Ahead provider policy', () => {
       shouldAttemptLive: false,
       skippedLiveReason: 'usable-cache',
     });
+  });
+});
+
+describe('NW-DP-004 Up Ahead dataset API policy', () => {
+  it('attempts dataset API for static-with-dataset-api plus configured URL', () => {
+    const result = decision({
+      options: { policy: 'smart' },
+      runtimeCapabilities: staticWithApiRuntime,
+    });
+
+    expect(result.shouldAttemptDatasetApi).toBe(true);
+    expect(result.apiReason).toBe('configured-dataset-api');
+  });
+
+  it('skips dataset API for static-only runtime', () => {
+    const result = decision({
+      options: { policy: 'smart' },
+      runtimeCapabilities: staticOnlyRuntime,
+    });
+
+    expect(result.shouldAttemptDatasetApi).toBe(false);
+    expect(result.apiSkippedReason).toBe('snapshot-forced');
+  });
+
+  it('skips dataset API when snapshots are forced', () => {
+    const result = decision({
+      options: { policy: 'smart' },
+      runtimeCapabilities: { ...staticWithApiRuntime, forceSnapshots: true },
+    });
+
+    expect(result.shouldAttemptDatasetApi).toBe(false);
+    expect(result.apiSkippedReason).toBe('snapshot-forced');
+  });
+
+  it('browser runtime with configured backend can prefer dataset API', () => {
+    const result = decision({
+      options: { policy: 'smart' },
+      runtimeCapabilities: browserRuntime,
+    });
+
+    expect(result.runtimeKind).toBe('browser-runtime');
+    expect(result.preferDatasetApi).toBe(true);
+    expect(result.shouldAttemptDatasetApi).toBe(true);
+  });
+
+  it('liveOnly skips cache/static/API reads', () => {
+    const result = decision({
+      options: { liveOnly: true },
+      runtimeCapabilities: staticWithApiRuntime,
+    });
+
+    expect(result.shouldReadCache).toBe(false);
+    expect(result.shouldReadStatic).toBe(false);
+    expect(result.shouldAttemptDatasetApi).toBe(false);
+  });
+
+  it('usable API result prevents smart browser live fetch', () => {
+    const result = decision({
+      options: { policy: 'smart' },
+      runtimeCapabilities: browserRuntime,
+      hasUsableApi: true,
+    });
+
+    expect(result.shouldAttemptLive).toBe(false);
+    expect(result.skippedLiveReason).toBe('usable-dataset-api');
   });
 });
