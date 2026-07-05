@@ -15,6 +15,8 @@ const dataset = read('src/data/datasets/upAheadDataset.js');
 const policy = read('src/data/datasets/upAheadProviderPolicy.js');
 const client = read('src/data/datasets/upAheadDatasetApiClient.js');
 const report = read('reports/NW-DP-004_up_ahead_dataset_api_provider_chain.md');
+const apiBranchIndex = dataset.indexOf('initialPolicy.shouldAttemptDatasetApi');
+const staticBranchIndex = dataset.indexOf('initialPolicy.shouldReadStatic');
 
 assert(
   dataset.includes("from './upAheadDatasetApiClient.js'"),
@@ -22,8 +24,8 @@ assert(
 );
 
 assert(
-  dataset.indexOf('shouldAttemptDatasetApi') < dataset.indexOf('mergeStaticData'),
-  'API provider decision must appear before static fallback helper use'
+  apiBranchIndex >= 0 && staticBranchIndex >= 0 && apiBranchIndex < staticBranchIndex,
+  'API provider branch must appear before static fallback branch in load flow'
 );
 
 assert(
