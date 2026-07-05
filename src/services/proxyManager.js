@@ -4,6 +4,13 @@
  */
 import logStore from '../utils/logStore.js';
 
+export const LIVE_RSS_PROXY_BUDGET_MS = 6000;
+export const LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS = 2000;
+
+function firstXmlNode(node, tagName) {
+    return node.getElementsByTagName(tagName)[0] || null;
+}
+
 function parseXML(xmlString) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
@@ -20,15 +27,15 @@ function parseXML(xmlString) {
         const pubDate = node.querySelector('pubDate')?.textContent;
         const description = node.querySelector('description')?.textContent;
         const guid = node.querySelector('guid')?.textContent;
-        const author = node.querySelector('author')?.textContent || node.querySelector('dc\\:creator')?.textContent;
+        const author = node.querySelector('author')?.textContent || firstXmlNode(node, 'dc:creator')?.textContent;
         const enclosureNode = node.querySelector('enclosure');
         const enclosure = enclosureNode ? {
             url: enclosureNode.getAttribute('url'),
             type: enclosureNode.getAttribute('type')
         } : null;
-        const mediaContentNode = node.querySelector('media\\:content') || node.querySelector('content');
+        const mediaContentNode = firstXmlNode(node, 'media:content') || node.querySelector('content');
         const mediaContent = mediaContentNode ? { url: mediaContentNode.getAttribute('url') } : null;
-        const mediaThumbnailNode = node.querySelector('media\\:thumbnail') || node.querySelector('thumbnail');
+        const mediaThumbnailNode = firstXmlNode(node, 'media:thumbnail') || node.querySelector('thumbnail');
         const thumbnail = mediaThumbnailNode ? mediaThumbnailNode.getAttribute('url') : null;
 
         return {
@@ -96,6 +103,20 @@ function now() {
     return Date.now();
 }
 
+function remainingBudgetMs(startedAt, budgetMs) {
+    return Math.max(0, Number(budgetMs || 0) - (now() - startedAt));
+}
+
+function makeProxyBudgetError(startedAt, budgetMs, timedOutFeedCount = 0) {
+    const error = new Error(`live RSS proxy budget exceeded after ${now() - startedAt}ms`);
+    error.code = 'live-rss-budget-exceeded';
+    error.proxyFallbackReason = 'live-rss-budget-exceeded';
+    error.liveRssDurationMs = now() - startedAt;
+    error.liveRssBudgetMs = budgetMs;
+    error.timedOutFeedCount = timedOutFeedCount;
+    return error;
+}
+
 function isLikelyCorsError(message = '') {
     const lower = String(message || '').toLowerCase();
     return lower.includes('cors') || lower.includes('failed to fetch') || lower.includes('networkerror');
@@ -142,24 +163,36 @@ class ProxyManager {
         this.cooldownUntil.set(proxyName, now() + duration);
     }
 
-    async fetchViaProxy(feedUrl) {
+    async fetchViaProxy(feedUrl, options = {}) {
         const cached = this.getCached(feedUrl);
         if (cached) {
             return cached;
         }
 
+        const budgetMs = Number(options.budgetMs || LIVE_RSS_PROXY_BUDGET_MS);
+        const startedAt = now();
+        let timedOutFeedCount = 0;
         const availableProxies = PROXIES.filter(proxy => !this.isProxyCoolingDown(proxy.name));
         const proxiesToTry = availableProxies.length > 0 ? availableProxies : PROXIES;
         let lastError = null;
 
         for (let i = 0; i < proxiesToTry.length; i++) {
+            const remainingMs = remainingBudgetMs(startedAt, budgetMs);
+            if (remainingMs <= 0) {
+                lastError = makeProxyBudgetError(startedAt, budgetMs, timedOutFeedCount);
+                break;
+            }
+
             const index = (this.currentIndex + i) % proxiesToTry.length;
             const proxy = proxiesToTry[index];
 
             try {
                 const proxyUrl = proxy.format(feedUrl);
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(
+                    () => controller.abort(),
+                    Math.min(LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS, remainingMs)
+                );
 
                 let response;
                 try {
@@ -188,8 +221,10 @@ class ProxyManager {
                 logStore.info('proxy', `${proxy.name} OK (${result.items.length} items)`);
                 return result;
             } catch (error) {
-                const message = error?.message || 'unknown';
-                lastError = error;
+                const isTimeout = error?.name === 'AbortError';
+                if (isTimeout) timedOutFeedCount += 1;
+                const message = isTimeout ? 'live-rss-proxy-timeout' : (error?.message || 'unknown');
+                lastError = isTimeout ? makeProxyBudgetError(startedAt, budgetMs, timedOutFeedCount) : error;
                 this.failureCounts.set(proxy.name, (this.failureCounts.get(proxy.name) || 0) + 1);
                 this.setCooldown(proxy.name, message);
                 console.warn(`[ProxyManager] ${proxy.name} failed for ${feedUrl}:`, message);
@@ -201,7 +236,13 @@ class ProxyManager {
         }
 
         logStore.error('proxy', `All proxies failed: ${lastError?.message}`);
-        throw new Error(`All proxies failed. Last error: ${lastError?.message || 'unknown'}`);
+        const error = new Error(`All proxies failed. Last error: ${lastError?.message || 'unknown'}`);
+        if (lastError?.code) error.code = lastError.code;
+        if (lastError?.proxyFallbackReason) error.proxyFallbackReason = lastError.proxyFallbackReason;
+        if (lastError?.liveRssDurationMs) error.liveRssDurationMs = lastError.liveRssDurationMs;
+        if (lastError?.liveRssBudgetMs) error.liveRssBudgetMs = lastError.liveRssBudgetMs;
+        error.timedOutFeedCount = timedOutFeedCount;
+        throw error;
     }
 
     getProxyHealth() {

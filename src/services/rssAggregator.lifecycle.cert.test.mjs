@@ -67,9 +67,24 @@ function testDiagnostics() {
   const trace = createFetchTrace({ datasetId: 'sections', section: 'india', fetchMode: 'hybrid', nowMs: 1000 });
   markFetchPhase(trace, 'snapshot-fetch', { itemCount: 3 }, 1015);
   const rows = [{ title: 'A' }];
-  const result = attachFetchDiagnostics(rows, trace, { servedFrom: SERVED_FROM.STATIC_SNAPSHOT, ageMs: 100 });
+  const result = attachFetchDiagnostics(rows, trace, {
+    servedFrom: SERVED_FROM.STATIC_SNAPSHOT,
+    ageMs: 100,
+    snapshotBudgetExceeded: true,
+    snapshotElapsedMs: 1501,
+    snapshotBudgetMs: 1500,
+    liveRssAttempted: true,
+    liveRssDurationMs: 300,
+    failedFeedCount: 1,
+    successfulFeedCount: 2,
+    timedOutFeedCount: 0,
+    proxyFallbackReason: 'test',
+  });
   assert.equal(result.servedFrom, SERVED_FROM.STATIC_SNAPSHOT);
   assert.equal(result.fetchDiagnostics.phases[0].phase, 'snapshot-fetch');
+  assert.equal(result.fetchDiagnostics.snapshotBudgetExceeded, true);
+  assert.equal(result.snapshotBudgetMs, 1500);
+  assert.equal(result.fetchDiagnostics.liveRssAttempted, true);
 }
 
 function testAggregatorPostMarkerCleanupWrapper() {
@@ -87,6 +102,13 @@ function testSectionsDatasetCanonicalPath() {
   const src = readRepoFile('src/data/datasets/sectionsDataset.js');
   assert.match(src, /from '..\/..\/services\/rssAggregator\.js'/);
   assert.doesNotMatch(src, /rssSectionLifecycleFetcher/);
+}
+
+function testDirectCallersUseCanonicalAggregator() {
+  const newsContext = readRepoFile('src/context/NewsContext.jsx');
+  const virtualPaper = readRepoFile('src/services/virtualPaperService.js');
+  assert.match(newsContext, /from '..\/services\/rssAggregator'/);
+  assert.match(virtualPaper, /from '.\/rssAggregator'/);
 }
 
 function testNoLifecycleFetcherReferencesRemain() {
@@ -108,6 +130,55 @@ function testForegroundSnapshotBudgetIsBounded() {
   assert.doesNotMatch(src, /\[2000, 4000, 8000\]/);
 }
 
+function testLiveRssProxyBudgetIsBounded() {
+  const proxy = readRepoFile('src/services/proxyManager.js');
+  assert.match(proxy, /LIVE_RSS_PROXY_BUDGET_MS = 6000/);
+  assert.match(proxy, /LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS = 2000/);
+  assert.match(proxy, /live-rss-budget-exceeded/);
+  assert.match(proxy, /remainingBudgetMs/);
+}
+
+function testCanonicalHelperAddsRequiredPhases() {
+  const helper = readRepoFile('src/services/fetchLifecycleDiagnostics.js');
+  [
+    'memory-cache-hit',
+    'in-flight-wait',
+    'hybrid-static-snapshot-start',
+    'hybrid-static-snapshot-hit',
+    'hybrid-stale-fallback',
+    'hybrid-snapshot-budget-exceeded',
+    'static-host-empty',
+    'live-rss-start',
+    'live-rss-feed-settled',
+    'live-rss-timeout',
+    'ranking-start',
+    'ranking-complete',
+    'ranking-fallback',
+  ].forEach(phase => assert.match(helper, new RegExp(phase)));
+}
+
+function testBudgetExitDiagnosticsAreSurfaced() {
+  const adapter = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  const dataset = readRepoFile('src/data/datasets/sectionsDataset.js');
+  const helper = readRepoFile('src/services/fetchLifecycleDiagnostics.js');
+  assert.match(adapter, /consumeSectionsSnapshotBudgetExit/);
+  assert.match(dataset, /attachBudgetExitDiagnostics/);
+  assert.match(helper, /buildCanonicalSectionDiagnostics/);
+  assert.match(helper, /liveRssAttempted/);
+  assert.match(helper, /timedOutFeedCount/);
+}
+
+function testAggregatePerformanceSummaryExists() {
+  const dataset = readRepoFile('src/data/datasets/sectionsDataset.js');
+  assert.match(dataset, /performanceSummary: getPerformanceSummary\(summaries\)/);
+  assert.match(dataset, /totalSectionFetchDurationMs/);
+  assert.match(dataset, /slowestSection/);
+  assert.match(dataset, /servedFromCounts/);
+  assert.match(dataset, /fallbackReasonCounts/);
+  assert.match(dataset, /snapshotBudgetExitCount/);
+  assert.match(dataset, /sectionFetchDurationMs/);
+}
+
 function testLiveModeStillBypassesSnapshot() {
   const src = readRepoFile('src/services/rssAggregator.js');
   assert.match(src, /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/);
@@ -124,8 +195,13 @@ testStaleFallbackKeepsRows();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
+testDirectCallersUseCanonicalAggregator();
 testNoLifecycleFetcherReferencesRemain();
 testForegroundSnapshotBudgetIsBounded();
+testLiveRssProxyBudgetIsBounded();
+testCanonicalHelperAddsRequiredPhases();
+testBudgetExitDiagnosticsAreSurfaced();
+testAggregatePerformanceSummaryExists();
 testLiveModeStillBypassesSnapshot();
 testNoGeneratedSnapshotFilesChanged();
 
