@@ -9,6 +9,19 @@ export function isUpAheadDatasetPath(pathname) {
   return pathname === UP_AHEAD_DATASET_PATH;
 }
 
+export function isObjectRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+export function isValidUpAheadPayload(payload) {
+  if (!isObjectRecord(payload)) return false;
+  if (!Array.isArray(payload.timeline)) return false;
+  if (!isObjectRecord(payload.sections)) return false;
+  if (!Array.isArray(payload.weekly_plan)) return false;
+  if (!(payload.auditSummary === null || isObjectRecord(payload.auditSummary))) return false;
+  return Array.isArray(payload.dropReport);
+}
+
 export function buildFallbackPayload() {
   return {
     timeline: [],
@@ -42,7 +55,8 @@ export async function fetchUpAheadPayload(env = {}, fetchImpl = fetch) {
   try {
     const response = await fetchImpl(upstreamUrl, { cache: 'no-cache' });
     if (!response?.ok) return buildFallbackPayload();
-    return await response.json();
+    const payload = await response.json();
+    return isValidUpAheadPayload(payload) ? payload : buildFallbackPayload();
   } catch {
     return buildFallbackPayload();
   }
