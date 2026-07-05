@@ -8,6 +8,8 @@ GET /api/datasets/upAhead
 
 The Worker fetches a published static Up Ahead snapshot from `UP_AHEAD_DATASET_URL` and returns it with CORS and no-cache headers. It does not use R2, KV, Durable Objects, or any multi-dataset provider abstraction in this work pack.
 
+For the manual activation sequence, verification checklist, and rollback path, see [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+
 ## Local setup
 
 1. Copy the example Wrangler config locally:
