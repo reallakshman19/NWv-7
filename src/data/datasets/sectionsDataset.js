@@ -88,6 +88,32 @@ function getDuplicateHints(items = []) {
   return duplicates.slice(0, 20);
 }
 
+function inferServedFrom(result) {
+  if (result?.fetchDiagnostics?.servedFrom) return result.fetchDiagnostics.servedFrom;
+  if (result?.prefetched && result?.staleReason) return SERVED_FROM.STALE_FALLBACK;
+  if (result?.prefetched) return SERVED_FROM.STATIC_SNAPSHOT;
+  if (Array.isArray(result) && result.length === 0) return SERVED_FROM.EMPTY;
+  return SERVED_FROM.LIVE_RSS;
+}
+
+function ensureSectionDiagnostics(section, result, durationMs) {
+  if (result?.fetchDiagnostics) {
+    result.fetchDiagnostics.sectionFetchDurationMs = durationMs;
+    result.sectionFetchDurationMs = durationMs;
+    return result;
+  }
+  const trace = createFetchTrace({ datasetId: 'sections', section, fetchMode: 'hybrid' });
+  markFetchPhase(trace, 'section-fetch', {
+    durationMs,
+    servedFrom: inferServedFrom(result),
+  });
+  return attachFetchDiagnostics(result, trace, {
+    servedFrom: inferServedFrom(result),
+    fallbackReason: result?.staleReason || null,
+    sectionFetchDurationMs: durationMs,
+  });
+}
+
 function attachBudgetExitDiagnostics(section, result) {
   const budgetExit = consumeSectionsSnapshotBudgetExit(section);
   if (!budgetExit) return result;
@@ -142,6 +168,7 @@ function summarizeFailure(section, error) {
     health: null,
     isSingleSource: false,
     duplicateHints: [],
+    fetchDiagnostics: null,
   };
 }
 
@@ -154,6 +181,37 @@ function getEnvelopeFreshness(summaries) {
   if (summaries.every(summary => summary.count === 0)) return ENVELOPE_FRESHNESS.EMPTY;
   if (summaries.some(summary => summary.staleReason)) return ENVELOPE_FRESHNESS.STALE;
   return ENVELOPE_FRESHNESS.FRESH;
+}
+
+function incrementCount(counts, key) {
+  const label = key || 'unknown';
+  counts[label] = (counts[label] || 0) + 1;
+}
+
+function getPerformanceSummary(summaries) {
+  const servedFromCounts = {};
+  const fallbackReasonCounts = {};
+  let totalSectionFetchDurationMs = 0;
+  let slowestSection = null;
+  let snapshotBudgetExitCount = 0;
+  summaries.forEach(summary => {
+    const diagnostics = summary.fetchDiagnostics || {};
+    const durationMs = Number(diagnostics.sectionFetchDurationMs ?? diagnostics.durationMs ?? 0);
+    totalSectionFetchDurationMs += Math.max(0, durationMs);
+    if (!slowestSection || durationMs > slowestSection.durationMs) {
+      slowestSection = { section: summary.section, durationMs };
+    }
+    incrementCount(servedFromCounts, diagnostics.servedFrom || (summary.prefetched ? 'snapshot' : 'unknown'));
+    if (diagnostics.fallbackReason) incrementCount(fallbackReasonCounts, diagnostics.fallbackReason);
+    if (diagnostics.snapshotBudgetExceeded) snapshotBudgetExitCount += 1;
+  });
+  return {
+    totalSectionFetchDurationMs,
+    slowestSection,
+    servedFromCounts,
+    fallbackReasonCounts,
+    snapshotBudgetExitCount,
+  };
 }
 
 function getValidationWarnings(summaries) {
@@ -172,8 +230,11 @@ export async function load(options = {}) {
   const sections = getRequestedSections(settings, options, diagnostics);
   const settled = await Promise.allSettled(sections.map(async section => {
     const limit = getSectionLimit(settings, section);
+    const startedAt = Date.now();
     const result = await fetchSectionNews(section, limit, settings.newsSources);
-    return summarizeSection(section, attachBudgetExitDiagnostics(section, result));
+    const durationMs = Date.now() - startedAt;
+    const withBudgetDiagnostics = attachBudgetExitDiagnostics(section, result);
+    return summarizeSection(section, ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs));
   }));
   const summaries = settled.map((entry, index) => {
     if (entry.status === 'fulfilled') return entry.value;
@@ -193,6 +254,7 @@ export async function load(options = {}) {
       sections: sectionItems,
       frontPage,
       summaries,
+      performanceSummary: getPerformanceSummary(summaries),
       loadedSections: sections,
       failedSections: failed.map(summary => ({ section: summary.section, error: summary.error })),
       duplicateHints: getDuplicateHints(dedupedItems),
