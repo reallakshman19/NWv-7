@@ -67,9 +67,17 @@ function testDiagnostics() {
   const trace = createFetchTrace({ datasetId: 'sections', section: 'india', fetchMode: 'hybrid', nowMs: 1000 });
   markFetchPhase(trace, 'snapshot-fetch', { itemCount: 3 }, 1015);
   const rows = [{ title: 'A' }];
-  const result = attachFetchDiagnostics(rows, trace, { servedFrom: SERVED_FROM.STATIC_SNAPSHOT, ageMs: 100 });
+  const result = attachFetchDiagnostics(rows, trace, {
+    servedFrom: SERVED_FROM.STATIC_SNAPSHOT,
+    ageMs: 100,
+    snapshotBudgetExceeded: true,
+    snapshotElapsedMs: 1501,
+    snapshotBudgetMs: 1500,
+  });
   assert.equal(result.servedFrom, SERVED_FROM.STATIC_SNAPSHOT);
   assert.equal(result.fetchDiagnostics.phases[0].phase, 'snapshot-fetch');
+  assert.equal(result.fetchDiagnostics.snapshotBudgetExceeded, true);
+  assert.equal(result.snapshotBudgetMs, 1500);
 }
 
 function testAggregatorPostMarkerCleanupWrapper() {
@@ -108,6 +116,20 @@ function testForegroundSnapshotBudgetIsBounded() {
   assert.doesNotMatch(src, /\[2000, 4000, 8000\]/);
 }
 
+function testBudgetExitDiagnosticsAreSurfaced() {
+  const adapter = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  const dataset = readRepoFile('src/data/datasets/sectionsDataset.js');
+  const helper = readRepoFile('src/services/fetchLifecycleDiagnostics.js');
+  assert.match(adapter, /consumeSectionsSnapshotBudgetExit/);
+  assert.match(dataset, /attachBudgetExitDiagnostics/);
+  assert.match(dataset, /hybrid-snapshot-budget-exceeded/);
+  assert.match(dataset, /snapshotBudgetExceeded: true/);
+  assert.match(dataset, /SERVED_FROM\.LIVE_FALLBACK/);
+  assert.match(dataset, /SERVED_FROM\.EMPTY/);
+  assert.match(helper, /snapshotElapsedMs/);
+  assert.match(helper, /snapshotBudgetMs/);
+}
+
 function testLiveModeStillBypassesSnapshot() {
   const src = readRepoFile('src/services/rssAggregator.js');
   assert.match(src, /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/);
@@ -126,6 +148,7 @@ testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
 testNoLifecycleFetcherReferencesRemain();
 testForegroundSnapshotBudgetIsBounded();
+testBudgetExitDiagnosticsAreSurfaced();
 testLiveModeStillBypassesSnapshot();
 testNoGeneratedSnapshotFilesChanged();
 
