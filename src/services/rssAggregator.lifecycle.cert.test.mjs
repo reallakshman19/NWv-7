@@ -8,7 +8,11 @@ import {
   markFetchPhase,
   withInFlightCleanup,
 } from './fetchLifecycleDiagnostics.js';
-import { selectPrefetchedSectionItems } from '../adapters/sectionsSnapshotFetcher.js';
+import {
+  SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS,
+  SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
+  selectPrefetchedSectionItems,
+} from '../adapters/sectionsSnapshotFetcher.js';
 
 const THIS_CERT = path.normalize('src/services/rssAggregator.lifecycle.cert.test.mjs');
 
@@ -94,6 +98,26 @@ function testNoLifecycleFetcherReferencesRemain() {
   assert.deepEqual(hits, []);
 }
 
+function testForegroundSnapshotBudgetIsBounded() {
+  assert.equal(SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS, 1500);
+  assert.ok(SECTION_SNAPSHOT_RETRY_BACKOFF_MS.reduce((sum, ms) => sum + ms, 0) < SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS);
+  const src = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  assert.match(src, /budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS/);
+  assert.match(src, /AbortController/);
+  assert.match(src, /snapshot-budget-exceeded/);
+  assert.doesNotMatch(src, /\[2000, 4000, 8000\]/);
+}
+
+function testLiveModeStillBypassesSnapshot() {
+  const src = readRepoFile('src/services/rssAggregator.js');
+  assert.match(src, /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/);
+}
+
+function testNoGeneratedSnapshotFilesChanged() {
+  const diffNameOnly = process.env.GITHUB_PR_CHANGED_FILES || '';
+  assert.doesNotMatch(diffNameOnly, /public\/(newsdata|data)\//);
+}
+
 await testCleanupOnReturn();
 await testCleanupOnFailure();
 testStaleFallbackKeepsRows();
@@ -101,5 +125,8 @@ testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
 testNoLifecycleFetcherReferencesRemain();
+testForegroundSnapshotBudgetIsBounded();
+testLiveModeStillBypassesSnapshot();
+testNoGeneratedSnapshotFilesChanged();
 
 console.log('PASS: RSS Hybrid fetch lifecycle guardrails');

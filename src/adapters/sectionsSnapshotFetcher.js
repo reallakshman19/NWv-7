@@ -4,6 +4,8 @@ export const SECTION_SNAPSHOT_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 export const SECTION_ITEM_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 export const TOP_STORIES_ITEM_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 export const TOP_STORIES_WARN_AGE_MS = 6 * 60 * 60 * 1000;
+export const SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS = 1500;
+export const SECTION_SNAPSHOT_RETRY_BACKOFF_MS = Object.freeze([250, 500]);
 
 const SECTION_ALIASES = {
   chennai: 'tn',
@@ -76,10 +78,8 @@ function itemTimestampMs(item) {
 function isLowConfidenceTimestamp(item) {
   const explicitConfidence = String(item?.timestampConfidence || '').toLowerCase();
   if (explicitConfidence === 'low') return true;
-
   const source = String(item?.publishedAtSource || item?.timestampSource || '').toLowerCase();
   if (LOW_CONFIDENCE_TIMESTAMP_SOURCES.has(source)) return true;
-
   return itemTimestampMs(item) <= 0;
 }
 
@@ -118,13 +118,42 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function getRemainingBudgetMs(startedAt, budgetMs) {
+  return Math.max(0, Number(budgetMs || 0) - (Date.now() - startedAt));
+}
+
+function makeBudgetError(startedAt, budgetMs) {
+  const elapsedMs = Date.now() - startedAt;
+  const error = new Error(`sections snapshot budget exceeded after ${elapsedMs}ms`);
+  error.code = 'snapshot-budget-exceeded';
+  error.elapsedMs = elapsedMs;
+  error.budgetMs = budgetMs;
+  return error;
+}
+
+async function fetchWithBudget(url, remainingMs) {
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), remainingMs) : null;
+  try {
+    return await fetch(url, {
+      cache: 'no-store',
+      signal: controller?.signal,
+      headers: {
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+      },
+    });
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 function normalizePrefetchedSectionItem(item, requestedSection, sourceSection) {
   const title = safeText(item.title || item.headline, 'Untitled');
   const description = safeText(item.description || item.summary, '');
   const url = safeText(item.url || item.link || item.guid, '');
   const source = safeText(item.source || item.sourceGroup, 'Unknown');
   const publishedAt = itemTimestampMs(item);
-
   return {
     ...item,
     id: safeText(item.id || hash(url || title)),
@@ -148,10 +177,7 @@ function normalizePrefetchedSectionItem(item, requestedSection, sourceSection) {
 }
 
 export function getSectionsSnapshotRuntimeSummary(snapshot) {
-  const sections = snapshot?.sections && typeof snapshot.sections === 'object'
-    ? snapshot.sections
-    : {};
-
+  const sections = snapshot?.sections && typeof snapshot.sections === 'object' ? snapshot.sections : {};
   return {
     schemaVersion: Number(snapshot?.schemaVersion || 0),
     supported: isSupportedSectionsSnapshot(snapshot),
@@ -166,44 +192,32 @@ export function getSectionsSnapshotRuntimeSummary(snapshot) {
   };
 }
 
-export async function loadSectionsSnapshot({ force = false } = {}) {
+export async function loadSectionsSnapshot({ force = false, budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS } = {}) {
   if (!force && memorySnapshot && Date.now() - memorySnapshot.loadedAt < SECTION_SNAPSHOT_TTL_MS) {
     return memorySnapshot.snapshot;
   }
-
+  const startedAt = Date.now();
   let response;
   let lastError;
-  const backoffs = [2000, 4000, 8000];
-  for (let attempt = 0; attempt < backoffs.length; attempt += 1) {
+  for (let attempt = 0; attempt <= SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length; attempt += 1) {
+    const remainingMs = getRemainingBudgetMs(startedAt, budgetMs);
+    if (remainingMs <= 0) throw makeBudgetError(startedAt, budgetMs);
     try {
-      response = await fetch(getSnapshotUrl(), {
-        cache: 'no-store',
-        headers: {
-          'cache-control': 'no-cache',
-          pragma: 'no-cache',
-        },
-      });
+      response = await fetchWithBudget(getSnapshotUrl(), remainingMs);
       if (!response.ok) throw new Error(`sections snapshot fetch failed: HTTP ${response.status}`);
       break;
     } catch (error) {
-      lastError = error;
-      if (attempt < backoffs.length - 1) await sleep(backoffs[attempt]);
+      lastError = error?.name === 'AbortError' ? makeBudgetError(startedAt, budgetMs) : error;
+      const waitMs = Math.min(SECTION_SNAPSHOT_RETRY_BACKOFF_MS[attempt] || 0, getRemainingBudgetMs(startedAt, budgetMs));
+      if (attempt < SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length && waitMs > 0) await sleep(waitMs);
     }
   }
-
   if (!response || !response.ok) throw lastError || new Error('sections snapshot fetch failed');
-
   const snapshot = await response.json();
-
   if (!isSupportedSectionsSnapshot(snapshot)) {
     throw new Error(`unsupported sections snapshot schema: ${snapshot?.schemaVersion}`);
   }
-
-  memorySnapshot = {
-    loadedAt: Date.now(),
-    snapshot,
-  };
-
+  memorySnapshot = { loadedAt: Date.now(), snapshot };
   return snapshot;
 }
 
@@ -218,7 +232,6 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
       staleReason: 'unsupported_snapshot_schema',
     };
   }
-
   const requestedSection = String(section || '');
   const sourceSection = normalizeSectionKey(section);
   const sectionItems = safeArray(snapshot?.sections?.[sourceSection]);
@@ -233,7 +246,6 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
       : lowConfidenceTimestampCount > 0 && sourceSection === 'topStories'
         ? 'top_stories_low_confidence_timestamps'
         : null;
-
   if (sourceSection === 'topStories' && snapshotStale) {
     return {
       items: [],
@@ -248,20 +260,12 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
       itemMaxAgeMs: TOP_STORIES_ITEM_MAX_AGE_MS,
     };
   }
-
-  // I002: prefer item-fresh rows, but rather than leave the Main tab silently
-  // empty when nothing is fresh (e.g. the deployed snapshot has aged out), fall
-  // back to the most recent rows flagged stale=true so the UI renders them under
-  // a "data delayed" marker instead of "No updates available". topStories keeps
-  // its strict early-return above. Fresh data is always preferred when present.
   const usingStaleFallback = freshSectionItems.length === 0 && sectionItems.length > 0;
   const candidateItems = freshSectionItems.length > 0 ? freshSectionItems : sectionItems;
-
   const items = candidateItems
     .map(item => normalizePrefetchedSectionItem(item, requestedSection, sourceSection))
     .sort((a, b) => Number(b.publishedAt || 0) - Number(a.publishedAt || 0))
     .slice(0, Math.max(0, Number(limit || 0)));
-
   return {
     items,
     sourceSection,
@@ -276,8 +280,8 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
   };
 }
 
-export async function fetchPrefetchedSectionNews(section, limit = 10) {
-  const snapshot = await loadSectionsSnapshot();
+export async function fetchPrefetchedSectionNews(section, limit = 10, options = {}) {
+  const snapshot = await loadSectionsSnapshot(options);
   return selectPrefetchedSectionItems(snapshot, section, limit);
 }
 
@@ -290,6 +294,8 @@ export const __sectionsSnapshotInternalsForTest = {
   isFreshSectionItem,
   isLowConfidenceTimestamp,
   itemTimestampMs,
+  getRemainingBudgetMs,
+  makeBudgetError,
 };
 
 export default fetchPrefetchedSectionNews;
