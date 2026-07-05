@@ -130,6 +130,17 @@ function testBudgetExitDiagnosticsAreSurfaced() {
   assert.match(helper, /snapshotBudgetMs/);
 }
 
+function testAggregatePerformanceSummaryExists() {
+  const dataset = readRepoFile('src/data/datasets/sectionsDataset.js');
+  assert.match(dataset, /performanceSummary: getPerformanceSummary\(summaries\)/);
+  assert.match(dataset, /totalSectionFetchDurationMs/);
+  assert.match(dataset, /slowestSection/);
+  assert.match(dataset, /servedFromCounts/);
+  assert.match(dataset, /fallbackReasonCounts/);
+  assert.match(dataset, /snapshotBudgetExitCount/);
+  assert.match(dataset, /sectionFetchDurationMs/);
+}
+
 function testLiveModeStillBypassesSnapshot() {
   const src = readRepoFile('src/services/rssAggregator.js');
   assert.match(src, /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/);
@@ -149,6 +160,7 @@ testSectionsDatasetCanonicalPath();
 testNoLifecycleFetcherReferencesRemain();
 testForegroundSnapshotBudgetIsBounded();
 testBudgetExitDiagnosticsAreSurfaced();
+testAggregatePerformanceSummaryExists();
 testLiveModeStillBypassesSnapshot();
 testNoGeneratedSnapshotFilesChanged();
 
