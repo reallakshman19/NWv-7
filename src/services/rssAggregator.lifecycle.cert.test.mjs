@@ -13,6 +13,10 @@ import {
   SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
   selectPrefetchedSectionItems,
 } from '../adapters/sectionsSnapshotFetcher.js';
+import {
+  LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS,
+  LIVE_RSS_PROXY_BUDGET_MS,
+} from './proxyManager.js';
 
 const THIS_CERT = path.normalize('src/services/rssAggregator.lifecycle.cert.test.mjs');
 
@@ -73,11 +77,18 @@ function testDiagnostics() {
     snapshotBudgetExceeded: true,
     snapshotElapsedMs: 1501,
     snapshotBudgetMs: 1500,
+    liveRssAttempted: true,
+    liveRssDurationMs: 300,
+    failedFeedCount: 1,
+    successfulFeedCount: 2,
+    timedOutFeedCount: 0,
+    proxyFallbackReason: 'test',
   });
   assert.equal(result.servedFrom, SERVED_FROM.STATIC_SNAPSHOT);
   assert.equal(result.fetchDiagnostics.phases[0].phase, 'snapshot-fetch');
   assert.equal(result.fetchDiagnostics.snapshotBudgetExceeded, true);
   assert.equal(result.snapshotBudgetMs, 1500);
+  assert.equal(result.fetchDiagnostics.liveRssAttempted, true);
 }
 
 function testAggregatorPostMarkerCleanupWrapper() {
@@ -95,6 +106,13 @@ function testSectionsDatasetCanonicalPath() {
   const src = readRepoFile('src/data/datasets/sectionsDataset.js');
   assert.match(src, /from '..\/..\/services\/rssAggregator\.js'/);
   assert.doesNotMatch(src, /rssSectionLifecycleFetcher/);
+}
+
+function testDirectCallersUseCanonicalAggregator() {
+  const newsContext = readRepoFile('src/context/NewsContext.jsx');
+  const virtualPaper = readRepoFile('src/services/virtualPaperService.js');
+  assert.match(newsContext, /from '..\/services\/rssAggregator'/);
+  assert.match(virtualPaper, /from '.\/rssAggregator'/);
 }
 
 function testNoLifecycleFetcherReferencesRemain() {
@@ -116,6 +134,35 @@ function testForegroundSnapshotBudgetIsBounded() {
   assert.doesNotMatch(src, /\[2000, 4000, 8000\]/);
 }
 
+function testLiveRssProxyBudgetIsBounded() {
+  assert.equal(LIVE_RSS_PROXY_BUDGET_MS, 6000);
+  assert.equal(LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS, 2000);
+  const proxy = readRepoFile('src/services/proxyManager.js');
+  assert.match(proxy, /LIVE_RSS_PROXY_BUDGET_MS = 6000/);
+  assert.match(proxy, /LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS = 2000/);
+  assert.match(proxy, /live-rss-budget-exceeded/);
+  assert.match(proxy, /remainingBudgetMs/);
+}
+
+function testCanonicalHelperAddsRequiredPhases() {
+  const helper = readRepoFile('src/services/fetchLifecycleDiagnostics.js');
+  [
+    'memory-cache-hit',
+    'in-flight-wait',
+    'hybrid-static-snapshot-start',
+    'hybrid-static-snapshot-hit',
+    'hybrid-stale-fallback',
+    'hybrid-snapshot-budget-exceeded',
+    'static-host-empty',
+    'live-rss-start',
+    'live-rss-feed-settled',
+    'live-rss-timeout',
+    'ranking-start',
+    'ranking-complete',
+    'ranking-fallback',
+  ].forEach(phase => assert.match(helper, new RegExp(phase)));
+}
+
 function testBudgetExitDiagnosticsAreSurfaced() {
   const adapter = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
   const dataset = readRepoFile('src/data/datasets/sectionsDataset.js');
@@ -123,11 +170,9 @@ function testBudgetExitDiagnosticsAreSurfaced() {
   assert.match(adapter, /consumeSectionsSnapshotBudgetExit/);
   assert.match(dataset, /attachBudgetExitDiagnostics/);
   assert.match(dataset, /hybrid-snapshot-budget-exceeded/);
-  assert.match(dataset, /snapshotBudgetExceeded: true/);
-  assert.match(dataset, /SERVED_FROM\.LIVE_FALLBACK/);
-  assert.match(dataset, /SERVED_FROM\.EMPTY/);
-  assert.match(helper, /snapshotElapsedMs/);
-  assert.match(helper, /snapshotBudgetMs/);
+  assert.match(helper, /buildCanonicalSectionDiagnostics/);
+  assert.match(helper, /liveRssAttempted/);
+  assert.match(helper, /timedOutFeedCount/);
 }
 
 function testAggregatePerformanceSummaryExists() {
@@ -157,8 +202,11 @@ testStaleFallbackKeepsRows();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
+testDirectCallersUseCanonicalAggregator();
 testNoLifecycleFetcherReferencesRemain();
 testForegroundSnapshotBudgetIsBounded();
+testLiveRssProxyBudgetIsBounded();
+testCanonicalHelperAddsRequiredPhases();
 testBudgetExitDiagnosticsAreSurfaced();
 testAggregatePerformanceSummaryExists();
 testLiveModeStillBypassesSnapshot();
