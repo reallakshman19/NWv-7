@@ -1,5 +1,6 @@
 import { makeEnvelope, ENVELOPE_SOURCES, ENVELOPE_FRESHNESS } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
+import { fetchUpAheadDatasetApiData } from './upAheadDatasetApiClient.js';
 import { resolveUpAheadProviderPolicy } from './upAheadProviderPolicy.js';
 import {
   fetchStaticUpAheadData,
@@ -132,6 +133,27 @@ function persistUpAheadData(data) {
   return data;
 }
 
+async function loadDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
+  diagnostics.push({ event: 'upAheadDataset.api_attempted', severity: 'info', message: 'Attempting Up Ahead dataset API' });
+  const apiData = await fetchUpAheadDatasetApiData({ baseUrl: runtimeCapabilities.configuredBackendUrl });
+  if (apiData && hasVisibleUpAheadContent(apiData)) {
+    const merged = persistUpAheadData(mergeUpAheadData(data, apiData));
+    diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
+    return { data: merged, sourceMode: apiData.sourceMode || 'dataset-api', hasUsableApi: true };
+  }
+  diagnostics.push({ event: 'upAheadDataset.api_empty', severity: 'warn', message: 'Dataset API returned no visible Up Ahead content' });
+  return { data, sourceMode: null, hasUsableApi: false };
+}
+
+async function mergeDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
+  try {
+    return await loadDatasetApiData({ runtimeCapabilities, data, diagnostics });
+  } catch (error) {
+    diagnostics.push({ event: 'upAheadDataset.api_failed', severity: 'warn', message: error?.message || String(error) });
+    return { data, sourceMode: null, hasUsableApi: false };
+  }
+}
+
 async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   try {
     const staticData = await fetchStaticUpAheadData(upAheadSettings);
@@ -184,11 +206,12 @@ export async function load(options = {}) {
   let data = null;
   let sourceMode = 'live';
   let hasUsableCache = false;
+  let hasUsableApi = false;
   let hasUsableStatic = false;
 
   await loadPlannerSyncIfAllowed();
 
-  const initialPolicy = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableStatic });
+  const initialPolicy = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableApi, hasUsableStatic });
 
   if (initialPolicy.shouldReadCache) {
     const cached = loadFromCache();
@@ -200,14 +223,23 @@ export async function load(options = {}) {
     }
   }
 
-  if (initialPolicy.shouldReadStatic) {
+  if (initialPolicy.shouldAttemptDatasetApi) {
+    const result = await mergeDatasetApiData({ runtimeCapabilities, data, diagnostics });
+    data = result.data;
+    hasUsableApi = result.hasUsableApi;
+    if (result.sourceMode) sourceMode = result.sourceMode;
+  } else {
+    diagnostics.push({ event: 'upAheadDataset.api_skipped_policy', severity: 'info', message: initialPolicy.apiSkippedReason || 'Dataset API not attempted' });
+  }
+
+  if (initialPolicy.shouldReadStatic && !hasUsableApi) {
     const result = await mergeStaticData({ upAheadSettings, data, diagnostics });
     data = result.data;
     hasUsableStatic = result.hasUsableStatic;
     if (result.sourceMode) sourceMode = result.sourceMode;
   }
 
-  const providerDecision = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableStatic });
+  const providerDecision = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableApi, hasUsableStatic });
   pushProviderDecision(diagnostics, providerDecision);
 
   if (providerDecision.shouldAttemptLive) {
