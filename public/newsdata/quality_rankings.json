@@ -1508,7 +1508,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1520,19 +1520,11 @@
         "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
         "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-        "Major drive under way to remove ‘seemai karuvelam’ in Pudukottai district: futureValidity failed — expired display window",
-        "Major drive under way to remove ‘seemai karuvelam’ in Pudukottai district: alertUrgency failed — alert expired",
-        "Radio telemetry almost saved this vulture: futureValidity failed — expired display window",
-        "Radio telemetry almost saved this vulture: alertUrgency failed — alert expired",
-        "Police summon Senthilbalaji, his brother in connection with TVK MLA bribery attempt case: futureValidity failed — expired display window",
-        "Police summon Senthilbalaji, his brother in connection with TVK MLA bribery attempt case: alertUrgency failed — alert expired",
-        "Tiruchi Corporation revives ₹75-crore office expansion plan: futureValidity failed — expired display window",
-        "Tiruchi Corporation revives ₹75-crore office expansion plan: alertUrgency failed — alert expired",
-        "Eight arrested in ₹63.39 lakh fake gold loan fraud: futureValidity failed — expired display window",
-        "Eight arrested in ₹63.39 lakh fake gold loan fraud: alertUrgency failed — alert expired",
         "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match",
         "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
-        "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match"
+        "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
+        "These 31+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
+        "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match"
       ],
       "gateResults": [
         {
@@ -1547,8 +1539,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 20,
-              "shopping": 9,
+              "alerts": 24,
+              "shopping": 5,
               "weather_alerts": 1
             }
           },
@@ -1559,33 +1551,33 @@
         }
       ],
       "gateSummary": {
-        "alerts": 21,
+        "alerts": 25,
         "categoryCounts": {
-          "alerts": 20,
-          "shopping": 9,
+          "alerts": 24,
+          "shopping": 5,
           "weather_alerts": 1
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 74,
+        "inputItemCount": 73,
         "locationCounts": {
-          "chennai": 26,
-          "online": 2,
-          "trichy": 2
+          "chennai": 24,
+          "online": 1,
+          "trichy": 5
         },
         "locationsCovered": [
           "chennai",
           "online",
           "trichy"
         ],
-        "offlineOffers": 7,
-        "onlineOffers": 2,
+        "offlineOffers": 4,
+        "onlineOffers": 1,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 19
+        "suppressedItemCount": 12
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8344,
+      "qualityScore": 0.8432,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -2168,6 +2160,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "919022d36fea4138"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783342873000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "c7c0f582ac4baa57",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783342873000,
+            "id": "c7c0f582ac4baa57",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783947673000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783342873000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783256473000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Couple killed as lorry rams two-wheeler from behind at Kumbakonam",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/couple-killed-as-lorry-rams-two-wheeler-from-behind-at-kumbakonam/article71185490.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Couple killed as lorry rams two-wheeler from behind at Kumbakonam"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "6f8027d4a7508bf7"
               },
               "name": "dedup",
@@ -2392,6 +2499,121 @@
           ],
           "score": 0.8485,
           "title": "DVAC conducts surprise checks across Tamil Nadu"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "448635a0e5aa7438"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783343398000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "771cd276b06ad35f",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783343398000,
+            "id": "771cd276b06ad35f",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783948198000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783343398000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783256998000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "Designed in consultation with the Animal Welfare Board, each of the four shelters will have the capacity to accommodate around 100 stray dogs and be enclosed by compound walls",
+            "suppressionReason": null,
+            "title": "Dedicated shelters for sterilised stray dogs in Tiruchi to be ready by October",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/dedicated-shelters-for-sterilised-stray-dogs-in-tiruchi-to-be-ready-by-october/article71185761.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Dedicated shelters for sterilised stray dogs in Tiruchi to be ready by October"
         },
         {
           "category": "alerts",
@@ -2737,6 +2959,121 @@
           ],
           "score": 0.8485,
           "title": "Field survey highlights wetland’s significance amid reservoir debate"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "c6f58f28e118c685"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783344923000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "cdd7f0053e411033",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783344923000,
+            "id": "cdd7f0053e411033",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783949723000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783344923000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783258523000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "While the Tiruchi Corporation cites lack of suitable land to build a parking lot, the HR&amp;CE department, which owns many large vacant sites, has not been able to allot land for the same",
+            "suppressionReason": null,
+            "title": "Lack of parking lot remains a major issue in Srirangam",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/lack-of-parking-lot-remains-a-major-issue-in-srirangam/article71185833.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Lack of parking lot remains a major issue in Srirangam"
         },
         {
           "category": "alerts",
@@ -3893,6 +4230,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "3ecf468994405088"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783344968000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "af3f8df5142801ac",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783344968000,
+            "id": "af3f8df5142801ac",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783949768000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783344968000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783258568000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Only five departments have hosted their G.O.s issued in May and June on the website. The orders that are not available on the site pertain to the creation of Singappen Special Force and the provision of 100 additional units of electricity to domestic consumers who use 500 units bi-monthly",
+            "suppressionReason": null,
+            "title": "A majority of departments are yet to upload G.O.s on the Tamil Nadu government website",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/a-majority-of-departments-are-yet-to-upload-gos-on-the-tamil-nadu-government-website/article71183172.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "A majority of departments are yet to upload G.O.s on the Tamil Nadu government website"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "efb322bac63b270d"
               },
               "name": "dedup",
@@ -4048,7 +4500,7 @@
             },
             {
               "details": {
-                "hoursLeft": 23.73
+                "hoursLeft": 23.17
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4163,7 +4615,7 @@
             },
             {
               "details": {
-                "hoursLeft": 3.79
+                "hoursLeft": 3.23
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4278,7 +4730,7 @@
             },
             {
               "details": {
-                "hoursLeft": 16.88
+                "hoursLeft": 16.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4393,7 +4845,7 @@
             },
             {
               "details": {
-                "hoursLeft": 23.05
+                "hoursLeft": 22.49
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4508,7 +4960,7 @@
             },
             {
               "details": {
-                "hoursLeft": 3.74
+                "hoursLeft": 3.18
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4577,481 +5029,21 @@
           ],
           "score": 0.744,
           "title": "Amazon Prime Day 2026 Sale Begins: Best Offers on Mobile Phones, Electronics - Gadgets 360"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "d79f6bdd7a06bbfc"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783341600000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 21.9
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "4aef25eca183a3c7",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783341600000,
-            "id": "4aef25eca183a3c7",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783946400000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783341600000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783168800000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiowJBVV95cUxObVMzVkp4YmNrMWhEUVdYWTYycTNfSjRwTlNuUWl6ZUdrYlpadTFqbUUzazhvV2ZBbHIwa25fNGlURUxWYVM5Vl9YbzN6QmJBdHU5dXdpTUx1bXdVeUVfR212T3Nqb28yVmktR3I0WVV4anZ2SWlwLXFTeUtJcWh2aHZsQm0tT3g5Q2s4TzBqeWdEYUMyVDRnaURva2Y3b2VZc1ZyTllDZnlCNTlBZ3ZVWllIYUNyLTlzZEpUcnhKVVh1Z1I1Y0FpYzNXWEJlODBjZmowMzBSOXVzQW1oNDExU25ESWR5RWtxTl9LMW5udzZ2WXFVN2c1RkZsZ3phR3ZPZ01qT1ExSUlhd3BNb3hDWlpYZ3EzZ0hScml0QXJlc1NZcDTSAagCQVVfeXFMT3RVZTZjVll4ODUzbFBNY1VFV2VTVllwd2FLMHBnb1B4VmtPWkhHakJpMGlzSVRvMm1vNmVxR1ZJRXdtMl9NcXY5eEI2aWVVVUdEbm9vTlFWYW90aER0ZUFjd3I5STNycFRkOVI5RTZmZnRjalEyRVM0alpmLWxnY0NlQ3Z1QkJudXJLUVN5YklwcEROYTQxOGtxUmlhZHB1MDJUTFV1blhvY2xrUFh6cm9UVlNBVmd2UXN6MkNLb0lLeGoyUHNwNjh5bDZtbkhsaVV0OVByR0FJa3NjakE3S0NkR2tjVmhQZUtQaS1OclhrSTVhTHBXdWhaNklyVVBCLTB5MnlDNGMxRnBXWU1RZGhiTGlGOEdiUkttRy1MNzRaSHhIa280QmY?oc=5\" target=\"_blank\">Amazon Prime Day 2026 sale starts in India today: Deals on gadgets you can get delivered in minutes with</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Times of India</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2026 sale starts in India today: Deals on gadgets you can get delivered in minutes with - The Times of India",
-            "url": "https://news.google.com/rss/articles/CBMiowJBVV95cUxObVMzVkp4YmNrMWhEUVdYWTYycTNfSjRwTlNuUWl6ZUdrYlpadTFqbUUzazhvV2ZBbHIwa25fNGlURUxWYVM5Vl9YbzN6QmJBdHU5dXdpTUx1bXdVeUVfR212T3Nqb28yVmktR3I0WVV4anZ2SWlwLXFTeUtJcWh2aHZsQm0tT3g5Q2s4TzBqeWdEYUMyVDRnaURva2Y3b2VZc1ZyTllDZnlCNTlBZ3ZVWllIYUNyLTlzZEpUcnhKVVh1Z1I1Y0FpYzNXWEJlODBjZmowMzBSOXVzQW1oNDExU25ESWR5RWtxTl9LMW5udzZ2WXFVN2c1RkZsZ3phR3ZPZ01qT1ExSUlhd3BNb3hDWlpYZ3EzZ0hScml0QXJlc1NZcDTSAagCQVVfeXFMT3RVZTZjVll4ODUzbFBNY1VFV2VTVllwd2FLMHBnb1B4VmtPWkhHakJpMGlzSVRvMm1vNmVxR1ZJRXdtMl9NcXY5eEI2aWVVVUdEbm9vTlFWYW90aER0ZUFjd3I5STNycFRkOVI5RTZmZnRjalEyRVM0alpmLWxnY0NlQ3Z1QkJudXJLUVN5YklwcEROYTQxOGtxUmlhZHB1MDJUTFV1blhvY2xrUFh6cm9UVlNBVmd2UXN6MkNLb0lLeGoyUHNwNjh5bDZtbkhsaVV0OVByR0FJa3NjakE3S0NkR2tjVmhQZUtQaS1OclhrSTVhTHBXdWhaNklyVVBCLTB5MnlDNGMxRnBXWU1RZGhiTGlGOEdiUkttRy1MNzRaSHhIa280QmY?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2026 sale starts in India today: Deals on gadgets you can get delivered in minutes with - The Times of India"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "72a6419e873eaed6"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783268100000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 1.48
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "cbe768e88073c618",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783268100000,
-            "id": "cbe768e88073c618",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783872900000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783268100000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783095300000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0gJBVV95cUxPTnlrcUY5TWJtcVhOdElybmpJZjRFMXZWekttWkhrYzlpLVVpRzBoZEtQQTVqTXR4MG8wd25pbnRjMTg1VE8tY1JmT19VY1pkVmk3Sk9RWGVNYnhDTU0wdHRydnVqTTk1QkhFVFZOcjZMdm13MHFRbWY5bXNtOHBteFM5U1R3c09WM2gyTWJjQWlKWERyNlpXcGwyN1ZmanY2LWRubElSZ0tIX1MxYndNQ0tLd0lkQm5sRGkzaGcyTkNjdXBVVEQ0V0N3djRKVGRad1FlV0NYbWYwYTB5VGZCOEpJcE9RS1RkVXFKNHlyUUZSem96M0xaeURSQnFTaGZkVFpvQzRWenlmUmRaMWYtVEk1U0hLUGx3QUtqYmktZzRWTHd2VUowNzV4Q3VTTFB1UG5KMVMxb3RBN21XRHg2eXduZ2pUNUZlc2pZRmp3a1JLd9IB1wJBVV95cUxPSFNkYkFvQXJramZpazg2NFA1SGV3ZkQzNi1lWWdKTFkwNmlJSlNvWmhGV1VydVVKdC0tOGkzVlQ4OFg1dmpON2ZJdUFVeEpFX0Q3dmhmVnJwdEtvU0xZZUx2YVFFNVFwRW9xbGxSSUpNd1hyLXo1aEdmQndYRTdqck1yYTA4UUdWWHBrOTlfdzE1V3FoOXB2cFZzaHdTZWdGdGRINWFpcGp6VjVCN3V0V21LZ0NXZURndmV2RzZGZkVaSjFHY3VrcEN6V3E0SjFRNXBUa2Y3VzhtejJiNk9tbHdMSlNmSXBzZ29CZ0NEM0RmWHZodVEyVV8xdEpjRHlfSmhhNXVFSUlKaWd4T3JOUzVTZlNhMmgyRzBCQlY0YUVtM2hXWmRnUS11bzFWUnprMlRBSmhudXNXOHh1QlI4WS1mSW9FSWlLUkFWYkNadFBXWDBHc2s0?oc=5\" target=\"_blank\">Amazon Prime Day 2026 starts July 4: Samsung Galaxy S25 Ultra at Rs 84,999, Sennheiser Momentum TWS 4 for</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Times of India</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2026 starts July 4: Samsung Galaxy S25 Ultra at Rs 84,999, Sennheiser Momentum TWS 4 for - The Times of India",
-            "url": "https://news.google.com/rss/articles/CBMi0gJBVV95cUxPTnlrcUY5TWJtcVhOdElybmpJZjRFMXZWekttWkhrYzlpLVVpRzBoZEtQQTVqTXR4MG8wd25pbnRjMTg1VE8tY1JmT19VY1pkVmk3Sk9RWGVNYnhDTU0wdHRydnVqTTk1QkhFVFZOcjZMdm13MHFRbWY5bXNtOHBteFM5U1R3c09WM2gyTWJjQWlKWERyNlpXcGwyN1ZmanY2LWRubElSZ0tIX1MxYndNQ0tLd0lkQm5sRGkzaGcyTkNjdXBVVEQ0V0N3djRKVGRad1FlV0NYbWYwYTB5VGZCOEpJcE9RS1RkVXFKNHlyUUZSem96M0xaeURSQnFTaGZkVFpvQzRWenlmUmRaMWYtVEk1U0hLUGx3QUtqYmktZzRWTHd2VUowNzV4Q3VTTFB1UG5KMVMxb3RBN21XRHg2eXduZ2pUNUZlc2pZRmp3a1JLd9IB1wJBVV95cUxPSFNkYkFvQXJramZpazg2NFA1SGV3ZkQzNi1lWWdKTFkwNmlJSlNvWmhGV1VydVVKdC0tOGkzVlQ4OFg1dmpON2ZJdUFVeEpFX0Q3dmhmVnJwdEtvU0xZZUx2YVFFNVFwRW9xbGxSSUpNd1hyLXo1aEdmQndYRTdqck1yYTA4UUdWWHBrOTlfdzE1V3FoOXB2cFZzaHdTZWdGdGRINWFpcGp6VjVCN3V0V21LZ0NXZURndmV2RzZGZkVaSjFHY3VrcEN6V3E0SjFRNXBUa2Y3VzhtejJiNk9tbHdMSlNmSXBzZ29CZ0NEM0RmWHZodVEyVV8xdEpjRHlfSmhhNXVFSUlKaWd4T3JOUzVTZlNhMmgyRzBCQlY0YUVtM2hXWmRnUS11bzFWUnprMlRBSmhudXNXOHh1QlI4WS1mSW9FSWlLUkFWYkNadFBXWDBHc2s0?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2026 starts July 4: Samsung Galaxy S25 Ultra at Rs 84,999, Sennheiser Momentum TWS 4 for - The Times of India"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "ec4a42fa7a8d6cc6"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783315592000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 14.68
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "0c6c8efeeaa60f9a",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783315592000,
-            "id": "0c6c8efeeaa60f9a",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783920392000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783315592000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783142792000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMikwFBVV95cUxNVjlVWnhKU1Fad0NwcHVjZmtQWmhuWjVkWC1PQUxaMWFzNG43d19GWU5YUDBfNUhGWUdMNU5RYjlMWmJrRV9oVTdKSWlXTDVVZjQzLUoxejN5ZDF2bjRZbVdpbjFlOENjVXFXVEl3TkJpNHdCV2hjNGJ6T0U0S1RzV00wN1ppeDRiaWtIM3NhUjRDUHPSAZgBQVVfeXFMT2pSa2prTENhSUxsX3V5MGowTTkxTV9ZbE9BS2VQWE9FNmZYSFA4blRGQm0yaU9rSl96cENYMTl5OE52VUx3dE1QamhOV0o5RkFMWFFmcnRTalRZWTZFM2R6RXhGZFI0TnhlMU1wRGItMExrOGVZc3VDRGFHSmlGVS1uVUxxRkRLOUFCTDBUTkhvY0c0ckowNkU?oc=5\" target=\"_blank\">Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FoneArena.com</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com",
-            "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNVjlVWnhKU1Fad0NwcHVjZmtQWmhuWjVkWC1PQUxaMWFzNG43d19GWU5YUDBfNUhGWUdMNU5RYjlMWmJrRV9oVTdKSWlXTDVVZjQzLUoxejN5ZDF2bjRZbVdpbjFlOENjVXFXVEl3TkJpNHdCV2hjNGJ6T0U0S1RzV00wN1ppeDRiaWtIM3NhUjRDUHPSAZgBQVVfeXFMT2pSa2prTENhSUxsX3V5MGowTTkxTV9ZbE9BS2VQWE9FNmZYSFA4blRGQm0yaU9rSl96cENYMTl5OE52VUx3dE1QamhOV0o5RkFMWFFmcnRTalRZWTZFM2R6RXhGZFI0TnhlMU1wRGItMExrOGVZc3VDRGFHSmlGVS1uVUxxRkRLOUFCTDBUTkhvY0c0ckowNkU?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "c895fc726b1405de"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783333743000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 19.72
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "5091651d29c14d23",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783333743000,
-            "id": "5091651d29c14d23",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783938543000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783333743000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783160943000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMixwFBVV95cUxOTzJPcE52cE9FMHBOZDBhdFVzYi1EVVNFS0d1aDJkVllYZ3FOMFljVWZnTVNCVHZEd0dKUlgwRW5FNTlEMEowZWI1ZjJqY2ptaVI2c0tiV2FtYTZyVU9nVUN5ZTZXMXFCRjI3eHVyQ3dZZmxDWW9vTGxlZ2NJTWVNc001N3llN2ZOemRreFBWVW5DSkdlVEZnWjJEbVc0emw5czNrRndjZUN4YmpGWDB2YnhUal9MSmMyTHp1OWdPZUhER0VOYllN0gHMAUFVX3lxTFBNcVNwZHRCdkJ4WGgxUF9JYU5BSXhyWGJkeDE2REhRT2xFa29OT0Ywbm5XdjV5cDJvZEtXcXJvaGloanIxcnNYY3pZU0t0OExQZHJfMlFORGJ6Q2xMbGhCQ1czb3o1aWZuSkV1SzN4X0xZSUlENUdxYk5nQk1hNGJPUXI3RjdteF9DWGlQWGYtd0FYOWRIaTNNbWdlQWw4d1Q2N0dVRzJjbTJwR0g4SURhRENUeGhVQzBmeWNQMzhyc09RRVFFWWRsYzZlOA?oc=5\" target=\"_blank\">Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli...</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli... - Gadgets 360",
-            "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOTzJPcE52cE9FMHBOZDBhdFVzYi1EVVNFS0d1aDJkVllYZ3FOMFljVWZnTVNCVHZEd0dKUlgwRW5FNTlEMEowZWI1ZjJqY2ptaVI2c0tiV2FtYTZyVU9nVUN5ZTZXMXFCRjI3eHVyQ3dZZmxDWW9vTGxlZ2NJTWVNc001N3llN2ZOemRreFBWVW5DSkdlVEZnWjJEbVc0emw5czNrRndjZUN4YmpGWDB2YnhUal9MSmMyTHp1OWdPZUhER0VOYllN0gHMAUFVX3lxTFBNcVNwZHRCdkJ4WGgxUF9JYU5BSXhyWGJkeDE2REhRT2xFa29OT0Ywbm5XdjV5cDJvZEtXcXJvaGloanIxcnNYY3pZU0t0OExQZHJfMlFORGJ6Q2xMbGhCQ1czb3o1aWZuSkV1SzN4X0xZSUlENUdxYk5nQk1hNGJPUXI3RjdteF9DWGlQWGYtd0FYOWRIaTNNbWdlQWw4d1Q2N0dVRzJjbTJwR0g4SURhRENUeGhVQzBmeWNQMzhyc09RRVFFWWRsYzZlOA?oc=5"
-          },
-          "locationKey": "online",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli... - Gadgets 360"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.955,
-        "categoryPriorityScore": 0.9033,
+        "actionabilityScore": 0.975,
+        "categoryPriorityScore": 0.946,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9067,
+        "locationScore": 0.9347,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.846
+        "urgencyOrExpiryScore": 0.8167
       }
     }
   },
-  "generatedAt": 1783262755784,
+  "generatedAt": 1783264773655,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5070,7 +5062,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -5085,7 +5077,7 @@
       "buzz": 0.0,
       "insight": 0.3925,
       "localTravel": 0.0,
-      "upAhead": 0.8344
+      "upAhead": 0.8432
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -5093,7 +5085,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3067,
+    "overallScore": 0.3089,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5109,19 +5101,11 @@
       "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
       "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-      "Major drive under way to remove ‘seemai karuvelam’ in Pudukottai district: futureValidity failed — expired display window",
-      "Major drive under way to remove ‘seemai karuvelam’ in Pudukottai district: alertUrgency failed — alert expired",
-      "Radio telemetry almost saved this vulture: futureValidity failed — expired display window",
-      "Radio telemetry almost saved this vulture: alertUrgency failed — alert expired",
-      "Police summon Senthilbalaji, his brother in connection with TVK MLA bribery attempt case: futureValidity failed — expired display window",
-      "Police summon Senthilbalaji, his brother in connection with TVK MLA bribery attempt case: alertUrgency failed — alert expired",
-      "Tiruchi Corporation revives ₹75-crore office expansion plan: futureValidity failed — expired display window",
-      "Tiruchi Corporation revives ₹75-crore office expansion plan: alertUrgency failed — alert expired",
-      "Eight arrested in ₹63.39 lakh fake gold loan fraud: futureValidity failed — expired display window",
-      "Eight arrested in ₹63.39 lakh fake gold loan fraud: alertUrgency failed — alert expired",
       "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match",
       "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
-      "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match"
+      "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
+      "These 31+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
+      "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match"
     ]
   }
 }
