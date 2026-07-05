@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "4 base-report-heavy Insight parent(s) demoted"
+        "3 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 12
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 4,
+        "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 12,
-        "parentClusters": 12,
-        "strongParents": 12,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.374,
+      "qualityScore": 0.3764,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -326,7 +326,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
+                "storyCount": 5
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -363,11 +363,11 @@
             },
             {
               "details": {
-                "childCount": 2
+                "childCount": 5
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.5,
+              "score": 1.0,
               "status": "PASS"
             },
             {
@@ -388,7 +388,7 @@
             "representativeTitle": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
+              "eventImportanceScore": 0.95,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -403,15 +403,18 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 2,
+            "storyCount": 5,
             "storyIds": [
               "f16757a86a1800d9",
-              "fa92b073a0a30dc3"
+              "fa92b073a0a30dc3",
+              "3f4614cfb237e7a1",
+              "c0b89c693126f623",
+              "55cf58dd032da79f"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 2
+                "count": 5
               }
             ],
             "topTokens": [
@@ -419,7 +422,10 @@
               "live",
               "updates",
               "army",
-              "delhi"
+              "delhi",
+              "damascus",
+              "strong",
+              "govt"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -429,7 +435,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.389,
+          "score": 0.479,
           "title": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India"
         },
         {
@@ -871,120 +877,6 @@
           ],
           "score": 0.389,
           "title": "Prayagraj shows highest unemployment rate, Ahmedabad lowest among million-plus cities"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 8
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 8
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "df71bc9e8f9d5353",
-            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 1.0,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 8,
-            "storyIds": [
-              "df71bc9e8f9d5353",
-              "573c76f7c04320cb",
-              "dadd53c1bc76741b",
-              "4cca4280284d2e54",
-              "bf952c0b99344c4d",
-              "799aa9b7edec72f4",
-              "fff45325db82b942",
-              "1efb28cd448db91a"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 8
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2212,
-          "title": "Top news of the day on June 20, 2026 - The Hindu"
         },
         {
           "category": "insightEvent",
@@ -1435,13 +1327,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3383,
-        "eventImportanceScore": 0.6342,
+        "angleDiversityScore": 0.3464,
+        "eventImportanceScore": 0.6336,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.475,
-        "sourceAuthorityScore": 0.4,
-        "sourceDiversityScore": 0.3808,
-        "temporalEvolutionScore": 0.39
+        "noveltyDeltaScore": 0.4773,
+        "sourceAuthorityScore": 0.4018,
+        "sourceDiversityScore": 0.3836,
+        "temporalEvolutionScore": 0.3918
       }
     },
     "localTravel": {
@@ -3121,7 +3013,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.86
+                "hoursLeft": 17.56
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3236,7 +3128,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.0
+                "hoursLeft": 10.7
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3351,7 +3243,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.17
+                "hoursLeft": 16.87
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3466,7 +3358,7 @@
             },
             {
               "details": {
-                "hoursLeft": 17.02
+                "hoursLeft": 15.72
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3581,7 +3473,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.8
+                "hoursLeft": 8.5
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3696,7 +3588,7 @@
             },
             {
               "details": {
-                "hoursLeft": 14.84
+                "hoursLeft": 13.54
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3811,7 +3703,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.73
+                "hoursLeft": 12.43
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3926,7 +3818,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.51
+                "hoursLeft": 10.21
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4041,7 +3933,7 @@
             },
             {
               "details": {
-                "hoursLeft": 15.09
+                "hoursLeft": 13.79
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4156,7 +4048,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.36
+                "hoursLeft": 8.06
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4271,7 +4163,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.86
+                "hoursLeft": 5.56
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4386,7 +4278,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.87
+                "hoursLeft": 5.57
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4501,7 +4393,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.89
+                "hoursLeft": 0.59
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4616,7 +4508,7 @@
             },
             {
               "details": {
-                "hoursLeft": 16.84
+                "hoursLeft": 15.54
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4731,7 +4623,7 @@
             },
             {
               "details": {
-                "hoursLeft": 20.64
+                "hoursLeft": 19.34
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4846,7 +4738,7 @@
             },
             {
               "details": {
-                "hoursLeft": 21.14
+                "hoursLeft": 19.84
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4961,7 +4853,7 @@
             },
             {
               "details": {
-                "hoursLeft": 19.84
+                "hoursLeft": 18.54
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -5044,7 +4936,7 @@
       }
     }
   },
-  "generatedAt": 1783280321827,
+  "generatedAt": 1783285000511,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5072,11 +4964,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "4 base-report-heavy Insight parent(s) demoted"
+      "3 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.374,
+      "insight": 0.3764,
       "localTravel": 0.0,
       "upAhead": 0.8129
     },
@@ -5086,7 +4978,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.2967,
+    "overallScore": 0.2973,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
