@@ -1,91 +1,84 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783276891588,
-  "contentHash": "b972cd9c6f7c3fef",
+  "generatedAt": 1783280320564,
+  "contentHash": "0581aeca530638af",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 528,
+  "storyCount": 567,
   "sourceGroupCount": 9,
-  "grade": "D",
+  "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.5,
-  "avgTemporalTiers": 1.3,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.3333333333333333,
-  "multiAngleCount": 5,
-  "weakParentCount": 5,
+  "avgAngles": 1.6,
+  "avgTemporalTiers": 1.4,
+  "avgEvolutionRoles": 1.9,
+  "baseReportShare": 0.3684210526315789,
+  "multiAngleCount": 6,
+  "weakParentCount": 4,
   "runtimeQualityGate": {
-    "attempted": true,
+    "attempted": false,
     "recovered": false,
-    "reason": "relaxed-tree recovery could not produce acceptable output",
+    "reason": "first-pass acceptable",
     "before": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 42,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 47,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 459,
+      "storyCount": 484,
       "risingCount": 0,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "thinCount": 4,
+      "multiAngleCount": 6,
+      "lowAngleCount": 4,
       "strongAngleCount": 0,
-      "avgAngles": 1.5,
-      "avgChildren": 1.8,
-      "avgScore": 0.6223591819433263,
-      "sourceDiversityCoverage": 7,
-      "snapshotCoverage": 6,
-      "coverageLabel": "5/10",
+      "avgAngles": 1.6,
+      "avgChildren": 1.9,
+      "avgScore": 0.622160076419161,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 5,
+      "coverageLabel": "6/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
+        "4 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "3 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin.",
-        "690 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "2 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "4 cluster(s) are marked thin.",
+        "830 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 42,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 47,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 459,
+      "storyCount": 484,
       "risingCount": 0,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "thinCount": 4,
+      "multiAngleCount": 6,
+      "lowAngleCount": 4,
       "strongAngleCount": 0,
-      "avgAngles": 1.5,
-      "avgChildren": 1.8,
-      "avgScore": 0.6223591819433263,
-      "sourceDiversityCoverage": 7,
-      "snapshotCoverage": 6,
-      "coverageLabel": "5/10",
+      "avgAngles": 1.6,
+      "avgChildren": 1.9,
+      "avgScore": 0.622160076419161,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 5,
+      "coverageLabel": "6/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
+        "4 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "3 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin."
+        "2 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "4 cluster(s) are marked thin.",
+        "830 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
-    },
-    "recoveryConfig": {
-      "MIN_CHILD_INFO_GAIN": 0.08,
-      "WEAK_TREE_CHILD_MIN": 2,
-      "MIN_SOURCES_PER_TREE": 2,
-      "MAX_PER_SOURCE_GROUP": 3,
-      "MAX_PER_ANGLE": 4,
-      "TIER_D_EXCLUDE": false
     }
   },
   "parents": [
     {
-      "parentId": "cluster_379_47f591d865b26f6d",
+      "parentId": "cluster_403_47f591d865b26f6d",
       "headline": "Monsoon session of Parliament from July 20",
       "score": 0.6624967197849982,
       "postTreeScore": 1.0425,
@@ -105,7 +98,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_170_740e9761cf5a6c8c",
+      "parentId": "cluster_195_740e9761cf5a6c8c",
       "headline": "IMD issues red alert for Mumbai, Raigad over next three hours amid heavy rainfall",
       "score": 0.61351,
       "postTreeScore": 1.0135,
@@ -125,7 +118,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_133_dd4a2f1740b7fb68",
+      "parentId": "cluster_284_b4eddbb43b5d9adc",
+      "headline": "Ninth edition of The Hindu Home Expo commences at LuLu Mall",
+      "score": 0.6265800531183316,
+      "postTreeScore": 1.0066,
+      "childCount": 2,
+      "angles": [
+        "fact_update",
+        "base_report"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_157_dd4a2f1740b7fb68",
       "headline": "How Washington DC marked America 250",
       "score": 0.6052599999999999,
       "postTreeScore": 1.0053,
@@ -146,7 +160,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_66_72584d611c95d52c",
+      "parentId": "cluster_89_72584d611c95d52c",
       "headline": "British military says cargo ship reports being under attack in Red Sea off coast of Yemen",
       "score": 0.5545916683316485,
       "postTreeScore": 0.9746,
@@ -169,7 +183,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_57_3e10f987e3e66718",
+      "parentId": "cluster_80_3e10f987e3e66718",
       "headline": "‘Very dangerous’ Super Typhoon barrels towards US Pacific islands with 280 kmph winds",
       "score": 0.5465933333333333,
       "postTreeScore": 0.9466,
@@ -189,7 +203,26 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_168_436508566c5b8117",
+      "parentId": "cluster_191_6ae2bf2c6cb66d49",
+      "headline": "'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day",
+      "score": 0.6165800531183316,
+      "postTreeScore": 0.5066,
+      "childCount": 2,
+      "angles": [
+        "base_report"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 1,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_193_436508566c5b8117",
       "headline": "Performer calls for Trump's death at funeral for Iran's late supreme leader",
       "score": 0.5636732802150018,
       "postTreeScore": 0.4737,
@@ -208,26 +241,25 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_166_6ae2bf2c6cb66d49",
-      "headline": "'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day",
-      "score": 0.5485933333333333,
-      "postTreeScore": 0.4586,
-      "childCount": 2,
+      "parentId": "cluster_185_4d3ca557df2c6a71",
+      "headline": "Vedanta, TCS among 5 stocks with the highest dividend yield. Check details",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
       "angles": [
-        "base_report"
+        "market_reaction"
       ],
       "temporalTiers": [
         "breaking"
       ],
       "evolutionRoles": [
-        "first_report",
-        "corroboration"
+        "market_reaction"
       ],
-      "baseReportShare": 1,
+      "baseReportShare": 0,
       "weakTree": true
     },
     {
-      "parentId": "cluster_152_c0fe94757fbdf300",
+      "parentId": "cluster_176_c0fe94757fbdf300",
       "headline": "11 largecap stocks with upside potential of up to 50%. Do you own any?",
       "score": 0.7096244948116492,
       "postTreeScore": 0.4096,
@@ -243,54 +275,22 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
-    },
-    {
-      "parentId": "cluster_369_aa34fe43f2bee8d8",
-      "headline": "Sobha Ltd Q1 sales bookings up 76% to ₹3,656 crore on better housing demand",
-      "score": 0.7096244948116492,
-      "postTreeScore": 0.4096,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_398_1d485652da6e3573",
-      "headline": "Office leasing grows to 43 million sq feet, highest in the first half of a calendar year: Cushman & Wakefield",
-      "score": 0.7096244948116492,
-      "postTreeScore": 0.4096,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
     }
   ],
-  "warnings": [
-    "Real snapshot still produces low Insight grade."
-  ],
+  "warnings": [],
   "errors": [],
   "ratchetGate": {
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
-    "grade": "D",
-    "score": 52,
+    "grade": "C",
+    "score": 76,
     "passed": [
+      {
+        "id": "grade-floor",
+        "label": "Real snapshot grade floor",
+        "actual": "C",
+        "required": "A/B/C"
+      },
       {
         "id": "parent-count",
         "label": "Parent cluster count",
@@ -300,25 +300,25 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.5,
+        "actual": 1.6,
         "required": ">= 1.4"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.333,
+        "actual": 0.368,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 5,
+        "actual": 6,
         "required": ">= 1"
       },
       {
@@ -336,23 +336,15 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.5,
+        "actual": 0.4,
         "required": "<= 0.5"
       }
     ],
     "failed": [
       {
-        "id": "grade-floor",
-        "label": "Real snapshot grade floor",
-        "actual": "D",
-        "required": "A/B/C",
-        "severity": "fail",
-        "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
-      },
-      {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.3,
+        "actual": 1.4,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
@@ -360,16 +352,16 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.5,
-      "avgTemporalTiers": 1.3,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.333,
-      "multiAngleCount": 5,
-      "weakParentCount": 5,
-      "weakParentRatio": 0.5,
+      "avgAngles": 1.6,
+      "avgTemporalTiers": 1.4,
+      "avgEvolutionRoles": 1.9,
+      "baseReportShare": 0.368,
+      "multiAngleCount": 6,
+      "weakParentCount": 4,
+      "weakParentRatio": 0.4,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 528,
+      "storyCount": 567,
       "sourceGroupCount": 9
     }
   }
