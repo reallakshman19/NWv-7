@@ -130,9 +130,12 @@ export async function loadDataset(datasetId, options = {}) {
 }
 
 export function useDataset(datasetId, options = {}) {
-  const { auto = true } = options;
+  const { auto = true, forceRefresh, liveOnly, includeInsight, policy, asOfDate } = options;
   const mountedRef = useMountedRef();
-  const initialEnvelope = useMemo(() => getInitialEnvelope(datasetId, options), [datasetId, options]);
+  const baseLoadOptions = useMemo(() => ({
+    forceRefresh, liveOnly, includeInsight, policy, asOfDate,
+  }), [forceRefresh, liveOnly, includeInsight, policy, asOfDate]);
+  const initialEnvelope = getInitialEnvelope(datasetId, baseLoadOptions);
 
   const [state, setState] = useState(() => ({
     envelope: initialEnvelope,
@@ -146,7 +149,7 @@ export function useDataset(datasetId, options = {}) {
     }
 
     try {
-      const requestOptions = mergeDatasetOptions(options, reloadOptions);
+      const requestOptions = mergeDatasetOptions(baseLoadOptions, reloadOptions);
       const envelope = await loadDataset(datasetId, requestOptions);
 
       if (mountedRef.current) {
@@ -163,7 +166,7 @@ export function useDataset(datasetId, options = {}) {
 
       throw error;
     }
-  }, [datasetId, mountedRef, options]);
+  }, [baseLoadOptions, datasetId, mountedRef]);
 
   useEffect(() => {
     if (!auto) return;
