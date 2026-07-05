@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783250636690,
-  "contentHash": "01ddf8fabe3e7d65",
+  "generatedAt": 1783255421806,
+  "contentHash": "a0f7fc9e3b22eaf6",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 495,
+  "storyCount": 540,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.3,
+  "avgAngles": 1.4,
   "avgTemporalTiers": 1.2,
   "avgEvolutionRoles": 1.6,
-  "baseReportShare": 0.375,
-  "multiAngleCount": 3,
-  "weakParentCount": 7,
+  "baseReportShare": 0.4375,
+  "multiAngleCount": 4,
+  "weakParentCount": 6,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -23,55 +23,55 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 30,
+      "signalScore": 33,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 436,
+      "storyCount": 468,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
+      "avgAngles": 1.4,
       "avgChildren": 1.6,
-      "avgScore": 0.6502878032364929,
+      "avgScore": 0.6558864752149928,
       "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 4,
-      "coverageLabel": "3/10",
+      "snapshotCoverage": 3,
+      "coverageLabel": "4/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) are below source-diversity target.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin.",
-        "590 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) are marked thin.",
+        "720 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 30,
+      "signalScore": 33,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 436,
+      "storyCount": 468,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
+      "avgAngles": 1.4,
       "avgChildren": 1.6,
-      "avgScore": 0.6502878032364929,
+      "avgScore": 0.6558864752149928,
       "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 4,
-      "coverageLabel": "3/10",
+      "snapshotCoverage": 3,
+      "coverageLabel": "4/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) are below source-diversity target.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin."
+        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) are marked thin."
       ]
     },
     "recoveryConfig": {
@@ -85,7 +85,28 @@
   },
   "parents": [
     {
-      "parentId": "cluster_278_47f591d865b26f6d",
+      "parentId": "cluster_56_dd4a2f1740b7fb68",
+      "headline": "How Washington DC marked America 250",
+      "score": 0.6732467197849983,
+      "postTreeScore": 1.0532,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_296_47f591d865b26f6d",
       "headline": "Monsoon session of Parliament from July 20",
       "score": 0.6624967197849982,
       "postTreeScore": 1.0425,
@@ -105,7 +126,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_73_740e9761cf5a6c8c",
+      "parentId": "cluster_90_740e9761cf5a6c8c",
       "headline": "IMD issues red alert for Mumbai, Raigad over next three hours amid heavy rainfall",
       "score": 0.61351,
       "postTreeScore": 1.0135,
@@ -125,18 +146,18 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_39_dd4a2f1740b7fb68",
-      "headline": "How Washington DC marked America 250",
-      "score": 0.6052599999999999,
-      "postTreeScore": 1.0053,
+      "parentId": "cluster_179_b4eddbb43b5d9adc",
+      "headline": "Ninth edition of The Hindu Home Expo commences at LuLu Mall",
+      "score": 0.6265800531183316,
+      "postTreeScore": 1.0066,
       "childCount": 2,
       "angles": [
-        "base_report",
-        "market_reaction"
+        "fact_update",
+        "base_report"
       ],
       "temporalTiers": [
         "breaking",
-        "reaction"
+        "analysis"
       ],
       "evolutionRoles": [
         "first_report",
@@ -146,27 +167,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_396_80fbcc9ba2ed3be9",
-      "headline": "Taylor Swift, Travis Kelce are married in elaborate Madison Square Garden ceremony",
-      "score": 0.6385800531183317,
-      "postTreeScore": 0.5286,
-      "childCount": 2,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "fact_update",
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_72_436508566c5b8117",
+      "parentId": "cluster_89_436508566c5b8117",
       "headline": "Performer calls for Trump's death at funeral for Iran's late supreme leader",
       "score": 0.5636732802150018,
       "postTreeScore": 0.4737,
@@ -185,7 +186,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_70_6ae2bf2c6cb66d49",
+      "parentId": "cluster_87_6ae2bf2c6cb66d49",
       "headline": "'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day",
       "score": 0.5285933333333332,
       "postTreeScore": 0.4386,
@@ -204,7 +205,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_352_87d19d24340b43ce",
+      "parentId": "cluster_370_87d19d24340b43ce",
       "headline": "10 crore mutual fund investors, Rs 150 lakh crore AUM: Inside AMFI's massive 2030 roadmap",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -222,7 +223,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_358_20c30fcff5bbb2ec",
+      "parentId": "cluster_376_20c30fcff5bbb2ec",
       "headline": "Yes Bank Q1 business update: Advances rise 18% to Rs 2.85 lakh crore, deposits up 14%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -240,7 +241,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_370_fb02c7c8fdc92b7b",
+      "parentId": "cluster_387_fb02c7c8fdc92b7b",
       "headline": "SBI Funds Management seeks Rs 2,000 crore in pre-IPO round",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -258,7 +259,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_372_8105286e2002799a",
+      "parentId": "cluster_389_8105286e2002799a",
       "headline": "On Bond Street, falling yields spur a Rs 17,000-crore fundraise",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -284,13 +285,19 @@
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "D",
-    "score": 18,
+    "score": 42,
     "passed": [
       {
         "id": "parent-count",
         "label": "Parent cluster count",
         "actual": 10,
         "required": ">= 3"
+      },
+      {
+        "id": "avg-angle-count",
+        "label": "Average visible angle count",
+        "actual": 1.4,
+        "required": ">= 1.4"
       },
       {
         "id": "avg-evolution-role-count",
@@ -301,13 +308,13 @@
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.375,
+        "actual": 0.438,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 3,
+        "actual": 4,
         "required": ">= 1"
       },
       {
@@ -333,14 +340,6 @@
         "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
       },
       {
-        "id": "avg-angle-count",
-        "label": "Average visible angle count",
-        "actual": 1.3,
-        "required": ">= 1.4",
-        "severity": "fail",
-        "fix": "Angle-diverse child selection is not strong enough on real data."
-      },
-      {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
         "actual": 1.2,
@@ -351,7 +350,7 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.7,
+        "actual": 0.6,
         "required": "<= 0.5",
         "severity": "warn",
         "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
@@ -359,16 +358,16 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.3,
+      "avgAngles": 1.4,
       "avgTemporalTiers": 1.2,
       "avgEvolutionRoles": 1.6,
-      "baseReportShare": 0.375,
-      "multiAngleCount": 3,
-      "weakParentCount": 7,
-      "weakParentRatio": 0.7,
+      "baseReportShare": 0.438,
+      "multiAngleCount": 4,
+      "weakParentCount": 6,
+      "weakParentRatio": 0.6,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 495,
+      "storyCount": 540,
       "sourceGroupCount": 9
     }
   }
