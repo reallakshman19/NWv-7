@@ -14,9 +14,13 @@ async function readJson(response) {
   }
 }
 
+function resolveFetchImpl(fetchImpl) {
+  return fetchImpl === undefined ? globalThis.fetch : fetchImpl;
+}
+
 export async function fetchUpAheadDatasetApiData({ baseUrl, fetchImpl, signal } = {}) {
   const url = buildUpAheadDatasetApiUrl(baseUrl);
-  const runner = fetchImpl || globalThis.fetch;
+  const runner = resolveFetchImpl(fetchImpl);
   if (!url || typeof runner !== 'function') return null;
 
   try {
