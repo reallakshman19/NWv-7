@@ -2,6 +2,7 @@ const ENDPOINT_PATH = '/api/datasets/upAhead';
 const REQUIRED_JSON_KEYS = ['timeline', 'sections', 'weekly_plan', 'auditSummary', 'dropReport'];
 const ALLOWED_SOURCES = ['upstream', 'fallback'];
 const ALLOWED_REASONS = ['ok', 'missing-url', 'fetch-error', 'upstream-non-ok', 'invalid-json', 'invalid-shape'];
+const ALLOWED_FRESHNESS = ['fresh', 'stale', 'unknown'];
 
 function getInputBaseUrl() {
   return process.argv[2] || process.env.UP_AHEAD_API_BASE_URL || '';
@@ -43,16 +44,24 @@ function hasJsonShape(payload) {
   return REQUIRED_JSON_KEYS.every(key => Object.prototype.hasOwnProperty.call(payload, key));
 }
 
+function isNonNegativeIntegerText(value) {
+  return /^\d+$/.test(value);
+}
+
 function getDiagnostics(response) {
   const source = headerValue(response, 'x-nw-upahead-source') || 'unknown';
   const reason = headerValue(response, 'x-nw-upahead-reason') || 'unknown';
-  return { source, reason };
+  const freshness = headerValue(response, 'x-nw-upahead-freshness') || 'unknown';
+  const ageSeconds = headerValue(response, 'x-nw-upahead-age-seconds') || 'unknown';
+  return { source, reason, freshness, ageSeconds };
 }
 
 function getDiagnosticsChecks(diagnostics) {
   return [
     pass(diagnostics.source === 'unknown' || ALLOWED_SOURCES.includes(diagnostics.source), 'diagnostics source upstream/fallback/unknown'),
     pass(diagnostics.reason === 'unknown' || ALLOWED_REASONS.includes(diagnostics.reason), 'diagnostics reason allowed-or-unknown'),
+    pass(ALLOWED_FRESHNESS.includes(diagnostics.freshness), 'freshness fresh/stale/unknown'),
+    pass(diagnostics.ageSeconds === 'unknown' || isNonNegativeIntegerText(diagnostics.ageSeconds), 'age seconds non-negative integer-or-unknown'),
   ];
 }
 
@@ -103,6 +112,8 @@ function printResults({ baseUrl, endpointUrl, getResult, optionChecks }) {
   console.log(`Endpoint: ${endpointUrl}`);
   console.log(`Source: ${getResult.diagnostics.source}`);
   console.log(`Reason: ${getResult.diagnostics.reason}`);
+  console.log(`Freshness: ${getResult.diagnostics.freshness}`);
+  console.log(`Age Seconds: ${getResult.diagnostics.ageSeconds}`);
   console.log(`GET: ${getResult.checks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
   console.log(`OPTIONS: ${optionChecks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
   console.log(`Shape: ${getResult.checks[4]?.ok ? 'PASS' : 'FAIL'}`);
