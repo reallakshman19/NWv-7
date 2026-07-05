@@ -1,4 +1,6 @@
 const UP_AHEAD_DATASET_PATH = '/api/datasets/upAhead';
+const SOURCE_HEADER = 'X-NW-UpAhead-Source';
+const REASON_HEADER = 'X-NW-UpAhead-Reason';
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -33,12 +35,31 @@ export function buildFallbackPayload() {
   };
 }
 
+export function buildPayloadResult(payload, source = 'upstream', reason = 'ok') {
+  return { payload, source, reason };
+}
+
+export function buildFallbackResult(reason) {
+  return buildPayloadResult(buildFallbackPayload(), 'fallback', reason);
+}
+
 export function jsonResponse(payload, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set('Content-Type', 'application/json');
   headers.set('Cache-Control', 'no-cache');
   Object.entries(CORS_HEADERS).forEach(([key, value]) => headers.set(key, value));
   return new Response(JSON.stringify(payload), { ...init, headers });
+}
+
+export function datasetJsonResponse(result, init = {}) {
+  return jsonResponse(result.payload, {
+    ...init,
+    headers: {
+      ...(init.headers || {}),
+      [SOURCE_HEADER]: result.source,
+      [REASON_HEADER]: result.reason,
+    },
+  });
 }
 
 export function corsResponse(init = {}) {
@@ -48,18 +69,27 @@ export function corsResponse(init = {}) {
   });
 }
 
-export async function fetchUpAheadPayload(env = {}, fetchImpl = fetch) {
+export async function fetchUpAheadPayloadResult(env = {}, fetchImpl = fetch) {
   const upstreamUrl = String(env.UP_AHEAD_DATASET_URL || '').trim();
-  if (!upstreamUrl || typeof fetchImpl !== 'function') return buildFallbackPayload();
+  if (!upstreamUrl || typeof fetchImpl !== 'function') return buildFallbackResult('missing-url');
 
   try {
     const response = await fetchImpl(upstreamUrl, { cache: 'no-cache' });
-    if (!response?.ok) return buildFallbackPayload();
+    if (!response?.ok) return buildFallbackResult('upstream-non-ok');
     const payload = await response.json();
-    return isValidUpAheadPayload(payload) ? payload : buildFallbackPayload();
-  } catch {
-    return buildFallbackPayload();
+    return isValidUpAheadPayload(payload)
+      ? buildPayloadResult(payload, 'upstream', 'ok')
+      : buildFallbackResult('invalid-shape');
+  } catch (error) {
+    return error instanceof SyntaxError
+      ? buildFallbackResult('invalid-json')
+      : buildFallbackResult('fetch-error');
   }
+}
+
+export async function fetchUpAheadPayload(env = {}, fetchImpl = fetch) {
+  const result = await fetchUpAheadPayloadResult(env, fetchImpl);
+  return result.payload;
 }
 
 export function methodNotAllowedResponse() {
@@ -77,7 +107,7 @@ export default {
     if (request.method === 'OPTIONS') return corsResponse();
     if (request.method !== 'GET') return methodNotAllowedResponse();
 
-    const payload = await fetchUpAheadPayload(env);
-    return jsonResponse(payload);
+    const result = await fetchUpAheadPayloadResult(env);
+    return datasetJsonResponse(result);
   },
 };

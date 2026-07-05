@@ -1,5 +1,7 @@
 const ENDPOINT_PATH = '/api/datasets/upAhead';
 const REQUIRED_JSON_KEYS = ['timeline', 'sections', 'weekly_plan', 'auditSummary', 'dropReport'];
+const ALLOWED_SOURCES = ['upstream', 'fallback'];
+const ALLOWED_REASONS = ['ok', 'missing-url', 'fetch-error', 'upstream-non-ok', 'invalid-json', 'invalid-shape'];
 
 function getInputBaseUrl() {
   return process.argv[2] || process.env.UP_AHEAD_API_BASE_URL || '';
@@ -41,11 +43,25 @@ function hasJsonShape(payload) {
   return REQUIRED_JSON_KEYS.every(key => Object.prototype.hasOwnProperty.call(payload, key));
 }
 
+function getDiagnostics(response) {
+  const source = headerValue(response, 'x-nw-upahead-source') || 'unknown';
+  const reason = headerValue(response, 'x-nw-upahead-reason') || 'unknown';
+  return { source, reason };
+}
+
+function getDiagnosticsChecks(diagnostics) {
+  return [
+    pass(diagnostics.source === 'unknown' || ALLOWED_SOURCES.includes(diagnostics.source), 'diagnostics source upstream/fallback/unknown'),
+    pass(diagnostics.reason === 'unknown' || ALLOWED_REASONS.includes(diagnostics.reason), 'diagnostics reason allowed-or-unknown'),
+  ];
+}
+
 async function verifyGet(endpointUrl, fetchImpl) {
   const response = await fetchImpl(endpointUrl, { method: 'GET' });
   const contentType = headerValue(response, 'content-type');
   const cacheControl = headerValue(response, 'cache-control');
   const cors = headerValue(response, 'access-control-allow-origin');
+  const diagnostics = getDiagnostics(response);
   let payload = null;
   try {
     payload = await response.json();
@@ -53,13 +69,17 @@ async function verifyGet(endpointUrl, fetchImpl) {
     payload = null;
   }
 
-  return [
-    pass(response.status === 200, 'GET status 200'),
-    pass(contentType.includes('application/json'), 'Content-Type application/json'),
-    pass(cacheControl.includes('no-cache'), 'Cache-Control no-cache'),
-    pass(cors.includes('*'), 'Access-Control-Allow-Origin *'),
-    pass(hasJsonShape(payload), 'JSON shape timeline/sections/weekly_plan/auditSummary/dropReport'),
-  ];
+  return {
+    diagnostics,
+    checks: [
+      pass(response.status === 200, 'GET status 200'),
+      pass(contentType.includes('application/json'), 'Content-Type application/json'),
+      pass(cacheControl.includes('no-cache'), 'Cache-Control no-cache'),
+      pass(cors.includes('*'), 'Access-Control-Allow-Origin *'),
+      pass(hasJsonShape(payload), 'JSON shape timeline/sections/weekly_plan/auditSummary/dropReport'),
+      ...getDiagnosticsChecks(diagnostics),
+    ],
+  };
 }
 
 async function verifyOptions(endpointUrl, fetchImpl) {
@@ -75,15 +95,17 @@ async function verifyOptions(endpointUrl, fetchImpl) {
   ];
 }
 
-function printResults({ baseUrl, endpointUrl, getChecks, optionChecks }) {
-  const allChecks = [...getChecks, ...optionChecks];
+function printResults({ baseUrl, endpointUrl, getResult, optionChecks }) {
+  const allChecks = [...getResult.checks, ...optionChecks];
   const ok = allChecks.every(check => check.ok);
   console.log('Up Ahead edge API smoke');
   console.log(`Base URL: ${baseUrl}`);
   console.log(`Endpoint: ${endpointUrl}`);
-  console.log(`GET: ${getChecks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
+  console.log(`Source: ${getResult.diagnostics.source}`);
+  console.log(`Reason: ${getResult.diagnostics.reason}`);
+  console.log(`GET: ${getResult.checks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
   console.log(`OPTIONS: ${optionChecks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
-  console.log(`Shape: ${getChecks[getChecks.length - 1]?.ok ? 'PASS' : 'FAIL'}`);
+  console.log(`Shape: ${getResult.checks[4]?.ok ? 'PASS' : 'FAIL'}`);
   allChecks.forEach(check => console.log(`- ${check.ok ? 'PASS' : 'FAIL'} ${check.message}`));
   console.log(`Result: ${ok ? 'PASS' : 'FAIL'}`);
   return ok;
@@ -97,9 +119,9 @@ export async function runSmoke({ inputBaseUrl = getInputBaseUrl(), fetchImpl = f
   }
 
   const endpointUrl = buildEndpointUrl(normalized.baseUrl);
-  const getChecks = await verifyGet(endpointUrl, fetchImpl);
+  const getResult = await verifyGet(endpointUrl, fetchImpl);
   const optionChecks = await verifyOptions(endpointUrl, fetchImpl);
-  return printResults({ baseUrl: normalized.baseUrl, endpointUrl, getChecks, optionChecks }) ? 0 : 1;
+  return printResults({ baseUrl: normalized.baseUrl, endpointUrl, getResult, optionChecks }) ? 0 : 1;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
