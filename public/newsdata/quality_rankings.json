@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 12
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 12,
+        "parentClusters": 12,
+        "strongParents": 12,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3874,
+      "qualityScore": 0.3842,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -439,119 +439,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 3
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 3
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.75,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:1bcccfe7e6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:1bcccfe7e6",
-            "representativeId": "c0eda503b16424c8",
-            "representativeTitle": "No need for India to take a leaf out of Pakistan’s Iran mediation book, says envoy",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.71,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.61
-            },
-            "slotCount": 3,
-            "slots": [
-              "minus12h",
-              "minus4h",
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "the_hindu"
-            ],
-            "storyCount": 3,
-            "storyIds": [
-              "c0eda503b16424c8",
-              "b9c1dd68b966d4ea",
-              "da090f7c14f7e9e2"
-            ],
-            "topAngles": [
-              {
-                "angle": "official_response",
-                "count": 3
-              }
-            ],
-            "topTokens": [
-              "india",
-              "iran",
-              "need",
-              "take"
-            ],
-            "topicKey": "india|iran|need"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.443,
-          "title": "No need for India to take a leaf out of Pakistan’s Iran mediation book, says envoy"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -657,6 +544,116 @@
           ],
           "score": 0.389,
           "title": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
@@ -877,6 +874,230 @@
           ],
           "score": 0.389,
           "title": "Indian government issues notice to Meta over child sexual abuse materials on Instagram"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:b2ce39a301",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:b2ce39a301",
+            "representativeId": "aa46377d80e619bd",
+            "representativeTitle": "New incentive package targets growth in Ladakh’s Pashmina economy",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "business_line"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "aa46377d80e619bd",
+              "711399ccd593dd0f"
+            ],
+            "topAngles": [
+              {
+                "angle": "official_response",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "incentive",
+              "pashmina",
+              "package",
+              "targets"
+            ],
+            "topicKey": "incentive|pashmina|package"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "New incentive package targets growth in Ladakh’s Pashmina economy"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 9
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 9
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "df71bc9e8f9d5353",
+            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 1.0,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 9,
+            "storyIds": [
+              "df71bc9e8f9d5353",
+              "573c76f7c04320cb",
+              "dadd53c1bc76741b",
+              "4cca4280284d2e54",
+              "bf952c0b99344c4d",
+              "c6215fc9dda48735",
+              "799aa9b7edec72f4",
+              "fff45325db82b942"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 9
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.2212,
+          "title": "Top news of the day on June 20, 2026 - The Hindu"
         },
         {
           "category": "insightEvent",
@@ -1213,127 +1434,17 @@
           ],
           "score": 0.1751,
           "title": "No full runway closure at Srinagar Airport; relief for tourism, trade"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:24836f7375",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:24836f7375",
-            "representativeId": "777b325f01a0ce11",
-            "representativeTitle": "PM Modi Inaugurates India First Greenfield Refinery Complex and Gives 54000 Job Letters | News18 - News18",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "777b325f01a0ce11",
-              "7df51fb0d7438b19"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "news18",
-              "modi",
-              "inaugurates",
-              "india"
-            ],
-            "topicKey": "news18|modi|inaugurates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "PM Modi Inaugurates India First Greenfield Refinery Complex and Gives 54000 Job Letters | News18 - News18"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3464,
-        "eventImportanceScore": 0.6118,
+        "angleDiversityScore": 0.3383,
+        "eventImportanceScore": 0.6342,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4773,
-        "sourceAuthorityScore": 0.4236,
-        "sourceDiversityScore": 0.4173,
-        "temporalEvolutionScore": 0.4355
+        "noveltyDeltaScore": 0.475,
+        "sourceAuthorityScore": 0.42,
+        "sourceDiversityScore": 0.4117,
+        "temporalEvolutionScore": 0.41
       }
     },
     "localTravel": {
@@ -1393,7 +1504,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1404,6 +1515,8 @@
         "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
         "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
         "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
+        "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project: futureValidity failed — expired display window",
+        "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project: alertUrgency failed — alert expired",
         "DMK bound together by ideology, will rise like a phoenix, says Stalin: futureValidity failed — expired display window",
         "DMK bound together by ideology, will rise like a phoenix, says Stalin: alertUrgency failed — alert expired",
         "Persistent night time heat defines Tamil Nadu’s second warmest June this decade: futureValidity failed — expired display window",
@@ -1429,8 +1542,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 23,
-              "shopping": 6,
+              "alerts": 22,
+              "shopping": 7,
               "weather_alerts": 1
             }
           },
@@ -1441,10 +1554,10 @@
         }
       ],
       "gateSummary": {
-        "alerts": 24,
+        "alerts": 23,
         "categoryCounts": {
-          "alerts": 23,
-          "shopping": 6,
+          "alerts": 22,
+          "shopping": 7,
           "weather_alerts": 1
         },
         "events": 0,
@@ -1460,14 +1573,14 @@
           "online",
           "trichy"
         ],
-        "offlineOffers": 5,
+        "offlineOffers": 6,
         "onlineOffers": 1,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 15
+        "suppressedItemCount": 16
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8407,
+      "qualityScore": 0.8381,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -3771,121 +3884,6 @@
           "title": "Scuffle between ticket examiner and lawyer causes stir among commuters at Egmore railway station"
         },
         {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "97797247e3fddf7e"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783273593000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "dc718854f219141b",
-          "item": {
-            "actionabilityScore": 0.5,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783273593000,
-            "id": "dc718854f219141b",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783878393000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783273593000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783187193000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "The Parandur airport project was not part of the review as it will be discussed at a separate meeting, sources say",
-            "suppressionReason": null,
-            "title": "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project",
-            "url": "https://www.thehindu.com/news/cities/chennai/tamil-nadu-government-holds-review-on-chennai-airports-capacity-and-proposed-satellite-terminal-project/article71183377.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project"
-        },
-        {
           "category": "weather_alerts",
           "gates": [
             {
@@ -4275,7 +4273,7 @@
             },
             {
               "details": {
-                "hoursLeft": 21.57
+                "hoursLeft": 20.49
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4390,7 +4388,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.63
+                "hoursLeft": 0.55
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4505,7 +4503,7 @@
             },
             {
               "details": {
-                "hoursLeft": 14.72
+                "hoursLeft": 13.63
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4620,7 +4618,7 @@
             },
             {
               "details": {
-                "hoursLeft": 20.89
+                "hoursLeft": 19.8
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4735,7 +4733,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.58
+                "hoursLeft": 0.49
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4850,7 +4848,7 @@
             },
             {
               "details": {
-                "hoursLeft": 19.74
+                "hoursLeft": 18.66
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4919,21 +4917,136 @@
           ],
           "score": 0.744,
           "title": "Amazon Prime Day 2026 sale starts in India today: Deals on gadgets you can get delivered in minutes with - The Times of India"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "ec4a42fa7a8d6cc6"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783315592000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 11.43
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "0c6c8efeeaa60f9a",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783315592000,
+            "id": "0c6c8efeeaa60f9a",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783920392000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783315592000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783142792000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMikwFBVV95cUxNVjlVWnhKU1Fad0NwcHVjZmtQWmhuWjVkWC1PQUxaMWFzNG43d19GWU5YUDBfNUhGWUdMNU5RYjlMWmJrRV9oVTdKSWlXTDVVZjQzLUoxejN5ZDF2bjRZbVdpbjFlOENjVXFXVEl3TkJpNHdCV2hjNGJ6T0U0S1RzV00wN1ppeDRiaWtIM3NhUjRDUHPSAZgBQVVfeXFMT2pSa2prTENhSUxsX3V5MGowTTkxTV9ZbE9BS2VQWE9FNmZYSFA4blRGQm0yaU9rSl96cENYMTl5OE52VUx3dE1QamhOV0o5RkFMWFFmcnRTalRZWTZFM2R6RXhGZFI0TnhlMU1wRGItMExrOGVZc3VDRGFHSmlGVS1uVUxxRkRLOUFCTDBUTkhvY0c0ckowNkU?oc=5\" target=\"_blank\">Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FoneArena.com</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com",
+            "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxNVjlVWnhKU1Fad0NwcHVjZmtQWmhuWjVkWC1PQUxaMWFzNG43d19GWU5YUDBfNUhGWUdMNU5RYjlMWmJrRV9oVTdKSWlXTDVVZjQzLUoxejN5ZDF2bjRZbVdpbjFlOENjVXFXVEl3TkJpNHdCV2hjNGJ6T0U0S1RzV00wN1ppeDRiaWtIM3NhUjRDUHPSAZgBQVVfeXFMT2pSa2prTENhSUxsX3V5MGowTTkxTV9ZbE9BS2VQWE9FNmZYSFA4blRGQm0yaU9rSl96cENYMTl5OE52VUx3dE1QamhOV0o5RkFMWFFmcnRTalRZWTZFM2R6RXhGZFI0TnhlMU1wRGItMExrOGVZc3VDRGFHSmlGVS1uVUxxRkRLOUFCTDBUTkhvY0c0ckowNkU?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.97,
-        "categoryPriorityScore": 0.9353,
+        "actionabilityScore": 0.965,
+        "categoryPriorityScore": 0.9247,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9253,
+        "locationScore": 0.916,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.824
+        "urgencyOrExpiryScore": 0.8313
       }
     }
   },
-  "generatedAt": 1783270534915,
+  "generatedAt": 1783274438908,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4952,7 +5065,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4965,9 +5078,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3874,
+      "insight": 0.3842,
       "localTravel": 0.0,
-      "upAhead": 0.8407
+      "upAhead": 0.8381
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4975,7 +5088,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.307,
+    "overallScore": 0.3056,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4990,6 +5103,8 @@
       "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
       "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
       "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
+      "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project: futureValidity failed — expired display window",
+      "Tamil Nadu government holds review on Chennai airport’s capacity and proposed satellite terminal project: alertUrgency failed — alert expired",
       "DMK bound together by ideology, will rise like a phoenix, says Stalin: futureValidity failed — expired display window",
       "DMK bound together by ideology, will rise like a phoenix, says Stalin: alertUrgency failed — alert expired",
       "Persistent night time heat defines Tamil Nadu’s second warmest June this decade: futureValidity failed — expired display window",
