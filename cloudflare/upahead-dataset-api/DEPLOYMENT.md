@@ -127,6 +127,14 @@ Access-Control-Allow-Origin: *
 JSON contains timeline, sections, weekly_plan, auditSummary, dropReport
 ```
 
+Run the source-safe smoke harness with the deployed Worker base URL only:
+
+```bash
+UP_AHEAD_API_BASE_URL=https://<deployed-worker-host> node scripts/smoke_up_ahead_edge_api.mjs
+```
+
+Do not include `/api/datasets/upAhead` in `UP_AHEAD_API_BASE_URL`; the smoke harness appends it.
+
 Verify deployed preflight handling:
 
 ```bash
