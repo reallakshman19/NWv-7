@@ -4,6 +4,7 @@ import {
   ENVELOPE_FRESHNESS,
 } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
+import { resolveUpAheadProviderPolicy } from './upAheadProviderPolicy.js';
 import {
   fetchStaticUpAheadData,
   fetchLiveUpAheadData,
@@ -142,16 +143,24 @@ export async function load(options = {}) {
     locations: ['Chennai'],
   };
 
+  const runtimeCapabilities = getRuntimeCapabilities();
   const diagnostics = [];
   let data = null;
   let sourceMode = 'live';
+  let hasUsableCache = false;
+  let hasUsableStatic = false;
 
   await loadPlannerSyncIfAllowed();
 
-  if (!options.forceRefresh && !options.liveOnly) {
+  const initialPolicy = resolveUpAheadProviderPolicy({
+    options, runtimeCapabilities, hasUsableCache, hasUsableStatic,
+  });
+
+  if (initialPolicy.shouldReadCache) {
     const cached = loadFromCache();
 
     if (cached) {
+      hasUsableCache = hasVisibleUpAheadContent(cached);
       data = cached;
       sourceMode = cached.sourceMode || 'cache';
 
@@ -163,11 +172,12 @@ export async function load(options = {}) {
     }
   }
 
-  if (!options.liveOnly) {
+  if (initialPolicy.shouldReadStatic) {
     try {
       const staticData = await fetchStaticUpAheadData(upAheadSettings);
 
       if (staticData && hasVisibleUpAheadContent(staticData)) {
+        hasUsableStatic = true;
         data = mergeUpAheadData(data, staticData);
         sourceMode = staticData.sourceMode || 'snapshot';
         saveToCache(data);
@@ -193,31 +203,52 @@ export async function load(options = {}) {
     }
   }
 
-  try {
-    const liveData = await fetchLiveUpAheadData(upAheadSettings);
+  const providerDecision = resolveUpAheadProviderPolicy({
+    options, runtimeCapabilities, hasUsableCache, hasUsableStatic,
+  });
 
-    if (liveData && hasVisibleUpAheadContent(liveData)) {
-      data = mergeUpAheadData(options.liveOnly ? null : data, liveData);
-      sourceMode = liveData?.sourceMode || 'live';
-      saveToCache(data);
+  diagnostics.push({
+    event: 'upAheadDataset.provider_policy',
+    severity: 'info',
+    message: providerDecision.shouldAttemptLive ? 'Live fetch allowed' : 'Live fetch skipped by policy',
+    details: providerDecision,
+  });
 
+  if (providerDecision.shouldAttemptLive) {
+    try {
+      const liveData = await fetchLiveUpAheadData(upAheadSettings);
+
+      if (liveData && hasVisibleUpAheadContent(liveData)) {
+        data = mergeUpAheadData(options.liveOnly ? null : data, liveData);
+        sourceMode = liveData?.sourceMode || 'live';
+        saveToCache(data);
+
+        diagnostics.push({
+          event: 'upAheadDataset.live_loaded',
+          severity: 'info',
+          message: 'Merged live Up Ahead data',
+        });
+      } else {
+        diagnostics.push({
+          event: 'upAheadDataset.live_empty',
+          severity: data ? 'warn' : 'error',
+          message: 'Live Up Ahead fetch returned no visible content',
+        });
+      }
+    } catch (error) {
       diagnostics.push({
-        event: 'upAheadDataset.live_loaded',
-        severity: 'info',
-        message: 'Merged live Up Ahead data',
-      });
-    } else {
-      diagnostics.push({
-        event: 'upAheadDataset.live_empty',
+        event: 'upAheadDataset.live_failed',
         severity: data ? 'warn' : 'error',
-        message: 'Live Up Ahead fetch returned no visible content',
+        message: error?.message || String(error),
       });
     }
-  } catch (error) {
+  } else {
     diagnostics.push({
-      event: 'upAheadDataset.live_failed',
-      severity: data ? 'warn' : 'error',
-      message: error?.message || String(error),
+      event: providerDecision.browserWideFeedFetchAllowed
+        ? 'upAheadDataset.live_skipped_policy'
+        : 'upAheadDataset.live_skipped_runtime',
+      severity: data ? 'info' : 'warn',
+      message: providerDecision.skippedLiveReason || 'Live fetch not permitted',
     });
   }
 
