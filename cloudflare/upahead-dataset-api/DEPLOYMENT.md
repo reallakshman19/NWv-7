@@ -141,6 +141,14 @@ Access-Control-Allow-Methods: GET, OPTIONS
 Access-Control-Allow-Headers: Content-Type
 ```
 
+Optional smoke harness verification:
+
+```bash
+UP_AHEAD_API_BASE_URL=https://<deployed-worker-host> node scripts/smoke_up_ahead_edge_api.mjs
+```
+
+The smoke harness appends `/api/datasets/upAhead`, checks GET, OPTIONS, JSON shape, CORS, and no-cache headers, and fails if no base URL is supplied.
+
 ## Frontend verification
 
 After the GitHub Pages build completes:
