@@ -1,20 +1,20 @@
 {
   "angleHintCoverage": 1.0,
   "collectorVersion": "insight-collector-json-v4",
-  "contentHash": "62b921658027c4fb",
+  "contentHash": "01ddf8fabe3e7d65",
   "errors": [],
   "eventSketchCount": 12,
-  "fetchedAt": 1783250225572,
-  "generatedAt": 1783250230269,
+  "fetchedAt": 1783250558727,
+  "generatedAt": 1783250559350,
   "multiAngleEventSketchCount": 4,
   "multiSourceEventSketchCount": 3,
-  "nonBaseAngleStoryCount": 330,
+  "nonBaseAngleStoryCount": 328,
   "richnessSummary": {
     "eventSketchCount": 12,
     "hasClusterablePool": true,
     "multiAngleSketchCount": 4,
     "multiSourceSketchCount": 3,
-    "storyCount": 505
+    "storyCount": 495
   },
   "schemaVersion": 3,
   "slotHealth": {
@@ -44,16 +44,16 @@
     },
     "now": {
       "fetchedAt": 1783250225572,
-      "linkedStories": 58,
-      "qualityStoryCount": 58,
+      "linkedStories": 48,
+      "qualityStoryCount": 48,
       "sourceGroupCount": 3,
-      "storyIds": 58,
+      "storyIds": 48,
       "thin": false
     }
   },
   "sourceGroupCount": 9,
   "status": "WARN",
-  "storyCount": 505,
+  "storyCount": 495,
   "thresholds": {
     "minAngleHintCoverage": 0.35,
     "minEventSketches": 3,
@@ -66,7 +66,7 @@
   "topAngles": [
     {
       "angle": "base_report",
-      "count": 175
+      "count": 167
     },
     {
       "angle": "official_response",
@@ -74,7 +74,7 @@
     },
     {
       "angle": "fact_update",
-      "count": 73
+      "count": 71
     },
     {
       "angle": "market_reaction",
@@ -119,12 +119,12 @@
       "sourceGroup": "economic_times"
     },
     {
-      "count": 34,
-      "sourceGroup": "google_news"
-    },
-    {
       "count": 32,
       "sourceGroup": "business_line"
+    },
+    {
+      "count": 24,
+      "sourceGroup": "google_news"
     },
     {
       "count": 23,
@@ -145,8 +145,8 @@
   ],
   "usable36hStoryCount": 495,
   "warnings": [
-    "feed 'ndtv' has returned zero items for 45 consecutive runs",
-    "feed 'financial_express' has returned zero items for 258 consecutive runs",
-    "feed 'muscat_daily' has returned zero items for 240 consecutive runs (last zero at 1783244720246)"
+    "feed 'ndtv' has returned zero items for 46 consecutive runs",
+    "feed 'financial_express' has returned zero items for 259 consecutive runs",
+    "feed 'muscat_daily' has returned zero items for 241 consecutive runs (last zero at 1783250231097)"
   ]
 }
