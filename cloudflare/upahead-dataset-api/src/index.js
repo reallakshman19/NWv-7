@@ -27,6 +27,10 @@ export function isValidUpAheadPayload(payload) {
   return Array.isArray(payload.dropReport);
 }
 
+export function selectValidUpAheadPayload(payload) {
+  return isValidUpAheadPayload(payload) ? payload : buildFallbackPayload();
+}
+
 export function parseLastUpdatedMillis(value) {
   if (!value) return null;
   const millis = typeof value === 'number' ? value : Date.parse(value);
@@ -102,7 +106,8 @@ export async function fetchUpAheadPayloadResult(env = {}, fetchImpl = fetch) {
     const response = await fetchImpl(upstreamUrl, { cache: 'no-cache' });
     if (!response?.ok) return buildFallbackResult('upstream-non-ok');
     const payload = await response.json();
-    return isValidUpAheadPayload(payload)
+    const selectedPayload = selectValidUpAheadPayload(payload);
+    return selectedPayload === payload
       ? buildPayloadResult(payload, 'upstream', 'ok')
       : buildFallbackResult('invalid-shape');
   } catch (error) {
