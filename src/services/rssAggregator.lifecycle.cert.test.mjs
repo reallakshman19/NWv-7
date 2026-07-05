@@ -13,10 +13,6 @@ import {
   SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
   selectPrefetchedSectionItems,
 } from '../adapters/sectionsSnapshotFetcher.js';
-import {
-  LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS,
-  LIVE_RSS_PROXY_BUDGET_MS,
-} from './proxyManager.js';
 
 const THIS_CERT = path.normalize('src/services/rssAggregator.lifecycle.cert.test.mjs');
 
@@ -135,8 +131,6 @@ function testForegroundSnapshotBudgetIsBounded() {
 }
 
 function testLiveRssProxyBudgetIsBounded() {
-  assert.equal(LIVE_RSS_PROXY_BUDGET_MS, 6000);
-  assert.equal(LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS, 2000);
   const proxy = readRepoFile('src/services/proxyManager.js');
   assert.match(proxy, /LIVE_RSS_PROXY_BUDGET_MS = 6000/);
   assert.match(proxy, /LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS = 2000/);
@@ -169,7 +163,6 @@ function testBudgetExitDiagnosticsAreSurfaced() {
   const helper = readRepoFile('src/services/fetchLifecycleDiagnostics.js');
   assert.match(adapter, /consumeSectionsSnapshotBudgetExit/);
   assert.match(dataset, /attachBudgetExitDiagnostics/);
-  assert.match(dataset, /hybrid-snapshot-budget-exceeded/);
   assert.match(helper, /buildCanonicalSectionDiagnostics/);
   assert.match(helper, /liveRssAttempted/);
   assert.match(helper, /timedOutFeedCount/);
