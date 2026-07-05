@@ -1,6 +1,9 @@
 const UP_AHEAD_DATASET_PATH = '/api/datasets/upAhead';
 const SOURCE_HEADER = 'X-NW-UpAhead-Source';
 const REASON_HEADER = 'X-NW-UpAhead-Reason';
+const FRESHNESS_HEADER = 'X-NW-UpAhead-Freshness';
+const AGE_SECONDS_HEADER = 'X-NW-UpAhead-Age-Seconds';
+const FRESHNESS_STALE_AFTER_MS = 12 * 60 * 60 * 1000;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -22,6 +25,29 @@ export function isValidUpAheadPayload(payload) {
   if (!Array.isArray(payload.weekly_plan)) return false;
   if (!(payload.auditSummary === null || isObjectRecord(payload.auditSummary))) return false;
   return Array.isArray(payload.dropReport);
+}
+
+export function selectValidUpAheadPayload(payload) {
+  return isValidUpAheadPayload(payload) ? payload : buildFallbackPayload();
+}
+
+export function parseLastUpdatedMillis(value) {
+  if (!value) return null;
+  const millis = typeof value === 'number' ? value : Date.parse(value);
+  return Number.isFinite(millis) ? millis : null;
+}
+
+export function buildFreshnessDiagnostics(payload, nowMs = Date.now()) {
+  const lastUpdatedMs = parseLastUpdatedMillis(payload?.lastUpdated);
+  if (lastUpdatedMs === null || lastUpdatedMs > nowMs) {
+    return { freshness: 'unknown', ageSeconds: 'unknown' };
+  }
+
+  const ageMs = Math.max(0, nowMs - lastUpdatedMs);
+  return {
+    freshness: ageMs <= FRESHNESS_STALE_AFTER_MS ? 'fresh' : 'stale',
+    ageSeconds: String(Math.floor(ageMs / 1000)),
+  };
 }
 
 export function buildFallbackPayload() {
@@ -52,12 +78,15 @@ export function jsonResponse(payload, init = {}) {
 }
 
 export function datasetJsonResponse(result, init = {}) {
+  const freshness = buildFreshnessDiagnostics(result.payload);
   return jsonResponse(result.payload, {
     ...init,
     headers: {
       ...(init.headers || {}),
       [SOURCE_HEADER]: result.source,
       [REASON_HEADER]: result.reason,
+      [FRESHNESS_HEADER]: freshness.freshness,
+      [AGE_SECONDS_HEADER]: freshness.ageSeconds,
     },
   });
 }
@@ -77,7 +106,8 @@ export async function fetchUpAheadPayloadResult(env = {}, fetchImpl = fetch) {
     const response = await fetchImpl(upstreamUrl, { cache: 'no-cache' });
     if (!response?.ok) return buildFallbackResult('upstream-non-ok');
     const payload = await response.json();
-    return isValidUpAheadPayload(payload)
+    const selectedPayload = selectValidUpAheadPayload(payload);
+    return selectedPayload === payload
       ? buildPayloadResult(payload, 'upstream', 'ok')
       : buildFallbackResult('invalid-shape');
   } catch (error) {
