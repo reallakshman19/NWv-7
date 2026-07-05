@@ -9,6 +9,19 @@ export const SERVED_FROM = Object.freeze({
   ERROR: 'error',
 });
 
+const EXTRA_DIAGNOSTIC_FIELDS = [
+  'snapshotBudgetExceeded',
+  'snapshotElapsedMs',
+  'snapshotBudgetMs',
+];
+
+function copyExtraFields(target, details = {}) {
+  EXTRA_DIAGNOSTIC_FIELDS.forEach(field => {
+    if (details[field] !== undefined) target[field] = details[field];
+  });
+  return target;
+}
+
 export function createFetchTrace({ datasetId, section, fetchMode, nowMs = Date.now() }) {
   return {
     datasetId,
@@ -31,7 +44,7 @@ export function markFetchPhase(trace, phase, details = {}, nowMs = Date.now()) {
 
 export function makeFetchDiagnostics(trace, details = {}, nowMs = Date.now()) {
   const durationMs = trace ? Math.max(0, nowMs - trace.startedAt) : 0;
-  return {
+  return copyExtraFields({
     fetchMode: trace?.fetchMode || details.fetchMode || 'unknown',
     datasetId: trace?.datasetId || details.datasetId || '',
     section: trace?.section || details.section || '',
@@ -41,7 +54,7 @@ export function makeFetchDiagnostics(trace, details = {}, nowMs = Date.now()) {
     ageMs: Number.isFinite(details.ageMs) ? details.ageMs : null,
     staleReason: details.staleReason || null,
     fallbackReason: details.fallbackReason || null,
-  };
+  }, details);
 }
 
 export function attachFetchDiagnostics(result, trace, details = {}) {
@@ -53,6 +66,7 @@ export function attachFetchDiagnostics(result, trace, details = {}) {
   result.ageMs = diagnostics.ageMs;
   result.staleReason = diagnostics.staleReason;
   result.fallbackReason = diagnostics.fallbackReason;
+  copyExtraFields(result, diagnostics);
   return result;
 }
 
