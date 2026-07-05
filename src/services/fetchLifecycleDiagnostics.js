@@ -1,3 +1,6 @@
+import { consumeSectionsSnapshotBudgetExit } from '../adapters/sectionsSnapshotFetcher.js';
+import { isLiveMode } from '../utils/fetchMode.js';
+
 export const SERVED_FROM = Object.freeze({
   MEMORY_CACHE: 'memory-cache',
   IN_FLIGHT: 'in-flight',
@@ -13,6 +16,13 @@ const EXTRA_DIAGNOSTIC_FIELDS = [
   'snapshotBudgetExceeded',
   'snapshotElapsedMs',
   'snapshotBudgetMs',
+  'liveRssAttempted',
+  'liveRssDurationMs',
+  'failedFeedCount',
+  'successfulFeedCount',
+  'timedOutFeedCount',
+  'proxyFallbackReason',
+  'sectionFetchDurationMs',
 ];
 
 function copyExtraFields(target, details = {}) {
@@ -20,6 +30,69 @@ function copyExtraFields(target, details = {}) {
     if (details[field] !== undefined) target[field] = details[field];
   });
   return target;
+}
+
+function inferServedFrom(result, budgetExit) {
+  if (budgetExit && Array.isArray(result) && result.length > 0) return SERVED_FROM.LIVE_FALLBACK;
+  if (budgetExit) return SERVED_FROM.EMPTY;
+  if (result?.prefetched && result?.staleReason && Array.isArray(result) && result.length > 0) return SERVED_FROM.STALE_FALLBACK;
+  if (result?.prefetched && Array.isArray(result) && result.length === 0) return SERVED_FROM.EMPTY;
+  if (result?.prefetched) return SERVED_FROM.STATIC_SNAPSHOT;
+  if (Array.isArray(result) && result.length === 0) return SERVED_FROM.EMPTY;
+  return SERVED_FROM.LIVE_RSS;
+}
+
+function addInferredPhases(trace, servedFrom, details = {}) {
+  if (servedFrom === SERVED_FROM.STATIC_SNAPSHOT) {
+    markFetchPhase(trace, 'hybrid-static-snapshot-start');
+    markFetchPhase(trace, 'hybrid-static-snapshot-hit');
+  } else if (servedFrom === SERVED_FROM.STALE_FALLBACK) {
+    markFetchPhase(trace, 'hybrid-static-snapshot-start');
+    markFetchPhase(trace, 'hybrid-stale-fallback');
+  } else if (servedFrom === SERVED_FROM.EMPTY) {
+    if (details.snapshotBudgetExceeded) markFetchPhase(trace, 'hybrid-snapshot-budget-exceeded', details);
+    markFetchPhase(trace, 'static-host-empty');
+  } else if (servedFrom === SERVED_FROM.LIVE_FALLBACK) {
+    if (details.snapshotBudgetExceeded) markFetchPhase(trace, 'hybrid-snapshot-budget-exceeded', details);
+    markFetchPhase(trace, 'live-rss-start');
+    markFetchPhase(trace, 'live-rss-feed-settled', details);
+  } else if (servedFrom === SERVED_FROM.LIVE_RSS) {
+    markFetchPhase(trace, 'live-rss-start');
+    markFetchPhase(trace, 'live-rss-feed-settled', details);
+  }
+  if (servedFrom === SERVED_FROM.LIVE_RSS || servedFrom === SERVED_FROM.LIVE_FALLBACK || servedFrom === SERVED_FROM.STATIC_SNAPSHOT || servedFrom === SERVED_FROM.STALE_FALLBACK) {
+    markFetchPhase(trace, 'ranking-start');
+    markFetchPhase(trace, 'ranking-complete');
+  }
+}
+
+function buildCanonicalSectionDiagnostics(cacheKey, startedAt, result) {
+  const budgetExit = consumeSectionsSnapshotBudgetExit(cacheKey);
+  const servedFrom = inferServedFrom(result, budgetExit);
+  const durationMs = Date.now() - startedAt;
+  const liveRssAttempted = servedFrom === SERVED_FROM.LIVE_RSS || servedFrom === SERVED_FROM.LIVE_FALLBACK;
+  const details = {
+    servedFrom,
+    fallbackReason: budgetExit?.fallbackReason || result?.staleReason || null,
+    snapshotBudgetExceeded: Boolean(budgetExit?.snapshotBudgetExceeded),
+    snapshotElapsedMs: budgetExit?.snapshotElapsedMs,
+    snapshotBudgetMs: budgetExit?.snapshotBudgetMs,
+    liveRssAttempted,
+    liveRssDurationMs: liveRssAttempted ? durationMs : 0,
+    failedFeedCount: null,
+    successfulFeedCount: null,
+    timedOutFeedCount: null,
+    proxyFallbackReason: budgetExit?.fallbackReason || null,
+    sectionFetchDurationMs: durationMs,
+  };
+  const trace = createFetchTrace({
+    datasetId: 'sections',
+    section: String(cacheKey || ''),
+    fetchMode: isLiveMode() ? 'live' : 'hybrid',
+    nowMs: startedAt,
+  });
+  addInferredPhases(trace, servedFrom, details);
+  return { trace, details };
 }
 
 export function createFetchTrace({ datasetId, section, fetchMode, nowMs = Date.now() }) {
@@ -71,8 +144,14 @@ export function attachFetchDiagnostics(result, trace, details = {}) {
 }
 
 export async function withInFlightCleanup(inFlightMap, cacheKey, resolveInFlight, action) {
+  const startedAt = Date.now();
   try {
-    return await action();
+    const result = await action();
+    if (Array.isArray(result) && !result.fetchDiagnostics) {
+      const { trace, details } = buildCanonicalSectionDiagnostics(cacheKey, startedAt, result);
+      return attachFetchDiagnostics(result, trace, details);
+    }
+    return result;
   } finally {
     inFlightMap.delete(cacheKey);
     if (resolveInFlight) resolveInFlight();
