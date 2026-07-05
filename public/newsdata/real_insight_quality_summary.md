@@ -10,9 +10,9 @@
 - Base report share: `0.3333333333333333`
 - Multi-angle parents: `5`
 - Weak parents: `5`
-- Story count: `533`
+- Story count: `528`
 - Source groups: `9`
-- Content hash: `61d66673897a970e`
+- Content hash: `b972cd9c6f7c3fef`
 
 ## Top parents
 
@@ -25,9 +25,9 @@
 | 5 | ‘Very dangerous’ Super Typhoon barrels towards US Pacific islands with 280 kmph winds | 2 | regional_followup, official_response | NO | 0.5465933333333333 |
 | 6 | Performer calls for Trump's death at funeral for Iran's late supreme leader | 2 | base_report | YES | 0.5636732802150018 |
 | 7 | 'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day | 2 | base_report | YES | 0.5485933333333333 |
-| 8 | 10 crore mutual fund investors, Rs 150 lakh crore AUM: Inside AMFI's massive 2030 roadmap | 1 | fact_update | YES | 0.7226911614783158 |
-| 9 | 11 largecap stocks with upside potential of up to 50%. Do you own any? | 1 | market_reaction | YES | 0.7096244948116492 |
-| 10 | Sobha Ltd Q1 sales bookings up 76% to ₹3,656 crore on better housing demand | 1 | fact_update | YES | 0.7096244948116492 |
+| 8 | 11 largecap stocks with upside potential of up to 50%. Do you own any? | 1 | market_reaction | YES | 0.7096244948116492 |
+| 9 | Sobha Ltd Q1 sales bookings up 76% to ₹3,656 crore on better housing demand | 1 | fact_update | YES | 0.7096244948116492 |
+| 10 | Office leasing grows to 43 million sq feet, highest in the first half of a calendar year: Cushman & Wakefield | 1 | fact_update | YES | 0.7096244948116492 |
 
 ## Warnings
 

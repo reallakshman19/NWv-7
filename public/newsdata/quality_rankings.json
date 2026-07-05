@@ -1500,7 +1500,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1523,7 +1523,8 @@
         "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
         "These 31+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
-        "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match"
+        "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com: futureValidity failed — expired display window",
+        "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -1560,8 +1561,8 @@
         "festivals": 0,
         "inputItemCount": 74,
         "locationCounts": {
-          "chennai": 23,
-          "online": 1,
+          "chennai": 21,
+          "online": 3,
           "trichy": 6
         },
         "locationsCovered": [
@@ -1569,11 +1570,11 @@
           "online",
           "trichy"
         ],
-        "offlineOffers": 6,
-        "onlineOffers": 1,
+        "offlineOffers": 4,
+        "onlineOffers": 3,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 16
+        "suppressedItemCount": 20
       },
       "qualityGrade": "B",
       "qualityScore": 0.8381,
@@ -4269,7 +4270,7 @@
             },
             {
               "details": {
-                "hoursLeft": 20.31
+                "hoursLeft": 19.81
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4344,121 +4345,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "ef48bb46b22f06b0"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783276413000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.37
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "5b5d5fe201c0e203",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783276413000,
-            "id": "5b5d5fe201c0e203",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783881213000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783276413000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783103613000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMimAJBVV95cUxOaEt4Z1U4NmVjMVlRbGtlM3FOQ19SN0FuQjRfMTU1TzFhVWhRTlBrSDBmN3JLNnFOOElwZmFFMTUxM0lObEdsUVV4RU1jWUEyU3MyOE9DQ3FSSG1WczVnWDBTTy01MjhqX1NMVzE2QjNsZ3NHeG5WRndtYThYSEZJbkQ1X3VIWFBNMGNwUEJ1VWU2XzRlSy1ZMEZkdzBORmlyZ2tMWDhYTHhjaDVkREo4eU9CVDQ4TGZpMmFYZXNEbmpzRzhoUXctbks5ZnhGQWxKVE1ib00yRjBXdGc3UEExajBPLVV1LXFLbkl4TEFobnE5Wjhkc2RaUVliLW9EQ2dNS21KN2MwS3JRNkxwV0IwWl9UMjlLTHgw0gGeAkFVX3lxTE9nckh4RUw1bGJNZXNXMkdhQ3MzNEdGbUdnN3BIMjJNOVQ0MmtnT0NSaFE4ZTFHR05PaDZmQ3Zfdk5XZ3JGMVN2WUNOMnp6akFWREozQ2xaZmk1UjZ4dnBjanJPSEhpZFZWdmNDdF81eEhiYmZYWFpRdTF2V0I3UERZQXItWTZjYW1vWS03TmhuWkx5alUydTg1anphWkNLZ01NZ2d1QkdJOGx6WmlCUkhPeng1MnJhSnhFVWZWYjYzZXRVSG1hZWlqLWU5Tkg2VkJiSk9Dd094dlJQNVBKTHA2QnJQT1dtWktYN3hXOUNJUnQxSHBBS0RvbVZkdGU1V1J1UnBJX29Xckw1RDFEN3ZwOHVlZ2FEcVVFSjdXbWc?oc=5\" target=\"_blank\">Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount...</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Moneycontrol.com</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com",
-            "url": "https://news.google.com/rss/articles/CBMimAJBVV95cUxOaEt4Z1U4NmVjMVlRbGtlM3FOQ19SN0FuQjRfMTU1TzFhVWhRTlBrSDBmN3JLNnFOOElwZmFFMTUxM0lObEdsUVV4RU1jWUEyU3MyOE9DQ3FSSG1WczVnWDBTTy01MjhqX1NMVzE2QjNsZ3NHeG5WRndtYThYSEZJbkQ1X3VIWFBNMGNwUEJ1VWU2XzRlSy1ZMEZkdzBORmlyZ2tMWDhYTHhjaDVkREo4eU9CVDQ4TGZpMmFYZXNEbmpzRzhoUXctbks5ZnhGQWxKVE1ib00yRjBXdGc3UEExajBPLVV1LXFLbkl4TEFobnE5Wjhkc2RaUVliLW9EQ2dNS21KN2MwS3JRNkxwV0IwWl9UMjlLTHgw0gGeAkFVX3lxTE9nckh4RUw1bGJNZXNXMkdhQ3MzNEdGbUdnN3BIMjJNOVQ0MmtnT0NSaFE4ZTFHR05PaDZmQ3Zfdk5XZ3JGMVN2WUNOMnp6akFWREozQ2xaZmk1UjZ4dnBjanJPSEhpZFZWdmNDdF81eEhiYmZYWFpRdTF2V0I3UERZQXItWTZjYW1vWS03TmhuWkx5alUydTg1anphWkNLZ01NZ2d1QkdJOGx6WmlCUkhPeng1MnJhSnhFVWZWYjYzZXRVSG1hZWlqLWU5Tkg2VkJiSk9Dd094dlJQNVBKTHA2QnJQT1dtWktYN3hXOUNJUnQxSHBBS0RvbVZkdGU1V1J1UnBJX29Xckw1RDFEN3ZwOHVlZ2FEcVVFSjdXbWc?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "73120640c5db9847"
               },
               "name": "dedup",
@@ -4499,7 +4385,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.45
+                "hoursLeft": 12.95
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4614,7 +4500,7 @@
             },
             {
               "details": {
-                "hoursLeft": 19.62
+                "hoursLeft": 19.12
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4689,121 +4575,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "18280bd24629f123"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783276206000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.31
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "e8bbd5e382283a7a",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783276206000,
-            "id": "e8bbd5e382283a7a",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783881006000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783276206000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783103406000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1gFBVV95cUxQTHFFckxzaVltUUI2Vmo1R0hWZXNPSjB5Rmx2MWFESkJPT000MDJkTG8zMy14d2w4MUFiVkVIZWpCMExETGdQRzFVWGZ1SzdDSTN5ZGVwT2Ntcl9FWl9GVHhnWW1qMk5taGUwMEk0VFpVYl9pSDVpRmUxZC1vaGkyU1A2TjJYb25QSExiMmRIcDVxbERHUEVRdTlGVFl0NDlJMHJab2hSanR5N3l6TnJTUEt5TG9Jb19fbVIybXc4UF9vNFhpT2pZaXktZ28yMnBOWEcxNDZB0gHbAUFVX3lxTE5IQTY2cVJzOXoxbFFiUlJxd0wzaVQ3aWpKSHdDUFhEMFpKMEFJMWtCRWt6eDJwV1RsdTJiQVVnalhVTUR5N25kM1p0cDN2cTRwY2N4QjI2YXprdTdQeUVkRm5rSFV6SXVrWThUMHZ0YmtDZ1FvLW1Sa3BEMzllR3dCQmxtOFBNWHlKdlVUZVhQQzFFRnIzMXFkMHpjcFJ5c0s0VmRNMzRhajZQWEhoYVZkNFlMczlST1ViTWJsUE1WbF9mRWdPREdFVWFvbW9zQ0dYZ2MwR1ZWNEhLdw?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Sale Begins: Best Offers on Mobile Phones, Electronics</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2026 Sale Begins: Best Offers on Mobile Phones, Electronics - Gadgets 360",
-            "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQTHFFckxzaVltUUI2Vmo1R0hWZXNPSjB5Rmx2MWFESkJPT000MDJkTG8zMy14d2w4MUFiVkVIZWpCMExETGdQRzFVWGZ1SzdDSTN5ZGVwT2Ntcl9FWl9GVHhnWW1qMk5taGUwMEk0VFpVYl9pSDVpRmUxZC1vaGkyU1A2TjJYb25QSExiMmRIcDVxbERHUEVRdTlGVFl0NDlJMHJab2hSanR5N3l6TnJTUEt5TG9Jb19fbVIybXc4UF9vNFhpT2pZaXktZ28yMnBOWEcxNDZB0gHbAUFVX3lxTE5IQTY2cVJzOXoxbFFiUlJxd0wzaVQ3aWpKSHdDUFhEMFpKMEFJMWtCRWt6eDJwV1RsdTJiQVVnalhVTUR5N25kM1p0cDN2cTRwY2N4QjI2YXprdTdQeUVkRm5rSFV6SXVrWThUMHZ0YmtDZ1FvLW1Sa3BEMzllR3dCQmxtOFBNWHlKdlVUZVhQQzFFRnIzMXFkMHpjcFJ5c0s0VmRNMzRhajZQWEhoYVZkNFlMczlST1ViTWJsUE1WbF9mRWdPREdFVWFvbW9zQ0dYZ2MwR1ZWNEhLdw?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2026 Sale Begins: Best Offers on Mobile Phones, Electronics - Gadgets 360"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "d79f6bdd7a06bbfc"
               },
               "name": "dedup",
@@ -4844,7 +4615,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.48
+                "hoursLeft": 17.97
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4959,7 +4730,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.25
+                "hoursLeft": 10.75
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -5028,6 +4799,236 @@
           ],
           "score": 0.744,
           "title": "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "c895fc726b1405de"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783333743000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 15.79
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "5091651d29c14d23",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783333743000,
+            "id": "5091651d29c14d23",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783938543000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783333743000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783160943000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMixwFBVV95cUxOTzJPcE52cE9FMHBOZDBhdFVzYi1EVVNFS0d1aDJkVllYZ3FOMFljVWZnTVNCVHZEd0dKUlgwRW5FNTlEMEowZWI1ZjJqY2ptaVI2c0tiV2FtYTZyVU9nVUN5ZTZXMXFCRjI3eHVyQ3dZZmxDWW9vTGxlZ2NJTWVNc001N3llN2ZOemRreFBWVW5DSkdlVEZnWjJEbVc0emw5czNrRndjZUN4YmpGWDB2YnhUal9MSmMyTHp1OWdPZUhER0VOYllN0gHMAUFVX3lxTFBNcVNwZHRCdkJ4WGgxUF9JYU5BSXhyWGJkeDE2REhRT2xFa29OT0Ywbm5XdjV5cDJvZEtXcXJvaGloanIxcnNYY3pZU0t0OExQZHJfMlFORGJ6Q2xMbGhCQ1czb3o1aWZuSkV1SzN4X0xZSUlENUdxYk5nQk1hNGJPUXI3RjdteF9DWGlQWGYtd0FYOWRIaTNNbWdlQWw4d1Q2N0dVRzJjbTJwR0g4SURhRENUeGhVQzBmeWNQMzhyc09RRVFFWWRsYzZlOA?oc=5\" target=\"_blank\">Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli...</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli... - Gadgets 360",
+            "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOTzJPcE52cE9FMHBOZDBhdFVzYi1EVVNFS0d1aDJkVllYZ3FOMFljVWZnTVNCVHZEd0dKUlgwRW5FNTlEMEowZWI1ZjJqY2ptaVI2c0tiV2FtYTZyVU9nVUN5ZTZXMXFCRjI3eHVyQ3dZZmxDWW9vTGxlZ2NJTWVNc001N3llN2ZOemRreFBWVW5DSkdlVEZnWjJEbVc0emw5czNrRndjZUN4YmpGWDB2YnhUal9MSmMyTHp1OWdPZUhER0VOYllN0gHMAUFVX3lxTFBNcVNwZHRCdkJ4WGgxUF9JYU5BSXhyWGJkeDE2REhRT2xFa29OT0Ywbm5XdjV5cDJvZEtXcXJvaGloanIxcnNYY3pZU0t0OExQZHJfMlFORGJ6Q2xMbGhCQ1czb3o1aWZuSkV1SzN4X0xZSUlENUdxYk5nQk1hNGJPUXI3RjdteF9DWGlQWGYtd0FYOWRIaTNNbWdlQWw4d1Q2N0dVRzJjbTJwR0g4SURhRENUeGhVQzBmeWNQMzhyc09RRVFFWWRsYzZlOA?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli... - Gadgets 360"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "e7e4840a77519592"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783277153000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 0.07
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "9c0f129314a1d072",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783277153000,
+            "id": "9c0f129314a1d072",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1783881953000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783277153000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783104353000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7gFBVV95cUxOUmc3eERJUThUTkFDSkdWTVhnZ1JKRlptbWZlTnBwZk16azVwMHM2a2VpUWd5QnFGRFp1VUQ1MzlLdTRqNGVvcWMtTXkwVkFlQ0JoRlVWSjhOQ05fUUFwUEUwcFlCUGctSTJUZnRLRWVUanZZRTZpRlhlWjVoMmZGX2dRa3lGNm9ySHZwMDN2OFR1eUdyd1p5Ym8zYVp1TWlHX1JIdjAtamZXVjBlN3VzT0VXRzBCSW81cjRRVFk1YnBPREVGTUs4QUg1cDRQUEp1Z0kzelNmLW1sclJzb3RoN3h4YzItUXhpVkNVRUVR0gHzAUFVX3lxTE9BTnZmLVVYUHpMRHlMTnpsRVNleUgxaDhmcndTSlBhQmg1MVFBbldPYkJDc25jWDVpem51NEtYQ2IwMmEzYlNFRUQ1QkVUb3ZRODJXaERsTGEzWHdmZWZlMU13aHhhbkozU09GNnZnVEFFdWlBRVhSUlVmQkcwdDRiVjhDLXc4R0tyclR0Slp1a3FxQm1VWER4VEt3LVdfRFRSR3J1aXNPMzBjb1hTeUFBMEF0amM0SFdyODVVdGVaX2tnbkpBd0VPQ3NmMW5tUWxaMER4eXlnb0xvenRTZnpIRHg1Nkw3c0xudFlMVmh3M0Jkdw?oc=5\" target=\"_blank\">Amazon Prime Day Sale 2026 goes LIVE with big discounts on laptops, appliances and gadgets</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">livemint.com</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day Sale 2026 goes LIVE with big discounts on laptops, appliances and gadgets - livemint.com",
+            "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxOUmc3eERJUThUTkFDSkdWTVhnZ1JKRlptbWZlTnBwZk16azVwMHM2a2VpUWd5QnFGRFp1VUQ1MzlLdTRqNGVvcWMtTXkwVkFlQ0JoRlVWSjhOQ05fUUFwUEUwcFlCUGctSTJUZnRLRWVUanZZRTZpRlhlWjVoMmZGX2dRa3lGNm9ySHZwMDN2OFR1eUdyd1p5Ym8zYVp1TWlHX1JIdjAtamZXVjBlN3VzT0VXRzBCSW81cjRRVFk1YnBPREVGTUs4QUg1cDRQUEp1Z0kzelNmLW1sclJzb3RoN3h4YzItUXhpVkNVRUVR0gHzAUFVX3lxTE9BTnZmLVVYUHpMRHlMTnpsRVNleUgxaDhmcndTSlBhQmg1MVFBbldPYkJDc25jWDVpem51NEtYQ2IwMmEzYlNFRUQ1QkVUb3ZRODJXaERsTGEzWHdmZWZlMU13aHhhbkozU09GNnZnVEFFdWlBRVhSUlVmQkcwdDRiVjhDLXc4R0tyclR0Slp1a3FxQm1VWER4VEt3LVdfRFRSR3J1aXNPMzBjb1hTeUFBMEF0amM0SFdyODVVdGVaX2tnbkpBd0VPQ3NmMW5tUWxaMER4eXlnb0xvenRTZnpIRHg1Nkw3c0xudFlMVmh3M0Jkdw?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon Prime Day Sale 2026 goes LIVE with big discounts on laptops, appliances and gadgets - livemint.com"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -5042,7 +5043,7 @@
       }
     }
   },
-  "generatedAt": 1783275084499,
+  "generatedAt": 1783276892243,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5061,7 +5062,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -5111,7 +5112,8 @@
       "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
       "These 31+ Amazon July 4th deals feel like Prime Day just got extended - NBC News: location failed — offline/local item lacks configured location match",
-      "New OTT Releases this week (June 29-July 5, 2026): Enola Holmes Season 3, Pritam and Pedro, Elle- 6 new titles coming on Netflix, Prime Video and more - WION: location failed — offline/local item lacks configured location match"
+      "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com: futureValidity failed — expired display window",
+      "Amazon Prime Day 2025 sale is live: Galaxy S25 Ultra gets 35% off, OnePlus 13 available with 25% discount... - Moneycontrol.com: offerValidity failed — offer expired"
     ]
   }
 }
