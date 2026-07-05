@@ -1,34 +1,36 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const mocks = vi.hoisted(() => ({
+  fetchStaticUpAheadData: vi.fn(),
+  fetchLiveUpAheadData: vi.fn(),
+  loadFromCache: vi.fn(),
+  saveToCache: vi.fn(),
+  fetchUpAheadDatasetApiData: vi.fn(),
+  getRuntimeCapabilities: vi.fn(),
+}));
+
 const visibleApi = { sections: { events: [{ title: 'API event' }] }, timeline: [], weekly_plan: [] };
 const visibleStatic = { sections: { events: [{ title: 'Static event' }] }, timeline: [], weekly_plan: [] };
 const emptyData = { sections: {}, timeline: [], weekly_plan: [] };
 
-const fetchStaticUpAheadData = vi.fn();
-const fetchLiveUpAheadData = vi.fn();
-const loadFromCache = vi.fn();
-const saveToCache = vi.fn();
-const fetchUpAheadDatasetApiData = vi.fn();
-const getRuntimeCapabilities = vi.fn();
-
-vi.mock('./upAheadDatasetApiClient.js', () => ({ fetchUpAheadDatasetApiData }));
-vi.mock('../../runtime/runtimeCapabilities.js', () => ({ getRuntimeCapabilities }));
+vi.mock('./upAheadDatasetApiClient.js', () => ({ fetchUpAheadDatasetApiData: mocks.fetchUpAheadDatasetApiData }));
+vi.mock('../../runtime/runtimeCapabilities.js', () => ({ getRuntimeCapabilities: mocks.getRuntimeCapabilities }));
 vi.mock('../../utils/storage.js', () => ({ getSettings: () => ({ upAhead: { categories: {}, locations: ['Chennai'] } }) }));
 vi.mock('../../utils/plannerStorage.js', () => ({ default: { loadBlacklistFromApi: vi.fn(), loadPlanFromApi: vi.fn() } }));
 vi.mock('../../services/upAheadEvidence.js', () => ({ getUpAheadEvidence: () => ({}) }));
 vi.mock('../../services/upAheadBriefing.js', () => ({ getUpAheadBriefing: () => ({}) }));
 vi.mock('../../services/upAheadService.js', () => ({
-  fetchStaticUpAheadData,
-  fetchLiveUpAheadData,
-  loadFromCache,
-  saveToCache,
+  fetchStaticUpAheadData: mocks.fetchStaticUpAheadData,
+  fetchLiveUpAheadData: mocks.fetchLiveUpAheadData,
+  loadFromCache: mocks.loadFromCache,
+  saveToCache: mocks.saveToCache,
   isActualWeatherAlertText: () => true,
   isActualOfferText: () => true,
   mergeUpAheadData: (base, incoming) => incoming || base,
 }));
 
 function setStaticWithApiRuntime() {
-  getRuntimeCapabilities.mockReturnValue({
+  mocks.getRuntimeCapabilities.mockReturnValue({
     runtimeKind: 'static-with-dataset-api',
     isStaticFrontend: true,
     canUseDatasetApi: true,
@@ -40,38 +42,39 @@ function setStaticWithApiRuntime() {
 describe('NW-DP-004 Up Ahead dataset provider chain', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
     setStaticWithApiRuntime();
-    loadFromCache.mockReturnValue(null);
-    fetchStaticUpAheadData.mockResolvedValue(visibleStatic);
-    fetchLiveUpAheadData.mockResolvedValue(visibleApi);
+    mocks.loadFromCache.mockReturnValue(null);
+    mocks.fetchStaticUpAheadData.mockResolvedValue(visibleStatic);
+    mocks.fetchLiveUpAheadData.mockResolvedValue(visibleApi);
   });
 
   it('prefers usable API result before static fallback', async () => {
-    fetchUpAheadDatasetApiData.mockResolvedValue(visibleApi);
+    mocks.fetchUpAheadDatasetApiData.mockResolvedValue(visibleApi);
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
 
-    expect(fetchUpAheadDatasetApiData).toHaveBeenCalledTimes(1);
-    expect(fetchStaticUpAheadData).not.toHaveBeenCalled();
-    expect(fetchLiveUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchUpAheadDatasetApiData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchStaticUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchLiveUpAheadData).not.toHaveBeenCalled();
     expect(envelope.data.sourceMode).toBe('dataset-api');
   });
 
   it('falls back to static when API returns unusable data', async () => {
-    fetchUpAheadDatasetApiData.mockResolvedValue(emptyData);
+    mocks.fetchUpAheadDatasetApiData.mockResolvedValue(emptyData);
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
 
-    expect(fetchUpAheadDatasetApiData).toHaveBeenCalledTimes(1);
-    expect(fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
-    expect(fetchLiveUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchUpAheadDatasetApiData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchLiveUpAheadData).not.toHaveBeenCalled();
     expect(envelope.data.sourceMode).toBe('snapshot');
   });
 
   it('records API and provider policy diagnostics', async () => {
-    fetchUpAheadDatasetApiData.mockResolvedValue(visibleApi);
+    mocks.fetchUpAheadDatasetApiData.mockResolvedValue(visibleApi);
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
