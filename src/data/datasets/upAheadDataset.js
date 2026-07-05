@@ -127,12 +127,16 @@ function pushLiveSkipped(diagnostics, providerDecision, data) {
   });
 }
 
+function persistUpAheadData(data) {
+  saveToCache(data);
+  return data;
+}
+
 async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   try {
     const staticData = await fetchStaticUpAheadData(upAheadSettings);
     if (staticData && hasVisibleUpAheadContent(staticData)) {
-      const merged = mergeUpAheadData(data, staticData);
-      saveToCache(merged);
+      const merged = persistUpAheadData(mergeUpAheadData(data, staticData));
       diagnostics.push({ event: 'upAheadDataset.static_loaded', severity: 'info', message: 'Merged static Up Ahead data' });
       return { data: merged, sourceMode: staticData.sourceMode || 'snapshot', hasUsableStatic: true };
     }
@@ -147,8 +151,7 @@ async function mergeLiveData({ options, upAheadSettings, data, diagnostics }) {
   try {
     const liveData = await fetchLiveUpAheadData(upAheadSettings);
     if (liveData && hasVisibleUpAheadContent(liveData)) {
-      const merged = mergeUpAheadData(options.liveOnly ? null : data, liveData);
-      saveToCache(merged);
+      const merged = persistUpAheadData(mergeUpAheadData(options.liveOnly ? null : data, liveData));
       diagnostics.push({ event: 'upAheadDataset.live_loaded', severity: 'info', message: 'Merged live Up Ahead data' });
       return { data: merged, sourceMode: liveData?.sourceMode || 'live' };
     }
