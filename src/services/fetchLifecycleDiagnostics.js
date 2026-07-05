@@ -113,6 +113,12 @@ function buildCanonicalSectionDiagnostics(cacheKey, startedAt, result) {
   return { trace, details };
 }
 
+function shouldDecorateCanonicalResult(result) {
+  if (!Array.isArray(result) || result.fetchDiagnostics) return false;
+  if (result.length === 0) return true;
+  return result.every(item => item && typeof item === 'object');
+}
+
 export function createFetchTrace({ datasetId, section, fetchMode, nowMs = Date.now() }) {
   return {
     datasetId,
@@ -165,7 +171,7 @@ export async function withInFlightCleanup(inFlightMap, cacheKey, resolveInFlight
   const startedAt = Date.now();
   try {
     const result = await action();
-    if (Array.isArray(result) && !result.fetchDiagnostics) {
+    if (shouldDecorateCanonicalResult(result)) {
       const { trace, details } = buildCanonicalSectionDiagnostics(cacheKey, startedAt, result);
       return attachFetchDiagnostics(result, trace, details);
     }
