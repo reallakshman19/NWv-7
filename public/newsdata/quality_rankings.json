@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 12
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 4,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 12,
-        "parentClusters": 12,
-        "strongParents": 12,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3923,
+      "qualityScore": 0.3954,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -437,118 +437,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 2
-              },
-              "name": "sourceDiversity",
-              "reason": "multi-source event",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:9fe9637243",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:9fe9637243",
-            "representativeId": "b590bcbb384b724e",
-            "representativeTitle": "Global stocks: UAE markets end higher; IHC gains on India aluminium venture - The Economic Times",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.62,
-              "sourceDiversityScore": 0.72,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 2,
-            "sourceGroups": [
-              "economic_times",
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "b590bcbb384b724e",
-              "27c7526a2c01a81b"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "global",
-              "stocks",
-              "markets",
-              "higher"
-            ],
-            "topicKey": "global|stocks|markets"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "multi-source event"
-          ],
-          "score": 0.4805,
-          "title": "Global stocks: UAE markets end higher; IHC gains on India aluminium venture - The Economic Times"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
+                "storyCount": 5
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -585,7 +474,7 @@
             },
             {
               "details": {
-                "childCount": 4
+                "childCount": 5
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -606,11 +495,11 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "fa92b073a0a30dc3",
-            "representativeTitle": "Breaking News Live Updates: Delhi govt reshuffles administration: 52 long-posted officers transferred, 19 promoted - The Times of India",
+            "representativeId": "f16757a86a1800d9",
+            "representativeTitle": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
+              "eventImportanceScore": 0.95,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -625,8 +514,9 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 4,
+            "storyCount": 5,
             "storyIds": [
+              "f16757a86a1800d9",
               "fa92b073a0a30dc3",
               "3f4614cfb237e7a1",
               "c0b89c693126f623",
@@ -635,13 +525,14 @@
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 4
+                "count": 5
               }
             ],
             "topTokens": [
               "breaking",
               "live",
               "updates",
+              "army",
               "delhi",
               "damascus",
               "strong",
@@ -655,8 +546,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.449,
-          "title": "Breaking News Live Updates: Delhi govt reshuffles administration: 52 long-posted officers transferred, 19 promoted - The Times of India"
+          "score": 0.479,
+          "title": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -770,116 +661,6 @@
           ],
           "score": 0.443,
           "title": "No need for India to take a leaf out of Pakistan’s Iran mediation book, says envoy"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
@@ -1385,14 +1166,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:c1c58008d6",
+          "id": "sketch:9c932757ed",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 1.0,
             "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "df71bc9e8f9d5353",
-            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
+            "id": "sketch:9c932757ed",
+            "representativeId": "fd2b194261f8046e",
+            "representativeTitle": "Vaibhav Sooryavanshi: India backing established top order amid calls to hand 15-year-old debut - Sky Sports",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -1412,8 +1193,8 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "df71bc9e8f9d5353",
-              "bf952c0b99344c4d"
+              "fd2b194261f8046e",
+              "a25d32fe4ac86534"
             ],
             "topAngles": [
               {
@@ -1422,10 +1203,12 @@
               }
             ],
             "topTokens": [
-              "june",
-              "hindu"
+              "vaibhav",
+              "sooryavanshi",
+              "india",
+              "backing"
             ],
-            "topicKey": "june|hindu"
+            "topicKey": "vaibhav|sooryavanshi|india"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -1434,18 +1217,18 @@
             "one-source event candidate"
           ],
           "score": 0.1751,
-          "title": "Top news of the day on June 20, 2026 - The Hindu"
+          "title": "Vaibhav Sooryavanshi: India backing established top order amid calls to hand 15-year-old debut - Sky Sports"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3383,
-        "eventImportanceScore": 0.62,
+        "angleDiversityScore": 0.356,
+        "eventImportanceScore": 0.638,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.475,
-        "sourceAuthorityScore": 0.44,
-        "sourceDiversityScore": 0.4425,
-        "temporalEvolutionScore": 0.43
+        "noveltyDeltaScore": 0.48,
+        "sourceAuthorityScore": 0.428,
+        "sourceDiversityScore": 0.424,
+        "temporalEvolutionScore": 0.442
       }
     },
     "localTravel": {
@@ -5037,7 +4820,7 @@
       }
     }
   },
-  "generatedAt": 1783209651402,
+  "generatedAt": 1783213400880,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5071,7 +4854,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3923,
+      "insight": 0.3954,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -5081,7 +4864,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3127,
+    "overallScore": 0.3135,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
