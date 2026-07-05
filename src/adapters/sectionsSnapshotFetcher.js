@@ -28,6 +28,7 @@ const LOW_CONFIDENCE_TIMESTAMP_SOURCES = new Set([
 ]);
 
 let memorySnapshot = null;
+const snapshotBudgetExitBySection = new Map();
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -129,6 +130,23 @@ function makeBudgetError(startedAt, budgetMs) {
   error.elapsedMs = elapsedMs;
   error.budgetMs = budgetMs;
   return error;
+}
+
+function makeBudgetExit(error) {
+  if (error?.code !== 'snapshot-budget-exceeded') return null;
+  return {
+    fallbackReason: 'snapshot-budget-exceeded',
+    snapshotBudgetExceeded: true,
+    snapshotElapsedMs: Number(error.elapsedMs || 0),
+    snapshotBudgetMs: Number(error.budgetMs || 0),
+  };
+}
+
+function recordSnapshotBudgetExit(section, error) {
+  const budgetExit = makeBudgetExit(error);
+  if (!budgetExit) return;
+  snapshotBudgetExitBySection.set(String(section || ''), budgetExit);
+  snapshotBudgetExitBySection.set(normalizeSectionKey(section), budgetExit);
 }
 
 async function fetchWithBudget(url, remainingMs) {
@@ -281,12 +299,25 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
 }
 
 export async function fetchPrefetchedSectionNews(section, limit = 10, options = {}) {
-  const snapshot = await loadSectionsSnapshot(options);
-  return selectPrefetchedSectionItems(snapshot, section, limit);
+  try {
+    const snapshot = await loadSectionsSnapshot(options);
+    return selectPrefetchedSectionItems(snapshot, section, limit);
+  } catch (error) {
+    recordSnapshotBudgetExit(section, error);
+    throw error;
+  }
+}
+
+export function consumeSectionsSnapshotBudgetExit(section) {
+  const keys = [String(section || ''), normalizeSectionKey(section)];
+  const budgetExit = keys.map(key => snapshotBudgetExitBySection.get(key)).find(Boolean) || null;
+  keys.forEach(key => snapshotBudgetExitBySection.delete(key));
+  return budgetExit;
 }
 
 export function clearSectionsSnapshotCache() {
   memorySnapshot = null;
+  snapshotBudgetExitBySection.clear();
 }
 
 export const __sectionsSnapshotInternalsForTest = {
@@ -296,6 +327,7 @@ export const __sectionsSnapshotInternalsForTest = {
   itemTimestampMs,
   getRemainingBudgetMs,
   makeBudgetError,
+  makeBudgetExit,
 };
 
 export default fetchPrefetchedSectionNews;
