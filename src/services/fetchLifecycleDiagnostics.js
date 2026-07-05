@@ -12,6 +12,22 @@ export const SERVED_FROM = Object.freeze({
   ERROR: 'error',
 });
 
+export const REQUIRED_FETCH_PHASES = Object.freeze([
+  'memory-cache-hit',
+  'in-flight-wait',
+  'hybrid-static-snapshot-start',
+  'hybrid-static-snapshot-hit',
+  'hybrid-stale-fallback',
+  'hybrid-snapshot-budget-exceeded',
+  'static-host-empty',
+  'live-rss-start',
+  'live-rss-feed-settled',
+  'live-rss-timeout',
+  'ranking-start',
+  'ranking-complete',
+  'ranking-fallback',
+]);
+
 const EXTRA_DIAGNOSTIC_FIELDS = [
   'snapshotBudgetExceeded',
   'snapshotElapsedMs',
@@ -58,9 +74,11 @@ function addInferredPhases(trace, servedFrom, details = {}) {
     markFetchPhase(trace, 'live-rss-feed-settled', details);
   } else if (servedFrom === SERVED_FROM.LIVE_RSS) {
     markFetchPhase(trace, 'live-rss-start');
-    markFetchPhase(trace, 'live-rss-feed-settled', details);
+    markFetchPhase(trace, details.timedOutFeedCount > 0 ? 'live-rss-timeout' : 'live-rss-feed-settled', details);
   }
-  if (servedFrom === SERVED_FROM.LIVE_RSS || servedFrom === SERVED_FROM.LIVE_FALLBACK || servedFrom === SERVED_FROM.STATIC_SNAPSHOT || servedFrom === SERVED_FROM.STALE_FALLBACK) {
+  if (servedFrom === SERVED_FROM.ERROR) {
+    markFetchPhase(trace, 'ranking-fallback');
+  } else if (servedFrom === SERVED_FROM.LIVE_RSS || servedFrom === SERVED_FROM.LIVE_FALLBACK || servedFrom === SERVED_FROM.STATIC_SNAPSHOT || servedFrom === SERVED_FROM.STALE_FALLBACK) {
     markFetchPhase(trace, 'ranking-start');
     markFetchPhase(trace, 'ranking-complete');
   }
