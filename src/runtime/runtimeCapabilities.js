@@ -71,7 +71,31 @@ function getFeatureStatus(preferSnapshots, canUseDatasetApi, datasetRuntimeMode)
   };
 }
 
-export function resolveRuntimeCapabilities(input = {}) {
+function getApiCapabilityFields(values) {
+  return {
+    canUseBackendApi: values.backendConfigured,
+    canUseDatasetApi: values.canUseDatasetApi,
+    datasetApiConfigured: values.canUseConfiguredDatasetApi,
+    canUseConfiguredDatasetApi: values.canUseConfiguredDatasetApi,
+    canUseLocalRuntimeApi: values.canUseLocalRuntimeApi,
+    datasetRuntimeMode: values.datasetRuntimeMode,
+    allowRemoteSettingsSync: values.backendConfigured,
+    canUseApi: values.backendConfigured,
+    canUseRemoteStorage: values.backendConfigured,
+    canUseLocalStorage: values.isBrowser,
+  };
+}
+
+function getDatasetModeFields(preferSnapshots) {
+  return {
+    weatherMode: preferSnapshots ? 'cache-or-snapshot' : 'live',
+    marketMode: preferSnapshots ? 'snapshot-first' : 'live',
+    upAheadMode: preferSnapshots ? 'limited-live' : 'full-live',
+    plannerSyncMode: preferSnapshots ? 'local-only' : 'remote-capable',
+  };
+}
+
+function deriveRuntimeValues(input) {
   const isBrowser = Boolean(input.isBrowser);
   const hostname = input.hostname || '';
   const isStaticHost = isKnownStaticHost(hostname);
@@ -81,35 +105,32 @@ export function resolveRuntimeCapabilities(input = {}) {
   const canUseConfiguredDatasetApi = getCanUseConfiguredDatasetApi(configuredBackendUrl, forceSnapshots);
   const canUseDatasetApi = canUseConfiguredDatasetApi || canUseLocalRuntimeApi;
   const preferSnapshots = forceSnapshots || (!canUseDatasetApi && isStaticHost);
-  const backendConfigured = canUseLocalRuntimeApi;
   const datasetRuntimeMode = getDatasetRuntimeMode({ canUseDatasetApi, preferSnapshots });
-  const runtimeLabel = getRuntimeLabel({ isStaticHost, canUseDatasetApi, preferSnapshots });
-
   return {
-    isBrowser,
-    hostname,
-    isStaticHost,
-    isStaticFrontend: isStaticHost,
-    configuredBackendUrl,
-    backendConfigured,
-    canUseBackendApi: backendConfigured,
-    preferSnapshots,
-    allowWideFeedFetch: !preferSnapshots,
-    canUseDatasetApi,
-    datasetApiConfigured: canUseConfiguredDatasetApi,
-    canUseConfiguredDatasetApi,
-    canUseLocalRuntimeApi,
-    datasetRuntimeMode,
-    allowRemoteSettingsSync: backendConfigured,
-    canUseApi: backendConfigured,
-    canUseRemoteStorage: backendConfigured,
-    canUseLocalStorage: isBrowser,
-    weatherMode: preferSnapshots ? 'cache-or-snapshot' : 'live',
-    marketMode: preferSnapshots ? 'snapshot-first' : 'live',
-    upAheadMode: preferSnapshots ? 'limited-live' : 'full-live',
-    plannerSyncMode: preferSnapshots ? 'local-only' : 'remote-capable',
-    featureStatus: getFeatureStatus(preferSnapshots, canUseDatasetApi, datasetRuntimeMode),
-    runtimeLabel
+    isBrowser, hostname, isStaticHost, configuredBackendUrl, canUseLocalRuntimeApi,
+    canUseConfiguredDatasetApi, canUseDatasetApi, preferSnapshots, datasetRuntimeMode,
+    backendConfigured: canUseLocalRuntimeApi,
+  };
+}
+
+export function resolveRuntimeCapabilities(input = {}) {
+  const values = deriveRuntimeValues(input);
+  const runtimeLabel = getRuntimeLabel(values);
+  return {
+    isBrowser: values.isBrowser,
+    hostname: values.hostname,
+    isStaticHost: values.isStaticHost,
+    isStaticFrontend: values.isStaticHost,
+    configuredBackendUrl: values.configuredBackendUrl,
+    backendConfigured: values.backendConfigured,
+    preferSnapshots: values.preferSnapshots,
+    allowWideFeedFetch: !values.preferSnapshots,
+    ...getApiCapabilityFields(values),
+    ...getDatasetModeFields(values.preferSnapshots),
+    featureStatus: getFeatureStatus(
+      values.preferSnapshots, values.canUseDatasetApi, values.datasetRuntimeMode
+    ),
+    runtimeLabel,
   };
 }
 
