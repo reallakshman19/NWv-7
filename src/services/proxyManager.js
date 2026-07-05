@@ -7,6 +7,10 @@ import logStore from '../utils/logStore.js';
 export const LIVE_RSS_PROXY_BUDGET_MS = 6000;
 export const LIVE_RSS_PROXY_ATTEMPT_TIMEOUT_MS = 2000;
 
+function firstXmlNode(node, tagName) {
+    return node.getElementsByTagName(tagName)[0] || null;
+}
+
 function parseXML(xmlString) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
@@ -23,15 +27,15 @@ function parseXML(xmlString) {
         const pubDate = node.querySelector('pubDate')?.textContent;
         const description = node.querySelector('description')?.textContent;
         const guid = node.querySelector('guid')?.textContent;
-        const author = node.querySelector('author')?.textContent || node.querySelector('dc\:creator')?.textContent;
+        const author = node.querySelector('author')?.textContent || firstXmlNode(node, 'dc:creator')?.textContent;
         const enclosureNode = node.querySelector('enclosure');
         const enclosure = enclosureNode ? {
             url: enclosureNode.getAttribute('url'),
             type: enclosureNode.getAttribute('type')
         } : null;
-        const mediaContentNode = node.querySelector('media\:content') || node.querySelector('content');
+        const mediaContentNode = firstXmlNode(node, 'media:content') || node.querySelector('content');
         const mediaContent = mediaContentNode ? { url: mediaContentNode.getAttribute('url') } : null;
-        const mediaThumbnailNode = node.querySelector('media\:thumbnail') || node.querySelector('thumbnail');
+        const mediaThumbnailNode = firstXmlNode(node, 'media:thumbnail') || node.querySelector('thumbnail');
         const thumbnail = mediaThumbnailNode ? mediaThumbnailNode.getAttribute('url') : null;
 
         return {
