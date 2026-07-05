@@ -10,9 +10,9 @@
 - Base report share: `0.3333333333333333`
 - Multi-angle parents: `5`
 - Weak parents: `5`
-- Story count: `530`
+- Story count: `532`
 - Source groups: `9`
-- Content hash: `68a01f295b32337a`
+- Content hash: `a273f43fcbfffc7e`
 
 ## Top parents
 
@@ -24,10 +24,10 @@
 | 4 | British military says cargo ship reports being under attack in Red Sea off coast of Yemen | 3 | official_response, fact_update | NO | 0.5545916683316485 |
 | 5 | ‘Very dangerous’ Super Typhoon barrels towards US Pacific islands with 280 kmph winds | 2 | regional_followup, official_response | NO | 0.5465933333333333 |
 | 6 | Performer calls for Trump's death at funeral for Iran's late supreme leader | 2 | base_report | YES | 0.5636732802150018 |
-| 7 | 'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day | 2 | base_report | YES | 0.5285933333333332 |
+| 7 | 'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day | 2 | base_report | YES | 0.5485933333333333 |
 | 8 | 10 crore mutual fund investors, Rs 150 lakh crore AUM: Inside AMFI's massive 2030 roadmap | 1 | fact_update | YES | 0.7226911614783158 |
 | 9 | Yes Bank Q1 business update: Advances rise 18% to Rs 2.85 lakh crore, deposits up 14% | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | SBI Funds Management seeks Rs 2,000 crore in pre-IPO round | 1 | market_reaction | YES | 0.7226911614783158 |
+| 10 | 11 largecap stocks with upside potential of up to 50%. Do you own any? | 1 | market_reaction | YES | 0.7096244948116492 |
 
 ## Warnings
 
