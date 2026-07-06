@@ -105,6 +105,12 @@ Value: https://<deployed-worker-host>
 
 Do not include `/api/datasets/upAhead` in `VITE_API_BASE_URL`. The frontend client appends that endpoint path.
 
+Before or after setting the repository variable, verify the base URL format without network access:
+
+```bash
+VITE_API_BASE_URL=https://<deployed-worker-host> node scripts/verify_up_ahead_edge_activation_config.mjs
+```
+
 `VITE_BACKEND_URL` is retained only as a backward-compatible fallback. Prefer `VITE_API_BASE_URL` for new activation.
 
 Trigger or observe the next GitHub Pages build after setting the variable.
