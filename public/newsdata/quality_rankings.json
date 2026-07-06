@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 12
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,16 +79,133 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 12,
+        "parentClusters": 12,
+        "strongParents": 12,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3566,
+      "qualityScore": 0.3596,
       "qualityStatus": "WARN",
       "rankedItems": [
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 5
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 5
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "9f1e61ea346889a0",
+            "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.95,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 5,
+            "storyIds": [
+              "9f1e61ea346889a0",
+              "fa92b073a0a30dc3",
+              "4ee739c53b939a61",
+              "c0b89c693126f623",
+              "55cf58dd032da79f"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 5
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "five",
+              "monsoon",
+              "neelkanth",
+              "strong",
+              "govt"
+            ],
+            "topicKey": "breaking|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.479,
+          "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
+        },
         {
           "category": "insightEvent",
           "gates": [
@@ -199,6 +316,116 @@
           ],
           "score": 0.419,
           "title": "India news LIVE updates, 6 July 2026: Landslides disrupt Mumbai-Pune rail route, 16 trains cancelled, 7 deaths in Mumbai - The Indian Express"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
@@ -640,116 +867,6 @@
           ],
           "score": 0.389,
           "title": "New incentive package targets growth in Ladakh’s Pashmina economy"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:ad7ece85db",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:ad7ece85db",
-            "representativeId": "8e5173dc15c6446b",
-            "representativeTitle": "Prayagraj shows highest unemployment rate, Ahmedabad lowest among million-plus cities",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "business_line"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "8e5173dc15c6446b",
-              "05b514761c02a770"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "million-plus",
-              "cities",
-              "prayagraj",
-              "shows"
-            ],
-            "topicKey": "million-plus|cities|prayagraj"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Prayagraj shows highest unemployment rate, Ahmedabad lowest among million-plus cities"
         },
         {
           "category": "insightEvent",
@@ -1260,14 +1377,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:8ec38cb352",
+          "id": "sketch:c1c58008d6",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 1.0,
             "childScores": [],
-            "id": "sketch:8ec38cb352",
-            "representativeId": "37f71ab1a2fbf24f",
-            "representativeTitle": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000",
+            "id": "sketch:c1c58008d6",
+            "representativeId": "df71bc9e8f9d5353",
+            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -1279,16 +1396,16 @@
             },
             "slotCount": 1,
             "slots": [
-              "minus12h"
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "gadgets360"
+              "google_news"
             ],
             "storyCount": 2,
             "storyIds": [
-              "37f71ab1a2fbf24f",
-              "58721412d3b1f964"
+              "df71bc9e8f9d5353",
+              "fff45325db82b942"
             ],
             "topAngles": [
               {
@@ -1297,12 +1414,10 @@
               }
             ],
             "topTokens": [
-              "amazon",
-              "prime",
-              "best",
-              "deals"
+              "june",
+              "hindu"
             ],
-            "topicKey": "amazon|prime|best"
+            "topicKey": "june|hindu"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -1311,18 +1426,18 @@
             "one-source event candidate"
           ],
           "score": 0.1751,
-          "title": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000"
+          "title": "Top news of the day on June 20, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.6009,
+        "eventImportanceScore": 0.63,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4682,
-        "sourceAuthorityScore": 0.4018,
-        "sourceDiversityScore": 0.3836,
-        "temporalEvolutionScore": 0.3918
+        "noveltyDeltaScore": 0.4667,
+        "sourceAuthorityScore": 0.4,
+        "sourceDiversityScore": 0.3808,
+        "temporalEvolutionScore": 0.39
       }
     },
     "localTravel": {
@@ -1382,10 +1497,9 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "21 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
@@ -1396,16 +1510,19 @@
         "Abu Dhabi Partners With Dubai, Kuwait City, Muscat and Doha as Air India Express Rolls Out Its Biggest International Fare Sale with Discounts of Up to Fifteen Percent for India and Beyond—Here’s Why Gulf Travellers Should Act Quickly - Travel And Tour World: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026 Features Record Smartphone Discounts in India - India News Network: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026 Last Day: Top Lifestyle Deals On Fashion, Shoes And Luggage Ending Soon - News18: location failed — offline/local item lacks configured location match",
+        "Over 300 volunteers clean Nagore Beach: futureValidity failed — expired display window",
+        "Over 300 volunteers clean Nagore Beach: alertUrgency failed — alert expired",
+        "Scaffolding collapse disrupts power supply, traffic in Tiruchi: futureValidity failed — expired display window",
+        "Scaffolding collapse disrupts power supply, traffic in Tiruchi: alertUrgency failed — alert expired",
+        "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi: futureValidity failed — expired display window",
+        "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi: alertUrgency failed — alert expired",
         "Air India Express announces 'Xplore More’ sale with up to 15% savings on international flights - ZAWYA: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day 2026: Best Deals on Redmi and Xiaomi Smartphones - Gadgets 360: location failed — offline/local item lacks configured location match",
         "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
         "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
         "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
-        "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-        "10 smartphone deals you can look at during the ongoing Amazon Prime Day and Flipkart GOAT Sale - The Times of India: futureValidity failed — expired display window",
-        "10 smartphone deals you can look at during the ongoing Amazon Prime Day and Flipkart GOAT Sale - The Times of India: offerValidity failed — offer expired",
-        "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
+        "The 32 Best Fourth of July Sales to Shop Online, From Abercrombie to Zara [Updating] - Rolling Stone: futureValidity failed — expired display window"
       ],
       "gateResults": [
         {
@@ -1420,26 +1537,28 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 28,
+              "weather_alerts": 2
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 28,
+          "weather_alerts": 2
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 81,
         "locationCounts": {
-          "chennai": 19,
-          "trichy": 11
+          "chennai": 21,
+          "trichy": 9
         },
         "locationsCovered": [
           "chennai",
@@ -1449,10 +1568,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 16
+        "suppressedItemCount": 21
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8586,
+      "qualityScore": 0.8584,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -2840,121 +2959,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "a53b7f2c48780230"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783349946000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "1c6d8ab0ed5cd87a",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783349946000,
-            "id": "1c6d8ab0ed5cd87a",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783954746000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783349946000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783263546000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/inter-caste-marriage-police-rescue-abducted-woman-arrest-her-brother-and-two-relatives-near-tiruchi/article71186126.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "7b4a69c209a58caf"
               },
               "name": "dedup",
@@ -3415,121 +3419,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "b42464d7976c4c56"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783350340000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "166750ef26291409",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783350340000,
-            "id": "166750ef26291409",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783955140000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783350340000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783263940000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Over 300 volunteers clean Nagore Beach",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/over-300-volunteers-clean-nagore-beach/article71186160.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Over 300 volunteers clean Nagore Beach"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "3a58b33e73a4b08c"
               },
               "name": "dedup",
@@ -3984,121 +3873,6 @@
           ],
           "score": 0.8485,
           "title": "Registration of properties has become easy, says Minister"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "9e8c9af4cf0d6045"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783350096000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "2491be9c5cb1a515",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783350096000,
-            "id": "2491be9c5cb1a515",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783954896000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783350096000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783263696000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Scaffolding collapse disrupts power supply, traffic in Tiruchi",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/scaffolding-collapse-disrupts-power-supply-traffic-in-tiruchi/article71186187.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Scaffolding collapse disrupts power supply, traffic in Tiruchi"
         },
         {
           "category": "alerts",
@@ -4904,12 +4678,357 @@
           ],
           "score": 0.8485,
           "title": "When photography becomes accessible to everyone"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "a6a9dd2ff4665229"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783422932000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "a37b8fb79ff962a6",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783422932000,
+            "id": "a37b8fb79ff962a6",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784027732000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783422932000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783336532000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Woman dies, another injured as paddy bags fall on them at TNCSC godown",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/woman-dies-another-injured-as-paddy-bags-fall-on-them-at-tncsc-godown/article71188978.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Woman dies, another injured as paddy bags fall on them at TNCSC godown"
+        },
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "e1a253fe45e532e5"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783414759000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "1f427fafeff8c5d4",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783414759000,
+            "id": "1f427fafeff8c5d4",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784019559000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783414759000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783328359000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxOSHlVeWVoV3ZFRTJLUEtzVlcwM0tkTWF0V2x5bXNYY2pwSU9mQ3NweS1lZTR4dlhUN0ZWeHdjNEszNEROVEpJZjh6Qklnc2JDaE95V29zX24yLW9TeGlkdkh6UWZWa1VvVmlDdlFlRGtpRXZoMi0zajVUU2tnZFd6OTJlem9jMUdCa3ZvWGVwUFVtbDNoSmwwaGlsOE1UTzlGSFdWOEppVXRqLVhjR3BzbDZsSVd6LTNiamZVYmZ2Sld6RlhtSWw1MUp4SWw3S0RmVHBIUFpWSkQ?oc=5\" target=\"_blank\">Monsoon 2026 Hits Kerala! IMD Issues Alert For Telangana, Tamil Nadu | Heavy Rain in Delhi Amid Yellow Alert</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Goodreturns</font>",
+            "suppressionReason": null,
+            "title": "Monsoon 2026 Hits Kerala! IMD Issues Alert For Telangana, Tamil Nadu | Heavy Rain in Delhi Amid Yellow Alert - Goodreturns",
+            "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxOSHlVeWVoV3ZFRTJLUEtzVlcwM0tkTWF0V2x5bXNYY2pwSU9mQ3NweS1lZTR4dlhUN0ZWeHdjNEszNEROVEpJZjh6Qklnc2JDaE95V29zX24yLW9TeGlkdkh6UWZWa1VvVmlDdlFlRGtpRXZoMi0zajVUU2tnZFd6OTJlem9jMUdCa3ZvWGVwUFVtbDNoSmwwaGlsOE1UTzlGSFdWOEppVXRqLVhjR3BzbDZsSVd6LTNiamZVYmZ2Sld6RlhtSWw1MUp4SWw3S0RmVHBIUFpWSkQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Monsoon 2026 Hits Kerala! IMD Issues Alert For Telangana, Tamil Nadu | Heavy Rain in Delhi Amid Yellow Alert - Goodreturns"
+        },
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "fe5b5a2ea098bd6b"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783396476000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "a0ca4de516c409f8",
+          "item": {
+            "actionabilityScore": 1.0,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783396476000,
+            "id": "a0ca4de516c409f8",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784001276000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783396476000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783310076000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1gFBVV95cUxPLXZKYUVBSGpTSmZGZHJBeFpKZTBkMUZQRmttUWtSQ0tiNThIcWhJZ0xMSU45RGZCLW85SlJzUk1VaTEybGFCekh1ZHpMcDYxcWhHWnNkck1iai12bi1zMDltMkc0cXQ0b29xVUZEVnpmSlYyWmhmd1REU3NQOUZMWS1zd3lBRzJqMW1lUktoYXllSVpxVDE5U1EtLVVmY0w0LTIyZmdHMFNQTXQ4SkFJYUE5TW1tdUZ3U1czX2xub2RwX1pCTDRQM213aHY2ZWptcllNRkFn?oc=5\" target=\"_blank\">Weather Warning for Karnataka: IMD Flags Very Heavy Rain Across Multiple Districts Till July 10</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Goodreturns</font>",
+            "suppressionReason": null,
+            "title": "Weather Warning for Karnataka: IMD Flags Very Heavy Rain Across Multiple Districts Till July 10 - Goodreturns",
+            "url": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxPLXZKYUVBSGpTSmZGZHJBeFpKZTBkMUZQRmttUWtSQ0tiNThIcWhJZ0xMSU45RGZCLW85SlJzUk1VaTEybGFCekh1ZHpMcDYxcWhHWnNkck1iai12bi1zMDltMkc0cXQ0b29xVUZEVnpmSlYyWmhmd1REU3NQOUZMWS1zd3lBRzJqMW1lUktoYXllSVpxVDE5U1EtLVVmY0w0LTIyZmdHMFNQTXQ4SkFJYUE5TW1tdUZ3U1czX2xub2RwX1pCTDRQM213aHY2ZWptcllNRkFn?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Weather Warning for Karnataka: IMD Flags Very Heavy Rain Across Multiple Districts Till July 10 - Goodreturns"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "categoryPriorityScore": 0.9987,
         "lifecycleScore": 0.65,
         "locationScore": 1.0,
         "plannerFitScore": 1.0,
@@ -4918,7 +5037,7 @@
       }
     }
   },
-  "generatedAt": 1783349028397,
+  "generatedAt": 1783354905798,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4937,10 +5056,9 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "21 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4952,9 +5070,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3566,
+      "insight": 0.3596,
       "localTravel": 0.0,
-      "upAhead": 0.8586
+      "upAhead": 0.8584
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4962,7 +5080,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3038,
+    "overallScore": 0.3045,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4978,16 +5096,19 @@
       "Abu Dhabi Partners With Dubai, Kuwait City, Muscat and Doha as Air India Express Rolls Out Its Biggest International Fare Sale with Discounts of Up to Fifteen Percent for India and Beyond—Here’s Why Gulf Travellers Should Act Quickly - Travel And Tour World: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026 Features Record Smartphone Discounts in India - India News Network: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026 Last Day: Top Lifestyle Deals On Fashion, Shoes And Luggage Ending Soon - News18: location failed — offline/local item lacks configured location match",
+      "Over 300 volunteers clean Nagore Beach: futureValidity failed — expired display window",
+      "Over 300 volunteers clean Nagore Beach: alertUrgency failed — alert expired",
+      "Scaffolding collapse disrupts power supply, traffic in Tiruchi: futureValidity failed — expired display window",
+      "Scaffolding collapse disrupts power supply, traffic in Tiruchi: alertUrgency failed — alert expired",
+      "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi: futureValidity failed — expired display window",
+      "Inter-caste marriage: police rescue abducted woman, arrest her brother and two relatives near Tiruchi: alertUrgency failed — alert expired",
       "Air India Express announces 'Xplore More’ sale with up to 15% savings on international flights - ZAWYA: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day 2026: Best Deals on Redmi and Xiaomi Smartphones - Gadgets 360: location failed — offline/local item lacks configured location match",
       "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
       "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
       "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
-      "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-      "10 smartphone deals you can look at during the ongoing Amazon Prime Day and Flipkart GOAT Sale - The Times of India: futureValidity failed — expired display window",
-      "10 smartphone deals you can look at during the ongoing Amazon Prime Day and Flipkart GOAT Sale - The Times of India: offerValidity failed — offer expired",
-      "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
+      "The 32 Best Fourth of July Sales to Shop Online, From Abercrombie to Zara [Updating] - Rolling Stone: futureValidity failed — expired display window"
     ]
   }
 }
