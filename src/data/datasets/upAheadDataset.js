@@ -1,6 +1,6 @@
 import { makeEnvelope, ENVELOPE_SOURCES, ENVELOPE_FRESHNESS } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
-import { fetchUpAheadDatasetApiData } from './upAheadDatasetApiClient.js';
+import { fetchUpAheadDatasetApiResponse } from './upAheadDatasetApiClient.js';
 import { resolveUpAheadProviderPolicy } from './upAheadProviderPolicy.js';
 import {
   fetchStaticUpAheadData,
@@ -128,6 +128,20 @@ function pushLiveSkipped(diagnostics, providerDecision, data) {
   });
 }
 
+function pushDatasetApiEdgeDiagnostics(diagnostics, edgeDiagnostics) {
+  diagnostics.push({
+    event: 'upAheadDataset.api_edge_diagnostics',
+    severity: 'info',
+    message: 'Captured Up Ahead edge API response diagnostics',
+    details: edgeDiagnostics || {
+      source: 'unknown',
+      reason: 'unknown',
+      freshness: 'unknown',
+      ageSeconds: 'unknown',
+    },
+  });
+}
+
 function persistUpAheadData(data) {
   saveToCache(data);
   return data;
@@ -135,7 +149,9 @@ function persistUpAheadData(data) {
 
 async function loadDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
   diagnostics.push({ event: 'upAheadDataset.api_attempted', severity: 'info', message: 'Attempting Up Ahead dataset API' });
-  const apiData = await fetchUpAheadDatasetApiData({ baseUrl: runtimeCapabilities.configuredBackendUrl });
+  const apiResponse = await fetchUpAheadDatasetApiResponse({ baseUrl: runtimeCapabilities.configuredBackendUrl });
+  pushDatasetApiEdgeDiagnostics(diagnostics, apiResponse?.diagnostics);
+  const apiData = apiResponse?.data;
   if (apiData && hasVisibleUpAheadContent(apiData)) {
     const merged = persistUpAheadData(mergeUpAheadData(data, apiData));
     diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
