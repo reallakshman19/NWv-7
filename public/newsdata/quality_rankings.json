@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 12
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,131 +79,16 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 12,
-        "parentClusters": 12,
-        "strongParents": 12,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3582,
+      "qualityScore": 0.3566,
       "qualityStatus": "WARN",
       "rankedItems": [
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 4
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "9f1e61ea346889a0",
-            "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 4,
-            "storyIds": [
-              "9f1e61ea346889a0",
-              "fa92b073a0a30dc3",
-              "4ee739c53b939a61",
-              "c0b89c693126f623"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 4
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "five",
-              "monsoon",
-              "neelkanth",
-              "strong"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.449,
-          "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
-        },
         {
           "category": "insightEvent",
           "gates": [
@@ -1432,12 +1317,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.62,
+        "eventImportanceScore": 0.6009,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4667,
-        "sourceAuthorityScore": 0.4,
-        "sourceDiversityScore": 0.3808,
-        "temporalEvolutionScore": 0.39
+        "noveltyDeltaScore": 0.4682,
+        "sourceAuthorityScore": 0.4018,
+        "sourceDiversityScore": 0.3836,
+        "temporalEvolutionScore": 0.3918
       }
     },
     "localTravel": {
@@ -5033,7 +4918,7 @@
       }
     }
   },
-  "generatedAt": 1783348841952,
+  "generatedAt": 1783349028397,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5067,7 +4952,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3582,
+      "insight": 0.3566,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -5077,7 +4962,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3042,
+    "overallScore": 0.3038,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
