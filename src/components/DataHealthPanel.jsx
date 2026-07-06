@@ -6,6 +6,8 @@ import {
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
 
+const EDGE_DIAGNOSTIC_FIELDS = ['source', 'reason', 'freshness', 'ageSeconds'];
+
 function formatTime(value) {
   if (!value) return '--';
 
@@ -23,6 +25,51 @@ function formatTime(value) {
 
 function getCacheSnapshot() {
   return listDatasetCache();
+}
+
+function isObjectRecord(value) {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function formatDiagnosticValue(value) {
+  if (value === null || value === undefined || value === '') return 'unknown';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return JSON.stringify(value);
+}
+
+function getDiagnosticDetailEntries(details = {}) {
+  if (!isObjectRecord(details)) return [];
+  const keys = Object.keys(details);
+  const orderedKeys = [
+    ...EDGE_DIAGNOSTIC_FIELDS.filter(key => keys.includes(key)),
+    ...keys.filter(key => !EDGE_DIAGNOSTIC_FIELDS.includes(key)).sort(),
+  ];
+  return orderedKeys.map(key => [key, formatDiagnosticValue(details[key])]);
+}
+
+function DiagnosticDetails({ details }) {
+  const entries = getDiagnosticDetailEntries(details);
+  if (entries.length === 0) return null;
+
+  return (
+    <dl
+      aria-label="diagnostic details"
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+        gap: '6px 10px',
+        margin: '8px 0 0',
+        fontSize: '0.78rem',
+      }}
+    >
+      {entries.map(([key, value]) => (
+        <div key={key} style={{ minWidth: 0 }}>
+          <dt style={{ color: 'var(--text-muted)', textTransform: 'capitalize' }}>{key}</dt>
+          <dd style={{ margin: 0, overflowWrap: 'anywhere' }}>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 export default function DataHealthPanel() {
@@ -152,6 +199,7 @@ export default function DataHealthPanel() {
               </div>
               <div style={{ fontWeight: 600 }}>{item.event}</div>
               {item.message && <div style={{ fontSize: '0.85rem' }}>{item.message}</div>}
+              <DiagnosticDetails details={item.details} />
             </div>
           ))}
 

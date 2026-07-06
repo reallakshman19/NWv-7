@@ -29,4 +29,25 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('Clear diagnostics');
     expect(src).toContain('Export JSON');
   });
+
+  it('renders diagnostics details safely', () => {
+    expect(src).toContain('DiagnosticDetails');
+    expect(src).toContain('getDiagnosticDetailEntries');
+    expect(src).toContain('item.details');
+    expect(src).toContain('diagnostic details');
+  });
+
+  it('prioritizes Up Ahead edge diagnostics fields', () => {
+    expect(src).toContain('EDGE_DIAGNOSTIC_FIELDS');
+    expect(src).toContain('source');
+    expect(src).toContain('reason');
+    expect(src).toContain('freshness');
+    expect(src).toContain('ageSeconds');
+  });
+
+  it('keeps diagnostics in export payload', () => {
+    expect(src).toContain('exportedAt');
+    expect(src).toContain('diagnostics,');
+    expect(src).toContain('datasets: cachedEnvelopes.map');
+  });
 });
