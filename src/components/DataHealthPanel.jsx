@@ -6,6 +6,7 @@ import {
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
 
+const EDGE_DIAGNOSTIC_EVENT = 'upAheadDataset.api_edge_diagnostics';
 const EDGE_DIAGNOSTIC_FIELDS = ['source', 'reason', 'freshness', 'ageSeconds'];
 
 function formatTime(value) {
@@ -47,6 +48,13 @@ function getDiagnosticDetailEntries(details = {}) {
   return orderedKeys.map(key => [key, formatDiagnosticValue(details[key])]);
 }
 
+function getLatestUpAheadEdgeDiagnostics(diagnostics = []) {
+  return diagnostics
+    .slice()
+    .reverse()
+    .find(item => item?.event === EDGE_DIAGNOSTIC_EVENT && isObjectRecord(item.details))?.details || null;
+}
+
 function DiagnosticDetails({ details }) {
   const entries = getDiagnosticDetailEntries(details);
   if (entries.length === 0) return null;
@@ -72,6 +80,33 @@ function DiagnosticDetails({ details }) {
   );
 }
 
+function EdgeApiSummary({ details }) {
+  if (!isObjectRecord(details)) return null;
+
+  return (
+    <div
+      aria-label="Up Ahead Edge API diagnostics"
+      style={{
+        marginTop: '10px',
+        padding: '10px',
+        border: '1px solid var(--border-muted)',
+        borderRadius: '10px',
+        background: 'rgba(255,255,255,0.03)',
+      }}
+    >
+      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '6px' }}>
+        Edge API
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+        <div><strong>Source:</strong> {formatDiagnosticValue(details.source)}</div>
+        <div><strong>Reason:</strong> {formatDiagnosticValue(details.reason)}</div>
+        <div><strong>Freshness:</strong> {formatDiagnosticValue(details.freshness)}</div>
+        <div><strong>Age seconds:</strong> {formatDiagnosticValue(details.ageSeconds)}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function DataHealthPanel() {
   const [diagnostics, setDiagnostics] = useState(() => listDiagnostics());
   const [, setCacheVersion] = useState(0);
@@ -86,6 +121,7 @@ export default function DataHealthPanel() {
   }, []);
 
   const cachedEnvelopes = getCacheSnapshot();
+  const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
 
   const exportPayload = () => {
     const payload = {
@@ -174,6 +210,10 @@ export default function DataHealthPanel() {
               <div><strong>Validation:</strong> {envelope?.validation?.passed === false ? 'failed' : 'passed'}</div>
               <div><strong>SLO score:</strong> {envelope?.slo?.score ?? '--'}</div>
             </div>
+
+            {datasetId === 'upAhead' && (
+              <EdgeApiSummary details={latestUpAheadEdgeDiagnostics} />
+            )}
 
             {envelope?.error && (
               <div style={{ marginTop: '8px', color: 'var(--accent-danger)' }}>
