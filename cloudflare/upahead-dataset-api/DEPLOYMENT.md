@@ -111,6 +111,28 @@ Before or after setting the repository variable, verify the base URL format with
 VITE_API_BASE_URL=https://<deployed-worker-host> node scripts/verify_up_ahead_edge_activation_config.mjs
 ```
 
+## Activation readiness command
+
+Run the full local readiness pack in no-network default mode:
+
+```bash
+npm run test:upahead-edge-readiness
+```
+
+To require a configured Worker base URL:
+
+```bash
+VITE_API_BASE_URL=https://<deployed-worker-host> npm run test:upahead-edge-readiness -- --require-config
+```
+
+To opt into the existing live smoke path after manual deployment:
+
+```bash
+VITE_API_BASE_URL=https://<deployed-worker-host> npm run test:upahead-edge-readiness -- --require-config --smoke
+```
+
+`--smoke` is optional and is not used by the default readiness command.
+
 `VITE_BACKEND_URL` is retained only as a backward-compatible fallback. Prefer `VITE_API_BASE_URL` for new activation.
 
 Trigger or observe the next GitHub Pages build after setting the variable.
