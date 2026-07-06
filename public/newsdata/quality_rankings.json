@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "3 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 8
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,18 +77,135 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 8,
-        "parentClusters": 8,
-        "strongParents": 8,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3436,
+      "qualityScore": 0.3636,
       "qualityStatus": "WARN",
       "rankedItems": [
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 5
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 5
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "9f1e61ea346889a0",
+            "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.95,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 5,
+            "storyIds": [
+              "9f1e61ea346889a0",
+              "f16757a86a1800d9",
+              "fa92b073a0a30dc3",
+              "c0b89c693126f623",
+              "55cf58dd032da79f"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 5
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "five",
+              "army",
+              "monsoon",
+              "strong",
+              "govt"
+            ],
+            "topicKey": "breaking|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.479,
+          "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
+        },
         {
           "category": "insightEvent",
           "gates": [
@@ -199,117 +316,6 @@
           ],
           "score": 0.419,
           "title": "India news LIVE updates, 6 July 2026: Landslides disrupt Mumbai-Pune rail route, 16 trains cancelled, 7 deaths in Mumbai - The Indian Express"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "9f1e61ea346889a0",
-            "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "9f1e61ea346889a0",
-              "f16757a86a1800d9"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "five",
-              "army"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -766,6 +772,232 @@
             },
             {
               "details": {
+                "baseReportRatio": 0.5,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 2
+              },
+              "name": "sourceDiversity",
+              "reason": "multi-source event",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.5
+              },
+              "name": "baseReportCap",
+              "reason": "base-report heavy but usable",
+              "score": 0.55,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:9fd7bdbd06",
+          "item": {
+            "angleCount": 2,
+            "baseReportRatio": 0.5,
+            "childScores": [],
+            "id": "sketch:9fd7bdbd06",
+            "representativeId": "9d107e73b7ac0ff2",
+            "representativeTitle": "Have support from India: Netanyahu counters Vance",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.55,
+              "sourceAuthorityScore": 0.62,
+              "sourceDiversityScore": 0.72,
+              "temporalEvolutionScore": 0.49
+            },
+            "slotCount": 2,
+            "slots": [
+              "minus12h",
+              "now"
+            ],
+            "sourceGroupCount": 2,
+            "sourceGroups": [
+              "google_news",
+              "the_hindu"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "9d107e73b7ac0ff2",
+              "5ede9e8980dedf44"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 1
+              },
+              {
+                "angle": "base_report",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "support",
+              "india",
+              "netanyahu",
+              "counters"
+            ],
+            "topicKey": "support|india|netanyahu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "multi-source event"
+          ],
+          "score": 0.2764,
+          "title": "Have support from India: Netanyahu counters Vance"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 4
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 4
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "df71bc9e8f9d5353",
+            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.83,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 4,
+            "storyIds": [
+              "df71bc9e8f9d5353",
+              "dadd53c1bc76741b",
+              "4cca4280284d2e54",
+              "bf952c0b99344c4d"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 4
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.2021,
+          "title": "Top news of the day on June 20, 2026 - The Hindu"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
                 "baseReportRatio": 1.0,
                 "distinctAngles": 0
               },
@@ -976,12 +1208,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.605,
+        "eventImportanceScore": 0.662,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.45,
-        "sourceAuthorityScore": 0.38,
-        "sourceDiversityScore": 0.35,
-        "temporalEvolutionScore": 0.37
+        "noveltyDeltaScore": 0.46,
+        "sourceAuthorityScore": 0.404,
+        "sourceDiversityScore": 0.387,
+        "temporalEvolutionScore": 0.382
       }
     },
     "localTravel": {
@@ -1041,7 +1273,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "18 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1057,15 +1289,15 @@
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
         "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
         "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match",
+        "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: futureValidity failed — expired display window",
         "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+        "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: offerValidity failed — offer expired",
+        "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18: futureValidity failed — expired display window",
+        "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18: offerValidity failed — offer expired",
+        "Amazon Prime Day Sale 2026: Deals on Smartwatches, and Smart Glasses - FoneArena.com: futureValidity failed — expired display window",
+        "Amazon Prime Day Sale 2026: Deals on Smartwatches, and Smart Glasses - FoneArena.com: offerValidity failed — offer expired",
         "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: futureValidity failed — expired display window",
-        "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: offerValidity failed — offer expired",
-        "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: futureValidity failed — expired display window",
-        "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
-        "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: offerValidity failed — offer expired",
-        "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com: futureValidity failed — expired display window",
-        "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com: offerValidity failed — offer expired",
-        "Amazon Prime Day, Flipkart GOAT Sale 2026: 5 best smartphones to buy under ₹25,000 right now - Business Today: futureValidity failed — expired display window"
+        "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -1100,8 +1332,8 @@
         "festivals": 0,
         "inputItemCount": 63,
         "locationCounts": {
-          "chennai": 22,
-          "online": 2,
+          "chennai": 23,
+          "online": 1,
           "trichy": 6
         },
         "locationsCovered": [
@@ -1109,11 +1341,11 @@
           "online",
           "trichy"
         ],
-        "offlineOffers": 5,
-        "onlineOffers": 2,
+        "offlineOffers": 6,
+        "onlineOffers": 1,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 16
+        "suppressedItemCount": 18
       },
       "qualityGrade": "B",
       "qualityScore": 0.8369,
@@ -3809,7 +4041,7 @@
             },
             {
               "details": {
-                "hoursLeft": 7.63
+                "hoursLeft": 5.76
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3884,121 +4116,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "73120640c5db9847"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783323510000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.77
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "550938cb751a876c",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783323510000,
-            "id": "550938cb751a876c",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783928310000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783323510000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783150710000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2wFBVV95cUxNbkxOX0ZhM3hEaWNlVmo0N3drSHlQVFE3eURfWElUWnRWckxKZG9zZ3JSaTdSYldGZGt6VDFPck9jNlhBRWt4Yl9Nb3pKajIzNkVrWXlQMm5tUmp1bmtFelhjNWZRNFlXZHBkWVYyWDdBWDk2bkNnUE5RNFptX29jZ1lGdElOckNXTXlyc2g5ZHhBdjNnQlJPWkYzUEU0WHNZVGgxc0p1LU9HMk5CVnZ2MzV5S3AxQXVLcS1JcjhtNEtDMEhfNWlxaHVXSi05NDY1MXd4aWJUbUlwd3fSAdsBQVVfeXFMTW5MTl9GYTN4RGljZVZqNDd3a0h5UFRRN3lEX1hJVFp0VnJMSmRvc2dyUmk3UmJXRmRrelQxT3JPYzZYQUVreGJfTW96SmoyMzZFa1l5UDJubVJqdW5rRXpYYzVmUTRZV2RwZFlWMlg3QVg5Nm5DZ1BOUTRabV9vY2dZRnRJTnJDV015cnNoOWR4QXYzZ0JST1pGM1BFNFhzWVRoMXNKdS1PRzJOQlZ2djM1eUtwMUF1S3EtSXI4bTRLQzBIXzVpcWh1V0otOTQ2NTF3eGliVG1JcHd3?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">News18</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18",
-            "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxNbkxOX0ZhM3hEaWNlVmo0N3drSHlQVFE3eURfWElUWnRWckxKZG9zZ3JSaTdSYldGZGt6VDFPck9jNlhBRWt4Yl9Nb3pKajIzNkVrWXlQMm5tUmp1bmtFelhjNWZRNFlXZHBkWVYyWDdBWDk2bkNnUE5RNFptX29jZ1lGdElOckNXTXlyc2g5ZHhBdjNnQlJPWkYzUEU0WHNZVGgxc0p1LU9HMk5CVnZ2MzV5S3AxQXVLcS1JcjhtNEtDMEhfNWlxaHVXSi05NDY1MXd4aWJUbUlwd3fSAdsBQVVfeXFMTW5MTl9GYTN4RGljZVZqNDd3a0h5UFRRN3lEX1hJVFp0VnJMSmRvc2dyUmk3UmJXRmRrelQxT3JPYzZYQUVreGJfTW96SmoyMzZFa1l5UDJubVJqdW5rRXpYYzVmUTRZV2RwZFlWMlg3QVg5Nm5DZ1BOUTRabV9vY2dZRnRJTnJDV015cnNoOWR4QXYzZ0JST1pGM1BFNFhzWVRoMXNKdS1PRzJOQlZ2djM1eUtwMUF1S3EtSXI4bTRLQzBIXzVpcWh1V0otOTQ2NTF3eGliVG1JcHd3?oc=5"
-          },
-          "locationKey": "online",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "95e010f89db40905"
               },
               "name": "dedup",
@@ -4039,7 +4156,7 @@
             },
             {
               "details": {
-                "hoursLeft": 21.74
+                "hoursLeft": 19.86
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4154,7 +4271,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.95
+                "hoursLeft": 5.07
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4229,6 +4346,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "906f27ac8b1db76d"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783410541000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 23.07
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "0cd52ef5592bab53",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783410541000,
+            "id": "0cd52ef5592bab53",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784015341000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783410541000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783237741000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMizwFBVV95cUxNRFVnU0prTDNWcGVSaHNMVXlqVDl2ZU9Ud0ctNkFOV3JKRDQ0MUtHUDViSnhQbVN5RGR3Yzd5Mno1YzE5YUZtdWxGdm1fZ1lKRTNhWnZUa19wbWZuTjlGNE8wcGUzVzdGX3VsT0xnUFBYMDB5MGQ5MnpuYmFmVzAwTUp2V211MUxJRWNsdEw5NUd4bVpybldLTzFac1VMNU5QZlI4VGVvNjJ6cklNWjFzRGoyR2ZJVG5QajF5YzNhLTFaSXRISzZMbDhFR3MyZ2vSAdQBQVVfeXFMUGtEcDQyQ29RanY3TVAyOWNUOC1HZC1VdVA2S3BKb2V6Mi1qRWZoalBvdVppWVREQkF3VUZEMlNRbWtnZWtvSmlkcXVLSFo4MkdXN3lwS1pUVzVqcHN1N2o1bGR2alJWbFRTUFdic3F1ZmxWNVFDU09Ha1FnR295N09wLUt6M3RpOHpHbXJ6YUpfT3NmWUh4RDBEaTZuV0VnVWZqSV9jdUpyT1JBbVBubWEyU05BVkpYQkg1eXpLMVFDc2JDN1NEWUt4SzJodVpkSVdTUjQ?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models - Gadgets 360",
+            "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNRFVnU0prTDNWcGVSaHNMVXlqVDl2ZU9Ud0ctNkFOV3JKRDQ0MUtHUDViSnhQbVN5RGR3Yzd5Mno1YzE5YUZtdWxGdm1fZ1lKRTNhWnZUa19wbWZuTjlGNE8wcGUzVzdGX3VsT0xnUFBYMDB5MGQ5MnpuYmFmVzAwTUp2V211MUxJRWNsdEw5NUd4bVpybldLTzFac1VMNU5QZlI4VGVvNjJ6cklNWjFzRGoyR2ZJVG5QajF5YzNhLTFaSXRISzZMbDhFR3MyZ2vSAdQBQVVfeXFMUGtEcDQyQ29RanY3TVAyOWNUOC1HZC1VdVA2S3BKb2V6Mi1qRWZoalBvdVppWVREQkF3VUZEMlNRbWtnZWtvSmlkcXVLSFo4MkdXN3lwS1pUVzVqcHN1N2o1bGR2alJWbFRTUFdic3F1ZmxWNVFDU09Ha1FnR295N09wLUt6M3RpOHpHbXJ6YUpfT3NmWUh4RDBEaTZuV0VnVWZqSV9jdUpyT1JBbVBubWEyU05BVkpYQkg1eXpLMVFDc2JDN1NEWUt4SzJodVpkSVdTUjQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models - Gadgets 360"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "d79f6bdd7a06bbfc"
               },
               "name": "dedup",
@@ -4269,7 +4501,7 @@
             },
             {
               "details": {
-                "hoursLeft": 5.8
+                "hoursLeft": 3.92
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4344,6 +4576,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "e4dae9a9ef4b8ab5"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783408836000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 22.6
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "7480cef966b55dc7",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783408836000,
+            "id": "7480cef966b55dc7",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784013636000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783408836000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783236036000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxPVDV1YVFBbm9ZdGdMRExNMlRnbktoUUs2SzFmN2tLaFlPRVVHcHE2ME5JWHpoX3g4cXJhUE5jSHhYdHRnSWx4NkdfTm53bWc2Y1FncXNmeTRVY0lKWGYyMkVsRVBaUDNhQVFqRngwX1UwZjJEakpPTEpvMFhQb0dIVVBhSWw0NVdtcThkSmFfNE9MWnU2cWFqSzVLUFMtN2xWRFp5QUJzLWE0TndHT0VkT0RIc2ZUMG_SAbwBQVVfeXFMTXNjOW1lcUxLT0ZibmVmc29LTXVxa0FnZEtlWmZ0WlBVdlRtOWFIZWJGdzdXZG9CNFRJTmhkcGx1R0FKcDhtVTlyemJ3S1Q0Z25aQlBpbGhiRGQybVJOTkc1bzJObWY2b2ZnTmNpeFpmdlpTLUUwV24teENsaXNtYzFSRm9CN1lZTWVlSzRBX1M2ZVYxNGxiTmpQVzYzbDhFWnR3MzV0eEFfQmdWRVZKVndzeDlGVXNyMUxVeTk?oc=5\" target=\"_blank\">Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More - Gadgets 360",
+            "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPVDV1YVFBbm9ZdGdMRExNMlRnbktoUUs2SzFmN2tLaFlPRVVHcHE2ME5JWHpoX3g4cXJhUE5jSHhYdHRnSWx4NkdfTm53bWc2Y1FncXNmeTRVY0lKWGYyMkVsRVBaUDNhQVFqRngwX1UwZjJEakpPTEpvMFhQb0dIVVBhSWw0NVdtcThkSmFfNE9MWnU2cWFqSzVLUFMtN2xWRFp5QUJzLWE0TndHT0VkT0RIc2ZUMG_SAbwBQVVfeXFMTXNjOW1lcUxLT0ZibmVmc29LTXVxa0FnZEtlWmZ0WlBVdlRtOWFIZWJGdzdXZG9CNFRJTmhkcGx1R0FKcDhtVTlyemJ3S1Q0Z25aQlBpbGhiRGQybVJOTkc1bzJObWY2b2ZnTmNpeFpmdlpTLUUwV24teENsaXNtYzFSRm9CN1lZTWVlSzRBX1M2ZVYxNGxiTmpQVzYzbDhFWnR3MzV0eEFfQmdWRVZKVndzeDlGVXNyMUxVeTk?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More - Gadgets 360"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "c895fc726b1405de"
               },
               "name": "dedup",
@@ -4384,7 +4731,7 @@
             },
             {
               "details": {
-                "hoursLeft": 3.62
+                "hoursLeft": 1.74
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4453,121 +4800,6 @@
           ],
           "score": 0.744,
           "title": "Amazon Prime Day Deals 2026: Up to 65 Percent Off on Air Conditioners, Refrigerators, and More Home Appli... - Gadgets 360"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "caadbba04fc93ec7"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783329738000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 2.5
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "6167d53c06eca9ec",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783329738000,
-            "id": "6167d53c06eca9ec",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783934538000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783329738000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783156938000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi1wFBVV95cUxNOFBUNW5lajRyR2VGMWptNlJJVjNTelFrcGE4WFJrYUdXS01XT213b2QyV0tkRGZDZGo4aW1EbXBXVkkwOG5rNlkxaEdOcEktb1lBTGt0LTIyTzVUSkhTUVlkZnAxUEk1UGU5QTNoSXZSdnUtZ0tycVc5Q2pRaHVfRTdOOW0yOEZDdWZLQmg1Ni15SUkzY3l4MnRoaDI0OXZYbmg4bUp2dGI0QmwwRE9oeGtSMHdBRFB5cTZIWDdRZDRzUDR1Z0ROQTk1YkRfaUtvX3ZPRmJJQdIB3AFBVV95cUxPbHlRVlVHM2xiYkRNYWlrU1hOZFExaHZpdFlpVGdvZmpZNEdsVWhuRmVNU245cFdQY2VYaVpfYUEtS0FlRGhod1RsdEFIWXdPM0dGR2NfMWMwbU1ENDAtbEMzeVREb1JlZUtXeE1YOHdURlhPQTY4UHRKR0E4OTcwS3Njandxd2djS1Znb1hIOHdXOVdUaGp0N3MzS1JlbGhNM2ZZWUZqUDVnUERzb1pSc0t3eWx5Mjd4ZmVkOGU4MWc2N3VGemNFeW93SkQ3T2RkaTMzNkZzZFJ1UXZZ?oc=5\" target=\"_blank\">Amazon Prime Day Sale 2026 is now live: Biggest savings on Samsung Galaxy Watch8, OnePlus N6, Intel laptops...</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Bhaskar English</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day Sale 2026 is now live: Biggest savings on Samsung Galaxy Watch8, OnePlus N6, Intel laptops... - Bhaskar English",
-            "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNOFBUNW5lajRyR2VGMWptNlJJVjNTelFrcGE4WFJrYUdXS01XT213b2QyV0tkRGZDZGo4aW1EbXBXVkkwOG5rNlkxaEdOcEktb1lBTGt0LTIyTzVUSkhTUVlkZnAxUEk1UGU5QTNoSXZSdnUtZ0tycVc5Q2pRaHVfRTdOOW0yOEZDdWZLQmg1Ni15SUkzY3l4MnRoaDI0OXZYbmg4bUp2dGI0QmwwRE9oeGtSMHdBRFB5cTZIWDdRZDRzUDR1Z0ROQTk1YkRfaUtvX3ZPRmJJQdIB3AFBVV95cUxPbHlRVlVHM2xiYkRNYWlrU1hOZFExaHZpdFlpVGdvZmpZNEdsVWhuRmVNU245cFdQY2VYaVpfYUEtS0FlRGhod1RsdEFIWXdPM0dGR2NfMWMwbU1ENDAtbEMzeVREb1JlZUtXeE1YOHdURlhPQTY4UHRKR0E4OTcwS3Njandxd2djS1Znb1hIOHdXOVdUaGp0N3MzS1JlbGhNM2ZZWUZqUDVnUERzb1pSc0t3eWx5Mjd4ZmVkOGU4MWc2N3VGemNFeW93SkQ3T2RkaTMzNkZzZFJ1UXZZ?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day Sale 2026 is now live: Biggest savings on Samsung Galaxy Watch8, OnePlus N6, Intel laptops... - Bhaskar English"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4582,7 +4814,7 @@
       }
     }
   },
-  "generatedAt": 1783320720279,
+  "generatedAt": 1783327480979,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4601,7 +4833,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "16 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "18 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4610,11 +4842,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "3 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3436,
+      "insight": 0.3636,
       "localTravel": 0.0,
       "upAhead": 0.8369
     },
@@ -4624,7 +4856,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.2951,
+    "overallScore": 0.3001,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4644,15 +4876,15 @@
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
       "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
       "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match",
+      "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: futureValidity failed — expired display window",
       "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: location failed — offline/local item lacks configured location match",
+      "Best smartphone deals under 15000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech: offerValidity failed — offer expired",
+      "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18: futureValidity failed — expired display window",
+      "Amazon Prime Day 2026 Audio Sale: Best TWS Earbuds Under Rs 30,000 from Apple, Samsung And Sony - News18: offerValidity failed — offer expired",
+      "Amazon Prime Day Sale 2026: Deals on Smartwatches, and Smart Glasses - FoneArena.com: futureValidity failed — expired display window",
+      "Amazon Prime Day Sale 2026: Deals on Smartwatches, and Smart Glasses - FoneArena.com: offerValidity failed — offer expired",
       "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: futureValidity failed — expired display window",
-      "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: offerValidity failed — offer expired",
-      "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: futureValidity failed — expired display window",
-      "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: location failed — offline/local item lacks configured location match",
-      "Amazon Prime Day Sale 2026: Best smartphone deals you shouldn't miss - Udayavani: offerValidity failed — offer expired",
-      "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com: futureValidity failed — expired display window",
-      "Amazon Prime Day 2026: Up to 65% off on Smart TVs, Monitors and Projectors - FoneArena.com: offerValidity failed — offer expired",
-      "Amazon Prime Day, Flipkart GOAT Sale 2026: 5 best smartphones to buy under ₹25,000 right now - Business Today: futureValidity failed — expired display window"
+      "Amazon Prime Day 2026: Best Deals on Samsung Smartphones - Gadgets 360: offerValidity failed — offer expired"
     ]
   }
 }
