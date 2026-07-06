@@ -35,8 +35,9 @@ assert(smoke.includes('REQUIRED_EXPOSED_HEADERS'), 'Smoke must define required e
 ['x-nw-upahead-source', 'x-nw-upahead-reason', 'x-nw-upahead-freshness', 'x-nw-upahead-age-seconds'].forEach(header => {
   assert(smoke.includes(header), `Smoke must validate exposed header ${header}`);
 });
-assert(smoke.includes('GET Access-Control-Expose-Headers includes'), 'Smoke must verify GET exposed headers');
-assert(smoke.includes('OPTIONS Access-Control-Expose-Headers includes'), 'Smoke must verify OPTIONS exposed headers');
+assert(smoke.includes('getExposeHeaderChecks(response, \'GET\')'), 'Smoke must verify GET exposed headers');
+assert(smoke.includes('getExposeHeaderChecks(response, \'OPTIONS\')'), 'Smoke must verify OPTIONS exposed headers');
+assert(smoke.includes('Access-Control-Expose-Headers includes'), 'Smoke must report exposed-header checks');
 
 [
   '.github/workflows/deploy.yml',
