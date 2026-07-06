@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "3 base-report-heavy Insight parent(s) demoted"
+        "4 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 12
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 3,
+        "baseReportHeavyParents": 4,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 12,
+        "parentClusters": 12,
+        "strongParents": 12,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3764,
+      "qualityScore": 0.374,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -326,7 +326,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 2
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -363,11 +363,11 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 2
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 1.0,
+              "score": 0.5,
               "status": "PASS"
             },
             {
@@ -378,17 +378,17 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:313fbb8095",
+          "id": "sketch:fcde5c7120",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "f16757a86a1800d9",
-            "representativeTitle": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India",
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 0.59,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -397,37 +397,30 @@
             },
             "slotCount": 1,
             "slots": [
-              "now"
+              "minus24h"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "google_news"
+              "moneycontrol"
             ],
-            "storyCount": 5,
+            "storyCount": 2,
             "storyIds": [
-              "f16757a86a1800d9",
-              "fa92b073a0a30dc3",
-              "3f4614cfb237e7a1",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
+              "cefd0947496f8de7",
+              "d0020e471404281a"
             ],
             "topAngles": [
               {
-                "angle": "fact_update",
-                "count": 5
+                "angle": "market_reaction",
+                "count": 2
               }
             ],
             "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "army",
-              "delhi",
-              "damascus",
-              "strong",
-              "govt"
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
             ],
-            "topicKey": "breaking|live|updates"
+            "topicKey": "bajaj|finance|target"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -435,8 +428,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.479,
-          "title": "Breaking News Live Updates: Army corners two local LeT terrorists in J&K's Shopian; counter-terror op under way - The Times of India"
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
@@ -877,6 +870,120 @@
           ],
           "score": 0.389,
           "title": "Prayagraj shows highest unemployment rate, Ahmedabad lowest among million-plus cities"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 8
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 8
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "df71bc9e8f9d5353",
+            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 1.0,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 8,
+            "storyIds": [
+              "df71bc9e8f9d5353",
+              "573c76f7c04320cb",
+              "dadd53c1bc76741b",
+              "4cca4280284d2e54",
+              "bf952c0b99344c4d",
+              "68960f2753704105",
+              "c6215fc9dda48735",
+              "799aa9b7edec72f4"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 8
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.2212,
+          "title": "Top news of the day on June 20, 2026 - The Hindu"
         },
         {
           "category": "insightEvent",
@@ -1327,13 +1434,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3464,
-        "eventImportanceScore": 0.6336,
+        "angleDiversityScore": 0.3383,
+        "eventImportanceScore": 0.6342,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4773,
-        "sourceAuthorityScore": 0.4018,
-        "sourceDiversityScore": 0.3836,
-        "temporalEvolutionScore": 0.3918
+        "noveltyDeltaScore": 0.475,
+        "sourceAuthorityScore": 0.4,
+        "sourceDiversityScore": 0.3808,
+        "temporalEvolutionScore": 0.39
       }
     },
     "localTravel": {
@@ -1393,7 +1500,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "31 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "32 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1467,10 +1574,10 @@
         "onlineOffers": 4,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 31
+        "suppressedItemCount": 32
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8129,
+      "qualityScore": 0.8121,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -3013,7 +3120,7 @@
             },
             {
               "details": {
-                "hoursLeft": 17.56
+                "hoursLeft": 14.45
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3128,7 +3235,7 @@
             },
             {
               "details": {
-                "hoursLeft": 10.7
+                "hoursLeft": 7.59
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3243,7 +3350,7 @@
             },
             {
               "details": {
-                "hoursLeft": 16.87
+                "hoursLeft": 13.76
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3358,7 +3465,7 @@
             },
             {
               "details": {
-                "hoursLeft": 15.72
+                "hoursLeft": 12.61
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3473,7 +3580,7 @@
             },
             {
               "details": {
-                "hoursLeft": 8.5
+                "hoursLeft": 5.39
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3588,7 +3695,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.54
+                "hoursLeft": 10.43
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3703,7 +3810,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.43
+                "hoursLeft": 9.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3818,7 +3925,7 @@
             },
             {
               "details": {
-                "hoursLeft": 10.21
+                "hoursLeft": 7.1
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3933,7 +4040,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.79
+                "hoursLeft": 10.68
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4048,7 +4155,7 @@
             },
             {
               "details": {
-                "hoursLeft": 8.06
+                "hoursLeft": 4.95
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4163,7 +4270,7 @@
             },
             {
               "details": {
-                "hoursLeft": 5.56
+                "hoursLeft": 2.45
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4278,7 +4385,7 @@
             },
             {
               "details": {
-                "hoursLeft": 5.57
+                "hoursLeft": 2.46
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4353,121 +4460,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "8e64ea0f876d3c94"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783287133000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.59
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "822e5adc5a011324",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783287133000,
-            "id": "822e5adc5a011324",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783891933000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783287133000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783114333000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMikwFBVV95cUxQTnpISjR2VThYcmJ2SXBiLVBwR0h1ZW1yQVNxeXVxdVF0NEdqbl9iekFkS0p1S25DakJQeW53YUZQV1lqcTlYT1VuWFZGeGtpNFBOdmoyakFIZEM4RFRZaUNPNHdwQUQ1RGZYbmZ5R3c1TkhMaUp3TDh0aGJVZ0JVdEZJblNDMTljUi1sbUJ1TzBsVEE?oc=5\" target=\"_blank\">Best laptops under 80000 rupees during Amazon Prime Day Sale 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Sportskeeda Tech</font>",
-            "suppressionReason": null,
-            "title": "Best laptops under 80000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech",
-            "url": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQTnpISjR2VThYcmJ2SXBiLVBwR0h1ZW1yQVNxeXVxdVF0NEdqbl9iekFkS0p1S25DakJQeW53YUZQV1lqcTlYT1VuWFZGeGtpNFBOdmoyakFIZEM4RFRZaUNPNHdwQUQ1RGZYbmZ5R3c1TkhMaUp3TDh0aGJVZ0JVdEZJblNDMTljUi1sbUJ1TzBsVEE?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Best laptops under 80000 rupees during Amazon Prime Day Sale 2026 - Sportskeeda Tech"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "56e41ddd7e777950"
               },
               "name": "dedup",
@@ -4508,7 +4500,7 @@
             },
             {
               "details": {
-                "hoursLeft": 15.54
+                "hoursLeft": 12.43
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4623,7 +4615,7 @@
             },
             {
               "details": {
-                "hoursLeft": 19.34
+                "hoursLeft": 16.23
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4738,7 +4730,7 @@
             },
             {
               "details": {
-                "hoursLeft": 19.84
+                "hoursLeft": 16.73
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4853,7 +4845,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.54
+                "hoursLeft": 15.43
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4922,6 +4914,121 @@
           ],
           "score": 0.744,
           "title": "XElectron Projectors and ARZOPA Monitors Get Up to 15 Percent Off in Amazon Prime Day and Flipkart GOAT Sale 2026 - Gogi Tech"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "95e010f89db40905"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783398985000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 28.55
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "1e11f31c02579b0c",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783398985000,
+            "id": "1e11f31c02579b0c",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784003785000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783398985000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783226185000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi6gFBVV95cUxQRUNTVW9iTmo0a3R6dUpILXFVdFZqZWtZdzFuTUpUZjBlYUtNc05xcDdhR2d3N1JSektMWU1DajZLTFR6OVhmNzRPOEstS3p6MjRzQk0wSExIQlNrY05FX0lfRGVwV2RUYWhncUFLRHAwQUtxckx3VWZ1dlR6NWVrY2E1Tk4yVDRWeGJuYV9jbmNZaEhXWkdCajRZUXlQLUtDd0Q4UjFKSFRSU2JSWEJYNjRRQmpiX0lsamxrOHhjZ29fRE1lYzI4N2dubE1rbFpqRFZCdFo0bWpVcWtqY0xraUgxd0pXVGd3dkHSAe8BQVVfeXFMTXY4b0pFS1o3dE5qQzgwZnRyVmh0WjBPcjRpelN6Z0xlRUZoZTgxUllEcm1qc3F5WURsZWcxV1BWZjlBSnhPaV9nR3dsQk9IdUpDTnJQRzlMaGVCVXBldXNDdGNYaXZ5dk1mYnhCb0ZNRW1na0R1MmFEenc4ZGdCclhENWxOeDY1RTVURzJsbWF3RVhpOTRod1VKbHdkUEhTYlItZk5xTEs0QlA1UWhRN2VlcnhzQlUySkM0R1JJT3dreGFSWnd1VlNRbmR1RXE0dGNieGhZZG5jREtIMUJidmJ5eTBwbml3MHNHSUdBYWs?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Day 2 Sale Live: Fresh Deals On iPhone, Samsung Galaxy, OnePlus And More At Up To 55%</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">News18</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026 Day 2 Sale Live: Fresh Deals On iPhone, Samsung Galaxy, OnePlus And More At Up To 55% - News18",
+            "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxQRUNTVW9iTmo0a3R6dUpILXFVdFZqZWtZdzFuTUpUZjBlYUtNc05xcDdhR2d3N1JSektMWU1DajZLTFR6OVhmNzRPOEstS3p6MjRzQk0wSExIQlNrY05FX0lfRGVwV2RUYWhncUFLRHAwQUtxckx3VWZ1dlR6NWVrY2E1Tk4yVDRWeGJuYV9jbmNZaEhXWkdCajRZUXlQLUtDd0Q4UjFKSFRSU2JSWEJYNjRRQmpiX0lsamxrOHhjZ29fRE1lYzI4N2dubE1rbFpqRFZCdFo0bWpVcWtqY0xraUgxd0pXVGd3dkHSAe8BQVVfeXFMTXY4b0pFS1o3dE5qQzgwZnRyVmh0WjBPcjRpelN6Z0xlRUZoZTgxUllEcm1qc3F5WURsZWcxV1BWZjlBSnhPaV9nR3dsQk9IdUpDTnJQRzlMaGVCVXBldXNDdGNYaXZ5dk1mYnhCb0ZNRW1na0R1MmFEenc4ZGdCclhENWxOeDY1RTVURzJsbWF3RVhpOTRod1VKbHdkUEhTYlItZk5xTEs0QlA1UWhRN2VlcnhzQlUySkM0R1JJT3dreGFSWnd1VlNRbmR1RXE0dGNieGhZZG5jREtIMUJidmJ5eTBwbml3MHNHSUdBYWs?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "Amazon Prime Day 2026 Day 2 Sale Live: Fresh Deals On iPhone, Samsung Galaxy, OnePlus And More At Up To 55% - News18"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4932,11 +5039,11 @@
         "locationScore": 0.8227,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.9047
+        "urgencyOrExpiryScore": 0.8987
       }
     }
   },
-  "generatedAt": 1783285000511,
+  "generatedAt": 1783296197287,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4955,7 +5062,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "31 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "32 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4964,13 +5071,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "3 base-report-heavy Insight parent(s) demoted"
+      "4 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3764,
+      "insight": 0.374,
       "localTravel": 0.0,
-      "upAhead": 0.8129
+      "upAhead": 0.8121
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4978,7 +5085,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.2973,
+    "overallScore": 0.2965,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
