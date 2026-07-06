@@ -17,13 +17,19 @@ function assert(condition, message) {
 
 const pkg = readJson('package.json');
 const manifest = readJson('scripts/certification_manifest.json');
+const runner = read('scripts/run_up_ahead_edge_api_tests.mjs');
 const report = read('reports/NW-DP-015_up_ahead_edge_certification_wiring.md');
 const dp018Report = read('reports/NW-DP-018_up_ahead_edge_dataset_diagnostics_certification.md');
 const dp021Report = read('reports/NW-DP-021_up_ahead_edge_data_health_certification.md');
 const dp023Report = read('reports/NW-DP-023_up_ahead_edge_data_health_export_certification.md');
+const dp024Report = read('reports/NW-DP-024_up_ahead_edge_certification_runner.md');
 
 const edgeScript = pkg.scripts?.['test:upahead-edge-api'] || '';
-assert(edgeScript, 'package.json must define test:upahead-edge-api');
+assert(edgeScript === 'node scripts/run_up_ahead_edge_api_tests.mjs', 'test:upahead-edge-api must delegate to run_up_ahead_edge_api_tests.mjs');
+assert(runner.includes('UP_AHEAD_EDGE_API_TEST_COMMANDS'), 'Runner must expose ordered edge API command list');
+assert(runner.includes('node:child_process'), 'Runner must use Node child_process built-in');
+assert(runner.includes('spawn('), 'Runner must execute commands through spawn');
+assert(runner.includes('shell: false'), 'Runner must avoid shell execution');
 [
   'node scripts/test_up_ahead_edge_worker_contract.mjs',
   'node scripts/test_up_ahead_edge_worker_contract_static.mjs',
@@ -38,7 +44,7 @@ assert(edgeScript, 'package.json must define test:upahead-edge-api');
   'node scripts/test_up_ahead_edge_data_health_summary_static.mjs',
   'node scripts/test_up_ahead_edge_data_health_export_static.mjs',
   'npx vitest run --config vitest.config.js src/components/DataHealthPanel.cert.test.jsx',
-].forEach(command => assert(edgeScript.includes(command), `test:upahead-edge-api must include ${command}`));
+].forEach(command => assert(runner.includes(command), `runner must include ${command}`));
 
 const certificationScript = pkg.scripts?.['test:certification-manifest'] || '';
 assert(certificationScript.startsWith('npm run test:upahead-edge-api && '), 'test:certification-manifest must run Up Ahead edge pack before manifest validators');
@@ -53,6 +59,7 @@ assert(Array.isArray(manifestEntry.requiredFor) && manifestEntry.requiredFor.inc
 assert(Array.isArray(manifestEntry.requiredFor) && manifestEntry.requiredFor.includes('workflow'), 'certification-manifest command must remain required for workflow profile');
 
 [
+  'scripts/run_up_ahead_edge_api_tests.mjs',
   'scripts/test_up_ahead_edge_worker_contract.mjs',
   'scripts/test_up_ahead_edge_worker_contract_static.mjs',
   'scripts/test_up_ahead_edge_cors_exposed_headers_static.mjs',
@@ -91,6 +98,7 @@ assert(report.includes('NW-DP-015') && report.includes('Non-goals'), 'Report mus
 assert(dp018Report.includes('NW-DP-018') && dp018Report.includes('Non-goals'), 'Report must document NW-DP-018 and Non-goals');
 assert(dp021Report.includes('NW-DP-021') && dp021Report.includes('Non-goals'), 'Report must document NW-DP-021 and Non-goals');
 assert(dp023Report.includes('NW-DP-023') && dp023Report.includes('Non-goals'), 'Report must document NW-DP-023 and Non-goals');
+assert(dp024Report.includes('NW-DP-024') && dp024Report.includes('Non-goals'), 'Report must document NW-DP-024 and Non-goals');
 
 if (!process.exitCode) {
   console.log('[NW-DP-015 static] PASS');
