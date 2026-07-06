@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3749,
+      "qualityScore": 0.3814,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -766,6 +766,120 @@
           "gates": [
             {
               "details": {
+                "storyCount": 8
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 8
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "df71bc9e8f9d5353",
+            "representativeTitle": "Top news of the day on June 20, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 1.0,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 8,
+            "storyIds": [
+              "df71bc9e8f9d5353",
+              "573c76f7c04320cb",
+              "dadd53c1bc76741b",
+              "4cca4280284d2e54",
+              "bf952c0b99344c4d",
+              "68960f2753704105",
+              "c6215fc9dda48735",
+              "799aa9b7edec72f4"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 8
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.2212,
+          "title": "Top news of the day on June 20, 2026 - The Hindu"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -980,122 +1094,12 @@
           ],
           "score": 0.1751,
           "title": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c7f96b2804",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c7f96b2804",
-            "representativeId": "1600f0bb8516af04",
-            "representativeTitle": "No full runway closure at Srinagar Airport; relief for tourism, trade",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "business_line"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "1600f0bb8516af04",
-              "1d71e31ebcca05a0"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "full",
-              "runway",
-              "closure",
-              "srinagar"
-            ],
-            "topicKey": "full|runway|closure"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "No full runway closure at Srinagar Airport; relief for tourism, trade"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.3678,
-        "eventImportanceScore": 0.59,
+        "eventImportanceScore": 0.6356,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4722,
         "sourceAuthorityScore": 0.4067,
@@ -2780,7 +2784,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.86
+                "hoursLeft": 13.34
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -2895,7 +2899,7 @@
             },
             {
               "details": {
-                "hoursLeft": 7.01
+                "hoursLeft": 6.48
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3010,7 +3014,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.18
+                "hoursLeft": 12.65
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3125,7 +3129,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.03
+                "hoursLeft": 11.5
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3240,7 +3244,7 @@
             },
             {
               "details": {
-                "hoursLeft": 4.81
+                "hoursLeft": 4.28
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3355,7 +3359,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.85
+                "hoursLeft": 9.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3470,7 +3474,7 @@
             },
             {
               "details": {
-                "hoursLeft": 8.74
+                "hoursLeft": 8.21
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3585,7 +3589,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.52
+                "hoursLeft": 5.99
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3700,7 +3704,7 @@
             },
             {
               "details": {
-                "hoursLeft": 10.1
+                "hoursLeft": 9.57
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3815,7 +3819,7 @@
             },
             {
               "details": {
-                "hoursLeft": 4.37
+                "hoursLeft": 3.84
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3930,7 +3934,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.87
+                "hoursLeft": 1.34
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4045,7 +4049,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.88
+                "hoursLeft": 1.35
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4160,7 +4164,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.85
+                "hoursLeft": 11.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4275,7 +4279,7 @@
             },
             {
               "details": {
-                "hoursLeft": 15.65
+                "hoursLeft": 15.12
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4390,7 +4394,7 @@
             },
             {
               "details": {
-                "hoursLeft": 16.15
+                "hoursLeft": 15.62
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4505,7 +4509,7 @@
             },
             {
               "details": {
-                "hoursLeft": 14.85
+                "hoursLeft": 14.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4620,7 +4624,7 @@
             },
             {
               "details": {
-                "hoursLeft": 27.97
+                "hoursLeft": 27.44
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4703,7 +4707,7 @@
       }
     }
   },
-  "generatedAt": 1783298286024,
+  "generatedAt": 1783300191838,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4735,7 +4739,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3749,
+      "insight": 0.3814,
       "localTravel": 0.0,
       "upAhead": 0.8121
     },
@@ -4745,7 +4749,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.2968,
+    "overallScore": 0.2984,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
