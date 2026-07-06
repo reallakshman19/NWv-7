@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 8
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 8,
-        "parentClusters": 8,
-        "strongParents": 8,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3752,
+      "qualityScore": 0.3716,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -483,6 +483,117 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:15bd1b1203",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:15bd1b1203",
+            "representativeId": "9f516af981e0392e",
+            "representativeTitle": "Kotak Mahindra Bank shares in focus after Q1 advances jump 15% to Rs 5.12 lakh crore, deposits up 12%",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "9f516af981e0392e",
+              "dca37367637c8d3d"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bank",
+              "lakh",
+              "crore",
+              "kotak",
+              "shares"
+            ],
+            "topicKey": "bank|lakh|crore"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Kotak Mahindra Bank shares in focus after Q1 advances jump 15% to Rs 5.12 lakh crore, deposits up 12%"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:b2ce39a301",
           "item": {
             "angleCount": 1,
@@ -774,6 +885,232 @@
             },
             {
               "details": {
+                "baseReportRatio": 0.5,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.5
+              },
+              "name": "baseReportCap",
+              "reason": "base-report heavy but usable",
+              "score": 0.55,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:834a7157ae",
+          "item": {
+            "angleCount": 2,
+            "baseReportRatio": 0.5,
+            "childScores": [],
+            "id": "sketch:834a7157ae",
+            "representativeId": "0ff966f03bba382f",
+            "representativeTitle": "Amazon Prime Day 2026: Top Deals on 65-inch Smart TVs From Sony, TCL and Samsung",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.55,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus12h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "gadgets360"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "0ff966f03bba382f",
+              "be6d96abfa3c74c6"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 1
+              },
+              {
+                "angle": "fact_update",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "amazon",
+              "prime",
+              "deals",
+              "65-inch",
+              "home"
+            ],
+            "topicKey": "amazon|prime|deals"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.2195,
+          "title": "Amazon Prime Day 2026: Top Deals on 65-inch Smart TVs From Sony, TCL and Samsung"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 3
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 3
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.75,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:8ec38cb352",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:8ec38cb352",
+            "representativeId": "37f71ab1a2fbf24f",
+            "representativeTitle": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.71,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus12h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "gadgets360"
+            ],
+            "storyCount": 3,
+            "storyIds": [
+              "37f71ab1a2fbf24f",
+              "58721412d3b1f964",
+              "7576812db70d256a"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 3
+              }
+            ],
+            "topTokens": [
+              "amazon",
+              "prime",
+              "best",
+              "deals"
+            ],
+            "topicKey": "amazon|prime|best"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1885,
+          "title": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
                 "baseReportRatio": 1.0,
                 "distinctAngles": 0
               },
@@ -869,127 +1206,17 @@
           ],
           "score": 0.1751,
           "title": "A life devoted to India’s unity and progress"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:8ec38cb352",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:8ec38cb352",
-            "representativeId": "37f71ab1a2fbf24f",
-            "representativeTitle": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus12h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "gadgets360"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "37f71ab1a2fbf24f",
-              "58721412d3b1f964"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "amazon",
-              "prime",
-              "best",
-              "deals"
-            ],
-            "topicKey": "amazon|prime|best"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Amazon Prime Day 2026: Best Deals on Smartphones Under Rs. 15,000"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3163,
-        "eventImportanceScore": 0.6412,
+        "angleDiversityScore": 0.303,
+        "eventImportanceScore": 0.643,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4625,
-        "sourceAuthorityScore": 0.41,
-        "sourceDiversityScore": 0.3963,
-        "temporalEvolutionScore": 0.4
+        "noveltyDeltaScore": 0.47,
+        "sourceAuthorityScore": 0.404,
+        "sourceDiversityScore": 0.387,
+        "temporalEvolutionScore": 0.394
       }
     },
     "localTravel": {
@@ -1049,7 +1276,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "32 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "37 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
@@ -1060,6 +1287,10 @@
         "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
         "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
         "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
+        "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment: futureValidity failed — expired display window",
+        "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment: alertUrgency failed — alert expired",
+        "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel: futureValidity failed — expired display window",
+        "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel: alertUrgency failed — alert expired",
         "Access to GCC playgrounds restricted for govt.-aided schools in George Town: futureValidity failed — expired display window",
         "Access to GCC playgrounds restricted for govt.-aided schools in George Town: alertUrgency failed — alert expired",
         "Over 59,000 teachers take up TET exam across Tamil Nadu: futureValidity failed — expired display window",
@@ -1069,11 +1300,7 @@
         "Priest arrested for stealing gold jewellery and silver articles from house: futureValidity failed — expired display window",
         "Priest arrested for stealing gold jewellery and silver articles from house: alertUrgency failed — alert expired",
         "OTA unveils publicity displays at Nanganallur Metro Station: futureValidity failed — expired display window",
-        "OTA unveils publicity displays at Nanganallur Metro Station: alertUrgency failed — alert expired",
-        "28-year-old murdered during brawl over liquor: futureValidity failed — expired display window",
-        "28-year-old murdered during brawl over liquor: alertUrgency failed — alert expired",
-        "Field survey highlights wetland’s significance amid reservoir debate: futureValidity failed — expired display window",
-        "Field survey highlights wetland’s significance amid reservoir debate: alertUrgency failed — alert expired"
+        "OTA unveils publicity displays at Nanganallur Metro Station: alertUrgency failed — alert expired"
       ],
       "gateResults": [
         {
@@ -1088,8 +1315,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 12,
-              "shopping": 17,
+              "alerts": 10,
+              "shopping": 19,
               "weather_alerts": 1
             }
           },
@@ -1100,18 +1327,18 @@
         }
       ],
       "gateSummary": {
-        "alerts": 13,
+        "alerts": 11,
         "categoryCounts": {
-          "alerts": 12,
-          "shopping": 17,
+          "alerts": 10,
+          "shopping": 19,
           "weather_alerts": 1
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 74,
         "locationCounts": {
-          "chennai": 20,
-          "online": 4,
+          "chennai": 19,
+          "online": 5,
           "trichy": 6
         },
         "locationsCovered": [
@@ -1119,131 +1346,16 @@
           "online",
           "trichy"
         ],
-        "offlineOffers": 13,
-        "onlineOffers": 4,
+        "offlineOffers": 14,
+        "onlineOffers": 5,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 32
+        "suppressedItemCount": 37
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8121,
+      "qualityScore": 0.8036,
       "qualityStatus": "WARN",
       "rankedItems": [
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "f40222c596f92c8d"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783306840000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "ba06b7b307b72988",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783306840000,
-            "id": "ba06b7b307b72988",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783911640000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783306840000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783220440000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "In Royapettah, an enterprise focussed on making curd pots has completed its golden jubilee due to a man who would not give up. This enterprise is as small as it gets; it has two members on its rolls, he and his wife",
-            "suppressionReason": null,
-            "title": "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel",
-            "url": "https://www.thehindu.com/news/cities/chennai/assisted-by-his-wife-curd-pot-maker-in-chennai-supplies-stock-regularly-to-star-hotel/article71182642.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel"
-        },
         {
           "category": "alerts",
           "gates": [
@@ -1818,121 +1930,6 @@
           ],
           "score": 0.8485,
           "title": "Madras HC calls for order closing corruption case against former Minister C. Vijayabaskar, educationist Ishari K. Ganesh"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "0d8d66c776bbeeda"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783308259000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "9d2cf69738397d21",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783308259000,
-            "id": "9d2cf69738397d21",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783913059000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783308259000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783221859000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Oncology Kitchen at the Institute of Child Health and Hospital for Children in Egmore meets the huge nutritional needs of children undergoing cancer treatment. And the fact that the bill of fare comes free is a huge relief to their parents",
-            "suppressionReason": null,
-            "title": "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment",
-            "url": "https://www.thehindu.com/news/cities/chennai/oncology-kitchen-at-ich-takes-a-worry-off-the-plate-for-parents-of-children-receiving-cancer-treatment/article71181892.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment"
         },
         {
           "category": "alerts",
@@ -2669,7 +2666,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.32
+                "hoursLeft": 10.59
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -2784,7 +2781,7 @@
             },
             {
               "details": {
-                "hoursLeft": 5.46
+                "hoursLeft": 3.73
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -2899,7 +2896,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.63
+                "hoursLeft": 9.9
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3014,7 +3011,7 @@
             },
             {
               "details": {
-                "hoursLeft": 10.49
+                "hoursLeft": 8.75
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3129,7 +3126,7 @@
             },
             {
               "details": {
-                "hoursLeft": 3.26
+                "hoursLeft": 1.53
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3244,7 +3241,7 @@
             },
             {
               "details": {
-                "hoursLeft": 8.31
+                "hoursLeft": 6.57
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3359,7 +3356,7 @@
             },
             {
               "details": {
-                "hoursLeft": 7.19
+                "hoursLeft": 5.46
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3474,7 +3471,7 @@
             },
             {
               "details": {
-                "hoursLeft": 4.98
+                "hoursLeft": 3.24
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3589,7 +3586,7 @@
             },
             {
               "details": {
-                "hoursLeft": 8.55
+                "hoursLeft": 6.82
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3704,7 +3701,7 @@
             },
             {
               "details": {
-                "hoursLeft": 2.82
+                "hoursLeft": 1.09
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3779,236 +3776,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "5a8903765ae0b271"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783305004000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.32
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "081cfa19018ed108",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783305004000,
-            "id": "081cfa19018ed108",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783909804000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783305004000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783132204000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5gFBVV95cUxORzRaR3EtM3dVNkNHUThYck1IM2hEMmJLbWNib1hoZXZfTXVMRzlLdlNzZGRDbmpvY3hVWmhlLTJ4LXBGc2lNLVhpTVdGeWlYTUdFU3EyVmdjZDBxSUZwUnNNS2J4ZGFqY1pncXBmRjU4SjF1dGU4aGtidi1vUWhwUm05ckZhd2dZYkVyN1JNOUVyRlFzLXpsbjFFUk8xQXRQNWRFMExzcmJJSHhaZ1FJc3hCTXNya2VmT3dCLUNKYWFRdVdXTktSR3pVUkVILTlBbDhXMUlRUmk0a1lZZ3Z1dE85TTN5Z9IB5gFBVV95cUxORzRaR3EtM3dVNkNHUThYck1IM2hEMmJLbWNib1hoZXZfTXVMRzlLdlNzZGRDbmpvY3hVWmhlLTJ4LXBGc2lNLVhpTVdGeWlYTUdFU3EyVmdjZDBxSUZwUnNNS2J4ZGFqY1pncXBmRjU4SjF1dGU4aGtidi1vUWhwUm05ckZhd2dZYkVyN1JNOUVyRlFzLXpsbjFFUk8xQXRQNWRFMExzcmJJSHhaZ1FJc3hCTXNya2VmT3dCLUNKYWFRdVdXTktSR3pVUkVILTlBbDhXMUlRUmk0a1lZZ3Z1dE85TTN5Zw?oc=5\" target=\"_blank\">Amazon Prime Day, Flipkart GOAT Sale 2026: Best smartphones to buy under ₹30,000</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Business Today</font>",
-            "suppressionReason": null,
-            "title": "Amazon Prime Day, Flipkart GOAT Sale 2026: Best smartphones to buy under ₹30,000 - Business Today",
-            "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxORzRaR3EtM3dVNkNHUThYck1IM2hEMmJLbWNib1hoZXZfTXVMRzlLdlNzZGRDbmpvY3hVWmhlLTJ4LXBGc2lNLVhpTVdGeWlYTUdFU3EyVmdjZDBxSUZwUnNNS2J4ZGFqY1pncXBmRjU4SjF1dGU4aGtidi1vUWhwUm05ckZhd2dZYkVyN1JNOUVyRlFzLXpsbjFFUk8xQXRQNWRFMExzcmJJSHhaZ1FJc3hCTXNya2VmT3dCLUNKYWFRdVdXTktSR3pVUkVILTlBbDhXMUlRUmk0a1lZZ3Z1dE85TTN5Z9IB5gFBVV95cUxORzRaR3EtM3dVNkNHUThYck1IM2hEMmJLbWNib1hoZXZfTXVMRzlLdlNzZGRDbmpvY3hVWmhlLTJ4LXBGc2lNLVhpTVdGeWlYTUdFU3EyVmdjZDBxSUZwUnNNS2J4ZGFqY1pncXBmRjU4SjF1dGU4aGtidi1vUWhwUm05ckZhd2dZYkVyN1JNOUVyRlFzLXpsbjFFUk8xQXRQNWRFMExzcmJJSHhaZ1FJc3hCTXNya2VmT3dCLUNKYWFRdVdXTktSR3pVUkVILTlBbDhXMUlRUmk0a1lZZ3Z1dE85TTN5Zw?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon Prime Day, Flipkart GOAT Sale 2026: Best smartphones to buy under ₹30,000 - Business Today"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "ff52cf0e15c0f811"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783305040000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 0.33
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "6b4d768b2d9204b8",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783305040000,
-            "id": "6b4d768b2d9204b8",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1783909840000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1783305040000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783132240000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi8gFBVV95cUxQWXY5T0NGYk1CQWNyNE13YlFTNjRndkNZSldjVExYV1E1dVgzTWZtVEZpZVE0RjFGMWp2R0lXM0t3Z1p2ZGxuTDVLQ2x6c1lfem9NZUFYNkYtd2VyT2lXTjF2NTBKS1htQW1XcHJqdFNGMnZodnJRS3d0QlJtQWxuQjZRN1RDNjY2YnhoY2NCNnAwdTl0ei1ENFVuZ2h3NlRuM3VkbEc3anJsOGEtMGJGOURBeHU3bkoyLW81WkpFcmE3bXBWb1ZVQWxIWUk4VUl0b3ozaDhrNENqWHVlVGtwX2kxV2lWVTlaOGpFZFhOWURVUdIB9wFBVV95cUxPMDZSOEJUemRfV2xrdWt4dWc3bkpMR3lTb2lWd1l6Y3JkOE9Qa0FtMmdlVkJHYlJoQkNkM2R0LVRDbnpPM0ZrVGY0bERldmhXVEdWU0cwTHBMallCSXNnbzdNVEljdTFKb05pWU9jV1ZpOHJGVU9EdTRHT2ZfNy01eXRRaHpTSnJOelBHSmc4WmZGZ0p0R0F5TkI5WXdvc1pEYm0xSFIzVmdyN01lWHBsLWZMNGMzV0IyWDlfZ0hVVE95ZUwzMTYtc1JJZnFaUVd5aERvblpqR21xOGxJZGtZWjFRSTNZU0ZfRDE4cDAxS1V5aWlCbmpZ?oc=5\" target=\"_blank\">Beat the heat for less: Best Amazon Prime Day 2026 deals on ACs, coolers and fans with up to 65% off | Technology News\n(HT Tech)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Hindustan Times</font>",
-            "suppressionReason": null,
-            "title": "Beat the heat for less: Best Amazon Prime Day 2026 deals on ACs, coolers and fans with up to 65% off | Technology News\n(HT Tech) - Hindustan Times",
-            "url": "https://news.google.com/rss/articles/CBMi8gFBVV95cUxQWXY5T0NGYk1CQWNyNE13YlFTNjRndkNZSldjVExYV1E1dVgzTWZtVEZpZVE0RjFGMWp2R0lXM0t3Z1p2ZGxuTDVLQ2x6c1lfem9NZUFYNkYtd2VyT2lXTjF2NTBKS1htQW1XcHJqdFNGMnZodnJRS3d0QlJtQWxuQjZRN1RDNjY2YnhoY2NCNnAwdTl0ei1ENFVuZ2h3NlRuM3VkbEc3anJsOGEtMGJGOURBeHU3bkoyLW81WkpFcmE3bXBWb1ZVQWxIWUk4VUl0b3ozaDhrNENqWHVlVGtwX2kxV2lWVTlaOGpFZFhOWURVUdIB9wFBVV95cUxPMDZSOEJUemRfV2xrdWt4dWc3bkpMR3lTb2lWd1l6Y3JkOE9Qa0FtMmdlVkJHYlJoQkNkM2R0LVRDbnpPM0ZrVGY0bERldmhXVEdWU0cwTHBMallCSXNnbzdNVEljdTFKb05pWU9jV1ZpOHJGVU9EdTRHT2ZfNy01eXRRaHpTSnJOelBHSmc4WmZGZ0p0R0F5TkI5WXdvc1pEYm0xSFIzVmdyN01lWHBsLWZMNGMzV0IyWDlfZ0hVVE95ZUwzMTYtc1JJZnFaUVd5aERvblpqR21xOGxJZGtZWjFRSTNZU0ZfRDE4cDAxS1V5aWlCbmpZ?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Beat the heat for less: Best Amazon Prime Day 2026 deals on ACs, coolers and fans with up to 65% off | Technology News\n(HT Tech) - Hindustan Times"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "56e41ddd7e777950"
               },
               "name": "dedup",
@@ -4049,7 +3816,7 @@
             },
             {
               "details": {
-                "hoursLeft": 10.31
+                "hoursLeft": 8.57
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4164,7 +3931,7 @@
             },
             {
               "details": {
-                "hoursLeft": 14.1
+                "hoursLeft": 12.37
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4279,7 +4046,7 @@
             },
             {
               "details": {
-                "hoursLeft": 14.61
+                "hoursLeft": 12.87
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4394,7 +4161,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.3
+                "hoursLeft": 11.57
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4509,7 +4276,7 @@
             },
             {
               "details": {
-                "hoursLeft": 26.43
+                "hoursLeft": 24.69
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4578,21 +4345,481 @@
           ],
           "score": 0.726,
           "title": "Amazon Prime Day 2026 Day 2 Sale Live: Fresh Deals On iPhone, Samsung Galaxy, OnePlus And More At Up To 55% - News18"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "906f27ac8b1db76d"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783410541000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 27.9
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "0cd52ef5592bab53",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783410541000,
+            "id": "0cd52ef5592bab53",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784015341000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783410541000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783237741000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMizwFBVV95cUxNRFVnU0prTDNWcGVSaHNMVXlqVDl2ZU9Ud0ctNkFOV3JKRDQ0MUtHUDViSnhQbVN5RGR3Yzd5Mno1YzE5YUZtdWxGdm1fZ1lKRTNhWnZUa19wbWZuTjlGNE8wcGUzVzdGX3VsT0xnUFBYMDB5MGQ5MnpuYmFmVzAwTUp2V211MUxJRWNsdEw5NUd4bVpybldLTzFac1VMNU5QZlI4VGVvNjJ6cklNWjFzRGoyR2ZJVG5QajF5YzNhLTFaSXRISzZMbDhFR3MyZ2vSAdQBQVVfeXFMUGtEcDQyQ29RanY3TVAyOWNUOC1HZC1VdVA2S3BKb2V6Mi1qRWZoalBvdVppWVREQkF3VUZEMlNRbWtnZWtvSmlkcXVLSFo4MkdXN3lwS1pUVzVqcHN1N2o1bGR2alJWbFRTUFdic3F1ZmxWNVFDU09Ha1FnR295N09wLUt6M3RpOHpHbXJ6YUpfT3NmWUh4RDBEaTZuV0VnVWZqSV9jdUpyT1JBbVBubWEyU05BVkpYQkg1eXpLMVFDc2JDN1NEWUt4SzJodVpkSVdTUjQ?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models - Gadgets 360",
+            "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNRFVnU0prTDNWcGVSaHNMVXlqVDl2ZU9Ud0ctNkFOV3JKRDQ0MUtHUDViSnhQbVN5RGR3Yzd5Mno1YzE5YUZtdWxGdm1fZ1lKRTNhWnZUa19wbWZuTjlGNE8wcGUzVzdGX3VsT0xnUFBYMDB5MGQ5MnpuYmFmVzAwTUp2V211MUxJRWNsdEw5NUd4bVpybldLTzFac1VMNU5QZlI4VGVvNjJ6cklNWjFzRGoyR2ZJVG5QajF5YzNhLTFaSXRISzZMbDhFR3MyZ2vSAdQBQVVfeXFMUGtEcDQyQ29RanY3TVAyOWNUOC1HZC1VdVA2S3BKb2V6Mi1qRWZoalBvdVppWVREQkF3VUZEMlNRbWtnZWtvSmlkcXVLSFo4MkdXN3lwS1pUVzVqcHN1N2o1bGR2alJWbFRTUFdic3F1ZmxWNVFDU09Ha1FnR295N09wLUt6M3RpOHpHbXJ6YUpfT3NmWUh4RDBEaTZuV0VnVWZqSV9jdUpyT1JBbVBubWEyU05BVkpYQkg1eXpLMVFDc2JDN1NEWUt4SzJodVpkSVdTUjQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "Amazon Prime Day 2026 Laptop Deals: Best Discounts on HP, Asus, Lenovo, Dell, Acer Models - Gadgets 360"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "fcaacd4aa764cf57"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783416653000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 29.6
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "940f0c4c37714885",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783416653000,
+            "id": "940f0c4c37714885",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784021453000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783416653000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783243853000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5gFBVV95cUxOTzFObzhIYkZhVE42Q2w2LXBiazI0MWpoekZfanYySU5zLWItd3Q1S2MzSUFHc1dkSU1JZ3pRRkZLZG9rRUJBaS1mMTJ5dUo0SEhuT2o1bFlKVUluSFBzMkMwOTVXMUhNTk1GQjhTdmhaSHc1cmlieW1vX0lMQm5iQzlyTDNZVEpBa184YVhpX0hWbC1rR0xfd25hLUU5ZmtRRFZtNE0xUUVBdmFNV2NzTGpHTmZOVEVTWG56cWZVOGQyVVgwVXFYSE1LN1oxOGVWa1VJTXJ2bGZnTnlqaURMaXJVVkNNZw?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Luggage Deals: Best Offers On Cabin And Check-In Bags You Shouldn’t Miss | Travel News</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">News18</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026 Luggage Deals: Best Offers On Cabin And Check-In Bags You Shouldn’t Miss | Travel News - News18",
+            "url": "https://news.google.com/rss/articles/CBMi5gFBVV95cUxOTzFObzhIYkZhVE42Q2w2LXBiazI0MWpoekZfanYySU5zLWItd3Q1S2MzSUFHc1dkSU1JZ3pRRkZLZG9rRUJBaS1mMTJ5dUo0SEhuT2o1bFlKVUluSFBzMkMwOTVXMUhNTk1GQjhTdmhaSHc1cmlieW1vX0lMQm5iQzlyTDNZVEpBa184YVhpX0hWbC1rR0xfd25hLUU5ZmtRRFZtNE0xUUVBdmFNV2NzTGpHTmZOVEVTWG56cWZVOGQyVVgwVXFYSE1LN1oxOGVWa1VJTXJ2bGZnTnlqaURMaXJVVkNNZw?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "Amazon Prime Day 2026 Luggage Deals: Best Offers On Cabin And Check-In Bags You Shouldn’t Miss | Travel News - News18"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "48ea2b4658726685"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783431323000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 33.68
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "49aec691ef45541a",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783431323000,
+            "id": "49aec691ef45541a",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784036123000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783431323000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783258523000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4wFBVV95cUxNNjBVemJMWWZnZm9GM2VBRFprYXNWTkVXcjh1R0Rlb212OUpyNUxXN1BlZndFMTBXS04wa0FoVlpNLTFFY1BLQktjeFUtckc1TmxxQnpBOTdXQnZhbkxGcThjY1hzSXZUNHdOd2FIbXZtWmtmZ3h6YXdaMGlDZ1U5OHN6aUFOeU1pc25sR2h5Z1c4dVJjU0tPN1FaQ1k1NDZPdV9WQ0tlRk5jVWxzbzh6MkJCQzlrVC1yUkxpS2lfYlNWbDFiSmRfTjFKckZUc3dib0E1eDBweE43OV9XYmdrR1lVUdIB6AFBVV95cUxOcWJOZFBzMW9DbS0yazMyc3lESUJROEs3aGY5UFRJU2VRcnZpd2pXamcyd1o0S1J0Ni1VZDJ3d1BKZWxlRmMwWmNwNGl0QVVCbVpDdnhEMVhBWGNPLVo0MDllUWdaLTlDVXdPTDNyM3BieHp2ZnBPNmYwM0xqXzdWYTV2S1VzMm52SUFTWGhzU3lscWtHUUtWUHVUVkV1ZUJYX1UwMVdJUWlqNnRtM09HTzVQeVl1MllkaUZBMXFMMzhLeFo3X0V1VjFXYzRDdTBKQ3dyTnNMSjVQNmotQXhfZHREQ1kzcWZ1?oc=5\" target=\"_blank\">Amazon Prime Day 2026 Smartwatch Sale: Apple Watch, Samsung Galaxy Watch, OnePlus Watch and Amazfit Deals</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">News18</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026 Smartwatch Sale: Apple Watch, Samsung Galaxy Watch, OnePlus Watch and Amazfit Deals - News18",
+            "url": "https://news.google.com/rss/articles/CBMi4wFBVV95cUxNNjBVemJMWWZnZm9GM2VBRFprYXNWTkVXcjh1R0Rlb212OUpyNUxXN1BlZndFMTBXS04wa0FoVlpNLTFFY1BLQktjeFUtckc1TmxxQnpBOTdXQnZhbkxGcThjY1hzSXZUNHdOd2FIbXZtWmtmZ3h6YXdaMGlDZ1U5OHN6aUFOeU1pc25sR2h5Z1c4dVJjU0tPN1FaQ1k1NDZPdV9WQ0tlRk5jVWxzbzh6MkJCQzlrVC1yUkxpS2lfYlNWbDFiSmRfTjFKckZUc3dib0E1eDBweE43OV9XYmdrR1lVUdIB6AFBVV95cUxOcWJOZFBzMW9DbS0yazMyc3lESUJROEs3aGY5UFRJU2VRcnZpd2pXamcyd1o0S1J0Ni1VZDJ3d1BKZWxlRmMwWmNwNGl0QVVCbVpDdnhEMVhBWGNPLVo0MDllUWdaLTlDVXdPTDNyM3BieHp2ZnBPNmYwM0xqXzdWYTV2S1VzMm52SUFTWGhzU3lscWtHUUtWUHVUVkV1ZUJYX1UwMVdJUWlqNnRtM09HTzVQeVl1MllkaUZBMXFMMzhLeFo3X0V1VjFXYzRDdTBKQ3dyTnNMSjVQNmotQXhfZHREQ1kzcWZ1?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "Amazon Prime Day 2026 Smartwatch Sale: Apple Watch, Samsung Galaxy Watch, OnePlus Watch and Amazfit Deals - News18"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "e4dae9a9ef4b8ab5"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783408836000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 27.43
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "7480cef966b55dc7",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783408836000,
+            "id": "7480cef966b55dc7",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784013636000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1783408836000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1783236036000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMitwFBVV95cUxPVDV1YVFBbm9ZdGdMRExNMlRnbktoUUs2SzFmN2tLaFlPRVVHcHE2ME5JWHpoX3g4cXJhUE5jSHhYdHRnSWx4NkdfTm53bWc2Y1FncXNmeTRVY0lKWGYyMkVsRVBaUDNhQVFqRngwX1UwZjJEakpPTEpvMFhQb0dIVVBhSWw0NVdtcThkSmFfNE9MWnU2cWFqSzVLUFMtN2xWRFp5QUJzLWE0TndHT0VkT0RIc2ZUMG_SAbwBQVVfeXFMTXNjOW1lcUxLT0ZibmVmc29LTXVxa0FnZEtlWmZ0WlBVdlRtOWFIZWJGdzdXZG9CNFRJTmhkcGx1R0FKcDhtVTlyemJ3S1Q0Z25aQlBpbGhiRGQybVJOTkc1bzJObWY2b2ZnTmNpeFpmdlpTLUUwV24teENsaXNtYzFSRm9CN1lZTWVlSzRBX1M2ZVYxNGxiTmpQVzYzbDhFWnR3MzV0eEFfQmdWRVZKVndzeDlGVXNyMUxVeTk?oc=5\" target=\"_blank\">Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Gadgets 360</font>",
+            "suppressionReason": null,
+            "title": "Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More - Gadgets 360",
+            "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxPVDV1YVFBbm9ZdGdMRExNMlRnbktoUUs2SzFmN2tLaFlPRVVHcHE2ME5JWHpoX3g4cXJhUE5jSHhYdHRnSWx4NkdfTm53bWc2Y1FncXNmeTRVY0lKWGYyMkVsRVBaUDNhQVFqRngwX1UwZjJEakpPTEpvMFhQb0dIVVBhSWw0NVdtcThkSmFfNE9MWnU2cWFqSzVLUFMtN2xWRFp5QUJzLWE0TndHT0VkT0RIc2ZUMG_SAbwBQVVfeXFMTXNjOW1lcUxLT0ZibmVmc29LTXVxa0FnZEtlWmZ0WlBVdlRtOWFIZWJGdzdXZG9CNFRJTmhkcGx1R0FKcDhtVTlyemJ3S1Q0Z25aQlBpbGhiRGQybVJOTkc1bzJObWY2b2ZnTmNpeFpmdlpTLUUwV24teENsaXNtYzFSRm9CN1lZTWVlSzRBX1M2ZVYxNGxiTmpQVzYzbDhFWnR3MzV0eEFfQmdWRVZKVndzeDlGVXNyMUxVeTk?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "Amazon Prime Day 2026: 55-inch Smart TV Deals from Lumio, Samsung, Sony and More - Gadgets 360"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.915,
-        "categoryPriorityScore": 0.818,
+        "actionabilityScore": 0.905,
+        "categoryPriorityScore": 0.7967,
         "lifecycleScore": 0.65,
-        "locationScore": 0.8227,
+        "locationScore": 0.804,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.8987
+        "urgencyOrExpiryScore": 0.8893
       }
     }
   },
-  "generatedAt": 1783303843968,
+  "generatedAt": 1783310090045,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4611,7 +4838,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "32 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "37 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4624,9 +4851,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3752,
+      "insight": 0.3716,
       "localTravel": 0.0,
-      "upAhead": 0.8121
+      "upAhead": 0.8036
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4634,7 +4861,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.2968,
+    "overallScore": 0.2938,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4649,6 +4876,10 @@
       "AIR INDIA EXPRESS ANNOUNCES ‘XPLORE MORE’ SALE WITH UP TO 15% SAVINGS ON INTERNATIONAL FLIGHTS - Breaking Travel News: location failed — offline/local item lacks configured location match",
       "Still using traditional door locks? These smart lock deals are worth checking before Amazon Prime Day Sale ends - livemint.com: location failed — offline/local item lacks configured location match",
       "We’re Updating The 80+ Best 4th Of July Sales As New Deals Drop - Forbes: location failed — offline/local item lacks configured location match",
+      "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment: futureValidity failed — expired display window",
+      "Oncology Kitchen at ICH takes a worry off the plate for parents of children receiving  cancer treatment: alertUrgency failed — alert expired",
+      "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel: futureValidity failed — expired display window",
+      "Assisted by his wife, curd pot maker in Chennai supplies stock regularly to star hotel: alertUrgency failed — alert expired",
       "Access to GCC playgrounds restricted for govt.-aided schools in George Town: futureValidity failed — expired display window",
       "Access to GCC playgrounds restricted for govt.-aided schools in George Town: alertUrgency failed — alert expired",
       "Over 59,000 teachers take up TET exam across Tamil Nadu: futureValidity failed — expired display window",
@@ -4658,11 +4889,7 @@
       "Priest arrested for stealing gold jewellery and silver articles from house: futureValidity failed — expired display window",
       "Priest arrested for stealing gold jewellery and silver articles from house: alertUrgency failed — alert expired",
       "OTA unveils publicity displays at Nanganallur Metro Station: futureValidity failed — expired display window",
-      "OTA unveils publicity displays at Nanganallur Metro Station: alertUrgency failed — alert expired",
-      "28-year-old murdered during brawl over liquor: futureValidity failed — expired display window",
-      "28-year-old murdered during brawl over liquor: alertUrgency failed — alert expired",
-      "Field survey highlights wetland’s significance amid reservoir debate: futureValidity failed — expired display window",
-      "Field survey highlights wetland’s significance amid reservoir debate: alertUrgency failed — alert expired"
+      "OTA unveils publicity displays at Nanganallur Metro Station: alertUrgency failed — alert expired"
     ]
   }
 }
