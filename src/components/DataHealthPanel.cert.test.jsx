@@ -45,6 +45,22 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('ageSeconds');
   });
 
+  it('derives latest Up Ahead edge diagnostics for the dataset card', () => {
+    expect(src).toContain('getLatestUpAheadEdgeDiagnostics');
+    expect(src).toContain('upAheadDataset.api_edge_diagnostics');
+    expect(src).toContain('latestUpAheadEdgeDiagnostics');
+    expect(src).toContain("datasetId === 'upAhead'");
+  });
+
+  it('renders a pinned Edge API summary with edge metadata fields', () => {
+    expect(src).toContain('EdgeApiSummary');
+    expect(src).toContain('Edge API');
+    expect(src).toContain('Source:');
+    expect(src).toContain('Reason:');
+    expect(src).toContain('Freshness:');
+    expect(src).toContain('Age seconds:');
+  });
+
   it('keeps diagnostics in export payload', () => {
     expect(src).toContain('exportedAt');
     expect(src).toContain('diagnostics,');
