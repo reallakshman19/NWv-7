@@ -66,4 +66,24 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('diagnostics,');
     expect(src).toContain('datasets: cachedEnvelopes.map');
   });
+
+  it('exports Up Ahead edge diagnostics in the dataset summary', () => {
+    expect(src).toContain('buildEdgeApiDiagnosticsExport');
+    expect(src).toContain('edgeApiDiagnostics');
+    expect(src).toContain("datasetId === 'upAhead'");
+    expect(src).toContain('latestUpAheadEdgeDiagnostics');
+    expect(src).toContain('source: formatDiagnosticValue(details.source)');
+    expect(src).toContain('reason: formatDiagnosticValue(details.reason)');
+    expect(src).toContain('freshness: formatDiagnosticValue(details.freshness)');
+    expect(src).toContain('ageSeconds: formatDiagnosticValue(details.ageSeconds)');
+  });
+
+  it('keeps existing dataset export summary fields', () => {
+    expect(src).toContain('payloadHash: envelope?.payloadHash');
+    expect(src).toContain('fetchedAt: envelope?.fetchedAt');
+    expect(src).toContain('lastGoodAt: envelope?.lastGoodAt');
+    expect(src).toContain('validation: envelope?.validation');
+    expect(src).toContain('slo: envelope?.slo');
+    expect(src).toContain('error: envelope?.error');
+  });
 });
