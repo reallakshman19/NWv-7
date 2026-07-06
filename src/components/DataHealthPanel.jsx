@@ -55,6 +55,16 @@ function getLatestUpAheadEdgeDiagnostics(diagnostics = []) {
     .find(item => item?.event === EDGE_DIAGNOSTIC_EVENT && isObjectRecord(item.details))?.details || null;
 }
 
+function buildEdgeApiDiagnosticsExport(details) {
+  if (!isObjectRecord(details)) return null;
+  return {
+    source: formatDiagnosticValue(details.source),
+    reason: formatDiagnosticValue(details.reason),
+    freshness: formatDiagnosticValue(details.freshness),
+    ageSeconds: formatDiagnosticValue(details.ageSeconds),
+  };
+}
+
 function DiagnosticDetails({ details }) {
   const entries = getDiagnosticDetailEntries(details);
   if (entries.length === 0) return null;
@@ -139,6 +149,9 @@ export default function DataHealthPanel() {
         validation: envelope?.validation,
         slo: envelope?.slo,
         error: envelope?.error,
+        edgeApiDiagnostics: datasetId === 'upAhead'
+          ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
+          : null,
       })),
     };
 
