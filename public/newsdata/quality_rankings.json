@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3597,
+      "qualityScore": 0.3633,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -94,7 +94,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 4
+                "storyCount": 5
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -131,7 +131,7 @@
             },
             {
               "details": {
-                "childCount": 4
+                "childCount": 5
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -156,7 +156,7 @@
             "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
+              "eventImportanceScore": 0.95,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -171,17 +171,18 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 4,
+            "storyCount": 5,
             "storyIds": [
               "9f1e61ea346889a0",
               "fa92b073a0a30dc3",
               "4ee739c53b939a61",
-              "c0b89c693126f623"
+              "c0b89c693126f623",
+              "55cf58dd032da79f"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 4
+                "count": 5
               }
             ],
             "topTokens": [
@@ -191,7 +192,8 @@
               "five",
               "monsoon",
               "neelkanth",
-              "strong"
+              "strong",
+              "govt"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -201,7 +203,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.449,
+          "score": 0.479,
           "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
         },
         {
@@ -314,116 +316,6 @@
           ],
           "score": 0.419,
           "title": "India news LIVE updates, 6 July 2026: Landslides disrupt Mumbai-Pune rail route, 16 trains cancelled, 7 deaths in Mumbai - The Indian Express"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:587c9e74c6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:587c9e74c6",
-            "representativeId": "a76c05b4458dbcc5",
-            "representativeTitle": "Indian government issues notice to Meta over child sexual abuse materials on Instagram",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "business_line"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "a76c05b4458dbcc5",
-              "d217505c4dce3151"
-            ],
-            "topAngles": [
-              {
-                "angle": "official_response",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "government",
-              "child",
-              "sexual",
-              "abuse"
-            ],
-            "topicKey": "government|child|sexual"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Indian government issues notice to Meta over child sexual abuse materials on Instagram"
         },
         {
           "category": "insightEvent",
@@ -1322,12 +1214,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.6227,
+        "eventImportanceScore": 0.638,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4682,
-        "sourceAuthorityScore": 0.4018,
-        "sourceDiversityScore": 0.3836,
-        "temporalEvolutionScore": 0.3918
+        "noveltyDeltaScore": 0.47,
+        "sourceAuthorityScore": 0.404,
+        "sourceDiversityScore": 0.387,
+        "temporalEvolutionScore": 0.394
       }
     },
     "localTravel": {
@@ -4615,7 +4507,7 @@
             },
             {
               "details": {
-                "hoursLeft": 30.01
+                "hoursLeft": 28.42
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4928,7 +4820,7 @@
       }
     }
   },
-  "generatedAt": 1783367553867,
+  "generatedAt": 1783373275383,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4960,7 +4852,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3597,
+      "insight": 0.3633,
       "localTravel": 0.0,
       "upAhead": 0.8544
     },
@@ -4970,7 +4862,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3035,
+    "overallScore": 0.3044,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
