@@ -1,11 +1,11 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783317443845,
-  "contentHash": "15debe1e9ca0d55a",
+  "generatedAt": 1783318086799,
+  "contentHash": "d80427dd7ff2eee1",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 439,
+  "storyCount": 459,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
@@ -23,10 +23,10 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 34,
+      "signalScore": 35,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 394,
+      "storyCount": 410,
       "risingCount": 0,
       "thinCount": 6,
       "multiAngleCount": 4,
@@ -34,27 +34,27 @@
       "strongAngleCount": 0,
       "avgAngles": 1.4,
       "avgChildren": 1.7,
-      "avgScore": 0.6603183140266575,
+      "avgScore": 0.6647183140266575,
       "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 4,
       "coverageLabel": "4/10",
       "warnings": [
         "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) have weak snapshot coverage.",
         "6 cluster(s) are marked thin.",
-        "450 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "490 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 34,
+      "signalScore": 35,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 394,
+      "storyCount": 410,
       "risingCount": 0,
       "thinCount": 6,
       "multiAngleCount": 4,
@@ -62,15 +62,15 @@
       "strongAngleCount": 0,
       "avgAngles": 1.4,
       "avgChildren": 1.7,
-      "avgScore": 0.6603183140266575,
+      "avgScore": 0.6647183140266575,
       "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 4,
       "coverageLabel": "4/10",
       "warnings": [
         "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) have weak snapshot coverage.",
         "6 cluster(s) are marked thin."
       ]
     },
@@ -85,7 +85,27 @@
   },
   "parents": [
     {
-      "parentId": "cluster_47_336d2babf21ad7e3",
+      "parentId": "cluster_323_740e9761cf5a6c8c",
+      "headline": "IMD issues red alert for Mumbai, Raigad over next three hours amid heavy rainfall",
+      "score": 0.7214967197849983,
+      "postTreeScore": 1.1215,
+      "childCount": 2,
+      "angles": [
+        "fact_update",
+        "base_report"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_66_336d2babf21ad7e3",
       "headline": "Dr. Reddys trading volume highlights market engagement",
       "score": 0.6814967197849984,
       "postTreeScore": 1.0615,
@@ -106,27 +126,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_304_740e9761cf5a6c8c",
-      "headline": "IMD issues red alert for Mumbai, Raigad over next three hours amid heavy rainfall",
-      "score": 0.6774967197849983,
-      "postTreeScore": 1.0575,
-      "childCount": 2,
-      "angles": [
-        "fact_update",
-        "base_report"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_190_72584d611c95d52c",
+      "parentId": "cluster_209_72584d611c95d52c",
       "headline": "British military says cargo ship reports being under attack in Red Sea off coast of Yemen",
       "score": 0.5745916683316485,
       "postTreeScore": 0.9946,
@@ -149,7 +149,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_181_3e10f987e3e66718",
+      "parentId": "cluster_200_3e10f987e3e66718",
       "headline": "‘Very dangerous’ Super Typhoon barrels towards US Pacific islands with 280 kmph winds",
       "score": 0.5665933333333333,
       "postTreeScore": 0.9666,
@@ -169,7 +169,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_299_6ae2bf2c6cb66d49",
+      "parentId": "cluster_318_6ae2bf2c6cb66d49",
       "headline": "'We are heroic people with heroic spirit': Donald Trump marks America's 250th Independence Day",
       "score": 0.6165800531183316,
       "postTreeScore": 0.5066,
@@ -188,7 +188,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_301_436508566c5b8117",
+      "parentId": "cluster_320_436508566c5b8117",
       "headline": "Performer calls for Trump's death at funeral for Iran's late supreme leader",
       "score": 0.5956600000000001,
       "postTreeScore": 0.5057,
@@ -207,7 +207,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_7_689709a748e0bb2a",
+      "parentId": "cluster_26_689709a748e0bb2a",
       "headline": "Senco Gold shares soar 6% as Q1 business update highlights 60% revenue growth",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -225,7 +225,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_10_ccb0f9138377da63",
+      "parentId": "cluster_29_ccb0f9138377da63",
       "headline": "Shakti Pumps shares surge 8% on Rs 354 crore solar pump order from MSEDCL",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -243,7 +243,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_22_514e6b9b360800f4",
+      "parentId": "cluster_41_514e6b9b360800f4",
       "headline": "HDFC Bank shares gain 2% after Q1 biz update; advances rise 15.4% YoY, deposits grow 14.7%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -261,7 +261,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_31_9f516af981e0392e",
+      "parentId": "cluster_50_9f516af981e0392e",
       "headline": "Kotak Mahindra Bank shares in focus after Q1 advances jump 15% to Rs 5.12 lakh crore, deposits up 12%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -369,7 +369,7 @@
       "weakParentRatio": 0.6,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 439,
+      "storyCount": 459,
       "sourceGroupCount": 9
     }
   }
