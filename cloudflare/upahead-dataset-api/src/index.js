@@ -3,11 +3,18 @@ const SOURCE_HEADER = 'X-NW-UpAhead-Source';
 const REASON_HEADER = 'X-NW-UpAhead-Reason';
 const FRESHNESS_HEADER = 'X-NW-UpAhead-Freshness';
 const AGE_SECONDS_HEADER = 'X-NW-UpAhead-Age-Seconds';
+const EXPOSED_DIAGNOSTIC_HEADERS = [
+  SOURCE_HEADER,
+  REASON_HEADER,
+  FRESHNESS_HEADER,
+  AGE_SECONDS_HEADER,
+].join(', ');
 const FRESHNESS_STALE_AFTER_MS = 12 * 60 * 60 * 1000;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Expose-Headers': EXPOSED_DIAGNOSTIC_HEADERS,
 };
 
 export function isUpAheadDatasetPath(pathname) {

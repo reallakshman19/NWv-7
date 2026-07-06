@@ -1,5 +1,11 @@
 const ENDPOINT_PATH = '/api/datasets/upAhead';
 const REQUIRED_JSON_KEYS = ['timeline', 'sections', 'weekly_plan', 'auditSummary', 'dropReport'];
+const REQUIRED_EXPOSED_HEADERS = [
+  'x-nw-upahead-source',
+  'x-nw-upahead-reason',
+  'x-nw-upahead-freshness',
+  'x-nw-upahead-age-seconds',
+];
 const ALLOWED_SOURCES = ['upstream', 'fallback'];
 const ALLOWED_REASONS = ['ok', 'missing-url', 'fetch-error', 'upstream-non-ok', 'invalid-json', 'invalid-shape'];
 const ALLOWED_FRESHNESS = ['fresh', 'stale', 'unknown'];
@@ -48,6 +54,21 @@ function isNonNegativeIntegerText(value) {
   return /^\d+$/.test(value);
 }
 
+function parseExposedHeaders(response) {
+  return headerValue(response, 'access-control-expose-headers')
+    .split(',')
+    .map(value => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function getExposeHeaderChecks(response, label) {
+  const exposedHeaders = parseExposedHeaders(response);
+  return REQUIRED_EXPOSED_HEADERS.map(header => pass(
+    exposedHeaders.includes(header),
+    `${label} Access-Control-Expose-Headers includes ${header}`
+  ));
+}
+
 function getDiagnostics(response) {
   const source = headerValue(response, 'x-nw-upahead-source') || 'unknown';
   const reason = headerValue(response, 'x-nw-upahead-reason') || 'unknown';
@@ -85,6 +106,7 @@ async function verifyGet(endpointUrl, fetchImpl) {
       pass(contentType.includes('application/json'), 'Content-Type application/json'),
       pass(cacheControl.includes('no-cache'), 'Cache-Control no-cache'),
       pass(cors.includes('*'), 'Access-Control-Allow-Origin *'),
+      ...getExposeHeaderChecks(response, 'GET'),
       pass(hasJsonShape(payload), 'JSON shape timeline/sections/weekly_plan/auditSummary/dropReport'),
       ...getDiagnosticsChecks(diagnostics),
     ],
@@ -101,6 +123,7 @@ async function verifyOptions(endpointUrl, fetchImpl) {
     pass(cors.includes('*'), 'OPTIONS Access-Control-Allow-Origin *'),
     pass(methods.includes('GET'), 'OPTIONS allows GET'),
     pass(methods.includes('OPTIONS'), 'OPTIONS allows OPTIONS'),
+    ...getExposeHeaderChecks(response, 'OPTIONS'),
   ];
 }
 
@@ -116,7 +139,7 @@ function printResults({ baseUrl, endpointUrl, getResult, optionChecks }) {
   console.log(`Age Seconds: ${getResult.diagnostics.ageSeconds}`);
   console.log(`GET: ${getResult.checks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
   console.log(`OPTIONS: ${optionChecks.every(check => check.ok) ? 'PASS' : 'FAIL'}`);
-  console.log(`Shape: ${getResult.checks[4]?.ok ? 'PASS' : 'FAIL'}`);
+  console.log(`Shape: ${getResult.checks.find(check => check.message.startsWith('JSON shape'))?.ok ? 'PASS' : 'FAIL'}`);
   allChecks.forEach(check => console.log(`- ${check.ok ? 'PASS' : 'FAIL'} ${check.message}`));
   console.log(`Result: ${ok ? 'PASS' : 'FAIL'}`);
   return ok;
