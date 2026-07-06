@@ -20,6 +20,7 @@ const manifest = readJson('scripts/certification_manifest.json');
 const report = read('reports/NW-DP-015_up_ahead_edge_certification_wiring.md');
 const dp018Report = read('reports/NW-DP-018_up_ahead_edge_dataset_diagnostics_certification.md');
 const dp021Report = read('reports/NW-DP-021_up_ahead_edge_data_health_certification.md');
+const dp023Report = read('reports/NW-DP-023_up_ahead_edge_data_health_export_certification.md');
 
 const edgeScript = pkg.scripts?.['test:upahead-edge-api'] || '';
 assert(edgeScript, 'package.json must define test:upahead-edge-api');
@@ -35,6 +36,7 @@ assert(edgeScript, 'package.json must define test:upahead-edge-api');
   'npx vitest run --config vitest.config.js src/data/datasets/upAheadDatasetApiClient.cert.test.js src/data/datasets/upAheadDataset.providerChain.cert.test.js',
   'node scripts/test_up_ahead_edge_data_health_static.mjs',
   'node scripts/test_up_ahead_edge_data_health_summary_static.mjs',
+  'node scripts/test_up_ahead_edge_data_health_export_static.mjs',
   'npx vitest run --config vitest.config.js src/components/DataHealthPanel.cert.test.jsx',
 ].forEach(command => assert(edgeScript.includes(command), `test:upahead-edge-api must include ${command}`));
 
@@ -63,6 +65,7 @@ assert(Array.isArray(manifestEntry.requiredFor) && manifestEntry.requiredFor.inc
   'src/data/datasets/upAheadDataset.providerChain.cert.test.js',
   'scripts/test_up_ahead_edge_data_health_static.mjs',
   'scripts/test_up_ahead_edge_data_health_summary_static.mjs',
+  'scripts/test_up_ahead_edge_data_health_export_static.mjs',
   'src/components/DataHealthPanel.cert.test.jsx',
 ].forEach(path => assert(fs.existsSync(path), `Expected edge test file must exist: ${path}`));
 
@@ -87,6 +90,7 @@ assert(Array.isArray(manifestEntry.requiredFor) && manifestEntry.requiredFor.inc
 assert(report.includes('NW-DP-015') && report.includes('Non-goals'), 'Report must document NW-DP-015 and Non-goals');
 assert(dp018Report.includes('NW-DP-018') && dp018Report.includes('Non-goals'), 'Report must document NW-DP-018 and Non-goals');
 assert(dp021Report.includes('NW-DP-021') && dp021Report.includes('Non-goals'), 'Report must document NW-DP-021 and Non-goals');
+assert(dp023Report.includes('NW-DP-023') && dp023Report.includes('Non-goals'), 'Report must document NW-DP-023 and Non-goals');
 
 if (!process.exitCode) {
   console.log('[NW-DP-015 static] PASS');
