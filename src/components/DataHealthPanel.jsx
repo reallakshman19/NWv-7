@@ -249,7 +249,7 @@ export default function DataHealthPanel() {
   const cachedEnvelopes = getCacheSnapshot();
   const runtimeCapabilities = readRuntimeCapabilities();
   const latestUpAheadEdgeDiagnosticEvent = getLatestUpAheadEdgeDiagnosticEvent(diagnostics);
-  const latestUpAheadEdgeDiagnostics = latestUpAheadEdgeDiagnosticEvent?.details || null;
+  const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
 
   const exportPayload = () => {
     const payload = {
