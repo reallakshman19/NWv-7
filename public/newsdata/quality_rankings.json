@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3995,
+      "qualityScore": 0.396,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -385,8 +385,8 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "3f4614cfb237e7a1",
-            "representativeTitle": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India",
+            "representativeId": "fa92b073a0a30dc3",
+            "representativeTitle": "Breaking News Live Updates: Monsoon session of Parliament from July 20 to August 13, 19 sittings scheduled - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.83,
@@ -406,10 +406,10 @@
             ],
             "storyCount": 4,
             "storyIds": [
+              "fa92b073a0a30dc3",
               "3f4614cfb237e7a1",
               "4ee739c53b939a61",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
+              "c0b89c693126f623"
             ],
             "topAngles": [
               {
@@ -421,10 +421,10 @@
               "breaking",
               "live",
               "updates",
+              "monsoon",
               "damascus",
               "neelkanth",
-              "strong",
-              "govt"
+              "strong"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -435,7 +435,7 @@
             "one-source event candidate"
           ],
           "score": 0.449,
-          "title": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India"
+          "title": "Breaking News Live Updates: Monsoon session of Parliament from July 20 to August 13, 19 sittings scheduled - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -783,6 +783,116 @@
             },
             {
               "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
                 "baseReportRatio": 1.0,
                 "distinctAngles": 0
               },
@@ -886,122 +996,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.5,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.5
-              },
-              "name": "baseReportCap",
-              "reason": "base-report heavy but usable",
-              "score": 0.55,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:834a7157ae",
-          "item": {
-            "angleCount": 2,
-            "baseReportRatio": 0.5,
-            "childScores": [],
-            "id": "sketch:834a7157ae",
-            "representativeId": "a17c5bbe95b5ffc7",
-            "representativeTitle": "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.55,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus12h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "gadgets360"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "a17c5bbe95b5ffc7",
-              "a2fe45cf7e1b6df3"
-            ],
-            "topAngles": [
-              {
-                "angle": "regional_followup",
-                "count": 1
-              },
-              {
-                "angle": "base_report",
-                "count": 1
-              }
-            ],
-            "topTokens": [
-              "amazon",
-              "prime",
-              "deals",
-              "refrigerator",
-              "laptop"
-            ],
-            "topicKey": "amazon|prime|deals"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2195,
-          "title": "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
+                "storyCount": 3
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -1038,11 +1033,11 @@
             },
             {
               "details": {
-                "childCount": 4
+                "childCount": 3
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 1.0,
+              "score": 0.75,
               "status": "PASS"
             },
             {
@@ -1063,7 +1058,7 @@
             "representativeTitle": "Top news of the day | June 24, 2026 - The Hindu",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
+              "eventImportanceScore": 0.71,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -1078,17 +1073,16 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 4,
+            "storyCount": 3,
             "storyIds": [
               "a5b849f848fafb29",
               "df71bc9e8f9d5353",
-              "bf952c0b99344c4d",
-              "fff45325db82b942"
+              "bf952c0b99344c4d"
             ],
             "topAngles": [
               {
                 "angle": "base_report",
-                "count": 4
+                "count": 3
               }
             ],
             "topTokens": [
@@ -1103,16 +1097,16 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.2021,
+          "score": 0.1885,
           "title": "Top news of the day | June 24, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.3678,
-        "eventImportanceScore": 0.6567,
+        "eventImportanceScore": 0.6433,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4833,
+        "noveltyDeltaScore": 0.4722,
         "sourceAuthorityScore": 0.4333,
         "sourceDiversityScore": 0.4322,
         "temporalEvolutionScore": 0.4233
@@ -4289,7 +4283,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.01
+                "hoursLeft": 4.51
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4519,7 +4513,7 @@
             },
             {
               "details": {
-                "hoursLeft": 17.96
+                "hoursLeft": 16.46
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4634,7 +4628,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.93
+                "hoursLeft": 10.43
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4717,7 +4711,7 @@
       }
     }
   },
-  "generatedAt": 1783453936709,
+  "generatedAt": 1783459358133,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4748,7 +4742,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3995,
+      "insight": 0.396,
       "localTravel": 0.0,
       "upAhead": 0.8534
     },
@@ -4758,7 +4752,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3132,
+    "overallScore": 0.3124,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
