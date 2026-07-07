@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783388348273,
-  "contentHash": "3e491bca62f8aa81",
+  "generatedAt": 1783402780133,
+  "contentHash": "2cc63bd3c38b18ee",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 637,
+  "storyCount": 662,
   "sourceGroupCount": 10,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.4,
-  "avgTemporalTiers": 1.3,
-  "avgEvolutionRoles": 1.6,
-  "baseReportShare": 0.1111111111111111,
-  "multiAngleCount": 4,
-  "weakParentCount": 6,
+  "avgAngles": 1.3,
+  "avgTemporalTiers": 1.5,
+  "avgEvolutionRoles": 1.8,
+  "baseReportShare": 0.3,
+  "multiAngleCount": 3,
+  "weakParentCount": 7,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -26,25 +26,25 @@
       "signalScore": 38,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 584,
+      "storyCount": 606,
       "risingCount": 1,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 7,
+      "multiAngleCount": 3,
+      "lowAngleCount": 7,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 1.8,
-      "avgScore": 0.6514600751671548,
-      "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 5,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.3,
+      "avgChildren": 2,
+      "avgScore": 0.6371181921403244,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 6,
+      "coverageLabel": "3/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin.",
-        "530 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "2 cluster(s) are below source-diversity target.",
+        "4 cluster(s) have weak snapshot coverage.",
+        "7 cluster(s) are marked thin.",
+        "560 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
@@ -54,24 +54,24 @@
       "signalScore": 38,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 584,
+      "storyCount": 606,
       "risingCount": 1,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 7,
+      "multiAngleCount": 3,
+      "lowAngleCount": 7,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 1.8,
-      "avgScore": 0.6514600751671548,
-      "sourceDiversityCoverage": 6,
-      "snapshotCoverage": 5,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.3,
+      "avgChildren": 2,
+      "avgScore": 0.6371181921403244,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 6,
+      "coverageLabel": "3/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin."
+        "2 cluster(s) are below source-diversity target.",
+        "4 cluster(s) have weak snapshot coverage.",
+        "7 cluster(s) are marked thin."
       ]
     },
     "recoveryConfig": {
@@ -85,7 +85,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_284_c1f883938f3a1838",
+      "parentId": "cluster_361_c1f883938f3a1838",
       "headline": "Maharashtra Council adjourned; 13 killed in rain-related incidents, says Minister",
       "score": 0.6419143876382674,
       "postTreeScore": 1.0619,
@@ -104,7 +104,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_287_a986719f44b9d59d",
+      "parentId": "cluster_364_a986719f44b9d59d",
       "headline": "After a century, forgotten Punjabi soldiers finally recognised for WWI sacrifice",
       "score": 0.6732467197849983,
       "postTreeScore": 1.0532,
@@ -125,48 +125,87 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_80_209b5ab4835e7e98",
-      "headline": "Super Typhoon Bavi strikes US Pacific islands with pummeling winds",
-      "score": 0.6292600000000002,
-      "postTreeScore": 1.0293,
+      "parentId": "cluster_61_643d18269d89aec7",
+      "headline": "Trump says there will either be a deal with Iran or U.S. will ‘finish the job’",
+      "score": 0.5385933333333333,
+      "postTreeScore": 0.9386,
       "childCount": 2,
       "angles": [
         "base_report",
         "official_response"
       ],
       "temporalTiers": [
-        "analysis",
-        "breaking"
+        "breaking",
+        "developing"
       ],
       "evolutionRoles": [
-        "corroboration",
-        "public_reaction"
+        "first_report",
+        "corroboration"
       ],
       "baseReportShare": 0.5,
       "weakTree": false
     },
     {
-      "parentId": "cluster_249_c3332f609a097ba6",
-      "headline": "Report",
-      "score": 0.6172599999999999,
-      "postTreeScore": 1.0173,
+      "parentId": "cluster_63_8efb5f1f72804483",
+      "headline": "China test fires missile into Pacific, sparks alarm",
+      "score": 0.6694800531183316,
+      "postTreeScore": 0.5795,
       "childCount": 2,
       "angles": [
-        "market_reaction",
-        "investigative_detail"
+        "base_report"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 1,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_64_28d554d6f11369ee",
+      "headline": "US accuses Iran of attacking 2 commercial ships; mulls action",
+      "score": 0.6538300531183316,
+      "postTreeScore": 0.5638,
+      "childCount": 2,
+      "angles": [
+        "base_report"
       ],
       "temporalTiers": [
         "breaking"
       ],
       "evolutionRoles": [
-        "official_response",
-        "market_reaction"
+        "first_report",
+        "corroboration"
       ],
-      "baseReportShare": 0,
-      "weakTree": false
+      "baseReportShare": 1,
+      "weakTree": true
     },
     {
-      "parentId": "cluster_362_0bdb590e0aab2e65",
+      "parentId": "cluster_58_439dc7c5c96cb6c1",
+      "headline": "Russian strikes kill at least 26 in Kyiv region on eve of NATO summit",
+      "score": 0.6185933333333333,
+      "postTreeScore": 0.5286,
+      "childCount": 2,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "reaction",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_437_0bdb590e0aab2e65",
       "headline": "Six killed in Mumbai as rains wreak havoc, disrupt travel",
       "score": 0.6172599999999999,
       "postTreeScore": 0.5273,
@@ -185,7 +224,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_415_66ea734a15b03871",
+      "parentId": "cluster_491_66ea734a15b03871",
       "headline": "Axis Bank Volume Snapshot",
       "score": 0.6172599999999999,
       "postTreeScore": 0.5273,
@@ -204,10 +243,10 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_183_213eac5f94dd8dcb",
+      "parentId": "cluster_260_213eac5f94dd8dcb",
       "headline": "PM Modi arrives in Indonesia to further strengthen India's Act East Policy",
-      "score": 0.550326159813334,
-      "postTreeScore": 0.4203,
+      "score": 0.6183128795983324,
+      "postTreeScore": 0.4683,
       "childCount": 2,
       "angles": [
         "official_response"
@@ -224,44 +263,8 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_2_ea10fa5842e20e70",
-      "headline": "Asian stocks slip, Samsung slides after results",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "market_reaction"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_10_e4c44843446e052d",
-      "headline": "EQT moves to list BPO firm Straive, raise $400 million",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_194_1838546823aff100",
-      "headline": "Prestige Estates buys 50% stake in Advent Convention and Hotels International for Rs 504 crore",
+      "parentId": "cluster_7_b4525085c8e7c6e4",
+      "headline": "RITES shares soar 9% after bagging a $36 million locomotive supply order from South Africa",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
@@ -286,7 +289,7 @@
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "D",
-    "score": 42,
+    "score": 18,
     "passed": [
       {
         "id": "parent-count",
@@ -295,27 +298,21 @@
         "required": ">= 3"
       },
       {
-        "id": "avg-angle-count",
-        "label": "Average visible angle count",
-        "actual": 1.4,
-        "required": ">= 1.4"
-      },
-      {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.6,
+        "actual": 1.8,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.111,
+        "actual": 0.3,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 4,
+        "actual": 3,
         "required": ">= 1"
       },
       {
@@ -341,9 +338,17 @@
         "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
       },
       {
+        "id": "avg-angle-count",
+        "label": "Average visible angle count",
+        "actual": 1.3,
+        "required": ">= 1.4",
+        "severity": "fail",
+        "fix": "Angle-diverse child selection is not strong enough on real data."
+      },
+      {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.3,
+        "actual": 1.5,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
@@ -351,7 +356,7 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.6,
+        "actual": 0.7,
         "required": "<= 0.5",
         "severity": "warn",
         "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
@@ -359,16 +364,16 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.4,
-      "avgTemporalTiers": 1.3,
-      "avgEvolutionRoles": 1.6,
-      "baseReportShare": 0.111,
-      "multiAngleCount": 4,
-      "weakParentCount": 6,
-      "weakParentRatio": 0.6,
+      "avgAngles": 1.3,
+      "avgTemporalTiers": 1.5,
+      "avgEvolutionRoles": 1.8,
+      "baseReportShare": 0.3,
+      "multiAngleCount": 3,
+      "weakParentCount": 7,
+      "weakParentRatio": 0.7,
       "topParentAngles": 2,
       "topParentChildren": 3,
-      "storyCount": 637,
+      "storyCount": 662,
       "sourceGroupCount": 10
     }
   }
