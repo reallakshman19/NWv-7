@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 8
+            "itemCount": 7
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 8,
-        "parentClusters": 8,
-        "strongParents": 8,
+        "inputCandidateCount": 7,
+        "parentClusters": 7,
+        "strongParents": 7,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3688,
+      "qualityScore": 0.3629,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -94,7 +94,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 2
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -131,11 +131,11 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 2
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 1.0,
+              "score": 0.5,
               "status": "PASS"
             },
             {
@@ -146,17 +146,17 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:313fbb8095",
+          "id": "sketch:fcde5c7120",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "9f1e61ea346889a0",
-            "representativeTitle": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India",
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 0.59,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -165,37 +165,30 @@
             },
             "slotCount": 1,
             "slots": [
-              "now"
+              "minus24h"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "google_news"
+              "moneycontrol"
             ],
-            "storyCount": 5,
+            "storyCount": 2,
             "storyIds": [
-              "9f1e61ea346889a0",
-              "fa92b073a0a30dc3",
-              "3f4614cfb237e7a1",
-              "4ee739c53b939a61",
-              "c0b89c693126f623"
+              "cefd0947496f8de7",
+              "d0020e471404281a"
             ],
             "topAngles": [
               {
-                "angle": "fact_update",
-                "count": 5
+                "angle": "market_reaction",
+                "count": 2
               }
             ],
             "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "five",
-              "monsoon",
-              "damascus",
-              "neelkanth",
-              "strong"
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
             ],
-            "topicKey": "breaking|live|updates"
+            "topicKey": "bajaj|finance|target"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -203,15 +196,15 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.479,
-          "title": "Breaking News Live Updates: Five injured in home explosion in Rewari - The Times of India"
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
           "gates": [
             {
               "details": {
-                "storyCount": 3
+                "storyCount": 2
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -248,11 +241,11 @@
             },
             {
               "details": {
-                "childCount": 3
+                "childCount": 2
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.75,
+              "score": 0.5,
               "status": "PASS"
             },
             {
@@ -273,7 +266,7 @@
             "representativeTitle": "India news LIVE updates, 6 July 2026: Landslides disrupt Mumbai-Pune rail route, 16 trains cancelled, 7 deaths in Mumbai - The Indian Express",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.71,
+              "eventImportanceScore": 0.59,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -288,16 +281,15 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 3,
+            "storyCount": 2,
             "storyIds": [
               "ff0ef5226825c3a0",
-              "e914697426a767ab",
-              "b3a7b301ab29d23e"
+              "e914697426a767ab"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 3
+                "count": 2
               }
             ],
             "topTokens": [
@@ -314,7 +306,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.419,
+          "score": 0.389,
           "title": "India news LIVE updates, 6 July 2026: Landslides disrupt Mumbai-Pune rail route, 16 trains cancelled, 7 deaths in Mumbai - The Indian Express"
         },
         {
@@ -879,125 +871,17 @@
           ],
           "score": 0.1805,
           "title": "Ammonia gas removal operation at Tiruvallur factory to continue on July 6"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "a5b849f848fafb29",
-            "representativeTitle": "Top news of the day | June 24, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "a5b849f848fafb29",
-              "df71bc9e8f9d5353"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Top news of the day | June 24, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.65,
+        "eventImportanceScore": 0.59,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.475,
-        "sourceAuthorityScore": 0.41,
-        "sourceDiversityScore": 0.3963,
-        "temporalEvolutionScore": 0.4
+        "noveltyDeltaScore": 0.4786,
+        "sourceAuthorityScore": 0.4143,
+        "sourceDiversityScore": 0.4029,
+        "temporalEvolutionScore": 0.4043
       }
     },
     "localTravel": {
@@ -4285,7 +4169,7 @@
             },
             {
               "details": {
-                "hoursLeft": 24.53
+                "hoursLeft": 24.23
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4598,7 +4482,7 @@
       }
     }
   },
-  "generatedAt": 1783387277359,
+  "generatedAt": 1783388348939,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4626,11 +4510,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3688,
+      "insight": 0.3629,
       "localTravel": 0.0,
       "upAhead": 0.8544
     },
@@ -4640,7 +4524,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3058,
+    "overallScore": 0.3043,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
