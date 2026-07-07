@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 10
+            "itemCount": 9
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 10,
-        "parentClusters": 10,
-        "strongParents": 10,
+        "inputCandidateCount": 9,
+        "parentClusters": 9,
+        "strongParents": 9,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3633,
+      "qualityScore": 0.3657,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -175,9 +175,9 @@
             "storyIds": [
               "9f1e61ea346889a0",
               "fa92b073a0a30dc3",
+              "3f4614cfb237e7a1",
               "4ee739c53b939a61",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
+              "c0b89c693126f623"
             ],
             "topAngles": [
               {
@@ -191,9 +191,9 @@
               "updates",
               "five",
               "monsoon",
+              "damascus",
               "neelkanth",
-              "strong",
-              "govt"
+              "strong"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -1099,127 +1099,17 @@
           ],
           "score": 0.1805,
           "title": "Ammonia gas removal operation at Tiruvallur factory to continue on July 6"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c633295c52",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c633295c52",
-            "representativeId": "de20d572e706db40",
-            "representativeTitle": "A life devoted to India’s unity and progress",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "business_line"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "de20d572e706db40",
-              "2add25753ebbcfa2"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "life",
-              "devoted",
-              "india",
-              "unity"
-            ],
-            "topicKey": "life|devoted|india"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "A life devoted to India’s unity and progress"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.638,
+        "eventImportanceScore": 0.6433,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.47,
-        "sourceAuthorityScore": 0.404,
-        "sourceDiversityScore": 0.387,
-        "temporalEvolutionScore": 0.394
+        "noveltyDeltaScore": 0.4722,
+        "sourceAuthorityScore": 0.4067,
+        "sourceDiversityScore": 0.3911,
+        "temporalEvolutionScore": 0.3967
       }
     },
     "localTravel": {
@@ -4507,7 +4397,7 @@
             },
             {
               "details": {
-                "hoursLeft": 28.42
+                "hoursLeft": 25.78
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4820,7 +4710,7 @@
       }
     }
   },
-  "generatedAt": 1783373275383,
+  "generatedAt": 1783382767922,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4848,11 +4738,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3633,
+      "insight": 0.3657,
       "localTravel": 0.0,
       "upAhead": 0.8544
     },
@@ -4862,7 +4752,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3044,
+    "overallScore": 0.305,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
