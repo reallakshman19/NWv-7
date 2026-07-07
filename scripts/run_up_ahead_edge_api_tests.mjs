@@ -95,6 +95,12 @@ export const UP_AHEAD_EDGE_API_TEST_COMMANDS = [
     ],
     display: 'npx vitest run --config vitest.config.js src/components/DataHealthPanel.cert.test.jsx',
   },
+  {
+    label: 'Readiness static guard',
+    command: nodeBin,
+    args: ['scripts/test_up_ahead_edge_readiness_static.mjs'],
+    display: 'node scripts/test_up_ahead_edge_readiness_static.mjs',
+  },
 ];
 
 function runCommand(entry) {
