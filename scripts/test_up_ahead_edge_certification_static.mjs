@@ -23,6 +23,7 @@ const dp018Report = read('reports/NW-DP-018_up_ahead_edge_dataset_diagnostics_ce
 const dp021Report = read('reports/NW-DP-021_up_ahead_edge_data_health_certification.md');
 const dp023Report = read('reports/NW-DP-023_up_ahead_edge_data_health_export_certification.md');
 const dp024Report = read('reports/NW-DP-024_up_ahead_edge_certification_runner.md');
+const dp026Report = read('reports/NW-DP-026_up_ahead_edge_readiness_certification.md');
 
 const edgeScript = pkg.scripts?.['test:upahead-edge-api'] || '';
 assert(edgeScript === 'node scripts/run_up_ahead_edge_api_tests.mjs', 'test:upahead-edge-api must delegate to run_up_ahead_edge_api_tests.mjs');
@@ -30,6 +31,7 @@ assert(runner.includes('UP_AHEAD_EDGE_API_TEST_COMMANDS'), 'Runner must expose o
 assert(runner.includes('node:child_process'), 'Runner must use Node child_process built-in');
 assert(runner.includes('spawn('), 'Runner must execute commands through spawn');
 assert(runner.includes('shell: false'), 'Runner must avoid shell execution');
+assert(!runner.includes('npm run test:upahead-edge-readiness'), 'Runner must not recursively call readiness package script');
 [
   'node scripts/test_up_ahead_edge_worker_contract.mjs',
   'node scripts/test_up_ahead_edge_worker_contract_static.mjs',
@@ -44,6 +46,7 @@ assert(runner.includes('shell: false'), 'Runner must avoid shell execution');
   'node scripts/test_up_ahead_edge_data_health_summary_static.mjs',
   'node scripts/test_up_ahead_edge_data_health_export_static.mjs',
   'npx vitest run --config vitest.config.js src/components/DataHealthPanel.cert.test.jsx',
+  'node scripts/test_up_ahead_edge_readiness_static.mjs',
 ].forEach(command => assert(runner.includes(command), `runner must include ${command}`));
 
 const certificationScript = pkg.scripts?.['test:certification-manifest'] || '';
@@ -73,6 +76,7 @@ assert(Array.isArray(manifestEntry.requiredFor) && manifestEntry.requiredFor.inc
   'scripts/test_up_ahead_edge_data_health_static.mjs',
   'scripts/test_up_ahead_edge_data_health_summary_static.mjs',
   'scripts/test_up_ahead_edge_data_health_export_static.mjs',
+  'scripts/test_up_ahead_edge_readiness_static.mjs',
   'src/components/DataHealthPanel.cert.test.jsx',
 ].forEach(path => assert(fs.existsSync(path), `Expected edge test file must exist: ${path}`));
 
@@ -99,6 +103,7 @@ assert(dp018Report.includes('NW-DP-018') && dp018Report.includes('Non-goals'), '
 assert(dp021Report.includes('NW-DP-021') && dp021Report.includes('Non-goals'), 'Report must document NW-DP-021 and Non-goals');
 assert(dp023Report.includes('NW-DP-023') && dp023Report.includes('Non-goals'), 'Report must document NW-DP-023 and Non-goals');
 assert(dp024Report.includes('NW-DP-024') && dp024Report.includes('Non-goals'), 'Report must document NW-DP-024 and Non-goals');
+assert(dp026Report.includes('NW-DP-026') && dp026Report.includes('Non-goals'), 'Report must document NW-DP-026 and Non-goals');
 
 if (!process.exitCode) {
   console.log('[NW-DP-015 static] PASS');
