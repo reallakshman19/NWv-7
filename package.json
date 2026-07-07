@@ -144,6 +144,7 @@
     "test:hardening:release5E": "node scripts/test_hardening_release5E_static.mjs",
     "test:up-ahead-migration": "vitest run --config vitest.config.js src/viewModels/useUpAheadTabViewModel.cert.test.js src/pages/UpAheadPage.release5E.cert.test.jsx",
     "test:upahead-edge-api": "node scripts/run_up_ahead_edge_api_tests.mjs",
+    "test:upahead-edge-readiness": "node scripts/check_up_ahead_edge_readiness.mjs",
     "test:hardening:release5FA": "node scripts/test_hardening_release5FA_static.mjs",
     "test:newspaper-migration": "vitest run --config vitest.config.js src/viewModels/useNewspaperTabViewModel.cert.test.js src/pages/NewspaperPage.release5FA.cert.test.jsx",
     "test:hardening:release5FB": "node scripts/test_hardening_release5FB_static.mjs",
