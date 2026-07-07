@@ -5,9 +5,13 @@ import {
   subscribeDiagnostics,
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
+import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 
 const EDGE_DIAGNOSTIC_EVENT = 'upAheadDataset.api_edge_diagnostics';
 const EDGE_DIAGNOSTIC_FIELDS = ['source', 'reason', 'freshness', 'ageSeconds'];
+const ACTIVATION_STATUS_LABELS = ['configured', 'not configured', 'missing', 'unknown'];
+const READINESS_COMMAND = 'npm run test:upahead-edge-readiness';
+const SMOKE_COMMAND = 'VITE_API_BASE_URL=https://<worker-host> npm run test:upahead-edge-readiness -- --require-config --smoke';
 
 function formatTime(value) {
   if (!value) return '--';
@@ -48,11 +52,15 @@ function getDiagnosticDetailEntries(details = {}) {
   return orderedKeys.map(key => [key, formatDiagnosticValue(details[key])]);
 }
 
-function getLatestUpAheadEdgeDiagnostics(diagnostics = []) {
+function getLatestUpAheadEdgeDiagnosticEvent(diagnostics = []) {
   return diagnostics
     .slice()
     .reverse()
-    .find(item => item?.event === EDGE_DIAGNOSTIC_EVENT && isObjectRecord(item.details))?.details || null;
+    .find(item => item?.event === EDGE_DIAGNOSTIC_EVENT && isObjectRecord(item.details)) || null;
+}
+
+function getLatestUpAheadEdgeDiagnostics(diagnostics = []) {
+  return getLatestUpAheadEdgeDiagnosticEvent(diagnostics)?.details || null;
 }
 
 function buildEdgeApiDiagnosticsExport(details) {
@@ -63,6 +71,41 @@ function buildEdgeApiDiagnosticsExport(details) {
     freshness: formatDiagnosticValue(details.freshness),
     ageSeconds: formatDiagnosticValue(details.ageSeconds),
   };
+}
+
+function readRuntimeCapabilities() {
+  try {
+    return getRuntimeCapabilities();
+  } catch {
+    return null;
+  }
+}
+
+function getDatasetApiModeStatus(envelope, runtimeCapabilities) {
+  if (runtimeCapabilities?.datasetRuntimeMode === 'dataset-api' || runtimeCapabilities?.canUseDatasetApi) {
+    return 'configured';
+  }
+
+  if (runtimeCapabilities?.canUseDatasetApi === false || runtimeCapabilities?.datasetRuntimeMode === 'static-snapshot') {
+    return 'not configured';
+  }
+
+  if (['dataset-api', 'edge', 'api'].includes(envelope?.source)) {
+    return 'configured';
+  }
+
+  if (envelope?.source) {
+    return 'not configured';
+  }
+
+  return 'unknown';
+}
+
+function getWorkerBaseUrlStatus(runtimeCapabilities) {
+  if (!runtimeCapabilities) return 'unknown';
+  if (runtimeCapabilities.configuredBackendUrl) return 'configured';
+  if (runtimeCapabilities.canUseConfiguredDatasetApi === false || runtimeCapabilities.datasetApiConfigured === false) return 'missing';
+  return 'unknown';
 }
 
 function DiagnosticDetails({ details }) {
@@ -117,6 +160,79 @@ function EdgeApiSummary({ details }) {
   );
 }
 
+function StatusField({ label, value }) {
+  return (
+    <div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '2px' }}>{label}</div>
+      <div style={{ fontWeight: 600, overflowWrap: 'anywhere' }}>{value}</div>
+    </div>
+  );
+}
+
+function CommandBlock({ label, command }) {
+  return (
+    <div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '4px' }}>{label}</div>
+      <code
+        style={{
+          display: 'block',
+          padding: '8px',
+          borderRadius: '8px',
+          background: 'rgba(0,0,0,0.22)',
+          overflowWrap: 'anywhere',
+          whiteSpace: 'normal',
+        }}
+      >
+        {command}
+      </code>
+    </div>
+  );
+}
+
+function UpAheadEdgeActivationStatus({ envelope, diagnosticEvent, runtimeCapabilities }) {
+  const details = diagnosticEvent?.details || null;
+  const datasetApiMode = getDatasetApiModeStatus(envelope, runtimeCapabilities);
+  const workerBaseUrl = getWorkerBaseUrlStatus(runtimeCapabilities);
+
+  return (
+    <div
+      aria-label="Up Ahead Edge Activation status"
+      style={{
+        marginTop: '12px',
+        padding: '12px',
+        border: '1px solid var(--border-muted)',
+        borderRadius: '12px',
+        background: 'rgba(255,255,255,0.04)',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '10px' }}>
+        <div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Operator status</div>
+          <h4 style={{ margin: '2px 0 0' }}>Up Ahead Edge Activation</h4>
+        </div>
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          {ACTIVATION_STATUS_LABELS.join(' / ')}
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+        <StatusField label="Dataset API mode" value={datasetApiMode} />
+        <StatusField label="Worker/API base URL" value={workerBaseUrl} />
+        <StatusField label="Latest edge source" value={formatDiagnosticValue(details?.source)} />
+        <StatusField label="Latest edge reason" value={formatDiagnosticValue(details?.reason)} />
+        <StatusField label="Latest edge freshness" value={formatDiagnosticValue(details?.freshness)} />
+        <StatusField label="Latest edge age seconds" value={formatDiagnosticValue(details?.ageSeconds)} />
+        <StatusField label="Last diagnostics timestamp" value={formatTime(diagnosticEvent?.ts)} />
+      </div>
+
+      <div style={{ display: 'grid', gap: '8px', marginTop: '12px' }}>
+        <CommandBlock label="Readiness command" command={READINESS_COMMAND} />
+        <CommandBlock label="Smoke command" command={SMOKE_COMMAND} />
+      </div>
+    </div>
+  );
+}
+
 export default function DataHealthPanel() {
   const [diagnostics, setDiagnostics] = useState(() => listDiagnostics());
   const [, setCacheVersion] = useState(0);
@@ -131,7 +247,9 @@ export default function DataHealthPanel() {
   }, []);
 
   const cachedEnvelopes = getCacheSnapshot();
-  const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
+  const runtimeCapabilities = readRuntimeCapabilities();
+  const latestUpAheadEdgeDiagnosticEvent = getLatestUpAheadEdgeDiagnosticEvent(diagnostics);
+  const latestUpAheadEdgeDiagnostics = latestUpAheadEdgeDiagnosticEvent?.details || null;
 
   const exportPayload = () => {
     const payload = {
@@ -225,7 +343,14 @@ export default function DataHealthPanel() {
             </div>
 
             {datasetId === 'upAhead' && (
-              <EdgeApiSummary details={latestUpAheadEdgeDiagnostics} />
+              <>
+                <UpAheadEdgeActivationStatus
+                  envelope={envelope}
+                  diagnosticEvent={latestUpAheadEdgeDiagnosticEvent}
+                  runtimeCapabilities={runtimeCapabilities}
+                />
+                <EdgeApiSummary details={latestUpAheadEdgeDiagnostics} />
+              </>
             )}
 
             {envelope?.error && (
