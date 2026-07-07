@@ -47,8 +47,10 @@ describe('DataHealthPanel', () => {
 
   it('derives latest Up Ahead edge diagnostics for the dataset card', () => {
     expect(src).toContain('getLatestUpAheadEdgeDiagnostics');
+    expect(src).toContain('getLatestUpAheadEdgeDiagnosticEvent');
     expect(src).toContain('upAheadDataset.api_edge_diagnostics');
     expect(src).toContain('latestUpAheadEdgeDiagnostics');
+    expect(src).toContain('latestUpAheadEdgeDiagnosticEvent');
     expect(src).toContain("datasetId === 'upAhead'");
   });
 
@@ -59,6 +61,42 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('Reason:');
     expect(src).toContain('Freshness:');
     expect(src).toContain('Age seconds:');
+  });
+
+  it('renders Up Ahead Edge Activation status panel', () => {
+    expect(src).toContain('UpAheadEdgeActivationStatus');
+    expect(src).toContain('Up Ahead Edge Activation');
+    expect(src).toContain('Up Ahead Edge Activation status');
+    expect(src).toContain('Dataset API mode');
+    expect(src).toContain('Worker/API base URL');
+  });
+
+  it('shows activation status labels without inventing unavailable URLs', () => {
+    expect(src).toContain('ACTIVATION_STATUS_LABELS');
+    expect(src).toContain('configured');
+    expect(src).toContain('not configured');
+    expect(src).toContain('missing');
+    expect(src).toContain('unknown');
+    expect(src).toContain('getDatasetApiModeStatus');
+    expect(src).toContain('getWorkerBaseUrlStatus');
+  });
+
+  it('shows latest edge activation diagnostics and timestamp fields', () => {
+    expect(src).toContain('Latest edge source');
+    expect(src).toContain('Latest edge reason');
+    expect(src).toContain('Latest edge freshness');
+    expect(src).toContain('Latest edge age seconds');
+    expect(src).toContain('Last diagnostics timestamp');
+    expect(src).toContain('formatTime(diagnosticEvent?.ts)');
+  });
+
+  it('shows operator readiness and smoke commands', () => {
+    expect(src).toContain('READINESS_COMMAND');
+    expect(src).toContain('SMOKE_COMMAND');
+    expect(src).toContain('Readiness command');
+    expect(src).toContain('Smoke command');
+    expect(src).toContain('npm run test:upahead-edge-readiness');
+    expect(src).toContain('VITE_API_BASE_URL=https://<worker-host> npm run test:upahead-edge-readiness -- --require-config --smoke');
   });
 
   it('keeps diagnostics in export payload', () => {
