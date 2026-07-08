@@ -17,7 +17,6 @@ import {
   mergeTravelNewsIntoNewsData,
 } from '../services/travelNewsIngestion.js';
 import { auditMainTabQuality } from '../services/pageAuditGrading.js';
-import { rankTopStoriesByRecency } from './topStoriesRecency.js';
 
 const MIN_CUSTOM_TOP_STORIES = 10;
 const MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES = 3;
@@ -39,13 +38,13 @@ function getBrowserNotificationPermission() {
 }
 
 function filterLatestStories(frontPage = [], customSortTopStories = false) {
-  const ranked = rankTopStoriesByRecency(asArray(frontPage));
-  if (!customSortTopStories) return ranked;
+  const ordered = asArray(frontPage).slice(0, 25);
+  if (!customSortTopStories) return ordered;
 
   const preferred = [];
   const viewed = [];
 
-  for (const item of ranked) {
+  for (const item of ordered) {
     if (item?.id && (isArticleRead(item.id) || getViewCount(item.id) > MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES)) {
       viewed.push(item);
     } else {

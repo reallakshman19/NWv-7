@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchSectionNews, clearNewsCache } from '../services/rssAggregator';
-import { composeBalancedFeed } from '../services/frontPageComposer';
+import { rankTopStories } from '../services/topStories/topStoriesRanker';
 import { getSettings, incrementViewCount } from '../utils/storage';
 import { useSettings } from './SettingsContext';
 import { runFullAudit } from '../utils/newsAudit';
@@ -135,23 +135,13 @@ export function NewsProvider({ children }) {
                     redistributed[key].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0));
                 });
 
-                // Generate Balanced Front Page
-                // We use all unique articles available in the current redistribution
-                const allCurrentArticles = Object.values(redistributed).flat();
-                // We might want to include previously loaded data if this is a partial update,
-                // but 'allCollectedResults' accumulates across batches in this function scope.
-                // So 'allFetched' (which drives 'redistributed') contains everything fetched *in this refresh session*.
-                // To be truly global, we might need access to 'newsData' but that's state and might be stale or partial.
-                // Since 'allCollectedResults' accumulates high+low priority in the loop, by the end of loop it has everything.
-                // For the first batch (high priority), we generate a front page from that.
-                // For the second batch (low priority), we generate from high+low.
-
-                const frontPage = composeBalancedFeed(
-                    allCurrentArticles,
-                    20,
-                    settings.maxTopicPercent || 40,
-                    settings.maxGeoPercent || 30
-                );
+                const frontPage = rankTopStories({
+                    sectionItems: redistributed,
+                    settings,
+                    nowMs: Date.now()
+                }, {
+                    limit: 25
+                });
 
                 // Track views for potential "Latest Stories" filtering (3 manual refreshes rule)
                 if (frontPage && frontPage.length > 0) {
