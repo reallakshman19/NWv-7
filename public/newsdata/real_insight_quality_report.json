@@ -1,18 +1,18 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783525396473,
-  "contentHash": "bae97c3368122cf6",
+  "generatedAt": 1783528172554,
+  "contentHash": "146753d7c14b629f",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 752,
+  "storyCount": 710,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
   "avgAngles": 1.5,
   "avgTemporalTiers": 1.9,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.2857142857142857,
+  "avgEvolutionRoles": 1.9,
+  "baseReportShare": 0.19047619047619047,
   "multiAngleCount": 5,
   "weakParentCount": 5,
   "runtimeQualityGate": {
@@ -26,7 +26,7 @@
       "signalScore": 44,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 679,
+      "storyCount": 643,
       "risingCount": 0,
       "thinCount": 5,
       "multiAngleCount": 5,
@@ -34,7 +34,7 @@
       "strongAngleCount": 0,
       "avgAngles": 1.5,
       "avgChildren": 2.1,
-      "avgScore": 0.636807970837112,
+      "avgScore": 0.6270772935467791,
       "sourceDiversityCoverage": 10,
       "snapshotCoverage": 3,
       "coverageLabel": "5/10",
@@ -43,7 +43,7 @@
         "No cluster currently exposes three or more visible child angles.",
         "7 cluster(s) have weak snapshot coverage.",
         "5 cluster(s) are marked thin.",
-        "732 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "671 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
@@ -53,7 +53,7 @@
       "signalScore": 44,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 679,
+      "storyCount": 643,
       "risingCount": 0,
       "thinCount": 5,
       "multiAngleCount": 5,
@@ -61,7 +61,7 @@
       "strongAngleCount": 0,
       "avgAngles": 1.5,
       "avgChildren": 2.1,
-      "avgScore": 0.636807970837112,
+      "avgScore": 0.6270772935467791,
       "sourceDiversityCoverage": 10,
       "snapshotCoverage": 3,
       "coverageLabel": "5/10",
@@ -70,7 +70,7 @@
         "No cluster currently exposes three or more visible child angles.",
         "7 cluster(s) have weak snapshot coverage.",
         "5 cluster(s) are marked thin.",
-        "2 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "1 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "recoveryConfig": {
@@ -208,7 +208,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_578_6435737a710295c9",
+      "parentId": "cluster_579_6435737a710295c9",
       "headline": "PM Modi conferred with Indonesia's highest honour ‘Bintang Adipurna' in Jakarta",
       "score": 0.6814967197849984,
       "postTreeScore": 0.5715,
@@ -225,24 +225,6 @@
         "official_response"
       ],
       "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_638_70fb448d9468c0bd",
-      "headline": "Why Pakistan-based Hafiz Saeed is wanted in India? | Explained",
-      "score": 0.6365800531183317,
-      "postTreeScore": 0.5266,
-      "childCount": 2,
-      "angles": [
-        "base_report"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "first_report"
-      ],
-      "baseReportShare": 1,
       "weakTree": true
     },
     {
@@ -284,6 +266,25 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
+    },
+    {
+      "parentId": "cluster_104_848546e594a7304f",
+      "headline": "Trump says ceasefire is 'over' after US and Iran trade strikes",
+      "score": 0.5392732802150018,
+      "postTreeScore": 0.4293,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
     }
   ],
   "warnings": [
@@ -317,13 +318,13 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.286,
+        "actual": 0.19,
         "required": "<= 0.55"
       },
       {
@@ -365,14 +366,14 @@
       "parentCount": 10,
       "avgAngles": 1.5,
       "avgTemporalTiers": 1.9,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.286,
+      "avgEvolutionRoles": 1.9,
+      "baseReportShare": 0.19,
       "multiAngleCount": 5,
       "weakParentCount": 5,
       "weakParentRatio": 0.5,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 752,
+      "storyCount": 710,
       "sourceGroupCount": 9
     }
   }
