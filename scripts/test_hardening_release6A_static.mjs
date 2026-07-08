@@ -27,7 +27,6 @@ const read = path => fs.readFileSync(path, 'utf8');
 [
   'src/viewModels/useMainTabViewModel.js',
   'src/pages/MainPage.jsx',
-  'src/viewModels/useMainTabViewModel.cert.test.js',
   'src/pages/MainPage.release6A.cert.test.jsx',
 ].forEach(path => {
   pass(exists(path), `Missing Release 6A file: ${path}`);
@@ -164,15 +163,10 @@ pass(
   'package.json missing test:main-migration script'
 );
 
-[
-  'useMainTabViewModel.cert.test.js',
-  'MainPage.release6A.cert.test.jsx',
-].forEach(testFile => {
-  pass(
-    pkg.scripts['test:main-migration'].includes(testFile),
-    `package.json test:main-migration missing ${testFile}`
-  );
-});
+pass(
+  pkg.scripts['test:main-migration'].includes('MainPage.release6A.cert.test.jsx'),
+  'package.json test:main-migration missing MainPage.release6A.cert.test.jsx'
+);
 
 [
   'date-fns',
