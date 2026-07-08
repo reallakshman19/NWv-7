@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1783503335341,
+  "generatedAt": 1783507024074,
   "windowDays": 7,
   "latest": {
     "insightGrade": "D",
     "insightScore": 0,
-    "totalStories": 596,
-    "usableStories36h": 596,
+    "totalStories": 619,
+    "usableStories36h": 611,
     "sourceGroups": 9,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3168,
+    "rankingOverallScore": 0.3139,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3168,
+    "overallScore": 0.3139,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1783503334582,
+    "generatedAt": 1783507023314,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.4082,
+      "insight": 0.3947,
       "localTravel": 0,
-      "upAhead": 0.8592
+      "upAhead": 0.8607
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.4082,
+        "score": 0.3947,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8592,
+        "score": 0.8607,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,11 +74,11 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 8,
-        "strongParents": 8,
+        "parentClusters": 11,
+        "strongParents": 11,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0
       },
       "localTravel": {
@@ -92,7 +92,7 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 20,
+        "suppressedItemCount": 13,
         "events": 0,
         "onlineOffers": 0,
         "offlineOffers": 0,
@@ -105,23 +105,24 @@
       }
     },
     "topFindings": [
+      "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
       "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
       "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
-      "Al Buraimi expands internal road network, civic spaces - Oman Observer: futureValidity failed — expired display window",
-      "Al Buraimi expands internal road network, civic spaces - Oman Observer: alertUrgency failed — alert expired",
-      "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: futureValidity failed — expired display window",
-      "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: alertUrgency failed — alert expired",
+      "Karur stampede: TVK chief Vijay speaks to victims’ families on video calls: futureValidity failed — expired display window",
+      "Karur stampede: TVK chief Vijay speaks to victims’ families on video calls: alertUrgency failed — alert expired",
+      "In Karur, where there was no way out: futureValidity failed — expired display window",
+      "In Karur, where there was no way out: alertUrgency failed — alert expired",
       "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
       "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: futureValidity failed — expired display window",
       "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: location failed — offline/local item lacks configured location match",
-      "Air India Express Launches Xplore More Sale With 15 Percent Discounts on Asia and Middle East Flights 2026 - Nomad Lawyer: location failed — offline/local item lacks configured location match",
-      "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: futureValidity failed — expired display window",
-      "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match"
+      "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: offerValidity failed — offer expired"
     ],
     "actionRequired": [
-      "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
+      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -129,8 +130,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted",
-      "buzz: no local Buzz item in ranked set"
+      "3 base-report-heavy Insight parent(s) demoted"
     ]
   },
   "sourceHealth": {
@@ -256,16 +256,16 @@
     },
     {
       "date": "2026-07-08",
-      "generatedAt": 1783503335341,
+      "generatedAt": 1783507024074,
       "insightGrade": "D",
       "insightScore": 0,
-      "totalStories": 596,
-      "usableStories36h": 596,
+      "totalStories": 619,
+      "usableStories36h": 611,
       "sourceGroups": 9,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3168,
+      "rankingOverallScore": 0.3139,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
