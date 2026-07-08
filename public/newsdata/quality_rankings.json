@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 10
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 10,
-        "parentClusters": 10,
-        "strongParents": 10,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3983,
+      "qualityScore": 0.3931,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -837,6 +837,116 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:108fb3f638",
           "item": {
             "angleCount": 1,
@@ -1175,8 +1285,8 @@
             "baseReportRatio": 1.0,
             "childScores": [],
             "id": "sketch:c1c58008d6",
-            "representativeId": "dadd53c1bc76741b",
-            "representativeTitle": "Top news of the day on June 18, 2026 - The Hindu",
+            "representativeId": "a5b849f848fafb29",
+            "representativeTitle": "Top news of the day | June 24, 2026 - The Hindu",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -1196,7 +1306,7 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "dadd53c1bc76741b",
+              "a5b849f848fafb29",
               "bf952c0b99344c4d"
             ],
             "topAngles": [
@@ -1218,18 +1328,18 @@
             "one-source event candidate"
           ],
           "score": 0.1751,
-          "title": "Top news of the day on June 18, 2026 - The Hindu"
+          "title": "Top news of the day | June 24, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.378,
-        "eventImportanceScore": 0.65,
+        "angleDiversityScore": 0.3664,
+        "eventImportanceScore": 0.6445,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.49,
-        "sourceAuthorityScore": 0.428,
-        "sourceDiversityScore": 0.424,
-        "temporalEvolutionScore": 0.418
+        "noveltyDeltaScore": 0.4864,
+        "sourceAuthorityScore": 0.4236,
+        "sourceDiversityScore": 0.4173,
+        "temporalEvolutionScore": 0.4136
       }
     },
     "localTravel": {
@@ -1289,7 +1399,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set"
       ],
       "destination": "upAhead",
@@ -1304,14 +1414,16 @@
         "Air India Express Launches Xplore More Sale With 15 Percent Discounts on Asia and Middle East Flights 2026 - Nomad Lawyer: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
+        "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: futureValidity failed — expired display window",
+        "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: offerValidity failed — offer expired",
+        "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: futureValidity failed — expired display window",
+        "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired",
+        "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: futureValidity failed — expired display window",
         "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-        "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: futureValidity failed — expired display window",
-        "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: offerValidity failed — offer expired",
-        "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: futureValidity failed — expired display window",
-        "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: offerValidity failed — offer expired",
-        "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
-        "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-        "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
+        "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: offerValidity failed — offer expired",
+        "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: futureValidity failed — expired display window",
+        "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: offerValidity failed — offer expired",
+        "Only a few hours left! Amazon Prime Day ends tonight with big savings on laptops, TVs, ACs and more | Technology News\n(HT Tech) - Hindustan Times: futureValidity failed — expired display window"
       ],
       "gateResults": [
         {
@@ -1361,7 +1473,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 15
+        "suppressedItemCount": 19
       },
       "qualityGrade": "B",
       "qualityScore": 0.8602,
@@ -4830,7 +4942,7 @@
       }
     }
   },
-  "generatedAt": 1783497327426,
+  "generatedAt": 1783502594560,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4849,7 +4961,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4862,7 +4974,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3983,
+      "insight": 0.3931,
       "localTravel": 0.0,
       "upAhead": 0.8602
     },
@@ -4872,7 +4984,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3146,
+    "overallScore": 0.3133,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4891,14 +5003,16 @@
       "Air India Express Launches Xplore More Sale With 15 Percent Discounts on Asia and Middle East Flights 2026 - Nomad Lawyer: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
+      "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: futureValidity failed — expired display window",
+      "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: offerValidity failed — offer expired",
+      "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: futureValidity failed — expired display window",
+      "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired",
+      "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: futureValidity failed — expired display window",
       "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-      "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: futureValidity failed — expired display window",
-      "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: offerValidity failed — offer expired",
-      "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: futureValidity failed — expired display window",
-      "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: offerValidity failed — offer expired",
-      "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
-      "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
-      "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
+      "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: offerValidity failed — offer expired",
+      "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: futureValidity failed — expired display window",
+      "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: offerValidity failed — offer expired",
+      "Only a few hours left! Amazon Prime Day ends tonight with big savings on laptops, TVs, ACs and more | Technology News\n(HT Tech) - Hindustan Times: futureValidity failed — expired display window"
     ]
   }
 }
