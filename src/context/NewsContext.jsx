@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchSectionNews, clearNewsCache } from '../services/rssAggregator';
-import { composeBalancedFeed } from '../services/frontPageComposer';
+import { rankTopStories } from '../services/topStories/topStoriesRanker';
 import { getSettings, incrementViewCount } from '../utils/storage';
 import { useSettings } from './SettingsContext';
 import { runFullAudit } from '../utils/newsAudit';
@@ -146,12 +146,13 @@ export function NewsProvider({ children }) {
                 // For the first batch (high priority), we generate a front page from that.
                 // For the second batch (low priority), we generate from high+low.
 
-                const frontPage = composeBalancedFeed(
-                    allCurrentArticles,
-                    20,
-                    settings.maxTopicPercent || 40,
-                    settings.maxGeoPercent || 30
-                );
+                const frontPage = rankTopStories({
+                    sectionItems: redistributed,
+                    settings,
+                    nowMs: Date.now()
+                }, {
+                    limit: 25
+                });
 
                 // Track views for potential "Latest Stories" filtering (3 manual refreshes rule)
                 if (frontPage && frontPage.length > 0) {
