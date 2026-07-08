@@ -86,9 +86,136 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3889,
+      "qualityScore": 0.3983,
       "qualityStatus": "WARN",
       "rankedItems": [
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 4
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 4
+              },
+              "name": "angleDiversity",
+              "reason": "strong angle diversity",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 4
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:14617064fe",
+          "item": {
+            "angleCount": 4,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:14617064fe",
+            "representativeId": "fb3bf61286e50f4b",
+            "representativeTitle": "Wayanad debris slip Live: Search on for 5 missing; Amit Shah pledges Centre's support",
+            "scoreBreakdown": {
+              "angleDiversityScore": 1.0,
+              "eventImportanceScore": 0.83,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.75,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.49
+            },
+            "slotCount": 2,
+            "slots": [
+              "minus4h",
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "the_hindu"
+            ],
+            "storyCount": 4,
+            "storyIds": [
+              "fb3bf61286e50f4b",
+              "0c1f64fcfbcd37a7",
+              "ccb1b85f925a88c3",
+              "5f58ed5f84af068c"
+            ],
+            "topAngles": [
+              {
+                "angle": "regional_followup",
+                "count": 1
+              },
+              {
+                "angle": "investigative_detail",
+                "count": 1
+              },
+              {
+                "angle": "expert_analysis",
+                "count": 1
+              },
+              {
+                "angle": "official_response",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "wayanad",
+              "debris",
+              "slip",
+              "kerala",
+              "search",
+              "experts"
+            ],
+            "topicKey": "wayanad|debris|slip"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "strong angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.641,
+          "title": "Wayanad debris slip Live: Search on for 5 missing; Amit Shah pledges Centre's support"
+        },
         {
           "category": "insightEvent",
           "gates": [
@@ -211,7 +338,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
+                "storyCount": 4
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -221,12 +348,12 @@
             {
               "details": {
                 "baseReportRatio": 0.0,
-                "distinctAngles": 2
+                "distinctAngles": 1
               },
               "name": "angleDiversity",
-              "reason": "usable angle diversity",
-              "score": 0.78,
-              "status": "PASS"
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
             },
             {
               "details": {
@@ -248,11 +375,11 @@
             },
             {
               "details": {
-                "childCount": 2
+                "childCount": 4
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.5,
+              "score": 1.0,
               "status": "PASS"
             },
             {
@@ -263,64 +390,63 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:14617064fe",
+          "id": "sketch:313fbb8095",
           "item": {
-            "angleCount": 2,
+            "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:14617064fe",
-            "representativeId": "ccb1b85f925a88c3",
-            "representativeTitle": "Wayanad debris slip: experts, residents blame poor safeguards",
+            "id": "sketch:313fbb8095",
+            "representativeId": "3f4614cfb237e7a1",
+            "representativeTitle": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India",
             "scoreBreakdown": {
-              "angleDiversityScore": 0.78,
-              "eventImportanceScore": 0.59,
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.83,
               "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.55,
+              "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
               "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.49
+              "temporalEvolutionScore": 0.37
             },
-            "slotCount": 2,
+            "slotCount": 1,
             "slots": [
-              "minus4h",
               "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "the_hindu"
+              "google_news"
             ],
-            "storyCount": 2,
+            "storyCount": 4,
             "storyIds": [
-              "ccb1b85f925a88c3",
-              "5f58ed5f84af068c"
+              "3f4614cfb237e7a1",
+              "4ee739c53b939a61",
+              "c0b89c693126f623",
+              "55cf58dd032da79f"
             ],
             "topAngles": [
               {
-                "angle": "expert_analysis",
-                "count": 1
-              },
-              {
-                "angle": "official_response",
-                "count": 1
+                "angle": "fact_update",
+                "count": 4
               }
             ],
             "topTokens": [
-              "wayanad",
-              "debris",
-              "slip",
-              "experts",
-              "kerala"
+              "breaking",
+              "live",
+              "updates",
+              "damascus",
+              "neelkanth",
+              "strong",
+              "govt"
             ],
-            "topicKey": "wayanad|debris|slip"
+            "topicKey": "breaking|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
             "event sketch has repeated story count",
-            "usable angle diversity",
+            "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.517,
-          "title": "Wayanad debris slip: experts, residents blame poor safeguards"
+          "score": 0.449,
+          "title": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -379,14 +505,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:313fbb8095",
+          "id": "sketch:768c327fc1",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "3f4614cfb237e7a1",
-            "representativeTitle": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India",
+            "id": "sketch:768c327fc1",
+            "representativeId": "98fab96bbd6b5689",
+            "representativeTitle": "India news LIVE updates, 8 July 2026: Baruipur rape-murder accused shot dead in encounter, Mumbai airport near-miss as two Air India flights face off on runway, US hits 80 Iranian ",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.71,
@@ -406,9 +532,9 @@
             ],
             "storyCount": 3,
             "storyIds": [
-              "3f4614cfb237e7a1",
-              "4ee739c53b939a61",
-              "c0b89c693126f623"
+              "98fab96bbd6b5689",
+              "5332ff87ccba2b49",
+              "63be1857096a4f06"
             ],
             "topAngles": [
               {
@@ -417,14 +543,12 @@
               }
             ],
             "topTokens": [
-              "breaking",
+              "india",
               "live",
               "updates",
-              "damascus",
-              "neelkanth",
-              "strong"
+              "july"
             ],
-            "topicKey": "breaking|live|updates"
+            "topicKey": "india|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -433,7 +557,117 @@
             "one-source event candidate"
           ],
           "score": 0.419,
-          "title": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India"
+          "title": "India news LIVE updates, 8 July 2026: Baruipur rape-murder accused shot dead in encounter, Mumbai airport near-miss as two Air India flights face off on runway, US hits 80 Iranian"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:2b212501c8",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:2b212501c8",
+            "representativeId": "cf3806149b1cd620",
+            "representativeTitle": "AI-powered misinformation inciting harm to refugees, says UN",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus12h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "the_hindu"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cf3806149b1cd620",
+              "e22ea7871d2d5df5"
+            ],
+            "topAngles": [
+              {
+                "angle": "official_response",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "misinformation",
+              "inciting",
+              "harm",
+              "refugees"
+            ],
+            "topicKey": "misinformation|inciting|harm"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "AI-powered misinformation inciting harm to refugees, says UN"
         },
         {
           "category": "insightEvent",
@@ -533,7 +767,7 @@
               "live",
               "july",
               "provisionally",
-              "least"
+              "indian"
             ],
             "topicKey": "breaking|live|july"
           },
@@ -545,226 +779,6 @@
           ],
           "score": 0.389,
           "title": "Breaking News Live, July 8: IOC provisionally lifts suspension of Russian Olympic Committee - The Times of India"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:768c327fc1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "5332ff87ccba2b49",
-            "representativeTitle": "India news LIVE updates, 7 July 2026: Mumbai schools shut as orange alert issued; Modi gets ceremonial welcome in Jakarta - The Indian Express",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "5332ff87ccba2b49",
-              "63be1857096a4f06"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "india",
-              "live",
-              "updates",
-              "july"
-            ],
-            "topicKey": "india|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "India news LIVE updates, 7 July 2026: Mumbai schools shut as orange alert issued; Modi gets ceremonial welcome in Jakarta - The Indian Express"
         },
         {
           "category": "insightEvent",
@@ -993,116 +1007,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 4
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 4
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "dadd53c1bc76741b",
-            "representativeTitle": "Top news of the day on June 18, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 4,
-            "storyIds": [
-              "dadd53c1bc76741b",
-              "4cca4280284d2e54",
-              "bf952c0b99344c4d",
-              "799aa9b7edec72f4"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 4
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2021,
-          "title": "Top news of the day on June 18, 2026 - The Hindu"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -1207,14 +1111,122 @@
           ],
           "score": 0.1751,
           "title": "Decoding the selection call that ended Sanju Samson's T20 World Cup high - and the road ahead - The Times of India"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "dadd53c1bc76741b",
+            "representativeTitle": "Top news of the day on June 18, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "dadd53c1bc76741b",
+              "bf952c0b99344c4d"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1751,
+          "title": "Top news of the day on June 18, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.356,
-        "eventImportanceScore": 0.626,
+        "angleDiversityScore": 0.378,
+        "eventImportanceScore": 0.65,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.47,
+        "noveltyDeltaScore": 0.49,
         "sourceAuthorityScore": 0.428,
         "sourceDiversityScore": 0.424,
         "temporalEvolutionScore": 0.418
@@ -1277,15 +1289,15 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
-        "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "no active offer items in ranked Up Ahead set"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
         "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+        "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: futureValidity failed — expired display window",
+        "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: alertUrgency failed — alert expired",
         "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
         "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: location failed — offline/local item lacks configured location match",
@@ -1293,7 +1305,10 @@
         "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
         "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-        "Abu Dhabi Partners With Dubai, Kuwait City, Muscat and Doha as Air India Express Rolls Out Its Biggest International Fare Sale with Discounts of Up to Fifteen Percent for India and Beyond—Here’s Why Gulf Travellers Should Act Quickly - Travel And Tour World: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: futureValidity failed — expired display window",
+        "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: offerValidity failed — offer expired",
+        "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: futureValidity failed — expired display window",
+        "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: offerValidity failed — offer expired",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
         "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
         "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
@@ -1311,39 +1326,45 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 28,
+              "civic": 1,
+              "weather_alerts": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.75,
           "status": "PASS"
         }
       ],
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 28,
+          "civic": 1,
+          "weather_alerts": 1
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 70,
+        "inputItemCount": 67,
         "locationCounts": {
-          "chennai": 17,
+          "chennai": 16,
+          "muscat": 1,
           "trichy": 13
         },
         "locationsCovered": [
           "chennai",
+          "muscat",
           "trichy"
         ],
         "offlineOffers": 0,
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 13
+        "suppressedItemCount": 15
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8607,
+      "qualityScore": 0.8602,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1805,121 +1826,6 @@
           ],
           "score": 0.8485,
           "title": "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "04e2858314703511"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783489529000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "20a8baaf3b5e4912",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783489529000,
-            "id": "20a8baaf3b5e4912",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784094329000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783489529000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783403129000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "G. Ventakesan is keeping his father’s legacy of repairing stringed instruments alive with his son, a Computer Science graduate, from his home-based workshop in Srirangam",
-            "suppressionReason": null,
-            "title": "A legacy of musical instrumentation flows quietly in Srirangam",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/a-legacy-of-musical-instrumentation-flows-quietly-in-srirangam/article71189915.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "A legacy of musical instrumentation flows quietly in Srirangam"
         },
         {
           "category": "alerts",
@@ -2616,121 +2522,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "f8f46b274485dfa5"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783491955000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "21268ee90fb500ef",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783491955000,
-            "id": "21268ee90fb500ef",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784096755000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783491955000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783405555000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "The slow movement of the suburban trains resulted in a delay of more than 30 minutes for a commuter to reach Egmore railway station",
-            "suppressionReason": null,
-            "title": "Crack in railway track slows down operation of suburban trains in Chennai",
-            "url": "https://www.thehindu.com/news/cities/chennai/crack-in-railway-track-slows-down-operation-of-suburban-trains-in-chennai/article71192342.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Crack in railway track slows down operation of suburban trains in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "80a3cd552c665772"
               },
               "name": "dedup",
@@ -3070,121 +2861,6 @@
           ],
           "score": 0.8485,
           "title": "Karur stampede: TVK chief Vijay speaks to victims’ families on video calls"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "7b4a69c209a58caf"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783496876000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "5009d26fe8578704",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783496876000,
-            "id": "5009d26fe8578704",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784101676000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783496876000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783410476000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Unmindful of their locomotor disabilities, couple Prabhu L. and Priya Prabhu have made bold business moves and their efforts have paid off, going by the patronage they enjoy in Madipakkam",
-            "suppressionReason": null,
-            "title": "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit",
-            "url": "https://www.thehindu.com/news/cities/chennai/lakeside-snack-stall-in-madipakkam-bolstered-by-an-indomitable-spirit/article71186635.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit"
         },
         {
           "category": "alerts",
@@ -4795,12 +4471,357 @@
           ],
           "score": 0.8485,
           "title": "Temperature levels high as monsoon remains subdued"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "7b0348990bf3f04d"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783518060000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "02a16be6e774855f",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783518060000,
+            "id": "02a16be6e774855f",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784122860000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783518060000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783431660000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Water level in Mettur Dam stands at 76.48 feet",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/water-level-in-mettur-dam-stands-at-7648-feet/article71193590.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Water level in Mettur Dam stands at 76.48 feet"
+        },
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "2bfa997aa451ac51"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783565338000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "18b0737b641b184c",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783565338000,
+            "id": "18b0737b641b184c",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784170138000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783565338000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783478938000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2gFBVV95cUxOaHBKaHhJSlZYdG83aXpZRjFhXzBoSUJIWUx2ZjI1aXdTb3ZlX29rNGhnY1pBaVp6d2hqeUpnc3pDWXcyLUh6MlRlOXFBNkV0VGMwSFNTVFBlNldHS3pKYU9ub0dlTGstRUdKTU9KWjFWXzFBa2kxVFRsLVVLOEtMWEdNYVc1U01lazNBM05ZTHl6a0JPR1ZaNlBIMkR1dEtDQXZNRFpGZVJUU0kzWlJ6OTFwbXBBeS1lb01UeHlYQzNCOEJKT3p2MVdwaFJaajhLX1RYeGxvMGdUQQ?oc=5\" target=\"_blank\">Karnataka Weather Today: IMD Predicts Extremely Heavy Rain, 60 km/h Winds in Coastal Areas; Bengaluru Rains Li</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Goodreturns</font>",
+            "suppressionReason": null,
+            "title": "Karnataka Weather Today: IMD Predicts Extremely Heavy Rain, 60 km/h Winds in Coastal Areas; Bengaluru Rains Li - Goodreturns",
+            "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxOaHBKaHhJSlZYdG83aXpZRjFhXzBoSUJIWUx2ZjI1aXdTb3ZlX29rNGhnY1pBaVp6d2hqeUpnc3pDWXcyLUh6MlRlOXFBNkV0VGMwSFNTVFBlNldHS3pKYU9ub0dlTGstRUdKTU9KWjFWXzFBa2kxVFRsLVVLOEtMWEdNYVc1U01lazNBM05ZTHl6a0JPR1ZaNlBIMkR1dEtDQXZNRFpGZVJUU0kzWlJ6OTFwbXBBeS1lb01UeHlYQzNCOEJKT3p2MVdwaFJaajhLX1RYeGxvMGdUQQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Karnataka Weather Today: IMD Predicts Extremely Heavy Rain, 60 km/h Winds in Coastal Areas; Bengaluru Rains Li - Goodreturns"
+        },
+        {
+          "category": "civic",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "489b82def8b06459"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783503332000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "muscat",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "835680b1048d6d06",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "civic",
+            "city": "Muscat",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783503332000,
+            "id": "835680b1048d6d06",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784108132000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783503332000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "civic",
+            "plannerEligible": true,
+            "publishedAt": 1783416932000,
+            "region": "oman",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.92,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Muscat Civic",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQdIBWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQQ?oc=5\" target=\"_blank\">Al Buraimi expands internal road network, civic spaces</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Oman Observer</font>",
+            "suppressionReason": null,
+            "title": "Al Buraimi expands internal road network, civic spaces - Oman Observer",
+            "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQdIBWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQQ?oc=5"
+          },
+          "locationKey": "muscat",
+          "rankingReasons": [
+            "civic",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8365,
+          "title": "Al Buraimi expands internal road network, civic spaces - Oman Observer"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "categoryPriorityScore": 0.9967,
         "lifecycleScore": 0.65,
         "locationScore": 1.0,
         "plannerFitScore": 1.0,
@@ -4809,7 +4830,7 @@
       }
     }
   },
-  "generatedAt": 1783486046553,
+  "generatedAt": 1783497327426,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4828,10 +4849,8 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "15 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
-      "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4843,9 +4862,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3889,
+      "insight": 0.3983,
       "localTravel": 0.0,
-      "upAhead": 0.8607
+      "upAhead": 0.8602
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4853,7 +4872,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3124,
+    "overallScore": 0.3146,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4864,6 +4883,8 @@
     "topFindings": [
       "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
       "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+      "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: futureValidity failed — expired display window",
+      "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: alertUrgency failed — alert expired",
       "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
       "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: location failed — offline/local item lacks configured location match",
@@ -4871,7 +4892,10 @@
       "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
       "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-      "Abu Dhabi Partners With Dubai, Kuwait City, Muscat and Doha as Air India Express Rolls Out Its Biggest International Fare Sale with Discounts of Up to Fifteen Percent for India and Beyond—Here’s Why Gulf Travellers Should Act Quickly - Travel And Tour World: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: futureValidity failed — expired display window",
+      "Amazon Prime Day 2026 Beauty Sale Ends Today: Final Offers On L'Oréal, Maybelline, Dyson And More - News18: offerValidity failed — offer expired",
+      "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: futureValidity failed — expired display window",
+      "I only recommended these 8 smart TV deals to my friends before Amazon Prime Day Sale ends - livemint.com: offerValidity failed — offer expired",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
       "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
       "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
