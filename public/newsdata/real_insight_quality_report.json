@@ -1,92 +1,82 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783507022610,
-  "contentHash": "8caaccae3eb330bf",
+  "generatedAt": 1783513308170,
+  "contentHash": "521f342b1dacb5c3",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 619,
+  "storyCount": 660,
   "sourceGroupCount": 9,
-  "grade": "D",
+  "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.4,
-  "avgTemporalTiers": 1.8,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.4,
-  "multiAngleCount": 4,
-  "weakParentCount": 6,
+  "avgAngles": 1.5,
+  "avgTemporalTiers": 1.9,
+  "avgEvolutionRoles": 1.9,
+  "baseReportShare": 0.38095238095238093,
+  "multiAngleCount": 5,
+  "weakParentCount": 5,
   "runtimeQualityGate": {
-    "attempted": true,
+    "attempted": false,
     "recovered": false,
-    "reason": "relaxed-tree recovery could not produce acceptable output",
+    "reason": "first-pass acceptable",
     "before": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 41,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 45,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 573,
+      "storyCount": 607,
       "risingCount": 0,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 2,
-      "avgScore": 0.6319210869849436,
-      "sourceDiversityCoverage": 9,
-      "snapshotCoverage": 5,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.5,
+      "avgChildren": 2.1,
+      "avgScore": 0.6213779708371121,
+      "sourceDiversityCoverage": 10,
+      "snapshotCoverage": 4,
+      "coverageLabel": "5/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "5 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "1 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin.",
-        "461 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "6 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin.",
+        "531 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 41,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 45,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 573,
+      "storyCount": 607,
       "risingCount": 0,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 2,
-      "avgScore": 0.6319210869849436,
-      "sourceDiversityCoverage": 9,
-      "snapshotCoverage": 5,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.5,
+      "avgChildren": 2.1,
+      "avgScore": 0.6213779708371121,
+      "sourceDiversityCoverage": 10,
+      "snapshotCoverage": 4,
+      "coverageLabel": "5/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "5 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "1 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin.",
-        "1 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "6 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin.",
+        "531 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
-    },
-    "recoveryConfig": {
-      "MIN_CHILD_INFO_GAIN": 0.08,
-      "WEAK_TREE_CHILD_MIN": 2,
-      "MIN_SOURCES_PER_TREE": 2,
-      "MAX_PER_SOURCE_GROUP": 3,
-      "MAX_PER_ANGLE": 4,
-      "TIER_D_EXCLUDE": false
     }
   },
   "parents": [
     {
-      "parentId": "cluster_160_295caf0cfb2c8fac",
+      "parentId": "cluster_198_295caf0cfb2c8fac",
       "headline": "Nato showcases big arms deals as Trump sulks",
       "score": 0.7209967197849984,
       "postTreeScore": 1.121,
@@ -107,7 +97,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_145_d7a85ce7d4c1167e",
+      "parentId": "cluster_184_d7a85ce7d4c1167e",
       "headline": "US official says latest attacks on Iran \"4-5 times bigger\" than last strikes: Report",
       "score": 0.61751,
       "postTreeScore": 1.0175,
@@ -128,7 +118,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_527_643d18269d89aec7",
+      "parentId": "cluster_564_643d18269d89aec7",
       "headline": "Trump says there will either be a deal with Iran or U.S. will ‘finish the job’",
       "score": 0.6265800531183316,
       "postTreeScore": 1.0066,
@@ -149,7 +139,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_385_2461d5f072ec0fa1",
+      "parentId": "cluster_423_2461d5f072ec0fa1",
       "headline": "India, Indonesia expand defence ties; New Delhi to supply BrahMos missiles",
       "score": 0.5517727761127958,
       "postTreeScore": 0.9718,
@@ -171,7 +161,48 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_500_70fb448d9468c0bd",
+      "parentId": "cluster_29_1b10261cf8ec84d2",
+      "headline": "New U.S. attacks on Iran were absolutely necessary, NATO chief says",
+      "score": 0.5492732802150018,
+      "postTreeScore": 0.9293,
+      "childCount": 2,
+      "angles": [
+        "market_reaction",
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_479_6435737a710295c9",
+      "headline": "PM Modi conferred with Indonesia's highest honour ‘Bintang Adipurna' in Jakarta",
+      "score": 0.6814967197849984,
+      "postTreeScore": 0.5715,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "developing",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_538_70fb448d9468c0bd",
       "headline": "Why Pakistan-based Hafiz Saeed is wanted in India? | Explained",
       "score": 0.6365800531183317,
       "postTreeScore": 0.5266,
@@ -189,27 +220,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_441_6435737a710295c9",
-      "headline": "PM Modi conferred with Indonesia's highest honour ‘Bintang Adipurna' in Jakarta",
-      "score": 0.61351,
-      "postTreeScore": 0.5235,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "developing",
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_270_9f96d52233c6f8d1",
+      "parentId": "cluster_308_9f96d52233c6f8d1",
       "headline": "Woman suspected of Monaco bomb attack found dead in Ukraine",
       "score": 0.60616,
       "postTreeScore": 0.5162,
@@ -229,7 +240,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_73_98fab96bbd6b5689",
+      "parentId": "cluster_112_98fab96bbd6b5689",
       "headline": "India news LIVE updates, 8 July 2026: Baruipur rape-murder accused shot dead in encounter, Mumbai airport near-miss as two Air India flights face off on runway, US hits 80 Iranian targets after Hormuz attacks - The Indian Express",
       "score": 0.6135800531183317,
       "postTreeScore": 0.5036,
@@ -249,7 +260,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_530_28d554d6f11369ee",
+      "parentId": "cluster_567_28d554d6f11369ee",
       "headline": "US accuses Iran of attacking 2 commercial ships; mulls action",
       "score": 0.6098300531183317,
       "postTreeScore": 0.4998,
@@ -266,36 +277,22 @@
       ],
       "baseReportShare": 1,
       "weakTree": true
-    },
-    {
-      "parentId": "cluster_112_3697f44e61018085",
-      "headline": "Eternal, ICICI Bank & 8 stocks with up to 27% upside. Do you own them?",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "market_reaction"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
     }
   ],
-  "warnings": [
-    "Real snapshot still produces low Insight grade."
-  ],
+  "warnings": [],
   "errors": [],
   "ratchetGate": {
-    "status": "FAIL",
+    "status": "PASS",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
-    "grade": "D",
-    "score": 66,
+    "grade": "C",
+    "score": 100,
     "passed": [
+      {
+        "id": "grade-floor",
+        "label": "Real snapshot grade floor",
+        "actual": "C",
+        "required": "A/B/C"
+      },
       {
         "id": "parent-count",
         "label": "Parent cluster count",
@@ -305,31 +302,31 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.4,
+        "actual": 1.5,
         "required": ">= 1.4"
       },
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.8"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.4,
+        "actual": 0.381,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 4,
+        "actual": 5,
         "required": ">= 1"
       },
       {
@@ -343,38 +340,27 @@
         "label": "Top parent child depth",
         "actual": 2,
         "required": ">= 2"
-      }
-    ],
-    "failed": [
-      {
-        "id": "grade-floor",
-        "label": "Real snapshot grade floor",
-        "actual": "D",
-        "required": "A/B/C",
-        "severity": "fail",
-        "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
       },
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.6,
-        "required": "<= 0.5",
-        "severity": "warn",
-        "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
+        "actual": 0.5,
+        "required": "<= 0.5"
       }
     ],
+    "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.4,
-      "avgTemporalTiers": 1.8,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.4,
-      "multiAngleCount": 4,
-      "weakParentCount": 6,
-      "weakParentRatio": 0.6,
+      "avgAngles": 1.5,
+      "avgTemporalTiers": 1.9,
+      "avgEvolutionRoles": 1.9,
+      "baseReportShare": 0.381,
+      "multiAngleCount": 5,
+      "weakParentCount": 5,
+      "weakParentRatio": 0.5,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 619,
+      "storyCount": 660,
       "sourceGroupCount": 9
     }
   }
