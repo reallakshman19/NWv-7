@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4042,
+      "qualityScore": 0.407,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -445,121 +445,6 @@
           ],
           "score": 0.4925,
           "title": "Trump says ceasefire is 'over' after US and Iran trade strikes"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 4
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "3f4614cfb237e7a1",
-            "representativeTitle": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 4,
-            "storyIds": [
-              "3f4614cfb237e7a1",
-              "4ee739c53b939a61",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 4
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "damascus",
-              "neelkanth",
-              "strong",
-              "govt"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.449,
-          "title": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -1340,13 +1225,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3664,
-        "eventImportanceScore": 0.6445,
+        "angleDiversityScore": 0.378,
+        "eventImportanceScore": 0.626,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4864,
-        "sourceAuthorityScore": 0.4455,
-        "sourceDiversityScore": 0.4509,
-        "temporalEvolutionScore": 0.4355
+        "noveltyDeltaScore": 0.49,
+        "sourceAuthorityScore": 0.452,
+        "sourceDiversityScore": 0.461,
+        "temporalEvolutionScore": 0.442
       }
     },
     "localTravel": {
@@ -1406,7 +1291,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat"
       ],
@@ -1415,8 +1300,14 @@
         "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
         "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
         "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+        "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September: futureValidity failed — expired display window",
+        "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September: alertUrgency failed — alert expired",
+        "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur: futureValidity failed — expired display window",
+        "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur: alertUrgency failed — alert expired",
         "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
         "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
+        "Last day of Amazon Prime Day 2026 event in India: Best deals on Samsung Galaxy S25 Ultra, Apple iPhone 17 - The Times of India: futureValidity failed — expired display window",
+        "Last day of Amazon Prime Day 2026 event in India: Best deals on Samsung Galaxy S25 Ultra, Apple iPhone 17 - The Times of India: offerValidity failed — offer expired",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
         "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
         "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
@@ -1454,8 +1345,8 @@
         "festivals": 0,
         "inputItemCount": 53,
         "locationCounts": {
-          "chennai": 22,
-          "trichy": 8
+          "chennai": 21,
+          "trichy": 9
         },
         "locationsCovered": [
           "chennai",
@@ -1465,10 +1356,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 8
+        "suppressedItemCount": 11
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8606,
+      "qualityScore": 0.8579,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1700,121 +1591,6 @@
           ],
           "score": 0.8705,
           "title": "Polytechnic colleges in Tiruchi district face closure amid dwindling admissions"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "3d8e8cee1fdda126"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783513535000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "de0e65366da332d1",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783513535000,
-            "id": "de0e65366da332d1",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784118335000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783513535000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783427135000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/19-barrels-of-contaminated-pickles-confiscated-by-food-safety-inspection-team-in-thuraiyur/article71193509.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur"
         },
         {
           "category": "alerts",
@@ -2275,121 +2051,6 @@
           ],
           "score": 0.8485,
           "title": "Centre of excellence in paediatric robotic urology launched in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "ba7bbba05394c02c"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783515359000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "922a1ae51cfeca5d",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783515359000,
-            "id": "922a1ae51cfeca5d",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784120159000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783515359000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783428959000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Officials say the contract for building the four towers has been finalised, with the estimated cost being nearly ₹400 crore. The towers will be linked to the Phase II Metro station by a skywalk. From the date of award of contract, the firm will have two and a half years to complete the construction",
-            "suppressionReason": null,
-            "title": "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September",
-            "url": "https://www.thehindu.com/news/cities/chennai/metro-rail-to-begin-work-on-commercial-hub-at-thirumangalam-in-september/article71189187.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September"
         },
         {
           "category": "alerts",
@@ -4920,6 +4581,236 @@
           ],
           "score": 0.8455,
           "title": "Karnataka Weather Today: IMD Predicts Extremely Heavy Rain, 60 km/h Winds in Coastal Areas; Bengaluru Rains Li - Goodreturns"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "1f0a27e0fa98ba84"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783529762000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "74c57189489c1dc9",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783529762000,
+            "id": "74c57189489c1dc9",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784134562000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783529762000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783443362000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "DMK leader R.S. Bharathi withdraws impleadment application; SC says it is not a political forum",
+            "suppressionReason": null,
+            "title": "Counter ‘free speech’ with ‘more speech’, not judicial gag, says SC; refuses DMK plea to restrain TVK leaders’ statements on Karur stampede",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/supreme-court-declines-plea-to-restrain-tvk-leaders-remarks-on-karur-stampede/article71192735.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "Counter ‘free speech’ with ‘more speech’, not judicial gag, says SC; refuses DMK plea to restrain TVK leaders’ statements on Karur stampede"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "a47ca18e03f60b01"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783589952000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "8fba152c1bad41a8",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783589952000,
+            "id": "8fba152c1bad41a8",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784194752000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783589952000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783503552000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "The veena, today regarded as inseparable from Saraswati’s identity, appears to have emerged as her dominant symbol only in the later period.",
+            "suppressionReason": null,
+            "title": "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/goddess-saraswati-without-veena-sculptures-of-pallava-chola-era-reveal-an-earlier-iconography/article71193113.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4927,14 +4818,14 @@
         "actionabilityScore": 1.0,
         "categoryPriorityScore": 0.9993,
         "lifecycleScore": 0.65,
-        "locationScore": 1.0,
+        "locationScore": 0.9813,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
         "urgencyOrExpiryScore": 0.7947
       }
     }
   },
-  "generatedAt": 1783513308840,
+  "generatedAt": 1783515888783,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4953,7 +4844,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
@@ -4967,9 +4858,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4042,
+      "insight": 0.407,
       "localTravel": 0.0,
-      "upAhead": 0.8606
+      "upAhead": 0.8579
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4989,8 +4880,14 @@
       "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
       "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
       "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+      "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September: futureValidity failed — expired display window",
+      "Chennai Metro Rail to begin work on commercial hub at Thirumangalam in September: alertUrgency failed — alert expired",
+      "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur: futureValidity failed — expired display window",
+      "19 barrels of contaminated pickles confiscated by Food Safety inspection team in Thuraiyur: alertUrgency failed — alert expired",
       "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
       "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
+      "Last day of Amazon Prime Day 2026 event in India: Best deals on Samsung Galaxy S25 Ultra, Apple iPhone 17 - The Times of India: futureValidity failed — expired display window",
+      "Last day of Amazon Prime Day 2026 event in India: Best deals on Samsung Galaxy S25 Ultra, Apple iPhone 17 - The Times of India: offerValidity failed — offer expired",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
       "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
       "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"

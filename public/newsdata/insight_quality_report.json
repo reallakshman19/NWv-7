@@ -1,29 +1,29 @@
 {
   "angleHintCoverage": 1.0,
   "collectorVersion": "insight-collector-json-v4",
-  "contentHash": "521f342b1dacb5c3",
+  "contentHash": "468ef49cd86ddb33",
   "errors": [],
-  "eventSketchCount": 11,
-  "fetchedAt": 1783513203698,
-  "generatedAt": 1783513216825,
+  "eventSketchCount": 10,
+  "fetchedAt": 1783515797966,
+  "generatedAt": 1783515799094,
   "multiAngleEventSketchCount": 2,
   "multiSourceEventSketchCount": 3,
-  "nonBaseAngleStoryCount": 453,
+  "nonBaseAngleStoryCount": 455,
   "richnessSummary": {
-    "eventSketchCount": 11,
+    "eventSketchCount": 10,
     "hasClusterablePool": true,
     "multiAngleSketchCount": 2,
     "multiSourceSketchCount": 3,
-    "storyCount": 660
+    "storyCount": 665
   },
   "schemaVersion": 3,
   "slotHealth": {
     "minus12h": {
       "fetchedAt": 1783513203698,
-      "linkedStories": 80,
-      "qualityStoryCount": 80,
+      "linkedStories": 70,
+      "qualityStoryCount": 70,
       "sourceGroupCount": 4,
-      "storyIds": 80,
+      "storyIds": 70,
       "thin": false
     },
     "minus24h": {
@@ -35,25 +35,25 @@
       "thin": true
     },
     "minus4h": {
-      "fetchedAt": 1783506932997,
-      "linkedStories": 38,
-      "qualityStoryCount": 38,
+      "fetchedAt": 1783515797966,
+      "linkedStories": 39,
+      "qualityStoryCount": 39,
       "sourceGroupCount": 2,
-      "storyIds": 38,
+      "storyIds": 39,
       "thin": true
     },
     "now": {
       "fetchedAt": 1783513203698,
-      "linkedStories": 60,
-      "qualityStoryCount": 60,
+      "linkedStories": 53,
+      "qualityStoryCount": 53,
       "sourceGroupCount": 3,
-      "storyIds": 60,
+      "storyIds": 53,
       "thin": false
     }
   },
   "sourceGroupCount": 9,
   "status": "WARN",
-  "storyCount": 660,
+  "storyCount": 665,
   "thresholds": {
     "minAngleHintCoverage": 0.35,
     "minEventSketches": 3,
@@ -66,23 +66,23 @@
   "topAngles": [
     {
       "angle": "base_report",
-      "count": 207
+      "count": 210
     },
     {
       "angle": "official_response",
-      "count": 148
+      "count": 153
     },
     {
       "angle": "market_reaction",
-      "count": 102
-    },
-    {
-      "angle": "fact_update",
       "count": 101
     },
     {
+      "angle": "fact_update",
+      "count": 97
+    },
+    {
       "angle": "regional_followup",
-      "count": 41
+      "count": 43
     },
     {
       "angle": "investigative_detail",
@@ -90,15 +90,15 @@
     },
     {
       "angle": "reaction_public",
-      "count": 15
+      "count": 16
     },
     {
       "angle": "expert_analysis",
-      "count": 13
+      "count": 11
     },
     {
       "angle": "background_context",
-      "count": 4
+      "count": 5
     },
     {
       "angle": "correction",
@@ -107,15 +107,15 @@
   ],
   "topSources": [
     {
-      "count": 228,
+      "count": 244,
       "sourceGroup": "the_hindu"
     },
     {
-      "count": 123,
+      "count": 118,
       "sourceGroup": "economic_times"
     },
     {
-      "count": 82,
+      "count": 94,
       "sourceGroup": "times_of_india"
     },
     {
@@ -127,26 +127,26 @@
       "sourceGroup": "gadgets360"
     },
     {
-      "count": 41,
+      "count": 33,
       "sourceGroup": "google_news"
     },
     {
-      "count": 32,
+      "count": 29,
       "sourceGroup": "bbc"
-    },
-    {
-      "count": 25,
-      "sourceGroup": "reuters"
     },
     {
       "count": 23,
       "sourceGroup": "espn"
+    },
+    {
+      "count": 18,
+      "sourceGroup": "reuters"
     }
   ],
-  "usable36hStoryCount": 645,
+  "usable36hStoryCount": 665,
   "warnings": [
-    "feed 'ndtv' has returned zero items for 95 consecutive runs",
-    "feed 'financial_express' has returned zero items for 308 consecutive runs",
-    "feed 'muscat_daily' has returned zero items for 290 consecutive runs (last zero at 1783506941906)"
+    "feed 'ndtv' has returned zero items for 96 consecutive runs",
+    "feed 'financial_express' has returned zero items for 309 consecutive runs",
+    "feed 'muscat_daily' has returned zero items for 291 consecutive runs (last zero at 1783513217531)"
   ]
 }
