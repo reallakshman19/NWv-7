@@ -1,20 +1,20 @@
 {
   "angleHintCoverage": 1.0,
   "collectorVersion": "insight-collector-json-v4",
-  "contentHash": "9e379e10f8843da1",
+  "contentHash": "569f5a2f256f0cbc",
   "errors": [],
-  "eventSketchCount": 11,
-  "fetchedAt": 1783502508506,
-  "generatedAt": 1783502511573,
+  "eventSketchCount": 8,
+  "fetchedAt": 1783503255210,
+  "generatedAt": 1783503255944,
   "multiAngleEventSketchCount": 2,
   "multiSourceEventSketchCount": 2,
-  "nonBaseAngleStoryCount": 427,
+  "nonBaseAngleStoryCount": 410,
   "richnessSummary": {
-    "eventSketchCount": 11,
+    "eventSketchCount": 8,
     "hasClusterablePool": true,
     "multiAngleSketchCount": 2,
     "multiSourceSketchCount": 2,
-    "storyCount": 619
+    "storyCount": 596
   },
   "schemaVersion": 3,
   "slotHealth": {
@@ -28,11 +28,11 @@
     },
     "minus24h": {
       "fetchedAt": 1783502508506,
-      "linkedStories": 55,
-      "qualityStoryCount": 55,
-      "sourceGroupCount": 3,
-      "storyIds": 55,
-      "thin": false
+      "linkedStories": 40,
+      "qualityStoryCount": 40,
+      "sourceGroupCount": 2,
+      "storyIds": 40,
+      "thin": true
     },
     "minus4h": {
       "fetchedAt": 1783497233423,
@@ -44,16 +44,16 @@
     },
     "now": {
       "fetchedAt": 1783502508506,
-      "linkedStories": 60,
-      "qualityStoryCount": 60,
+      "linkedStories": 52,
+      "qualityStoryCount": 52,
       "sourceGroupCount": 3,
-      "storyIds": 60,
+      "storyIds": 52,
       "thin": false
     }
   },
-  "sourceGroupCount": 10,
+  "sourceGroupCount": 9,
   "status": "WARN",
-  "storyCount": 619,
+  "storyCount": 596,
   "thresholds": {
     "minAngleHintCoverage": 0.35,
     "minEventSketches": 3,
@@ -66,7 +66,7 @@
   "topAngles": [
     {
       "angle": "base_report",
-      "count": 192
+      "count": 186
     },
     {
       "angle": "official_response",
@@ -74,11 +74,11 @@
     },
     {
       "angle": "market_reaction",
-      "count": 108
+      "count": 96
     },
     {
       "angle": "fact_update",
-      "count": 99
+      "count": 94
     },
     {
       "angle": "regional_followup",
@@ -123,12 +123,12 @@
       "sourceGroup": "business_line"
     },
     {
-      "count": 41,
-      "sourceGroup": "google_news"
-    },
-    {
       "count": 38,
       "sourceGroup": "gadgets360"
+    },
+    {
+      "count": 33,
+      "sourceGroup": "google_news"
     },
     {
       "count": 30,
@@ -141,16 +141,13 @@
     {
       "count": 16,
       "sourceGroup": "reuters"
-    },
-    {
-      "count": 15,
-      "sourceGroup": "moneycontrol"
     }
   ],
   "usable36hStoryCount": 596,
   "warnings": [
-    "feed 'ndtv' has returned zero items for 92 consecutive runs",
-    "feed 'financial_express' has returned zero items for 305 consecutive runs",
-    "feed 'muscat_daily' has returned zero items for 287 consecutive runs (last zero at 1783497250893)"
+    "feed 'ndtv' has returned zero items for 93 consecutive runs",
+    "feed 'hindustan_times' has returned zero items for 3 consecutive runs",
+    "feed 'financial_express' has returned zero items for 306 consecutive runs",
+    "feed 'muscat_daily' has returned zero items for 288 consecutive runs (last zero at 1783502512521)"
   ]
 }

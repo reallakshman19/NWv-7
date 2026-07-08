@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "3 base-report-heavy Insight parent(s) demoted"
+        "2 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 8
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 3,
+        "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 8,
+        "parentClusters": 8,
+        "strongParents": 8,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3931,
+      "qualityScore": 0.4082,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -332,121 +332,6 @@
           ],
           "score": 0.6205,
           "title": "Mumbai schools and colleges closed, IMD declares ‘orange’ alert | Monsoon LIVE updates"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 4
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "3f4614cfb237e7a1",
-            "representativeTitle": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 4,
-            "storyIds": [
-              "3f4614cfb237e7a1",
-              "4ee739c53b939a61",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 4
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "damascus",
-              "neelkanth",
-              "strong",
-              "govt"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.449,
-          "title": "Breaking News Live Updates: Damascus café blast kills at least four, injures 10, cause unclear - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -837,116 +722,6 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
           "id": "sketch:108fb3f638",
           "item": {
             "angleCount": 1,
@@ -1221,125 +996,17 @@
           ],
           "score": 0.1751,
           "title": "Decoding the selection call that ended Sanju Samson's T20 World Cup high - and the road ahead - The Times of India"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "a5b849f848fafb29",
-            "representativeTitle": "Top news of the day | June 24, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "a5b849f848fafb29",
-              "bf952c0b99344c4d"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Top news of the day | June 24, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3664,
-        "eventImportanceScore": 0.6445,
+        "angleDiversityScore": 0.41,
+        "eventImportanceScore": 0.635,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4864,
-        "sourceAuthorityScore": 0.4236,
-        "sourceDiversityScore": 0.4173,
-        "temporalEvolutionScore": 0.4136
+        "noveltyDeltaScore": 0.5,
+        "sourceAuthorityScore": 0.44,
+        "sourceDiversityScore": 0.4425,
+        "temporalEvolutionScore": 0.43
       }
     },
     "localTravel": {
@@ -1399,31 +1066,32 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
-        "no active offer items in ranked Up Ahead set"
+        "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "no active offer items in ranked Up Ahead set",
+        "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
         "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+        "Al Buraimi expands internal road network, civic spaces - Oman Observer: futureValidity failed — expired display window",
+        "Al Buraimi expands internal road network, civic spaces - Oman Observer: alertUrgency failed — alert expired",
         "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: futureValidity failed — expired display window",
         "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: alertUrgency failed — alert expired",
         "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
         "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: location failed — offline/local item lacks configured location match",
         "Air India Express Launches Xplore More Sale With 15 Percent Discounts on Asia and Middle East Flights 2026 - Nomad Lawyer: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: futureValidity failed — expired display window",
         "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: offerValidity failed — offer expired",
+        "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: futureValidity failed — expired display window",
         "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: offerValidity failed — offer expired",
         "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: futureValidity failed — expired display window",
         "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: offerValidity failed — offer expired",
         "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: futureValidity failed — expired display window",
-        "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired",
-        "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: futureValidity failed — expired display window",
-        "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-        "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: offerValidity failed — offer expired",
-        "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: futureValidity failed — expired display window",
-        "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: offerValidity failed — offer expired",
-        "Only a few hours left! Amazon Prime Day ends tonight with big savings on laptops, TVs, ACs and more | Technology News\n(HT Tech) - Hindustan Times: futureValidity failed — expired display window"
+        "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -1438,22 +1106,20 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 28,
-              "civic": 1,
+              "alerts": 29,
               "weather_alerts": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.75,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 28,
-          "civic": 1,
+          "alerts": 29,
           "weather_alerts": 1
         },
         "events": 0,
@@ -1461,22 +1127,20 @@
         "inputItemCount": 67,
         "locationCounts": {
           "chennai": 16,
-          "muscat": 1,
-          "trichy": 13
+          "trichy": 14
         },
         "locationsCovered": [
           "chennai",
-          "muscat",
           "trichy"
         ],
         "offlineOffers": 0,
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 19
+        "suppressedItemCount": 20
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8602,
+      "qualityScore": 0.8592,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -4815,11 +4479,11 @@
           "title": "Karnataka Weather Today: IMD Predicts Extremely Heavy Rain, 60 km/h Winds in Coastal Areas; Bengaluru Rains Li - Goodreturns"
         },
         {
-          "category": "civic",
+          "category": "alerts",
           "gates": [
             {
               "details": {
-                "dedupKey": "489b82def8b06459"
+                "dedupKey": "1f0a27e0fa98ba84"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -4828,7 +4492,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783503332000
+                "displayUntil": 1783529762000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -4837,15 +4501,15 @@
             },
             {
               "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "muscat",
-                "relevance": "primary",
-                "scope": "exactCity"
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
               },
               "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
             },
             {
               "details": {
@@ -4874,23 +4538,23 @@
               "status": "PASS"
             }
           ],
-          "id": "835680b1048d6d06",
+          "id": "74c57189489c1dc9",
           "item": {
             "actionabilityScore": 0.7,
-            "category": "civic",
-            "city": "Muscat",
+            "category": "alerts",
+            "city": "Trichy",
             "contentClass": "upahead_alert",
             "dateConfidence": "unknown",
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783503332000,
-            "id": "835680b1048d6d06",
+            "expiryAt": 1783529762000,
+            "id": "74c57189489c1dc9",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784108132000,
+              "archiveUntil": 1784134562000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783503332000,
+              "displayUntil": 1783529762000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -4898,51 +4562,51 @@
               "retentionReason": "expiryAt",
               "withinSevenDayHorizon": true
             },
-            "localityScore": 1.0,
-            "normalizedCategory": "civic",
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783416932000,
-            "region": "oman",
+            "publishedAt": 1783443362000,
+            "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
-              "categoryPriorityScore": 0.92,
+              "categoryPriorityScore": 1.0,
               "lifecycleScore": 0.65,
-              "locationScore": 1.0,
+              "locationScore": 0.72,
               "plannerFitScore": 1.0,
               "sourceConfidenceScore": 0.58,
               "urgencyOrExpiryScore": 0.78
             },
-            "source": "Google News Muscat Civic",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQdIBWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQQ?oc=5\" target=\"_blank\">Al Buraimi expands internal road network, civic spaces</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Oman Observer</font>",
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "DMK leader R.S. Bharathi withdraws impleadment application; SC says it is not a political forum",
             "suppressionReason": null,
-            "title": "Al Buraimi expands internal road network, civic spaces - Oman Observer",
-            "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQdIBWkFVX3lxTFBUUjlzZjdDM3NMcWRsb0FGejZiS2FINFZvSWlsTFpHRG1pblRZaUFWRE9rQURQeEVaWGtJSmIzSGEwLXZHbG92eFBpU3R2NjlFc0p6a3ZtLWJZQQ?oc=5"
+            "title": "Counter ‘free speech’ with ‘more speech’, not judicial gag, says SC; refuses DMK plea to restrain TVK leaders’ statements on Karur stampede",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/supreme-court-declines-plea-to-restrain-tvk-leaders-remarks-on-karur-stampede/article71192735.ece"
           },
-          "locationKey": "muscat",
+          "locationKey": "trichy",
           "rankingReasons": [
-            "civic",
+            "alerts",
             "valid undated item with active display window",
-            "location matches configured profile",
+            "online/global item allowed without city match",
             "planner advisory fit"
           ],
-          "score": 0.8365,
-          "title": "Al Buraimi expands internal road network, civic spaces - Oman Observer"
+          "score": 0.7925,
+          "title": "Counter ‘free speech’ with ‘more speech’, not judicial gag, says SC; refuses DMK plea to restrain TVK leaders’ statements on Karur stampede"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 0.9967,
+        "categoryPriorityScore": 0.9993,
         "lifecycleScore": 0.65,
-        "locationScore": 1.0,
+        "locationScore": 0.9907,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
         "urgencyOrExpiryScore": 0.7947
       }
     }
   },
-  "generatedAt": 1783502594560,
+  "generatedAt": 1783503334582,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4961,8 +4625,9 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "20 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
+      "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4970,13 +4635,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "3 base-report-heavy Insight parent(s) demoted"
+      "2 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3931,
+      "insight": 0.4082,
       "localTravel": 0.0,
-      "upAhead": 0.8602
+      "upAhead": 0.8592
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4984,7 +4649,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3133,
+    "overallScore": 0.3168,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4995,24 +4660,24 @@
     "topFindings": [
       "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
       "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
+      "Al Buraimi expands internal road network, civic spaces - Oman Observer: futureValidity failed — expired display window",
+      "Al Buraimi expands internal road network, civic spaces - Oman Observer: alertUrgency failed — alert expired",
       "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: futureValidity failed — expired display window",
       "Lakeside snack stall in Madipakkam bolstered by an indomitable spirit: alertUrgency failed — alert expired",
       "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
       "Air India launches “Priceless Journey Sale” with Business Class fares from INR 15,000 and Economy from INR 1,499 - Live From A Lounge: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Bluetooth and Party Speaker Deals 2026: Best Offers on JBL, Sony and Boat Speakers - Gadgets 360: location failed — offline/local item lacks configured location match",
       "Air India Express Launches Xplore More Sale With 15 Percent Discounts on Asia and Middle East Flights 2026 - Nomad Lawyer: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: futureValidity failed — expired display window",
       "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day sale 2026: From OnePlus to Xiaomi, here are top 5 Android tablets deals - Business Today: offerValidity failed — offer expired",
+      "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: futureValidity failed — expired display window",
       "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day Refrigerator Deals 2026: Up to 50% Off Samsung, LG, Bosch and More - Gadgets 360: offerValidity failed — offer expired",
       "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: futureValidity failed — expired display window",
       "Last Call For Amazon’s 4th of July Sale With Up to 50% Off Tech From HP, LG, Samsung, and More - PCMag: offerValidity failed — offer expired",
       "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: futureValidity failed — expired display window",
-      "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired",
-      "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: futureValidity failed — expired display window",
-      "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: location failed — offline/local item lacks configured location match",
-      "We Found The 80 Best 4th Of July Sales You Can Still Shop - Forbes: offerValidity failed — offer expired",
-      "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: futureValidity failed — expired display window",
-      "OnePlus 13 Amazon Prime Day: Best flagship deal in 2026? - India Today: offerValidity failed — offer expired",
-      "Only a few hours left! Amazon Prime Day ends tonight with big savings on laptops, TVs, ACs and more | Technology News\n(HT Tech) - Hindustan Times: futureValidity failed — expired display window"
+      "Amazon Prime Day Laptop Deals 2026: Best Deals on HP, Asus, Dell and Acer Laptops for Students - Gadgets 360: offerValidity failed — offer expired"
     ]
   }
 }
