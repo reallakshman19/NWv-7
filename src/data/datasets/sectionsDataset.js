@@ -5,10 +5,10 @@ import {
 } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
 import { fetchSectionNews } from '../../services/rssAggregator.js';
-import { composeBalancedFeed } from '../../services/frontPageComposer.js';
 import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
+import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -244,7 +244,8 @@ export async function load(options = {}) {
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
   const allItems = summaries.flatMap(summary => summary.items);
   const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
-  const frontPage = composeBalancedFeed(dedupedItems, options.frontPageLimit || 20, settings.maxTopicPercent || 40, settings.maxGeoPercent || 30);
+  const rankedSections = { ...sectionItems, __all: dedupedItems };
+  const frontPage = rankTopStories({ sectionItems: rankedSections, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
   const envelope = makeEnvelope({
     datasetId: 'sections',
     ok: summaries.some(summary => summary.ok),
