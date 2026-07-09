@@ -9,6 +9,7 @@ import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
+import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -65,6 +66,10 @@ function getRequestedSections(settings, options = {}, diagnostics = []) {
 
 function getSectionLimit(settings, section) {
   return Number(settings?.sections?.[section]?.count || 10) + 5;
+}
+
+function getTopFeedSnapshotRows(options = {}) {
+  return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
 }
 
 function countSources(items = []) {
@@ -228,6 +233,7 @@ export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
+  const topFeedItems = getTopFeedSnapshotRows(options);
   const settled = await Promise.allSettled(sections.map(async section => {
     const limit = getSectionLimit(settings, section);
     const startedAt = Date.now();
@@ -245,7 +251,7 @@ export async function load(options = {}) {
   const allItems = summaries.flatMap(summary => summary.items);
   const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
   const rankedSections = { ...sectionItems, __all: dedupedItems };
-  const frontPage = rankTopStories({ sectionItems: rankedSections, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
+  const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
   const envelope = makeEnvelope({
     datasetId: 'sections',
     ok: summaries.some(summary => summary.ok),
