@@ -1,5 +1,6 @@
 import { isBreakingStory } from '../breakingNewsService.js';
 import { HOURS_MS, clampScore } from './topStoriesPolicy.js';
+import { buildTopFeedSnapshotSignalMap, getTopFeedIdentity } from './topStoriesTopFeedSignals.js';
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
 const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedAt', 'fetch_fallback']);
@@ -24,9 +25,34 @@ function uniqueSources(story = {}) {
 }
 
 function getTopFeedSignal(story = {}, context = {}) {
-  const key = story.id || story.canonicalId || story.url || story.link || story.title;
   const map = context.topFeedSignalMap || new Map();
-  return map.get(String(key)) || map.get(textValue(story.url || story.link)) || {};
+  const keys = [
+    story.id,
+    story.canonicalId,
+    story.url,
+    story.link,
+    story.title,
+    getTopFeedIdentity(story),
+    textValue(story.url || story.link),
+    textValue(story.title),
+  ].filter(Boolean);
+  for (const key of keys) {
+    const signal = map.get(String(key)) || map.get(textValue(key));
+    if (signal) return signal;
+  }
+  return {};
+}
+
+function pickTopFeedSignals(signal = {}) {
+  return {
+    topFeedHits: Number(signal.topFeedHits || 0),
+    topFeedConsensusScore: Number(signal.topFeedConsensusScore || 0),
+    topFeedRankScore: Number(signal.topFeedRankScore || 0),
+    topFeedSourceCount: Number(signal.topFeedSourceCount || 0),
+    topFeedSources: Array.isArray(signal.topFeedSources) ? signal.topFeedSources : [],
+    topFeedBestRank: signal.topFeedBestRank || null,
+    normalizedTopFeedIdentity: signal.normalizedIdentity || '',
+  };
 }
 
 export function getTimestampConfidence(story = {}) {
@@ -52,17 +78,7 @@ export function hasFreshLiveEvidence(story = {}, context = {}) {
 }
 
 export function buildTopFeedSignalMap(topFeedItems = []) {
-  const map = new Map();
-  topFeedItems.forEach((item, index) => {
-    const signal = {
-      topFeedHits: Number(item.topFeedHits || item.sourceCount || 1),
-      topFeedConsensusScore: Number(item.topFeedConsensusScore || item.sourceCount || 1),
-      topFeedRankScore: Math.max(0, 1 - (index / Math.max(1, topFeedItems.length))),
-    };
-    [item.id, item.canonicalId, item.url, item.link, item.title].filter(Boolean)
-      .forEach(key => map.set(String(key), signal));
-  });
-  return map;
+  return buildTopFeedSnapshotSignalMap(topFeedItems);
 }
 
 export function getClusterKey(story = {}) {
@@ -104,7 +120,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const nowMs = context.nowMs || Date.now();
   const ageHours = getAgeHours(story, nowMs);
   const timestampConfidence = getTimestampConfidence(story);
-  const topFeed = getTopFeedSignal(story, context);
+  const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
