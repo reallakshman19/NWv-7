@@ -2,64 +2,61 @@
 
 - Status: **PASS**
 - Reason: -
-- Grade: `D`
+- Grade: `C`
 - Parents: `10`
-- Average angles: `1.4`
-- Average temporal tiers: `1.6`
-- Average evolution roles: `1.7`
-- Base report share: `0.1`
-- Multi-angle parents: `4`
-- Weak parents: `6`
-- Story count: `581`
-- Source groups: `9`
-- Content hash: `ef71ce82ede58dfa`
+- Average angles: `1.8`
+- Average temporal tiers: `1.8`
+- Average evolution roles: `1.8`
+- Base report share: `0.3333333333333333`
+- Multi-angle parents: `8`
+- Weak parents: `2`
+- Story count: `670`
+- Source groups: `10`
+- Content hash: `1825a0a3fa4a06fc`
 
 ## Top parents
 
 | # | Headline | Children | Angles | Weak | Score |
 |---:|---|---:|---|---|---:|
 | 1 | New U.S. attacks on Iran were absolutely necessary, NATO chief says | 2 | market_reaction, official_response | NO | 0.6732467197849983 |
-| 2 | 'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths | 2 | base_report, fact_update | NO | 0.61211 |
-| 3 | Trump | 2 | official_response, base_report | NO | 0.58191 |
-| 4 | 2 girls attacked with weapon at Germany school, teenager arrested | 2 | official_response, investigative_detail | NO | 0.58111 |
-| 5 | Nuvama, Cushman & Wakefield-backed realty fund raises Rs 4,000 cr | 2 | fact_update | YES | 0.7666133864516651 |
-| 6 | Trump says ceasefire is 'over' after US and Iran trade strikes | 2 | official_response | YES | 0.6632467197849983 |
-| 7 | PM Modi invites Australian businesses to invest in India, seeks early conclusion of CECA | 2 | official_response | YES | 0.59551 |
-| 8 | India estimates 300 GW power demand next year, backs local clean-energy manufacturing | 2 | regional_followup | YES | 0.5952732802150018 |
-| 9 | India news LIVE updates, 8 July 2026: Baruipur rape-murder accused shot dead in encounter, Mumbai airport near-miss as two Air India flights face off on runway, US hits 80 Iranian targets after Hormuz attacks - The Indian Express | 2 | fact_update | YES | 0.6135800531183317 |
-| 10 | Trump's Board of Peace planning pilot humanitarian zone in Gaza, official says | 2 | official_response | YES | 0.5395933333333333 |
-
-## Warnings
-
-- Real snapshot still produces low Insight grade.
+| 2 | US charges puts gangsters Lawrence Bishnoi and Goldy Brar at centre of transnational murder, stops short of accusing India | 3 | base_report, official_response | NO | 0.619081054304934 |
+| 3 | 'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths | 2 | base_report, fact_update | NO | 0.61211 |
+| 4 | Trump | 2 | official_response, base_report | NO | 0.60191 |
+| 5 | 2 girls attacked with weapon at Germany school, teenager arrested | 2 | official_response, investigative_detail | NO | 0.60111 |
+| 6 | New Zealand announces 57% tariff-free exports to India ahead of Modi visit | 2 | official_response, base_report | NO | 0.5945899468816684 |
+| 7 | India, Australia to expand partnership in critical minerals, clean energy - The Economic Times | 2 | base_report, fact_update | NO | 0.5732433333333333 |
+| 8 | India, Australia unveil new defence declaration to deepen Indo-Pacific cooperation | 2 | official_response, base_report | NO | 0.5485933333333333 |
+| 9 | Nuvama, Cushman & Wakefield-backed realty fund raises Rs 4,000 cr | 2 | fact_update | YES | 0.7666133864516651 |
+| 10 | India estimates 300 GW power demand next year, backs local clean-energy manufacturing | 2 | regional_followup | YES | 0.6952467197849983 |
 
 ## Real Snapshot Ratchet Gate
 
-- Status: **FAIL**
+- Status: **PASS**
 - Gate version: `real-insight-snapshot-ratchet-v1`
-- Grade: `D`
-- Score: `42`
+- Grade: `C`
+- Score: `100`
 - Parents: `10`
-- Average angles: `1.4`
-- Average temporal tiers: `1.6`
-- Average evolution roles: `1.7`
-- Base report share: `0.1`
-- Multi-angle parents: `4`
+- Average angles: `1.8`
+- Average temporal tiers: `1.8`
+- Average evolution roles: `1.8`
+- Base report share: `0.333`
+- Multi-angle parents: `8`
 - Top parent angles: `2`
 - Top parent children: `2`
 
 ### Failed gates
 
-- **Real snapshot grade floor** — actual `D`, required `A/B/C`. Fix: Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake.
-- **Average temporal tier count** — actual `1.6`, required `>= 1.8`. Fix: C+E output should cover multiple event-time tiers, not only source buckets.
-- **Weak parent ratio** — actual `0.6`, required `<= 0.5`. Fix: Too many weak trees remain. Repair or demote weak trees after diversity repair.
+- None
 
 ### Passed gates
 
+- Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
-- Average visible angle count: `1.4` / `>= 1.4`
-- Average evolution role count: `1.7` / `>= 1.6`
-- Base report share: `0.1` / `<= 0.55`
-- Multi-angle parent count: `4` / `>= 1`
+- Average visible angle count: `1.8` / `>= 1.4`
+- Average temporal tier count: `1.8` / `>= 1.8`
+- Average evolution role count: `1.8` / `>= 1.6`
+- Base report share: `0.333` / `<= 0.55`
+- Multi-angle parent count: `8` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `2` / `>= 2`
+- Weak parent ratio: `0.2` / `<= 0.5`
