@@ -43,6 +43,18 @@ function getTopFeedSignal(story = {}, context = {}) {
   return {};
 }
 
+function pickTopFeedSignals(signal = {}) {
+  return {
+    topFeedHits: Number(signal.topFeedHits || 0),
+    topFeedConsensusScore: Number(signal.topFeedConsensusScore || 0),
+    topFeedRankScore: Number(signal.topFeedRankScore || 0),
+    topFeedSourceCount: Number(signal.topFeedSourceCount || 0),
+    topFeedSources: Array.isArray(signal.topFeedSources) ? signal.topFeedSources : [],
+    topFeedBestRank: signal.topFeedBestRank || null,
+    normalizedTopFeedIdentity: signal.normalizedIdentity || '',
+  };
+}
+
 export function getTimestampConfidence(story = {}) {
   const raw = textValue(story.timestampConfidence || story.publishedAtConfidence);
   const source = textValue(story.publishedAtSource || story.timestampSource);
@@ -108,7 +120,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const nowMs = context.nowMs || Date.now();
   const ageHours = getAgeHours(story, nowMs);
   const timestampConfidence = getTimestampConfidence(story);
-  const topFeed = getTopFeedSignal(story, context);
+  const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
