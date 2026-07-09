@@ -25,6 +25,16 @@ function rank(items, options = {}) {
   return rankTopStories({ sectionItems: { world: items }, nowMs: NOW, topFeedItems: options.topFeedItems || [] }, options);
 }
 
+function topFeedRows(id, count = 3, extra = {}) {
+  return Array.from({ length: count }, (_, index) => story(id, 1, {
+    source: `Top Feed ${index}`,
+    sourceGroup: `top-feed-${index}`,
+    topFeedSource: `snapshot-${index}`,
+    topFeedRank: index + 1,
+    ...extra,
+  }));
+}
+
 describe('NW-RANK-001 Top Stories ranker', () => {
   it('keeps top 10 in the 0-4h band when primary stories are available', () => {
     const items = Array.from({ length: 14 }, (_, i) => story(`p${i}`, 1, { title: `Cyclone warning ${i}` }))
@@ -162,6 +172,61 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(ids(rank(fixture))).toEqual(ids(rank(fixture)));
   });
 
+  it('uses strong top-feed evidence as a bounded boost for equivalent hard news', () => {
+    const ranked = rank([
+      story('weak-feed', 1, { title: 'Court verdict announced in public case' }),
+      story('strong-feed', 1, { title: 'Court verdict announced in public case update' }),
+    ], { topFeedItems: topFeedRows('strong-feed', 4) });
+    expect(ranked[0].id).toBe('strong-feed');
+    expect(ranked[0]._topStoryRank.topFeedHits).toBeGreaterThan(0);
+  });
+
+  it('does not let duplicate top-feed volume dominate by itself', () => {
+    const spam = Array.from({ length: 30 }, () => story('duplicate-feed', 1, {
+      title: 'Routine business product launch',
+      source: 'Same Feed',
+      sourceGroup: 'same-feed',
+      topFeedSource: 'same-snapshot',
+      topFeedRank: 1,
+    }));
+    const ranked = rank([
+      story('duplicate-feed', 1, { title: 'Routine business product launch' }),
+      story('public-alert', 1, { title: 'Flood evacuation alert ordered' }),
+    ], { topFeedItems: spam });
+    expect(ranked[0].id).toBe('public-alert');
+  });
+
+  it('does not resurrect stale or low-confidence stories into primary slots using top-feed alone', () => {
+    const ranked = rank([
+      story('stale-feed', 20, { title: 'Government alert old update' }),
+      story('low-feed', 1, { title: 'Government alert low timestamp', timestampConfidence: 'low' }),
+      story('fresh-alert', 1, { title: 'Government alert current closure' }),
+    ], { topFeedItems: [...topFeedRows('stale-feed', 4), ...topFeedRows('low-feed', 4)] });
+    expect(ranked[0].id).toBe('fresh-alert');
+    expect(ranked.find(item => item.id === 'stale-feed')?._topStoryRank.slotBand).not.toBe('primary');
+    expect(ranked.find(item => item.id === 'low-feed')?._topStoryRank.slotBand).not.toBe('primary');
+  });
+
+  it('does not let top-feed evidence make entertainment promo outrank active hard news', () => {
+    const ranked = rank([
+      story('promo-feed', 0.25, { title: 'God of War gameplay trailer released' }),
+      story('hard-news', 1, { title: 'Flood evacuation alert ordered' }),
+    ], { topFeedItems: topFeedRows('promo-feed', 6) });
+    expect(ranked[0].id).toBe('hard-news');
+  });
+
+  it('keeps deterministic bounded output when topFeedItems is missing or empty', () => {
+    const fixture = [
+      story('a', 1, { title: 'Flood evacuation alert' }),
+      story('b', 2, { title: 'Court verdict announced' }),
+      story('c', 1, { title: 'Routine earnings report' }),
+    ];
+    const withoutTopFeed = rankTopStories({ sectionItems: { world: fixture }, nowMs: NOW });
+    const emptyTopFeed = rankTopStories({ sectionItems: { world: fixture }, nowMs: NOW, topFeedItems: [] });
+    expect(ids(emptyTopFeed)).toEqual(ids(withoutTopFeed));
+    expect(emptyTopFeed.length).toBeLessThanOrEqual(25);
+  });
+
   it('preserves supplied frontPage order except viewed/read demotion', () => {
     const { filterLatestStories } = __mainViewModelInternalsForTest;
     const rows = [story('first', 3), story('second', 1), story('third', 2)];
@@ -171,9 +236,13 @@ describe('NW-RANK-001 Top Stories ranker', () => {
   it('keeps topStories modules local and non-mutating', () => {
     const frozen = Object.freeze(story('frozen', 1, { title: 'Flood warning' }));
     expect(() => rank([frozen])).not.toThrow();
-    const modules = ['./topStoriesRanker.js', './topStoriesPolicy.js', './topStoriesSignals.js', './topStoriesEventClassifier.js']
-      .map(file => readFileSync(new URL(file, import.meta.url), 'utf8'))
-      .join('\n');
+    const modules = [
+      './topStoriesRanker.js',
+      './topStoriesPolicy.js',
+      './topStoriesSignals.js',
+      './topStoriesEventClassifier.js',
+      './topStoriesTopFeedSignals.js',
+    ].map(file => readFileSync(new URL(file, import.meta.url), 'utf8')).join('\n');
     expect(modules).not.toMatch(/\bfetch\s*\(/);
     expect(modules).not.toMatch(/XMLHttpRequest|WebSocket/);
   });
