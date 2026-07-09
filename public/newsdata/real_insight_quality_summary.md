@@ -10,16 +10,16 @@
 - Base report share: `0.2857142857142857`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `699`
-- Source groups: `9`
-- Content hash: `75fd9a83b3356587`
+- Story count: `702`
+- Source groups: `10`
+- Content hash: `76156f815e7f4523`
 
 ## Top parents
 
 | # | Headline | Children | Angles | Weak | Score |
 |---:|---|---:|---|---|---:|
-| 1 | New Zealand announces 57% tariff-free exports to India ahead of Modi visit | 2 | official_response, base_report | NO | 0.6265766666666668 |
-| 2 | 'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths | 2 | base_report, fact_update | NO | 0.61211 |
+| 1 | New Zealand announces 57% tariff-free exports to India ahead of Modi visit | 2 | official_response, base_report | NO | 0.6945633864516649 |
+| 2 | 'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths | 2 | base_report, fact_update | NO | 0.6680967197849983 |
 | 3 | Trump | 2 | official_response, base_report | NO | 0.60191 |
 | 4 | 2 girls attacked with weapon at Germany school, teenager arrested | 2 | official_response, investigative_detail | NO | 0.60111 |
 | 5 | India and Australia Deepen Defence Ties: What It Means for the Indo-Pacific / Above the Fold / 09.07.2026 | 3 | base_report, official_response | NO | 0.5637050531183315 |
