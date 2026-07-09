@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1783555653579,
+  "generatedAt": 1783574097094,
   "windowDays": 7,
   "latest": {
     "insightGrade": "D",
     "insightScore": 0,
-    "totalStories": 637,
-    "usableStories36h": 622,
-    "sourceGroups": 9,
+    "totalStories": 612,
+    "usableStories36h": 584,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3083,
+    "rankingOverallScore": 0.3107,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3083,
+    "overallScore": 0.3107,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1783555652656,
+    "generatedAt": 1783574096310,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.383,
+      "insight": 0.3813,
       "localTravel": 0,
-      "upAhead": 0.8502
+      "upAhead": 0.8617
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.383,
+        "score": 0.3813,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8502,
+        "score": 0.8617,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,8 +74,8 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 9,
-        "strongParents": 9,
+        "parentClusters": 12,
+        "strongParents": 12,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
         "baseReportHeavyParents": 0,
@@ -92,11 +92,11 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 19,
+        "suppressedItemCount": 10,
         "events": 0,
         "onlineOffers": 0,
-        "offlineOffers": 2,
-        "alerts": 28,
+        "offlineOffers": 0,
+        "alerts": 30,
         "festivals": 0,
         "locationsCovered": [
           "chennai",
@@ -106,21 +106,23 @@
     },
     "topFindings": [
       "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
+      "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
       "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
+      "Health WhatsApp chatbot service to be launched on pilot basis at RGGGH in T.N.: futureValidity failed — expired display window",
+      "Health WhatsApp chatbot service to be launched on pilot basis at RGGGH in T.N.: alertUrgency failed — alert expired",
       "Amazon Raises at Least $25 Billion Through Bond Sale - Let's Data Science: location failed — offline/local item lacks configured location match",
-      "Migrant worker killed while trying to board moving train at Tambaram railway station: futureValidity failed — expired display window",
-      "Migrant worker killed while trying to board moving train at Tambaram railway station: alertUrgency failed — alert expired",
-      "NGO builds houses for five Irula families in Kancheepuram: futureValidity failed — expired display window",
-      "NGO builds houses for five Irula families in Kancheepuram: alertUrgency failed — alert expired",
       "The implications of Amazon's $25B bond sale, and Microsoft's evolving AI model strategy - CNBC: location failed — offline/local item lacks configured location match",
-      "Chief Minister to visit Karur to meet the kin of stampede victims on July 10: futureValidity failed — expired display window",
-      "Chief Minister to visit Karur to meet the kin of stampede victims on July 10: alertUrgency failed — alert expired",
-      "Suspended police Inspector held for alleged role in investment fraud: futureValidity failed — expired display window",
-      "Suspended police Inspector held for alleged role in investment fraud: alertUrgency failed — alert expired"
+      "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: futureValidity failed — expired display window",
+      "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: location failed — offline/local item lacks configured location match",
+      "Riyadh Air Opens Mumbai Ticket Sales as India and Saudi Arabia Strengthen Daily Boeing 787-9 Connectivity with Faster Access to Europe, Business Travel and Tourism Opportunities—What Travellers Should Know Before Booking - Travel And Tour World: offerValidity failed — offer expired",
+      "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
+      "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match"
     ],
     "actionRequired": [
-      "19 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "10 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
+      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -128,9 +130,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding",
-      "buzz: no local Buzz item in ranked set",
-      "buzz: no travel Buzz item in ranked set"
+      "Insight event/angle ranking has no critical demotion finding"
     ]
   },
   "sourceHealth": {
@@ -256,16 +256,16 @@
     },
     {
       "date": "2026-07-09",
-      "generatedAt": 1783555653579,
+      "generatedAt": 1783574097094,
       "insightGrade": "D",
       "insightScore": 0,
-      "totalStories": 637,
-      "usableStories36h": 622,
-      "sourceGroups": 9,
+      "totalStories": 612,
+      "usableStories36h": 584,
+      "sourceGroups": 10,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3083,
+      "rankingOverallScore": 0.3107,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
