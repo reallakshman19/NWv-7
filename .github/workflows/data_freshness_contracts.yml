@@ -11,7 +11,8 @@ on:
       - 'scripts/probe_deployed_data_freshness.mjs'
       - 'src/services/fetchLifecycleDiagnostics.js'
       - 'src/services/rssAggregator.lifecycle.cert.test.mjs'
-      - 'src/viewModels/topStoriesRecency.js'
+      - 'src/services/topStories/**'
+      - 'src/viewModels/useMainTabViewModel.js'
       - 'src/viewModels/useMainTabViewModel.recency.cert.test.mjs'
       - 'package.json'
       - '.github/workflows/data_freshness_contracts.yml'
@@ -41,7 +42,7 @@ jobs:
       - name: Validate static data freshness contracts
         run: npm run test:data-freshness-contracts
 
-      - name: Certify Main Top Stories recency guardrail
+      - name: Certify Main Top Stories order-preservation guardrail
         run: node src/viewModels/useMainTabViewModel.recency.cert.test.mjs
 
       - name: Certify Hybrid fetch lifecycle guardrails

@@ -135,17 +135,6 @@ export function NewsProvider({ children }) {
                     redistributed[key].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0));
                 });
 
-                // Generate Balanced Front Page
-                // We use all unique articles available in the current redistribution
-                const allCurrentArticles = Object.values(redistributed).flat();
-                // We might want to include previously loaded data if this is a partial update,
-                // but 'allCollectedResults' accumulates across batches in this function scope.
-                // So 'allFetched' (which drives 'redistributed') contains everything fetched *in this refresh session*.
-                // To be truly global, we might need access to 'newsData' but that's state and might be stale or partial.
-                // Since 'allCollectedResults' accumulates high+low priority in the loop, by the end of loop it has everything.
-                // For the first batch (high priority), we generate a front page from that.
-                // For the second batch (low priority), we generate from high+low.
-
                 const frontPage = rankTopStories({
                     sectionItems: redistributed,
                     settings,
