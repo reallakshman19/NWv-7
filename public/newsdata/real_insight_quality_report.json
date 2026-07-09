@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783544730199,
-  "contentHash": "55b6036b461cc143",
+  "generatedAt": 1783555651826,
+  "contentHash": "361bd272688e5a9d",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 717,
-  "sourceGroupCount": 10,
+  "storyCount": 637,
+  "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.3,
-  "avgTemporalTiers": 1.6,
-  "avgEvolutionRoles": 1.6,
-  "baseReportShare": 0.10526315789473684,
-  "multiAngleCount": 3,
-  "weakParentCount": 7,
+  "avgAngles": 1.2,
+  "avgTemporalTiers": 1.4,
+  "avgEvolutionRoles": 1.5,
+  "baseReportShare": 0.058823529411764705,
+  "multiAngleCount": 2,
+  "weakParentCount": 8,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -23,55 +23,55 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 35,
+      "signalScore": 28,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 649,
+      "storyCount": 584,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
-      "avgChildren": 1.9,
-      "avgScore": 0.6363718591757757,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 5,
-      "coverageLabel": "3/10",
+      "avgAngles": 1.2,
+      "avgChildren": 1.7,
+      "avgScore": 0.652157031045661,
+      "sourceDiversityCoverage": 7,
+      "snapshotCoverage": 4,
+      "coverageLabel": "2/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin.",
-        "681 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "3 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) are marked thin.",
+        "531 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 35,
+      "signalScore": 28,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 649,
+      "storyCount": 584,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
-      "avgChildren": 1.9,
-      "avgScore": 0.6363718591757757,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 5,
-      "coverageLabel": "3/10",
+      "avgAngles": 1.2,
+      "avgChildren": 1.7,
+      "avgScore": 0.652157031045661,
+      "sourceDiversityCoverage": 7,
+      "snapshotCoverage": 4,
+      "coverageLabel": "2/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin.",
+        "3 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) are marked thin.",
         "1 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
@@ -86,7 +86,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_191_1b10261cf8ec84d2",
+      "parentId": "cluster_202_1b10261cf8ec84d2",
       "headline": "New U.S. attacks on Iran were absolutely necessary, NATO chief says",
       "score": 0.6052599999999999,
       "postTreeScore": 1.0053,
@@ -107,7 +107,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_95_6eb8a77397386bc0",
+      "parentId": "cluster_106_6eb8a77397386bc0",
       "headline": "'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths",
       "score": 0.59211,
       "postTreeScore": 0.9921,
@@ -127,29 +127,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_601_2461d5f072ec0fa1",
-      "headline": "India, Indonesia expand defence ties; New Delhi to supply BrahMos missiles",
-      "score": 0.5517727761127958,
-      "postTreeScore": 0.9718,
-      "childCount": 3,
-      "angles": [
-        "base_report",
-        "official_response"
-      ],
-      "temporalTiers": [
-        "established",
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "official_response"
-      ],
-      "baseReportShare": 0.3333333333333333,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_143_6e34de537b5024bc",
+      "parentId": "cluster_154_6e34de537b5024bc",
       "headline": "Nuvama, Cushman & Wakefield-backed realty fund raises Rs 4,000 cr",
       "score": 0.7666133864516651,
       "postTreeScore": 0.6566,
@@ -168,7 +146,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_482_9f96d52233c6f8d1",
+      "parentId": "cluster_501_9f96d52233c6f8d1",
       "headline": "Woman suspected of Monaco bomb attack found dead in Ukraine",
       "score": 0.6741467197849984,
       "postTreeScore": 0.5641,
@@ -188,7 +166,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_173_848546e594a7304f",
+      "parentId": "cluster_184_848546e594a7304f",
       "headline": "Trump says ceasefire is 'over' after US and Iran trade strikes",
       "score": 0.5952599999999999,
       "postTreeScore": 0.5053,
@@ -207,7 +185,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_283_98fab96bbd6b5689",
+      "parentId": "cluster_298_98fab96bbd6b5689",
       "headline": "India news LIVE updates, 8 July 2026: Baruipur rape-murder accused shot dead in encounter, Mumbai airport near-miss as two Air India flights face off on runway, US hits 80 Iranian targets after Hormuz attacks - The Indian Express",
       "score": 0.6135800531183317,
       "postTreeScore": 0.5036,
@@ -227,7 +205,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_52_3300dd31e0455d75",
+      "parentId": "cluster_62_3300dd31e0455d75",
       "headline": "Trump's Board of Peace planning pilot humanitarian zone in Gaza, official says",
       "score": 0.5195933333333334,
       "postTreeScore": 0.4296,
@@ -245,7 +223,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_322_3697f44e61018085",
+      "parentId": "cluster_337_3697f44e61018085",
       "headline": "Eternal, ICICI Bank & 8 stocks with up to 27% upside. Do you own them?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -263,13 +241,31 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_343_77d93646ec7ef476",
+      "parentId": "cluster_358_77d93646ec7ef476",
       "headline": "Cochin Shipyard shares dip 2% as govt’s OFS opens for retail investors today",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
       "angles": [
         "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_116_7a2d57e6f3bc3f18",
+      "headline": "Broadcom shares jump over 2% after Apple announces $30 billion chip deal",
+      "score": 0.7096244948116492,
+      "postTreeScore": 0.4096,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
       ],
       "temporalTiers": [
         "breaking"
@@ -289,7 +285,7 @@
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "D",
-    "score": 18,
+    "score": 0,
     "passed": [
       {
         "id": "parent-count",
@@ -298,21 +294,15 @@
         "required": ">= 3"
       },
       {
-        "id": "avg-evolution-role-count",
-        "label": "Average evolution role count",
-        "actual": 1.6,
-        "required": ">= 1.6"
-      },
-      {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.105,
+        "actual": 0.059,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 3,
+        "actual": 2,
         "required": ">= 1"
       },
       {
@@ -340,7 +330,7 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.3,
+        "actual": 1.2,
         "required": ">= 1.4",
         "severity": "fail",
         "fix": "Angle-diverse child selection is not strong enough on real data."
@@ -348,15 +338,23 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.6,
+        "actual": 1.4,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
       },
       {
+        "id": "avg-evolution-role-count",
+        "label": "Average evolution role count",
+        "actual": 1.5,
+        "required": ">= 1.6",
+        "severity": "fail",
+        "fix": "C+E output should include distinct event evolution roles."
+      },
+      {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.7,
+        "actual": 0.8,
         "required": "<= 0.5",
         "severity": "warn",
         "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
@@ -364,17 +362,17 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.3,
-      "avgTemporalTiers": 1.6,
-      "avgEvolutionRoles": 1.6,
-      "baseReportShare": 0.105,
-      "multiAngleCount": 3,
-      "weakParentCount": 7,
-      "weakParentRatio": 0.7,
+      "avgAngles": 1.2,
+      "avgTemporalTiers": 1.4,
+      "avgEvolutionRoles": 1.5,
+      "baseReportShare": 0.059,
+      "multiAngleCount": 2,
+      "weakParentCount": 8,
+      "weakParentRatio": 0.8,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 717,
-      "sourceGroupCount": 10
+      "storyCount": 637,
+      "sourceGroupCount": 9
     }
   }
 }
