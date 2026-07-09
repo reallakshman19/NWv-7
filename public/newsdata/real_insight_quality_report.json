@@ -1,16 +1,16 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783591544889,
-  "contentHash": "1825a0a3fa4a06fc",
+  "generatedAt": 1783603795293,
+  "contentHash": "0468ba9e4369b35e",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 670,
-  "sourceGroupCount": 10,
+  "storyCount": 708,
+  "sourceGroupCount": 9,
   "grade": "C",
   "parentCount": 10,
   "avgAngles": 1.8,
-  "avgTemporalTiers": 1.8,
+  "avgTemporalTiers": 1.9,
   "avgEvolutionRoles": 1.8,
   "baseReportShare": 0.3333333333333333,
   "multiAngleCount": 8,
@@ -26,7 +26,7 @@
       "signalScore": 61,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 602,
+      "storyCount": 641,
       "risingCount": 1,
       "thinCount": 2,
       "multiAngleCount": 8,
@@ -34,7 +34,7 @@
       "strongAngleCount": 0,
       "avgAngles": 1.8,
       "avgChildren": 2.1,
-      "avgScore": 0.6285744493874932,
+      "avgScore": 0.6301744493874931,
       "sourceDiversityCoverage": 10,
       "snapshotCoverage": 6,
       "coverageLabel": "8/10",
@@ -43,7 +43,7 @@
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) have weak snapshot coverage.",
         "2 cluster(s) are marked thin.",
-        "682 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "672 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
@@ -53,7 +53,7 @@
       "signalScore": 61,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 602,
+      "storyCount": 641,
       "risingCount": 1,
       "thinCount": 2,
       "multiAngleCount": 8,
@@ -61,7 +61,7 @@
       "strongAngleCount": 0,
       "avgAngles": 1.8,
       "avgChildren": 2.1,
-      "avgScore": 0.6285744493874932,
+      "avgScore": 0.6301744493874931,
       "sourceDiversityCoverage": 10,
       "snapshotCoverage": 6,
       "coverageLabel": "8/10",
@@ -70,13 +70,13 @@
         "No cluster currently exposes three or more visible child angles.",
         "4 cluster(s) have weak snapshot coverage.",
         "2 cluster(s) are marked thin.",
-        "682 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "672 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_369_1b10261cf8ec84d2",
+      "parentId": "cluster_427_1b10261cf8ec84d2",
       "headline": "New U.S. attacks on Iran were absolutely necessary, NATO chief says",
       "score": 0.6732467197849983,
       "postTreeScore": 1.0532,
@@ -97,7 +97,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_397_6a1c90727ad680d0",
+      "parentId": "cluster_455_6a1c90727ad680d0",
       "headline": "US charges puts gangsters Lawrence Bishnoi and Goldy Brar at centre of transnational murder, stops short of accusing India",
       "score": 0.619081054304934,
       "postTreeScore": 1.0391,
@@ -118,7 +118,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_271_6eb8a77397386bc0",
+      "parentId": "cluster_328_6eb8a77397386bc0",
       "headline": "'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths",
       "score": 0.61211,
       "postTreeScore": 1.0121,
@@ -138,7 +138,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_149_3c468d6d762e0fa6",
+      "parentId": "cluster_206_3c468d6d762e0fa6",
       "headline": "Trump",
       "score": 0.60191,
       "postTreeScore": 1.0019,
@@ -159,7 +159,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_146_3ef9490213562868",
+      "parentId": "cluster_203_3ef9490213562868",
       "headline": "2 girls attacked with weapon at Germany school, teenager arrested",
       "score": 0.60111,
       "postTreeScore": 1.0011,
@@ -179,7 +179,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_9_15485cc2730e4452",
+      "parentId": "cluster_65_15485cc2730e4452",
       "headline": "New Zealand announces 57% tariff-free exports to India ahead of Modi visit",
       "score": 0.5945899468816684,
       "postTreeScore": 0.9946,
@@ -200,7 +200,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_38_76c70eeead844e34",
+      "parentId": "cluster_94_76c70eeead844e34",
       "headline": "India, Australia to expand partnership in critical minerals, clean energy - The Economic Times",
       "score": 0.5732433333333333,
       "postTreeScore": 0.9732,
@@ -221,17 +221,18 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_58_7a53db0c612d6686",
-      "headline": "India, Australia unveil new defence declaration to deepen Indo-Pacific cooperation",
-      "score": 0.5485933333333333,
-      "postTreeScore": 0.9486,
+      "parentId": "cluster_25_c9307bee90b6a4e8",
+      "headline": "Eye on Indo-Pacific: India and Australia deepen ties across nuclear, maritime and mineral sectors",
+      "score": 0.5645933333333333,
+      "postTreeScore": 0.9646,
       "childCount": 2,
       "angles": [
         "official_response",
         "base_report"
       ],
       "temporalTiers": [
-        "breaking"
+        "breaking",
+        "established"
       ],
       "evolutionRoles": [
         "first_report",
@@ -241,7 +242,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_321_6e34de537b5024bc",
+      "parentId": "cluster_378_6e34de537b5024bc",
       "headline": "Nuvama, Cushman & Wakefield-backed realty fund raises Rs 4,000 cr",
       "score": 0.7666133864516651,
       "postTreeScore": 0.6566,
@@ -260,7 +261,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_141_da6090dc5cceba59",
+      "parentId": "cluster_198_da6090dc5cceba59",
       "headline": "India estimates 300 GW power demand next year, backs local clean-energy manufacturing",
       "score": 0.6952467197849983,
       "postTreeScore": 0.5852,
@@ -309,7 +310,7 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.8,
+        "actual": 1.9,
         "required": ">= 1.8"
       },
       {
@@ -353,7 +354,7 @@
     "summary": {
       "parentCount": 10,
       "avgAngles": 1.8,
-      "avgTemporalTiers": 1.8,
+      "avgTemporalTiers": 1.9,
       "avgEvolutionRoles": 1.8,
       "baseReportShare": 0.333,
       "multiAngleCount": 8,
@@ -361,8 +362,8 @@
       "weakParentRatio": 0.2,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 670,
-      "sourceGroupCount": 10
+      "storyCount": 708,
+      "sourceGroupCount": 9
     }
   }
 }
