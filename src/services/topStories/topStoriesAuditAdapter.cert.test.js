@@ -9,10 +9,6 @@ import {
 } from './topStoriesAuditAdapter.js';
 import { TOP_STORIES_REGRESSION_INPUT } from './fixtures/topStoriesRegressionFixtures.js';
 
-function clone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
-
 describe('NW-RANK-005 Top Stories audit adapter shadow mode', () => {
   it('generates deterministic comparison payloads', () => {
     expect(getTopStoriesAuditComparisonPayload()).toEqual(getTopStoriesAuditComparisonPayload());
