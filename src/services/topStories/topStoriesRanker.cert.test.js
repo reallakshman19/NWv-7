@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { classifyTopStoryEvent, TOP_STORY_EVENT_TYPES } from './topStoriesEventClassifier.js';
-import { rankTopStories } from './topStoriesRanker.js';
+import { rankTopStories, scoreTopStoryCandidate } from './topStoriesRanker.js';
 import { __mainViewModelInternalsForTest } from '../../viewModels/useMainTabViewModel.js';
 
 const NOW = Date.UTC(2026, 6, 8, 8, 0, 0);
@@ -23,6 +23,30 @@ function story(id, ageHours, extra = {}) {
 
 function rank(items, options = {}) {
   return rankTopStories({ sectionItems: { world: items }, nowMs: NOW, topFeedItems: options.topFeedItems || [] }, options);
+}
+
+function score(item) {
+  return scoreTopStoryCandidate(item, { nowMs: NOW });
+}
+
+function trustedSingleSource(id, ageHours, extra = {}) {
+  return story(id, ageHours, {
+    source: 'Reuters',
+    sourceGroup: 'Reuters',
+    sourceCount: 1,
+    clusteredItems: 1,
+    ...extra,
+  });
+}
+
+function establishedCompetitors() {
+  return Array.from({ length: 5 }, (_, i) => story(`established-${i}`, 1, {
+    title: `Court verdict public safety review ${i}`,
+    source: `Trusted Source ${i}`,
+    sourceGroup: `trusted-source-${i}`,
+    sourceCount: 4,
+    clusteredItems: 4,
+  }));
 }
 
 function topFeedRows(id, count = 3, extra = {}) {
@@ -154,7 +178,6 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     const alternatives = Array.from({ length: 5 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, title: `Alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
     expect(ranked).toHaveLength(10);
-    // Diverse alternatives are always used before the dominant source overflows.
     expect(ranked.filter(item => item.sourceGroup !== 'same')).toHaveLength(5);
   });
 
@@ -170,6 +193,80 @@ describe('NW-RANK-001 Top Stories ranker', () => {
       story('c', 1, { title: 'Routine earnings report' }),
     ];
     expect(ids(rank(fixture))).toEqual(ids(rank(fixture)));
+  });
+
+  it('lets a very fresh trusted single-source public_safety story enter Top-3', () => {
+    const coldStart = trustedSingleSource('cold-public-safety', 0.1, {
+      title: 'Explosion injures residents in city center',
+    });
+    const ranked = rank([...establishedCompetitors(), coldStart]);
+    const placed = ranked.find(item => item.id === 'cold-public-safety');
+    expect(ranked.findIndex(item => item.id === 'cold-public-safety')).toBeLessThan(3);
+    expect(placed._topStoryRank.eventType).toBe(TOP_STORY_EVENT_TYPES.PUBLIC_SAFETY);
+    expect(placed._topStoryRank.coldStartCritical).toBe(true);
+    expect(placed._topStoryRank.priorityBucketLabel).toBe('cold-start-critical');
+    expect(placed._topStoryRank.sourceCount).toBe(1);
+    expect(placed._topStoryRank.topFeedHits).toBe(0);
+  });
+
+  it('lets a very fresh trusted single-source disaster story enter Top-3', () => {
+    const coldStart = trustedSingleSource('cold-disaster', 0.1, {
+      title: 'Cyclone landfall storm surge threatens coastal districts',
+    });
+    const ranked = rank([...establishedCompetitors(), coldStart]);
+    const placed = ranked.find(item => item.id === 'cold-disaster');
+    expect(ranked.findIndex(item => item.id === 'cold-disaster')).toBeLessThan(3);
+    expect(placed._topStoryRank.eventType).toBe(TOP_STORY_EVENT_TYPES.DISASTER);
+    expect(placed._topStoryRank.coldStartCritical).toBe(true);
+  });
+
+  it('does not require consensus or top-feed evidence for age <= 15 minute critical events', () => {
+    const coldStart = trustedSingleSource('cold-critical-no-consensus', 0.2, {
+      title: 'Hostage attack injures civilians at transit hub',
+    });
+    const ranked = rank([...establishedCompetitors(), coldStart], { topFeedItems: [] });
+    const placed = ranked.find(item => item.id === 'cold-critical-no-consensus');
+    expect(ranked.findIndex(item => item.id === 'cold-critical-no-consensus')).toBeLessThan(3);
+    expect(placed._topStoryRank.coldStartCritical).toBe(true);
+    expect(placed._topStoryRank.sourceCount).toBe(1);
+    expect(placed._topStoryRank.topFeedHits).toBe(0);
+    expect(placed._topStoryRank.clusterKey).toBe('cold-critical-no-consensus');
+  });
+
+  it('does not let low-confidence timestamp rows use the cold-start lane', () => {
+    const scored = score(trustedSingleSource('low-confidence-cold', 0.1, {
+      title: 'Explosion injures residents near refinery',
+      timestampConfidence: 'low',
+    }));
+    expect(scored._topStoryRank.coldStartCritical).toBe(false);
+    expect(scored._topStoryRank.priorityBucketLabel).toBe('standard');
+    expect(scored._topStoryRank.slotBand).toBe('rejected');
+  });
+
+  it('does not let entertainment promo rows use the cold-start lane', () => {
+    const scored = score(trustedSingleSource('promo-cold', 0.1, {
+      title: 'God of War gameplay trailer released',
+    }));
+    expect(scored._topStoryRank.eventType).toBe(TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO);
+    expect(scored._topStoryRank.coldStartCritical).toBe(false);
+    expect(scored._topStoryRank.priorityBucketLabel).toBe('standard');
+  });
+
+  it('does not let routine business rows use the cold-start lane', () => {
+    const scored = score(trustedSingleSource('routine-cold', 0.1, {
+      title: 'Startup launch reports quarterly profit results',
+    }));
+    expect(scored._topStoryRank.eventType).toBe(TOP_STORY_EVENT_TYPES.ROUTINE_BUSINESS);
+    expect(scored._topStoryRank.coldStartCritical).toBe(false);
+    expect(scored._topStoryRank.priorityBucketLabel).toBe('standard');
+  });
+
+  it('does not let stale or older-than-window rows use the cold-start lane', () => {
+    const scored = score(trustedSingleSource('stale-cold', 13, {
+      title: 'Explosion injures residents in old incident',
+    }));
+    expect(scored._topStoryRank.coldStartCritical).toBe(false);
+    expect(scored._topStoryRank.slotBand).toBe('expired');
   });
 
   it('uses strong top-feed evidence as a bounded boost for equivalent hard news', () => {
