@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3951,
+      "qualityScore": 0.4,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -207,6 +207,121 @@
           "gates": [
             {
               "details": {
+                "storyCount": 4
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 4
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "a47f9861bbd2cc3a",
+            "representativeTitle": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.83,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 4,
+            "storyIds": [
+              "a47f9861bbd2cc3a",
+              "76c70eeead844e34",
+              "fa92b073a0a30dc3",
+              "4ee739c53b939a61"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 4
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "operation",
+              "india",
+              "monsoon",
+              "neelkanth"
+            ],
+            "topicKey": "breaking|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.449,
+          "title": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -313,117 +428,6 @@
           ],
           "score": 0.401,
           "title": "Four Indian nationals pushed into Bangladesh return home after one-year legal battle"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "a47f9861bbd2cc3a",
-            "representativeTitle": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "a47f9861bbd2cc3a",
-              "76c70eeead844e34"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "operation",
-              "india"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -881,7 +885,7 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.59,
+        "eventImportanceScore": 0.6243,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4786,
         "sourceAuthorityScore": 0.4829,
@@ -946,25 +950,18 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "10 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
+        "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
         "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-        "Three teenagers booked for sexually assaulting minor girl: futureValidity failed — expired display window",
-        "Three teenagers booked for sexually assaulting minor girl: alertUrgency failed — alert expired",
-        "Priority should be for drinking water supply, Minister tells officials in Karur: futureValidity failed — expired display window",
-        "Priority should be for drinking water supply, Minister tells officials in Karur: alertUrgency failed — alert expired",
         "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-        "Tiruchi and Karur under heavy security blanket for CM Vijay’s visit: futureValidity failed — expired display window",
-        "Tiruchi and Karur under heavy security blanket for CM Vijay’s visit: alertUrgency failed — alert expired",
-        "Anna Nagar to get indoor badminton stadium under MLA fund: futureValidity failed — expired display window",
-        "Anna Nagar to get indoor badminton stadium under MLA fund: alertUrgency failed — alert expired",
         "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
         "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
@@ -1000,7 +997,7 @@
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 51,
+        "inputItemCount": 48,
         "locationCounts": {
           "chennai": 19,
           "trichy": 11
@@ -1013,7 +1010,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 13
+        "suppressedItemCount": 10
       },
       "qualityGrade": "B",
       "qualityScore": 0.8586,
@@ -4482,7 +4479,7 @@
       }
     }
   },
-  "generatedAt": 1783702481735,
+  "generatedAt": 1783706454249,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4501,7 +4498,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "10 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4516,7 +4513,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3951,
+      "insight": 0.4,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -4526,7 +4523,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3134,
+    "overallScore": 0.3146,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4535,18 +4532,11 @@
       "upAhead": "upAhead-v2-lifecycle-location-category"
     },
     "topFindings": [
+      "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
       "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-      "Three teenagers booked for sexually assaulting minor girl: futureValidity failed — expired display window",
-      "Three teenagers booked for sexually assaulting minor girl: alertUrgency failed — alert expired",
-      "Priority should be for drinking water supply, Minister tells officials in Karur: futureValidity failed — expired display window",
-      "Priority should be for drinking water supply, Minister tells officials in Karur: alertUrgency failed — alert expired",
       "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-      "Tiruchi and Karur under heavy security blanket for CM Vijay’s visit: futureValidity failed — expired display window",
-      "Tiruchi and Karur under heavy security blanket for CM Vijay’s visit: alertUrgency failed — alert expired",
-      "Anna Nagar to get indoor badminton stadium under MLA fund: futureValidity failed — expired display window",
-      "Anna Nagar to get indoor badminton stadium under MLA fund: alertUrgency failed — alert expired",
       "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
       "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
