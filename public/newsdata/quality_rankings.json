@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "Insight event/angle ranking has no critical demotion finding"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 8
+            "itemCount": 9
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 0,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 8,
-        "parentClusters": 8,
-        "strongParents": 8,
+        "inputCandidateCount": 9,
+        "parentClusters": 9,
+        "strongParents": 9,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3845,
+      "qualityScore": 0.3835,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -209,6 +209,121 @@
           "gates": [
             {
               "details": {
+                "storyCount": 4
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 4
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "a47f9861bbd2cc3a",
+            "representativeTitle": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.83,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 4,
+            "storyIds": [
+              "a47f9861bbd2cc3a",
+              "76c70eeead844e34",
+              "fa92b073a0a30dc3",
+              "4ee739c53b939a61"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 4
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "operation",
+              "india",
+              "monsoon",
+              "neelkanth"
+            ],
+            "topicKey": "breaking|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.449,
+          "title": "Breaking News live Updates: Operation Sindoor’s 'echo heard across world', says PM Modi at diaspora event in Australia - The Times of India"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -315,117 +430,6 @@
           ],
           "score": 0.401,
           "title": "Four Indian nationals pushed into Bangladesh return home after one-year legal battle"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:a7fe013c9e",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:a7fe013c9e",
-            "representativeId": "70b54bbed791f81c",
-            "representativeTitle": "Breaking News Live, July 10: Congo's Ebola outbreak kills 600 as total cases reach 1,759 - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "70b54bbed791f81c",
-              "a47f9861bbd2cc3a"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "july",
-              "congo",
-              "soon"
-            ],
-            "topicKey": "breaking|live|july"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Breaking News Live, July 10: Congo's Ebola outbreak kills 600 as total cases reach 1,759 - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -988,17 +992,125 @@
           ],
           "score": 0.2764,
           "title": "Ukrainian drones batter Russian oil facilities, set more oil tankers ablaze"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "a5b849f848fafb29",
+            "representativeTitle": "Top news of the day | June 24, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "a5b849f848fafb29",
+              "bf952c0b99344c4d"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1751,
+          "title": "Top news of the day | June 24, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3163,
-        "eventImportanceScore": 0.59,
+        "angleDiversityScore": 0.3089,
+        "eventImportanceScore": 0.6167,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4875,
-        "sourceAuthorityScore": 0.44,
-        "sourceDiversityScore": 0.4425,
-        "temporalEvolutionScore": 0.415
+        "noveltyDeltaScore": 0.4833,
+        "sourceAuthorityScore": 0.4333,
+        "sourceDiversityScore": 0.4322,
+        "temporalEvolutionScore": 0.41
       }
     },
     "localTravel": {
@@ -1058,7 +1170,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -1069,11 +1181,14 @@
         "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-        "Chennai couple’s half-century journey from pottery to star hotels: futureValidity failed — expired display window",
-        "Chennai couple’s half-century journey from pottery to star hotels: alertUrgency failed — alert expired",
+        "CMDA plans to shelve projects in Chennai as it grapples with outstanding liabilities up to ₹3,500 crore: futureValidity failed — expired display window",
+        "CMDA plans to shelve projects in Chennai as it grapples with outstanding liabilities up to ₹3,500 crore: alertUrgency failed — alert expired",
+        "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP: futureValidity failed — expired display window",
+        "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP: alertUrgency failed — alert expired",
+        "Chennai reading communities and book clubs are helping readers rekindle a lost habit: futureValidity failed — expired display window",
+        "Chennai reading communities and book clubs are helping readers rekindle a lost habit: alertUrgency failed — alert expired",
         "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
         "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
-        "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
         "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
         "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
         "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
@@ -1107,10 +1222,10 @@
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 56,
+        "inputItemCount": 55,
         "locationCounts": {
-          "chennai": 23,
-          "trichy": 7
+          "chennai": 20,
+          "trichy": 10
         },
         "locationsCovered": [
           "chennai",
@@ -1120,7 +1235,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 11
+        "suppressedItemCount": 12
       },
       "qualityGrade": "B",
       "qualityScore": 0.8586,
@@ -1240,6 +1355,121 @@
           ],
           "score": 0.8485,
           "title": "16 suffer electric shock from freezer box"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "debc6a1708613f25"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783743152000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "8401faee3914698c",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783743152000,
+            "id": "8401faee3914698c",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784347952000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783743152000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783656752000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "This is to improve the distribution network in Chennai, Tiruvallur, Chengalpattu, and Kancheepuram. City’s power demand crosses previous peak of 5,000 MW. While overall availability remains adequate, localised outages continue to occur: official",
+            "suppressionReason": null,
+            "title": "34 electricity substations to come up in Chennai, three neighbouring districts",
+            "url": "https://www.thehindu.com/news/cities/chennai/34-electricity-substations-to-come-up-in-city-three-neighbouring-districts/article71198348.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "34 electricity substations to come up in Chennai, three neighbouring districts"
         },
         {
           "category": "alerts",
@@ -1706,121 +1936,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "f1268d6c42bd0385"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783673268000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "029f39ff9245080b",
-          "item": {
-            "actionabilityScore": 1.0,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783673268000,
-            "id": "029f39ff9245080b",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784278068000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783673268000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783586868000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Can you tackle your reading slump with some help from Chennai’s book clubs and silent reading groups?",
-            "suppressionReason": null,
-            "title": "Chennai reading communities and book clubs are helping readers rekindle a lost habit",
-            "url": "https://www.thehindu.com/books/chennai-reading-communities-and-book-clubs-are-helping-readers-rekindle-a-lost-habit/article71075992.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai reading communities and book clubs are helping readers rekindle a lost habit"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "d69e64723f47961c"
               },
               "name": "dedup",
@@ -2060,7 +2175,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783732222000
+                "displayUntil": 1783748039000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2116,13 +2231,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783732222000,
+            "expiryAt": 1783748039000,
             "id": "8739ca96e0c44b6a",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784337022000,
+              "archiveUntil": 1784352839000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783732222000,
+              "displayUntil": 1783748039000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2133,7 +2248,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783645822000,
+            "publishedAt": 1783661639000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2290,7 +2405,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783690133000
+                "displayUntil": 1783747722000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2346,13 +2461,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783690133000,
+            "expiryAt": 1783747722000,
             "id": "a26250556ae0a7ab",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784294933000,
+              "archiveUntil": 1784352522000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783690133000,
+              "displayUntil": 1783747722000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2363,7 +2478,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783603733000,
+            "publishedAt": 1783661322000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2405,7 +2520,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783698957000
+                "displayUntil": 1783743224000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2461,13 +2576,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783698957000,
+            "expiryAt": 1783743224000,
             "id": "56c75612987aa6f7",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784303757000,
+              "archiveUntil": 1784348024000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783698957000,
+              "displayUntil": 1783743224000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2478,7 +2593,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783612557000,
+            "publishedAt": 1783656824000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2511,7 +2626,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "1174f588fc0794d3"
+                "dedupKey": "a642feae1f219252"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -2520,7 +2635,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783667572000
+                "displayUntil": 1783749129000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2566,7 +2681,7 @@
               "status": "PASS"
             }
           ],
-          "id": "e0b48501e39069b2",
+          "id": "37e8659c04e37e2b",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -2576,13 +2691,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783667572000,
-            "id": "e0b48501e39069b2",
+            "expiryAt": 1783749129000,
+            "id": "37e8659c04e37e2b",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784272372000,
+              "archiveUntil": 1784353929000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783667572000,
+              "displayUntil": 1783749129000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2593,7 +2708,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783581172000,
+            "publishedAt": 1783662729000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2606,10 +2721,10 @@
             },
             "source": "The Hindu Chennai",
             "sourceGroup": "the_hindu",
-            "summary": "A complaint alleged that unidentified social media accounts had been repeatedly posting obscene and derogatory content targeting Dr. Soundararajan, with the intent to insult and defame her",
+            "summary": "The patient had undergone a living donor liver transplant in 2025. A year later, she developed itching and jaundice, and evaluation found she was suffering from a complete bile duct blockage",
             "suppressionReason": null,
-            "title": "Man arrested for posting morphed image of BJP leader Tamilisai Soundararajan on social media",
-            "url": "https://www.thehindu.com/news/cities/chennai/man-arrested-for-posting-morphed-image-of-bjp-leader-tamilisai-soundararajan-on-social-media/article71199137.ece"
+            "title": "Magnetic compression procedure used to treat bile duct blockage at private hospital in Chennai",
+            "url": "https://www.thehindu.com/news/cities/chennai/magnetic-compression-procedure-used-to-treat-bile-duct-blockage-at-private-hospital-in-chennai/article71192957.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -2619,122 +2734,7 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Man arrested for posting morphed image of BJP leader Tamilisai Soundararajan on social media"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "ec4e639c2da91784"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783674401000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "dbf6d111853859cf",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783674401000,
-            "id": "dbf6d111853859cf",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784279201000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783674401000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783588001000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Nainar Nagenthran charged that the TVK-led government under Chief Minister C. Joseph Vijay has undertaken steps to stall the economic development of Tamil Nadu and the employment prospects of the youth of the State.",
-            "suppressionReason": null,
-            "title": "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/minister-nirmalkumarsclaims-on-parandur-site-a-false-propaganda-tn-bjp/article71201277.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP"
+          "title": "Magnetic compression procedure used to treat bile duct blockage at private hospital in Chennai"
         },
         {
           "category": "alerts",
@@ -3080,6 +3080,121 @@
           ],
           "score": 0.8485,
           "title": "Panel to be formed soon to examine liquor retail models in other States, says the Minister for Prohibition and Excise"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "3a58b33e73a4b08c"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783748279000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "d2f5077d084de624",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783748279000,
+            "id": "d2f5077d084de624",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784353079000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783748279000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783661879000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "R. Kalaikovan of the Dr. Rajamanickanar Centre for Historical Research says the idols is the probably oldest identifiable Pidari image in Tamil Nadu. Although several inscriptions from the Chola period refer to Pidari deities, the corresponding images have rarely been identified, he adds",
+            "suppressionReason": null,
+            "title": "Pidari Ekaveeri: a fierce Goddess, a captivating smile, and Raja Raja’s mother-in-law’s grant",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/pidari-ekaveeri-a-fierce-goddess-a-captivating-smile-and-raja-rajas-mother-in-laws-grant/article71186067.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Pidari Ekaveeri: a fierce Goddess, a captivating smile, and Raja Raja’s mother-in-law’s grant"
         },
         {
           "category": "alerts",
@@ -3670,7 +3785,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783709184000
+                "displayUntil": 1783750156000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -3726,13 +3841,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783709184000,
+            "expiryAt": 1783750156000,
             "id": "a3670fd73340c4ae",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784313984000,
+              "archiveUntil": 1784354956000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783709184000,
+              "displayUntil": 1783750156000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -3743,7 +3858,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783622784000,
+            "publishedAt": 1783663756000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -4351,7 +4466,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "b27fdf34e57a4e49"
+                "dedupKey": "204bdd326d126fdd"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -4360,7 +4475,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783664158000
+                "displayUntil": 1783698823000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -4370,7 +4485,7 @@
             {
               "details": {
                 "matchScore": 1.0,
-                "matchedLocation": "chennai",
+                "matchedLocation": "trichy",
                 "relevance": "primary",
                 "scope": "exactCity"
               },
@@ -4406,23 +4521,23 @@
               "status": "PASS"
             }
           ],
-          "id": "49fb4dcb542655ca",
+          "id": "39f562a3b961f4f3",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
-            "city": "Chennai",
+            "city": "Trichy",
             "contentClass": "upahead_alert",
             "dateConfidence": "unknown",
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783664158000,
-            "id": "49fb4dcb542655ca",
+            "expiryAt": 1783698823000,
+            "id": "39f562a3b961f4f3",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784268958000,
+              "archiveUntil": 1784303623000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783664158000,
+              "displayUntil": 1783698823000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -4430,10 +4545,10 @@
               "retentionReason": "expiryAt",
               "withinSevenDayHorizon": true
             },
-            "localityScore": 1.0,
+            "localityScore": 0.9,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783577758000,
+            "publishedAt": 1783612423000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -4444,14 +4559,14 @@
               "sourceConfidenceScore": 0.58,
               "urgencyOrExpiryScore": 0.78
             },
-            "source": "The Hindu Chennai",
+            "source": "The Hindu Trichy",
             "sourceGroup": "the_hindu",
-            "summary": "Tamil Nadu stands to lose 461 medical seats from the State quota, says Health Minister",
+            "summary": "",
             "suppressionReason": null,
-            "title": "Tamil Nadu to move court after three private medical colleges get deemed university status",
-            "url": "https://www.thehindu.com/news/cities/chennai/tamil-nadu-to-move-court-after-three-private-medical-colleges-get-deemed-university-status/article71198866.ece"
+            "title": "Three teenagers booked for sexually assaulting minor girl",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/three-teenagers-booked-for-sexually-assaulting-minor-girl/article71203280.ece"
           },
-          "locationKey": "chennai",
+          "locationKey": "trichy",
           "rankingReasons": [
             "alerts",
             "valid undated item with active display window",
@@ -4459,14 +4574,14 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Tamil Nadu to move court after three private medical colleges get deemed university status"
+          "title": "Three teenagers booked for sexually assaulting minor girl"
         },
         {
           "category": "alerts",
           "gates": [
             {
               "details": {
-                "dedupKey": "c61ec3101f31c437"
+                "dedupKey": "7084fa56dd0c946a"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -4475,7 +4590,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783667101000
+                "displayUntil": 1783758865000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -4485,7 +4600,7 @@
             {
               "details": {
                 "matchScore": 1.0,
-                "matchedLocation": "chennai",
+                "matchedLocation": "trichy",
                 "relevance": "primary",
                 "scope": "exactCity"
               },
@@ -4521,23 +4636,23 @@
               "status": "PASS"
             }
           ],
-          "id": "ad1a6d7f0401cce9",
+          "id": "7b91447473c7c2e4",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
-            "city": "Chennai",
+            "city": "Trichy",
             "contentClass": "upahead_alert",
             "dateConfidence": "unknown",
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783667101000,
-            "id": "ad1a6d7f0401cce9",
+            "expiryAt": 1783758865000,
+            "id": "7b91447473c7c2e4",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784271901000,
+              "archiveUntil": 1784363665000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783667101000,
+              "displayUntil": 1783758865000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -4545,10 +4660,10 @@
               "retentionReason": "expiryAt",
               "withinSevenDayHorizon": true
             },
-            "localityScore": 1.0,
+            "localityScore": 0.9,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783580701000,
+            "publishedAt": 1783672465000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -4559,14 +4674,14 @@
               "sourceConfidenceScore": 0.58,
               "urgencyOrExpiryScore": 0.78
             },
-            "source": "The Hindu Chennai",
+            "source": "The Hindu Trichy",
             "sourceGroup": "the_hindu",
-            "summary": "The clarification came after The Hindu reported that many government schools across the State were yet to receive textbooks, particularly those for Classes IV and V",
+            "summary": "The president of Tamilaga Vettri Kazhagam, during his speech, termed the DMK the \"vending machine\" of corruption.",
             "suppressionReason": null,
-            "title": "Textbook shortage due to new admissions; no delay in printing or supply: T.N. School Education dept.",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/textbook-shortage-due-to-new-admissions-no-delay-in-printing-or-supply-tn-school-education-dept/article71200909.ece"
+            "title": "Vijay Karur visit LIVE: Chief Minister announces memorial for stampede victims on behalf of TVK",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/tamil-nadu-cm-vijay-karur-visit-live-updates-stampede-victim-families-meet-tvk-party-meeting-job-order/article71205273.ece"
           },
-          "locationKey": "chennai",
+          "locationKey": "trichy",
           "rankingReasons": [
             "alerts",
             "valid undated item with active display window",
@@ -4574,7 +4689,7 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Textbook shortage due to new admissions; no delay in printing or supply: T.N. School Education dept."
+          "title": "Vijay Karur visit LIVE: Chief Minister announces memorial for stampede victims on behalf of TVK"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4589,7 +4704,7 @@
       }
     }
   },
-  "generatedAt": 1783661772188,
+  "generatedAt": 1783677713610,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4608,7 +4723,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4619,11 +4734,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3845,
+      "insight": 0.3835,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -4633,7 +4748,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3108,
+    "overallScore": 0.3105,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4646,11 +4761,14 @@
       "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-      "Chennai couple’s half-century journey from pottery to star hotels: futureValidity failed — expired display window",
-      "Chennai couple’s half-century journey from pottery to star hotels: alertUrgency failed — alert expired",
+      "CMDA plans to shelve projects in Chennai as it grapples with outstanding liabilities up to ₹3,500 crore: futureValidity failed — expired display window",
+      "CMDA plans to shelve projects in Chennai as it grapples with outstanding liabilities up to ₹3,500 crore: alertUrgency failed — alert expired",
+      "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP: futureValidity failed — expired display window",
+      "Minister Nirmalkumar’s claims on Parandur site are false propaganda: T.N. BJP: alertUrgency failed — alert expired",
+      "Chennai reading communities and book clubs are helping readers rekindle a lost habit: futureValidity failed — expired display window",
+      "Chennai reading communities and book clubs are helping readers rekindle a lost habit: alertUrgency failed — alert expired",
       "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
       "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
-      "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
       "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
       "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
       "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
