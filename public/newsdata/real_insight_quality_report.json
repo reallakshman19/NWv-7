@@ -1,16 +1,16 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783641766839,
-  "contentHash": "39c295d571bd7d08",
+  "generatedAt": 1783660151172,
+  "contentHash": "79a4dba0e955484d",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 627,
-  "sourceGroupCount": 9,
+  "storyCount": 601,
+  "sourceGroupCount": 10,
   "grade": "C",
   "parentCount": 10,
   "avgAngles": 1.7,
-  "avgTemporalTiers": 1.7,
+  "avgTemporalTiers": 1.8,
   "avgEvolutionRoles": 1.9,
   "baseReportShare": 0.2857142857142857,
   "multiAngleCount": 7,
@@ -23,10 +23,10 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 57,
+      "signalScore": 54,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 578,
+      "storyCount": 550,
       "risingCount": 1,
       "thinCount": 3,
       "multiAngleCount": 7,
@@ -34,26 +34,27 @@
       "strongAngleCount": 0,
       "avgAngles": 1.7,
       "avgChildren": 2.1,
-      "avgScore": 0.6226508598924991,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 6,
+      "avgScore": 0.6354168251426653,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 4,
       "coverageLabel": "7/10",
       "warnings": [
         "3 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) have weak snapshot coverage.",
+        "1 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
         "3 cluster(s) are marked thin.",
-        "494 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "512 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 57,
+      "signalScore": 54,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 578,
+      "storyCount": 550,
       "risingCount": 1,
       "thinCount": 3,
       "multiAngleCount": 7,
@@ -61,22 +62,23 @@
       "strongAngleCount": 0,
       "avgAngles": 1.7,
       "avgChildren": 2.1,
-      "avgScore": 0.6226508598924991,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 6,
+      "avgScore": 0.6354168251426653,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 4,
       "coverageLabel": "7/10",
       "warnings": [
         "3 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) have weak snapshot coverage.",
+        "1 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
         "3 cluster(s) are marked thin.",
-        "494 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "512 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_209_15485cc2730e4452",
+      "parentId": "cluster_272_15485cc2730e4452",
       "headline": "New Zealand announces 57% tariff-free exports to India ahead of Modi visit",
       "score": 0.6945633864516649,
       "postTreeScore": 1.0746,
@@ -97,17 +99,18 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_491_6eb8a77397386bc0",
-      "headline": "'Lust for murder': German doctor who killed 15 patients gets life term; suspected in 76 more deaths",
-      "score": 0.6680967197849983,
-      "postTreeScore": 1.0481,
+      "parentId": "cluster_48_560f011490ebf24f",
+      "headline": "Bonnie Tyler, who topped the charts with epic 'Total Eclipse of the Heart', dies",
+      "score": 0.6627300531183317,
+      "postTreeScore": 1.0627,
       "childCount": 2,
       "angles": [
-        "base_report",
-        "fact_update"
+        "fact_update",
+        "base_report"
       ],
       "temporalTiers": [
-        "breaking"
+        "breaking",
+        "reaction"
       ],
       "evolutionRoles": [
         "first_report",
@@ -117,10 +120,10 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_363_3c468d6d762e0fa6",
+      "parentId": "cluster_431_3c468d6d762e0fa6",
       "headline": "Trump",
-      "score": 0.60191,
-      "postTreeScore": 1.0019,
+      "score": 0.6698967197849983,
+      "postTreeScore": 1.0499,
       "childCount": 2,
       "angles": [
         "official_response",
@@ -138,27 +141,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_359_3ef9490213562868",
-      "headline": "2 girls attacked with weapon at Germany school, teenager arrested",
-      "score": 0.60111,
-      "postTreeScore": 1.0011,
-      "childCount": 2,
-      "angles": [
-        "official_response",
-        "investigative_detail"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "accountability"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_63_e46e226f8ea4abcd",
+      "parentId": "cluster_126_e46e226f8ea4abcd",
       "headline": "India and Australia Deepen Defence Ties: What It Means for the Indo-Pacific | Above the Fold | 09.07.2026",
       "score": 0.5637050531183315,
       "postTreeScore": 0.9837,
@@ -180,7 +163,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_239_76c70eeead844e34",
+      "parentId": "cluster_303_76c70eeead844e34",
       "headline": "India, Australia to expand partnership in critical minerals, clean energy - The Economic Times",
       "score": 0.5732433333333333,
       "postTreeScore": 0.9732,
@@ -201,10 +184,10 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_245_f1fc3c147523059b",
+      "parentId": "cluster_310_f1fc3c147523059b",
       "headline": "How undercover agents and informants helped the FBI unravel Lawrence Bishnoi’s gang | Explained",
-      "score": 0.5545933333333333,
-      "postTreeScore": 0.9546,
+      "score": 0.6225800531183316,
+      "postTreeScore": 1.0026,
       "childCount": 2,
       "angles": [
         "base_report",
@@ -221,27 +204,66 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_354_da6090dc5cceba59",
-      "headline": "India estimates 300 GW power demand next year, backs local clean-energy manufacturing",
-      "score": 0.6952467197849983,
-      "postTreeScore": 0.5852,
+      "parentId": "cluster_427_3ef9490213562868",
+      "headline": "2 girls attacked with weapon at Germany school, teenager arrested",
+      "score": 0.60111,
+      "postTreeScore": 1.0011,
       "childCount": 2,
       "angles": [
-        "regional_followup"
+        "official_response",
+        "investigative_detail"
       ],
       "temporalTiers": [
         "breaking",
         "established"
       ],
       "evolutionRoles": [
+        "accountability"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_18_aa0b38fa51338fb1",
+      "headline": "PM Modi meets Australia's Opposition leader, discusses bilateral ties",
+      "score": 0.6243128795983323,
+      "postTreeScore": 0.4743,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
         "first_report",
-        "corroboration"
+        "official_response"
       ],
       "baseReportShare": 0,
       "weakTree": true
     },
     {
-      "parentId": "cluster_261_0d3caef2cc5b8376",
+      "parentId": "cluster_386_e5076c9e52a83034",
+      "headline": "PM Modi invites Australian businesses to invest in India, seeks early conclusion of CECA",
+      "score": 0.6714967197849984,
+      "postTreeScore": 0.5615,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_326_0d3caef2cc5b8376",
       "headline": "Australia's largest pension fund invests 500 million Australian Dollars in India's infrastructure fund",
       "score": 0.6705300531183316,
       "postTreeScore": 0.5605,
@@ -258,34 +280,15 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
-    },
-    {
-      "parentId": "cluster_318_e5076c9e52a83034",
-      "headline": "PM Modi invites Australian businesses to invest in India, seeks early conclusion of CECA",
-      "score": 0.60351,
-      "postTreeScore": 0.5135,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
     }
   ],
   "warnings": [],
   "errors": [],
   "ratchetGate": {
-    "status": "FAIL",
+    "status": "PASS",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "C",
-    "score": 76,
+    "score": 100,
     "passed": [
       {
         "id": "grade-floor",
@@ -304,6 +307,12 @@
         "label": "Average visible angle count",
         "actual": 1.7,
         "required": ">= 1.4"
+      },
+      {
+        "id": "avg-temporal-tier-count",
+        "label": "Average temporal tier count",
+        "actual": 1.8,
+        "required": ">= 1.8"
       },
       {
         "id": "avg-evolution-role-count",
@@ -342,20 +351,11 @@
         "required": "<= 0.5"
       }
     ],
-    "failed": [
-      {
-        "id": "avg-temporal-tier-count",
-        "label": "Average temporal tier count",
-        "actual": 1.7,
-        "required": ">= 1.8",
-        "severity": "fail",
-        "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
-      }
-    ],
+    "failed": [],
     "summary": {
       "parentCount": 10,
       "avgAngles": 1.7,
-      "avgTemporalTiers": 1.7,
+      "avgTemporalTiers": 1.8,
       "avgEvolutionRoles": 1.9,
       "baseReportShare": 0.286,
       "multiAngleCount": 7,
@@ -363,8 +363,8 @@
       "weakParentRatio": 0.3,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 627,
-      "sourceGroupCount": 9
+      "storyCount": 601,
+      "sourceGroupCount": 10
     }
   }
 }

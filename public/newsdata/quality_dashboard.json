@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1783641769504,
+  "generatedAt": 1783660152987,
   "windowDays": 7,
   "latest": {
     "insightGrade": "C",
     "insightScore": 0,
-    "totalStories": 627,
-    "usableStories36h": 619,
-    "sourceGroups": 9,
+    "totalStories": 601,
+    "usableStories36h": 571,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3071,
+    "rankingOverallScore": 0.3086,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3071,
+    "overallScore": 0.3086,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1783641768117,
+    "generatedAt": 1783660152038,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.3779,
+      "insight": 0.3758,
       "localTravel": 0,
-      "upAhead": 0.8505
+      "upAhead": 0.8586
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.3779,
+        "score": 0.3758,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8505,
+        "score": 0.8586,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,11 +74,11 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 8,
-        "strongParents": 8,
+        "parentClusters": 11,
+        "strongParents": 11,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
-        "baseReportHeavyParents": 0,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0
       },
       "localTravel": {
@@ -92,7 +92,7 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 25,
+        "suppressedItemCount": 11,
         "events": 0,
         "onlineOffers": 0,
         "offlineOffers": 0,
@@ -105,23 +105,24 @@
       }
     },
     "topFindings": [
+      "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
+      "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
+      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
+      "Chennai couple’s half-century journey from pottery to star hotels: futureValidity failed — expired display window",
+      "Chennai couple’s half-century journey from pottery to star hotels: alertUrgency failed — alert expired",
       "65-inch TV deal: Save over 50% on Toshiba's 2026 premium Mini LED 4K TV at Amazon - Mashable: location failed — offline/local item lacks configured location match",
-      "A total of 139 entries receive awards in The Hindu Margazhi Competition 2025: futureValidity failed — expired display window",
-      "A total of 139 entries receive awards in The Hindu Margazhi Competition 2025: alertUrgency failed — alert expired",
-      "TANKER Foundation receives donation of ₹25 lakh from GRT: futureValidity failed — expired display window",
-      "TANKER Foundation receives donation of ₹25 lakh from GRT: alertUrgency failed — alert expired",
-      "Gas leak: unit sealed by RDO after removal of ammonia: futureValidity failed — expired display window",
-      "Gas leak: unit sealed by RDO after removal of ammonia: alertUrgency failed — alert expired",
       "Amazon’s $25B ‘surprise’ bond sale lured buyers in with extra yield—flashing an AI boom warning sign - Fortune: location failed — offline/local item lacks configured location match",
-      "Man held for secretly photographing women in Washermenpet: futureValidity failed — expired display window",
-      "Man held for secretly photographing women in Washermenpet: alertUrgency failed — alert expired",
-      "Youth, four associates held for cheating girlfriend into stealing 129 sovereigns of gold: futureValidity failed — expired display window",
-      "Youth, four associates held for cheating girlfriend into stealing 129 sovereigns of gold: alertUrgency failed — alert expired"
+      "Amazon to raise $25 billion from bond sale - Lapaas Voice: location failed — offline/local item lacks configured location match",
+      "Diljit Dosanjh wondered if Satluj would ever release; says Jaswant Singh Khalra's voice was suppressed twice: location failed — offline/local item lacks configured location match",
+      "Huma Qureshi says she doesn't look at Alia Bhatt, Sharvari's Alpha as competition amid clash with her Baby Do Die Do: location failed — offline/local item lacks configured location match",
+      "Ajay Devgn's Dhamaal 4 cleared by CBFC; 'obscene' gestures and words modified before release: location failed — offline/local item lacks configured location match"
     ],
     "actionRequired": [
-      "25 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
+      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -129,8 +130,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding",
-      "buzz: no local Buzz item in ranked set"
+      "1 base-report-heavy Insight parent(s) demoted"
     ]
   },
   "sourceHealth": {
@@ -256,16 +256,16 @@
     },
     {
       "date": "2026-07-10",
-      "generatedAt": 1783641769504,
+      "generatedAt": 1783660152987,
       "insightGrade": "C",
       "insightScore": 0,
-      "totalStories": 627,
-      "usableStories36h": 619,
-      "sourceGroups": 9,
+      "totalStories": 601,
+      "usableStories36h": 571,
+      "sourceGroups": 10,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3071,
+      "rankingOverallScore": 0.3086,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
