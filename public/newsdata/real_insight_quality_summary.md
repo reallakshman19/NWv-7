@@ -7,12 +7,12 @@
 - Average angles: `1.8`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `2`
-- Base report share: `0.2857142857142857`
+- Base report share: `0.38095238095238093`
 - Multi-angle parents: `8`
 - Weak parents: `2`
-- Story count: `741`
-- Source groups: `10`
-- Content hash: `f53ba7a8a91a53d0`
+- Story count: `687`
+- Source groups: `9`
+- Content hash: `601d7dd15f9d112e`
 
 ## Top parents
 
@@ -27,7 +27,7 @@
 | 7 | How undercover agents and informants helped the FBI unravel Lawrence Bishnoi’s gang / Explained | 2 | base_report, expert_analysis | NO | 0.6225800531183316 |
 | 8 | Bonnie Tyler, who topped the charts with epic 'Total Eclipse of the Heart', dies | 2 | fact_update, base_report | NO | 0.6187300531183317 |
 | 9 | E20 petrol may cut mileage by up to 5% but offers cleaner combustion, energy security benefits: Ministry | 2 | official_response | YES | 0.6784133864516649 |
-| 10 | PM Modi invites Australian businesses to invest in India, seeks early conclusion of CECA | 2 | official_response | YES | 0.6714967197849984 |
+| 10 | Eye on Indo-Pacific: India and Australia deepen ties across nuclear, maritime and mineral sectors | 2 | base_report | YES | 0.6225800531183316 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -39,7 +39,7 @@
 - Average angles: `1.8`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `2`
-- Base report share: `0.286`
+- Base report share: `0.381`
 - Multi-angle parents: `8`
 - Top parent angles: `2`
 - Top parent children: `2`
@@ -55,7 +55,7 @@
 - Average visible angle count: `1.8` / `>= 1.4`
 - Average temporal tier count: `1.8` / `>= 1.8`
 - Average evolution role count: `2` / `>= 1.6`
-- Base report share: `0.286` / `<= 0.55`
+- Base report share: `0.381` / `<= 0.55`
 - Multi-angle parent count: `8` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `2` / `>= 2`
