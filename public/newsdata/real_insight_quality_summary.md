@@ -10,9 +10,9 @@
 - Base report share: `0.2857142857142857`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `702`
-- Source groups: `10`
-- Content hash: `76156f815e7f4523`
+- Story count: `627`
+- Source groups: `9`
+- Content hash: `39c295d571bd7d08`
 
 ## Top parents
 
@@ -27,7 +27,7 @@
 | 7 | How undercover agents and informants helped the FBI unravel Lawrence Bishnoi’s gang / Explained | 2 | base_report, expert_analysis | NO | 0.5545933333333333 |
 | 8 | India estimates 300 GW power demand next year, backs local clean-energy manufacturing | 2 | regional_followup | YES | 0.6952467197849983 |
 | 9 | Australia's largest pension fund invests 500 million Australian Dollars in India's infrastructure fund | 2 | fact_update | YES | 0.6705300531183316 |
-| 10 | Trump says ceasefire is 'over' after US and Iran trade strikes | 2 | official_response | YES | 0.6632467197849983 |
+| 10 | PM Modi invites Australian businesses to invest in India, seeks early conclusion of CECA | 2 | official_response | YES | 0.60351 |
 
 ## Real Snapshot Ratchet Gate
 
