@@ -15,7 +15,7 @@
 
 ## Findings
 
-- 6 invalid/expired/duplicate Up Ahead item(s) suppressed
+- 7 invalid/expired/duplicate Up Ahead item(s) suppressed
 - no active offer items in ranked Up Ahead set
 - no ranked Up Ahead item for muscat
 - no local Buzz item in ranked set
