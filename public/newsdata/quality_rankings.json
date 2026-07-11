@@ -60,11 +60,11 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 7
+            "itemCount": 5
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
-          "score": 1.0,
+          "score": 0.8333,
           "status": "PASS"
         },
         {
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 7,
-        "parentClusters": 7,
-        "strongParents": 7,
+        "inputCandidateCount": 5,
+        "parentClusters": 5,
+        "strongParents": 5,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.398,
+      "qualityScore": 0.4171,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -319,7 +319,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 4
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -356,7 +356,7 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 4
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -381,7 +381,7 @@
             "representativeTitle": "Breaking News Live Updates: 15 Indian tourists dead after a speedboat capsized in southern Vietnam - The Economic Times",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 0.83,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -396,18 +396,17 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 5,
+            "storyCount": 4,
             "storyIds": [
               "5c82a84a39d94e0a",
               "a47f9861bbd2cc3a",
               "fa92b073a0a30dc3",
-              "4ee739c53b939a61",
               "c0b89c693126f623"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 5
+                "count": 4
               }
             ],
             "topTokens": [
@@ -417,7 +416,6 @@
               "indian",
               "operation",
               "monsoon",
-              "neelkanth",
               "strong"
             ],
             "topicKey": "breaking|live|updates"
@@ -428,7 +426,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.479,
+          "score": 0.449,
           "title": "Breaking News Live Updates: 15 Indian tourists dead after a speedboat capsized in southern Vietnam - The Economic Times"
         },
         {
@@ -556,226 +554,6 @@
             },
             {
               "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:768c327fc1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "f4e07fc01cff9f3c",
-            "representativeTitle": "India news Live Updates 11 July 2026: Monsoon fury across India, landslides batter Uttarakhand, Himachal and J&K - The Indian Express",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "f4e07fc01cff9f3c",
-              "b7b1da39eff2ebdc"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "india",
-              "live",
-              "updates",
-              "july"
-            ],
-            "topicKey": "india|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "India news Live Updates 11 July 2026: Monsoon fury across India, landslides batter Uttarakhand, Himachal and J&K - The Indian Express"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
                 "baseReportRatio": 0.5,
                 "distinctAngles": 1
               },
@@ -882,12 +660,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.6414,
+        "eventImportanceScore": 0.638,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4643,
-        "sourceAuthorityScore": 0.4829,
-        "sourceDiversityScore": 0.5086,
-        "temporalEvolutionScore": 0.4386
+        "noveltyDeltaScore": 0.47,
+        "sourceAuthorityScore": 0.524,
+        "sourceDiversityScore": 0.572,
+        "temporalEvolutionScore": 0.466
       }
     },
     "localTravel": {
@@ -947,7 +725,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "9 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat"
       ],
@@ -956,15 +734,9 @@
         "One of Brooks’ most popular running shoes is on sale for under $100 - NBC News: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "You Can Get Up to 35% Off a Pair of New Balances on Amazon Right Now - Esquire: location failed — offline/local item lacks configured location match",
-        "IMD warns of heavy rain, storms across major tourist hubs - MSN: futureValidity failed — expired display window",
-        "IMD warns of heavy rain, storms across major tourist hubs - MSN: alertUrgency failed — alert expired",
         "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
-        "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-        "Hyperice Promo Codes: Save Up To $250 On Post-Workout Recovery Devices - Forbes: location failed — offline/local item lacks configured location match",
-        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: futureValidity failed — expired display window",
-        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: offerValidity failed — offer expired"
+        "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match"
       ],
       "gateResults": [
         {
@@ -1010,7 +782,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 9
+        "suppressedItemCount": 6
       },
       "qualityGrade": "B",
       "qualityScore": 0.8606,
@@ -2295,7 +2067,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783862721000
+                "displayUntil": 1783870029000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2351,13 +2123,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783862721000,
+            "expiryAt": 1783870029000,
             "id": "77ce40dcdf854919",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784467521000,
+              "archiveUntil": 1784474829000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783862721000,
+              "displayUntil": 1783870029000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2368,7 +2140,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783776321000,
+            "publishedAt": 1783783629000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2395,6 +2167,121 @@
           ],
           "score": 0.8485,
           "title": "DVAC arrests seven govt. staff in one week; seizes over ₹22 lakh in surprise checks"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "05d7cbdb6e35ce21"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783871354000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "3a85e8851fd7186f",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783871354000,
+            "id": "3a85e8851fd7186f",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784476154000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783871354000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783784954000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Through its panel discussions and artistic performances lined up for the two-day event, the fest aims to combat the idea of a single historical truth by acknowledging the multiplicities existing in history",
+            "suppressionReason": null,
+            "title": "DakshinaChitra’s LangFest 2026 makes space for the pluralities of voices in history",
+            "url": "https://www.thehindu.com/news/cities/chennai/dakshinachitras-langfest-2026-makes-space-for-the-pluralities-of-voices-in-history/article70582350.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "DakshinaChitra’s LangFest 2026 makes space for the pluralities of voices in history"
         },
         {
           "category": "alerts",
@@ -3321,6 +3208,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "85fff6316ee702ad"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783873268000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "3271fe24d107dad1",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783873268000,
+            "id": "3271fe24d107dad1",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784478068000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783873268000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783786868000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "The accused Chella Narayanan has multiple criminal cases pending against him in Andhra Pradesh, including cases involving murder, theft, cheating, and offences under the POCSO Act",
+            "suppressionReason": null,
+            "title": "History-sheeter from Andhra Pradesh arrested for matrimonial fraud",
+            "url": "https://www.thehindu.com/news/cities/chennai/history-sheeter-from-andhra-pradesh-arrested-for-matrimonial-fraud/article71210490.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "History-sheeter from Andhra Pradesh arrested for matrimonial fraud"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "acdfec260956f21e"
               },
               "name": "dedup",
@@ -3445,7 +3447,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783869818000
+                "displayUntil": 1783870104000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -3501,13 +3503,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783869818000,
+            "expiryAt": 1783870104000,
             "id": "c9936e432f0aecd6",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784474618000,
+              "archiveUntil": 1784474904000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783869818000,
+              "displayUntil": 1783870104000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -3518,7 +3520,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783783418000,
+            "publishedAt": 1783783704000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -4235,236 +4237,6 @@
           ],
           "score": 0.8485,
           "title": "No non-academic events in school premises, says T.N. govt."
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "9006b34d13c709a1"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783798614000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "b0de06c69a2c4570",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783798614000,
-            "id": "b0de06c69a2c4570",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784403414000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783798614000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783712214000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Nurses association opposes move to redeploy 292 nursing posts",
-            "url": "https://www.thehindu.com/news/cities/chennai/nurses-association-opposes-move-to-redeploy-292-nursing-posts/article71207178.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Nurses association opposes move to redeploy 292 nursing posts"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "371bd8ae49b85892"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783839207000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "dc681e526ec8648f",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783839207000,
-            "id": "dc681e526ec8648f",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784444007000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783839207000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783752807000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "It was in 2017 that Dr. Deepthi Cheran learned the ropes of photography from Rathika Ramasamy, a wildlife photographer. Since then, she has travelled to Andhra Pradesh, Karnataka, Uttarakhand, Rajasthan and Tamil Nadu in search of birds and has captured images of 300 to 400 species of birds so far.",
-            "suppressionReason": null,
-            "title": "On a bird quest: Doctors in Chennai turn avid bird photographers",
-            "url": "https://www.thehindu.com/sci-tech/energy-and-environment/on-a-bird-quest-an-anaesthetist-turns-avid-bird-photographer/article66927830.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "On a bird quest: Doctors in Chennai turn avid bird photographers"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4479,7 +4251,7 @@
       }
     }
   },
-  "generatedAt": 1783785230236,
+  "generatedAt": 1783792466487,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4498,7 +4270,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "9 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
@@ -4512,7 +4284,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.398,
+      "insight": 0.4171,
       "localTravel": 0.0,
       "upAhead": 0.8606
     },
@@ -4522,7 +4294,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3146,
+    "overallScore": 0.3194,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4534,15 +4306,9 @@
       "One of Brooks’ most popular running shoes is on sale for under $100 - NBC News: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "You Can Get Up to 35% Off a Pair of New Balances on Amazon Right Now - Esquire: location failed — offline/local item lacks configured location match",
-      "IMD warns of heavy rain, storms across major tourist hubs - MSN: futureValidity failed — expired display window",
-      "IMD warns of heavy rain, storms across major tourist hubs - MSN: alertUrgency failed — alert expired",
       "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
-      "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-      "Hyperice Promo Codes: Save Up To $250 On Post-Workout Recovery Devices - Forbes: location failed — offline/local item lacks configured location match",
-      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: futureValidity failed — expired display window",
-      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
-      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: offerValidity failed — offer expired"
+      "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match"
     ]
   }
 }
