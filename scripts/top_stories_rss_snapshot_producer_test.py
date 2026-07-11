@@ -32,9 +32,9 @@ FRESH_FEED = f"""<?xml version="1.0" encoding="UTF-8"?>
     <pubDate>{rfc822(FRESH_MS)}</pubDate>
   </item>
   <item>
-    <title>Flood evacuation alert issued duplicate</title>
-    <link>https://example.com/flood-alert?utm=2</link>
-    <guid>fixture-flood-alert-duplicate</guid>
+    <title>Public safety court order issued</title>
+    <link>https://example.com/public-safety-order?utm=2</link>
+    <guid>fixture-public-safety-order</guid>
     <pubDate>{rfc822(FRESH_MS)}</pubDate>
   </item>
   <item>
