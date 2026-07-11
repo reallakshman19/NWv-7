@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783754728368,
-  "contentHash": "24d8f4977d40a1ae",
+  "generatedAt": 1783766568033,
+  "contentHash": "1ae535302592ae48",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 539,
-  "sourceGroupCount": 9,
+  "storyCount": 618,
+  "sourceGroupCount": 10,
   "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.6,
-  "avgTemporalTiers": 2.1,
-  "avgEvolutionRoles": 2.1,
-  "baseReportShare": 0.13636363636363635,
-  "multiAngleCount": 6,
-  "weakParentCount": 4,
+  "avgAngles": 1.9,
+  "avgTemporalTiers": 2.2,
+  "avgEvolutionRoles": 2.3,
+  "baseReportShare": 0.17391304347826086,
+  "multiAngleCount": 9,
+  "weakParentCount": 1,
   "runtimeQualityGate": {
     "attempted": false,
     "recovered": false,
@@ -23,63 +23,65 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 50,
+      "signalScore": 64,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 512,
-      "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "storyCount": 570,
+      "risingCount": 1,
+      "thinCount": 1,
+      "multiAngleCount": 9,
+      "lowAngleCount": 1,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2.2,
-      "avgScore": 0.6643894305003324,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 4,
-      "coverageLabel": "6/10",
+      "avgAngles": 1.9,
+      "avgChildren": 2.3,
+      "avgScore": 0.6691871578239567,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 5,
+      "coverageLabel": "9/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "1 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "270 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "1 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "1 cluster(s) are marked thin.",
+        "480 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 50,
+      "signalScore": 64,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 512,
-      "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "storyCount": 570,
+      "risingCount": 1,
+      "thinCount": 1,
+      "multiAngleCount": 9,
+      "lowAngleCount": 1,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2.2,
-      "avgScore": 0.6643894305003324,
-      "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 4,
-      "coverageLabel": "6/10",
+      "avgAngles": 1.9,
+      "avgChildren": 2.3,
+      "avgScore": 0.6691871578239567,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 5,
+      "coverageLabel": "9/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "1 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "6 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "270 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "1 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "1 cluster(s) are marked thin.",
+        "480 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_61_d7bc951d351abbb5",
+      "parentId": "cluster_112_d7bc951d351abbb5",
       "headline": "It's a mystery who launched latest strikes against Iran",
-      "score": 0.6887373727449997,
-      "postTreeScore": 1.1487,
+      "score": 0.7566456657689977,
+      "postTreeScore": 1.1966,
       "childCount": 4,
       "angles": [
         "official_response",
@@ -100,7 +102,30 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_374_cc98cab5e48224ef",
+      "parentId": "cluster_138_86c79bac77aead18",
+      "headline": "Bangladesh's Hasina plans December return with party colleagues to surrender - Reuters",
+      "score": 0.6638495401839084,
+      "postTreeScore": 1.1038,
+      "childCount": 3,
+      "angles": [
+        "official_response",
+        "investigative_detail"
+      ],
+      "temporalTiers": [
+        "developing",
+        "reaction",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "investigation",
+        "accountability"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_429_cc98cab5e48224ef",
       "headline": "China successfully tests sea-based rocket booster recovery system, says state media",
       "score": 0.6814967197849984,
       "postTreeScore": 1.0615,
@@ -121,7 +146,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_112_04b5243c07a775fd",
+      "parentId": "cluster_167_04b5243c07a775fd",
       "headline": "Don’t politicise jobs to families of stampede victims: Vasan",
       "score": 0.6789967197849983,
       "postTreeScore": 1.059,
@@ -142,7 +167,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_261_d875ef6b25996b0d",
+      "parentId": "cluster_318_d875ef6b25996b0d",
       "headline": "India-Australia Roadmap for Sports Collaboration - orissadiary.com",
       "score": 0.6758967197849983,
       "postTreeScore": 1.0559,
@@ -163,7 +188,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_380_838eb7164ab471b7",
+      "parentId": "cluster_435_838eb7164ab471b7",
       "headline": "PM Modi leaves for New Zealand after concluding Australia visit - The Hindu",
       "score": 0.6758967197849983,
       "postTreeScore": 1.0559,
@@ -184,7 +209,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_36_a38aebece774b044",
+      "parentId": "cluster_86_a38aebece774b044",
       "headline": "Passenger partially sucked out window on Ryanair flight from Greece",
       "score": 0.6281899468816685,
       "postTreeScore": 1.0282,
@@ -205,7 +230,49 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_81_cef4bb98cb3f47e6",
+      "parentId": "cluster_456_32a995562db90c82",
+      "headline": "Government Removes Import Duty on Some Electronics, Smartphone Parts",
+      "score": 0.62791,
+      "postTreeScore": 1.0279,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "reaction"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "fact_update"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_33_d0c7a28e74c19851",
+      "headline": "PM Modi tours New Zealand sports innovation showcase",
+      "score": 0.5762928264800007,
+      "postTreeScore": 0.9363,
+      "childCount": 2,
+      "angles": [
+        "fact_update",
+        "official_response"
+      ],
+      "temporalTiers": [
+        "developing",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update",
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_133_cef4bb98cb3f47e6",
       "headline": "'One nation, one election' mechanism may be ready for rollout by 2029: Joint panel chief",
       "score": 0.7266967197849983,
       "postTreeScore": 0.6167,
@@ -220,65 +287,6 @@
       "evolutionRoles": [
         "corroboration",
         "cause_claim"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_321_6d17fd1512050711",
-      "headline": "E20 petrol may cut mileage by up to 5% but offers cleaner combustion, energy security benefits: Ministry",
-      "score": 0.6784133864516649,
-      "postTreeScore": 0.5684,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_85_34265217e8e03181",
-      "headline": "New dinosaur species with neck as long as cricket pitch discovered in Thailand",
-      "score": 0.6363266666666667,
-      "postTreeScore": 0.5463,
-      "childCount": 2,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_30_957d72c4bfdf6551",
-      "headline": "India, New Zealand elevate ties to strategic partnership",
-      "score": 0.5732433333333333,
-      "postTreeScore": 0.4832,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "official_response"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -307,31 +315,31 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.6,
+        "actual": 1.9,
         "required": ">= 1.4"
       },
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 2.1,
+        "actual": 2.2,
         "required": ">= 1.8"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 2.1,
+        "actual": 2.3,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.136,
+        "actual": 0.174,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 6,
+        "actual": 9,
         "required": ">= 1"
       },
       {
@@ -349,24 +357,24 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.4,
+        "actual": 0.1,
         "required": "<= 0.5"
       }
     ],
     "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.6,
-      "avgTemporalTiers": 2.1,
-      "avgEvolutionRoles": 2.1,
-      "baseReportShare": 0.136,
-      "multiAngleCount": 6,
-      "weakParentCount": 4,
-      "weakParentRatio": 0.4,
+      "avgAngles": 1.9,
+      "avgTemporalTiers": 2.2,
+      "avgEvolutionRoles": 2.3,
+      "baseReportShare": 0.174,
+      "multiAngleCount": 9,
+      "weakParentCount": 1,
+      "weakParentRatio": 0.1,
       "topParentAngles": 2,
       "topParentChildren": 4,
-      "storyCount": 539,
-      "sourceGroupCount": 9
+      "storyCount": 618,
+      "sourceGroupCount": 10
     }
   }
 }
