@@ -4,15 +4,15 @@
 - Reason: -
 - Grade: `C`
 - Parents: `10`
-- Average angles: `1.9`
+- Average angles: `1.8`
 - Average temporal tiers: `2.2`
-- Average evolution roles: `2.3`
-- Base report share: `0.17391304347826086`
-- Multi-angle parents: `9`
-- Weak parents: `1`
-- Story count: `618`
-- Source groups: `10`
-- Content hash: `1ae535302592ae48`
+- Average evolution roles: `2.2`
+- Base report share: `0.13043478260869565`
+- Multi-angle parents: `8`
+- Weak parents: `2`
+- Story count: `603`
+- Source groups: `9`
+- Content hash: `252df6db1ce47edc`
 
 ## Top parents
 
@@ -25,9 +25,9 @@
 | 5 | India-Australia Roadmap for Sports Collaboration - orissadiary.com | 2 | official_response, base_report | NO | 0.6758967197849983 |
 | 6 | PM Modi leaves for New Zealand after concluding Australia visit - The Hindu | 2 | base_report, official_response | NO | 0.6758967197849983 |
 | 7 | Passenger partially sucked out window on Ryanair flight from Greece | 2 | base_report, regional_followup | NO | 0.6281899468816685 |
-| 8 | Government Removes Import Duty on Some Electronics, Smartphone Parts | 2 | base_report, fact_update | NO | 0.62791 |
-| 9 | PM Modi tours New Zealand sports innovation showcase | 2 | fact_update, official_response | NO | 0.5762928264800007 |
-| 10 | 'One nation, one election' mechanism may be ready for rollout by 2029: Joint panel chief | 2 | fact_update | YES | 0.7266967197849983 |
+| 8 | PM Modi tours New Zealand sports innovation showcase | 2 | fact_update, official_response | NO | 0.5762928264800007 |
+| 9 | 'One nation, one election' mechanism may be ready for rollout by 2029: Joint panel chief | 2 | fact_update | YES | 0.7266967197849983 |
+| 10 | E20 petrol may cut mileage by up to 5% but offers cleaner combustion, energy security benefits: Ministry | 2 | official_response | YES | 0.6784133864516649 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -36,11 +36,11 @@
 - Grade: `C`
 - Score: `100`
 - Parents: `10`
-- Average angles: `1.9`
+- Average angles: `1.8`
 - Average temporal tiers: `2.2`
-- Average evolution roles: `2.3`
-- Base report share: `0.174`
-- Multi-angle parents: `9`
+- Average evolution roles: `2.2`
+- Base report share: `0.13`
+- Multi-angle parents: `8`
 - Top parent angles: `2`
 - Top parent children: `4`
 
@@ -52,11 +52,11 @@
 
 - Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
-- Average visible angle count: `1.9` / `>= 1.4`
+- Average visible angle count: `1.8` / `>= 1.4`
 - Average temporal tier count: `2.2` / `>= 1.8`
-- Average evolution role count: `2.3` / `>= 1.6`
-- Base report share: `0.174` / `<= 0.55`
-- Multi-angle parent count: `9` / `>= 1`
+- Average evolution role count: `2.2` / `>= 1.6`
+- Base report share: `0.13` / `<= 0.55`
+- Multi-angle parent count: `8` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `4` / `>= 2`
-- Weak parent ratio: `0.1` / `<= 0.5`
+- Weak parent ratio: `0.2` / `<= 0.5`
