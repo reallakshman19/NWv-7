@@ -53,7 +53,7 @@
     },
     "insight": {
       "actionableFindings": [
-        "1 base-report-heavy Insight parent(s) demoted"
+        "Insight event/angle ranking has no critical demotion finding"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
@@ -77,7 +77,7 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 1,
+        "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
         "inputCandidateCount": 7,
         "parentClusters": 7,
@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4029,
+      "qualityScore": 0.398,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -599,6 +599,116 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:768c327fc1",
           "item": {
             "angleCount": 1,
@@ -767,122 +877,12 @@
           ],
           "score": 0.2764,
           "title": "Trump threatens Iran after Ayatollah Ali Khamenei's funeral saw open calls for his killing"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 4
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "fb6b647db876af8e",
-            "representativeTitle": "Top news of the day: June 30, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 4,
-            "storyIds": [
-              "fb6b647db876af8e",
-              "dadd53c1bc76741b",
-              "bf952c0b99344c4d",
-              "fff45325db82b942"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 4
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2021,
-          "title": "Top news of the day: June 30, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.6757,
+        "eventImportanceScore": 0.6414,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4643,
         "sourceAuthorityScore": 0.4829,
@@ -947,7 +947,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "9 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat"
       ],
@@ -956,10 +956,15 @@
         "One of Brooks’ most popular running shoes is on sale for under $100 - NBC News: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "You Can Get Up to 35% Off a Pair of New Balances on Amazon Right Now - Esquire: location failed — offline/local item lacks configured location match",
+        "IMD warns of heavy rain, storms across major tourist hubs - MSN: futureValidity failed — expired display window",
+        "IMD warns of heavy rain, storms across major tourist hubs - MSN: alertUrgency failed — alert expired",
         "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
         "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match"
+        "Hyperice Promo Codes: Save Up To $250 On Post-Workout Recovery Devices - Forbes: location failed — offline/local item lacks configured location match",
+        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: futureValidity failed — expired display window",
+        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
+        "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -974,8 +979,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 28,
-              "weather_alerts": 2
+              "alerts": 29,
+              "weather_alerts": 1
             }
           },
           "name": "categoryCoverage",
@@ -987,12 +992,12 @@
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 28,
-          "weather_alerts": 2
+          "alerts": 29,
+          "weather_alerts": 1
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 60,
+        "inputItemCount": 66,
         "locationCounts": {
           "chennai": 25,
           "trichy": 5
@@ -1005,10 +1010,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 7
+        "suppressedItemCount": 9
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8615,
+      "qualityScore": 0.8606,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1125,121 +1130,6 @@
           ],
           "score": 0.8705,
           "title": "‘Withdraw no meat day closures’"
-        },
-        {
-          "category": "weather_alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "0d681168e35cf535"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783784116000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": true
-              },
-              "name": "alertUrgency",
-              "reason": "severe/active alert",
-              "score": 1.0,
-              "status": "PASS"
-            }
-          ],
-          "id": "2a8a683fdb8c87e6",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "weather_alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783784116000,
-            "id": "2a8a683fdb8c87e6",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784388916000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783784116000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "weather_alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783697716000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 0.98,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Chennai Weather",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi3wFBVV95cUxQNnVGbFNNNERhaTJTSmsxSng5ZFBacnFvcWNtOFFNY3RmMjJhLXpwYzk1bm9VWkZ1RjlyZHBESkFPaHRPM0h1Zk03RUVnQnRNS1E3VTBSX2dGWng0OFRKZUV2YTZrZi1HbmJsLU9TbEJ2Tk9sN20zdVVYU29FVXlVSy04VFpBOWVsWkFXM3Y0TF96UlhhMXEtaHU2amJHTzl1MUZMVVYxODRueE1rOUZjbVp1c0JHd1VINF9LRHlBT2VnVmt3dllmUlJZSjBPVUp1SWVCbUVzUkRZcjVqdEhV?oc=5\" target=\"_blank\">IMD warns of heavy rain, storms across major tourist hubs</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MSN</font>",
-            "suppressionReason": null,
-            "title": "IMD warns of heavy rain, storms across major tourist hubs - MSN",
-            "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxQNnVGbFNNNERhaTJTSmsxSng5ZFBacnFvcWNtOFFNY3RmMjJhLXpwYzk1bm9VWkZ1RjlyZHBESkFPaHRPM0h1Zk03RUVnQnRNS1E3VTBSX2dGWng0OFRKZUV2YTZrZi1HbmJsLU9TbEJ2Tk9sN20zdVVYU29FVXlVSy04VFpBOWVsWkFXM3Y0TF96UlhhMXEtaHU2amJHTzl1MUZMVVYxODRueE1rOUZjbVp1c0JHd1VINF9LRHlBT2VnVmt3dllmUlJZSjBPVUp1SWVCbUVzUkRZcjVqdEhV?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "weather_alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8675,
-          "title": "IMD warns of heavy rain, storms across major tourist hubs - MSN"
         },
         {
           "category": "weather_alerts",
@@ -1821,7 +1711,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "ecb1dfa5984e4356"
+                "dedupKey": "869b08376a9016e9"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -1830,7 +1720,7 @@
             },
             {
               "details": {
-                "displayUntil": 1783779145000
+                "displayUntil": 1783867388000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -1876,7 +1766,7 @@
               "status": "PASS"
             }
           ],
-          "id": "27272317192da72d",
+          "id": "ded0fcc782acd2eb",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -1886,13 +1776,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1783779145000,
-            "id": "27272317192da72d",
+            "expiryAt": 1783867388000,
+            "id": "ded0fcc782acd2eb",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784383945000,
+              "archiveUntil": 1784472188000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1783779145000,
+              "displayUntil": 1783867388000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -1903,7 +1793,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783692745000,
+            "publishedAt": 1783780988000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -1918,8 +1808,8 @@
             "sourceGroup": "the_hindu",
             "summary": "",
             "suppressionReason": null,
-            "title": "CMRL increases fine for those playing loud music or causing nuisance in Metro Rails",
-            "url": "https://www.thehindu.com/news/cities/chennai/cmrl-increases-fine-for-those-playing-loud-music-or-causing-nuisance-in-metro-rails/article71206747.ece"
+            "title": "CMWSSB Union felicitates sewer workers for recovering gold ornament",
+            "url": "https://www.thehindu.com/news/cities/chennai/cmwssb-union-felicitates-sewer-workers-for-recovering-gold-ornament/article71210438.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -1929,7 +1819,7 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "CMRL increases fine for those playing loud music or causing nuisance in Metro Rails"
+          "title": "CMWSSB Union felicitates sewer workers for recovering gold ornament"
         },
         {
           "category": "alerts",
@@ -3546,6 +3436,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "02d14ee1a0f2663a"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1783869818000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "c9936e432f0aecd6",
+          "item": {
+            "actionabilityScore": 0.5,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1783869818000,
+            "id": "c9936e432f0aecd6",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784474618000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1783869818000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783783418000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Restore at Kottivakkam on East Coast Road offers a 2 per cent discount on purchases if the customer brings their own bag; Kazhani Native Farms in Kottivakkam has placed a cardboard box at the entrance inviting customers to drop off extra shopping bags for others to reuse; and Tula India in Adyar encourages customers to bring their own bags, and those who forget are handed handmade newspaper bags",
+            "suppressionReason": null,
+            "title": "Judge a purchase by its cover: how three sustainable outlets in Chennai make sure packaging does not leave carbon footprints",
+            "url": "https://www.thehindu.com/news/cities/chennai/judge-a-purchase-by-its-cover-how-three-sustainable-outlets-in-chennai-make-sure-packaging-does-not-leave-carbon-footprints/article71211007.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Judge a purchase by its cover: how three sustainable outlets in Chennai make sure packaging does not leave carbon footprints"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "d86f1805ff021514"
               },
               "name": "dedup",
@@ -4465,16 +4470,16 @@
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 0.9987,
+        "categoryPriorityScore": 0.9993,
         "lifecycleScore": 0.65,
         "locationScore": 1.0,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.802
+        "urgencyOrExpiryScore": 0.7947
       }
     }
   },
-  "generatedAt": 1783778553567,
+  "generatedAt": 1783785230236,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4493,7 +4498,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "9 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
@@ -4503,13 +4508,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "1 base-report-heavy Insight parent(s) demoted"
+      "Insight event/angle ranking has no critical demotion finding"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4029,
+      "insight": 0.398,
       "localTravel": 0.0,
-      "upAhead": 0.8615
+      "upAhead": 0.8606
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4517,7 +4522,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3161,
+    "overallScore": 0.3146,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4529,10 +4534,15 @@
       "One of Brooks’ most popular running shoes is on sale for under $100 - NBC News: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "You Can Get Up to 35% Off a Pair of New Balances on Amazon Right Now - Esquire: location failed — offline/local item lacks configured location match",
+      "IMD warns of heavy rain, storms across major tourist hubs - MSN: futureValidity failed — expired display window",
+      "IMD warns of heavy rain, storms across major tourist hubs - MSN: alertUrgency failed — alert expired",
       "Amazon’s $25 Billion Bond Sale: Is the AI-Debt Boom a Warning Sign or a Smart Way to Bankroll a Build-Out? - MarketWise: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day Early Sale Slashes MSI RTX 5060 Ti Graphics Card by 26% to ¥59,800 - finance.biggo.com: location failed — offline/local item lacks configured location match",
       "Away Promo Codes: Up to 20% Off in July 2026 - Condé Nast Traveler: location failed — offline/local item lacks configured location match",
-      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match"
+      "Hyperice Promo Codes: Save Up To $250 On Post-Workout Recovery Devices - Forbes: location failed — offline/local item lacks configured location match",
+      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: futureValidity failed — expired display window",
+      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: location failed — offline/local item lacks configured location match",
+      "The best Pokémon deals as Prime Day wraps up — Pokémon TCG, books, games, and more on sale - Mashable: offerValidity failed — offer expired"
     ]
   }
 }
