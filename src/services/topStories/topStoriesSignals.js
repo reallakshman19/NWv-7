@@ -125,6 +125,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
     ageHours,
+    ageMinutes: Number.isFinite(ageHours) ? ageHours * 60 : Infinity,
     timestampConfidence,
     isBreaking: isBreakingStory(story),
     breakingScore: Number(story.breakingScore || 0),

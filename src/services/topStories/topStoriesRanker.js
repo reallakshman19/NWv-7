@@ -2,6 +2,13 @@ import { getTopStoriesPolicy } from './topStoriesPolicy.js';
 import { classifyTopStoryEvent, getPublicInterestScore, TOP_STORY_EVENT_TYPES } from './topStoriesEventClassifier.js';
 import { buildTopFeedSignalMap, extractTopStorySignals } from './topStoriesSignals.js';
 
+const COLD_START_CRITICAL_EVENTS = new Set([
+  TOP_STORY_EVENT_TYPES.PUBLIC_SAFETY,
+  TOP_STORY_EVENT_TYPES.DISASTER,
+  TOP_STORY_EVENT_TYPES.WAR_CONFLICT,
+  TOP_STORY_EVENT_TYPES.CIVIC_ALERT,
+]);
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -46,6 +53,39 @@ function getSlotBand(signals, policy) {
   return 'expired';
 }
 
+function isColdStartCritical(signals, eventType, publicInterestScore) {
+  return signals.ageMinutes <= 15 &&
+    signals.timestampConfidence === 'high' &&
+    signals.sourceQualityScore >= 0.75 &&
+    publicInterestScore >= 0.9 &&
+    COLD_START_CRITICAL_EVENTS.has(eventType) &&
+    eventType !== TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO;
+}
+
+function getPriorityBucket({ coldStartCritical }) {
+  return coldStartCritical ? 2 : 1;
+}
+
+function getPriorityBucketLabel(priorityBucket) {
+  return priorityBucket === 2 ? 'cold-start-critical' : 'standard';
+}
+
+function getPublishedAtMs(story = {}) {
+  if (typeof story.publishedAt === 'number' && Number.isFinite(story.publishedAt)) return story.publishedAt;
+  const parsed = Date.parse(story.publishedAt || story.updatedAt || 0);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function compareRankedTopStories(a, b) {
+  const ar = a._topStoryRank || {};
+  const br = b._topStoryRank || {};
+  return (Number(br.priorityBucket || 0) - Number(ar.priorityBucket || 0)) ||
+    (Number(br.score || 0) - Number(ar.score || 0)) ||
+    (Number(br.freshnessScore || 0) - Number(ar.freshnessScore || 0)) ||
+    (getPublishedAtMs(b) - getPublishedAtMs(a)) ||
+    dedupeKey(a).localeCompare(dedupeKey(b));
+}
+
 function getSourceKey(story = {}) {
   return String(story.sourceGroup || story.source || 'unknown').toLowerCase();
 }
@@ -84,6 +124,8 @@ export function scoreTopStoryCandidate(story, context = {}) {
   const publicInterestScore = getPublicInterestScore(event.eventType);
   const breakingLiveScore = getBreakingLiveScore(signals, policy);
   const penalties = getPenalty(signals, event.eventType, policy);
+  const coldStartCritical = isColdStartCritical(signals, event.eventType, publicInterestScore);
+  const priorityBucket = getPriorityBucket({ coldStartCritical });
   const score = (signals.freshnessScore * policy.weights.freshness) +
     (publicInterestScore * policy.weights.publicInterest) +
     (signals.consensusScore * policy.weights.consensus) +
@@ -95,6 +137,9 @@ export function scoreTopStoryCandidate(story, context = {}) {
     ...story,
     _topStoryRank: {
       score,
+      priorityBucket,
+      priorityBucketLabel: getPriorityBucketLabel(priorityBucket),
+      coldStartCritical,
       slotBand: getSlotBand(signals, policy),
       eventType: event.eventType,
       freshnessScore: signals.freshnessScore,
@@ -104,6 +149,8 @@ export function scoreTopStoryCandidate(story, context = {}) {
       penalties,
       timestampConfidence: signals.timestampConfidence,
       ageHours: signals.ageHours,
+      ageMinutes: signals.ageMinutes,
+      sourceQualityScore: signals.sourceQualityScore,
       sourceCount: signals.sourceCount,
       topFeedHits: signals.topFeedHits || 0,
       clusterKey: signals.clusterKey,
@@ -122,8 +169,7 @@ export function rankTopStories(input = {}, options = {}) {
   };
   const ranked = buildTopStoryCandidates(input)
     .map(story => scoreTopStoryCandidate(story, context))
-    .sort((a, b) => (b._topStoryRank.score - a._topStoryRank.score) ||
-      (Number(b.publishedAt || 0) - Number(a.publishedAt || 0)));
+    .sort(compareRankedTopStories);
 
   return selectTopStorySlots(ranked, { ...options, policy });
 }
@@ -147,6 +193,7 @@ export function explainTopStoryRank(story = {}) {
   return [
     `event=${r.eventType || 'unknown'}`,
     `band=${r.slotBand || 'unknown'}`,
+    `priority=${r.priorityBucketLabel || 'standard'}`,
     `fresh=${Number(r.freshnessScore || 0).toFixed(2)}`,
     `consensus=${Number(r.consensusScore || 0).toFixed(2)}`,
     `penalty=${Number(r.penalties || 0).toFixed(1)}`,
