@@ -2,7 +2,7 @@
 """Dedicated Top Stories RSS snapshot producer.
 
 This script is intentionally server/workflow/local-CLI side only. It does not
-integrate with browser runtime and does not write generated public/newsdata.
+integrate with browser runtime and does not write generated runtime data.
 """
 
 from __future__ import annotations
@@ -298,7 +298,7 @@ def write_payload(payload: dict, output_path: Path | None) -> None:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build a dedicated Top Stories RSS top-feed snapshot payload.")
     parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH), help="Path to top_stories_rss_sources.json")
-    parser.add_argument("--output", help="Optional output JSON path. Never writes public/newsdata by default.")
+    parser.add_argument("--output", help="Optional output JSON path. Does not write runtime data by default.")
     parser.add_argument("--dry-run", action="store_true", help="Validate config and emit deterministic empty diagnostics without network fetch.")
     parser.add_argument("--now-ms", type=int, help="Fixed generation timestamp in epoch milliseconds for deterministic runs.")
     parser.add_argument("--max-per-source", type=int, default=DEFAULT_MAX_PER_SOURCE)
