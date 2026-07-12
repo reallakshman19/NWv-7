@@ -15,7 +15,7 @@
 
 ## Findings
 
-- 6 invalid/expired/duplicate Up Ahead item(s) suppressed
+- 7 invalid/expired/duplicate Up Ahead item(s) suppressed
 - no active offer items in ranked Up Ahead set
 - no ranked Up Ahead item for muscat
 - ranked Up Ahead set is category-dominated
@@ -26,4 +26,4 @@
 - no ranked local/travel item for muscat
 - no ranked local/travel item for chennai
 - no ranked local/travel item for trichy
-- Insight event/angle ranking has no critical demotion finding
+- 1 base-report-heavy Insight parent(s) demoted

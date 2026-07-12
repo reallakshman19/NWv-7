@@ -10,9 +10,9 @@
 - Base report share: `0.25`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `507`
-- Source groups: `10`
-- Content hash: `38b4194ec3739a6c`
+- Story count: `477`
+- Source groups: `9`
+- Content hash: `0531080dae9879a9`
 
 ## Top parents
 
@@ -26,8 +26,8 @@
 | 6 | PM Modi tours New Zealand sports innovation showcase | 2 | fact_update, official_response | NO | 0.6002928264800007 |
 | 7 | Qatar’s former ruler Sheikh Hamad bin Khalifa Al Thani dies at 74 | 2 | base_report, regional_followup | NO | 0.5385933333333333 |
 | 8 | Indian tourists among 15 killed as speedboat capsizes in Vietnam | 4 | fact_update | YES | 0.6725123727449996 |
-| 9 | At least 15 Indians dead after boat capsizes in Vietnam | 2 | fact_update | YES | 0.6207300531183317 |
-| 10 | 14 nations, EU reaffirm 2016 ruling invalidating China's claims in South China Sea | 2 | official_response | YES | 0.5597732802150018 |
+| 9 | Aditya Birla Group to invest additional ₹12,000 crore in Odisha alumina refinery expansion | 2 | fact_update | YES | 0.6503933333333334 |
+| 10 | At least 15 Indians dead after boat capsizes in Vietnam | 2 | fact_update | YES | 0.6207300531183317 |
 
 ## Real Snapshot Ratchet Gate
 
