@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 9
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 9,
-        "parentClusters": 9,
-        "strongParents": 9,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4456,
+      "qualityScore": 0.4304,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -673,7 +673,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 3
+                "storyCount": 7
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -710,11 +710,11 @@
             },
             {
               "details": {
-                "childCount": 3
+                "childCount": 7
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.75,
+              "score": 1.0,
               "status": "PASS"
             },
             {
@@ -731,11 +731,11 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "0cb025010a9f635e",
-            "representativeTitle": "Breaking News Live Updates July 12: Qatar's former ruler Sheikh Hamad bin Khalifa Al Thani passes away at age 74 - The Times of India",
+            "representativeId": "ff468e02cc84fa44",
+            "representativeTitle": "Breaking News Live Updates July 13: CAG flags Rs 3,541.16 crore excess in Maharashtra’s Ladki Bahin scheme - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.71,
+              "eventImportanceScore": 1.0,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -750,16 +750,20 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 3,
+            "storyCount": 7,
             "storyIds": [
+              "ff468e02cc84fa44",
               "0cb025010a9f635e",
               "d5d26adde3752cee",
-              "5c82a84a39d94e0a"
+              "5c82a84a39d94e0a",
+              "a47f9861bbd2cc3a",
+              "4ee739c53b939a61",
+              "c0b89c693126f623"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 3
+                "count": 7
               }
             ],
             "topTokens": [
@@ -767,7 +771,10 @@
               "live",
               "updates",
               "july",
-              "indian"
+              "indian",
+              "operation",
+              "neelkanth",
+              "strong"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -777,8 +784,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.419,
-          "title": "Breaking News Live Updates July 12: Qatar's former ruler Sheikh Hamad bin Khalifa Al Thani passes away at age 74 - The Times of India"
+          "score": 0.4915,
+          "title": "Breaking News Live Updates July 13: CAG flags Rs 3,541.16 crore excess in Maharashtra’s Ladki Bahin scheme - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -891,6 +898,228 @@
           ],
           "score": 0.413,
           "title": "Vietnam boat tragedy: Injured A.P. tourist recovering, repatriation of mortal remains of the deceased underway"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:986dfe344f",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:986dfe344f",
+            "representativeId": "61fa3f05fc9164cc",
+            "representativeTitle": "7PM Bulletin | 12th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "61fa3f05fc9164cc",
+              "73059d5ed3121d23"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "kanak",
+              "odisha",
+              "bulletin",
+              "12th",
+              "11th"
+            ],
+            "topicKey": "kanak|odisha|bulletin"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "7PM Bulletin | 12th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:a7fe013c9e",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:a7fe013c9e",
+            "representativeId": "a887e2b3c457f222",
+            "representativeTitle": "Breaking News Live, July 11:India-New Zealand 'Waka' ready to embark on new voyage: PM Modi at Auckland event - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "a887e2b3c457f222",
+              "70b54bbed791f81c"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "july",
+              "india-new",
+              "fadnavis"
+            ],
+            "topicKey": "breaking|live|july"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Breaking News Live, July 11:India-New Zealand 'Waka' ready to embark on new voyage: PM Modi at Auckland event - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -1120,13 +1349,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3678,
-        "eventImportanceScore": 0.6167,
+        "angleDiversityScore": 0.3464,
+        "eventImportanceScore": 0.6382,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4944,
-        "sourceAuthorityScore": 0.54,
-        "sourceDiversityScore": 0.5967,
-        "temporalEvolutionScore": 0.5033
+        "noveltyDeltaScore": 0.4864,
+        "sourceAuthorityScore": 0.5109,
+        "sourceDiversityScore": 0.5518,
+        "temporalEvolutionScore": 0.4791
       }
     },
     "localTravel": {
@@ -4712,7 +4941,7 @@
       }
     }
   },
-  "generatedAt": 1783879091610,
+  "generatedAt": 1783883324324,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4746,7 +4975,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4456,
+      "insight": 0.4304,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -4756,7 +4985,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3261,
+    "overallScore": 0.3223,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
