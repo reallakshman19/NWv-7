@@ -1,18 +1,18 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1783970453114,
-  "contentHash": "af8a41457255cb76",
+  "generatedAt": 1783976138755,
+  "contentHash": "f93d6ed19f0c0e29",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 635,
-  "sourceGroupCount": 9,
+  "storyCount": 643,
+  "sourceGroupCount": 10,
   "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.9,
+  "avgAngles": 1.8,
   "avgTemporalTiers": 1.8,
-  "avgEvolutionRoles": 2,
-  "baseReportShare": 0.2727272727272727,
+  "avgEvolutionRoles": 1.9,
+  "baseReportShare": 0.2857142857142857,
   "multiAngleCount": 8,
   "weakParentCount": 2,
   "runtimeQualityGate": {
@@ -23,81 +23,62 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 64,
+      "signalScore": 57,
       "sourceLabel": "Live",
       "rankedCount": 10,
       "storyCount": 579,
-      "risingCount": 2,
+      "risingCount": 0,
       "thinCount": 2,
       "multiAngleCount": 8,
       "lowAngleCount": 2,
-      "strongAngleCount": 1,
-      "avgAngles": 1.9,
-      "avgChildren": 2.2,
-      "avgScore": 0.6531069297043176,
-      "sourceDiversityCoverage": 10,
+      "strongAngleCount": 0,
+      "avgAngles": 1.8,
+      "avgChildren": 2.1,
+      "avgScore": 0.6417414760403307,
+      "sourceDiversityCoverage": 9,
       "snapshotCoverage": 5,
       "coverageLabel": "8/10",
       "warnings": [
         "2 cluster(s) have fewer than two visible child angles.",
+        "No cluster currently exposes three or more visible child angles.",
+        "1 cluster(s) are below source-diversity target.",
         "5 cluster(s) have weak snapshot coverage.",
         "2 cluster(s) are marked thin.",
-        "566 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "641 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 64,
+      "signalScore": 57,
       "sourceLabel": "Live",
       "rankedCount": 10,
       "storyCount": 579,
-      "risingCount": 2,
+      "risingCount": 0,
       "thinCount": 2,
       "multiAngleCount": 8,
       "lowAngleCount": 2,
-      "strongAngleCount": 1,
-      "avgAngles": 1.9,
-      "avgChildren": 2.2,
-      "avgScore": 0.6531069297043176,
-      "sourceDiversityCoverage": 10,
+      "strongAngleCount": 0,
+      "avgAngles": 1.8,
+      "avgChildren": 2.1,
+      "avgScore": 0.6417414760403307,
+      "sourceDiversityCoverage": 9,
       "snapshotCoverage": 5,
       "coverageLabel": "8/10",
       "warnings": [
         "2 cluster(s) have fewer than two visible child angles.",
+        "No cluster currently exposes three or more visible child angles.",
+        "1 cluster(s) are below source-diversity target.",
         "5 cluster(s) have weak snapshot coverage.",
         "2 cluster(s) are marked thin.",
-        "566 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "641 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_41_336d2d3327fee82d",
-      "headline": "12 districts in A.P. get new DMHOs",
-      "score": 0.6917154013449328,
-      "postTreeScore": 1.2817,
-      "childCount": 3,
-      "angles": [
-        "correction",
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "analysis"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration",
-        "fact_update"
-      ],
-      "baseReportShare": 0.3333333333333333,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_99_1127dc107daf5ba3",
+      "parentId": "cluster_119_1127dc107daf5ba3",
       "headline": "Gold drops more than 1% as rising Middle East tensions add to rate-hike fears",
       "score": 0.714313386451665,
       "postTreeScore": 1.0943,
@@ -118,7 +99,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_109_a9aa40e88e47b9f7",
+      "parentId": "cluster_55_336d2d3327fee82d",
+      "headline": "12 districts in A.P. get new DMHOs",
+      "score": 0.6807467197849983,
+      "postTreeScore": 1.0607,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "established",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "fact_update"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_129_a9aa40e88e47b9f7",
       "headline": "Bodies of 15 Indian tourists killed in Vietnam boat accident flown home",
       "score": 0.636325001664982,
       "postTreeScore": 1.0563,
@@ -140,7 +142,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_514_45ab20ee7630e17c",
+      "parentId": "cluster_535_45ab20ee7630e17c",
       "headline": "Why US, EU and 13 nations are backing 2016 South China Sea ruling against Beijing's claims",
       "score": 0.6752467197849983,
       "postTreeScore": 1.0552,
@@ -160,28 +162,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_117_b1cd83dcb701620a",
-      "headline": "BJP serves Omar ₹100-crore defamation notice; CM vows counter legal action",
-      "score": 0.61151,
-      "postTreeScore": 1.0115,
-      "childCount": 2,
-      "angles": [
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "legal_or_regulatory"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_185_5a6331f119a8599c",
+      "parentId": "cluster_206_5a6331f119a8599c",
       "headline": "Senator Lindsey Graham died of aortic tear, examiner says",
       "score": 0.6112599999999999,
       "postTreeScore": 1.0113,
@@ -202,18 +183,18 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_374_3aa9ec374a310c94",
-      "headline": "Ex-MP H. Hanumanthappa passes away",
-      "score": 0.6274820680115993,
-      "postTreeScore": 1.0075,
+      "parentId": "cluster_1_1695c14766415b07",
+      "headline": "Women's cricket shortchanged again as men's Test binfire sucks up the oxygen",
+      "score": 0.5570933333333334,
+      "postTreeScore": 0.9571,
       "childCount": 2,
       "angles": [
         "base_report",
-        "official_response"
+        "regional_followup"
       ],
       "temporalTiers": [
         "breaking",
-        "developing"
+        "reaction"
       ],
       "evolutionRoles": [
         "first_report",
@@ -223,7 +204,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_380_c088290ad7ac9af4",
+      "parentId": "cluster_400_c088290ad7ac9af4",
       "headline": "Yastika century, seamers put India on the brink of historic win at Lord's",
       "score": 0.5530933333333333,
       "postTreeScore": 0.9531,
@@ -243,10 +224,31 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_191_fd7d7015a4c1241b",
+      "parentId": "cluster_4_a7ee8c57da0b8d39",
+      "headline": "Vietnam boat capsize survivors recount harrowing moments",
+      "score": 0.5512261598133341,
+      "postTreeScore": 0.9112,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "background_context"
+      ],
+      "temporalTiers": [
+        "reaction",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "cause_claim"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_212_fd7d7015a4c1241b",
       "headline": "Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth",
-      "score": 0.7286266666666668,
-      "postTreeScore": 0.6386,
+      "score": 0.7566133864516651,
+      "postTreeScore": 0.6466,
       "childCount": 2,
       "angles": [
         "fact_update"
@@ -261,7 +263,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_342_38501e60437c0699",
+      "parentId": "cluster_362_38501e60437c0699",
       "headline": "US strikes Iran after Strait of Hormuz ship attack; Tehran hits Gulf states",
       "score": 0.6814967197849984,
       "postTreeScore": 0.5715,
@@ -304,7 +306,7 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.9,
+        "actual": 1.8,
         "required": ">= 1.4"
       },
       {
@@ -316,13 +318,13 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 2,
+        "actual": 1.9,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.273,
+        "actual": 0.286,
         "required": "<= 0.55"
       },
       {
@@ -334,13 +336,13 @@
       {
         "id": "top-parent-angle-count",
         "label": "Top parent angle count",
-        "actual": 3,
+        "actual": 2,
         "required": ">= 2"
       },
       {
         "id": "top-parent-child-depth",
         "label": "Top parent child depth",
-        "actual": 3,
+        "actual": 2,
         "required": ">= 2"
       },
       {
@@ -353,17 +355,17 @@
     "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.9,
+      "avgAngles": 1.8,
       "avgTemporalTiers": 1.8,
-      "avgEvolutionRoles": 2,
-      "baseReportShare": 0.273,
+      "avgEvolutionRoles": 1.9,
+      "baseReportShare": 0.286,
       "multiAngleCount": 8,
       "weakParentCount": 2,
       "weakParentRatio": 0.2,
-      "topParentAngles": 3,
-      "topParentChildren": 3,
-      "storyCount": 635,
-      "sourceGroupCount": 9
+      "topParentAngles": 2,
+      "topParentChildren": 2,
+      "storyCount": 643,
+      "sourceGroupCount": 10
     }
   }
 }
