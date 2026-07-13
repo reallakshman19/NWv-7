@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -62,12 +62,12 @@ describe('SectionHealthBadge', () => {
     expect(badge.dataset.status).toBe('ok');
     expect(badge.textContent).toContain('OK');
 
-    badge.remove();
+    cleanup();
     badge = renderBadge({ sectionId: 'muscat', status: 'warning' });
     expect(badge.dataset.status).toBe('warning');
     expect(badge.textContent).toContain('Warning');
 
-    badge.remove();
+    cleanup();
     badge = renderBadge({ sectionId: 'business', status: 'critical' });
     expect(badge.dataset.status).toBe('critical');
     expect(badge.textContent).toContain('Critical');
