@@ -16,6 +16,7 @@ vi.mock('../utils/storage', () => ({
 }));
 
 vi.mock('../config/rankingPolicy.js', () => ({
+  DEFAULT_RANKING_POLICY: {},
   getRankingPolicy: () => ({}),
 }));
 
