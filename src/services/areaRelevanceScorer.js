@@ -159,11 +159,18 @@ function evidenceFromMatches(matches) {
 
 export function getAreaRelevanceLabel(score = 0, evidence = {}) {
   const categories = new Set(asArray(evidence.categories));
+  const hasStrongLocalEvidence =
+    categories.has('exact-area') ||
+    categories.has('city') ||
+    categories.has('institution') ||
+    categories.has('state-region') ||
+    categories.has('country');
 
   if (categories.has('off-area') && !categories.has('exact-area') && !categories.has('city')) return 'off-area';
   if (categories.has('exact-area') || score >= 86) return 'exact-area';
   if (categories.has('city') || categories.has('institution') || score >= 70) return 'city';
   if (categories.has('state-region') || score >= 48) return 'state-region';
+  if (categories.has('regional-backfill') && !hasStrongLocalEvidence) return 'backfill';
   if (categories.has('country') || score >= 28) return 'country';
   if (categories.has('regional-backfill') || score >= 14) return 'backfill';
   return 'weak';
