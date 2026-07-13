@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4143,
+      "qualityScore": 0.4137,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -669,7 +669,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 6
+                "storyCount": 3
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -706,11 +706,11 @@
             },
             {
               "details": {
-                "childCount": 6
+                "childCount": 3
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 1.0,
+              "score": 0.75,
               "status": "PASS"
             },
             {
@@ -731,7 +731,7 @@
             "representativeTitle": "Breaking News Live Updates: SC to hear pleas against MP HC Bhojshala verdict - The Economic Times",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 1.0,
+              "eventImportanceScore": 0.71,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -746,19 +746,16 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 6,
+            "storyCount": 3,
             "storyIds": [
               "d4dced54f21d0335",
               "ff468e02cc84fa44",
-              "0cb025010a9f635e",
-              "a47f9861bbd2cc3a",
-              "4ee739c53b939a61",
-              "c0b89c693126f623"
+              "0cb025010a9f635e"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 6
+                "count": 3
               }
             ],
             "topTokens": [
@@ -766,10 +763,7 @@
               "live",
               "updates",
               "july",
-              "hear",
-              "operation",
-              "neelkanth",
-              "strong"
+              "hear"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -779,7 +773,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.4915,
+          "score": 0.419,
           "title": "Breaking News Live Updates: SC to hear pleas against MP HC Bhojshala verdict - The Economic Times"
         },
         {
@@ -950,14 +944,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:a833566e44",
+          "id": "sketch:8b610f33c0",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:a833566e44",
-            "representativeId": "5b3d600d662046f1",
-            "representativeTitle": "ISRO successfully carries out tests of Gaganyaan crew module systems",
+            "id": "sketch:8b610f33c0",
+            "representativeId": "58bb3093de4a81c4",
+            "representativeTitle": "Vietnam boat tragedy: Injured A.P. tourist recovering, repatriation of mortal remains of the deceased underway",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -965,10 +959,11 @@
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
               "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.49
+              "temporalEvolutionScore": 0.61
             },
-            "slotCount": 2,
+            "slotCount": 3,
             "slots": [
+              "minus12h",
               "minus4h",
               "now"
             ],
@@ -978,22 +973,22 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "5b3d600d662046f1",
-              "5b9d0c183f529338"
+              "58bb3093de4a81c4",
+              "d26572d0d4b46ebb"
             ],
             "topAngles": [
               {
-                "angle": "official_response",
+                "angle": "fact_update",
                 "count": 2
               }
             ],
             "topTokens": [
-              "module",
-              "tests",
-              "crew",
-              "that"
+              "vietnam",
+              "repatriation",
+              "mortal",
+              "remains"
             ],
-            "topicKey": "module|tests|crew"
+            "topicKey": "vietnam|repatriation|mortal"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -1001,8 +996,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.401,
-          "title": "ISRO successfully carries out tests of Gaganyaan crew module systems"
+          "score": 0.413,
+          "title": "Vietnam boat tragedy: Injured A.P. tourist recovering, repatriation of mortal remains of the deceased underway"
         },
         {
           "category": "insightEvent",
@@ -1061,14 +1056,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
+          "id": "sketch:a833566e44",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "id": "sketch:a833566e44",
+            "representativeId": "5b3d600d662046f1",
+            "representativeTitle": "ISRO successfully carries out tests of Gaganyaan crew module systems",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -1076,34 +1071,35 @@
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
               "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
+              "temporalEvolutionScore": 0.49
             },
-            "slotCount": 1,
+            "slotCount": 2,
             "slots": [
-              "minus24h"
+              "minus4h",
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "moneycontrol"
+              "the_hindu"
             ],
             "storyCount": 2,
             "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
+              "5b3d600d662046f1",
+              "5b9d0c183f529338"
             ],
             "topAngles": [
               {
-                "angle": "market_reaction",
+                "angle": "official_response",
                 "count": 2
               }
             ],
             "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
+              "module",
+              "tests",
+              "crew",
+              "that"
             ],
-            "topicKey": "bajaj|finance|target"
+            "topicKey": "module|tests|crew"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -1111,8 +1107,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+          "score": 0.401,
+          "title": "ISRO successfully carries out tests of Gaganyaan crew module systems"
         },
         {
           "category": "insightEvent",
@@ -1453,12 +1449,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.3383,
-        "eventImportanceScore": 0.6442,
+        "eventImportanceScore": 0.62,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4833,
         "sourceAuthorityScore": 0.48,
         "sourceDiversityScore": 0.5042,
-        "temporalEvolutionScore": 0.45
+        "temporalEvolutionScore": 0.47
       }
     },
     "localTravel": {
@@ -1518,7 +1514,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "2 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -1526,7 +1522,9 @@
       "destination": "upAhead",
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-        "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match"
+        "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
+        "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam: futureValidity failed — expired display window",
+        "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam: alertUrgency failed — alert expired"
       ],
       "gateResults": [
         {
@@ -1570,7 +1568,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 2
+        "suppressedItemCount": 3
       },
       "qualityGrade": "B",
       "qualityScore": 0.8586,
@@ -4341,121 +4339,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "7e489ee4372f918b"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783956227000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "7c6b502ec7f3d905",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783956227000,
-            "id": "7c6b502ec7f3d905",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784561027000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783956227000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783869827000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/students-stage-protest-against-tasmac-outlet/article71214386.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "a8fb285362ffd00e"
               },
               "name": "dedup",
@@ -5025,6 +4908,121 @@
           ],
           "score": 0.8485,
           "title": "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "a1d0567b316d7d8c"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784034128000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "bac54868e8772221",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784034128000,
+            "id": "bac54868e8772221",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784638928000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784034128000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783947728000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "World Population Day observed",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/world-population-day-observed/article71217249.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "World Population Day observed"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -5039,7 +5037,7 @@
       }
     }
   },
-  "generatedAt": 1783956199410,
+  "generatedAt": 1783958469852,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5058,7 +5056,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "2 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -5073,7 +5071,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4143,
+      "insight": 0.4137,
       "localTravel": 0.0,
       "upAhead": 0.8586
     },
@@ -5083,7 +5081,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3182,
+    "overallScore": 0.3181,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5093,7 +5091,9 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match"
+      "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
+      "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam: futureValidity failed — expired display window",
+      "Schoolchildren hit street protesting against Tasmac outlet near Jayankondam: alertUrgency failed — alert expired"
     ]
   }
 }
