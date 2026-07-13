@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import SectionHealthPopover from './SectionHealthPopover.jsx';
 
@@ -33,19 +33,21 @@ describe('SectionHealthPopover', () => {
   it('renders normalized health fields without dumping raw JSON', () => {
     render(<SectionHealthPopover summary={muscatWarning} onClose={vi.fn()} />);
 
-    expect(screen.getByRole('dialog', { name: /section health diagnostics/i })).toBeTruthy();
-    expect(screen.getByText('sectionId')).toBeTruthy();
-    expect(screen.getByText('muscat')).toBeTruthy();
-    expect(screen.getByText('status')).toBeTruthy();
-    expect(screen.getByText('warning')).toBeTruthy();
-    expect(screen.getByText('storyCount')).toBeTruthy();
-    expect(screen.getByText('12')).toBeTruthy();
-    expect(screen.getByText('sourceGroupCount')).toBeTruthy();
-    expect(screen.getByText('Times of Oman (12)')).toBeTruthy();
-    expect(screen.getByText(/muscat_daily/)).toBeTruthy();
-    expect(screen.getAllByText(/zero-item runs: 12/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/415 Unsupported Media Type/).length).toBeGreaterThan(0);
-    expect(screen.getByText('persistent zero item feed streak')).toBeTruthy();
+    const dialog = screen.getByRole('dialog', { name: /section health diagnostics/i });
+    const view = within(dialog);
+    expect(dialog).toBeTruthy();
+    expect(view.getByText('sectionId')).toBeTruthy();
+    expect(view.getByText('muscat')).toBeTruthy();
+    expect(view.getByText('status')).toBeTruthy();
+    expect(view.getByText('warning')).toBeTruthy();
+    expect(view.getByText('storyCount')).toBeTruthy();
+    expect(view.getByText('12')).toBeTruthy();
+    expect(view.getByText('sourceGroupCount')).toBeTruthy();
+    expect(view.getByText('Times of Oman (12)')).toBeTruthy();
+    expect(view.getAllByText(/muscat_daily/).length).toBeGreaterThan(0);
+    expect(view.getAllByText(/zero-item runs: 12/).length).toBeGreaterThan(0);
+    expect(view.getAllByText(/415 Unsupported Media Type/).length).toBeGreaterThan(0);
+    expect(view.getByText('persistent zero item feed streak')).toBeTruthy();
   });
 
   it('handles empty arrays gracefully', () => {
