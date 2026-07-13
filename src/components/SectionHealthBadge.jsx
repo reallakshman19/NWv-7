@@ -33,7 +33,7 @@ function normalizeBadgeStatus(summary) {
   return 'unknown';
 }
 
-export function getSectionHealthBadgeState(summary) {
+function getSectionHealthBadgeState(summary) {
   const state = BADGE_STATES[normalizeBadgeStatus(summary)] || BADGE_STATES.unknown;
   const sectionId = summary?.sectionId || 'section';
   const reasons = Array.isArray(summary?.reasons) && summary.reasons.length > 0
