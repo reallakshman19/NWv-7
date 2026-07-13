@@ -21,6 +21,7 @@ const MainPage = () => {
         envelope,
         settings,
         sections,
+        sectionHealthSummaries,
         uiMode,
         currentSegment,
         notifPermission,
@@ -49,6 +50,13 @@ const MainPage = () => {
     const { pullDistance } = usePullToRefresh(refreshAll);
 
     const [showBackToTop, setShowBackToTop] = useState(false);
+
+    const getHealthSummary = (...keys) => {
+        for (const key of keys) {
+            if (sectionHealthSummaries?.[key]) return sectionHealthSummaries[key];
+        }
+        return null;
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -181,6 +189,7 @@ const MainPage = () => {
                                                     colorClass="news-section__title--world"
                                                     news={latestStories}
                                                     maxDisplay={10}
+                                                    healthSummary={getHealthSummary('topStories', 'top-stories', 'topstories', 'frontPage')}
                                                 />
                                             )}
 
@@ -192,6 +201,7 @@ const MainPage = () => {
                                                     colorClass="news-section__title--india"
                                                     news={newsData.india}
                                                     maxDisplay={sections.india.count || 5}
+                                                    healthSummary={getHealthSummary('india', 'india-news')}
                                                 />
                                             )}
 
@@ -203,6 +213,7 @@ const MainPage = () => {
                                                     colorClass="news-section__title--chennai"
                                                     news={newsData.chennai}
                                                     maxDisplay={sections.chennai.count || 5}
+                                                    healthSummary={getHealthSummary('chennai', 'chennai-news', 'tn', 'tamilNadu')}
                                                 />
                                             )}
 
@@ -214,6 +225,7 @@ const MainPage = () => {
                                                     colorClass="news-section__title--local"
                                                     news={newsData.local}
                                                     maxDisplay={sections.local.count || 5}
+                                                    healthSummary={getHealthSummary('local', 'local-news', 'muscat', 'muscat-news')}
                                                 />
                                             )}
                                         </div>
@@ -253,6 +265,7 @@ const MainPage = () => {
                                                         colorClass="news-section__title--world"
                                                         news={latestStories}
                                                         maxDisplay={10}
+                                                        healthSummary={getHealthSummary('topStories', 'top-stories', 'topstories', 'frontPage')}
                                                     />
                                                 )}
 
@@ -264,6 +277,7 @@ const MainPage = () => {
                                                         colorClass="news-section__title--india"
                                                         news={newsData.india}
                                                         maxDisplay={sections.india.count || 5}
+                                                        healthSummary={getHealthSummary('india', 'india-news')}
                                                     />
                                                 )}
 
@@ -275,6 +289,7 @@ const MainPage = () => {
                                                         colorClass="news-section__title--chennai"
                                                         news={newsData.chennai}
                                                         maxDisplay={sections.chennai.count || 5}
+                                                        healthSummary={getHealthSummary('chennai', 'chennai-news', 'tn', 'tamilNadu')}
                                                     />
                                                 )}
 
@@ -286,6 +301,7 @@ const MainPage = () => {
                                                         colorClass="news-section__title--local"
                                                         news={newsData.local}
                                                         maxDisplay={sections.local.count || 5}
+                                                        healthSummary={getHealthSummary('local', 'local-news', 'muscat', 'muscat-news')}
                                                     />
                                                 )}
 
@@ -296,6 +312,7 @@ const MainPage = () => {
                                                     colorClass="news-section__title--world"
                                                     news={newsData.world}
                                                     maxDisplay={sections.world?.count || 5}
+                                                    healthSummary={getHealthSummary('world', 'world-news')}
                                                 />
                                             </>
                                         )}
