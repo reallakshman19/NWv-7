@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 12
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 12,
+        "parentClusters": 12,
+        "strongParents": 12,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4225,
+      "qualityScore": 0.4319,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -330,6 +330,123 @@
           ],
           "score": 0.6205,
           "title": "Pune building collapse: Toll up at 9 as last body recovered; official dubs incident 'act of God'"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 2
+              },
+              "name": "angleDiversity",
+              "reason": "usable angle diversity",
+              "score": 0.78,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 2
+              },
+              "name": "sourceDiversity",
+              "reason": "multi-source event",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:711a72305c",
+          "item": {
+            "angleCount": 2,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:711a72305c",
+            "representativeId": "38501e60437c0699",
+            "representativeTitle": "US strikes Iran after Strait of Hormuz ship attack; Tehran hits Gulf states",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.78,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.55,
+              "sourceAuthorityScore": 0.62,
+              "sourceDiversityScore": 0.72,
+              "temporalEvolutionScore": 0.49
+            },
+            "slotCount": 2,
+            "slots": [
+              "minus12h",
+              "minus24h"
+            ],
+            "sourceGroupCount": 2,
+            "sourceGroups": [
+              "business_line",
+              "the_hindu"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "38501e60437c0699",
+              "75b9664bd9ea58c0"
+            ],
+            "topAngles": [
+              {
+                "angle": "regional_followup",
+                "count": 1
+              },
+              {
+                "angle": "official_response",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "iran",
+              "strikes",
+              "strait",
+              "hormuz",
+              "west"
+            ],
+            "topicKey": "iran|strikes|strait"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "usable angle diversity",
+            "multi-source event"
+          ],
+          "score": 0.6085,
+          "title": "US strikes Iran after Strait of Hormuz ship attack; Tehran hits Gulf states"
         },
         {
           "category": "insightEvent",
@@ -1345,13 +1462,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3464,
-        "eventImportanceScore": 0.6382,
+        "angleDiversityScore": 0.3825,
+        "eventImportanceScore": 0.6342,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4864,
-        "sourceAuthorityScore": 0.4891,
-        "sourceDiversityScore": 0.5182,
-        "temporalEvolutionScore": 0.4791
+        "noveltyDeltaScore": 0.4917,
+        "sourceAuthorityScore": 0.5,
+        "sourceDiversityScore": 0.535,
+        "temporalEvolutionScore": 0.48
       }
     },
     "localTravel": {
@@ -4947,7 +5064,7 @@
       }
     }
   },
-  "generatedAt": 1783900291508,
+  "generatedAt": 1783908904670,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4980,7 +5097,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4225,
+      "insight": 0.4319,
       "localTravel": 0.0,
       "upAhead": 0.8524
     },
@@ -4990,7 +5107,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3187,
+    "overallScore": 0.3211,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
