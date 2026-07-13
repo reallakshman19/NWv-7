@@ -23,7 +23,7 @@ vi.mock('../utils/trendingUtils.js', () => ({
   computeTrending: () => false,
 }));
 
-import SectionHealthBadge, { getSectionHealthBadgeState } from './SectionHealthBadge.jsx';
+import SectionHealthBadge from './SectionHealthBadge.jsx';
 import NewsSection from './NewsSection.jsx';
 import { buildMainSectionHealthSummaryMap } from '../viewModels/useMainTabViewModel.js';
 
@@ -41,12 +41,26 @@ const warningSummary = {
   reasons: ['persistent_zero_item_feed_streak'],
 };
 
+function renderBadge(summary) {
+  render(<SectionHealthBadge summary={summary} />);
+  return screen.getByRole('button');
+}
+
 describe('SectionHealthBadge', () => {
   it('maps health statuses to accessible badge states', () => {
-    expect(getSectionHealthBadgeState({ sectionId: 'india', status: 'ok' })).toMatchObject({ status: 'ok', icon: '🟢' });
-    expect(getSectionHealthBadgeState({ sectionId: 'muscat', status: 'warning' })).toMatchObject({ status: 'warning', icon: '🟠' });
-    expect(getSectionHealthBadgeState({ sectionId: 'business', status: 'critical' })).toMatchObject({ status: 'critical', icon: '🔴' });
-    expect(getSectionHealthBadgeState(null)).toMatchObject({ status: 'unknown', icon: '⚪' });
+    let badge = renderBadge({ sectionId: 'india', status: 'ok' });
+    expect(badge.dataset.status).toBe('ok');
+    expect(badge.textContent).toContain('OK');
+
+    badge.remove();
+    badge = renderBadge({ sectionId: 'muscat', status: 'warning' });
+    expect(badge.dataset.status).toBe('warning');
+    expect(badge.textContent).toContain('Warning');
+
+    badge.remove();
+    badge = renderBadge({ sectionId: 'business', status: 'critical' });
+    expect(badge.dataset.status).toBe('critical');
+    expect(badge.textContent).toContain('Critical');
   });
 
   it('renders missing diagnostics as unknown instead of false-ok', () => {
@@ -72,7 +86,7 @@ describe('NewsSection section-health integration', () => {
         title="Muscat"
         icon="📍"
         colorClass="news-section__title--local"
-        news={[{ id: 'story-1', title: 'Muscat civic update', source: 'Times of Oman', publishedAt: Date.now() }]}
+        news={[{ id: 'story-1', title: 'Muscat civic update', source: 'Times of Oman', publishedAt: 1725000000000 }]}
         healthSummary={warningSummary}
       />
     );
