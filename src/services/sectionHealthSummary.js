@@ -46,6 +46,10 @@ function normalizeTimestamp(value) {
 function normalizeSourceRow(source = {}, index = 0) {
   const id = normalizeKey(source.id || source.key || source.sourceGroup || source.name || source.source || `source_${index}`);
   const section = normalizeKey(source.section || source.sectionId || source.category || source.topic || '');
+  const sections = unique([
+    section,
+    ...asArray(source.sections).map(normalizeKey),
+  ]);
   const sourceGroup = normalizeKey(source.sourceGroup || source.group || source.id || source.key || source.name || source.source || id);
   const items = numberValue(source.items ?? source.itemCount ?? source.count ?? source.storyCount, 0);
   const zeroItemRuns = numberValue(source.zeroItemRuns ?? source.zero_item_runs, items === 0 ? 1 : 0);
@@ -56,6 +60,7 @@ function normalizeSourceRow(source = {}, index = 0) {
   return {
     id,
     section,
+    sections,
     sourceGroup,
     source: textValue(source.source || source.name || source.label || id),
     status,
@@ -133,9 +138,10 @@ function getSummaries(sectionsEnvelope = {}) {
 
 function sourceBelongsToSection(source, sectionId) {
   if (!source || !sectionId) return false;
-  if (source.section === sectionId) return true;
-  if (source.section === 'tn' && sectionId === 'chennai') return true;
-  if (source.section === 'muscat' && sectionId === 'local') return true;
+  const sourceSections = asArray(source.sections);
+  if (source.section === sectionId || sourceSections.includes(sectionId)) return true;
+  if ((source.section === 'tn' || sourceSections.includes('tn')) && sectionId === 'chennai') return true;
+  if ((source.section === 'muscat' || sourceSections.includes('muscat')) && sectionId === 'local') return true;
   return false;
 }
 
@@ -215,8 +221,11 @@ export function buildSectionHealthSummary(summary = {}, sourceRows = [], options
     reasons.push(`stale_reason:${normalizedSummary.staleReason}`);
   }
   if (sourceStats.zeroItemFeeds.length > 0) {
-    status = worstStatus(status, sourceStats.zeroItemFeeds.some(feed => feed.zeroItemRuns >= 10) ? 'critical' : 'warning');
-    reasons.push('zero_item_feed_streak');
+    const allKnownSourcesFailed = sourceStats.sources.length > 0 && sourceStats.deadFeeds.length === sourceStats.sources.length;
+    const zeroItemSeverity = normalizedSummary.storyCount === 0 || allKnownSourcesFailed ? 'critical' : 'warning';
+    const hasPersistentZeroItemFeed = sourceStats.zeroItemFeeds.some(feed => feed.zeroItemRuns >= 10);
+    status = worstStatus(status, zeroItemSeverity);
+    reasons.push(hasPersistentZeroItemFeed ? 'persistent_zero_item_feed_streak' : 'zero_item_feed_streak');
   }
   if (sourceStats.warningFeeds.length > 0) {
     status = worstStatus(status, 'warning');
