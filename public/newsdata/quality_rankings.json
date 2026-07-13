@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 10
+            "itemCount": 8
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 10,
-        "parentClusters": 10,
-        "strongParents": 10,
+        "inputCandidateCount": 8,
+        "parentClusters": 8,
+        "strongParents": 8,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3879,
+      "qualityScore": 0.3868,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -888,231 +888,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.5,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 2
-              },
-              "name": "sourceDiversity",
-              "reason": "multi-source event",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.5
-              },
-              "name": "baseReportCap",
-              "reason": "base-report heavy but usable",
-              "score": 0.55,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:bd4e27c80d",
-          "item": {
-            "angleCount": 2,
-            "baseReportRatio": 0.5,
-            "childScores": [],
-            "id": "sketch:bd4e27c80d",
-            "representativeId": "15973c5d75d3f414",
-            "representativeTitle": "New voters have to also submit parents' SIR details for inclusion in electoral rolls",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.55,
-              "sourceAuthorityScore": 0.62,
-              "sourceDiversityScore": 0.72,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 2,
-            "sourceGroups": [
-              "google_news",
-              "the_hindu"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "15973c5d75d3f414",
-              "90f0214be057fe22"
-            ],
-            "topAngles": [
-              {
-                "angle": "correction",
-                "count": 1
-              },
-              {
-                "angle": "base_report",
-                "count": 1
-              }
-            ],
-            "topTokens": [
-              "voters",
-              "also",
-              "submit",
-              "parents"
-            ],
-            "topicKey": "voters|also|submit"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "multi-source event"
-          ],
-          "score": 0.2698,
-          "title": "New voters have to also submit parents' SIR details for inclusion in electoral rolls"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 3
               },
               "name": "eventCoherence",
@@ -1220,13 +995,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.303,
-        "eventImportanceScore": 0.662,
+        "angleDiversityScore": 0.3163,
+        "eventImportanceScore": 0.68,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.48,
-        "sourceAuthorityScore": 0.428,
-        "sourceDiversityScore": 0.424,
-        "temporalEvolutionScore": 0.418
+        "noveltyDeltaScore": 0.475,
+        "sourceAuthorityScore": 0.41,
+        "sourceDiversityScore": 0.3963,
+        "temporalEvolutionScore": 0.43
       }
     },
     "localTravel": {
@@ -1286,7 +1061,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -1295,6 +1070,8 @@
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
+        "Chennai Corporation to replace wooden ramp on Marina Beach: futureValidity failed — expired display window",
+        "Chennai Corporation to replace wooden ramp on Marina Beach: alertUrgency failed — alert expired",
         "28-year-old man electrocuted in Neelankarai: futureValidity failed — expired display window",
         "28-year-old man electrocuted in Neelankarai: alertUrgency failed — alert expired",
         "State-level conference held on non-communicable diseases in Chennai: futureValidity failed — expired display window",
@@ -1348,10 +1125,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 7
+        "suppressedItemCount": 8
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8572,
+      "qualityScore": 0.8559,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -2158,121 +1935,6 @@
           ],
           "score": 0.8485,
           "title": "Central Information Commission directs IIT-M to disclose utilisation of grant-in-aid funds"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "5816a0342da357cd"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1783978451000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "15e258b5b203120b",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1783978451000,
-            "id": "15e258b5b203120b",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784583251000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1783978451000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783892051000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "The wooden ramp will be replaced with high-density polyethylene ramp, similar to the one planned on the Blue Flag portion of the beach",
-            "suppressionReason": null,
-            "title": "Chennai Corporation to replace wooden ramp on Marina Beach",
-            "url": "https://www.thehindu.com/news/cities/chennai/chennai-corporation-to-replace-wooden-ramp-on-marina-beach/article71214356.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai Corporation to replace wooden ramp on Marina Beach"
         },
         {
           "category": "alerts",
@@ -4803,6 +4465,121 @@
           ],
           "score": 0.7925,
           "title": "Apprenticeship placement camp to be held in Pudukottai"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "2996265641caa38a"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784016474000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "e4161145f48f3bbd",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784016474000,
+            "id": "e4161145f48f3bbd",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784621274000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784016474000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1783930074000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "The Tambaram City Police appealed to the public to share information on drug trafficking and illegal narcotics activities.",
+            "suppressionReason": null,
+            "title": "Tambaram police arrest two persons after seizing 1,100 banned tablets, 5 kg ganja",
+            "url": "https://www.thehindu.com/news/cities/chennai/tambaram-police-arrest-two-persons-after-seizing-1100-banned-tablets-5-kg-ganja/article71216388.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "Tambaram police arrest two persons after seizing 1,100 banned tablets, 5 kg ganja"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4810,14 +4587,14 @@
         "actionabilityScore": 1.0,
         "categoryPriorityScore": 1.0,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9907,
+        "locationScore": 0.9813,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
         "urgencyOrExpiryScore": 0.78
       }
     }
   },
-  "generatedAt": 1783976139555,
+  "generatedAt": 1783986775414,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4836,7 +4613,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4851,9 +4628,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3879,
+      "insight": 0.3868,
       "localTravel": 0.0,
-      "upAhead": 0.8572
+      "upAhead": 0.8559
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4861,7 +4638,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3113,
+    "overallScore": 0.3107,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4872,6 +4649,8 @@
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
+      "Chennai Corporation to replace wooden ramp on Marina Beach: futureValidity failed — expired display window",
+      "Chennai Corporation to replace wooden ramp on Marina Beach: alertUrgency failed — alert expired",
       "28-year-old man electrocuted in Neelankarai: futureValidity failed — expired display window",
       "28-year-old man electrocuted in Neelankarai: alertUrgency failed — alert expired",
       "State-level conference held on non-communicable diseases in Chennai: futureValidity failed — expired display window",
