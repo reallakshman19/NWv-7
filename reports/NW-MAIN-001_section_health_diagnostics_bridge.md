@@ -16,6 +16,7 @@ sectionsDataset data.sections fallback
 sourceHealthDataset normalized rows
 source_health.json-style array rows
 source_health.json-style object maps
+section_source_policy_report-style rows with sections[]
 reduced/legacy rows such as { ok, items, lastSuccess }
 ```
 
@@ -48,13 +49,14 @@ critical:
   section fetch failed
   empty section with failed known sources
   all known sources failed
-  zeroItemRuns >= 10 on known section feed
+  zeroItemRuns >= 10 only when the section has no visible stories or all known sources failed
 
 warning:
   single-source section
   thin source group count
   stale/fallback reason present
   zeroItemRuns >= 3
+  persistent zeroItemRuns >= 10 while the section still has visible stories
   warning source status
   partial source failure while section still has stories
 
@@ -67,7 +69,9 @@ ok:
 - Single-source/thin sections become `warning`.
 - Empty sections with failed known feeds become `critical`.
 - Partial source failures become `warning` while preserving visible story count.
+- Persistent zero-item feeds remain `warning` when another feed still keeps the section populated.
 - Old/reduced source-health object maps normalize into the same source row shape as newer array records.
+- Source rows with `sections: []` are supported for source-policy-report compatibility.
 - Missing source health degrades gracefully using section summaries only.
 - Output is deterministic and sorted by section id.
 - Inputs are not mutated.
