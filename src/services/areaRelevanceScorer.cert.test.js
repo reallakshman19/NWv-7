@@ -72,7 +72,7 @@ describe('area relevance scorer', () => {
     expect(weak.label).toBe('backfill');
     expect(weak.score).toBeLessThan(explicit.score);
     expect(explicit.label).not.toBe('weak');
-    expect(explicit.matchedTerms).toEqual(expect.arrayContaining(['Oman', 'Muscat']));
+    expect(explicit.matchedTerms).toEqual(expect.arrayContaining(['oman', 'muscat']));
   });
 
   it('recognizes Chennai aliases and civic/transport terms', () => {
