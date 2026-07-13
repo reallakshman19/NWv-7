@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { addReadArticle, getSettings } from '../utils/storage';
 import { useNews } from '../context/NewsContext';
 import ProgressBar from './ProgressBar';
+import SectionHealthBadge from './SectionHealthBadge.jsx';
+import SectionHealthPopover from './SectionHealthPopover.jsx';
 import { buildStoryInfoText, getStoryUrl, shortenSourceLabel } from '../utils/storyMeta';
 import { sanitizeHtmlText } from '../utils/htmlText.js';
 import { getRankingPolicy } from '../config/rankingPolicy.js';
@@ -28,11 +30,13 @@ function NewsSection({
     extraContent = null,
     onArticleClick = null,
     showCritics = true,
-    loading = false
+    loading = false,
+    healthSummary = null
 }) {
     const [expanded, setExpanded] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [infoText, setInfoText] = useState('');
+    const [showHealthPopover, setShowHealthPopover] = useState(false);
     const { auditResults } = useNews();
 
     const settings = getSettings();
@@ -41,9 +45,7 @@ function NewsSection({
     const displayCount = expanded ? news.length : Math.min(maxDisplay, news.length);
     const displayNews = news.slice(0, displayCount);
     const hasMore = news.length > maxDisplay;
-
-    // --- Section Health Badges ---
-    const health = news.health || { status: 'ok' };
+    const healthStatus = healthSummary?.status || 'unknown';
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return '';
@@ -64,6 +66,11 @@ function NewsSection({
 
     const handleInfoClick = (item, includeScoreBreakdown = false) => {
         setInfoText(buildStoryInfoText(item, { includeScoreBreakdown }) || 'No source link available.');
+    };
+
+    const handleHealthClick = (event) => {
+        event.stopPropagation();
+        setShowHealthPopover(value => !value);
     };
 
     const handleStoryClick = (item) => {
@@ -220,7 +227,7 @@ function NewsSection({
                 className={`news-section__title ${colorClass}`}
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 style={{ cursor: 'pointer' }}
-                title={`Tap to fold/unfold. Health: ${health.status.toUpperCase()}`}
+                title={`Tap to fold/unfold. Health: ${healthStatus.toUpperCase()}`}
             >
                 <div className="news-title-left">
                     <span className="news-icon">{icon}</span>
@@ -241,9 +248,7 @@ function NewsSection({
                 </div>
 
                 <div className="news-title-right">
-                    {/* Health Indicators */}
-                    {health.status === 'critical' && <span title="Critical Feed" className="indicator-dot red"></span>}
-                    {health.status === 'warning' && <span title="Warning Feed" className="indicator-dot orange"></span>}
+                    <SectionHealthBadge summary={healthSummary} onClick={handleHealthClick} />
 
                     {news.length > 0 && (
                         <span className="news-count">({news.length})</span>
@@ -255,6 +260,13 @@ function NewsSection({
                     </span>
                 </div>
             </h2>
+
+            {showHealthPopover && (
+                <SectionHealthPopover
+                    summary={healthSummary}
+                    onClose={() => setShowHealthPopover(false)}
+                />
+            )}
 
             <ProgressBar active={loading} />
 
