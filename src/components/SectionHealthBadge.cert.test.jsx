@@ -15,9 +15,16 @@ vi.mock('../utils/storage', () => ({
   isArticleRead: () => false,
 }));
 
+const rankingPolicyMock = {
+  freshness: {
+    halfLifeHours: 10,
+    longFormHalfLifeHours: 36,
+  },
+};
+
 vi.mock('../config/rankingPolicy.js', () => ({
-  DEFAULT_RANKING_POLICY: {},
-  getRankingPolicy: () => ({}),
+  DEFAULT_RANKING_POLICY: rankingPolicyMock,
+  getRankingPolicy: () => rankingPolicyMock,
 }));
 
 vi.mock('../utils/trendingUtils.js', () => ({
