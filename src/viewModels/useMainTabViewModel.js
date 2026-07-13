@@ -338,6 +338,9 @@ function getRefreshOutcome(results) {
 function getFirstNewsError(newsErrors) {
   if (Array.isArray(newsErrors)) return newsErrors[0] || null;
   if (typeof newsErrors === 'string') return newsErrors;
+  if (newsErrors && typeof newsErrors === 'object') {
+    return newsErrors.message || Object.values(newsErrors).find(Boolean) || null;
+  }
   return null;
 }
 
