@@ -101,6 +101,20 @@ describe('NW-MAIN-001 section health summary bridge', () => {
     expect(reduced[0]).toMatchObject({ status: 'critical', zeroItemRuns: 134 });
   });
 
+  it('normalizes source rows with section arrays from policy reports', () => {
+    const rows = normalizeSourceHealthRows({
+      sources: [
+        {
+          id: 'google_news',
+          sections: ['topStories', 'muscat'],
+          status: 'ok',
+          items: 15,
+        },
+      ],
+    });
+    expect(rows[0]).toMatchObject({ id: 'google_news', sections: ['muscat', 'topstories'] });
+  });
+
   it('marks healthy multi-source sections as ok', () => {
     const india = getSectionHealthSummary('india', sectionsEnvelope(), sourceHealth);
     expect(india).toMatchObject({ sectionId: 'india', status: 'ok', storyCount: 12, sourceGroupCount: 2 });
@@ -129,6 +143,36 @@ describe('NW-MAIN-001 section health summary bridge', () => {
     expect(muscat.storyCount).toBe(10);
     expect(muscat.warningFeeds).toHaveLength(1);
     expect(muscat.zeroItemFeeds[0]).toMatchObject({ id: 'muscat_daily', zeroItemRuns: 4 });
+  });
+
+  it('keeps persistent partial zero-item feeds as warning when stories remain visible', () => {
+    const rows = normalizeSourceHealthRows({
+      sources: [
+        { id: 'times_of_oman', section: 'muscat', source: 'Times of Oman', status: 'ok', items: 12 },
+        { id: 'oman_observer', section: 'muscat', source: 'Oman Observer', status: 'warn', items: 0, zeroItemRuns: 37 },
+      ],
+    });
+    const muscat = buildSectionHealthSummary(
+      { section: 'muscat', count: 12, sourceCounts: { 'Times of Oman': 12 } },
+      rows,
+    );
+    expect(muscat.status).toBe('warning');
+    expect(muscat.storyCount).toBe(12);
+    expect(muscat.reasons).toContain('persistent_zero_item_feed_streak');
+    expect(muscat.zeroItemFeeds).toHaveLength(1);
+  });
+
+  it('matches source-health rows to sections arrays', () => {
+    const rows = normalizeSourceHealthRows({
+      sources: [
+        { id: 'google_news_oman', sections: ['muscat'], source: 'Google News Oman', status: 'ok', items: 8 },
+      ],
+    });
+    const muscat = buildSectionHealthSummary(
+      { section: 'muscat', count: 8, sourceCounts: { 'Google News Oman': 8 } },
+      rows,
+    );
+    expect(muscat.topSources.map(source => source.source)).toContain('Google News Oman');
   });
 
   it('handles missing source-health gracefully using section summaries only', () => {
