@@ -17,6 +17,7 @@ import {
   mergeTravelNewsIntoNewsData,
 } from '../services/travelNewsIngestion.js';
 import { auditMainTabQuality } from '../services/pageAuditGrading.js';
+import { buildSectionHealthSummaries } from '../services/sectionHealthSummary.js';
 
 const MIN_CUSTOM_TOP_STORIES = 10;
 const MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES = 3;
@@ -109,6 +110,85 @@ function getProjectedMainData({ envelope, newsData, weatherData, breakingNews })
         ? asArray(data.topline.breakingNews)
         : asArray(breakingNews),
   };
+}
+
+function normalizeSectionHealthKey(value) {
+  return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function getSectionHealthAliases(sectionId) {
+  const normalized = normalizeSectionHealthKey(sectionId);
+  const aliases = new Set([sectionId, normalized]);
+
+  if (normalized === 'topstories' || normalized === 'frontpage') {
+    aliases.add('topStories');
+    aliases.add('top-stories');
+    aliases.add('topstories');
+    aliases.add('frontPage');
+  }
+
+  if (normalized === 'india') {
+    aliases.add('india');
+    aliases.add('india-news');
+  }
+
+  if (normalized === 'chennai' || normalized === 'tn' || normalized === 'tamilnadu') {
+    aliases.add('chennai');
+    aliases.add('chennai-news');
+    aliases.add('tamilNadu');
+    aliases.add('tamil-nadu');
+    aliases.add('tn');
+  }
+
+  if (normalized === 'local' || normalized === 'muscat') {
+    aliases.add('local');
+    aliases.add('local-news');
+    aliases.add('muscat');
+    aliases.add('muscat-news');
+  }
+
+  if (normalized === 'world') {
+    aliases.add('world');
+    aliases.add('world-news');
+  }
+
+  return [...aliases].filter(Boolean);
+}
+
+function getMainSectionSourceHealthInput(envelope = {}) {
+  const data = asRecord(envelope?.data);
+  const raw = asRecord(data.raw);
+
+  return (
+    data.sourceHealth ||
+    data.source_health ||
+    data.sourceHealthEnvelope ||
+    data.sectionSourceHealth ||
+    data.section_source_health ||
+    data.sectionSourcePolicyReport ||
+    data.section_source_policy_report ||
+    raw.sourceHealth ||
+    raw.source_health ||
+    raw.sectionSourcePolicyReport ||
+    raw.section_source_policy_report ||
+    {}
+  );
+}
+
+export function buildMainSectionHealthSummaryMap({ datasetEnvelope = null } = {}) {
+  const rows = buildSectionHealthSummaries(
+    datasetEnvelope || {},
+    getMainSectionSourceHealthInput(datasetEnvelope || {})
+  );
+  const summaryMap = {};
+
+  rows.forEach(summary => {
+    getSectionHealthAliases(summary.sectionId).forEach(alias => {
+      summaryMap[alias] = summary;
+    });
+  });
+
+  return summaryMap;
 }
 
 function makeMainBoundaryEnvelope({
@@ -316,6 +396,10 @@ export function useMainTabViewModel() {
   const projectedNewsData = projected.newsData;
   const projectedWeatherData = projected.weatherData;
   const projectedBreakingNews = projected.breakingNews;
+
+  const sectionHealthSummaries = useMemo(() => (
+    buildMainSectionHealthSummaryMap({ datasetEnvelope })
+  ), [datasetEnvelope]);
 
   const travelLocationProfile = useMemo(
     () => getTravelLocationProfile(safeSettings),
@@ -567,6 +651,7 @@ export function useMainTabViewModel() {
     datasetEnvelope,
     settings: safeSettings,
     sections,
+    sectionHealthSummaries,
     uiMode,
     currentSegment,
     notifPermission,
@@ -624,6 +709,7 @@ export const __mainViewModelInternalsForTest = {
   filterLatestStories,
   getNavSections,
   getProjectedMainData,
+  buildMainSectionHealthSummaryMap,
   makeMainBoundaryEnvelope,
   getRefreshOutcome,
   getFirstNewsError,
