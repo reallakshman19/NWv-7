@@ -1,5 +1,5 @@
 {
-  "generatedAt": 1783958401657,
+  "generatedAt": 1783962660751,
   "policyVersion": "section-source-policy-v1",
   "reportVersion": "section-source-policy-report-v1",
   "schemaVersion": 1,
@@ -16,7 +16,7 @@
       ],
       "topSources": [
         {
-          "count": 19,
+          "count": 17,
           "sourceGroup": "business_line"
         },
         {
@@ -24,24 +24,24 @@
           "sourceGroup": "economic_times"
         },
         {
-          "count": 3,
+          "count": 5,
           "sourceGroup": "google_news"
         }
       ]
     },
     "entertainment": {
       "sourceGroupCount": 1,
-      "storyCount": 17,
+      "storyCount": 16,
       "thin": true,
       "topCategories": [
         {
           "category": "entertainment",
-          "count": 17
+          "count": 16
         }
       ],
       "topSources": [
         {
-          "count": 17,
+          "count": 16,
           "sourceGroup": "google_news"
         }
       ]
@@ -104,7 +104,7 @@
       ],
       "topSources": [
         {
-          "count": 17,
+          "count": 15,
           "sourceGroup": "bbc"
         },
         {
@@ -112,7 +112,7 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 4,
+          "count": 6,
           "sourceGroup": "google_news"
         }
       ]
@@ -155,11 +155,11 @@
       "topSources": [
         {
           "count": 16,
-          "sourceGroup": "google_news"
+          "sourceGroup": "the_hindu"
         },
         {
           "count": 14,
-          "sourceGroup": "the_hindu"
+          "sourceGroup": "google_news"
         }
       ]
     },
@@ -179,11 +179,11 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 6,
+          "count": 8,
           "sourceGroup": "ndtv"
         },
         {
-          "count": 4,
+          "count": 2,
           "sourceGroup": "economic_times"
         }
       ]
@@ -222,11 +222,11 @@
       "topSources": [
         {
           "count": 16,
-          "sourceGroup": "bbc"
+          "sourceGroup": "the_hindu"
         },
         {
           "count": 14,
-          "sourceGroup": "the_hindu"
+          "sourceGroup": "bbc"
         }
       ]
     }
@@ -457,7 +457,7 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "error": "HTTPSConnectionPool(host='www.financialexpress.com', port=443): Max retries exceeded with url: /feed/ (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.financialexpress.com', port=443) at 0x7fc48bbae810>, 'Connection to www.financialexpress.com timed out. (connect timeout=15)'))",
+        "error": "403 Client Error: Forbidden for url: https://www.financialexpress.com/feed/",
         "feedUrl": "https://www.financialexpress.com/feed/",
         "items": 0,
         "ok": false,
