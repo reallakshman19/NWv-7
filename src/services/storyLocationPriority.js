@@ -2,6 +2,7 @@ import {
   getTravelLocationProfile,
   isTravelLocationProfile,
 } from './travelLocationProfile.js';
+import { applyAreaRelevance } from './areaRelevanceScorer.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -75,6 +76,20 @@ function collectStories(newsData = {}) {
   }
 
   return stories;
+}
+
+export function applyMainAreaRelevance(newsData = {}) {
+  const next = { ...newsData };
+
+  if (Array.isArray(newsData.chennai)) {
+    next.chennai = applyAreaRelevance(newsData.chennai, 'chennai');
+  }
+
+  if (Array.isArray(newsData.local)) {
+    next.local = applyAreaRelevance(newsData.local, 'muscat');
+  }
+
+  return next;
 }
 
 export function scoreStoryForLocation(story, profile) {
@@ -176,18 +191,19 @@ export function applyTravelLocationPriority(newsData = {}, profileInput = null) 
   const profile = isTravelLocationProfile(profileInput)
     ? profileInput
     : getTravelLocationProfile(profileInput || {});
+  const areaNewsData = applyMainAreaRelevance(newsData);
 
-  if (!profile?.prioritizeStories) return newsData;
+  if (!profile?.prioritizeStories) return areaNewsData;
 
-  const next = { ...newsData };
+  const next = { ...areaNewsData };
 
-  for (const [key, value] of Object.entries(newsData || {})) {
+  for (const [key, value] of Object.entries(areaNewsData || {})) {
     if (Array.isArray(value)) {
       next[key] = prioritizeStoryArrayForLocation(value, profile);
     }
   }
 
-  next.travelLocal = rankStoriesForLocation(newsData, profile, { limit: 8 });
+  next.travelLocal = rankStoriesForLocation(areaNewsData, profile, { limit: 8 });
   next.travelLocationProfile = profile;
 
   return next;

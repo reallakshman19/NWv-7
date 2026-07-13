@@ -58,6 +58,9 @@ const MainPage = () => {
         return null;
     };
 
+    const chennaiSectionNews = prioritizedNewsData.chennai || newsData.chennai;
+    const localSectionNews = prioritizedNewsData.local || newsData.local;
+
     useEffect(() => {
         const handleScroll = () => {
             setShowBackToTop(window.scrollY > 400);
@@ -211,7 +214,7 @@ const MainPage = () => {
                                                     title="Tamil Nadu"
                                                     icon="🏛️"
                                                     colorClass="news-section__title--chennai"
-                                                    news={newsData.chennai}
+                                                    news={chennaiSectionNews}
                                                     maxDisplay={sections.chennai.count || 5}
                                                     healthSummary={getHealthSummary('chennai', 'chennai-news', 'tn', 'tamilNadu')}
                                                 />
@@ -223,7 +226,7 @@ const MainPage = () => {
                                                     title="Muscat / Local"
                                                     icon="📍"
                                                     colorClass="news-section__title--local"
-                                                    news={newsData.local}
+                                                    news={localSectionNews}
                                                     maxDisplay={sections.local.count || 5}
                                                     healthSummary={getHealthSummary('local', 'local-news', 'muscat', 'muscat-news')}
                                                 />
@@ -287,7 +290,7 @@ const MainPage = () => {
                                                         title="Tamil Nadu"
                                                         icon="🏛️"
                                                         colorClass="news-section__title--chennai"
-                                                        news={newsData.chennai}
+                                                        news={chennaiSectionNews}
                                                         maxDisplay={sections.chennai.count || 5}
                                                         healthSummary={getHealthSummary('chennai', 'chennai-news', 'tn', 'tamilNadu')}
                                                     />
@@ -299,7 +302,7 @@ const MainPage = () => {
                                                         title="Muscat"
                                                         icon="📍"
                                                         colorClass="news-section__title--local"
-                                                        news={newsData.local}
+                                                        news={localSectionNews}
                                                         maxDisplay={sections.local.count || 5}
                                                         healthSummary={getHealthSummary('local', 'local-news', 'muscat', 'muscat-news')}
                                                     />
@@ -336,6 +339,8 @@ const MainPage = () => {
                                     <span title="Segment">{currentSegment.icon} {currentSegment.label}</span>
                                     <span title="Notifications">{notifPermission === 'granted' ? '🔔' : '🔕'}</span>
                                     <span title="UI Mode">📱 {uiMode}</span>
+                                    <span title="Source">{envelope?.source || 'context'}</span>
+                                    <span title="Freshness">{envelope?.freshness || 'unknown'}</span>
                                 </div>
                             )}
                         </>
@@ -343,37 +348,20 @@ const MainPage = () => {
                 </DataStateBoundary>
             </main>
 
-            <SectionNavigator sections={navSections} />
+            {navSections.length > 0 && (
+                <SectionNavigator sections={navSections} />
+            )}
 
-            <button
-                onClick={scrollToTop}
-                style={{
-                    position: 'fixed',
-                    bottom: '90px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    fontSize: '1.2rem',
-                    cursor: 'pointer',
-                    opacity: showBackToTop ? 1 : 0,
-                    pointerEvents: showBackToTop ? 'auto' : 'none',
-                    transition: 'all 0.3s ease',
-                    zIndex: 900,
-                    backdropFilter: 'blur(4px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}
-                className="back-to-top"
-            >
-                ↑
-            </button>
+            {showBackToTop && (
+                <button
+                    type="button"
+                    onClick={scrollToTop}
+                    className="back-to-top"
+                    aria-label="Back to top"
+                >
+                    ↑
+                </button>
+            )}
         </div>
     );
 };

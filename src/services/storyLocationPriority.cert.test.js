@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyMainAreaRelevance,
   applyTravelLocationPriority,
   rankStoriesForLocation,
   scoreStoryForLocation,
@@ -53,5 +54,48 @@ describe('Story location priority certification', () => {
     expect(prioritized.frontPage[0].id).toBe('2');
     expect(prioritized.travelLocal[0].id).toBe('2');
     expect(prioritized.travelLocationProfile.key).toBe('colombo');
+  });
+
+  it('enriches Chennai and Muscat main sections with area relevance evidence', () => {
+    const newsData = {
+      chennai: [
+        { id: 'tn', title: 'Tamil Nadu statewide policy update' },
+        { id: 'omr', title: 'OMR and CMRL traffic plan announced in Chennai' },
+      ],
+      local: [
+        { id: 'oman', title: 'Oman tourism strategy published' },
+        { id: 'ruwi', title: 'Ruwi road changes announced by Muscat Municipality' },
+      ],
+      world: [
+        { id: 'world', title: 'Global markets update' },
+      ],
+    };
+
+    const enriched = applyMainAreaRelevance(newsData);
+
+    expect(enriched.chennai.map(story => story.id)).toEqual(['omr', 'tn']);
+    expect(enriched.chennai[0]._areaRelevance.label).toBe('exact-area');
+    expect(enriched.chennai[1]._areaRelevance.label).toBe('state-region');
+    expect(enriched.local.map(story => story.id)).toEqual(['ruwi', 'oman']);
+    expect(enriched.local[0]._areaRelevance.label).toBe('exact-area');
+    expect(enriched.local[1]._areaRelevance.label).toBe('country');
+    expect(enriched.world[0]._areaRelevance).toBeUndefined();
+    expect(newsData.chennai[0]._areaRelevance).toBeUndefined();
+  });
+
+  it('keeps area relevance when travel priority is disabled', () => {
+    const prioritized = applyTravelLocationPriority({
+      local: [
+        { id: 'weak', title: 'Global markets update' },
+        { id: 'qurum', title: 'Qurum beach access update in Muscat' },
+      ],
+    }, {
+      ...colomboProfile,
+      prioritizeStories: false,
+    });
+
+    expect(prioritized.local[0].id).toBe('qurum');
+    expect(prioritized.local[0]._areaRelevance.label).toBe('exact-area');
+    expect(prioritized.travelLocal).toBeUndefined();
   });
 });
