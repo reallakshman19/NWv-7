@@ -1,0 +1,420 @@
+Here are two paste-ready versions.
+
+## Version 1 — focused technical audit prompt
+
+You are an expert GitHub code auditor and senior frontend/data-pipeline architect.
+
+Audit the current repo state for the **Up Ahead** and **Planner** sections in `reallaksh19/NWv-7`.
+
+Scope: **audit only, no code changes, no PR creation unless explicitly asked later.**
+
+Review these areas in depth:
+
+1. **Architecture and data flow**
+
+   * How Up Ahead data is fetched, normalized, cached, ranked, filtered, and displayed.
+   * How Planner data is derived from Up Ahead or other datasets.
+   * Whether browser/runtime, static snapshot, dataset API, and workflow paths are consistent.
+   * Whether there are duplicate engines or conflicting data authorities.
+
+2. **Files/modules to inspect**
+
+   * `src/services/upAheadService.js`
+   * `src/services/upAheadPipeline.js`
+   * `src/config/settings_upahead.js`
+   * `src/data/datasets/upAheadDataset.js`
+   * `src/data/datasets/upAheadDatasetApiClient.js`
+   * `src/services/plannerViewModel.js`
+   * Up Ahead and Planner UI components/pages
+   * Settings/config wiring related to Up Ahead and Planner
+   * Generated/public data under `public/newsdata` if relevant
+   * workflow/server scripts such as `scripts/fetch_upahead_events.py`
+   * existing tests/certification/static guards related to Up Ahead and Planner
+
+3. **Technical quality checks**
+
+   * freshness policy and stale-data handling
+   * future-date/event-date correctness
+   * duplicate removal and canonical identity
+   * location relevance
+   * category classification
+   * intent detection: movies, events, festivals, shopping, airline offers, civic alerts, weather alerts
+   * planner eligibility
+   * past-event suppression
+   * fallback behavior when API/source data is missing
+   * static host compatibility
+   * runtime/API boundary
+   * Data Health/diagnostics visibility
+
+4. **Ranking and filtering**
+
+   * Explain the current ranking/order logic for Up Ahead.
+   * Explain the current sorting/grouping logic for Planner.
+   * Identify whether keyword matching is overused or too generic.
+   * Identify whether date confidence, location confidence, and intent confidence are explicit enough.
+   * Check whether Up Ahead and Planner need a shared signal layer or separate rankers.
+
+5. **Diagnostics and auditability**
+
+   * Can the user see why an item appeared?
+   * Can the user see why an item was excluded?
+   * Can stale/dead/empty upstream sources be identified?
+   * Are diagnostics available in Data Health or only hidden in logs?
+   * What health icons or UI indicators are missing?
+
+6. **Risks and defects**
+
+   * Find correctness bugs.
+   * Find stale/fallback risk.
+   * Find hidden coupling with Top Stories, Buzz, section ranking, or Settings.
+   * Find duplicate logic or dead paths.
+   * Find missing tests.
+   * Find confusing UI behavior.
+
+Deliver a structured report with:
+
+* Executive verdict: can Up Ahead/Planner be considered optimized or not?
+* Current architecture map.
+* Data-flow diagram in text form.
+* Module-by-module findings.
+* Ranking/filtering findings.
+* Diagnostics/auditability gaps.
+* High/medium/low severity issues.
+* Exact recommended Work Packs with file scopes.
+* Acceptance criteria for each Work Pack.
+* “Do not touch” boundaries to avoid scope leakage.
+* Final recommendation: what should be done next and in what order.
+
+## Version 2 — deeper forensic / implementation-ready prompt
+
+You are an expert GitHub code auditor, data-product architect, and frontend reliability engineer.
+
+Perform a **deep technical audit** of the **Up Ahead** and **Planner** sections in `reallaksh19/NWv-7`.
+
+This is an audit/RCA/design task only. Do **not** change files, create branches, open PRs, or modify issues unless explicitly instructed after the audit.
+
+## Primary question
+
+Can we conclude that the **Up Ahead** and **Planner** sections are technically optimized, reliable, auditable, and user-traceable?
+
+If not, identify exactly what is pending.
+
+## Context to respect
+
+The repo has recently gone through major work on:
+
+* static frontend vs dataset API boundary
+* Up Ahead dataset API / Cloudflare Worker readiness
+* Data Health diagnostics
+* Top Stories ranking refactor
+* source quality / RSS health concerns
+* section-wise freshness and diagnostics
+
+Do not mix the Up Ahead/Planner audit with Top Stories unless there is direct coupling.
+
+## Audit scope
+
+Inspect the current `main` branch and relevant open PRs/issues if they affect Up Ahead or Planner.
+
+At minimum inspect:
+
+```text
+src/services/upAheadService.js
+src/services/upAheadPipeline.js
+src/config/settings_upahead.js
+src/data/datasets/upAheadDataset.js
+src/data/datasets/upAheadDatasetApiClient.js
+src/services/plannerViewModel.js
+src/components or pages related to Up Ahead
+src/components or pages related to Planner
+src/components/DataHealthPanel.jsx
+scripts/fetch_upahead_events.py
+public/newsdata/up_ahead*.json or related generated data
+tests/cert/static guards related to Up Ahead and Planner
+.github/workflows if they feed or certify Up Ahead/Planner
+```
+
+Also search the repo for:
+
+```text
+upAhead
+planner
+weekly plan
+plannerEligible
+eventDate
+event date
+dateConfidence
+weather alert
+offer
+booking
+release date
+festival
+source health
+diagnostics
+api_edge_diagnostics
+```
+
+## Audit dimensions
+
+### 1. Data authority and lifecycle
+
+Map every Up Ahead and Planner data path:
+
+```text
+source RSS/API/workflow
+→ normalization
+→ canonical item
+→ deduplication
+→ filtering
+→ ranking/order
+→ dataset envelope
+→ API/client/static fallback
+→ UI display
+→ Data Health diagnostics
+```
+
+Answer:
+
+* What is the single source of truth?
+* Is there more than one Up Ahead engine?
+* Is Planner derived from canonical Up Ahead data or separately reconstructed?
+* Are browser, static snapshot, and dataset API paths consistent?
+* Are fallback paths explicit and safe?
+
+### 2. Event/date correctness
+
+Audit:
+
+* future-date extraction
+* missing date behavior
+* stale event suppression
+* past-event filtering
+* recurring events
+* “today/tomorrow/weekend” handling
+* timezone assumptions
+* generated event date vs article publish date
+* date confidence
+* planner eligibility
+
+Identify where an article can look current but the event itself is expired.
+
+### 3. Intent and category detection
+
+Review the current rules for:
+
+```text
+movies
+events
+festivals
+shopping/offers
+airlines/travel
+civic alerts
+weather alerts
+local activities
+family/kids activities
+```
+
+Check whether detection is based on raw keyword hits or typed intent evidence.
+
+For each category, answer:
+
+* What qualifies an item?
+* What blocks an item?
+* What confidence is attached?
+* Can false positives enter?
+* Can true local/family-useful events be missed?
+
+### 4. Ranking and Planner logic
+
+Explain current ordering logic for:
+
+* Up Ahead cards/sections
+* timeline
+* weekly plan
+* Planner list
+* grouped dates
+* category filters
+* search filters
+
+Check whether the current logic optimizes for:
+
+```text
+event imminence
+date confidence
+location relevance
+planner usefulness
+source quality
+freshness
+not-past event date
+category diversity
+family relevance
+```
+
+Identify if ranking is merely publish-date or keyword order.
+
+### 5. Location relevance
+
+Audit whether Up Ahead/Planner are actually location-relevant for:
+
+```text
+Muscat / Oman
+Chennai / Tamil Nadu
+Trichy
+Colombo / Sri Lanka
+```
+
+Check whether the location profile is:
+
+* explicit
+* auditable
+* area-aware
+* source-aware
+* merely keyword-based
+* correctly reflected in UI
+
+Recommend how to expose:
+
+```text
+location match
+location confidence
+matched location evidence
+backfilled/global item label
+```
+
+### 6. Source quality and RSS health
+
+Audit source health for Up Ahead sources.
+
+Answer:
+
+* Which sources are configured?
+* Which are dead, empty, stale, blocked, or low quality?
+* Are zero-item feeds detected?
+* Are source failures visible in Data Health?
+* Are source-level diagnostics carried to the UI?
+* Can the user tell why Up Ahead or Planner is empty?
+
+Recommend section-wise/source-wise health indicators:
+
+```text
+green = healthy
+orange = thin / stale / partial source failure
+red = dead / no usable source / stale only
+gray = unknown / no diagnostics
+```
+
+### 7. Diagnostics and traceability
+
+For each Up Ahead/Planner item, can the system explain:
+
+```text
+why included
+why ranked here
+what category it belongs to
+what event date was used
+what source supplied it
+whether it came from API/static/live/fallback
+whether it is planner eligible
+whether it was backfilled
+what confidence values were used
+```
+
+Audit existing diagnostics and propose missing diagnostics.
+
+### 8. UI/UX technical review
+
+Audit:
+
+* empty states
+* stale states
+* loading states
+* source health display
+* “why this item” visibility
+* Planner usability
+* section/card labels
+* event date clarity
+* expired event risk
+* mobile/desktop consistency
+
+Do not focus on visual aesthetics only. Focus on technical correctness and user trust.
+
+### 9. Tests and certification
+
+Identify missing tests for:
+
+```text
+future event date extraction
+past-event suppression
+weather alert false positives
+offer false positives
+movie release/booking rules
+planner eligibility
+location relevance
+source health warnings
+Data Health diagnostics
+API fallback
+static-host no-network behavior
+empty source behavior
+```
+
+Recommend specific cert/static tests and what each should assert.
+
+## Output format
+
+Produce a detailed technical report with these sections:
+
+1. Executive verdict
+2. Can Up Ahead be considered optimized?
+3. Can Planner be considered optimized?
+4. Current architecture map
+5. Data-flow diagram
+6. Module-by-module audit
+7. Ranking/filtering audit
+8. Date/event correctness audit
+9. Location relevance audit
+10. Source/RSS health audit
+11. Diagnostics and UI traceability audit
+12. Defects and risks table
+13. Recommended Work Packs
+14. Acceptance criteria
+15. Do-not-touch boundaries
+16. Final recommended sequence
+
+## Severity classification
+
+Use:
+
+```text
+Critical = can show wrong/expired/misleading items or hide important local events
+High = source/fallback/ranking issue materially affects trust
+Medium = diagnostics, UI traceability, or maintainability gap
+Low = cleanup or naming issue
+```
+
+## Work Pack style
+
+For each proposed Work Pack, include:
+
+```text
+title
+mission
+allowed files
+forbidden files
+acceptance criteria
+validation commands
+risk level
+```
+
+Keep Work Packs narrow. Avoid one giant refactor.
+
+## Expected final answer
+
+End with a concise conclusion:
+
+```text
+Up Ahead: close / do not close / close with caveats
+Planner: close / do not close / close with caveats
+Next 3 actions in order
+```
+
+Use Version 1 for a fast audit. Use Version 2 when you want a full GitHub-grounded RCA plus implementation roadmap.
