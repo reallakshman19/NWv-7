@@ -81,7 +81,7 @@ describe('NewsSection area relevance story info', () => {
     await userEvent.click(screen.getByTitle('Story info'));
 
     expect(screen.getByText('Story')).toBeTruthy();
-    expect(screen.getByText('General update')).toBeTruthy();
+    expect(screen.getAllByText('General update').length).toBeGreaterThanOrEqual(2);
     expect(screen.queryByText('Area Relevance')).toBeNull();
   });
 
