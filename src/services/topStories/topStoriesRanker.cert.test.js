@@ -41,11 +41,12 @@ function trustedSingleSource(id, ageHours, extra = {}) {
 
 function establishedCompetitors() {
   return Array.from({ length: 5 }, (_, i) => story(`established-${i}`, 1, {
-    title: `Court verdict public safety review ${i}`,
+    title: `Court verdict announced in public case ${i}`,
     source: `Trusted Source ${i}`,
     sourceGroup: `trusted-source-${i}`,
     sourceCount: 4,
     clusteredItems: 4,
+    section: `established-section-${i}`,
   }));
 }
 
@@ -60,21 +61,41 @@ function topFeedRows(id, count = 3, extra = {}) {
 }
 
 describe('NW-RANK-001 Top Stories ranker', () => {
-  it('keeps top 10 in the 0-4h band when primary stories are available', () => {
-    const items = Array.from({ length: 14 }, (_, i) => story(`p${i}`, 1, { title: `Cyclone warning ${i}` }))
-      .concat([story('old', 7, { title: 'Fresh old conflict update' })]);
-    expect(rank(items).slice(0, 10).every(item => item._topStoryRank.slotBand === 'primary')).toBe(true);
+  it('keeps top 10 in the 0-4h band when diverse primary stories are available', () => {
+    const items = Array.from({ length: 14 }, (_, i) => story(`p${i}`, 1, {
+      title: `Cyclone warning ${i}`,
+      section: `primary-section-${i}`,
+    })).concat([story('old', 7, { title: 'Fresh old conflict update' })]);
+    const ranked = rank(items);
+    expect(ranked.slice(0, 10)).toHaveLength(10);
+    expect(ranked.slice(0, 10).every(item => item._topStoryRank.slotBand === 'primary')).toBe(true);
   });
 
-  it('keeps slots 11-25 in 0-8h before fallback when enough current stories exist', () => {
-    const primary = Array.from({ length: 10 }, (_, i) => story(`p${i}`, 1, { title: `Court verdict ${i}` }));
-    const secondary = Array.from({ length: 15 }, (_, i) => story(`s${i}`, 6, { title: `Flood alert ${i}` }));
-    expect(rank([...primary, ...secondary]).slice(10).every(item => item._topStoryRank.slotBand === 'secondary')).toBe(true);
+  it('keeps slots 11-25 in 0-8h before fallback when enough diverse current stories exist', () => {
+    const primary = Array.from({ length: 10 }, (_, i) => story(`p${i}`, 1, {
+      title: `Court verdict announced in case ${i}`,
+      section: `primary-${i}`,
+    }));
+    const secondary = Array.from({ length: 15 }, (_, i) => story(`s${i}`, 6, {
+      title: `Flood evacuation alert ${i}`,
+      section: `secondary-${i}`,
+    }));
+    const ranked = rank([...primary, ...secondary]);
+    expect(ranked).toHaveLength(25);
+    expect(ranked.slice(10).every(item => item._topStoryRank.slotBand === 'secondary')).toBe(true);
   });
 
-  it('uses 8-12h fallback only when fewer than 25 current stories exist', () => {
-    const current = Array.from({ length: 12 }, (_, i) => story(`c${i}`, 2, { title: `Public safety alert ${i}` }));
-    const fallback = Array.from({ length: 20 }, (_, i) => story(`f${i}`, 10, { title: `Government warning ${i}` }));
+  it('uses 8-12h fallback only when fewer than 25 diverse current stories exist', () => {
+    const current = Array.from({ length: 12 }, (_, i) => story(`c${i}`, 2, {
+      title: `Public safety alert ${i}`,
+      section: `current-${i}`,
+    }));
+    const fallback = Array.from({ length: 20 }, (_, i) => story(`f${i}`, 10, {
+      title: `Public government warning ${i}`,
+      section: `fallback-${i}`,
+      sourceCount: 2,
+      allSources: [`Fallback Source ${i}`, `Fallback Confirm ${i}`],
+    }));
     const ranked = rank([...current, ...fallback]);
     expect(ranked.some(item => item._topStoryRank.slotBand === 'fallback')).toBe(true);
     expect(ranked.findIndex(item => item._topStoryRank.slotBand === 'fallback')).toBeGreaterThanOrEqual(12);
@@ -100,8 +121,8 @@ describe('NW-RANK-001 Top Stories ranker', () => {
 
   it('boosts LIVE only with fresh update evidence or consensus', () => {
     const ranked = rank([
-      story('live-fresh', 5, { title: 'LIVE cyclone updates', updatedAt: NOW - hour }),
-      story('live-old', 5, { title: 'LIVE old blog' }),
+      story('live-fresh', 5, { title: 'LIVE cyclone warning updates', updatedAt: NOW - hour }),
+      story('live-old', 5, { title: 'LIVE cyclone warning old blog' }),
     ]);
     expect(ranked[0].id).toBe('live-fresh');
   });
@@ -159,25 +180,70 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(event.eventType).toBe(TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO);
   });
 
-  it('keeps unknown classification as a non-zero safe fallback', () => {
-    const ranked = rank([story('unknown', 1, { title: 'Community update' })]);
-    expect(ranked[0]._topStoryRank.publicInterestScore).toBeGreaterThan(0);
+  it('keeps unknown public interest low and rejects uncorroborated unknown stories', () => {
+    const candidate = story('unknown', 1, { title: 'Community update' });
+    const scored = score(candidate);
+    expect(scored._topStoryRank.publicInterestScore).toBeGreaterThan(0);
+    expect(scored._topStoryRank.publicInterestScore).toBeLessThanOrEqual(0.1);
+    expect(scored._topStoryRank.slotBand).toBe('rejected');
+    expect(scored._topStoryRank.admissionReason).toBe('unqualified_without_independent_evidence');
+    expect(rank([candidate])).toHaveLength(0);
+  });
+
+  it('gives one source zero consensus', () => {
+    const scored = score(story('single-source', 1, {
+      title: 'Court verdict announced in public case',
+      sourceCount: 1,
+      clusteredItems: 1,
+    }));
+    expect(scored._topStoryRank.sourceCount).toBe(1);
+    expect(scored._topStoryRank.consensusScore).toBe(0);
+    expect(scored._topStoryRank.independentEvidenceCount).toBe(0);
+  });
+
+  it('excludes the generic iPhone screenshot regression', () => {
+    const ranked = rank([story('iphone-preview', 4, {
+      title: "With two months left for the Apple iPhone 18 Pro drop, here's what makes it a more lucrative option",
+      source: 'Google News',
+      sourceGroup: 'google_news',
+      section: 'technology',
+    })]);
+    expect(ranked).toHaveLength(0);
+  });
+
+  it('excludes a single-source BBC human-interest top-feed row without corroboration', () => {
+    const bbcFeature = story('bbc-iron-lung', 6, {
+      title: 'Hours each day in an iron lung kept her breathing, her will to live kept her alive',
+      source: 'BBC',
+      sourceGroup: 'bbc',
+      section: 'world',
+      topFeedRank: 1,
+      topFeedSource: 'bbc-top-feed',
+    });
+    const ranked = rank([bbcFeature], { topFeedItems: [bbcFeature] });
+    expect(ranked).toHaveLength(0);
+    const scored = scoreTopStoryCandidate(bbcFeature, {
+      nowMs: NOW,
+      topFeedSignalMap: new Map(),
+    });
+    expect(scored._topStoryRank.eventQualified).toBe(false);
   });
 
   it('limits one source/section/geography dominance when enough alternatives exist', () => {
     const sections = ['india', 'business', 'sports', 'technology', 'science', 'health'];
-    const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Alert ${i}` }));
-    const alternatives = Array.from({ length: 6 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Alert ${i}` }));
+    const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
+    const alternatives = Array.from({ length: 6 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
     expect(ranked).toHaveLength(10);
     expect(ranked.filter(item => item.sourceGroup === 'same').length).toBeLessThanOrEqual(4);
   });
 
-  it('backfills remaining slots rather than under-filling when alternatives run out', () => {
-    const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Alert ${i}` }));
-    const alternatives = Array.from({ length: 5 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, title: `Alert ${i}` }));
+  it('under-fills rather than bypassing diversity limits when alternatives run out', () => {
+    const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
+    const alternatives = Array.from({ length: 5 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: `alternative-${i}`, title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
-    expect(ranked).toHaveLength(10);
+    expect(ranked).toHaveLength(9);
+    expect(ranked.filter(item => item.sourceGroup === 'same')).toHaveLength(4);
     expect(ranked.filter(item => item.sourceGroup !== 'same')).toHaveLength(5);
   });
 
@@ -269,13 +335,28 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(scored._topStoryRank.slotBand).toBe('expired');
   });
 
-  it('uses strong top-feed evidence as a bounded boost for equivalent hard news', () => {
+  it('uses strong top-feed corroboration as a bounded boost for equivalent hard news', () => {
     const ranked = rank([
       story('weak-feed', 1, { title: 'Court verdict announced in public case' }),
       story('strong-feed', 1, { title: 'Court verdict announced in public case update' }),
     ], { topFeedItems: topFeedRows('strong-feed', 4) });
     expect(ranked[0].id).toBe('strong-feed');
+    expect(ranked[0]._topStoryRank.topFeedCorroborationHits).toBeGreaterThan(0);
+  });
+
+  it('does not treat one top-feed row as independent corroboration', () => {
+    const direct = story('one-top-feed', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'BBC',
+      sourceGroup: 'bbc',
+      topFeedRank: 1,
+      topFeedSource: 'bbc',
+    });
+    const ranked = rank([direct], { topFeedItems: [direct] });
+    expect(ranked).toHaveLength(1);
     expect(ranked[0]._topStoryRank.topFeedHits).toBeGreaterThan(0);
+    expect(ranked[0]._topStoryRank.topFeedCorroborationHits).toBe(0);
+    expect(ranked[0]._topStoryRank.consensusScore).toBe(0);
   });
 
   it('does not let duplicate top-feed volume dominate by itself', () => {
