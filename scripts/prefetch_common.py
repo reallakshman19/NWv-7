@@ -138,15 +138,36 @@ def is_suppressed(item: dict, category: str = 'any') -> bool:
 
 
 # ── Story normalisation ───────────────────────────────────────────────────────
-def normalize_basic_story(raw: dict, source: str, source_group: str) -> dict:
-    published = raw.get('publishedAt') or raw.get('published') or now_ms()
+def normalize_basic_story(
+    raw: dict,
+    source: str,
+    source_group: str,
+    allow_fetch_time_fallback: bool = True,
+) -> dict:
+    published_raw = raw.get('publishedAt')
+    if published_raw in (None, ''):
+        published_raw = raw.get('published')
+
+    if published_raw in (None, ''):
+        published = now_ms() if allow_fetch_time_fallback else 0
+        published_source = raw.get('publishedAtSource') or (
+            'fetch_time_fallback' if allow_fetch_time_fallback else 'missing'
+        )
+        timestamp_confidence = raw.get('timestampConfidence') or 'low'
+    else:
+        published = int(published_raw)
+        published_source = raw.get('publishedAtSource') or 'feed_timestamp'
+        timestamp_confidence = raw.get('timestampConfidence') or 'high'
+
     item = {
         'title':       raw.get('title', '').strip(),
         'summary':     raw.get('summary', '').strip(),
         'source':      source,
         'sourceGroup': source_group,
         'url':         raw.get('url', '').strip(),
-        'publishedAt': int(published),
+        'publishedAt': published,
+        'publishedAtSource': published_source,
+        'timestampConfidence': timestamp_confidence,
         'category':    raw.get('category'),
         'region':      raw.get('region'),
         'language':    raw.get('language', 'en'),
