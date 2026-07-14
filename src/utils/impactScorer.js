@@ -1,18 +1,18 @@
-import { matchesEntertainmentGuard, severityHits, geoScaleScore, DEFAULT_RANKING_POLICY } from '../config/rankingPolicy.js';
+import { matchesEntertainmentGuard, geoScaleScore, DEFAULT_RANKING_POLICY } from '../config/rankingPolicy.js';
 
 /**
- * Calculates impact score based on:
- * 1. Geographic scale (global > national > regional > local) — driven by ranking_policy.json
- * 2. Population magnitude (millions > thousands > individuals)
- * 3. High-impact keywords with optional severity context gate (RC-1 fix)
+ * Calculates a bounded impact score from geographic scale and magnitude.
+ * Keyword matches are retained only as explainability evidence; a single word
+ * must never create a direct multiplicative ranking boost.
  */
 export function calculateImpactScore(title, description, settings) {
+    void settings;
     const text = `${title} ${description}`;
 
-    // 1. Scale Detection — uses policy geoScale lexicon (RC-4 fix)
+    // 1. Scale Detection — uses policy geoScale lexicon.
     const scaleScore = geoScaleScore(text);
 
-    // 2. Magnitude Detection (Population/Financial Impact)
+    // 2. Magnitude Detection (Population/Financial Impact).
     let magnitudeScore = 1.0;
     const textLow = text.toLowerCase();
 
@@ -24,44 +24,25 @@ export function calculateImpactScore(title, description, settings) {
         magnitudeScore = 1.1;
     }
 
-    // 3. High-Impact Keyword Detection — severity-gated to prevent franchise/entertainment false positives (RC-1 fix)
-    let keywordMultiplier = 1.0;
+    // 3. High-impact words are evidence only. Event qualification and Top
+    // Stories eligibility are handled by the contextual Top Stories ranker.
     const decisions = [];
     const guarded = matchesEntertainmentGuard(text);
 
     for (const entry of DEFAULT_RANKING_POLICY.highImpactKeywords) {
         const term = (entry.term || '').toLowerCase();
         if (!term) continue;
-        const re = new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        if (!re.test(text)) continue;
-        if (entry.requireSeverityContext) {
-            if (guarded) {
-                decisions.push(`high-impact '${term}' suppressed: entertainment guard`);
-                continue;
-            }
-            if (severityHits(text).length === 0) {
-                decisions.push(`high-impact '${term}' suppressed: no severity context`);
-                continue;
-            }
-        }
-        keywordMultiplier = settings?.rankingWeights?.impact?.highImpactBoost || 2.5;
-        decisions.push(`high-impact keyword '${term}' x${keywordMultiplier}`);
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!new RegExp(`\\b${escaped}\\b`, 'i').test(text)) continue;
+
+        decisions.push(
+            guarded
+                ? `keyword '${term}' suppressed: entertainment guard`
+                : `keyword evidence '${term}' (no direct multiplier)`
+        );
         break;
     }
 
-    // Also check legacy settings.highImpactKeywords for backwards compatibility
-    if (keywordMultiplier === 1.0 && settings && Array.isArray(settings.highImpactKeywords)) {
-        const hasMatch = settings.highImpactKeywords.some(keyword => {
-            if (!keyword) return false;
-            const re = new RegExp(`\\b${String(keyword).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-            return re.test(textLow);
-        });
-        if (hasMatch) {
-            keywordMultiplier = settings.rankingWeights?.impact?.highImpactBoost || 2.5;
-            decisions.push(`legacy high-impact keyword match x${keywordMultiplier}`);
-        }
-    }
-
-    calculateImpactScore._lastDecisions = decisions;
-    return scaleScore * magnitudeScore * keywordMultiplier;
+    calculateImpactScore._lastDecisions = [...new Set(decisions)];
+    return scaleScore * magnitudeScore;
 }
