@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 9
+            "itemCount": 8
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 9,
-        "parentClusters": 9,
-        "strongParents": 9,
+        "inputCandidateCount": 8,
+        "parentClusters": 8,
+        "strongParents": 8,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.409,
+      "qualityScore": 0.4175,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -877,116 +877,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:768c327fc1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "4677c47c5a40b33a",
-            "representativeTitle": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "4677c47c5a40b33a",
-              "84748a7f119052dd"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "india",
-              "live",
-              "updates",
-              "july"
-            ],
-            "topicKey": "india|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 3
               },
               "name": "eventCoherence",
@@ -1102,13 +992,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3089,
-        "eventImportanceScore": 0.6033,
+        "angleDiversityScore": 0.3163,
+        "eventImportanceScore": 0.605,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4722,
-        "sourceAuthorityScore": 0.5133,
-        "sourceDiversityScore": 0.5556,
-        "temporalEvolutionScore": 0.41
+        "noveltyDeltaScore": 0.475,
+        "sourceAuthorityScore": 0.53,
+        "sourceDiversityScore": 0.5812,
+        "temporalEvolutionScore": 0.415
       }
     },
     "localTravel": {
@@ -1168,36 +1058,27 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
+        "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-        "It was my decision to join TVK: M.R. Vijayabhaskar: futureValidity failed — expired display window",
-        "It was my decision to join TVK: M.R. Vijayabhaskar: alertUrgency failed — alert expired",
-        "SASTRA to offer courses in optometry: futureValidity failed — expired display window",
-        "SASTRA to offer courses in optometry: alertUrgency failed — alert expired",
-        "No water supply in parts of Tiruchi on July 15: futureValidity failed — expired display window",
-        "No water supply in parts of Tiruchi on July 15: alertUrgency failed — alert expired",
-        "Power shutdown in Tiruchi on July 14: futureValidity failed — expired display window",
-        "Power shutdown in Tiruchi on July 14: alertUrgency failed — alert expired",
-        "Over a year on, transplanted trees at Raman Thangal Lake in Sholinganallur stand dead: futureValidity failed — expired display window",
-        "Over a year on, transplanted trees at Raman Thangal Lake in Sholinganallur stand dead: alertUrgency failed — alert expired",
-        "Tamil Nadu drew lower quantity of rice than its share under Antyodaya Anna Yojana in five of last seven years: futureValidity failed — expired display window",
-        "Tamil Nadu drew lower quantity of rice than its share under Antyodaya Anna Yojana in five of last seven years: alertUrgency failed — alert expired",
-        "Restoration of colonial-era Victory Memorial Blind School enters final phase: futureValidity failed — expired display window",
-        "Restoration of colonial-era Victory Memorial Blind School enters final phase: alertUrgency failed — alert expired",
-        "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: futureValidity failed — expired display window",
-        "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: alertUrgency failed — alert expired",
-        "Apprenticeship placement camp to be held in Pudukottai: futureValidity failed — expired display window",
-        "Apprenticeship placement camp to be held in Pudukottai: alertUrgency failed — alert expired",
-        "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window"
+        "National Women Siddha Doctors’ Association submits demands to government: futureValidity failed — expired display window",
+        "National Women Siddha Doctors’ Association submits demands to government: alertUrgency failed — alert expired",
+        "Man from Theni murdered in drunken brawl in Srirangam: futureValidity failed — expired display window",
+        "Man from Theni murdered in drunken brawl in Srirangam: alertUrgency failed — alert expired",
+        "LCC puts forwards demands to State government: futureValidity failed — expired display window",
+        "LCC puts forwards demands to State government: alertUrgency failed — alert expired",
+        "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram: futureValidity failed — expired display window",
+        "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram: alertUrgency failed — alert expired",
+        "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match"
       ],
       "gateResults": [
         {
           "details": {
-            "itemCount": 29
+            "itemCount": 30
           },
           "name": "upAheadPool",
           "reason": "rankable Up Ahead pool",
@@ -1207,45 +1088,41 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 23,
-              "shopping": 5,
-              "travel_deal": 1
+              "alerts": 29,
+              "shopping": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.75,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
-        "alerts": 23,
+        "alerts": 29,
         "categoryCounts": {
-          "alerts": 23,
-          "shopping": 5,
-          "travel_deal": 1
+          "alerts": 29,
+          "shopping": 1
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 43,
+        "inputItemCount": 44,
         "locationCounts": {
-          "chennai": 24,
-          "online": 1,
-          "trichy": 4
+          "chennai": 22,
+          "trichy": 8
         },
         "locationsCovered": [
           "chennai",
-          "online",
           "trichy"
         ],
-        "offlineOffers": 5,
-        "onlineOffers": 1,
-        "plannerAdvisoryItems": 28,
-        "rankedItemCount": 29,
-        "suppressedItemCount": 14
+        "offlineOffers": 1,
+        "onlineOffers": 0,
+        "plannerAdvisoryItems": 30,
+        "rankedItemCount": 30,
+        "suppressedItemCount": 7
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8345,
+      "qualityScore": 0.8541,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1477,6 +1354,236 @@
           ],
           "score": 0.8485,
           "title": "Agriculture officers urge govt. to roll back farmer-officer connect scheme 2.0"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "7e26f43736cb1385"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784126171000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "6d5d126e625ab610",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784126171000,
+            "id": "6d5d126e625ab610",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784730971000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784126171000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784039771000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Ahead of opening of plaza, AAI makes minor modifications to ease boarding of cabs at Chennai airport",
+            "url": "https://www.thehindu.com/news/cities/chennai/ahead-of-opening-of-plaza-aai-makes-minor-modifications-to-ease-boarding-of-cabs-at-chennai-airport/article71217507.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Ahead of opening of plaza, AAI makes minor modifications to ease boarding of cabs at Chennai airport"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "86b1562ec6b5af1d"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784122425000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "5fd3dee17e879f45",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784122425000,
+            "id": "5fd3dee17e879f45",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784727225000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784122425000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784036025000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Bodies of three victims of Vietnam boat tragedy brought to Tiruchi",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/bodies-of-three-victims-of-vietnam-boat-tragedy-brought-to-tiruchi/article71221312.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Bodies of three victims of Vietnam boat tragedy brought to Tiruchi"
         },
         {
           "category": "alerts",
@@ -1828,6 +1935,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "33017293d8f81b81"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784124621000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "c11cbe15bfeccc1e",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784124621000,
+            "id": "c11cbe15bfeccc1e",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784729421000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784124621000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784038221000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Durai Vaiko urges Southern Railway to complete road overbridge works early",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/durai-vaiko-urges-southern-railway-to-complete-road-overbridge-works-early/article71221543.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Durai Vaiko urges Southern Railway to complete road overbridge works early"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "c08ab435f9d24644"
               },
               "name": "dedup",
@@ -1943,7 +2165,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "dac031c56c4bc34c"
+                "dedupKey": "c695437a0719df3e"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -1952,122 +2174,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784042282000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "a35e3ec9694454b0",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784042282000,
-            "id": "a35e3ec9694454b0",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784647082000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784042282000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783955882000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/farmers-allege-mismanagement-of-space-at-tncsc-rice-mill-at-thirunageswaram/article71217877.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "fa7635c31dd0085d"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784042531000
+                "displayUntil": 1784121857000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2113,7 +2220,7 @@
               "status": "PASS"
             }
           ],
-          "id": "dce1c01cd3aa222d",
+          "id": "886f68e09c052302",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -2123,13 +2230,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784042531000,
-            "id": "dce1c01cd3aa222d",
+            "expiryAt": 1784121857000,
+            "id": "886f68e09c052302",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784647331000,
+              "archiveUntil": 1784726657000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784042531000,
+              "displayUntil": 1784121857000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2140,7 +2247,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783956131000,
+            "publishedAt": 1784035457000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2153,10 +2260,10 @@
             },
             "source": "The Hindu Chennai",
             "sourceGroup": "the_hindu",
-            "summary": "",
+            "summary": "When the vendor demanded money from the accused for the food they had in his stall, the duo attacked him with a bottle and threatened him with a knife, demanding money",
             "suppressionReason": null,
-            "title": "LCC puts forwards demands to State government",
-            "url": "https://www.thehindu.com/news/cities/chennai/lcc-puts-forwards-demands-to-state-government/article71217395.ece"
+            "title": "History-sheeter among two arrested for assaulting pani puri vendor in Vepery",
+            "url": "https://www.thehindu.com/news/cities/chennai/history-sheeter-among-two-arrested-for-assaulting-pani-puri-vendor-in-vepery/article71220996.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -2166,14 +2273,14 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "LCC puts forwards demands to State government"
+          "title": "History-sheeter among two arrested for assaulting pani puri vendor in Vepery"
         },
         {
           "category": "alerts",
           "gates": [
             {
               "details": {
-                "dedupKey": "bf448f41b956288b"
+                "dedupKey": "0178903fea39015d"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -2182,7 +2289,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784042721000
+                "displayUntil": 1784125393000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2228,7 +2335,7 @@
               "status": "PASS"
             }
           ],
-          "id": "efea775be0b85983",
+          "id": "ed1a45c408bb3fa1",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -2238,13 +2345,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784042721000,
-            "id": "efea775be0b85983",
+            "expiryAt": 1784125393000,
+            "id": "ed1a45c408bb3fa1",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784647521000,
+              "archiveUntil": 1784730193000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784042721000,
+              "displayUntil": 1784125393000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2255,7 +2362,7 @@
             "localityScore": 0.9,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783956321000,
+            "publishedAt": 1784038993000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2270,8 +2377,8 @@
             "sourceGroup": "the_hindu",
             "summary": "",
             "suppressionReason": null,
-            "title": "Man from Theni murdered in drunken brawl in Srirangam",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/man-from-theni-murdered-in-drunken-brawl-in-srirangam/article71218015.ece"
+            "title": "IAGES signs LOI with Royal College of Surgeons of Edinburgh",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/iages-signs-loi-with-royal-college-of-surgeons-of-edinburgh/article71221733.ece"
           },
           "locationKey": "trichy",
           "rankingReasons": [
@@ -2281,7 +2388,122 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Man from Theni murdered in drunken brawl in Srirangam"
+          "title": "IAGES signs LOI with Royal College of Surgeons of Edinburgh"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "da5179e1ace6a8ef"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784120570000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "93f16ab521c7c853",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784120570000,
+            "id": "93f16ab521c7c853",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784725370000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784120570000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784034170000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "He had also threatened a doctor and hospital staff. The arrested was found to be a history-sheeter",
+            "suppressionReason": null,
+            "title": "Man held for vandalising private hospital in Broadway",
+            "url": "https://www.thehindu.com/news/cities/chennai/man-held-for-vandalising-private-hospital-in-broadway/article71221007.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Man held for vandalising private hospital in Broadway"
         },
         {
           "category": "alerts",
@@ -2403,7 +2625,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "632b905697351812"
+                "dedupKey": "4c37736682497e0c"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -2412,7 +2634,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784042919000
+                "displayUntil": 1784121367000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2458,7 +2680,7 @@
               "status": "PASS"
             }
           ],
-          "id": "c01ea036e38d0332",
+          "id": "f76d322954d984d7",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -2468,13 +2690,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784042919000,
-            "id": "c01ea036e38d0332",
+            "expiryAt": 1784121367000,
+            "id": "f76d322954d984d7",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784647719000,
+              "archiveUntil": 1784726167000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784042919000,
+              "displayUntil": 1784121367000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2485,7 +2707,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1783956519000,
+            "publishedAt": 1784034967000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -2498,10 +2720,10 @@
             },
             "source": "The Hindu Chennai",
             "sourceGroup": "the_hindu",
-            "summary": "The association submitted a representation to the State government highlighting issues concerning Siddha medicine",
+            "summary": "",
             "suppressionReason": null,
-            "title": "National Women Siddha Doctors’ Association submits demands to government",
-            "url": "https://www.thehindu.com/news/cities/chennai/national-women-siddha-doctors-association-submits-demands-to-government/article71218248.ece"
+            "title": "Nandini Azad receives ‘Bharat Samman -2026’ award",
+            "url": "https://www.thehindu.com/news/cities/chennai/nandini-azad-receives-bharat-samman-2026-award/article71220606.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -2511,7 +2733,122 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "National Women Siddha Doctors’ Association submits demands to government"
+          "title": "Nandini Azad receives ‘Bharat Samman -2026’ award"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "3c64a3bcce9c6bb1"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784124803000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "623908d3ca760c08",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784124803000,
+            "id": "623908d3ca760c08",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784729603000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784124803000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784038403000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "New healthcare facilities inaugurated in Pudukottai",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/new-healthcare-facilities-inaugurated-in-pudukottai/article71221217.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "New healthcare facilities inaugurated in Pudukottai"
         },
         {
           "category": "alerts",
@@ -2978,6 +3315,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "5b53e6c06c2c2418"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784125315000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "16e756d5d33e9333",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784125315000,
+            "id": "16e756d5d33e9333",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784730115000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784125315000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784038915000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Sewage discharge into Uyyakondan Canal near Kilakalkandarkottai troubles residents",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/sewage-discharge-into-uyyakondan-canal-near-kilakalkandarkottai-troubles-residents/article71221623.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Sewage discharge into Uyyakondan Canal near Kilakalkandarkottai troubles residents"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "d4bf41deadd95285"
               },
               "name": "dedup",
@@ -3438,6 +3890,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "9467868e50712441"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784122307000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "318ea910ede67ef6",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784122307000,
+            "id": "318ea910ede67ef6",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784727107000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784122307000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784035907000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Water level in Mettur dam stands at 75.45 feet",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/water-level-in-mettur-dam-stands-at-7545-feet/article71221249.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Water level in Mettur dam stands at 75.45 feet"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "fbe9315016122e29"
               },
               "name": "dedup",
@@ -3593,7 +4160,7 @@
             },
             {
               "details": {
-                "hoursLeft": 3.95
+                "hoursLeft": 3.33
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3662,6 +4229,121 @@
           ],
           "score": 0.8225,
           "title": "Vadapalani stop - Moovit"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "63a9b9dffc699510"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784123363000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "dceffe39d60866a3",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784123363000,
+            "id": "dceffe39d60866a3",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784728163000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784123363000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784036963000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "The police had apprehended one inmate at K.K. Nagar in Chennai on Monday, making the total arrests in the case seven. The search for the remaining five is under way",
+            "suppressionReason": null,
+            "title": "6 of 12 escapees from Chengalpattu government home held in Coimbatore",
+            "url": "https://www.thehindu.com/news/cities/chennai/6-of-12-escapees-from-chengalpattu-government-home-held-in-coimbatore/article71221499.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "6 of 12 escapees from Chengalpattu government home held in Coimbatore"
         },
         {
           "category": "alerts",
@@ -3892,710 +4574,21 @@
           ],
           "score": 0.7925,
           "title": "British Airways flight suffers bird hit just before landing in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "70fc07fd5a1e4157"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784118024000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "da46e27686843b66",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784118024000,
-            "id": "da46e27686843b66",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784722824000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784118024000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784031624000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Arasakumar was recently arrested by the Central Crime Branch for allegedly cheating private schools across Tamil Nadu of about ₹100 crore by promising them government approval",
-            "suppressionReason": null,
-            "title": "Goondas Act invoked against Arasakumar",
-            "url": "https://www.thehindu.com/news/cities/chennai/goondasact-invoked-against-arasakumar/article71221082.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.7925,
-          "title": "Goondas Act invoked against Arasakumar"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "2a4aba9bdfc0eb2d"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784049684000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 2.3
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "d67d2973059bf36c",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784049684000,
-            "id": "d67d2973059bf36c",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784654484000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784049684000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783876884000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPMWRabVk1MElyNFcwWVJvdGY1LXJJc3hZRFktN0hqVGtocmZ1UzBBRmg2WGQ0TEU5TG5mMG01TjYwelUyZzR6N2paOENCMzdjbnp2VkVNYUNadmROa3dDd1NkZWtRZ3lKLVVXaV91RVUyX09qcTJyRnN2a2l1eXFRNWt0dmtyTGItOEE?oc=5\" target=\"_blank\">Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Memeburn</font>",
-            "suppressionReason": null,
-            "title": "Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn",
-            "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPMWRabVk1MElyNFcwWVJvdGY1LXJJc3hZRFktN0hqVGtocmZ1UzBBRmg2WGQ0TEU5TG5mMG01TjYwelUyZzR6N2paOENCMzdjbnp2VkVNYUNadmROa3dDd1NkZWtRZ3lKLVVXaV91RVUyX09qcTJyRnN2a2l1eXFRNWt0dmtyTGItOEE?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "c980bf1bafcd9f08"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784074980000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 9.32
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "96323ea07e550daf",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784074980000,
-            "id": "96323ea07e550daf",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784679780000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784074980000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783902180000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNQ3NlWVo0SVhxZzZYQVlVcWl4cFhyMTJMYzBqOGx3cVhNOEktTlJxOEFmczFYVjN2eHp4UmF0cE1VenB0Tm5iV1otUEZTc0pod1hkbklncjkwUExyTzhXbkNfNjVCR0l0RnJOeEVGSnhzQ1hkanlrbHE5Y0djMHVlZ0dwLVM1MXI0bjNtbExLTGZMdmstNFZhY3BmTEYxNlcxR0g0S2llQTVlM0VCM2VQdms5U1pLYWRjTm9oWXYyV1ZjZTg?oc=5\" target=\"_blank\">Deal | Giant 83-inch LG C6 Tandem OLED TV enjoys $1600 discount, beating best Amazon sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Notebookcheck</font>",
-            "suppressionReason": null,
-            "title": "Deal | Giant 83-inch LG C6 Tandem OLED TV enjoys $1600 discount, beating best Amazon sale - Notebookcheck",
-            "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNQ3NlWVo0SVhxZzZYQVlVcWl4cFhyMTJMYzBqOGx3cVhNOEktTlJxOEFmczFYVjN2eHp4UmF0cE1VenB0Tm5iV1otUEZTc0pod1hkbklncjkwUExyTzhXbkNfNjVCR0l0RnJOeEVGSnhzQ1hkanlrbHE5Y0djMHVlZ0dwLVM1MXI0bjNtbExLTGZMdmstNFZhY3BmTEYxNlcxR0g0S2llQTVlM0VCM2VQdms5U1pLYWRjTm9oWXYyV1ZjZTg?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Deal | Giant 83-inch LG C6 Tandem OLED TV enjoys $1600 discount, beating best Amazon sale - Notebookcheck"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "8b9df1a63419d579"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784123357000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 22.76
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "93cc0482f685d1ef",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784123357000,
-            "id": "93cc0482f685d1ef",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784728157000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784123357000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1783950557000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMia0FVX3lxTE5sU2JncHBKRlA3Tk9zM3ZWb1pOOWFxWlNyZWxkZzBOSTFZblg0ckswbWhHRVVSMk42VjRjQ2phbzVrZTNmTnphek1OYnUySXdqWFZLN0pLMVkzbDU3Z2w2bkZjSVJyVDNmTEV3?oc=5\" target=\"_blank\">Missed the Last Apple Watch Sale? Series 11 Now $100 Off on Amazon</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MacRumors</font>",
-            "suppressionReason": null,
-            "title": "Missed the Last Apple Watch Sale? Series 11 Now $100 Off on Amazon - MacRumors",
-            "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE5sU2JncHBKRlA3Tk9zM3ZWb1pOOWFxWlNyZWxkZzBOSTFZblg0ckswbWhHRVVSMk42VjRjQ2phbzVrZTNmTnphek1OYnUySXdqWFZLN0pLMVkzbDU3Z2w2bkZjSVJyVDNmTEV3?oc=5"
-          },
-          "locationKey": "online",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Missed the Last Apple Watch Sale? Series 11 Now $100 Off on Amazon - MacRumors"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "002e83d0416a540e"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784198952000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 43.76
-              },
-              "name": "offerValidity",
-              "reason": "offer active within three days",
-              "score": 0.82,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "816492150b16e2db",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784198952000,
-            "id": "816492150b16e2db",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784803752000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784198952000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1784026152000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.82
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi-gFBVV95cUxPQ18tb0xkVy1nSnhQVmdGbmRYbHd4WVlLRGM4ZjFhNzZweDJPN1UyNW9oeUtmY2ROd2huRHdoakltQ1pnc0hmOU1Veklac3RRVlN0eGllUjFaOHJodXFyeXkyay1rVVR0blpDT3hOSFF1UXBOaklwakdjWi0zbjZIVzdSVEdYTXFTX1pSRUx0R2JwSXpBTzl3VlppZDVJYms5TS10ODlZem1abXViWVA3NmdoRHd1NzNlU1QwZDZLWmJpS1BaWmdEemFKeVFOVVZCMk16UWZjSVlJaXJDNXBBdW5faUZyRDJNOHV6aGx5TkZkRzJQekVUXzNn0gH_AUFVX3lxTE5yNlllVE1UMG5JYTRmVHp1ZTg4d3E1OHRXTmg4bVhBWXNCakY1c2lHaDNvSGJRenhseURnQ1lnWFhtV2lmcFc5ekdoV0tScWpRN3poVlpHZmw3ODNkTjJMWllKOFMzR3dLNjBiVDRZOXFYU2VFNkRYa0d2TFhMTkw0MlpKTWprdmUwdlI4QXh4X1k1d0EwY2Z3YWZQTlJQZVhfeTMxNzdkekVjdjhSNDdhT0YzTW1yWHg4TndRU3hmSFRHSk84cTl4U2RUc05qODROZl9VbExWZngzZ2VJV2RLVlYta0xWZ2xjRzFIWUpoajJydjNoZWxKeDUwNUlUdw?oc=5\" target=\"_blank\">‘Unheard of’: Up to 72% off in Amazon sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">News.com.au</font>",
-            "suppressionReason": null,
-            "title": "‘Unheard of’: Up to 72% off in Amazon sale - News.com.au",
-            "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxPQ18tb0xkVy1nSnhQVmdGbmRYbHd4WVlLRGM4ZjFhNzZweDJPN1UyNW9oeUtmY2ROd2huRHdoakltQ1pnc0hmOU1Veklac3RRVlN0eGllUjFaOHJodXFyeXkyay1rVVR0blpDT3hOSFF1UXBOaklwakdjWi0zbjZIVzdSVEdYTXFTX1pSRUx0R2JwSXpBTzl3VlppZDVJYms5TS10ODlZem1abXViWVA3NmdoRHd1NzNlU1QwZDZLWmJpS1BaWmdEemFKeVFOVVZCMk16UWZjSVlJaXJDNXBBdW5faUZyRDJNOHV6aGx5TkZkRzJQekVUXzNn0gH_AUFVX3lxTE5yNlllVE1UMG5JYTRmVHp1ZTg4d3E1OHRXTmg4bVhBWXNCakY1c2lHaDNvSGJRenhseURnQ1lnWFhtV2lmcFc5ekdoV0tScWpRN3poVlpHZmw3ODNkTjJMWllKOFMzR3dLNjBiVDRZOXFYU2VFNkRYa0d2TFhMTkw0MlpKTWprdmUwdlI4QXh4X1k1d0EwY2Z3YWZQTlJQZVhfeTMxNzdkekVjdjhSNDdhT0YzTW1yWHg4TndRU3hmSFRHSk84cTl4U2RUc05qODROZl9VbExWZngzZ2VJV2RLVlYta0xWZ2xjRzFIWUpoajJydjNoZWxKeDUwNUlUdw?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.726,
-          "title": "‘Unheard of’: Up to 72% off in Amazon sale - News.com.au"
-        },
-        {
-          "category": "travel_deal",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "f8c74ed5da6dd887"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784169983000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 35.71
-              },
-              "name": "offerValidity",
-              "reason": "offer active within three days",
-              "score": 0.82,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "eff9b9adf4573cae",
-          "item": {
-            "actionabilityScore": 0.5,
-            "category": "airlines",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784169983000,
-            "id": "eff9b9adf4573cae",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784774783000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784169983000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": false,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "travel_deal",
-            "plannerEligible": false,
-            "publishedAt": 1783997183000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.74,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 0.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.82
-            },
-            "source": "Google News Airlines",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxNQTJrLW83NFRFbTVDQXhRdGZ3U1kyaGZ1Rnoycm5pdEZSYy1QNXhiX3A5UTNuM3F6d3ZHOVVxS0p5bGx0VHR5ZVV4VmZoYTNvc1RSelM5bkxDTVh2Tm9VcktQZVMwUWZZY3kzUEFVX2ozdlBZdmFCYllsbUtmd3Jha1ZiWjBscHZiQm4zQW9WX0FuTU9lU093b3Z2RQ?oc=5\" target=\"_blank\">EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Nomad Lawyer</font>",
-            "suppressionReason": null,
-            "title": "EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000 - Nomad Lawyer",
-            "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNQTJrLW83NFRFbTVDQXhRdGZ3U1kyaGZ1Rnoycm5pdEZSYy1QNXhiX3A5UTNuM3F6d3ZHOVVxS0p5bGx0VHR5ZVV4VmZoYTNvc1RSelM5bkxDTVh2Tm9VcktQZVMwUWZZY3kzUEFVX2ozdlBZdmFCYllsbUtmd3Jha1ZiWjBscHZiQm4zQW9WX0FuTU9lU093b3Z2RQ?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "travel_deal",
-            "valid undated item with active display window",
-            "location matches configured profile"
-          ],
-          "score": 0.685,
-          "title": "EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000 - Nomad Lawyer"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.9741,
-        "categoryPriorityScore": 0.9359,
+        "actionabilityScore": 1.0,
+        "categoryPriorityScore": 0.9893,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9228,
-        "plannerFitScore": 0.9655,
+        "locationScore": 0.972,
+        "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.8131
+        "urgencyOrExpiryScore": 0.7873
       }
     }
   },
-  "generatedAt": 1784041412868,
+  "generatedAt": 1784043624536,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4614,7 +4607,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4627,9 +4620,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.409,
+      "insight": 0.4175,
       "localTravel": 0.0,
-      "upAhead": 0.8345
+      "upAhead": 0.8541
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4637,7 +4630,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3109,
+    "overallScore": 0.3179,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4646,26 +4639,17 @@
       "upAhead": "upAhead-v2-lifecycle-location-category"
     },
     "topFindings": [
+      "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "It was my decision to join TVK: M.R. Vijayabhaskar: futureValidity failed — expired display window",
-      "It was my decision to join TVK: M.R. Vijayabhaskar: alertUrgency failed — alert expired",
-      "SASTRA to offer courses in optometry: futureValidity failed — expired display window",
-      "SASTRA to offer courses in optometry: alertUrgency failed — alert expired",
-      "No water supply in parts of Tiruchi on July 15: futureValidity failed — expired display window",
-      "No water supply in parts of Tiruchi on July 15: alertUrgency failed — alert expired",
-      "Power shutdown in Tiruchi on July 14: futureValidity failed — expired display window",
-      "Power shutdown in Tiruchi on July 14: alertUrgency failed — alert expired",
-      "Over a year on, transplanted trees at Raman Thangal Lake in Sholinganallur stand dead: futureValidity failed — expired display window",
-      "Over a year on, transplanted trees at Raman Thangal Lake in Sholinganallur stand dead: alertUrgency failed — alert expired",
-      "Tamil Nadu drew lower quantity of rice than its share under Antyodaya Anna Yojana in five of last seven years: futureValidity failed — expired display window",
-      "Tamil Nadu drew lower quantity of rice than its share under Antyodaya Anna Yojana in five of last seven years: alertUrgency failed — alert expired",
-      "Restoration of colonial-era Victory Memorial Blind School enters final phase: futureValidity failed — expired display window",
-      "Restoration of colonial-era Victory Memorial Blind School enters final phase: alertUrgency failed — alert expired",
-      "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: futureValidity failed — expired display window",
-      "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: alertUrgency failed — alert expired",
-      "Apprenticeship placement camp to be held in Pudukottai: futureValidity failed — expired display window",
-      "Apprenticeship placement camp to be held in Pudukottai: alertUrgency failed — alert expired",
-      "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window"
+      "National Women Siddha Doctors’ Association submits demands to government: futureValidity failed — expired display window",
+      "National Women Siddha Doctors’ Association submits demands to government: alertUrgency failed — alert expired",
+      "Man from Theni murdered in drunken brawl in Srirangam: futureValidity failed — expired display window",
+      "Man from Theni murdered in drunken brawl in Srirangam: alertUrgency failed — alert expired",
+      "LCC puts forwards demands to State government: futureValidity failed — expired display window",
+      "LCC puts forwards demands to State government: alertUrgency failed — alert expired",
+      "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram: futureValidity failed — expired display window",
+      "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram: alertUrgency failed — alert expired",
+      "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match"
     ]
   }
 }

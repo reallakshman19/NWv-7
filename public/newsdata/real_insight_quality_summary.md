@@ -4,15 +4,15 @@
 - Reason: -
 - Grade: `C`
 - Parents: `10`
-- Average angles: `1.8`
+- Average angles: `1.7`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
-- Base report share: `0.3`
-- Multi-angle parents: `8`
-- Weak parents: `2`
-- Story count: `754`
+- Base report share: `0.25`
+- Multi-angle parents: `7`
+- Weak parents: `3`
+- Story count: `743`
 - Source groups: `9`
-- Content hash: `be41e50693ed0611`
+- Content hash: `faf1e23dc7fd411f`
 
 ## Top parents
 
@@ -23,11 +23,11 @@
 | 3 | 12 districts in A.P. get new DMHOs | 2 | base_report, fact_update | NO | 0.6807467197849983 |
 | 4 | Senator Lindsey Graham died of aortic tear, examiner says | 2 | base_report, official_response | NO | 0.6792467197849983 |
 | 5 | It’s not over: fresh attacks and a crumbling ceasefire | 2 | base_report, official_response | NO | 0.6687467197849983 |
-| 6 | Vietnam boat capsize survivors recount harrowing moments - The Hindu | 2 | base_report, background_context | NO | 0.6274800531183318 |
-| 7 | Bodies of 15 Indian tourists killed in Vietnam boat accident flown home | 2 | fact_update, regional_followup | NO | 0.6252128795983323 |
-| 8 | India beat England in historic first women's test at Lord's - Reuters | 2 | regional_followup, base_report | NO | 0.5323566135483351 |
-| 9 | Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth | 2 | fact_update | YES | 0.7566133864516651 |
-| 10 | Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu | 2 | official_response | YES | 0.6613967197849984 |
+| 6 | Bodies of 15 Indian tourists killed in Vietnam boat accident flown home | 2 | fact_update, regional_followup | NO | 0.6252128795983323 |
+| 7 | India beat England in historic first women's test at Lord's - Reuters | 2 | regional_followup, base_report | NO | 0.5323566135483351 |
+| 8 | Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth | 2 | fact_update | YES | 0.7566133864516651 |
+| 9 | Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu | 2 | official_response | YES | 0.6613967197849984 |
+| 10 | MEA summons Iranian deputy envoy, after Indian national killed in attack on ship | 2 | fact_update | YES | 0.5765933333333333 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -36,11 +36,11 @@
 - Grade: `C`
 - Score: `100`
 - Parents: `10`
-- Average angles: `1.8`
+- Average angles: `1.7`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
-- Base report share: `0.3`
-- Multi-angle parents: `8`
+- Base report share: `0.25`
+- Multi-angle parents: `7`
 - Top parent angles: `2`
 - Top parent children: `2`
 
@@ -52,11 +52,11 @@
 
 - Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
-- Average visible angle count: `1.8` / `>= 1.4`
+- Average visible angle count: `1.7` / `>= 1.4`
 - Average temporal tier count: `1.8` / `>= 1.8`
 - Average evolution role count: `1.8` / `>= 1.6`
-- Base report share: `0.3` / `<= 0.55`
-- Multi-angle parent count: `8` / `>= 1`
+- Base report share: `0.25` / `<= 0.55`
+- Multi-angle parent count: `7` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `2` / `>= 2`
-- Weak parent ratio: `0.2` / `<= 0.5`
+- Weak parent ratio: `0.3` / `<= 0.5`
