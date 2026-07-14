@@ -33,6 +33,7 @@ export const TOP_STORIES_GOLDEN_REVIEW_SNAPSHOT = Object.freeze({
   rejectedExpiredIds: Object.freeze([
     'god-of-war-promo',
     'low-confidence-story',
+    'same-source-top-feed-spam',
     'stale-expired-story',
   ]),
   duplicateClusterRepresentatives: Object.freeze([
