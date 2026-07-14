@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1784052046532,
+  "generatedAt": 1784057865680,
   "windowDays": 7,
   "latest": {
-    "insightGrade": "D",
+    "insightGrade": "C",
     "insightScore": 0,
-    "totalStories": 779,
-    "usableStories36h": 771,
-    "sourceGroups": 9,
+    "totalStories": 809,
+    "usableStories36h": 780,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3178,
+    "rankingOverallScore": 0.3056,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3178,
+    "overallScore": 0.3056,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1784052045728,
+    "generatedAt": 1784057864737,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.4136,
+      "insight": 0.3861,
       "localTravel": 0,
-      "upAhead": 0.8576
+      "upAhead": 0.8362
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.4136,
+        "score": 0.3861,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8576,
+        "score": 0.8362,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,11 +74,11 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 8,
-        "strongParents": 8,
+        "parentClusters": 12,
+        "strongParents": 12,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 3,
         "duplicateChildrenSuppressed": 0
       },
       "localTravel": {
@@ -91,15 +91,16 @@
         "locationsCovered": []
       },
       "upAhead": {
-        "rankedItemCount": 30,
-        "suppressedItemCount": 4,
+        "rankedItemCount": 29,
+        "suppressedItemCount": 14,
         "events": 0,
-        "onlineOffers": 0,
-        "offlineOffers": 2,
-        "alerts": 28,
+        "onlineOffers": 1,
+        "offlineOffers": 3,
+        "alerts": 25,
         "festivals": 0,
         "locationsCovered": [
           "chennai",
+          "online",
           "trichy"
         ]
       }
@@ -107,17 +108,19 @@
     "topFindings": [
       "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
-      "Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn: futureValidity failed — expired display window",
-      "Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn: offerValidity failed — offer expired",
-      "upAhead: Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
-      "upAhead: Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "upAhead: This is exactly what you should be buying in the final hours of the Prime Day sale - Nine.com.au: location failed — offline/local item lacks configured location match",
-      "upAhead: Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn: futureValidity failed — expired display window",
-      "upAhead: Amazon’s $25B AI debt bet meets Microsoft’s model shift in 2026 - Memeburn: offerValidity failed — offer expired"
+      "No evidence of highly virulent COVID-19 variant in T.N., says Health department: futureValidity failed — expired display window",
+      "No evidence of highly virulent COVID-19 variant in T.N., says Health department: alertUrgency failed — alert expired",
+      "12 inmates escape from Govt. Place of Safety, one arrested: futureValidity failed — expired display window",
+      "12 inmates escape from Govt. Place of Safety, one arrested: alertUrgency failed — alert expired",
+      "Rathothsavam of new golden chariot of Sri Ekambaranathar temple held: futureValidity failed — expired display window",
+      "Rathothsavam of new golden chariot of Sri Ekambaranathar temple held: alertUrgency failed — alert expired",
+      "CHILDS Trust hospital opens cystic fibrosis clinic for enhanced care: futureValidity failed — expired display window",
+      "CHILDS Trust hospital opens cystic fibrosis clinic for enhanced care: alertUrgency failed — alert expired",
+      "Customs seizes hydroponic ganja at Chennai airport: futureValidity failed — expired display window",
+      "Customs seizes hydroponic ganja at Chennai airport: alertUrgency failed — alert expired"
     ],
     "actionRequired": [
-      "4 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -126,7 +129,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted",
+      "3 base-report-heavy Insight parent(s) demoted",
       "buzz: no local Buzz item in ranked set",
       "buzz: no travel Buzz item in ranked set"
     ]
@@ -254,16 +257,16 @@
     },
     {
       "date": "2026-07-14",
-      "generatedAt": 1784052046532,
-      "insightGrade": "D",
+      "generatedAt": 1784057865680,
+      "insightGrade": "C",
       "insightScore": 0,
-      "totalStories": 779,
-      "usableStories36h": 771,
-      "sourceGroups": 9,
+      "totalStories": 809,
+      "usableStories36h": 780,
+      "sourceGroups": 10,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3178,
+      "rankingOverallScore": 0.3056,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,

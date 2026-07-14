@@ -2,7 +2,7 @@
 
 - Status: **WARN**
 - Schema: `2`
-- Content hash: `2c2ff5bba44f`
+- Content hash: `2589d34578fc`
 - Sections: `10`
 - Stories: `290`
 - Source groups: `10`
@@ -12,7 +12,7 @@
 
 | Section | Stories | Sources | Thin |
 |---|---:|---:|---|
-| topStories | 30 | 3 | False |
+| topStories | 30 | 2 | False |
 | india | 30 | 3 | False |
 | tn | 30 | 2 | False |
 | trichy | 30 | 2 | False |
