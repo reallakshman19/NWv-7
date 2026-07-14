@@ -16,11 +16,11 @@ function normalizeKey(value) {
 
 export function normalizeRuntimeSectionId(sectionId) {
   const normalized = normalizeKey(sectionId);
-  if (normalized === 'topstories' || normalized === 'frontpage') return 'topStories';
-  if (normalized === 'chennai' || normalized === 'tn' || normalized === 'tamilnadu') return 'chennai';
-  if (normalized === 'local' || normalized === 'muscat') return 'local';
-  if (normalized === 'india') return 'india';
-  if (normalized === 'world') return 'world';
+  if (['topstories', 'frontpage'].includes(normalized)) return 'topStories';
+  if (['chennai', 'chennainenews', 'tn', 'tamilnadu', 'tamilnadunews'].includes(normalized)) return 'chennai';
+  if (['local', 'localnews', 'muscat', 'muscatnews'].includes(normalized)) return 'local';
+  if (['india', 'indianews'].includes(normalized)) return 'india';
+  if (['world', 'worldnews'].includes(normalized)) return 'world';
   return normalized || 'section';
 }
 
