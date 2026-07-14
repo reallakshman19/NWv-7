@@ -45,7 +45,7 @@ function getBreakingLiveScore(signals, policy) {
   return 0;
 }
 
-function getSlotBand(signals, policy) {
+function getAgeBand(signals, policy) {
   if (signals.timestampConfidence === 'low') return 'rejected';
   if (signals.ageHours <= policy.primaryWindowHours) return 'primary';
   if (signals.ageHours <= policy.secondaryWindowHours) return 'secondary';
@@ -53,13 +53,35 @@ function getSlotBand(signals, policy) {
   return 'expired';
 }
 
-function isColdStartCritical(signals, eventType, publicInterestScore) {
+function getMaxWeightedScore(policy) {
+  return Object.values(policy.weights || {}).reduce((sum, value) => sum + Number(value || 0), 0) || 1;
+}
+
+function getNormalizedScore(score, policy) {
+  return Math.max(0, Math.min(1, Number(score || 0) / getMaxWeightedScore(policy)));
+}
+
+function hasFallbackEvidence(signals) {
+  if (!signals.isAggregatorSource) return true;
+  return signals.sourceCount >= 2 || signals.topFeedHits >= 1;
+}
+
+function getSlotBand(signals, policy, normalizedScore) {
+  const band = getAgeBand(signals, policy);
+  if (band === 'rejected' || band === 'expired') return band;
+  if (normalizedScore < Number(policy.thresholds?.[band] || 0)) return 'rejected';
+  if (band === 'fallback' && !hasFallbackEvidence(signals)) return 'rejected';
+  return band;
+}
+
+function isColdStartCritical(signals, event, publicInterestScore) {
   return signals.ageMinutes <= 15 &&
     signals.timestampConfidence === 'high' &&
     signals.sourceQualityScore >= 0.75 &&
     publicInterestScore >= 0.9 &&
-    COLD_START_CRITICAL_EVENTS.has(eventType) &&
-    eventType !== TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO;
+    event.qualified !== false &&
+    COLD_START_CRITICAL_EVENTS.has(event.eventType) &&
+    event.eventType !== TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO;
 }
 
 function getPriorityBucket({ coldStartCritical }) {
@@ -124,24 +146,29 @@ export function scoreTopStoryCandidate(story, context = {}) {
   const publicInterestScore = getPublicInterestScore(event.eventType);
   const breakingLiveScore = getBreakingLiveScore(signals, policy);
   const penalties = getPenalty(signals, event.eventType, policy);
-  const coldStartCritical = isColdStartCritical(signals, event.eventType, publicInterestScore);
-  const priorityBucket = getPriorityBucket({ coldStartCritical });
-  const score = (signals.freshnessScore * policy.weights.freshness) +
+  const rawScore = (signals.freshnessScore * policy.weights.freshness) +
     (publicInterestScore * policy.weights.publicInterest) +
     (signals.consensusScore * policy.weights.consensus) +
     (breakingLiveScore * policy.weights.breakingLive) +
     (signals.sourceQualityScore * policy.weights.sourceQuality) +
     (signals.locationRelevanceScore * policy.weights.locationRelevance) - penalties;
+  const normalizedScore = getNormalizedScore(rawScore, policy);
+  const slotBand = getSlotBand(signals, policy, normalizedScore);
+  const coldStartCritical = isColdStartCritical(signals, event, publicInterestScore);
+  const priorityBucket = getPriorityBucket({ coldStartCritical });
 
   return {
     ...story,
     _topStoryRank: {
-      score,
+      score: rawScore,
+      normalizedScore,
       priorityBucket,
       priorityBucketLabel: getPriorityBucketLabel(priorityBucket),
       coldStartCritical,
-      slotBand: getSlotBand(signals, policy),
+      slotBand,
       eventType: event.eventType,
+      eventQualified: event.qualified !== false,
+      eventEvidence: event.evidence || [],
       freshnessScore: signals.freshnessScore,
       publicInterestScore,
       consensusScore: signals.consensusScore,
@@ -152,6 +179,7 @@ export function scoreTopStoryCandidate(story, context = {}) {
       ageMinutes: signals.ageMinutes,
       sourceQualityScore: signals.sourceQualityScore,
       sourceCount: signals.sourceCount,
+      isAggregatorSource: signals.isAggregatorSource,
       topFeedHits: signals.topFeedHits || 0,
       clusterKey: signals.clusterKey,
     },
@@ -192,8 +220,10 @@ export function explainTopStoryRank(story = {}) {
   const r = story._topStoryRank || {};
   return [
     `event=${r.eventType || 'unknown'}`,
+    `qualified=${r.eventQualified !== false}`,
     `band=${r.slotBand || 'unknown'}`,
     `priority=${r.priorityBucketLabel || 'standard'}`,
+    `score=${Number(r.normalizedScore || 0).toFixed(2)}`,
     `fresh=${Number(r.freshnessScore || 0).toFixed(2)}`,
     `consensus=${Number(r.consensusScore || 0).toFixed(2)}`,
     `penalty=${Number(r.penalties || 0).toFixed(1)}`,
