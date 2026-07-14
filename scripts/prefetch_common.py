@@ -145,10 +145,10 @@ def normalize_basic_story(
     allow_fetch_time_fallback: bool = True,
 ) -> dict:
     published_raw = raw.get('publishedAt')
-    if published_raw in (None, ''):
+    if published_raw in (None, '', 0, '0'):
         published_raw = raw.get('published')
 
-    if published_raw in (None, ''):
+    if published_raw in (None, '', 0, '0'):
         published = now_ms() if allow_fetch_time_fallback else 0
         published_source = raw.get('publishedAtSource') or (
             'fetch_time_fallback' if allow_fetch_time_fallback else 'missing'
