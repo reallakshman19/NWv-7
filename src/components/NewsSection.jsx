@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { addReadArticle, getSettings } from '../utils/storage';
 import { useNews } from '../context/NewsContext';
 import ProgressBar from './ProgressBar';
@@ -8,6 +8,7 @@ import { buildStoryInfoText, getStoryUrl, shortenSourceLabel } from '../utils/st
 import { sanitizeHtmlText } from '../utils/htmlText.js';
 import { getRankingPolicy } from '../config/rankingPolicy.js';
 import { computeTrending } from '../utils/trendingUtils.js';
+import { resolveSectionHealthSummary } from '../services/runtimeSectionHealthFallback.js';
 
 const AREA_RELEVANCE_LABEL_GUIDANCE = {
     'exact-area': 'strong local/area evidence',
@@ -123,6 +124,11 @@ function NewsSection({
     const [infoText, setInfoText] = useState('');
     const [showHealthPopover, setShowHealthPopover] = useState(false);
     const { auditResults } = useNews();
+    const effectiveHealthSummary = useMemo(() => resolveSectionHealthSummary({
+        healthSummary,
+        sectionId: id,
+        stories: news,
+    }), [healthSummary, id, news]);
 
     const settings = getSettings();
     const rankingPolicy = getRankingPolicy(settings);
@@ -130,7 +136,7 @@ function NewsSection({
     const displayCount = expanded ? news.length : Math.min(maxDisplay, news.length);
     const displayNews = news.slice(0, displayCount);
     const hasMore = news.length > maxDisplay;
-    const healthStatus = healthSummary?.status || 'unknown';
+    const healthStatus = effectiveHealthSummary?.status || 'unknown';
     const isTopStories = title === 'Top Stories';
 
     const getTimeAgo = (timestamp) => {
@@ -338,7 +344,7 @@ function NewsSection({
                 </div>
 
                 <div className="news-title-right">
-                    <SectionHealthBadge summary={healthSummary} onClick={handleHealthClick} />
+                    <SectionHealthBadge summary={effectiveHealthSummary} onClick={handleHealthClick} />
 
                     {news.length > 0 && (
                         <span className="news-count">({news.length})</span>
@@ -353,7 +359,7 @@ function NewsSection({
 
             {showHealthPopover && (
                 <SectionHealthPopover
-                    summary={healthSummary}
+                    summary={effectiveHealthSummary}
                     onClose={() => setShowHealthPopover(false)}
                 />
             )}
