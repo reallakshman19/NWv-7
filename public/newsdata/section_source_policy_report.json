@@ -1,5 +1,5 @@
 {
-  "generatedAt": 1783986712941,
+  "generatedAt": 1784003244397,
   "policyVersion": "section-source-policy-v1",
   "reportVersion": "section-source-policy-report-v1",
   "schemaVersion": 1,
@@ -16,32 +16,32 @@
       ],
       "topSources": [
         {
-          "count": 14,
-          "sourceGroup": "business_line"
-        },
-        {
-          "count": 8,
+          "count": 20,
           "sourceGroup": "economic_times"
         },
         {
           "count": 8,
+          "sourceGroup": "business_line"
+        },
+        {
+          "count": 2,
           "sourceGroup": "google_news"
         }
       ]
     },
     "entertainment": {
       "sourceGroupCount": 1,
-      "storyCount": 17,
+      "storyCount": 16,
       "thin": true,
       "topCategories": [
         {
           "category": "entertainment",
-          "count": 17
+          "count": 16
         }
       ],
       "topSources": [
         {
-          "count": 17,
+          "count": 16,
           "sourceGroup": "google_news"
         }
       ]
@@ -58,16 +58,16 @@
       ],
       "topSources": [
         {
-          "count": 18,
+          "count": 14,
           "sourceGroup": "the_hindu"
         },
         {
           "count": 10,
-          "sourceGroup": "times_of_india"
+          "sourceGroup": "ndtv"
         },
         {
-          "count": 2,
-          "sourceGroup": "ndtv"
+          "count": 6,
+          "sourceGroup": "times_of_india"
         }
       ]
     },
@@ -108,12 +108,12 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 11,
-          "sourceGroup": "bbc"
+          "count": 10,
+          "sourceGroup": "google_news"
         },
         {
-          "count": 5,
-          "sourceGroup": "google_news"
+          "count": 6,
+          "sourceGroup": "bbc"
         }
       ]
     },
@@ -129,12 +129,12 @@
       ],
       "topSources": [
         {
-          "count": 15,
-          "sourceGroup": "google_news"
+          "count": 14,
+          "sourceGroup": "gadgets360"
         },
         {
-          "count": 12,
-          "sourceGroup": "gadgets360"
+          "count": 13,
+          "sourceGroup": "google_news"
         },
         {
           "count": 3,
@@ -154,17 +154,17 @@
       ],
       "topSources": [
         {
-          "count": 15,
+          "count": 17,
           "sourceGroup": "google_news"
         },
         {
-          "count": 15,
+          "count": 13,
           "sourceGroup": "the_hindu"
         }
       ]
     },
     "topStories": {
-      "sourceGroupCount": 3,
+      "sourceGroupCount": 2,
       "storyCount": 30,
       "thin": false,
       "topCategories": [
@@ -175,36 +175,32 @@
       ],
       "topSources": [
         {
-          "count": 20,
-          "sourceGroup": "the_hindu"
-        },
-        {
-          "count": 9,
-          "sourceGroup": "ndtv"
-        },
-        {
-          "count": 1,
+          "count": 18,
           "sourceGroup": "economic_times"
+        },
+        {
+          "count": 12,
+          "sourceGroup": "the_hindu"
         }
       ]
     },
     "trichy": {
       "sourceGroupCount": 2,
-      "storyCount": 30,
+      "storyCount": 27,
       "thin": false,
       "topCategories": [
         {
           "category": "trichy",
-          "count": 30
+          "count": 27
         }
       ],
       "topSources": [
         {
-          "count": 17,
+          "count": 15,
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 13,
+          "count": 12,
           "sourceGroup": "google_news"
         }
       ]
@@ -716,9 +712,10 @@
     {
       "configuredFeeds": 1,
       "health": {
+        "error": "HTTPSConnectionPool(host='www.omanobserver.om', port=443): Max retries exceeded with url: /rss (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.omanobserver.om', port=443) at 0x7f8a52eecd50>, 'Connection to www.omanobserver.om timed out. (connect timeout=15)'))",
         "feedUrl": "https://www.omanobserver.om/rss",
         "items": 0,
-        "ok": true,
+        "ok": false,
         "section": "muscat"
       },
       "sections": [
