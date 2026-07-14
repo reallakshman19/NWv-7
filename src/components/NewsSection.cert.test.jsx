@@ -150,7 +150,7 @@ describe('NW-RANK-011 Top Stories UI consistency', () => {
     expect(screen.getByText('_topStoryRank')).toBeTruthy();
     expect(screen.getByText('0.72')).toBeTruthy();
     expect(screen.getByText('admitted')).toBeTruthy();
-    expect(screen.getByText('1.00')).toBeTruthy();
+    expect(screen.getByText('Independent Evidence').parentElement?.textContent).toContain('1.00');
     expect(screen.queryByText('Ranking Score')).toBeNull();
   });
 
