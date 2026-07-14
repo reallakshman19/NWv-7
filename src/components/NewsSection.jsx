@@ -61,6 +61,39 @@ function buildAreaRelevanceInfoText(areaRelevance) {
     ].join('\n');
 }
 
+function getCardRating(item, isTopStories) {
+    if (isTopStories) {
+        const rawScore = Number(item?._topStoryRank?.normalizedScore);
+        if (!Number.isFinite(rawScore)) {
+            return {
+                stars: 0,
+                label: 'Top Stories score unavailable; 0 of 5 stars',
+            };
+        }
+
+        const score = Math.min(1, Math.max(0, rawScore));
+        const stars = score >= 0.8 ? 5
+            : score >= 0.65 ? 4
+                : score >= 0.5 ? 3
+                    : score >= 0.33 ? 2
+                        : score > 0 ? 1 : 0;
+        return {
+            stars,
+            label: `Top Stories score ${score.toFixed(2)} of 1; ${stars} of 5 stars`,
+        };
+    }
+
+    const impactScore = Number(item?.impactScore || 0);
+    const stars = impactScore >= 18 ? 5
+        : impactScore >= 12 ? 4
+            : impactScore >= 7 ? 3
+                : impactScore >= 3 ? 2 : 1;
+    return {
+        stars,
+        label: `Impact score ${impactScore.toFixed(2)}; ${stars} of 5 stars`,
+    };
+}
+
 /**
  * News Section Component
  * Displays news items for a specific region (World/India/Chennai/Trichy/Local/Entertainment)
@@ -98,6 +131,7 @@ function NewsSection({
     const displayNews = news.slice(0, displayCount);
     const hasMore = news.length > maxDisplay;
     const healthStatus = healthSummary?.status || 'unknown';
+    const isTopStories = title === 'Top Stories';
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return '';
@@ -116,8 +150,8 @@ function NewsSection({
         return 'Now';
     };
 
-    const handleInfoClick = (item, includeScoreBreakdown = false) => {
-        const baseInfo = buildStoryInfoText(item, { includeScoreBreakdown }) || 'No source link available.';
+    const handleInfoClick = (item, options = {}) => {
+        const baseInfo = buildStoryInfoText(item, options) || 'No source link available.';
         const areaInfo = buildAreaRelevanceInfoText(item?._areaRelevance);
         setInfoText([baseInfo, areaInfo].filter(Boolean).join('\n\n'));
     };
@@ -172,7 +206,7 @@ function NewsSection({
                     {displayNews.map((item, idx) => {
                         const storyUrl = getStoryUrl(item);
                         const sourceLabel = shortenSourceLabel(item.source);
-                        const hasScoreBreakdown = title === 'Top Stories' && Boolean(item._scoreBreakdown);
+                        const rating = getCardRating(item, isTopStories);
 
                         return (
                             <article
@@ -183,12 +217,8 @@ function NewsSection({
                             >
                                 <div className="mnc-header">
                                     <span className="mnc-source" title={item.source}>{sourceLabel}</span>
-                                    <span className="mnc-stars" aria-label="impact rating">
-                                        {(() => {
-                                            const score = item.impactScore || 0;
-                                            const stars = score >= 18 ? 5 : score >= 12 ? 4 : score >= 7 ? 3 : score >= 3 ? 2 : 1;
-                                            return '★'.repeat(stars) + '☆'.repeat(5 - stars);
-                                        })()}
+                                    <span className="mnc-stars" aria-label={rating.label} title={rating.label}>
+                                        {'★'.repeat(rating.stars) + '☆'.repeat(5 - rating.stars)}
                                     </span>
                                     {item.sourceCount > 1 && (
                                         <span className="mnc-badge mnc-badge--consensus">#{item.sourceCount} Sources</span>
@@ -198,7 +228,13 @@ function NewsSection({
                                         type="button"
                                         className="info-icon info-icon--story"
                                         title="Story info"
-                                        onClick={(e) => { e.stopPropagation(); handleInfoClick(item, hasScoreBreakdown); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleInfoClick(item, {
+                                                includeScoreBreakdown: isTopStories,
+                                                expectTopStoryRank: isTopStories,
+                                            });
+                                        }}
                                     >ⓘ</button>
                                 </div>
 
@@ -286,13 +322,13 @@ function NewsSection({
                 <div className="news-title-left">
                     <span className="news-icon">{icon}</span>
                     <span className="news-text">{title}</span>
-                    {title === 'Top Stories' && (
+                    {isTopStories && (
                         <span
                             className="info-icon"
-                            title="Ranked by relevance, breaking status, and sentiment analysis."
+                            title="Ranked by context-qualified public interest, freshness, independent corroboration, source quality, location relevance, and diversity."
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setInfoText('Top Stories Ranking Logic:\n\n1. Breaking news prioritised.\n2. Consensus (multiple sources) boosted.\n3. Sentiment-based weight applied.\n4. Recent articles scored higher.');
+                                setInfoText('Top Stories Ranking Logic:\n\n1. Context-qualified public-interest events are prioritised.\n2. Freshness and timestamp confidence are enforced.\n3. Independent corroboration and trusted top-feed evidence are rewarded.\n4. Source quality, location relevance, penalties, and diversity are applied.');
                             }}
                             style={{ cursor: 'help', fontSize: '0.8em', marginLeft: '5px', opacity: 0.7 }}
                         >
