@@ -43,6 +43,61 @@ function normalizeTimestamp(value) {
   return textValue(value) || null;
 }
 
+function hasSectionSummaryShape(envelope = {}) {
+  if (!isRecord(envelope)) return false;
+  const data = isRecord(envelope.data) ? envelope.data : envelope;
+  if (Array.isArray(data.summaries) || Array.isArray(envelope.summaries)) return true;
+  return isRecord(data.sections) && Object.values(data.sections).some(Array.isArray);
+}
+
+export function resolveSectionsHealthEnvelope(input = {}) {
+  if (!isRecord(input)) return input;
+  if (hasSectionSummaryShape(input)) return input;
+
+  const data = isRecord(input.data) ? input.data : input;
+  const raw = isRecord(data.raw) ? data.raw : {};
+  const candidates = [
+    data.sectionsEnvelope,
+    data.sectionsDataset,
+    raw.sections,
+    raw.sectionsEnvelope,
+    raw.sectionsDataset,
+    input.sectionsEnvelope,
+    input.sectionsDataset,
+  ];
+
+  for (const candidate of candidates) {
+    if (!isRecord(candidate) || candidate === input) continue;
+    const resolved = resolveSectionsHealthEnvelope(candidate);
+    if (hasSectionSummaryShape(resolved)) return resolved;
+  }
+
+  return input;
+}
+
+function getEmbeddedSourceHealthInput(sectionsEnvelope = {}) {
+  const resolved = resolveSectionsHealthEnvelope(sectionsEnvelope);
+  const data = isRecord(resolved?.data) ? resolved.data : (isRecord(resolved) ? resolved : {});
+  const raw = isRecord(data.raw) ? data.raw : {};
+  return (
+    data.sourceHealth ||
+    data.source_health ||
+    data.sectionSourceHealth ||
+    data.section_source_health ||
+    data.sourceHealthEnvelope ||
+    raw.sourceHealth ||
+    raw.source_health ||
+    raw.sectionSourceHealth ||
+    raw.section_source_health ||
+    {}
+  );
+}
+
+function hasExplicitSourceHealthInput(input) {
+  if (Array.isArray(input)) return input.length > 0;
+  return isRecord(input) && Object.keys(input).length > 0;
+}
+
 function normalizeSourceRow(source = {}, index = 0) {
   const id = normalizeKey(source.id || source.key || source.sourceGroup || source.name || source.source || `source_${index}`);
   const section = normalizeKey(source.section || source.sectionId || source.category || source.topic || '');
@@ -86,21 +141,28 @@ function sourceRowsFromObjectShape(raw) {
 
 export function normalizeSourceHealthRows(input = {}) {
   if (Array.isArray(input)) return input.map(normalizeSourceRow);
-  const data = input?.data || input;
+  const resolved = resolveSectionsHealthEnvelope(input);
+  const data = resolved?.data || resolved;
   const raw = data?.raw || data;
   const candidates = [
     data?.sources,
     data?.sourceHealth,
+    data?.source_health,
+    data?.sectionSourceHealth,
+    data?.section_source_health,
     data?.latest?.sources,
     data?.latest?.sourceHealth,
     raw?.sources,
     raw?.sourceHealth,
+    raw?.source_health,
+    raw?.sectionSourceHealth,
+    raw?.section_source_health,
     raw?.latest?.sources,
     raw?.latest?.sourceHealth,
   ];
   const arrayCandidate = candidates.find(Array.isArray);
   if (arrayCandidate) return arrayCandidate.map(normalizeSourceRow);
-  const objectCandidate = candidates.find(isRecord) || (isRecord(raw) ? raw : null);
+  const objectCandidate = candidates.find(isRecord) || (isRecord(raw) && !hasSectionSummaryShape(resolved) ? raw : null);
   return sourceRowsFromObjectShape(objectCandidate).map(normalizeSourceRow);
 }
 
@@ -108,6 +170,7 @@ function normalizeSummary(summary = {}) {
   const sectionId = normalizeKey(summary.section || summary.sectionId || summary.id || summary.key || 'unknown');
   const sourceCounts = isRecord(summary.sourceCounts) ? summary.sourceCounts : {};
   const sourceGroups = unique([
+    ...asArray(summary.sourceGroups).map(normalizeKey),
     ...Object.keys(sourceCounts).map(normalizeKey),
     ...asArray(summary.items).map(item => normalizeKey(item?.sourceGroup || item?.source)).filter(Boolean),
   ]);
@@ -118,18 +181,29 @@ function normalizeSummary(summary = {}) {
     storyCount: numberValue(summary.count ?? summary.storyCount ?? asArray(summary.items).length, 0),
     sourceCounts,
     sourceGroups,
-    healthStatus: summary.health?.status || sectionQuality.status || null,
-    isSingleSource: Boolean(summary.isSingleSource) || sourceGroups.length === 1,
+    healthStatus: summary.healthStatus || summary.health?.status || sectionQuality.status || null,
+    isSingleSource: Boolean(summary.isSingleSource || summary.singleSource) || sourceGroups.length === 1,
     staleReason: textValue(summary.staleReason || summary.fetchDiagnostics?.fallbackReason || sectionQuality.reason),
-    lastCheckedAt: normalizeTimestamp(summary.fetchDiagnostics?.lastCheckedAt || summary.fetchDiagnostics?.checkedAt || summary.snapshotRuntimeSummary?.generatedAt),
-    lastError: textValue(summary.error || summary.fetchDiagnostics?.error || sectionQuality.error),
+    lastCheckedAt: normalizeTimestamp(
+      summary.lastCheckedAt ||
+      summary.fetchDiagnostics?.lastCheckedAt ||
+      summary.fetchDiagnostics?.checkedAt ||
+      summary.snapshotRuntimeSummary?.generatedAt
+    ),
+    lastError: textValue(
+      summary.lastError ||
+      summary.error ||
+      summary.fetchDiagnostics?.error ||
+      sectionQuality.error
+    ),
   };
 }
 
 function getSummaries(sectionsEnvelope = {}) {
-  const data = sectionsEnvelope?.data || sectionsEnvelope || {};
+  const resolved = resolveSectionsHealthEnvelope(sectionsEnvelope);
+  const data = resolved?.data || resolved || {};
   if (Array.isArray(data.summaries)) return data.summaries.map(normalizeSummary);
-  if (Array.isArray(sectionsEnvelope.summaries)) return sectionsEnvelope.summaries.map(normalizeSummary);
+  if (Array.isArray(resolved?.summaries)) return resolved.summaries.map(normalizeSummary);
   if (isRecord(data.sections)) {
     return Object.entries(data.sections).map(([section, items]) => normalizeSummary({ section, items, count: asArray(items).length }));
   }
@@ -259,8 +333,12 @@ export function buildSectionHealthSummary(summary = {}, sourceRows = [], options
 }
 
 export function buildSectionHealthSummaries(sectionsEnvelope = {}, sourceHealthInput = {}, options = {}) {
-  const sourceRows = normalizeSourceHealthRows(sourceHealthInput);
-  return getSummaries(sectionsEnvelope)
+  const resolvedEnvelope = resolveSectionsHealthEnvelope(sectionsEnvelope);
+  const effectiveSourceHealthInput = hasExplicitSourceHealthInput(sourceHealthInput)
+    ? sourceHealthInput
+    : getEmbeddedSourceHealthInput(resolvedEnvelope);
+  const sourceRows = normalizeSourceHealthRows(effectiveSourceHealthInput);
+  return getSummaries(resolvedEnvelope)
     .map(summary => buildSectionHealthSummary(summary, sourceRows, options))
     .sort((a, b) => a.sectionId.localeCompare(b.sectionId));
 }
