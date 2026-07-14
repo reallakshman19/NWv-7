@@ -13,10 +13,13 @@ describe('NW-DEPLOY-001 World health deployment verification', () => {
     expect(workflow).toContain('node scripts/verify_world_health_deployment.mjs');
   });
 
-  it('uploads browser evidence even when the smoke check fails', () => {
+  it('uploads browser evidence and publishes a readable commit status', () => {
+    expect(workflow).toContain('statuses: write');
     expect(workflow).toContain('if: always()');
     expect(workflow).toContain('world-health-deployment-verification');
     expect(workflow).toContain('artifacts/world-health-deployment');
+    expect(workflow).toContain('deployment/world-health');
+    expect(workflow).toContain('World health badge and source diagnostics verified');
   });
 
   it('rejects unknown World health and requires concrete source evidence', () => {
