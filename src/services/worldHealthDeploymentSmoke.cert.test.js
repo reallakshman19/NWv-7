@@ -23,10 +23,10 @@ describe('NW-DEPLOY-001 World health deployment verification', () => {
     expect(smoke).toContain("page.locator('#world-news')");
     expect(smoke).toContain("worldSection.locator('.section-health-badge')");
     expect(smoke).toContain("['ok', 'warning', 'critical'].includes(report.badgeStatus)");
-    expect(smoke).toMatch(/unknown\\s\*\[—-\]\\s\*diagnostics unavailable/);
+    expect(smoke).toContain('/unknown\\s*[—-]\\s*diagnostics unavailable/i.test(dialogText)');
     expect(smoke).toContain("report.sectionId !== 'world'");
     expect(smoke).toContain('report.storyCount <= 0');
     expect(smoke).toContain('report.sourceGroupCount <= 0');
-    expect(smoke).toContain("/none recorded/i.test(report.topSourcesText)");
+    expect(smoke).toContain('/none recorded/i.test(report.topSourcesText)');
   });
 });
