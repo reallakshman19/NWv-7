@@ -47,24 +47,30 @@ export function getStoryUrl(item) {
 function appendTopStoryBreakdown(lines, rank = {}) {
     const f = (value, digits = 2) => Number(value ?? 0).toFixed(digits);
     lines.push('');
+    lines.push('Top Stories Diagnostics');
+    lines.push('Contract: _topStoryRank');
     lines.push(`Top Stories Score: ${f(rank.normalizedScore)}`);
     lines.push(`Raw Weighted Score: ${f(rank.score)}`);
     lines.push(`Event: ${rank.eventType || 'unknown'}`);
     lines.push(`Context Qualified: ${rank.eventQualified !== false ? 'Yes' : 'No'}`);
     lines.push(`Slot Band: ${rank.slotBand || 'unknown'}`);
+    lines.push(`Admission: ${rank.admissionReason || 'unknown'}`);
     lines.push(`Timestamp Confidence: ${rank.timestampConfidence || 'unknown'}`);
     lines.push(`Age Hours: ${f(rank.ageHours)}`);
     lines.push(`Freshness: ${f(rank.freshnessScore)}`);
     lines.push(`Public Interest: ${f(rank.publicInterestScore)}`);
     lines.push(`Consensus: ${f(rank.consensusScore)} (${Number(rank.sourceCount || 0)} source${Number(rank.sourceCount || 0) === 1 ? '' : 's'})`);
-    lines.push(`Top Feed Hits: ${Number(rank.topFeedHits || 0)}`);
+    lines.push(`Top Feed Membership Hits: ${f(rank.topFeedHits)}`);
+    lines.push(`Top Feed Corroboration Hits: ${f(rank.topFeedCorroborationHits)}`);
+    lines.push(`Independent Evidence: ${f(rank.independentEvidenceCount)}`);
     lines.push(`Penalties: ${f(rank.penalties, 1)}`);
     if (rank.explanation) lines.push(`Why this rank: ${rank.explanation}`);
 }
 
-function appendLegacyBreakdown(lines, item, breakdown) {
+function appendLegacyBreakdown(lines, item, breakdown, { referenceOnly = false } = {}) {
     const f = (value, digits = 2) => Number(value ?? 0).toFixed(digits);
     lines.push('');
+    if (referenceOnly) lines.push('Legacy Section Score — reference only');
     lines.push(`Ranking Score: ${f(item.impactScore)}`);
     lines.push('Formula: (freshness + keyword + sentiment) x sourceMult x [impact*severity*novelty*visual*humanInterest] x section x breaking x live x seen');
     lines.push(`Freshness: ${f(breakdown.freshness)}`);
@@ -81,7 +87,20 @@ function appendLegacyBreakdown(lines, item, breakdown) {
     }
 }
 
-export function buildStoryInfoText(item, { includeScoreBreakdown = false } = {}) {
+function appendMissingTopStoryRank(lines, item) {
+    lines.push('');
+    lines.push('Top Stories Diagnostics');
+    lines.push('Status: unavailable');
+    lines.push('Reason: authoritative _topStoryRank is missing');
+    if (item?._scoreBreakdown) {
+        appendLegacyBreakdown(lines, item, item._scoreBreakdown, { referenceOnly: true });
+    }
+}
+
+export function buildStoryInfoText(
+    item,
+    { includeScoreBreakdown = false, expectTopStoryRank = false } = {}
+) {
     const storyUrl = getStoryUrl(item);
     const lines = [];
 
@@ -91,6 +110,8 @@ export function buildStoryInfoText(item, { includeScoreBreakdown = false } = {})
 
     if (includeScoreBreakdown && item?._topStoryRank) {
         appendTopStoryBreakdown(lines, item._topStoryRank);
+    } else if (expectTopStoryRank) {
+        appendMissingTopStoryRank(lines, item);
     } else if (includeScoreBreakdown && item?._scoreBreakdown) {
         appendLegacyBreakdown(lines, item, item._scoreBreakdown);
     }

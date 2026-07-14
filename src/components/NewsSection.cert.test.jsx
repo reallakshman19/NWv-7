@@ -26,17 +26,40 @@ vi.mock('../utils/trendingUtils.js', () => ({
 
 import NewsSection from './NewsSection.jsx';
 
-function renderStory(story) {
+function renderStory(story, { title = 'Muscat' } = {}) {
   render(
     <NewsSection
       id="local-news"
-      title="Muscat"
+      title={title}
       icon="📍"
       colorClass="news-section__title--local"
       news={[story]}
       maxDisplay={1}
     />
   );
+}
+
+function topStoryRank(overrides = {}) {
+  return {
+    normalizedScore: 0.72,
+    score: 87.5,
+    eventType: 'public_safety',
+    eventQualified: true,
+    slotBand: 'primary',
+    admissionReason: 'admitted',
+    timestampConfidence: 'high',
+    ageHours: 2,
+    freshnessScore: 0.83,
+    publicInterestScore: 0.96,
+    consensusScore: 0.36,
+    sourceCount: 2,
+    topFeedHits: 2.2,
+    topFeedCorroborationHits: 1,
+    independentEvidenceCount: 1,
+    penalties: 0,
+    explanation: 'event=public_safety; qualified=true; reason=admitted',
+    ...overrides,
+  };
 }
 
 describe('NewsSection area relevance story info', () => {
@@ -107,5 +130,80 @@ describe('NewsSection area relevance story info', () => {
 
     expect(screen.getByText('weak — insufficient local evidence')).toBeTruthy();
     expect(screen.getAllByText('None').length).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe('NW-RANK-011 Top Stories UI consistency', () => {
+  it('renders authoritative _topStoryRank diagnostics for a row without legacy breakdown', async () => {
+    renderStory({
+      id: 'bbc-ranked',
+      title: 'Qualified public safety report',
+      source: 'BBC',
+      impactScore: 1,
+      publishedAt: Date.now() - 2 * 60 * 60 * 1000,
+      _topStoryRank: topStoryRank(),
+    }, { title: 'Top Stories' });
+
+    await userEvent.click(screen.getByTitle('Story info'));
+
+    expect(screen.getByText('Top Stories Diagnostics')).toBeTruthy();
+    expect(screen.getByText('_topStoryRank')).toBeTruthy();
+    expect(screen.getByText('0.72')).toBeTruthy();
+    expect(screen.getByText('admitted')).toBeTruthy();
+    expect(screen.getByText('Independent Evidence').parentElement?.textContent).toContain('1.00');
+    expect(screen.queryByText('Ranking Score')).toBeNull();
+  });
+
+  it('uses normalized Top Stories score for stars even when legacy impact score conflicts', () => {
+    renderStory({
+      id: 'ranked-rating',
+      title: 'Ranked story',
+      source: 'Reuters',
+      impactScore: 25,
+      publishedAt: Date.now(),
+      _topStoryRank: topStoryRank({ normalizedScore: 0.72 }),
+    }, { title: 'Top Stories' });
+
+    const rating = screen.getByLabelText('Top Stories score 0.72 of 1; 4 of 5 stars');
+    expect(rating.textContent).toBe('★★★★☆');
+  });
+
+  it('shows an integrity warning and only a reference legacy score when _topStoryRank is missing', async () => {
+    renderStory({
+      id: 'missing-rank',
+      title: 'Legacy-only Top Stories row',
+      source: 'BBC',
+      impactScore: 18,
+      publishedAt: Date.now(),
+      _scoreBreakdown: {
+        freshness: 2,
+        severity: 1,
+        decisions: ['legacy keyword evidence'],
+      },
+    }, { title: 'Top Stories' });
+
+    expect(screen.getByLabelText('Top Stories score unavailable; 0 of 5 stars').textContent).toBe('☆☆☆☆☆');
+
+    await userEvent.click(screen.getByTitle('Story info'));
+
+    expect(screen.getByText('Top Stories Diagnostics')).toBeTruthy();
+    expect(screen.getByText('unavailable')).toBeTruthy();
+    expect(screen.getByText('authoritative _topStoryRank is missing')).toBeTruthy();
+    expect(screen.getByText('Legacy Section Score — reference only')).toBeTruthy();
+    expect(screen.getByText('18.00')).toBeTruthy();
+  });
+
+  it('retains legacy impact-star behavior outside Top Stories', () => {
+    renderStory({
+      id: 'ordinary-rating',
+      title: 'Ordinary section story',
+      source: 'Wire',
+      impactScore: 12,
+      publishedAt: Date.now(),
+      _topStoryRank: topStoryRank({ normalizedScore: 0.9 }),
+    });
+
+    const rating = screen.getByLabelText('Impact score 12.00; 4 of 5 stars');
+    expect(rating.textContent).toBe('★★★★☆');
   });
 });
