@@ -29,6 +29,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  statuses: write
 
 concurrency:
   group: "pages"
@@ -118,3 +119,30 @@ jobs:
           path: artifacts/world-health-deployment
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Publish World health verification status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_JOB_STATUS: ${{ job.status }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          state="failure"
+          description="World health deployment verification failed"
+          if [ "$VERIFY_JOB_STATUS" = "success" ]; then
+            state="success"
+            description="World health badge and source diagnostics verified"
+          fi
+          payload=$(jq -n \
+            --arg state "$state" \
+            --arg context "deployment/world-health" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state: $state, context: $context, description: $description, target_url: $target_url}')
+          curl --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            --data "$payload"
