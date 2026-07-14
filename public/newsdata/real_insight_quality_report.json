@@ -1,84 +1,92 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784057863856,
-  "contentHash": "fe0d4cb9f43cafcf",
+  "generatedAt": 1784062734733,
+  "contentHash": "692108d460703088",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 809,
-  "sourceGroupCount": 10,
-  "grade": "C",
+  "storyCount": 755,
+  "sourceGroupCount": 9,
+  "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.6,
-  "avgTemporalTiers": 1.6,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.15,
-  "multiAngleCount": 6,
-  "weakParentCount": 4,
+  "avgAngles": 1.4,
+  "avgTemporalTiers": 1.3,
+  "avgEvolutionRoles": 1.6,
+  "baseReportShare": 0.11764705882352941,
+  "multiAngleCount": 4,
+  "weakParentCount": 6,
   "runtimeQualityGate": {
-    "attempted": false,
+    "attempted": true,
     "recovered": false,
-    "reason": "first-pass acceptable",
+    "reason": "relaxed-tree recovery could not produce acceptable output",
     "before": {
-      "grade": "C",
-      "tone": "warn",
-      "title": "Thin but usable signal",
-      "signalScore": 46,
+      "grade": "D",
+      "tone": "danger",
+      "title": "Weak insight signal",
+      "signalScore": 34,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 729,
+      "storyCount": 693,
       "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2,
-      "avgScore": 0.6695489708013239,
-      "sourceDiversityCoverage": 8,
+      "avgAngles": 1.4,
+      "avgChildren": 1.7,
+      "avgScore": 0.6796249806933241,
+      "sourceDiversityCoverage": 6,
       "snapshotCoverage": 3,
-      "coverageLabel": "6/10",
+      "coverageLabel": "4/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
+        "4 cluster(s) are below source-diversity target.",
         "7 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "801 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "6 cluster(s) are marked thin.",
+        "621 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
-      "grade": "C",
-      "tone": "warn",
-      "title": "Thin but usable signal",
-      "signalScore": 46,
+      "grade": "D",
+      "tone": "danger",
+      "title": "Weak insight signal",
+      "signalScore": 34,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 729,
+      "storyCount": 693,
       "risingCount": 0,
-      "thinCount": 4,
-      "multiAngleCount": 6,
-      "lowAngleCount": 4,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.6,
-      "avgChildren": 2,
-      "avgScore": 0.6695489708013239,
-      "sourceDiversityCoverage": 8,
+      "avgAngles": 1.4,
+      "avgChildren": 1.7,
+      "avgScore": 0.6796249806933241,
+      "sourceDiversityCoverage": 6,
       "snapshotCoverage": 3,
-      "coverageLabel": "6/10",
+      "coverageLabel": "4/10",
       "warnings": [
-        "4 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
+        "4 cluster(s) are below source-diversity target.",
         "7 cluster(s) have weak snapshot coverage.",
-        "4 cluster(s) are marked thin.",
-        "801 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "6 cluster(s) are marked thin.",
+        "1 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
+    },
+    "recoveryConfig": {
+      "MIN_CHILD_INFO_GAIN": 0.08,
+      "WEAK_TREE_CHILD_MIN": 2,
+      "MIN_SOURCES_PER_TREE": 2,
+      "MAX_PER_SOURCE_GROUP": 3,
+      "MAX_PER_ANGLE": 4,
+      "TIER_D_EXCLUDE": false
     }
   },
   "parents": [
     {
-      "parentId": "cluster_294_4edf768fc45e7520",
+      "parentId": "cluster_309_4edf768fc45e7520",
       "headline": "‘Boat flipped in three minutes,’ recounts Vietnam crash survivor upon arrival in Chennai",
       "score": 0.6943967197849983,
       "postTreeScore": 1.0744,
@@ -99,7 +107,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_3_0b6ff4e8b21550c1",
+      "parentId": "cluster_13_0b6ff4e8b21550c1",
       "headline": "TVS Emerald inks Joint Development Agreement for four-acre land parcel in Noombal",
       "score": 0.693213386451665,
       "postTreeScore": 1.0732,
@@ -120,28 +128,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_484_336d2d3327fee82d",
-      "headline": "12 districts in A.P. get new DMHOs",
-      "score": 0.6807467197849983,
-      "postTreeScore": 1.0607,
-      "childCount": 2,
-      "angles": [
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "established",
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "fact_update"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_22_cdcf9781333b3ab9",
+      "parentId": "cluster_35_cdcf9781333b3ab9",
       "headline": "E Jean Carroll receives $5.6 million in sexual abuse case after years-long legal battle with Trump",
       "score": 0.6243266666666667,
       "postTreeScore": 1.0243,
@@ -161,28 +148,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_561_a9aa40e88e47b9f7",
-      "headline": "Bodies of 15 Indian tourists killed in Vietnam boat accident flown home",
-      "score": 0.6252128795983323,
-      "postTreeScore": 0.9652,
-      "childCount": 2,
-      "angles": [
-        "fact_update",
-        "regional_followup"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_570_60e036be4eeb33ae",
+      "parentId": "cluster_587_60e036be4eeb33ae",
       "headline": "India beat England in historic first women's test at Lord's - Reuters",
       "score": 0.5563433333333333,
       "postTreeScore": 0.9563,
@@ -202,7 +168,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_650_fd7d7015a4c1241b",
+      "parentId": "cluster_670_fd7d7015a4c1241b",
       "headline": "Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth",
       "score": 0.7566133864516651,
       "postTreeScore": 0.6466,
@@ -220,10 +186,10 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_153_34852fd2242cb42b",
+      "parentId": "cluster_168_34852fd2242cb42b",
       "headline": "MEA summons Iranian deputy envoy, after Indian national killed in attack on ship",
-      "score": 0.6805487346782662,
-      "postTreeScore": 0.6105,
+      "score": 0.5805916683316485,
+      "postTreeScore": 0.5106,
       "childCount": 3,
       "angles": [
         "fact_update"
@@ -241,26 +207,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_503_3c6f383194821119",
-      "headline": "Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu",
-      "score": 0.6613967197849984,
-      "postTreeScore": 0.5514,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_64_a484fac812bc9ceb",
+      "parentId": "cluster_78_a484fac812bc9ceb",
       "headline": "Anand Rathi Share Q1 results: Profit rises 71% to Rs 39 crore before one-time charge",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -276,22 +223,72 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
+    },
+    {
+      "parentId": "cluster_197_22cecb14117ebf0e",
+      "headline": "Equirus, Money Grow Asset, Amaltas, 7 others deliver up to 14% returns in June",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "regional_followup"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "market_reaction"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_264_1bcb90e66a360d85",
+      "headline": "Rekha Jhunjhunwala sells 1 crore Canara Bank shares in Q1. What's behind the move?",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_289_909689cb9aed03de",
+      "headline": "Cupid shares jump 5%, multibagger stock turns Rs 1 lakh investment into Rs 87 lakh in just 3 years",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "market_reaction"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
     }
   ],
-  "warnings": [],
+  "warnings": [
+    "Real snapshot still produces low Insight grade."
+  ],
   "errors": [],
   "ratchetGate": {
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
-    "grade": "C",
-    "score": 76,
+    "grade": "D",
+    "score": 42,
     "passed": [
-      {
-        "id": "grade-floor",
-        "label": "Real snapshot grade floor",
-        "actual": "C",
-        "required": "A/B/C"
-      },
       {
         "id": "parent-count",
         "label": "Parent cluster count",
@@ -301,25 +298,25 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.6,
+        "actual": 1.4,
         "required": ">= 1.4"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.6,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.15,
+        "actual": 0.118,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 6,
+        "actual": 4,
         "required": ">= 1"
       },
       {
@@ -333,37 +330,47 @@
         "label": "Top parent child depth",
         "actual": 2,
         "required": ">= 2"
-      },
-      {
-        "id": "weak-parent-ratio",
-        "label": "Weak parent ratio",
-        "actual": 0.4,
-        "required": "<= 0.5"
       }
     ],
     "failed": [
       {
+        "id": "grade-floor",
+        "label": "Real snapshot grade floor",
+        "actual": "D",
+        "required": "A/B/C",
+        "severity": "fail",
+        "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
+      },
+      {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.6,
+        "actual": 1.3,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
+      },
+      {
+        "id": "weak-parent-ratio",
+        "label": "Weak parent ratio",
+        "actual": 0.6,
+        "required": "<= 0.5",
+        "severity": "warn",
+        "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
       }
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.6,
-      "avgTemporalTiers": 1.6,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.15,
-      "multiAngleCount": 6,
-      "weakParentCount": 4,
-      "weakParentRatio": 0.4,
+      "avgAngles": 1.4,
+      "avgTemporalTiers": 1.3,
+      "avgEvolutionRoles": 1.6,
+      "baseReportShare": 0.118,
+      "multiAngleCount": 4,
+      "weakParentCount": 6,
+      "weakParentRatio": 0.6,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 809,
-      "sourceGroupCount": 10
+      "storyCount": 755,
+      "sourceGroupCount": 9
     }
   }
 }

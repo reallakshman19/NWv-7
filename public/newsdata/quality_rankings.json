@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "3 base-report-heavy Insight parent(s) demoted"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 12
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,130 +77,18 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 3,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 12,
-        "parentClusters": 12,
-        "strongParents": 12,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3861,
+      "qualityScore": 0.3863,
       "qualityStatus": "WARN",
       "rankedItems": [
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 2
-              },
-              "name": "sourceDiversity",
-              "reason": "multi-source event",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:091965e776",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:091965e776",
-            "representativeId": "5af191e1485e7e23",
-            "representativeTitle": "65-year-old grandfather attacked by a Yellowstone bison was cracking jokes despite breaking multiple bones",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.62,
-              "sourceDiversityScore": 0.72,
-              "temporalEvolutionScore": 0.49
-            },
-            "slotCount": 2,
-            "slots": [
-              "minus4h",
-              "now"
-            ],
-            "sourceGroupCount": 2,
-            "sourceGroups": [
-              "google_news",
-              "times_of_india"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "5af191e1485e7e23",
-              "a6c520e08323ffb1"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "65-year-old",
-              "grandfather",
-              "attacked",
-              "yellowstone"
-            ],
-            "topicKey": "65-year-old|grandfather|attacked"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "multi-source event"
-          ],
-          "score": 0.4925,
-          "title": "65-year-old grandfather attacked by a Yellowstone bison was cracking jokes despite breaking multiple bones"
-        },
         {
           "category": "insightEvent",
           "gates": [
@@ -541,7 +429,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 3
+                "storyCount": 4
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -578,11 +466,11 @@
             },
             {
               "details": {
-                "childCount": 3
+                "childCount": 4
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.75,
+              "score": 1.0,
               "status": "PASS"
             },
             {
@@ -599,11 +487,11 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "ff468e02cc84fa44",
-            "representativeTitle": "Breaking News Live Updates July 13: Dozens at an Ebola treatment center in Congo strike over unpaid salaries and bonuses - The Times of India",
+            "representativeId": "0df2c21a782b0aa4",
+            "representativeTitle": "Breaking News Live Updates July 15: Four killed, one seriously injured in Nashik road accident - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.71,
+              "eventImportanceScore": 0.83,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -618,8 +506,9 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 3,
+            "storyCount": 4,
             "storyIds": [
+              "0df2c21a782b0aa4",
               "ff468e02cc84fa44",
               "a47f9861bbd2cc3a",
               "55cf58dd032da79f"
@@ -627,7 +516,7 @@
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 3
+                "count": 4
               }
             ],
             "topTokens": [
@@ -646,8 +535,119 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.419,
-          "title": "Breaking News Live Updates July 13: Dozens at an Ebola treatment center in Congo strike over unpaid salaries and bonuses - The Times of India"
+          "score": 0.449,
+          "title": "Breaking News Live Updates July 15: Four killed, one seriously injured in Nashik road accident - The Times of India"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:986dfe344f",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:986dfe344f",
+            "representativeId": "71141c93a6104907",
+            "representativeTitle": "7PM Bulletin | 14th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "71141c93a6104907",
+              "8b862ca5068b68c9"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "kanak",
+              "odisha",
+              "bulletin",
+              "14th",
+              "13th"
+            ],
+            "topicKey": "kanak|odisha|bulletin"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "7PM Bulletin | 14th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha"
         },
         {
           "category": "insightEvent",
@@ -816,14 +816,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
+          "id": "sketch:768c327fc1",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "id": "sketch:768c327fc1",
+            "representativeId": "4677c47c5a40b33a",
+            "representativeTitle": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -835,30 +835,30 @@
             },
             "slotCount": 1,
             "slots": [
-              "minus24h"
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "moneycontrol"
+              "google_news"
             ],
             "storyCount": 2,
             "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
+              "4677c47c5a40b33a",
+              "c70e8d70a297d2f1"
             ],
             "topAngles": [
               {
-                "angle": "market_reaction",
+                "angle": "fact_update",
                 "count": 2
               }
             ],
             "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
+              "india",
+              "live",
+              "updates",
+              "july"
             ],
-            "topicKey": "bajaj|finance|target"
+            "topicKey": "india|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -867,7 +867,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+          "title": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express"
         },
         {
           "category": "insightEvent",
@@ -926,14 +926,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:768c327fc1",
+          "id": "sketch:ebb7c157a9",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "4677c47c5a40b33a",
-            "representativeTitle": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express",
+            "id": "sketch:ebb7c157a9",
+            "representativeId": "c89d6fcfe093e10c",
+            "representativeTitle": "Storyboard18 brings Gen Z to the forefront | AI reshapes creator discovery | India's new generation of founders breaking family business mould - Storyboard18",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -953,8 +953,8 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "4677c47c5a40b33a",
-              "c70e8d70a297d2f1"
+              "c89d6fcfe093e10c",
+              "c60f20dcadd9a693"
             ],
             "topAngles": [
               {
@@ -963,12 +963,12 @@
               }
             ],
             "topTokens": [
-              "india",
-              "live",
-              "updates",
-              "july"
+              "storyboard18",
+              "brings",
+              "forefront",
+              "reshapes"
             ],
-            "topicKey": "india|live|updates"
+            "topicKey": "storyboard18|brings|forefront"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -977,7 +977,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "India News Live Updates,14 July 2026: One killed, several injured as boiler explodes at Tamil Nadu smelting factory - The Indian Express"
+          "title": "Storyboard18 brings Gen Z to the forefront | AI reshapes creator discovery | India's new generation of founders breaking family business mould - Storyboard18"
         },
         {
           "category": "insightEvent",
@@ -1205,235 +1205,17 @@
           ],
           "score": 0.2929,
           "title": "Tragedy at sea: Vietnam boat capsize survivors from Tamil Nadu recount harrowing moments"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:959f3e1a2a",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:959f3e1a2a",
-            "representativeId": "9cd32363874a4c46",
-            "representativeTitle": "An emboldened India holds out for better terms in US trade talks - Reuters",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus12h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "reuters"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "9cd32363874a4c46",
-              "0e72ab70b3133b74"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "emboldened",
-              "india",
-              "holds",
-              "better"
-            ],
-            "topicKey": "emboldened|india|holds"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "An emboldened India holds out for better terms in US trade talks - Reuters"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "fb6b647db876af8e",
-            "representativeTitle": "Top news of the day: June 30, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "fb6b647db876af8e",
-              "b65533a7f527bd54"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Top news of the day: June 30, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.61,
+        "eventImportanceScore": 0.626,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4583,
-        "sourceAuthorityScore": 0.48,
-        "sourceDiversityScore": 0.5042,
-        "temporalEvolutionScore": 0.4
+        "noveltyDeltaScore": 0.46,
+        "sourceAuthorityScore": 0.476,
+        "sourceDiversityScore": 0.498,
+        "temporalEvolutionScore": 0.394
       }
     },
     "localTravel": {
@@ -4493,7 +4275,7 @@
             },
             {
               "details": {
-                "hoursLeft": 4.75
+                "hoursLeft": 3.4
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4608,7 +4390,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.19
+                "hoursLeft": 16.84
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4723,7 +4505,7 @@
             },
             {
               "details": {
-                "hoursLeft": 39.19
+                "hoursLeft": 37.84
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4838,7 +4620,7 @@
             },
             {
               "details": {
-                "hoursLeft": 31.14
+                "hoursLeft": 29.79
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4920,7 +4702,7 @@
       }
     }
   },
-  "generatedAt": 1784057864737,
+  "generatedAt": 1784062736102,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4948,11 +4730,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "3 base-report-heavy Insight parent(s) demoted"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3861,
+      "insight": 0.3863,
       "localTravel": 0.0,
       "upAhead": 0.8362
     },
