@@ -17,13 +17,18 @@ await fs.mkdir(artifactDir, { recursive: true });
 const report = {
   checkedAt: new Date().toISOString(),
   baseUrl,
+  finalUrl: null,
   ok: false,
+  hydrationMs: null,
+  worldCountText: null,
   badgeStatus: null,
   badgeLabel: null,
   sectionId: null,
   storyCount: null,
   sourceGroupCount: null,
   topSourcesText: null,
+  consoleErrors: [],
+  pageErrors: [],
   error: null,
 };
 
@@ -49,6 +54,15 @@ try {
   });
   const page = await context.newPage();
 
+  page.on('console', message => {
+    if (message.type() === 'error') {
+      report.consoleErrors.push(message.text());
+    }
+  });
+  page.on('pageerror', error => {
+    report.pageErrors.push(error?.message || String(error));
+  });
+
   let lastNavigationError = null;
   for (let attempt = 1; attempt <= 5; attempt += 1) {
     try {
@@ -67,7 +81,23 @@ try {
 
   if (lastNavigationError) throw lastNavigationError;
 
+  report.finalUrl = page.url();
   const worldSection = page.locator('#world-news');
+  const hydrationStartedAt = Date.now();
+
+  await page.waitForFunction(() => {
+    const count = document.querySelector('#world-news .news-count');
+    if (!count) return false;
+    const value = Number(String(count.textContent || '').replace(/[^0-9]/g, ''));
+    return Number.isFinite(value) && value > 0;
+  }, null, { timeout: 90_000 });
+
+  report.hydrationMs = Date.now() - hydrationStartedAt;
+  report.worldCountText = (await worldSection.locator('.news-count').textContent())?.trim() || null;
+
+  // Allow the health resolver and popover props to settle after the story array arrives.
+  await page.waitForTimeout(750);
+
   const badge = worldSection.locator('.section-health-badge');
   await badge.waitFor({ state: 'visible', timeout: 20_000 });
 
@@ -75,7 +105,7 @@ try {
   report.badgeLabel = (await badge.textContent())?.trim() || null;
 
   if (!['ok', 'warning', 'critical'].includes(report.badgeStatus)) {
-    throw new Error(`World section health badge is not concrete: ${report.badgeStatus || 'missing'}`);
+    throw new Error(`World section health badge is not concrete after hydration: ${report.badgeStatus || 'missing'}`);
   }
 
   await badge.click();
@@ -114,7 +144,10 @@ try {
     if (browser) {
       const pages = browser.contexts().flatMap(context => context.pages());
       const page = pages.at(-1);
-      if (page) await page.screenshot({ path: screenshotPath, fullPage: true });
+      if (page) {
+        report.finalUrl = report.finalUrl || page.url();
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+      }
     }
   } catch {
     // Preserve the original verification error.
