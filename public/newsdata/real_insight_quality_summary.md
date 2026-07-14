@@ -7,12 +7,12 @@
 - Average angles: `1.7`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
-- Base report share: `0.4`
+- Base report share: `0.3`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `576`
+- Story count: `588`
 - Source groups: `9`
-- Content hash: `dac8af3b6b2556f6`
+- Content hash: `837f4ef954696324`
 
 ## Top parents
 
@@ -26,8 +26,8 @@
 | 6 | Yastika century, seamers put India on the brink of historic win at Lord's | 2 | fact_update, base_report | NO | 0.5530933333333333 |
 | 7 | Bodies of 15 Indian tourists killed in Vietnam boat accident flown home | 2 | fact_update, regional_followup | NO | 0.557226159813334 |
 | 8 | Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth | 2 | fact_update | YES | 0.7566133864516651 |
-| 9 | Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu | 2 | official_response | YES | 0.58541 |
-| 10 | BBL returns to Christmas Eve, Australia Day final | 2 | base_report | YES | 0.5630933333333333 |
+| 9 | Chinese stocks hit three-month lows as growth worries, Middle East tensions weigh | 2 | market_reaction | YES | 0.6814967197849984 |
+| 10 | Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu | 2 | official_response | YES | 0.58541 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -39,7 +39,7 @@
 - Average angles: `1.7`
 - Average temporal tiers: `1.8`
 - Average evolution roles: `1.8`
-- Base report share: `0.4`
+- Base report share: `0.3`
 - Multi-angle parents: `7`
 - Top parent angles: `2`
 - Top parent children: `2`
@@ -55,7 +55,7 @@
 - Average visible angle count: `1.7` / `>= 1.4`
 - Average temporal tier count: `1.8` / `>= 1.8`
 - Average evolution role count: `1.8` / `>= 1.6`
-- Base report share: `0.4` / `<= 0.55`
+- Base report share: `0.3` / `<= 0.55`
 - Multi-angle parent count: `7` / `>= 1`
 - Top parent angle count: `2` / `>= 2`
 - Top parent child depth: `2` / `>= 2`
