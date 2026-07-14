@@ -33,12 +33,14 @@ describe('NW-RANK-002 top-feed snapshot signals', () => {
     expect(normalized[0].id).toBe('valid');
   });
 
-  it('caps duplicate rows instead of counting them linearly', () => {
+  it('caps duplicate rows without treating same-source volume as corroboration', () => {
     const spam = Array.from({ length: 20 }, () => row('same', { source: 'Same Source', sourceGroup: 'same', topFeedRank: 1 }));
     const [signal] = normalizeTopFeedSnapshotRows(spam);
     expect(signal.topFeedHits).toBeGreaterThan(1);
     expect(signal.topFeedHits).toBeLessThan(3);
     expect(signal.topFeedHits).toBeLessThan(20);
+    expect(signal.topFeedCorroborationHits).toBe(0);
+    expect(signal.topFeedConsensusScore).toBe(0);
   });
 
   it('gives source-diverse evidence stronger bounded consensus than same-source spam', () => {
@@ -49,6 +51,7 @@ describe('NW-RANK-002 top-feed snapshot signals', () => {
       row('alert', { sourceGroup: 'source-c', topFeedSource: 'feed-c' }),
     ])[0];
     expect(diverse.topFeedHits).toBeGreaterThan(spam.topFeedHits);
+    expect(diverse.topFeedCorroborationHits).toBe(2);
     expect(diverse.topFeedConsensusScore).toBeGreaterThan(spam.topFeedConsensusScore);
     expect(diverse.topFeedConsensusScore).toBeLessThanOrEqual(1);
   });
@@ -63,6 +66,9 @@ describe('NW-RANK-002 top-feed snapshot signals', () => {
     expect(JSON.stringify(stories)).toBe(beforeStories);
     expect(merged[0]).not.toBe(stories[0]);
     expect(merged[0].topFeedHits).toBeGreaterThan(0);
+    expect(merged[0].topFeedPresent).toBe(true);
+    expect(merged[0].topFeedCorroborationHits).toBe(0);
+    expect(merged[0].topFeedConsensusScore).toBe(0);
   });
 
   it('supports id, canonicalId, url/link, and title identity keys', () => {
@@ -85,8 +91,9 @@ describe('NW-RANK-002 top-feed snapshot signals', () => {
     const [signal] = normalizeTopFeedSnapshotRows([row('explainable')]);
     expect(getTopFeedIdentity(signal)).toBe('explainable');
     expect(explainTopFeedSignal(signal)).toContain('identity=explainable');
+    expect(explainTopFeedSignal(signal)).toContain('corroboration=0.00');
     expect(signal.topFeedRankScore).toBeGreaterThan(0);
-    expect(signal.topFeedConsensusScore).toBeLessThanOrEqual(1);
+    expect(signal.topFeedConsensusScore).toBe(0);
   });
 
   it('keeps the top-feed signal module local', () => {
