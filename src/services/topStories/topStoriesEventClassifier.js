@@ -20,7 +20,7 @@ const EVENT_RULES = Object.freeze([
     /\b(war|invasion|airstrike|missile|drone attack|ceasefire|border clash)\b/i,
     /\b(killed|dead|injur\w*|military|troops?|attack|strike|gaza|ukraine|iran|israel|nato|border|civilians?)\b/i),
   rule(TOP_STORY_EVENT_TYPES.PUBLIC_SAFETY,
-    /\b(killed|dead|injur\w*|shooting|blast|explosion|hostage|evacuat\w*|derail\w*|collapse|attack)\b/i,
+    /\b(killed|dead|injur\w*|shooting|blast|explosion|hostage|derail\w*|collapse|attack)\b/i,
     /\b(people|residents?|passengers?|workers?|police|hospital|casualt\w*|civilians?|fire|building|train|bus|road|public|station|transit)\b/i),
   rule(TOP_STORY_EVENT_TYPES.DISASTER,
     /\b(earthquake|tsunami|cyclone|flood|wildfire|landfall|storm surge|landslide|disaster)\b/i,
