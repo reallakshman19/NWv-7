@@ -6,9 +6,9 @@ Populates public/newsdata/sections_latest.json with 10 section keys:
 
 Runs on the same schedule as fetch_insight_stories.py (news_prefetch.yml).
 """
+import calendar
 import os
 import sys
-import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -53,6 +53,19 @@ DEFAULT_SECTIONS_SNAPSHOT = {
 }
 
 
+def parse_entry_timestamp(entry: dict) -> tuple[int, str, str]:
+    """Return a UTC epoch timestamp with explicit provenance.
+
+    Missing feed timestamps are never replaced with fetch time because that
+    makes old/resurfaced rows look newly published.
+    """
+    for field in ('published_parsed', 'updated_parsed'):
+        parsed = entry.get(field)
+        if parsed:
+            return int(calendar.timegm(parsed) * 1000), field, 'high'
+    return 0, 'missing', 'low'
+
+
 def is_story_within_retain_window(item: dict, cutoff_ms: int) -> bool:
     """Return True when a section item is still inside the collector window.
 
@@ -80,17 +93,23 @@ def fetch_section(section: str, feeds: list, ts: int) -> tuple[list, dict]:
             feed = feedparser.parse(response.content)
             feed_items = []
             for entry in feed.entries[:20]:
-                pub = entry.get('published_parsed')
-                pub_ms = int(time.mktime(pub) * 1000) if pub else ts
+                pub_ms, timestamp_source, timestamp_confidence = parse_entry_timestamp(entry)
                 raw = {
                     'title':       entry.get('title', ''),
                     'summary':     entry.get('summary', ''),
                     'url':         entry.get('link', ''),
                     'publishedAt': pub_ms,
+                    'publishedAtSource': timestamp_source,
+                    'timestampConfidence': timestamp_confidence,
                     'category':    section,
                     'region':      'in',
                 }
-                item = normalize_basic_story(raw, source, source_group)
+                item = normalize_basic_story(
+                    raw,
+                    source,
+                    source_group,
+                    allow_fetch_time_fallback=False,
+                )
                 if not is_suppressed(item, 'any'):
                     feed_items.append(item)
 

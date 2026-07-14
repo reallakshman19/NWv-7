@@ -34,7 +34,7 @@ describe('NW-RANK-005 Top Stories audit adapter shadow mode', () => {
     expect(payload.ok).toBe(true);
   });
 
-  it('includes actual, expected, comparison, and summary', () => {
+  it('includes actual, expected, comparison, and hardened summary', () => {
     const payload = getTopStoriesAuditComparisonPayload();
     expect(payload.actual).toBeTruthy();
     expect(payload.expected).toBeTruthy();
@@ -42,13 +42,15 @@ describe('NW-RANK-005 Top Stories audit adapter shadow mode', () => {
     expect(payload.summary).toMatchObject({
       ok: true,
       mode: 'shadow-audit',
-      rankedCount: 8,
-      expectedRankedCount: 8,
+      rankedCount: 7,
+      expectedRankedCount: 7,
       rankedIdsInOrder: expect.any(Array),
       topFeedBoostedIds: expect.any(Array),
       penalizedIds: expect.any(Array),
       rejectedExpiredIds: expect.any(Array),
     });
+    expect(payload.summary.rankedIdsInOrder).not.toContain('god-of-war-promo');
+    expect(payload.summary.rejectedExpiredIds).toContain('god-of-war-promo');
   });
 
   it('produces deterministic stable serialization', () => {

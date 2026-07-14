@@ -16,8 +16,8 @@ export const TOP_STORIES_POLICY = Object.freeze({
     locationRelevance: 6,
   }),
   thresholds: Object.freeze({
-    primary: 0.52,
-    secondary: 0.42,
+    primary: 0.5,
+    secondary: 0.4,
     fallback: 0.34,
   }),
   diversity: Object.freeze({

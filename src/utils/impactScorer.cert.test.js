@@ -1,37 +1,51 @@
 import { describe, expect, it } from 'vitest';
 import { calculateImpactScore } from './impactScorer.js';
 
-describe('calculateImpactScore — RC-1 severity gate', () => {
-  it('does NOT apply the War boost to a game trailer (God of War)', () => {
-    const s = calculateImpactScore(
+describe('calculateImpactScore — keyword safety', () => {
+  it('does not apply a multiplier to an entertainment franchise keyword', () => {
+    const score = calculateImpactScore(
       'God of War Laufey Revealed With Gameplay Trailer',
       'Revealed at State of Play',
       {},
     );
-    // Global geo doesn't match, magnitude doesn't match, keyword suppressed
-    // scale=1.0 * magnitude=1.0 * keyword=1.0 = 1.0
-    expect(s).toBeCloseTo(1.0, 5);
+    expect(score).toBeCloseTo(1.0, 5);
   });
 
-  it('DOES apply the War boost to a real conflict headline', () => {
-    const s = calculateImpactScore(
+  it('does not apply a direct multiplier to a real conflict keyword', () => {
+    const score = calculateImpactScore(
       'West Asia war: Iran missile strike kills dozens in Gulf',
       '',
       { rankingWeights: { impact: { highImpactBoost: 2.5 } } },
     );
-    // global geo (1.5) * keyword(2.5) = 3.75, magnitude still 1.0
-    expect(s).toBeGreaterThanOrEqual(2.5);
+    expect(score).toBeCloseTo(1.5, 5);
   });
 
-  it('records suppression decision in _lastDecisions for game trailer', () => {
-    calculateImpactScore('God of War Laufey trailer state of play reveal', '', {});
-    const decisions = calculateImpactScore._lastDecisions || [];
-    expect(decisions.some(d => /entertainment guard/i.test(d) || /no severity context/i.test(d))).toBe(true);
+  it('does not apply a direct multiplier to election or budget words', () => {
+    const election = calculateImpactScore(
+      'Tamil Nadu election voter turnout reaches 5.75 crore',
+      '',
+      {},
+    );
+    const budget = calculateImpactScore(
+      'India budget sets fiscal spending plan',
+      '',
+      {},
+    );
+    expect(election).toBeCloseTo(1.43, 5);
+    expect(budget).toBeCloseTo(1.3, 5);
   });
 
-  it('records boost decision in _lastDecisions for conflict headline', () => {
-    calculateImpactScore('War: Iran missile kills dozens', '', { rankingWeights: { impact: { highImpactBoost: 2.5 } } });
+  it('records keyword evidence without an xN boost decision', () => {
+    calculateImpactScore('Election results announced after voting', '', {});
     const decisions = calculateImpactScore._lastDecisions || [];
-    expect(decisions.some(d => /high-impact keyword 'war'/i.test(d))).toBe(true);
+    expect(decisions.some(d => /keyword evidence 'election'/i.test(d))).toBe(true);
+    expect(decisions.some(d => /\bx\d/i.test(d))).toBe(false);
+  });
+
+  it('records entertainment suppression and resets decisions per call', () => {
+    calculateImpactScore('God of War gameplay trailer', '', {});
+    expect(calculateImpactScore._lastDecisions).toHaveLength(1);
+    calculateImpactScore('Community garden opens', '', {});
+    expect(calculateImpactScore._lastDecisions).toEqual([]);
   });
 });

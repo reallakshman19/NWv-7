@@ -3,10 +3,14 @@ import { HOURS_MS, clampScore } from './topStoriesPolicy.js';
 import { buildTopFeedSnapshotSignalMap, getTopFeedIdentity } from './topStoriesTopFeedSignals.js';
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
-const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedAt', 'fetch_fallback']);
+const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback']);
 
 function textValue(value) {
   return String(value || '').trim().toLowerCase();
+}
+
+function sourceKey(value) {
+  return textValue(value).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
 function toTimestamp(value) {
@@ -16,12 +20,21 @@ function toTimestamp(value) {
 }
 
 function uniqueSources(story = {}) {
-  const sources = [
-    ...(Array.isArray(story.allSources) ? story.allSources : []),
-    story.source,
-    story.sourceGroup,
-  ].map(textValue).filter(Boolean);
-  return [...new Set(sources)];
+  const explicit = Array.isArray(story.allSources)
+    ? story.allSources.map(sourceKey).filter(Boolean)
+    : [];
+  if (explicit.length > 0) return [...new Set(explicit)];
+
+  const primary = sourceKey(story.sourceGroup || story.source);
+  return primary ? [primary] : [];
+}
+
+function declaredSourceCount(story = {}) {
+  return Math.max(0, Number(story.sourceCount || 0));
+}
+
+function isAggregatorSource(story = {}) {
+  return /\bgoogle[ _-]?news\b/i.test(`${story.source || ''} ${story.sourceGroup || ''}`);
 }
 
 function getTopFeedSignal(story = {}, context = {}) {
@@ -55,10 +68,18 @@ function pickTopFeedSignals(signal = {}) {
   };
 }
 
+function looksLikeFetchTimeFallback(story = {}) {
+  const publishedAt = toTimestamp(story.publishedAt || story.updatedAt);
+  const fetchedAt = toTimestamp(story.fetchedAt);
+  if (!publishedAt || !fetchedAt) return false;
+  return Math.abs(publishedAt - fetchedAt) <= 30_000;
+}
+
 export function getTimestampConfidence(story = {}) {
   const raw = textValue(story.timestampConfidence || story.publishedAtConfidence);
   const source = textValue(story.publishedAtSource || story.timestampSource);
   if (LOW_TS.has(raw) || FALLBACK_SOURCES.has(source)) return 'low';
+  if (looksLikeFetchTimeFallback(story) && !raw && !source) return 'low';
   return toTimestamp(story.publishedAt || story.updatedAt) ? (raw || 'high') : 'low';
 }
 
@@ -107,11 +128,11 @@ export function getFreshnessScore(ageHours, policy) {
 }
 
 export function getConsensusScore(story = {}, context = {}, policy) {
-  const sources = uniqueSources(story).length || Number(story.sourceCount || 1);
+  const sourceCount = Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
   const cluster = Number(story.clusteredItems || 1) * policy.consensus.clusterWeight;
   const topFeed = getTopFeedSignal(story, context);
   const top = Number(topFeed.topFeedHits || 0) * policy.consensus.topFeedWeight;
-  const raw = Math.max(1, sources) + Math.max(0, cluster - 1) + top;
+  const raw = sourceCount + Math.max(0, cluster - 1) + top;
   return clampScore(Math.log1p(raw) / Math.log1p(policy.consensus.cap));
 }
 
@@ -122,6 +143,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const timestampConfidence = getTimestampConfidence(story);
   const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
+  const sourceCount = Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
     ageHours,
@@ -131,7 +153,8 @@ export function extractTopStorySignals(story = {}, context = {}) {
     breakingScore: Number(story.breakingScore || 0),
     isLiveLike,
     hasFreshLiveEvidence: isLiveLike ? hasFreshLiveEvidence(story, context) : false,
-    sourceCount: uniqueSources(story).length || Number(story.sourceCount || 1),
+    sourceCount,
+    isAggregatorSource: isAggregatorSource(story),
     clusteredItems: Number(story.clusteredItems || 1),
     allSources: uniqueSources(story),
     ...topFeed,
