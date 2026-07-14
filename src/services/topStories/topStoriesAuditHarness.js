@@ -12,12 +12,16 @@ const REQUIRED_EXPLANATION_FIELDS = Object.freeze([
   'title',
   'score',
   'slotBand',
+  'admissionReason',
   'eventType',
+  'eventQualified',
   'freshnessScore',
   'consensusScore',
   'penalties',
   'sourceCount',
   'topFeedHits',
+  'topFeedCorroborationHits',
+  'independentEvidenceCount',
   'clusterKey',
   'nonPrimaryReason',
 ]);
@@ -61,13 +65,17 @@ function stableExplanationRow(row = {}) {
     id: row.id,
     title: row.title,
     slotBand: row.slotBand,
+    admissionReason: row.admissionReason,
     eventType: row.eventType,
+    eventQualified: row.eventQualified !== false,
     score: round(row.score),
     freshnessScore: round(row.freshnessScore),
     consensusScore: round(row.consensusScore),
     penalties: round(row.penalties),
     sourceCount: Number(row.sourceCount || 0),
     topFeedHits: round(row.topFeedHits),
+    topFeedCorroborationHits: round(row.topFeedCorroborationHits),
+    independentEvidenceCount: round(row.independentEvidenceCount),
     clusterKey: row.clusterKey || '',
     nonPrimaryReason: row.nonPrimaryReason,
   };
@@ -124,12 +132,14 @@ export function buildTopStoriesAuditSnapshot(input = TOP_STORIES_REGRESSION_INPU
   const explanationRows = explainTopStoriesList(ranked).map(stableExplanationRow);
   const allScored = scoreFixtureStories(input);
   return {
-    fixtureVersion: options.fixtureVersion || 'NW-RANK-004.actual.v1',
+    fixtureVersion: options.fixtureVersion || 'NW-RANK-010.actual.v1',
     fixtureTimestamp: input.nowMs || TOP_STORIES_REGRESSION_INPUT.nowMs,
     rankedIdsInOrder: explanationRows.map(row => row.id),
     slotBandCounts: countBy(explanationRows, 'slotBand'),
     eventTypeCounts: countBy(explanationRows, 'eventType'),
-    topFeedBoostedIds: uniqueSorted(explanationRows.filter(row => row.topFeedHits > 0).map(row => row.id)),
+    topFeedBoostedIds: uniqueSorted(explanationRows
+      .filter(row => row.topFeedCorroborationHits > 0)
+      .map(row => row.id)),
     penalizedIds: uniqueSorted([
       ...explanationRows.filter(row => row.penalties > 0).map(row => row.id),
       ...allScored.filter(row => Number(row._topStoryRank?.penalties || 0) > 0).map(row => row.id),

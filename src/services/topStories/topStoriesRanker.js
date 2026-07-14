@@ -61,17 +61,38 @@ function getNormalizedScore(score, policy) {
   return Math.max(0, Math.min(1, Number(score || 0) / getMaxWeightedScore(policy)));
 }
 
-function hasFallbackEvidence(signals) {
-  if (!signals.isAggregatorSource) return true;
-  return signals.sourceCount >= 2 || signals.topFeedHits >= 1;
+function hasIndependentEvidence(signals = {}) {
+  return Boolean(
+    signals.hasIndependentEvidence ||
+    Number(signals.sourceCount || 0) >= 2 ||
+    Number(signals.topFeedCorroborationHits || 0) >= 1,
+  );
 }
 
-function getSlotBand(signals, policy, normalizedScore) {
-  const band = getAgeBand(signals, policy);
-  if (band === 'rejected' || band === 'expired') return band;
-  if (normalizedScore < Number(policy.thresholds?.[band] || 0)) return 'rejected';
-  if (band === 'fallback' && !hasFallbackEvidence(signals)) return 'rejected';
-  return band;
+function getSlotDecision(signals, event, policy, normalizedScore) {
+  const ageBand = getAgeBand(signals, policy);
+  if (ageBand === 'rejected') {
+    return { slotBand: 'rejected', admissionReason: 'low_confidence_timestamp' };
+  }
+  if (ageBand === 'expired') {
+    return { slotBand: 'expired', admissionReason: 'outside_fallback_window' };
+  }
+
+  const independentEvidence = hasIndependentEvidence(signals);
+  if (event.qualified === false && !independentEvidence) {
+    return { slotBand: 'rejected', admissionReason: 'unqualified_without_independent_evidence' };
+  }
+
+  const threshold = Number(policy.thresholds?.[ageBand] || 0);
+  if (normalizedScore < threshold) {
+    return { slotBand: 'rejected', admissionReason: `below_${ageBand}_threshold` };
+  }
+
+  if (ageBand === 'fallback' && signals.isAggregatorSource && !independentEvidence) {
+    return { slotBand: 'rejected', admissionReason: 'fallback_aggregator_without_corroboration' };
+  }
+
+  return { slotBand: ageBand, admissionReason: 'admitted' };
 }
 
 function isColdStartCritical(signals, event, publicInterestScore) {
@@ -117,12 +138,15 @@ function getGeoKey(story = {}) {
 }
 
 function markSlot(story, slotBand) {
+  const rank = {
+    ...story._topStoryRank,
+    slotBand,
+  };
   return {
     ...story,
     _topStoryRank: {
-      ...story._topStoryRank,
-      slotBand,
-      explanation: explainTopStoryRank({ ...story, _topStoryRank: story._topStoryRank }),
+      ...rank,
+      explanation: explainTopStoryRank({ ...story, _topStoryRank: rank }),
     },
   };
 }
@@ -153,7 +177,7 @@ export function scoreTopStoryCandidate(story, context = {}) {
     (signals.sourceQualityScore * policy.weights.sourceQuality) +
     (signals.locationRelevanceScore * policy.weights.locationRelevance) - penalties;
   const normalizedScore = getNormalizedScore(rawScore, policy);
-  const slotBand = getSlotBand(signals, policy, normalizedScore);
+  const slotDecision = getSlotDecision(signals, event, policy, normalizedScore);
   const coldStartCritical = isColdStartCritical(signals, event, publicInterestScore);
   const priorityBucket = getPriorityBucket({ coldStartCritical });
 
@@ -165,7 +189,8 @@ export function scoreTopStoryCandidate(story, context = {}) {
       priorityBucket,
       priorityBucketLabel: getPriorityBucketLabel(priorityBucket),
       coldStartCritical,
-      slotBand,
+      slotBand: slotDecision.slotBand,
+      admissionReason: slotDecision.admissionReason,
       eventType: event.eventType,
       eventQualified: event.qualified !== false,
       eventEvidence: event.evidence || [],
@@ -179,8 +204,13 @@ export function scoreTopStoryCandidate(story, context = {}) {
       ageMinutes: signals.ageMinutes,
       sourceQualityScore: signals.sourceQualityScore,
       sourceCount: signals.sourceCount,
+      corroboratingSourceCount: signals.corroboratingSourceCount,
+      independentEvidenceCount: signals.independentEvidenceCount,
+      hasIndependentEvidence: signals.hasIndependentEvidence,
       isAggregatorSource: signals.isAggregatorSource,
+      topFeedPresent: signals.topFeedPresent,
       topFeedHits: signals.topFeedHits || 0,
+      topFeedCorroborationHits: signals.topFeedCorroborationHits || 0,
       clusterKey: signals.clusterKey,
     },
   };
@@ -222,10 +252,13 @@ export function explainTopStoryRank(story = {}) {
     `event=${r.eventType || 'unknown'}`,
     `qualified=${r.eventQualified !== false}`,
     `band=${r.slotBand || 'unknown'}`,
+    `reason=${r.admissionReason || 'unknown'}`,
     `priority=${r.priorityBucketLabel || 'standard'}`,
     `score=${Number(r.normalizedScore || 0).toFixed(2)}`,
     `fresh=${Number(r.freshnessScore || 0).toFixed(2)}`,
     `consensus=${Number(r.consensusScore || 0).toFixed(2)}`,
+    `sources=${Number(r.sourceCount || 0)}`,
+    `corroboration=${Number(r.independentEvidenceCount || 0).toFixed(2)}`,
     `penalty=${Number(r.penalties || 0).toFixed(1)}`,
   ].join('; ');
 }
@@ -234,12 +267,6 @@ function fillSlots(chosen, pool, limit, policy, slotBand) {
   for (const item of pool) {
     if (chosen.length >= limit) break;
     if (!canUse(item, chosen, policy)) continue;
-    chosen.push(markSlot(item, slotBand || item._topStoryRank.slotBand));
-  }
-  for (const item of pool) {
-    if (chosen.length >= limit) break;
-    if (chosen.some(existing => dedupeKey(existing) === dedupeKey(item))) continue;
-    if (chosen.some(existing => existing._topStoryRank?.clusterKey === item._topStoryRank?.clusterKey)) continue;
     chosen.push(markSlot(item, slotBand || item._topStoryRank.slotBand));
   }
 }

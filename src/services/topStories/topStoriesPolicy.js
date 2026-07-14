@@ -18,7 +18,7 @@ export const TOP_STORIES_POLICY = Object.freeze({
   thresholds: Object.freeze({
     primary: 0.5,
     secondary: 0.4,
-    fallback: 0.34,
+    fallback: 0.33,
   }),
   diversity: Object.freeze({
     maxPerSource: 4,

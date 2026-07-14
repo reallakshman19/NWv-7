@@ -50,17 +50,23 @@ describe('NW-RANK-003 Top Stories explainability', () => {
       title: expect.any(String),
       score: expect.any(Number),
       slotBand: expect.any(String),
+      admissionReason: expect.any(String),
       eventType: expect.any(String),
+      eventQualified: expect.any(Boolean),
       freshnessScore: expect.any(Number),
       consensusScore: expect.any(Number),
       penalties: expect.any(Number),
       sourceCount: expect.any(Number),
       topFeedHits: expect.any(Number),
+      topFeedCorroborationHits: expect.any(Number),
+      independentEvidenceCount: expect.any(Number),
       explanation: expect.any(String),
     });
     expect(first.explanation).toContain('score=');
     expect(first.explanation).toContain('sourceCount=');
     expect(first.explanation).toContain('topFeedHits=');
+    expect(first.explanation).toContain('topFeedCorroboration=');
+    expect(first.explanation).toContain('admission=');
   });
 
   it('does not mutate ranked story input', () => {
@@ -89,22 +95,24 @@ describe('NW-RANK-003 Top Stories explainability', () => {
     expect(promo.highlights).toContain('penalty-applied');
   });
 
-  it('shows bounded top-feed contribution for boosted hard news', () => {
+  it('shows bounded independent top-feed contribution for boosted hard news', () => {
     const boosted = explainTopStoriesList(rankFixture())
       .find(item => item.id === 'source-diverse-top-feed');
     expect(boosted).toBeTruthy();
     expect(boosted.topFeedHits).toBeGreaterThan(0);
+    expect(boosted.topFeedCorroborationHits).toBeGreaterThan(0);
     expect(boosted.consensusScore).toBeLessThanOrEqual(1);
     expect(boosted.highlights).toContain('bounded-top-feed-signal');
   });
 
-  it('shows capped consensus for same-source top-feed spam fixture', () => {
-    const spam = explainTopStoriesList(rankFixture())
-      .find(item => item.id === 'same-source-top-feed-spam');
-    expect(spam).toBeTruthy();
+  it('shows same-source top-feed membership without false corroboration', () => {
+    const spam = explainRankedTopStory(scoreFixture('same-source-top-feed-spam'));
     expect(spam.topFeedHits).toBeGreaterThan(0);
     expect(spam.topFeedHits).toBeLessThan(3);
-    expect(spam.consensusScore).toBeLessThanOrEqual(1);
+    expect(spam.topFeedCorroborationHits).toBe(0);
+    expect(spam.consensusScore).toBe(0);
+    expect(spam.slotBand).toBe('rejected');
+    expect(spam.highlights).toContain('top-feed-membership-only');
   });
 
   it('keeps clustered duplicate fixture to one ranked explanation', () => {

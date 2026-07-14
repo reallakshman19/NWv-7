@@ -63,11 +63,12 @@ describe('NW-RANK-004 Top Stories audit harness', () => {
     expect(snapshot.penalizedIds).toContain('low-confidence-story');
   });
 
-  it('includes entertainment promo, top-feed, duplicate-cluster, and local public alert evidence', () => {
+  it('includes independent top-feed, rejected self-promotion, duplicate-cluster, and local alert evidence', () => {
     const snapshot = buildTopStoriesAuditSnapshot();
     expect(snapshot.penalizedIds).toContain('god-of-war-promo');
     expect(snapshot.topFeedBoostedIds).toContain('source-diverse-top-feed');
-    expect(snapshot.topFeedBoostedIds).toContain('same-source-top-feed-spam');
+    expect(snapshot.topFeedBoostedIds).not.toContain('same-source-top-feed-spam');
+    expect(snapshot.rejectedExpiredIds).toContain('same-source-top-feed-spam');
     expect(snapshot.duplicateClusterRepresentatives).toEqual([
       {
         clusterKey: 'cyclone-alert-cluster',
@@ -76,6 +77,7 @@ describe('NW-RANK-004 Top Stories audit harness', () => {
       },
     ]);
     expect(snapshot.rankedIdsInOrder).toContain('local-public-alert');
+    expect(snapshot.rankedIdsInOrder).toContain('fallback-hard-news');
   });
 
   it('does not mutate input fixtures', () => {
