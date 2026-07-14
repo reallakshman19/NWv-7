@@ -6,13 +6,13 @@
 - Parents: `10`
 - Average angles: `1.8`
 - Average temporal tiers: `1.8`
-- Average evolution roles: `1.9`
+- Average evolution roles: `1.8`
 - Base report share: `0.3`
 - Multi-angle parents: `8`
 - Weak parents: `2`
-- Story count: `762`
-- Source groups: `10`
-- Content hash: `ba197b0469cc62e0`
+- Story count: `754`
+- Source groups: `9`
+- Content hash: `be41e50693ed0611`
 
 ## Top parents
 
@@ -27,7 +27,7 @@
 | 7 | Bodies of 15 Indian tourists killed in Vietnam boat accident flown home | 2 | fact_update, regional_followup | NO | 0.6252128795983323 |
 | 8 | India beat England in historic first women's test at Lord's - Reuters | 2 | regional_followup, base_report | NO | 0.5323566135483351 |
 | 9 | Puravankara Q1 sales bookings up 28% to Rs 1,439 cr on higher volumes, price growth | 2 | fact_update | YES | 0.7566133864516651 |
-| 10 | MEA summons Iranian deputy envoy, after Indian national killed in attack on ship | 2 | fact_update | YES | 0.6765800531183316 |
+| 10 | Supreme Court stays Madras High Court order banning cow slaughter in Tamil Nadu | 2 | official_response | YES | 0.6613967197849984 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -38,7 +38,7 @@
 - Parents: `10`
 - Average angles: `1.8`
 - Average temporal tiers: `1.8`
-- Average evolution roles: `1.9`
+- Average evolution roles: `1.8`
 - Base report share: `0.3`
 - Multi-angle parents: `8`
 - Top parent angles: `2`
@@ -54,7 +54,7 @@
 - Parent cluster count: `10` / `>= 3`
 - Average visible angle count: `1.8` / `>= 1.4`
 - Average temporal tier count: `1.8` / `>= 1.8`
-- Average evolution role count: `1.9` / `>= 1.6`
+- Average evolution role count: `1.8` / `>= 1.6`
 - Base report share: `0.3` / `<= 0.55`
 - Multi-angle parent count: `8` / `>= 1`
 - Top parent angle count: `2` / `>= 2`

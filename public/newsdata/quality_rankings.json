@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 9
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 9,
+        "parentClusters": 9,
+        "strongParents": 9,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4021,
+      "qualityScore": 0.409,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -929,116 +929,6 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
           "id": "sketch:768c327fc1",
           "item": {
             "angleCount": 1,
@@ -1208,129 +1098,17 @@
           ],
           "score": 0.2929,
           "title": "Tragedy at sea: Vietnam boat capsize survivors from Tamil Nadu recount harrowing moments"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 6
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 6
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "fb6b647db876af8e",
-            "representativeTitle": "Top news of the day: June 30, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 1.0,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 6,
-            "storyIds": [
-              "fb6b647db876af8e",
-              "b65533a7f527bd54",
-              "b0ee10bd74ab7fe3",
-              "df71bc9e8f9d5353",
-              "dadd53c1bc76741b",
-              "bf952c0b99344c4d"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 6
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.2212,
-          "title": "Top news of the day: June 30, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.2982,
-        "eventImportanceScore": 0.6382,
+        "angleDiversityScore": 0.3089,
+        "eventImportanceScore": 0.6033,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4682,
-        "sourceAuthorityScore": 0.4891,
-        "sourceDiversityScore": 0.5182,
-        "temporalEvolutionScore": 0.4027
+        "noveltyDeltaScore": 0.4722,
+        "sourceAuthorityScore": 0.5133,
+        "sourceDiversityScore": 0.5556,
+        "temporalEvolutionScore": 0.41
       }
     },
     "localTravel": {
@@ -1390,12 +1168,16 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "It was my decision to join TVK: M.R. Vijayabhaskar: futureValidity failed — expired display window",
+        "It was my decision to join TVK: M.R. Vijayabhaskar: alertUrgency failed — alert expired",
+        "SASTRA to offer courses in optometry: futureValidity failed — expired display window",
+        "SASTRA to offer courses in optometry: alertUrgency failed — alert expired",
         "No water supply in parts of Tiruchi on July 15: futureValidity failed — expired display window",
         "No water supply in parts of Tiruchi on July 15: alertUrgency failed — alert expired",
         "Power shutdown in Tiruchi on July 14: futureValidity failed — expired display window",
@@ -1410,16 +1192,12 @@
         "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: alertUrgency failed — alert expired",
         "Apprenticeship placement camp to be held in Pudukottai: futureValidity failed — expired display window",
         "Apprenticeship placement camp to be held in Pudukottai: alertUrgency failed — alert expired",
-        "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window",
-        "Rail commuters seek track doubling between Thanjavur and Villupuram: alertUrgency failed — alert expired",
-        "World Population Day observed: futureValidity failed — expired display window",
-        "World Population Day observed: alertUrgency failed — alert expired",
-        "RPF deploys drones to step up surveillance in Tiruchi Division: futureValidity failed — expired display window"
+        "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window"
       ],
       "gateResults": [
         {
           "details": {
-            "itemCount": 30
+            "itemCount": 29
           },
           "name": "upAheadPool",
           "reason": "rankable Up Ahead pool",
@@ -1429,43 +1207,45 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 25,
-              "shopping": 5
+              "alerts": 23,
+              "shopping": 5,
+              "travel_deal": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.5,
+          "score": 0.75,
           "status": "PASS"
         }
       ],
       "gateSummary": {
-        "alerts": 25,
+        "alerts": 23,
         "categoryCounts": {
-          "alerts": 25,
-          "shopping": 5
+          "alerts": 23,
+          "shopping": 5,
+          "travel_deal": 1
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 43,
         "locationCounts": {
-          "chennai": 23,
+          "chennai": 24,
           "online": 1,
-          "trichy": 6
+          "trichy": 4
         },
         "locationsCovered": [
           "chennai",
           "online",
           "trichy"
         ],
-        "offlineOffers": 4,
+        "offlineOffers": 5,
         "onlineOffers": 1,
-        "plannerAdvisoryItems": 30,
-        "rankedItemCount": 30,
-        "suppressedItemCount": 12
+        "plannerAdvisoryItems": 28,
+        "rankedItemCount": 29,
+        "suppressedItemCount": 14
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8432,
+      "qualityScore": 0.8345,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -2272,121 +2052,6 @@
           ],
           "score": 0.8485,
           "title": "Farmers allege mismanagement of space at TNCSC rice mill at Thirunageswaram"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "a8527fe314e270c8"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784041271000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "6987bd7eb46470b6",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784041271000,
-            "id": "6987bd7eb46470b6",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784646071000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784041271000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783954871000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "It was my decision to join TVK: M.R. Vijayabhaskar",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/it-was-my-decision-to-join-tvk-mr-vijayabhaskar/article71217886.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "It was my decision to join TVK: M.R. Vijayabhaskar"
         },
         {
           "category": "alerts",
@@ -3313,121 +2978,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "cb188dba05bf20e3"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784040709000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "4861e3b31f7d1b1b",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784040709000,
-            "id": "4861e3b31f7d1b1b",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784645509000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784040709000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1783954309000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "SASTRA to offer courses in optometry",
-            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/sastra-to-offer-courses-in-optometry/article71217357.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "SASTRA to offer courses in optometry"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "d4bf41deadd95285"
               },
               "name": "dedup",
@@ -4043,7 +3593,7 @@
             },
             {
               "details": {
-                "hoursLeft": 4.31
+                "hoursLeft": 3.95
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4503,7 +4053,7 @@
             },
             {
               "details": {
-                "hoursLeft": 2.65
+                "hoursLeft": 2.3
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4618,7 +4168,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.68
+                "hoursLeft": 9.32
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4733,7 +4283,7 @@
             },
             {
               "details": {
-                "hoursLeft": 23.12
+                "hoursLeft": 22.76
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4848,7 +4398,7 @@
             },
             {
               "details": {
-                "hoursLeft": 44.12
+                "hoursLeft": 43.76
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4917,21 +4467,135 @@
           ],
           "score": 0.726,
           "title": "‘Unheard of’: Up to 72% off in Amazon sale - News.com.au"
+        },
+        {
+          "category": "travel_deal",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "f8c74ed5da6dd887"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784169983000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 35.71
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "eff9b9adf4573cae",
+          "item": {
+            "actionabilityScore": 0.5,
+            "category": "airlines",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784169983000,
+            "id": "eff9b9adf4573cae",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784774783000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784169983000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": false,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "travel_deal",
+            "plannerEligible": false,
+            "publishedAt": 1783997183000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.74,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 0.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Airlines",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMimwFBVV95cUxNQTJrLW83NFRFbTVDQXhRdGZ3U1kyaGZ1Rnoycm5pdEZSYy1QNXhiX3A5UTNuM3F6d3ZHOVVxS0p5bGx0VHR5ZVV4VmZoYTNvc1RSelM5bkxDTVh2Tm9VcktQZVMwUWZZY3kzUEFVX2ozdlBZdmFCYllsbUtmd3Jha1ZiWjBscHZiQm4zQW9WX0FuTU9lU093b3Z2RQ?oc=5\" target=\"_blank\">EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Nomad Lawyer</font>",
+            "suppressionReason": null,
+            "title": "EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000 - Nomad Lawyer",
+            "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNQTJrLW83NFRFbTVDQXhRdGZ3U1kyaGZ1Rnoycm5pdEZSYy1QNXhiX3A5UTNuM3F6d3ZHOVVxS0p5bGx0VHR5ZVV4VmZoYTNvc1RSelM5bkxDTVh2Tm9VcktQZVMwUWZZY3kzUEFVX2ozdlBZdmFCYllsbUtmd3Jha1ZiWjBscHZiQm4zQW9WX0FuTU9lU093b3Z2RQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "travel_deal",
+            "valid undated item with active display window",
+            "location matches configured profile"
+          ],
+          "score": 0.685,
+          "title": "EaseMyTrip Launches Monsoon Travel Sale 2026 with Flight and Hotel Discounts Up to INR 15,000 - Nomad Lawyer"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.98,
-        "categoryPriorityScore": 0.9467,
+        "actionabilityScore": 0.9741,
+        "categoryPriorityScore": 0.9359,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9347,
-        "plannerFitScore": 1.0,
+        "locationScore": 0.9228,
+        "plannerFitScore": 0.9655,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.8107
+        "urgencyOrExpiryScore": 0.8131
       }
     }
   },
-  "generatedAt": 1784040130192,
+  "generatedAt": 1784041412868,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4950,7 +4614,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "12 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4959,13 +4623,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4021,
+      "insight": 0.409,
       "localTravel": 0.0,
-      "upAhead": 0.8432
+      "upAhead": 0.8345
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4973,7 +4637,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3113,
+    "overallScore": 0.3109,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4983,6 +4647,10 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "It was my decision to join TVK: M.R. Vijayabhaskar: futureValidity failed — expired display window",
+      "It was my decision to join TVK: M.R. Vijayabhaskar: alertUrgency failed — alert expired",
+      "SASTRA to offer courses in optometry: futureValidity failed — expired display window",
+      "SASTRA to offer courses in optometry: alertUrgency failed — alert expired",
       "No water supply in parts of Tiruchi on July 15: futureValidity failed — expired display window",
       "No water supply in parts of Tiruchi on July 15: alertUrgency failed — alert expired",
       "Power shutdown in Tiruchi on July 14: futureValidity failed — expired display window",
@@ -4997,11 +4665,7 @@
       "Vizhuthugal Integrated Service Centres to be launched in Ariyalur district: alertUrgency failed — alert expired",
       "Apprenticeship placement camp to be held in Pudukottai: futureValidity failed — expired display window",
       "Apprenticeship placement camp to be held in Pudukottai: alertUrgency failed — alert expired",
-      "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window",
-      "Rail commuters seek track doubling between Thanjavur and Villupuram: alertUrgency failed — alert expired",
-      "World Population Day observed: futureValidity failed — expired display window",
-      "World Population Day observed: alertUrgency failed — alert expired",
-      "RPF deploys drones to step up surveillance in Tiruchi Division: futureValidity failed — expired display window"
+      "Rail commuters seek track doubling between Thanjavur and Villupuram: futureValidity failed — expired display window"
     ]
   }
 }
