@@ -170,6 +170,7 @@ function normalizeSummary(summary = {}) {
   const sectionId = normalizeKey(summary.section || summary.sectionId || summary.id || summary.key || 'unknown');
   const sourceCounts = isRecord(summary.sourceCounts) ? summary.sourceCounts : {};
   const sourceGroups = unique([
+    ...asArray(summary.sourceGroups).map(normalizeKey),
     ...Object.keys(sourceCounts).map(normalizeKey),
     ...asArray(summary.items).map(item => normalizeKey(item?.sourceGroup || item?.source)).filter(Boolean),
   ]);
@@ -180,11 +181,21 @@ function normalizeSummary(summary = {}) {
     storyCount: numberValue(summary.count ?? summary.storyCount ?? asArray(summary.items).length, 0),
     sourceCounts,
     sourceGroups,
-    healthStatus: summary.health?.status || sectionQuality.status || null,
-    isSingleSource: Boolean(summary.isSingleSource) || sourceGroups.length === 1,
+    healthStatus: summary.healthStatus || summary.health?.status || sectionQuality.status || null,
+    isSingleSource: Boolean(summary.isSingleSource || summary.singleSource) || sourceGroups.length === 1,
     staleReason: textValue(summary.staleReason || summary.fetchDiagnostics?.fallbackReason || sectionQuality.reason),
-    lastCheckedAt: normalizeTimestamp(summary.fetchDiagnostics?.lastCheckedAt || summary.fetchDiagnostics?.checkedAt || summary.snapshotRuntimeSummary?.generatedAt),
-    lastError: textValue(summary.error || summary.fetchDiagnostics?.error || sectionQuality.error),
+    lastCheckedAt: normalizeTimestamp(
+      summary.lastCheckedAt ||
+      summary.fetchDiagnostics?.lastCheckedAt ||
+      summary.fetchDiagnostics?.checkedAt ||
+      summary.snapshotRuntimeSummary?.generatedAt
+    ),
+    lastError: textValue(
+      summary.lastError ||
+      summary.error ||
+      summary.fetchDiagnostics?.error ||
+      sectionQuality.error
+    ),
   };
 }
 
