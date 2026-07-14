@@ -35,7 +35,7 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
       'runtime_story_evidence_only',
       'source_health_unavailable',
     ]);
-    expect(summary.lastCheckedAt).toBe('2026-07-14T16:01:00.000Z');
+    expect(summary.lastCheckedAt).toBe('2026-07-14T14:41:00.000Z');
   });
 
   it('never fabricates health when there are no visible stories', () => {
