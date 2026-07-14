@@ -9,6 +9,58 @@ import { sanitizeHtmlText } from '../utils/htmlText.js';
 import { getRankingPolicy } from '../config/rankingPolicy.js';
 import { computeTrending } from '../utils/trendingUtils.js';
 
+const AREA_RELEVANCE_LABEL_GUIDANCE = {
+    'exact-area': 'strong local/area evidence',
+    city: 'city-level evidence',
+    'state-region': 'state/governorate-level backfill',
+    country: 'country-level backfill',
+    backfill: 'weak regional fallback',
+    weak: 'insufficient local evidence',
+    'off-area': 'likely wrong-area story',
+};
+
+function formatAreaRelevanceList(value) {
+    if (!Array.isArray(value)) return 'None';
+
+    const clean = value
+        .map(item => String(item || '').trim())
+        .filter(Boolean);
+
+    return clean.length > 0 ? clean.join(', ') : 'None';
+}
+
+function humanizeAreaRelevanceReason(value) {
+    return String(value || '')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function buildAreaRelevanceInfoText(areaRelevance) {
+    if (!areaRelevance || typeof areaRelevance !== 'object') return '';
+
+    const label = String(areaRelevance.label || 'unknown');
+    const labelGuide = AREA_RELEVANCE_LABEL_GUIDANCE[label];
+    const score = Number.isFinite(Number(areaRelevance.score))
+        ? Number(areaRelevance.score)
+        : 0;
+    const reasons = Array.isArray(areaRelevance.reasons)
+        ? areaRelevance.reasons.map(humanizeAreaRelevanceReason).filter(Boolean)
+        : [];
+
+    return [
+        'Area Relevance',
+        `Target: ${areaRelevance.target || 'unknown'}`,
+        `Label: ${labelGuide ? `${label} — ${labelGuide}` : label}`,
+        `Score: ${score}`,
+        `Matched Terms: ${formatAreaRelevanceList(areaRelevance.matchedTerms)}`,
+        `Matched Fields: ${formatAreaRelevanceList(areaRelevance.matchedFields)}`,
+        `Source Evidence: ${formatAreaRelevanceList(areaRelevance.sourceEvidence)}`,
+        `Reasons: ${reasons.length > 0 ? reasons.join(', ') : 'None'}`,
+        `Version: ${areaRelevance.version || 'unknown'}`,
+    ].join('\n');
+}
+
 /**
  * News Section Component
  * Displays news items for a specific region (World/India/Chennai/Trichy/Local/Entertainment)
@@ -65,7 +117,9 @@ function NewsSection({
     };
 
     const handleInfoClick = (item, includeScoreBreakdown = false) => {
-        setInfoText(buildStoryInfoText(item, { includeScoreBreakdown }) || 'No source link available.');
+        const baseInfo = buildStoryInfoText(item, { includeScoreBreakdown }) || 'No source link available.';
+        const areaInfo = buildAreaRelevanceInfoText(item?._areaRelevance);
+        setInfoText([baseInfo, areaInfo].filter(Boolean).join('\n\n'));
     };
 
     const handleHealthClick = (event) => {
@@ -282,15 +336,15 @@ function NewsSection({
                             {(() => {
                                 return infoText.split('\n').map((line, index) => {
                                     if (!line.trim()) return <div key={index} className="nim-separator" />;
-                                    
+
                                     const sepIdx = line.indexOf(':');
                                     if (sepIdx === -1) {
                                         return <p key={index} className="nim-text-line">{line}</p>;
                                     }
-                                    
+
                                     const key = line.slice(0, sepIdx).trim();
                                     const value = line.slice(sepIdx + 1).trim();
-                                    
+
                                     if (value.startsWith('http')) {
                                         return (
                                             <div key={index} className="nim-row">
@@ -301,7 +355,7 @@ function NewsSection({
                                             </div>
                                         );
                                     }
-                                    
+
                                     return (
                                         <div key={index} className="nim-row">
                                             <span className="nim-key">{key}</span>
