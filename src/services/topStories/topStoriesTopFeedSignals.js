@@ -113,6 +113,8 @@ function addEvidence(group, row, index) {
   group.evidenceKeys.add(`${source}|${feedSource}|${rank || index + 1}`);
 }
 
+// Legacy membership/evidence-volume metric retained for compatibility and display.
+// It is not used as independent corroboration by the Top Stories ranker.
 function getHitCount(group, options) {
   const sourceCount = Math.max(1, group.sources.size);
   const evidenceCount = Math.max(sourceCount, group.evidenceKeys.size);
@@ -120,20 +122,36 @@ function getHitCount(group, options) {
   return Math.min(options.maxHits, sourceCount + boundedEvidence);
 }
 
+// Independent corroboration starts only after the first publisher/source family.
+// Multiple rows or feed positions from the same publisher do not corroborate themselves.
+function getCorroborationHits(group, options) {
+  return Math.min(options.maxHits, Math.max(0, group.sources.size - 1));
+}
+
 function finalizeGroup(group, options) {
   const topFeedHits = getHitCount(group, options);
-  const sourceCount = Math.min(options.maxSources, Math.max(1, group.sources.size));
+  const topFeedSourceCount = Math.min(options.maxSources, Math.max(1, group.sources.size));
+  const topFeedCorroborationHits = getCorroborationHits(group, options);
+  const topFeedCorroboratingSourceCount = Math.min(
+    Math.max(0, options.maxSources - 1),
+    Math.max(0, topFeedSourceCount - 1),
+  );
   const bestRank = group.ranks.length > 0 ? Math.min(...group.ranks) : null;
   const topFeedRankScore = rankScore(bestRank, group.firstIndex, options.maxRank);
-  const consensusBase = sourceCount + topFeedHits + topFeedRankScore;
-  const topFeedConsensusScore = clampScore(Math.log1p(consensusBase) / Math.log1p(options.maxHits + options.maxSources));
+  const topFeedConsensusScore = topFeedCorroborationHits > 0
+    ? clampScore(Math.log1p(topFeedCorroborationHits) / Math.log1p(options.maxSources))
+    : 0;
+
   return {
     ...group.firstRow,
     normalizedIdentity: group.identity,
+    topFeedPresent: true,
     topFeedHits,
+    topFeedCorroborationHits,
     topFeedConsensusScore,
     topFeedRankScore,
-    topFeedSourceCount: sourceCount,
+    topFeedSourceCount,
+    topFeedCorroboratingSourceCount,
     topFeedSources: [...group.sources].sort(),
     topFeedFeedSources: [...group.feedSources].sort(),
     topFeedBestRank: bestRank,
@@ -175,10 +193,19 @@ export function mergeTopFeedSignalsIntoStories(stories = [], rows = [], options 
     if (!signal) return { ...story };
     return {
       ...story,
+      topFeedPresent: Boolean(story.topFeedPresent || signal.topFeedPresent),
       topFeedHits: Math.max(Number(story.topFeedHits || 0), Number(signal.topFeedHits || 0)),
+      topFeedCorroborationHits: Math.max(
+        Number(story.topFeedCorroborationHits || 0),
+        Number(signal.topFeedCorroborationHits || 0),
+      ),
       topFeedConsensusScore: Math.max(Number(story.topFeedConsensusScore || 0), Number(signal.topFeedConsensusScore || 0)),
       topFeedRankScore: Math.max(Number(story.topFeedRankScore || 0), Number(signal.topFeedRankScore || 0)),
       topFeedSourceCount: Math.max(Number(story.topFeedSourceCount || 0), Number(signal.topFeedSourceCount || 0)),
+      topFeedCorroboratingSourceCount: Math.max(
+        Number(story.topFeedCorroboratingSourceCount || 0),
+        Number(signal.topFeedCorroboratingSourceCount || 0),
+      ),
       topFeedSources: signal.topFeedSources || [],
     };
   });
@@ -187,7 +214,9 @@ export function mergeTopFeedSignalsIntoStories(stories = [], rows = [], options 
 export function explainTopFeedSignal(signal = {}) {
   return [
     `identity=${signal.normalizedIdentity || 'unknown'}`,
+    `present=${Boolean(signal.topFeedPresent)}`,
     `hits=${Number(signal.topFeedHits || 0).toFixed(2)}`,
+    `corroboration=${Number(signal.topFeedCorroborationHits || 0).toFixed(2)}`,
     `consensus=${Number(signal.topFeedConsensusScore || 0).toFixed(2)}`,
     `rank=${Number(signal.topFeedRankScore || 0).toFixed(2)}`,
     `sources=${Number(signal.topFeedSourceCount || 0)}`,
