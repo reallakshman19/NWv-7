@@ -42,15 +42,17 @@ describe('NW-RANK-005 Top Stories audit adapter shadow mode', () => {
     expect(payload.summary).toMatchObject({
       ok: true,
       mode: 'shadow-audit',
-      rankedCount: 7,
-      expectedRankedCount: 7,
+      rankedCount: 6,
+      expectedRankedCount: 6,
       rankedIdsInOrder: expect.any(Array),
       topFeedBoostedIds: expect.any(Array),
       penalizedIds: expect.any(Array),
       rejectedExpiredIds: expect.any(Array),
     });
     expect(payload.summary.rankedIdsInOrder).not.toContain('god-of-war-promo');
+    expect(payload.summary.rankedIdsInOrder).not.toContain('same-source-top-feed-spam');
     expect(payload.summary.rejectedExpiredIds).toContain('god-of-war-promo');
+    expect(payload.summary.rejectedExpiredIds).toContain('same-source-top-feed-spam');
   });
 
   it('produces deterministic stable serialization', () => {
