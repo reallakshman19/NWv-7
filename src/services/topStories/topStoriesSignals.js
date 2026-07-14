@@ -58,10 +58,13 @@ function getTopFeedSignal(story = {}, context = {}) {
 
 function pickTopFeedSignals(signal = {}) {
   return {
+    topFeedPresent: Boolean(signal.topFeedPresent),
     topFeedHits: Number(signal.topFeedHits || 0),
+    topFeedCorroborationHits: Number(signal.topFeedCorroborationHits || 0),
     topFeedConsensusScore: Number(signal.topFeedConsensusScore || 0),
     topFeedRankScore: Number(signal.topFeedRankScore || 0),
     topFeedSourceCount: Number(signal.topFeedSourceCount || 0),
+    topFeedCorroboratingSourceCount: Number(signal.topFeedCorroboratingSourceCount || 0),
     topFeedSources: Array.isArray(signal.topFeedSources) ? signal.topFeedSources : [],
     topFeedBestRank: signal.topFeedBestRank || null,
     normalizedTopFeedIdentity: signal.normalizedIdentity || '',
@@ -127,12 +130,32 @@ export function getFreshnessScore(ageHours, policy) {
   return clampScore(1 - (ageHours / policy.fallbackWindowHours));
 }
 
-export function getConsensusScore(story = {}, context = {}, policy) {
-  const sourceCount = Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
-  const cluster = Number(story.clusteredItems || 1) * policy.consensus.clusterWeight;
+function getSourceCount(story = {}) {
+  return Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
+}
+
+function getCorroborationParts(story = {}, context = {}, policy) {
+  const sourceCount = getSourceCount(story);
+  const corroboratingSources = Math.max(0, sourceCount - 1);
+  const clusteredItems = Math.max(1, Number(story.clusteredItems || 1));
+  const extraClusterEvidence = sourceCount > 1
+    ? Math.max(0, clusteredItems - sourceCount) * policy.consensus.clusterWeight
+    : 0;
   const topFeed = getTopFeedSignal(story, context);
-  const top = Number(topFeed.topFeedHits || 0) * policy.consensus.topFeedWeight;
-  const raw = sourceCount + Math.max(0, cluster - 1) + top;
+  const topFeedCorroboration = Number(topFeed.topFeedCorroborationHits || 0) * policy.consensus.topFeedWeight;
+  return {
+    sourceCount,
+    corroboratingSources,
+    extraClusterEvidence,
+    topFeedCorroboration,
+    independentEvidenceCount: corroboratingSources + Number(topFeed.topFeedCorroborationHits || 0),
+  };
+}
+
+export function getConsensusScore(story = {}, context = {}, policy) {
+  const parts = getCorroborationParts(story, context, policy);
+  const raw = parts.corroboratingSources + parts.extraClusterEvidence + parts.topFeedCorroboration;
+  if (raw <= 0) return 0;
   return clampScore(Math.log1p(raw) / Math.log1p(policy.consensus.cap));
 }
 
@@ -143,7 +166,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const timestampConfidence = getTimestampConfidence(story);
   const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
-  const sourceCount = Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
+  const corroboration = getCorroborationParts(story, context, policy);
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
     ageHours,
@@ -153,7 +176,10 @@ export function extractTopStorySignals(story = {}, context = {}) {
     breakingScore: Number(story.breakingScore || 0),
     isLiveLike,
     hasFreshLiveEvidence: isLiveLike ? hasFreshLiveEvidence(story, context) : false,
-    sourceCount,
+    sourceCount: corroboration.sourceCount,
+    corroboratingSourceCount: corroboration.corroboratingSources,
+    independentEvidenceCount: corroboration.independentEvidenceCount,
+    hasIndependentEvidence: corroboration.independentEvidenceCount > 0,
     isAggregatorSource: isAggregatorSource(story),
     clusteredItems: Number(story.clusteredItems || 1),
     allSources: uniqueSources(story),
