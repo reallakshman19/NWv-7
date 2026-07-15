@@ -2,16 +2,16 @@
 
 - Ranking version: `tab-specific-quality-ranking-v1`
 - Overall status: **FAIL**
-- Overall score: `0.3129`
+- Overall score: `0.3107`
 
 ## Destination scores
 
 | Destination | Status | Score | Profile | Ranked items |
 |---|---|---:|---|---:|
-| upAhead | WARN | 0.8582 | `upAhead-v2-lifecycle-location-category` | 30 |
+| upAhead | WARN | 0.8595 | `upAhead-v2-lifecycle-location-category` | 30 |
 | buzz | FAIL | 0.0 | `buzz-v2-trend-local-travel` | 0 |
 | localTravel | FAIL | 0.0 | `localTravel-v1-location-utility-disruption` | 0 |
-| insight | WARN | 0.3934 | `insight-v2-event-angle-tree` | 10 |
+| insight | WARN | 0.3833 | `insight-v2-event-angle-tree` | 10 |
 
 ## Findings
 
