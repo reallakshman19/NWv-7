@@ -1,18 +1,18 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784089702457,
-  "contentHash": "0cb10864f22787d0",
+  "generatedAt": 1784097458421,
+  "contentHash": "25b11bf5cda4eb27",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 662,
+  "storyCount": 640,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
   "avgAngles": 1.3,
-  "avgTemporalTiers": 1.4,
-  "avgEvolutionRoles": 1.6,
-  "baseReportShare": 0.1875,
+  "avgTemporalTiers": 1.6,
+  "avgEvolutionRoles": 1.7,
+  "baseReportShare": 0.2631578947368421,
   "multiAngleCount": 3,
   "weakParentCount": 7,
   "runtimeQualityGate": {
@@ -23,54 +23,54 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 29,
+      "signalScore": 35,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 602,
+      "storyCount": 587,
       "risingCount": 0,
       "thinCount": 7,
       "multiAngleCount": 3,
       "lowAngleCount": 7,
       "strongAngleCount": 0,
       "avgAngles": 1.3,
-      "avgChildren": 1.6,
-      "avgScore": 0.672770075593823,
-      "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 4,
+      "avgChildren": 1.9,
+      "avgScore": 0.6420797377739946,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 5,
       "coverageLabel": "3/10",
       "warnings": [
         "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "5 cluster(s) are below source-diversity target.",
-        "6 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
         "7 cluster(s) are marked thin.",
-        "600 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "530 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 29,
+      "signalScore": 35,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 602,
+      "storyCount": 587,
       "risingCount": 0,
       "thinCount": 7,
       "multiAngleCount": 3,
       "lowAngleCount": 7,
       "strongAngleCount": 0,
       "avgAngles": 1.3,
-      "avgChildren": 1.6,
-      "avgScore": 0.672770075593823,
-      "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 4,
+      "avgChildren": 1.9,
+      "avgScore": 0.6420797377739946,
+      "sourceDiversityCoverage": 8,
+      "snapshotCoverage": 5,
       "coverageLabel": "3/10",
       "warnings": [
         "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "5 cluster(s) are below source-diversity target.",
-        "6 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
         "7 cluster(s) are marked thin."
       ]
     },
@@ -85,7 +85,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_367_4edf768fc45e7520",
+      "parentId": "cluster_413_4edf768fc45e7520",
       "headline": "‘Boat flipped in three minutes,’ recounts Vietnam crash survivor upon arrival in Chennai",
       "score": 0.6943967197849983,
       "postTreeScore": 1.0744,
@@ -106,7 +106,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_34_9d05a83d16ce328d",
+      "parentId": "cluster_76_9d05a83d16ce328d",
       "headline": "Revised US Russia sanctions bill lowers proposed tariffs on China, India",
       "score": 0.6334066135483352,
       "postTreeScore": 1.0334,
@@ -127,7 +127,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_88_cdcf9781333b3ab9",
+      "parentId": "cluster_130_cdcf9781333b3ab9",
       "headline": "E Jean Carroll receives $5.6 million in sexual abuse case after years-long legal battle with Trump",
       "score": 0.6243266666666667,
       "postTreeScore": 1.0243,
@@ -147,7 +147,45 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_219_34852fd2242cb42b",
+      "parentId": "cluster_512_135208cccad57c14",
+      "headline": "Darline Graham Nordone, sister of Lindsey Graham, chosen to fulfill remainder of his U.S. Senate term",
+      "score": 0.6732467197849983,
+      "postTreeScore": 0.5632,
+      "childCount": 2,
+      "angles": [
+        "base_report"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 1,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_192_1f0bfd6486d4ce6d",
+      "headline": "Can’t English be considered an indigenous Indian language, asks SC",
+      "score": 0.6365800531183317,
+      "postTreeScore": 0.5266,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_264_34852fd2242cb42b",
       "headline": "MEA summons Iranian deputy envoy, after Indian national killed in attack on ship",
       "score": 0.5805916683316485,
       "postTreeScore": 0.5106,
@@ -168,7 +206,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_41_6c28039d456c5725",
+      "parentId": "cluster_84_6c28039d456c5725",
       "headline": "NASA astronaut Anil Menon and two Russian cosmonauts reach International Space Station",
       "score": 0.5815232802150019,
       "postTreeScore": 0.4915,
@@ -188,7 +226,44 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_7_1ed9ca0bf03bb3db",
+      "parentId": "cluster_277_2a0a04cd93c1cfff",
+      "headline": "India bans the import of goods made using forced labour, even as U.S. investigation is pending",
+      "score": 0.5513433333333333,
+      "postTreeScore": 0.4613,
+      "childCount": 2,
+      "angles": [
+        "investigative_detail"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "developing"
+      ],
+      "evolutionRoles": [
+        "investigation"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_4_817b67b16a896f7b",
+      "headline": "Groww Q1 Results: Net profit spikes 94% YoY to Rs 735 crore; revenue jumps 66%",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_49_1ed9ca0bf03bb3db",
       "headline": "Tata Elxsi shares slide 6% after weak Q1 results. Why Motilal Oswal sees 16% downside from current levels?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -201,78 +276,6 @@
       ],
       "evolutionRoles": [
         "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_11_1139c5767ba36d4c",
-      "headline": "Alpine Texworld IPO Day 2: GMP at 10%; check subscription, valuation and other key details",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_13_337b1b7168ed7fdd",
-      "headline": "L&T Tech shares gain over 2%, Q1 net profit rises 13%; Nomura, Nuvama, other brokerages revise target prices",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_22_cde6ca6fd6eebcfc",
-      "headline": "Why South Korea's Kospi jumped 7% despite escalating Middle East tensions",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "market_reaction"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_28_e4b31e468d4b56f8",
-      "headline": "TCS, Infosys, Wipro & other IT stocks fall more than 2%. Here's why",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "market_reaction"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -297,13 +300,13 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.6,
+        "actual": 1.7,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.188,
+        "actual": 0.263,
         "required": "<= 0.55"
       },
       {
@@ -345,7 +348,7 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.4,
+        "actual": 1.6,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
@@ -362,15 +365,15 @@
     "summary": {
       "parentCount": 10,
       "avgAngles": 1.3,
-      "avgTemporalTiers": 1.4,
-      "avgEvolutionRoles": 1.6,
-      "baseReportShare": 0.188,
+      "avgTemporalTiers": 1.6,
+      "avgEvolutionRoles": 1.7,
+      "baseReportShare": 0.263,
       "multiAngleCount": 3,
       "weakParentCount": 7,
       "weakParentRatio": 0.7,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 662,
+      "storyCount": 640,
       "sourceGroupCount": 9
     }
   }

@@ -86,9 +86,126 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.388,
+      "qualityScore": 0.3934,
       "qualityStatus": "WARN",
       "rankedItems": [
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 2
+              },
+              "name": "angleDiversity",
+              "reason": "usable angle diversity",
+              "score": 0.78,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:2aeeaefab1",
+          "item": {
+            "angleCount": 2,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:2aeeaefab1",
+            "representativeId": "6febb25f87ef119b",
+            "representativeTitle": "What are the gains from the India-U.K. trade deal? | Explained",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.78,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.55,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.61
+            },
+            "slotCount": 3,
+            "slots": [
+              "minus12h",
+              "minus4h",
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "the_hindu"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "6febb25f87ef119b",
+              "3b411c7d939fe692"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 1
+              },
+              {
+                "angle": "expert_analysis",
+                "count": 1
+              }
+            ],
+            "topTokens": [
+              "india-u",
+              "trade",
+              "deal",
+              "what",
+              "been"
+            ],
+            "topicKey": "india-u|trade|deal"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "usable angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.529,
+          "title": "What are the gains from the India-U.K. trade deal? | Explained"
+        },
         {
           "category": "insightEvent",
           "gates": [
@@ -318,118 +435,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 2
-              },
-              "name": "sourceDiversity",
-              "reason": "multi-source event",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:9171bd160b",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:9171bd160b",
-            "representativeId": "14b7d8ca4400e5ff",
-            "representativeTitle": "Supreme Court questions misuse of POCSO in teen relationships",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.62,
-              "sourceDiversityScore": 0.72,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 2,
-            "sourceGroups": [
-              "google_news",
-              "the_hindu"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "14b7d8ca4400e5ff",
-              "d42bd9e5f374ca5b"
-            ],
-            "topAngles": [
-              {
-                "angle": "official_response",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "supreme",
-              "court",
-              "questions",
-              "misuse"
-            ],
-            "topicKey": "supreme|court|questions"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "multi-source event"
-          ],
-          "score": 0.4805,
-          "title": "Supreme Court questions misuse of POCSO in teen relationships"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 4
+                "storyCount": 5
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -466,7 +472,7 @@
             },
             {
               "details": {
-                "childCount": 4
+                "childCount": 5
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -487,11 +493,11 @@
             "baseReportRatio": 0.0,
             "childScores": [],
             "id": "sketch:313fbb8095",
-            "representativeId": "0df2c21a782b0aa4",
-            "representativeTitle": "Breaking News Live Updates July 15: Four killed, one seriously injured in Nashik road accident - The Times of India",
+            "representativeId": "303e5c7197220398",
+            "representativeTitle": "Breaking News Live Updates: Congress protests in Dehradun after Rahul event nod revoked - The Economic Times",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
+              "eventImportanceScore": 0.95,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -506,17 +512,18 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 4,
+            "storyCount": 5,
             "storyIds": [
+              "303e5c7197220398",
               "0df2c21a782b0aa4",
               "ff468e02cc84fa44",
-              "c0b89c693126f623",
-              "55cf58dd032da79f"
+              "a47f9861bbd2cc3a",
+              "c0b89c693126f623"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 4
+                "count": 5
               }
             ],
             "topTokens": [
@@ -524,8 +531,9 @@
               "live",
               "updates",
               "july",
-              "strong",
-              "govt"
+              "congress",
+              "operation",
+              "strong"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -535,8 +543,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.449,
-          "title": "Breaking News Live Updates July 15: Four killed, one seriously injured in Nashik road accident - The Times of India"
+          "score": 0.479,
+          "title": "Breaking News Live Updates: Congress protests in Dehradun after Rahul event nod revoked - The Economic Times"
         },
         {
           "category": "insightEvent",
@@ -1155,14 +1163,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:959f3e1a2a",
+          "id": "sketch:c1c58008d6",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 1.0,
             "childScores": [],
-            "id": "sketch:959f3e1a2a",
-            "representativeId": "9cd32363874a4c46",
-            "representativeTitle": "An emboldened India holds out for better terms in US trade talks - Reuters",
+            "id": "sketch:c1c58008d6",
+            "representativeId": "fb6b647db876af8e",
+            "representativeTitle": "Top news of the day: June 30, 2026 - The Hindu",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -1174,16 +1182,16 @@
             },
             "slotCount": 1,
             "slots": [
-              "minus12h"
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "reuters"
+              "google_news"
             ],
             "storyCount": 2,
             "storyIds": [
-              "9cd32363874a4c46",
-              "0e72ab70b3133b74"
+              "fb6b647db876af8e",
+              "b65533a7f527bd54"
             ],
             "topAngles": [
               {
@@ -1192,12 +1200,10 @@
               }
             ],
             "topTokens": [
-              "emboldened",
-              "india",
-              "holds",
-              "better"
+              "june",
+              "hindu"
             ],
-            "topicKey": "emboldened|india|holds"
+            "topicKey": "june|hindu"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -1206,18 +1212,18 @@
             "one-source event candidate"
           ],
           "score": 0.1751,
-          "title": "An emboldened India holds out for better terms in US trade talks - Reuters"
+          "title": "Top news of the day: June 30, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.638,
+        "angleDiversityScore": 0.303,
+        "eventImportanceScore": 0.65,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.46,
-        "sourceAuthorityScore": 0.476,
-        "sourceDiversityScore": 0.498,
-        "temporalEvolutionScore": 0.394
+        "noveltyDeltaScore": 0.47,
+        "sourceAuthorityScore": 0.452,
+        "sourceDiversityScore": 0.461,
+        "temporalEvolutionScore": 0.418
       }
     },
     "localTravel": {
@@ -1279,8 +1285,7 @@
       "actionableFindings": [
         "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
@@ -1303,23 +1308,25 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 29,
+              "weather_alerts": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
         "alerts": 30,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 29,
+          "weather_alerts": 1
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 41,
+        "inputItemCount": 42,
         "locationCounts": {
           "chennai": 23,
           "trichy": 7
@@ -1335,9 +1342,124 @@
         "suppressedItemCount": 5
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8559,
+      "qualityScore": 0.8582,
       "qualityStatus": "WARN",
       "rankedItems": [
+        {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "0d681168e35cf535"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784169412000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": true
+              },
+              "name": "alertUrgency",
+              "reason": "severe/active alert",
+              "score": 1.0,
+              "status": "PASS"
+            }
+          ],
+          "id": "2a8a683fdb8c87e6",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784169412000,
+            "id": "2a8a683fdb8c87e6",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784774212000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784169412000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784083012000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi3wFBVV95cUxQNnVGbFNNNERhaTJTSmsxSng5ZFBacnFvcWNtOFFNY3RmMjJhLXpwYzk1bm9VWkZ1RjlyZHBESkFPaHRPM0h1Zk03RUVnQnRNS1E3VTBSX2dGWng0OFRKZUV2YTZrZi1HbmJsLU9TbEJ2Tk9sN20zdVVYU29FVXlVSy04VFpBOWVsWkFXM3Y0TF96UlhhMXEtaHU2amJHTzl1MUZMVVYxODRueE1rOUZjbVp1c0JHd1VINF9LRHlBT2VnVmt3dllmUlJZSjBPVUp1SWVCbUVzUkRZcjVqdEhV?oc=5\" target=\"_blank\">IMD warns of heavy rain, storms across major tourist hubs</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MSN</font>",
+            "suppressionReason": null,
+            "title": "IMD warns of heavy rain, storms across major tourist hubs - MSN",
+            "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxQNnVGbFNNNERhaTJTSmsxSng5ZFBacnFvcWNtOFFNY3RmMjJhLXpwYzk1bm9VWkZ1RjlyZHBESkFPaHRPM0h1Zk03RUVnQnRNS1E3VTBSX2dGWng0OFRKZUV2YTZrZi1HbmJsLU9TbEJ2Tk9sN20zdVVYU29FVXlVSy04VFpBOWVsWkFXM3Y0TF96UlhhMXEtaHU2amJHTzl1MUZMVVYxODRueE1rOUZjbVp1c0JHd1VINF9LRHlBT2VnVmt3dllmUlJZSjBPVUp1SWVCbUVzUkRZcjVqdEhV?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8675,
+          "title": "IMD warns of heavy rain, storms across major tourist hubs - MSN"
+        },
         {
           "category": "alerts",
           "gates": [
@@ -4672,136 +4794,21 @@
           ],
           "score": 0.7925,
           "title": "6 of 12 escapees from Chengalpattu government home held in Coimbatore"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "4f21a0bdfe7fdfaa"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784104897000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "c398697227d51501",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784104897000,
-            "id": "c398697227d51501",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784709697000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784104897000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784018497000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "As these retail outlets march towards the centenary mark, an attempt to decipher that which makes them click: Gem & Co at NSC Bose Road in George Town has persisted with its belief that fountain pens, even artisanal ones, have a place in this digital age. And Kalathi Shop, operating from a hole in the wall at North Mada Street in Mylapore, is essentially a petty shop that has people beating a path to its door for its rose milk",
-            "suppressionReason": null,
-            "title": "99 years old,  Gem & Co and Kalathi Shop in Chennai show an enterprise need not have muscle to survive time",
-            "url": "https://www.thehindu.com/news/cities/chennai/99-years-old-gem-co-and-kalathi-shop-in-chennai-show-an-enterprise-need-not-have-muscle-to-survive-time/article71210896.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.7925,
-          "title": "99 years old,  Gem & Co and Kalathi Shop in Chennai show an enterprise need not have muscle to survive time"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "categoryPriorityScore": 0.9993,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9813,
+        "locationScore": 0.9907,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.78
+        "urgencyOrExpiryScore": 0.7873
       }
     }
   },
-  "generatedAt": 1784089703696,
+  "generatedAt": 1784097459220,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4823,7 +4830,6 @@
       "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4835,9 +4841,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.388,
+      "insight": 0.3934,
       "localTravel": 0.0,
-      "upAhead": 0.8559
+      "upAhead": 0.8582
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4845,7 +4851,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.311,
+    "overallScore": 0.3129,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
