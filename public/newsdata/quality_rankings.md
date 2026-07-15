@@ -2,13 +2,13 @@
 
 - Ranking version: `tab-specific-quality-ranking-v1`
 - Overall status: **FAIL**
-- Overall score: `0.3107`
+- Overall score: `0.311`
 
 ## Destination scores
 
 | Destination | Status | Score | Profile | Ranked items |
 |---|---|---:|---|---:|
-| upAhead | WARN | 0.8595 | `upAhead-v2-lifecycle-location-category` | 30 |
+| upAhead | WARN | 0.8606 | `upAhead-v2-lifecycle-location-category` | 30 |
 | buzz | FAIL | 0.0 | `buzz-v2-trend-local-travel` | 0 |
 | localTravel | FAIL | 0.0 | `localTravel-v1-location-utility-disruption` | 0 |
 | insight | WARN | 0.3833 | `insight-v2-event-angle-tree` | 10 |
@@ -25,4 +25,4 @@
 - no ranked local/travel item for muscat
 - no ranked local/travel item for chennai
 - no ranked local/travel item for trichy
-- 2 base-report-heavy Insight parent(s) demoted
+- 1 base-report-heavy Insight parent(s) demoted
