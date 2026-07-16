@@ -48,6 +48,21 @@ function assertTimestamp(value, field) {
   }
 }
 
+function assertInputSource(value) {
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new RepositoryReplayInputError(
+      'invalid_repository_snapshot_input',
+      'inputSource is required',
+    );
+  }
+  if (!value.startsWith('repository-')) {
+    throw new RepositoryReplayInputError(
+      'unsupported_repository_snapshot_source',
+      'inputSource must identify an explicit repository snapshot source',
+    );
+  }
+}
+
 export function validateRepositoryReplayInput(inputBundle) {
   if (!isObject(inputBundle)) {
     throw new RepositoryReplayInputError(
@@ -73,12 +88,7 @@ export function validateRepositoryReplayInput(inputBundle) {
       'settings and sourceHealth objects are required',
     );
   }
-  if (typeof inputBundle.inputSource !== 'string' || !inputBundle.inputSource.trim()) {
-    throw new RepositoryReplayInputError(
-      'invalid_repository_snapshot_input',
-      'inputSource is required',
-    );
-  }
+  assertInputSource(inputBundle.inputSource);
   assertTimestamp(inputBundle.inputSnapshotGeneratedAt, 'inputSnapshotGeneratedAt');
   return inputBundle;
 }
