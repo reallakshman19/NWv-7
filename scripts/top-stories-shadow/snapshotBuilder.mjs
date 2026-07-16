@@ -29,8 +29,13 @@ function assertMetadata(metadata = {}) {
       throw new Error(`Observation metadata requires ${field}`);
     }
   });
-  if (!Number.isFinite(Date.parse(metadata.scheduledAt)) || !Number.isFinite(Date.parse(metadata.runAt))) {
+  const scheduledMs = Date.parse(metadata.scheduledAt);
+  const runMs = Date.parse(metadata.runAt);
+  if (!Number.isFinite(scheduledMs) || !Number.isFinite(runMs)) {
     throw new Error('scheduledAt and runAt must be valid timestamps');
+  }
+  if (runMs < scheduledMs) {
+    throw new Error('runAt cannot be earlier than scheduledAt');
   }
   const attempt = Number(metadata.workflowRunAttempt);
   if (!Number.isInteger(attempt) || attempt <= 0) {
