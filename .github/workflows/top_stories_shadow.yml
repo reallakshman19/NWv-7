@@ -1,0 +1,87 @@
+name: Top Stories Shadow Observation
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      OBSERVATION_DIR: ${{ runner.temp }}/top-stories-shadow-observation
+
+    steps:
+      - name: Checkout repository snapshot
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Freeze observation clock
+        id: clock
+        shell: bash
+        run: echo "run_at=$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')" >> "$GITHUB_OUTPUT"
+
+      - name: Run repository snapshot observation
+        id: observation
+        continue-on-error: true
+        run: >-
+          node scripts/run_top_stories_repository_shadow.mjs
+          --config config/top_stories_shadow_study.json
+          --sections public/newsdata/sections_latest.json
+          --source-health public/newsdata/source_health.json
+          --output "$OBSERVATION_DIR"
+          --run-at "${{ steps.clock.outputs.run_at }}"
+          --repository-sha "${{ github.sha }}"
+          --workflow-run-id "${{ github.run_id }}"
+          --workflow-run-attempt "${{ github.run_attempt }}"
+
+      - name: Resolve artifact identity
+        id: artifact
+        if: always()
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          import { appendFileSync } from 'node:fs';
+          import path from 'node:path';
+          const dir = process.env.OBSERVATION_DIR;
+          let record = {};
+          try {
+            record = JSON.parse(readFileSync(path.join(dir, 'operational.json'), 'utf8'));
+          } catch {
+            record = {};
+          }
+          const parts = [
+            'top-stories-shadow',
+            record.studyId || 'configuration-failure',
+            record.nominalSlotKey || 'unknown-slot',
+            record.workflowRunId || process.env.GITHUB_RUN_ID,
+            `attempt-${record.workflowRunAttempt || process.env.GITHUB_RUN_ATTEMPT}`,
+          ];
+          appendFileSync(process.env.GITHUB_OUTPUT, `artifact_name=${parts.join('-')}\n`);
+          NODE
+
+      - name: Upload immutable observation artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.artifact_name }}
+          path: ${{ env.OBSERVATION_DIR }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Fail invalid observation after evidence upload
+        if: steps.observation.outcome == 'failure'
+        run: exit 1
