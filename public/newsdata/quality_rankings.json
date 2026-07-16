@@ -1059,12 +1059,18 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court: futureValidity failed — expired display window",
+        "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court: alertUrgency failed — alert expired",
+        "Family of missing seaman want Centre to take steps to locate him: futureValidity failed — expired display window",
+        "Family of missing seaman want Centre to take steps to locate him: alertUrgency failed — alert expired",
+        "Northeast monsoon preparedness measures to start early in Chennai: futureValidity failed — expired display window",
+        "Northeast monsoon preparedness measures to start early in Chennai: alertUrgency failed — alert expired",
         "Revelling in the power of visual politics: futureValidity failed — expired display window",
         "Revelling in the power of visual politics: alertUrgency failed — alert expired",
         "Maraimalai Adigalar’s 150th year celebrated in the city: futureValidity failed — expired display window",
@@ -1077,17 +1083,12 @@
         "Panchayat president belonging to TVK arrested for taking bribe: alertUrgency failed — alert expired",
         "VIT gets ₹50 lakh endowment fund for student innovation programmes: futureValidity failed — expired display window",
         "VIT gets ₹50 lakh endowment fund for student innovation programmes: alertUrgency failed — alert expired",
-        "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window",
-        "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: alertUrgency failed — alert expired",
-        "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: futureValidity failed — expired display window",
-        "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: alertUrgency failed — alert expired",
-        "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
-        "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match"
+        "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window"
       ],
       "gateResults": [
         {
           "details": {
-            "itemCount": 30
+            "itemCount": 27
           },
           "name": "upAheadPool",
           "reason": "rankable Up Ahead pool",
@@ -1097,7 +1098,7 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 28,
+              "alerts": 25,
               "shopping": 2
             }
           },
@@ -1108,17 +1109,17 @@
         }
       ],
       "gateSummary": {
-        "alerts": 28,
+        "alerts": 25,
         "categoryCounts": {
-          "alerts": 28,
+          "alerts": 25,
           "shopping": 2
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 41,
         "locationCounts": {
-          "chennai": 19,
-          "trichy": 11
+          "chennai": 17,
+          "trichy": 10
         },
         "locationsCovered": [
           "chennai",
@@ -1126,12 +1127,12 @@
         ],
         "offlineOffers": 2,
         "onlineOffers": 0,
-        "plannerAdvisoryItems": 30,
-        "rankedItemCount": 30,
-        "suppressedItemCount": 11
+        "plannerAdvisoryItems": 27,
+        "rankedItemCount": 27,
+        "suppressedItemCount": 14
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8404,
+      "qualityScore": 0.8384,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1829,121 +1830,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "c68402cd651b42c0"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784229250000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "f3cdaaaa6335d785",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784229250000,
-            "id": "f3cdaaaa6335d785",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784834050000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784229250000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784142850000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "His family could not get in touch with him from March 26 this year when he was aboard the merchant vessel M.V. PERSISTENSE",
-            "suppressionReason": null,
-            "title": "Family of missing seaman want Centre to take steps to locate him",
-            "url": "https://www.thehindu.com/news/cities/chennai/family-of-missing-seaman-want-centre-to-take-steps-to-locate-him/article71222592.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Family of missing seaman want Centre to take steps to locate him"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "35ea207ec04ca326"
               },
               "name": "dedup",
@@ -2513,236 +2399,6 @@
           ],
           "score": 0.8485,
           "title": "New luggage scanner installed at Tiruchi Junction to strengthen security"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "58c2cbf6585ea1ee"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784229245000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "7bf752ff9cdbb2b1",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784229245000,
-            "id": "7bf752ff9cdbb2b1",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784834045000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784229245000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784142845000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "On Thursday, officials including Chief Secretary Sai Kumar, are expected to participate in the monsoon preparedness meeting with various departments",
-            "suppressionReason": null,
-            "title": "Northeast monsoon preparedness measures to start early in Chennai",
-            "url": "https://www.thehindu.com/news/cities/chennai/northeast-monsoon-preparedness-measures-to-start-early-in-chennai/article71221915.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Northeast monsoon preparedness measures to start early in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "fcb1955cede41826"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784229743000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "dba8d17cede5a311",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784229743000,
-            "id": "dba8d17cede5a311",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784834543000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784229743000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784143343000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "The case filed by a Tiruppur-based lawyer has been listed for hearing before Chief Justice Sushrut Arvind Dharmadhikari and Justice G. Arul Murugan on Thursday",
-            "suppressionReason": null,
-            "title": "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/order-cbi-probe-in-tvk-mla-bribery-case-and-other-horse-trading-complaints-insists-a-pil-plea-before-madras-high-court/article71226577.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court"
         },
         {
           "category": "alerts",
@@ -4399,7 +4055,7 @@
             },
             {
               "details": {
-                "hoursLeft": 23.32
+                "hoursLeft": 21.63
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4514,7 +4170,7 @@
             },
             {
               "details": {
-                "hoursLeft": 2.5
+                "hoursLeft": 0.82
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4587,17 +4243,17 @@
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.99,
-        "categoryPriorityScore": 0.9787,
+        "actionabilityScore": 0.9889,
+        "categoryPriorityScore": 0.9763,
         "lifecycleScore": 0.65,
-        "locationScore": 0.8897,
+        "locationScore": 0.8774,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.7947
+        "urgencyOrExpiryScore": 0.7963
       }
     }
   },
-  "generatedAt": 1784229241192,
+  "generatedAt": 1784235312101,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4616,7 +4272,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "14 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4631,7 +4287,7 @@
       "buzz": 0.0,
       "insight": 0.3916,
       "localTravel": 0.0,
-      "upAhead": 0.8404
+      "upAhead": 0.8384
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4639,7 +4295,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.308,
+    "overallScore": 0.3075,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4649,6 +4305,12 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court: futureValidity failed — expired display window",
+      "Order CBI probe in TVK MLA bribery case and other horse trading complaints, insists a PIL plea before Madras High Court: alertUrgency failed — alert expired",
+      "Family of missing seaman want Centre to take steps to locate him: futureValidity failed — expired display window",
+      "Family of missing seaman want Centre to take steps to locate him: alertUrgency failed — alert expired",
+      "Northeast monsoon preparedness measures to start early in Chennai: futureValidity failed — expired display window",
+      "Northeast monsoon preparedness measures to start early in Chennai: alertUrgency failed — alert expired",
       "Revelling in the power of visual politics: futureValidity failed — expired display window",
       "Revelling in the power of visual politics: alertUrgency failed — alert expired",
       "Maraimalai Adigalar’s 150th year celebrated in the city: futureValidity failed — expired display window",
@@ -4661,12 +4323,7 @@
       "Panchayat president belonging to TVK arrested for taking bribe: alertUrgency failed — alert expired",
       "VIT gets ₹50 lakh endowment fund for student innovation programmes: futureValidity failed — expired display window",
       "VIT gets ₹50 lakh endowment fund for student innovation programmes: alertUrgency failed — alert expired",
-      "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window",
-      "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: alertUrgency failed — alert expired",
-      "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: futureValidity failed — expired display window",
-      "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: alertUrgency failed — alert expired",
-      "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
-      "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match"
+      "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window"
     ]
   }
 }
