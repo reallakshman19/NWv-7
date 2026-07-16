@@ -10,9 +10,9 @@
 - Base report share: `0.2222222222222222`
 - Multi-angle parents: `4`
 - Weak parents: `6`
-- Story count: `677`
+- Story count: `691`
 - Source groups: `9`
-- Content hash: `3809d7417b8e4fc0`
+- Content hash: `e79c33229e6b93fd`
 
 ## Top parents
 
@@ -26,8 +26,8 @@
 | 6 | Marine engineer missing following attack on ship off Oman coast is dead, says family | 2 | fact_update | YES | 0.6961467197849984 |
 | 7 | Nepal court jails two former Ministers, 14 others | 2 | investigative_detail | YES | 0.6055800531183317 |
 | 8 | Parliament approves Serhii Koretskyi amid cabinet shuffle | 2 | official_response | YES | 0.5075933333333333 |
-| 9 | Issue 16% subscribed on day one so far, GMP suggests 12% listing pop | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | ICICI Lombard General Insurance shares tumble 15% after Q1 profit takes a hit | 1 | market_reaction | YES | 0.7226911614783158 |
+| 9 | BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40% | 1 | fact_update | YES | 0.7235911614783158 |
+| 10 | Tech Mahindra Q1 Results: Net profit rises 28% YoY to Rs 1,465 crore, revenue up 18% | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Warnings
 
