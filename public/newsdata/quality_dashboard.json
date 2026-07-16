@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1784203404395,
+  "generatedAt": 1784212496015,
   "windowDays": 7,
   "latest": {
     "insightGrade": "D",
     "insightScore": 0,
-    "totalStories": 691,
-    "usableStories36h": 681,
-    "sourceGroups": 9,
+    "totalStories": 793,
+    "usableStories36h": 760,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.306,
+    "rankingOverallScore": 0.3024,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.306,
+    "overallScore": 0.3024,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1784203403635,
+    "generatedAt": 1784212495286,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.3634,
+      "insight": 0.3688,
       "localTravel": 0,
-      "upAhead": 0.8607
+      "upAhead": 0.8406
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.3634,
+        "score": 0.3688,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8607,
+        "score": 0.8406,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,11 +74,11 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 8,
-        "strongParents": 8,
+        "parentClusters": 11,
+        "strongParents": 11,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
-        "baseReportHeavyParents": 0,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0
       },
       "localTravel": {
@@ -92,11 +92,11 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 6,
+        "suppressedItemCount": 5,
         "events": 0,
         "onlineOffers": 0,
-        "offlineOffers": 0,
-        "alerts": 30,
+        "offlineOffers": 1,
+        "alerts": 29,
         "festivals": 0,
         "locationsCovered": [
           "chennai",
@@ -106,23 +106,21 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Collector inspects anganwadi centre: futureValidity failed — expired display window",
+      "Collector inspects anganwadi centre: alertUrgency failed — alert expired",
       "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
       "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
       "Saatva Promo Codes And Coupons: Take $300 Off Editor-Loved Mattresses - Forbes: location failed — offline/local item lacks configured location match",
-      "Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
-      "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match",
       "upAhead: Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "upAhead: Collector inspects anganwadi centre: futureValidity failed — expired display window",
+      "upAhead: Collector inspects anganwadi centre: alertUrgency failed — alert expired",
       "upAhead: Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
       "upAhead: Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
-      "upAhead: Saatva Promo Codes And Coupons: Take $300 Off Editor-Loved Mattresses - Forbes: location failed — offline/local item lacks configured location match",
-      "upAhead: Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
-      "upAhead: Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match"
+      "upAhead: Saatva Promo Codes And Coupons: Take $300 Off Editor-Loved Mattresses - Forbes: location failed — offline/local item lacks configured location match"
     ],
     "actionRequired": [
-      "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
-      "no active offer items in ranked Up Ahead set",
+      "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -130,7 +128,9 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding"
+      "1 base-report-heavy Insight parent(s) demoted",
+      "buzz: no local Buzz item in ranked set",
+      "buzz: no travel Buzz item in ranked set"
     ]
   },
   "sourceHealth": {
@@ -256,16 +256,16 @@
     },
     {
       "date": "2026-07-16",
-      "generatedAt": 1784203404395,
+      "generatedAt": 1784212496015,
       "insightGrade": "D",
       "insightScore": 0,
-      "totalStories": 691,
-      "usableStories36h": 681,
-      "sourceGroups": 9,
+      "totalStories": 793,
+      "usableStories36h": 760,
+      "sourceGroups": 10,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.306,
+      "rankingOverallScore": 0.3024,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
