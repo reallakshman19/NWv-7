@@ -1,6 +1,9 @@
 import { TOP_STORIES_IDENTITY_VERSION } from '../../src/services/topStories/topStoriesStudyIdentity.js';
 import { TOP_STORIES_PERIOD_CLASSIFIER_VERSION } from '../../src/services/topStories/topStoriesPeriodClassifier.js';
 
+export const STUDY_CONFIG_SCHEMA_VERSION = 'nw-top-stories-shadow-study/v1';
+export const REPOSITORY_INPUT_CONTRACT_VERSION = 'nw-top-stories-repository-input/v1';
+
 const REQUIRED_STRINGS = [
   'schemaVersion',
   'studyId',
@@ -44,6 +47,21 @@ function assertPositiveInteger(config, field) {
   }
 }
 
+function assertSchemas(config) {
+  if (config.schemaVersion !== STUDY_CONFIG_SCHEMA_VERSION) {
+    throw new StudyConfigurationError(
+      'study_schema_version_mismatch',
+      'Unsupported study configuration schemaVersion',
+    );
+  }
+  if (config.inputContractVersion !== REPOSITORY_INPUT_CONTRACT_VERSION) {
+    throw new StudyConfigurationError(
+      'input_contract_version_mismatch',
+      'Unsupported repository inputContractVersion',
+    );
+  }
+}
+
 function assertMode(config) {
   if (config.observationMode !== 'repository-snapshot-replay') {
     throw new StudyConfigurationError(
@@ -64,6 +82,15 @@ function assertExecutableVersions(config) {
     throw new StudyConfigurationError(
       'period_classifier_version_mismatch',
       'Configured periodClassifierVersion does not match the executable classifier',
+    );
+  }
+}
+
+function assertLimits(config) {
+  if (Number(config.displayDepth) > Number(config.rankerLimit)) {
+    throw new StudyConfigurationError(
+      'invalid_study_configuration',
+      'displayDepth cannot exceed rankerLimit',
     );
   }
 }
@@ -101,8 +128,10 @@ export function validateTopStoriesStudyConfig(config, options = {}) {
   assertRequiredStrings(config);
   assertPositiveInteger(config, 'displayDepth');
   assertPositiveInteger(config, 'rankerLimit');
+  assertSchemas(config);
   assertMode(config);
   assertExecutableVersions(config);
+  assertLimits(config);
   assertExpiry(config, Number(options.nowMs));
   return deepFreeze({ ...config });
 }
