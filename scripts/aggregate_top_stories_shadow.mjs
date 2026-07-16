@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { discoverTopStoriesArtifactDirectories, readTopStoriesArtifactDirectory } from './top-stories-shadow/artifactReader.mjs';
-import { aggregateTopStoriesDaily, renderTopStoriesDailyMarkdown, serializeTopStoriesDailyReport } from './top-stories-shadow/dailyAggregation.mjs';
+import { aggregateTopStoriesDaily, serializeTopStoriesDailyReport } from './top-stories-shadow/dailyAggregation.mjs';
+import { renderTopStoriesDailyMarkdown } from './top-stories-shadow/dailyReportMarkdown.mjs';
 import { sha256Text, stableJson } from './top-stories-shadow/canonicalJson.mjs';
 
 function parseArgs(argv) {
