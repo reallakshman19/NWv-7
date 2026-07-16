@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784176777605,
-  "contentHash": "b12da25ed1d10404",
+  "generatedAt": 1784187423357,
+  "contentHash": "64af1aa611a4bdf0",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 607,
-  "sourceGroupCount": 10,
+  "storyCount": 575,
+  "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.5,
-  "avgTemporalTiers": 1.7,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.2631578947368421,
-  "multiAngleCount": 5,
-  "weakParentCount": 5,
+  "avgAngles": 1.4,
+  "avgTemporalTiers": 1.6,
+  "avgEvolutionRoles": 1.6,
+  "baseReportShare": 0.23529411764705882,
+  "multiAngleCount": 4,
+  "weakParentCount": 6,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -23,55 +23,55 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 44,
+      "signalScore": 36,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 553,
-      "risingCount": 1,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "storyCount": 532,
+      "risingCount": 0,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.5,
-      "avgChildren": 1.9,
-      "avgScore": 0.6759061216989893,
-      "sourceDiversityCoverage": 8,
+      "avgAngles": 1.4,
+      "avgChildren": 1.7,
+      "avgScore": 0.6782720310456611,
+      "sourceDiversityCoverage": 7,
       "snapshotCoverage": 3,
-      "coverageLabel": "5/10",
+      "coverageLabel": "4/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
+        "3 cluster(s) are below source-diversity target.",
         "7 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin.",
-        "540 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "6 cluster(s) are marked thin.",
+        "430 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 44,
+      "signalScore": 36,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 553,
-      "risingCount": 1,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "storyCount": 532,
+      "risingCount": 0,
+      "thinCount": 6,
+      "multiAngleCount": 4,
+      "lowAngleCount": 6,
       "strongAngleCount": 0,
-      "avgAngles": 1.5,
-      "avgChildren": 1.9,
-      "avgScore": 0.6759061216989893,
-      "sourceDiversityCoverage": 8,
+      "avgAngles": 1.4,
+      "avgChildren": 1.7,
+      "avgScore": 0.6782720310456611,
+      "sourceDiversityCoverage": 7,
       "snapshotCoverage": 3,
-      "coverageLabel": "5/10",
+      "coverageLabel": "4/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
+        "6 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
+        "3 cluster(s) are below source-diversity target.",
         "7 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin."
+        "6 cluster(s) are marked thin."
       ]
     },
     "recoveryConfig": {
@@ -85,30 +85,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_331_029cb2be3dabfa1d",
-      "headline": "NASA astronaut Anil Menon, two others reach International Space Station",
-      "score": 0.7102154013449329,
-      "postTreeScore": 1.1102,
-      "childCount": 3,
-      "angles": [
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established",
-        "reaction"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration",
-        "legal_or_regulatory"
-      ],
-      "baseReportShare": 0.6666666666666666,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_441_9d05a83d16ce328d",
+      "parentId": "cluster_484_9d05a83d16ce328d",
       "headline": "Revised US Russia sanctions bill lowers proposed tariffs on China, India",
       "score": 0.6893933333333335,
       "postTreeScore": 1.0894,
@@ -129,7 +106,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_7_73639a6259358687",
+      "parentId": "cluster_373_029cb2be3dabfa1d",
+      "headline": "NASA astronaut Anil Menon, two others reach International Space Station",
+      "score": 0.6994967197849983,
+      "postTreeScore": 1.0795,
+      "childCount": 2,
+      "angles": [
+        "base_report",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "legal_or_regulatory"
+      ],
+      "baseReportShare": 0.5,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_46_73639a6259358687",
       "headline": "Kota C-section victims demand kidney transplant in 48 hours, write to President",
       "score": 0.6934967197849984,
       "postTreeScore": 1.0735,
@@ -150,27 +148,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_504_cdcf9781333b3ab9",
-      "headline": "E Jean Carroll receives $5.6 million in sexual abuse case after years-long legal battle with Trump",
-      "score": 0.6883133864516651,
-      "postTreeScore": 1.0683,
-      "childCount": 2,
-      "angles": [
-        "fact_update",
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update",
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_305_c884c27f5f2504cb",
+      "parentId": "cluster_347_c884c27f5f2504cb",
       "headline": "Files relating to India’s largest nuclear power plant Kudankulam exposed in data breach - Reuters",
       "score": 0.6292600000000002,
       "postTreeScore": 1.0293,
@@ -190,7 +168,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_342_6bc300ab5a56ad6c",
+      "parentId": "cluster_384_6bc300ab5a56ad6c",
       "headline": "Marine engineer missing following attack on ship off Oman coast is dead, says family",
       "score": 0.6961467197849984,
       "postTreeScore": 0.5861,
@@ -210,7 +188,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_169_17448d814f42084f",
+      "parentId": "cluster_209_17448d814f42084f",
       "headline": "Swiggy Instamart and HPCL launch q-comm cylinder delivery",
       "score": 0.6012732802150018,
       "postTreeScore": 0.5113,
@@ -230,7 +208,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_333_a0b145a58b31795e",
+      "parentId": "cluster_375_a0b145a58b31795e",
       "headline": "Nepal court jails two former Ministers, 14 others",
       "score": 0.6055800531183317,
       "postTreeScore": 0.4956,
@@ -249,8 +227,8 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_17_15c9ef5a4c22dff3",
-      "headline": "Groww shares rally 9% in two sessions after strong Q1 results. Should you buy, sell or hold the stock?",
+      "parentId": "cluster_36_47c20f51d0973d1f",
+      "headline": "ICICI Lombard General Insurance shares tumble 15% after Q1 profit takes a hit",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
@@ -267,8 +245,26 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_26_36c829bb2bfe7246",
-      "headline": "HDB Financial shares jump 5% on Q1 profit cheer. What are Nomura, Motilal Oswal saying?",
+      "parentId": "cluster_38_5096aa94011111d7",
+      "headline": "MRPL shares zoom 11% after Q1 turnaround; revenue nearly doubles",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_56_15c9ef5a4c22dff3",
+      "headline": "Groww shares rally 9% in two sessions after strong Q1 results. Should you buy, sell or hold the stock?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
@@ -279,7 +275,7 @@
         "breaking"
       ],
       "evolutionRoles": [
-        "market_reaction"
+        "fact_update"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -293,7 +289,7 @@
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "D",
-    "score": 52,
+    "score": 42,
     "passed": [
       {
         "id": "parent-count",
@@ -304,25 +300,25 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.5,
+        "actual": 1.4,
         "required": ">= 1.4"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.6,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.263,
+        "actual": 0.235,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 5,
+        "actual": 4,
         "required": ">= 1"
       },
       {
@@ -334,14 +330,8 @@
       {
         "id": "top-parent-child-depth",
         "label": "Top parent child depth",
-        "actual": 3,
+        "actual": 2,
         "required": ">= 2"
-      },
-      {
-        "id": "weak-parent-ratio",
-        "label": "Weak parent ratio",
-        "actual": 0.5,
-        "required": "<= 0.5"
       }
     ],
     "failed": [
@@ -356,25 +346,33 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.7,
+        "actual": 1.6,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
+      },
+      {
+        "id": "weak-parent-ratio",
+        "label": "Weak parent ratio",
+        "actual": 0.6,
+        "required": "<= 0.5",
+        "severity": "warn",
+        "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
       }
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.5,
-      "avgTemporalTiers": 1.7,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.263,
-      "multiAngleCount": 5,
-      "weakParentCount": 5,
-      "weakParentRatio": 0.5,
+      "avgAngles": 1.4,
+      "avgTemporalTiers": 1.6,
+      "avgEvolutionRoles": 1.6,
+      "baseReportShare": 0.235,
+      "multiAngleCount": 4,
+      "weakParentCount": 6,
+      "weakParentRatio": 0.6,
       "topParentAngles": 2,
-      "topParentChildren": 3,
-      "storyCount": 607,
-      "sourceGroupCount": 10
+      "topParentChildren": 2,
+      "storyCount": 575,
+      "sourceGroupCount": 9
     }
   }
 }

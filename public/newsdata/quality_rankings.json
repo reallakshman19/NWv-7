@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "Insight event/angle ranking has no critical demotion finding"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 9
+            "itemCount": 8
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 9,
-        "parentClusters": 9,
-        "strongParents": 9,
+        "inputCandidateCount": 8,
+        "parentClusters": 8,
+        "strongParents": 8,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3667,
+      "qualityScore": 0.3643,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -210,7 +210,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 5
+                "storyCount": 6
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -247,7 +247,7 @@
             },
             {
               "details": {
-                "childCount": 5
+                "childCount": 6
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -272,7 +272,7 @@
             "representativeTitle": "Breaking News Live Updates July 16: Boat carrying about 60 migrants capsizes off eastern Libya; at least 50 dead or missing - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
+              "eventImportanceScore": 1.0,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -287,18 +287,19 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 5,
+            "storyCount": 6,
             "storyIds": [
               "82ea0749d0de2b8d",
               "303e5c7197220398",
               "0df2c21a782b0aa4",
               "a47f9861bbd2cc3a",
+              "4ee739c53b939a61",
               "c0b89c693126f623"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 5
+                "count": 6
               }
             ],
             "topTokens": [
@@ -308,6 +309,7 @@
               "july",
               "congress",
               "operation",
+              "neelkanth",
               "strong"
             ],
             "topicKey": "breaking|live|updates"
@@ -318,7 +320,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.479,
+          "score": 0.4915,
           "title": "Breaking News Live Updates July 16: Boat carrying about 60 migrants capsizes off eastern Libya; at least 50 dead or missing - The Times of India"
         },
         {
@@ -489,14 +491,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:571f2ea7bf",
+          "id": "sketch:986dfe344f",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:571f2ea7bf",
-            "representativeId": "77cf8a402172408b",
-            "representativeTitle": "Karnataka High Court turns compensation for tragedy into long-term security for bereaved mason’s family",
+            "id": "sketch:986dfe344f",
+            "representativeId": "71141c93a6104907",
+            "representativeTitle": "7PM Bulletin | 14th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -504,36 +506,35 @@
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
               "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.49
+              "temporalEvolutionScore": 0.37
             },
-            "slotCount": 2,
+            "slotCount": 1,
             "slots": [
-              "minus4h",
               "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "the_hindu"
+              "google_news"
             ],
             "storyCount": 2,
             "storyIds": [
-              "77cf8a402172408b",
-              "64077d0ed3c29cac"
+              "71141c93a6104907",
+              "8b862ca5068b68c9"
             ],
             "topAngles": [
               {
-                "angle": "official_response",
+                "angle": "fact_update",
                 "count": 2
               }
             ],
             "topTokens": [
-              "karnataka",
-              "high",
-              "court",
-              "turns",
-              "hearing"
+              "kanak",
+              "odisha",
+              "bulletin",
+              "14th",
+              "13th"
             ],
-            "topicKey": "karnataka|high|court"
+            "topicKey": "kanak|odisha|bulletin"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -541,8 +542,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.401,
-          "title": "Karnataka High Court turns compensation for tragedy into long-term security for bereaved mason’s family"
+          "score": 0.389,
+          "title": "7PM Bulletin | 14th JULY 2026 | Kanak News | Breaking News | Odisha News | Latest News - Kanak News Odisha"
         },
         {
           "category": "insightEvent",
@@ -601,14 +602,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
+          "id": "sketch:6490d07a5a",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "id": "sketch:6490d07a5a",
+            "representativeId": "b40206416c6d49ba",
+            "representativeTitle": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -620,16 +621,16 @@
             },
             "slotCount": 1,
             "slots": [
-              "minus24h"
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "moneycontrol"
+              "economic_times"
             ],
             "storyCount": 2,
             "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
+              "b40206416c6d49ba",
+              "47c20f51d0973d1f"
             ],
             "topAngles": [
               {
@@ -638,12 +639,13 @@
               }
             ],
             "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
+              "icici",
+              "lombard",
+              "shares",
+              "explained",
+              "profit"
             ],
-            "topicKey": "bajaj|finance|target"
+            "topicKey": "icici|lombard|shares"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -652,7 +654,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+          "title": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash"
         },
         {
           "category": "insightEvent",
@@ -822,6 +824,117 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:9da37726de",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:9da37726de",
+            "representativeId": "dd2797a358a7b000",
+            "representativeTitle": "Tata Capital raises $400 million in dollar bond sale after strong demand",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "dd2797a358a7b000",
+              "d3ecfaf77c7e8f91"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "tata",
+              "capital",
+              "million",
+              "dollar",
+              "bond"
+            ],
+            "topicKey": "tata|capital|million"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Tata Capital raises $400 million in dollar bond sale after strong demand"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:e60163e33d",
           "item": {
             "angleCount": 1,
@@ -874,239 +987,17 @@
           ],
           "score": 0.389,
           "title": "Women in Manufacturing: Breaking Barriers Through Skill Development - Business Standard"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:6f678e7759",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:6f678e7759",
-            "representativeId": "029cb2be3dabfa1d",
-            "representativeTitle": "NASA astronaut Anil Menon, two others reach International Space Station",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.61
-            },
-            "slotCount": 3,
-            "slots": [
-              "minus12h",
-              "minus4h",
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "the_hindu"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "029cb2be3dabfa1d",
-              "9f0646ba9fa9d641"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "anil",
-              "menon",
-              "nasa",
-              "astronaut"
-            ],
-            "topicKey": "anil|menon|nasa"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1858,
-          "title": "NASA astronaut Anil Menon, two others reach International Space Station"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:959f3e1a2a",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:959f3e1a2a",
-            "representativeId": "9cd32363874a4c46",
-            "representativeTitle": "An emboldened India holds out for better terms in US trade talks - Reuters",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus12h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "reuters"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "9cd32363874a4c46",
-              "0e72ab70b3133b74"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "emboldened",
-              "india",
-              "holds",
-              "better"
-            ],
-            "topicKey": "emboldened|india|holds"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "An emboldened India holds out for better terms in US trade talks - Reuters"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3089,
-        "eventImportanceScore": 0.6433,
+        "angleDiversityScore": 0.3163,
+        "eventImportanceScore": 0.6562,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4611,
+        "noveltyDeltaScore": 0.4625,
         "sourceAuthorityScore": 0.38,
         "sourceDiversityScore": 0.35,
-        "temporalEvolutionScore": 0.4233
+        "temporalEvolutionScore": 0.385
       }
     },
     "localTravel": {
@@ -1166,7 +1057,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -1175,11 +1066,15 @@
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
+        "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi: futureValidity failed — expired display window",
+        "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi: alertUrgency failed — alert expired",
+        "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai: futureValidity failed — expired display window",
+        "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai: alertUrgency failed — alert expired",
+        "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography: futureValidity failed — expired display window",
+        "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography: alertUrgency failed — alert expired",
         "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
         "Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
-        "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match",
-        "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: futureValidity failed — expired display window",
-        "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: offerValidity failed — offer expired"
+        "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match"
       ],
       "gateResults": [
         {
@@ -1223,7 +1118,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 6
+        "suppressedItemCount": 8
       },
       "qualityGrade": "B",
       "qualityScore": 0.8607,
@@ -1464,7 +1359,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "6d0ad7c775bff3c3"
+                "dedupKey": "0a5dc3d68b17817a"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -1473,7 +1368,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784228771000
+                "displayUntil": 1784262776000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -1519,9 +1414,9 @@
               "status": "PASS"
             }
           ],
-          "id": "3b959712632ef6f5",
+          "id": "b53e82b9ec38c64e",
           "item": {
-            "actionabilityScore": 0.7,
+            "actionabilityScore": 1.0,
             "category": "alerts",
             "city": "Chennai",
             "contentClass": "upahead_alert",
@@ -1529,13 +1424,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784228771000,
-            "id": "3b959712632ef6f5",
+            "expiryAt": 1784262776000,
+            "id": "b53e82b9ec38c64e",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784833571000,
+              "archiveUntil": 1784867576000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784228771000,
+              "displayUntil": 1784262776000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -1546,7 +1441,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1784142371000,
+            "publishedAt": 1784176376000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -1559,10 +1454,10 @@
             },
             "source": "The Hindu Chennai",
             "sourceGroup": "the_hindu",
-            "summary": "",
+            "summary": "Officials of the RMC said the weak monsoon circulation over the Southern Peninsular region and El Niño-related atmospheric conditions led to limited cloud formation and an unusual heat spell in July",
             "suppressionReason": null,
             "title": "Abnormal heatwave conditions to persist across Tamil Nadu till July 17; rainfall set to improve later this week",
-            "url": "https://www.thehindu.com/news/cities/chennai/abnormal-heatwave-conditions-to-persist-across-tamil-nadu-till-july-17-rainfall-set-to-improve-later-this-week/article71226160.ece"
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/abnormal-heatwave-conditions-to-persist-across-tamil-nadu-till-july-17-rainfall-set-to-improve-later-this-week/article71226160.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -2039,121 +1934,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "2267289fd7a6412e"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784185184000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "dfdaddac9ee34c64",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784185184000,
-            "id": "dfdaddac9ee34c64",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784789984000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784185184000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784098784000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai",
-            "url": "https://www.thehindu.com/food/dining/ba-da-bom-korean-comfort-food-arcade-games-and-seoul-street-vibes-in-chennai/article71216910.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "06009866febeeda7"
               },
               "name": "dedup",
@@ -2608,6 +2388,121 @@
           ],
           "score": 0.8485,
           "title": "Canvas is building a nightlife experience where the food is as memorable as the cocktails"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "324586f462aa9c18"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784267926000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "a00c3eba7b4abf56",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784267926000,
+            "id": "a00c3eba7b4abf56",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784872726000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784267926000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784181526000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "",
+            "suppressionReason": null,
+            "title": "Chaos reigns supreme at New Perungalathur junction",
+            "url": "https://www.thehindu.com/news/cities/chennai/chaos-reigns-supreme-at-new-perungalathur-junction/article71228708.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Chaos reigns supreme at New Perungalathur junction"
         },
         {
           "category": "alerts",
@@ -4569,7 +4464,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "4aa5b0bc89ecd28d"
+                "dedupKey": "736e7b7e244600ad"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -4578,7 +4473,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784186151000
+                "displayUntil": 1784212083000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -4624,7 +4519,7 @@
               "status": "PASS"
             }
           ],
-          "id": "d5a9c99eebb879b9",
+          "id": "bbe2433623aea2b5",
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
@@ -4634,13 +4529,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784186151000,
-            "id": "d5a9c99eebb879b9",
+            "expiryAt": 1784212083000,
+            "id": "bbe2433623aea2b5",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784790951000,
+              "archiveUntil": 1784816883000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784186151000,
+              "displayUntil": 1784212083000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -4651,7 +4546,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1784099751000,
+            "publishedAt": 1784125683000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -4664,10 +4559,10 @@
             },
             "source": "The Hindu Chennai",
             "sourceGroup": "the_hindu",
-            "summary": "Sreya and Rajalakshmi’s performance at The Music Academy was a blend of rhythmic precision, thoughtful repertoire and strong ensemble support.",
+            "summary": "According to the order, gold rings would be procured for 4,41,667 deliveries at a total cost of ₹755.83 crore — ₹17,000 each — along with ₹5 crore towards administration costs",
             "suppressionReason": null,
-            "title": "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi",
-            "url": "https://www.thehindu.com/entertainment/music/sarvepalli-sisters-wove-a-rich-tapestry-of-kritis-themed-on-devi/article71205697.ece"
+            "title": "T.N. Medical Services Corporation invites bids for Thaimaman Thanga Mothiram scheme",
+            "url": "https://www.thehindu.com/news/national/tamil-nadu/tn-medical-services-corporation-invites-bids-for-thaimaman-thanga-mothiram-scheme/article71221717.ece"
           },
           "locationKey": "chennai",
           "rankingReasons": [
@@ -4677,7 +4572,7 @@
             "planner advisory fit"
           ],
           "score": 0.8485,
-          "title": "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi"
+          "title": "T.N. Medical Services Corporation invites bids for Thaimaman Thanga Mothiram scheme"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4692,7 +4587,7 @@
       }
     }
   },
-  "generatedAt": 1784176778414,
+  "generatedAt": 1784187424044,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4711,7 +4606,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4722,11 +4617,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "Insight event/angle ranking has no critical demotion finding"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3667,
+      "insight": 0.3643,
       "localTravel": 0.0,
       "upAhead": 0.8607
     },
@@ -4736,7 +4631,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3069,
+    "overallScore": 0.3063,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4747,11 +4642,15 @@
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
+      "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi: futureValidity failed — expired display window",
+      "Sarvepalli Sisters wove a rich tapestry of kritis themed on Devi: alertUrgency failed — alert expired",
+      "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai: futureValidity failed — expired display window",
+      "Ba Da Bom: Korean comfort food, arcade games and Seoul street vibes in Chennai: alertUrgency failed — alert expired",
+      "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography: futureValidity failed — expired display window",
+      "Goddess Saraswati without veena: Sculptures of Pallava, Chola eras reveal an earlier iconography: alertUrgency failed — alert expired",
       "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
       "Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
-      "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match",
-      "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: futureValidity failed — expired display window",
-      "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: offerValidity failed — offer expired"
+      "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match"
     ]
   }
 }
