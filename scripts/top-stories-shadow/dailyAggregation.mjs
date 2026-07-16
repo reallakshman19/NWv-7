@@ -52,7 +52,9 @@ function maximumLowSequence(rows, threshold) {
   let current = 0;
   let maximum = 0;
   rows.forEach(row => {
-    if (row.period?.periodClass === 'calm' && row.metrics?.incumbentRetention < threshold) {
+    const retention = row.metrics?.incumbentRetention;
+    if (row.period?.periodClass === 'calm' &&
+      Number.isFinite(retention) && retention < threshold) {
       current += 1;
       maximum = Math.max(maximum, current);
     } else {
@@ -128,7 +130,17 @@ function filterExclusions(rows, targetIds) {
   return rows.filter(row => targetIds.has(row.anchorId));
 }
 
-function buildCoverage(dayRecords, allRecords, replay, bounds, date) {
+function countUnchangedPairs(pairs, replay, targetIds) {
+  const observations = new Map(replay.canonicalObservations.map(row => [row.observationId, row]));
+  return pairs.filter(pair => {
+    if (!targetIds.has(pair.anchorId)) return false;
+    const prior = observations.get(pair.anchorId);
+    const current = observations.get(pair.currentId);
+    return Boolean(prior?.inputDigest) && prior.inputDigest === current?.inputDigest;
+  }).length;
+}
+
+function buildCoverage(dayRecords, allRecords, replay, bounds, date, pairData) {
   const operational = dayRecords.filter(record => record.operational);
   const slotKeys = new Set(operational.map(record => record.operational.nominalSlotKey).filter(Boolean));
   const successful = operational.filter(record => record.status === 'VALID_SNAPSHOT');
@@ -136,6 +148,7 @@ function buildCoverage(dayRecords, allRecords, replay, bounds, date) {
   const eligible = successful.filter(record => record.snapshot?.analyticalEligibility === 'ELIGIBLE');
   const delays = operational.map(record => Number(record.operational?.scheduleDelaySeconds)).filter(Number.isFinite);
   return {
+    scheduledRuns: 96,
     scheduledSlots: 96,
     observedSlotCount: slotKeys.size,
     scheduleSlotCoverage: slotKeys.size / 96,
@@ -148,8 +161,14 @@ function buildCoverage(dayRecords, allRecords, replay, bounds, date) {
     invalidArtifacts: dayRecords.filter(record => !record.schemaValid).length,
     successfulRuns: successful.length,
     failureRuns: operational.filter(record => record.status === 'VALID_FAILURE').length,
+    failedInputRuns: successful.filter(record =>
+      record.snapshot?.sourceHealth?.ok === false ||
+      record.snapshot?.sourceHealth?.complete === false).length,
     completeRuns: complete.length,
     analyticallyEligibleRuns: eligible.length,
+    uncertainRuns: successful.filter(record =>
+      record.snapshot?.completenessState !== 'COMPLETE' ||
+      record.snapshot?.analyticalEligibility !== 'ELIGIBLE').length,
     delayedOverFiveMinutes: delays.filter(value => value > 300).length,
     scheduleDelaySeconds: summarizeValues(delays),
     canonicalObservationCount: replay.canonicalObservations.filter(
@@ -157,6 +176,25 @@ function buildCoverage(dayRecords, allRecords, replay, bounds, date) {
     ).length,
     supersededDuplicateCount: replay.operationalRecords.filter(row =>
       row.status === 'SUPERSEDED_DUPLICATE_SLOT' && String(row.slotKey).includes(`|${date}`)).length,
+    valid15mPairs: pairData.fifteenRows.length,
+    valid60mPairs: pairData.sixtyRows.length,
+    canonical15mPairs: pairData.fifteenCanonicalRows.length,
+    canonical60mPairs: pairData.sixtyCanonicalRows.length,
+    unchangedInput15mPairs: countUnchangedPairs(
+      replay.pairSets.fifteenMinute.pairs,
+      replay,
+      pairData.targetIds,
+    ),
+    unchangedInput60mPairs: countUnchangedPairs(
+      replay.pairSets.sixtyMinute.pairs,
+      replay,
+      pairData.targetIds,
+    ),
+    uncertain15mPairs: pairData.fifteenRows.filter(row =>
+      row.period?.periodClass === 'uncertain').length,
+    uncertain60mPairs: pairData.sixtyRows.filter(row =>
+      row.period?.periodClass === 'uncertain').length,
+    excludedPairsByReason: pairData.excludedPairsByReason,
     artifactExclusionReasons: countReasons(dayRecords.filter(record =>
       !record.schemaValid || record.failure)),
   };
@@ -172,6 +210,7 @@ function buildInputManifest(records, bounds) {
     withinReportDay: inDay(getRecordScheduledAt(record), bounds),
     workflowRunId: record.operational?.workflowRunId || record.snapshot?.workflowRunId || record.failure?.workflowRunId || null,
     workflowRunAttempt: record.operational?.workflowRunAttempt || record.snapshot?.workflowRunAttempt || record.failure?.workflowRunAttempt || null,
+    analyticalDisposition: record.status === 'VALID_SNAPSHOT' ? 'REPLAY_INPUT' : 'OPERATIONAL_ONLY',
     exclusionReason: record.exclusionReason || null,
     errorMessage: record.errorMessage || null,
   })).sort((left, right) =>
@@ -196,13 +235,25 @@ export function aggregateTopStoriesDaily(records = [], { date, studyId } = {}) {
   const fifteenCanonicalRows = filterComparisons(replay.pairComparisons.fifteenMinuteCanonical, targetIds);
   const sixtyRows = filterComparisons(replay.pairComparisons.sixtyMinute, targetIds);
   const sixtyCanonicalRows = filterComparisons(replay.pairComparisons.sixtyMinuteCanonical, targetIds);
+  const excludedPairsByReason = {
+    fifteenMinute: countReasons(filterExclusions(replay.pairSets.fifteenMinute.exclusions, targetIds)),
+    sixtyMinute: countReasons(filterExclusions(replay.pairSets.sixtyMinute.exclusions, targetIds)),
+  };
+  const pairData = {
+    targetIds,
+    fifteenRows,
+    fifteenCanonicalRows,
+    sixtyRows,
+    sixtyCanonicalRows,
+    excludedPairsByReason,
+  };
   const report = {
     schemaVersion: TOP_STORIES_DAILY_REPORT_SCHEMA,
     studyId: studyId || null,
     date,
     generatedFromImmutableArtifacts: true,
     status: dayRecords.length === 0 ? 'EMPTY' : targetIds.size < 2 ? 'INSUFFICIENT' : 'OBSERVED',
-    coverage: buildCoverage(dayRecords, matching, replay, bounds, date),
+    coverage: buildCoverage(dayRecords, matching, replay, bounds, date, pairData),
     stability: {
       fifteenMinute: {
         overlapping: summarizeComparisons(fifteenRows, REVIEW_THRESHOLDS.fifteenMinute),
@@ -214,14 +265,8 @@ export function aggregateTopStoriesDaily(records = [], { date, studyId } = {}) {
       },
     },
     pairing: {
-      fifteenMinuteExclusions: countReasons(filterExclusions(
-        replay.pairSets.fifteenMinute.exclusions,
-        targetIds,
-      )),
-      sixtyMinuteExclusions: countReasons(filterExclusions(
-        replay.pairSets.sixtyMinute.exclusions,
-        targetIds,
-      )),
+      fifteenMinuteExclusions: excludedPairsByReason.fifteenMinute,
+      sixtyMinuteExclusions: excludedPairsByReason.sixtyMinute,
       serialCorrelationNotice: replay.pairSets.fifteenMinute.serialCorrelationNotice,
     },
     residence: {
@@ -240,40 +285,6 @@ export function aggregateTopStoriesDaily(records = [], { date, studyId } = {}) {
     reviewThresholds: REVIEW_THRESHOLDS,
   };
   return { report, replay };
-}
-
-function percentage(value) {
-  return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : 'n/a';
-}
-
-export function renderTopStoriesDailyMarkdown(report) {
-  const f15 = report.stability.fifteenMinute.overlapping.calm.incumbentRetention;
-  const f60 = report.stability.sixtyMinute.overlapping.calm.incumbentRetention;
-  return [
-    `# Top Stories shadow daily report — ${report.date}`,
-    '',
-    `- Study: \`${report.studyId || 'unspecified'}\``,
-    `- Status: **${report.status}**`,
-    `- Scheduled-slot coverage: **${percentage(report.coverage.scheduleSlotCoverage)}** (${report.coverage.observedSlotCount}/96)`,
-    `- Successful observations: **${report.coverage.successfulRuns}**`,
-    `- Invalid artifacts: **${report.coverage.invalidArtifacts}**`,
-    `- Superseded duplicates: **${report.coverage.supersededDuplicateCount}**`,
-    '',
-    '## Calm-period stability',
-    '',
-    '| Horizon | Comparisons | Median incumbent retention | p10 | Below review threshold |',
-    '|---|---:|---:|---:|---:|',
-    `| 15 minutes | ${f15.count} | ${percentage(f15.median)} | ${percentage(f15.p10)} | ${percentage(f15.fractionBelowThreshold)} |`,
-    `| 60 minutes | ${f60.count} | ${percentage(f60.median)} | ${percentage(f60.p10)} | ${percentage(f60.fractionBelowThreshold)} |`,
-    '',
-    '## Statistical interpretation',
-    '',
-    report.pairing.serialCorrelationNotice,
-    'Canonical non-overlapping sensitivity results are retained separately in the JSON report.',
-    '',
-    'This is observational evidence only. It does not change production ranking or persistence behavior.',
-    '',
-  ].join('\n');
 }
 
 export function serializeTopStoriesDailyReport(report) {
