@@ -16,6 +16,10 @@ function inDay(value, bounds) {
   return Number.isFinite(ms) && ms >= bounds.startMs && ms < bounds.endMs;
 }
 
+function getRecordScheduledAt(record = {}) {
+  return record.operational?.scheduledAt || record.snapshot?.scheduledAt || record.failure?.scheduledAt || null;
+}
+
 function quantile(values, fraction) {
   if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);
@@ -71,10 +75,7 @@ function summarizeComparisons(rows, threshold) {
   const calm = eligible.filter(row => row.period?.periodClass === 'calm');
   const active = eligible.filter(row => row.period?.periodClass === 'active');
   const mapMetrics = subset => ({
-    incumbentRetention: summarizeValues(
-      subset.map(row => row.metrics?.incumbentRetention),
-      threshold,
-    ),
+    incumbentRetention: summarizeValues(subset.map(row => row.metrics?.incumbentRetention), threshold),
     newListContinuity: summarizeValues(subset.map(row => row.metrics?.newListContinuity)),
     jaccard: summarizeValues(subset.map(row => row.metrics?.jaccard)),
     normalizedWeightedRankDisplacement: summarizeValues(
@@ -123,9 +124,13 @@ function filterComparisons(rows, targetIds) {
   return rows.filter(row => targetIds.has(row.priorObservationId));
 }
 
-function buildCoverage(records, replay, bounds) {
-  const operational = records.filter(record => inDay(record.operational?.scheduledAt, bounds));
-  const slotKeys = new Set(operational.map(record => record.operational?.nominalSlotKey).filter(Boolean));
+function filterExclusions(rows, targetIds) {
+  return rows.filter(row => targetIds.has(row.anchorId));
+}
+
+function buildCoverage(dayRecords, allRecords, replay, bounds, date) {
+  const operational = dayRecords.filter(record => record.operational);
+  const slotKeys = new Set(operational.map(record => record.operational.nominalSlotKey).filter(Boolean));
   const successful = operational.filter(record => record.status === 'VALID_SNAPSHOT');
   const complete = successful.filter(record => record.snapshot?.completenessState === 'COMPLETE');
   const eligible = successful.filter(record => record.snapshot?.analyticalEligibility === 'ELIGIBLE');
@@ -134,10 +139,13 @@ function buildCoverage(records, replay, bounds) {
     scheduledSlots: 96,
     observedSlotCount: slotKeys.size,
     scheduleSlotCoverage: slotKeys.size / 96,
-    discoveredArtifacts: records.length,
+    discoveredArtifacts: dayRecords.length,
+    contextArtifactCount: allRecords.length - dayRecords.length,
+    unassignedInvalidArtifacts: allRecords.filter(record =>
+      !record.schemaValid && !getRecordScheduledAt(record)).length,
     startedRuns: operational.length,
-    validArtifacts: records.filter(record => record.schemaValid).length,
-    invalidArtifacts: records.filter(record => !record.schemaValid).length,
+    validArtifacts: dayRecords.filter(record => record.schemaValid).length,
+    invalidArtifacts: dayRecords.filter(record => !record.schemaValid).length,
     successfulRuns: successful.length,
     failureRuns: operational.filter(record => record.status === 'VALID_FAILURE').length,
     completeRuns: complete.length,
@@ -147,20 +155,21 @@ function buildCoverage(records, replay, bounds) {
     canonicalObservationCount: replay.canonicalObservations.filter(
       observation => inDay(observation.scheduledAt, bounds),
     ).length,
-    supersededDuplicateCount: replay.operationalRecords.filter(
-      row => row.status === 'SUPERSEDED_DUPLICATE_SLOT',
-    ).length,
-    artifactExclusionReasons: countReasons(records.filter(record => !record.schemaValid || record.failure)),
+    supersededDuplicateCount: replay.operationalRecords.filter(row =>
+      row.status === 'SUPERSEDED_DUPLICATE_SLOT' && String(row.slotKey).includes(`|${date}`)).length,
+    artifactExclusionReasons: countReasons(dayRecords.filter(record =>
+      !record.schemaValid || record.failure)),
   };
 }
 
-function buildInputManifest(records = []) {
+function buildInputManifest(records, bounds) {
   return records.map(record => ({
     directory: record.directory,
     status: record.status,
     schemaValid: record.schemaValid,
     studyId: record.operational?.studyId || record.snapshot?.studyId || record.failure?.studyId || null,
-    scheduledAt: record.operational?.scheduledAt || record.snapshot?.scheduledAt || record.failure?.scheduledAt || null,
+    scheduledAt: getRecordScheduledAt(record),
+    withinReportDay: inDay(getRecordScheduledAt(record), bounds),
     workflowRunId: record.operational?.workflowRunId || record.snapshot?.workflowRunId || record.failure?.workflowRunId || null,
     workflowRunAttempt: record.operational?.workflowRunAttempt || record.snapshot?.workflowRunAttempt || record.failure?.workflowRunAttempt || null,
     exclusionReason: record.exclusionReason || null,
@@ -177,47 +186,42 @@ export function aggregateTopStoriesDaily(records = [], { date, studyId } = {}) {
     const recordStudy = record.operational?.studyId || record.snapshot?.studyId || record.failure?.studyId;
     return !studyId || recordStudy === studyId;
   });
+  const dayRecords = matching.filter(record => inDay(getRecordScheduledAt(record), bounds));
   const replayInputs = matching
     .filter(record => record.status === 'VALID_SNAPSHOT')
     .map(toReplayObservation);
   const replay = analyzeTopStoriesSequence(replayInputs);
   const targetIds = targetObservationIds(replay, bounds);
   const fifteenRows = filterComparisons(replay.pairComparisons.fifteenMinute, targetIds);
-  const fifteenCanonicalRows = filterComparisons(
-    replay.pairComparisons.fifteenMinuteCanonical,
-    targetIds,
-  );
+  const fifteenCanonicalRows = filterComparisons(replay.pairComparisons.fifteenMinuteCanonical, targetIds);
   const sixtyRows = filterComparisons(replay.pairComparisons.sixtyMinute, targetIds);
-  const sixtyCanonicalRows = filterComparisons(
-    replay.pairComparisons.sixtyMinuteCanonical,
-    targetIds,
-  );
+  const sixtyCanonicalRows = filterComparisons(replay.pairComparisons.sixtyMinuteCanonical, targetIds);
   const report = {
     schemaVersion: TOP_STORIES_DAILY_REPORT_SCHEMA,
     studyId: studyId || null,
     date,
     generatedFromImmutableArtifacts: true,
-    status: matching.length === 0 ? 'EMPTY' : targetIds.size < 2 ? 'INSUFFICIENT' : 'OBSERVED',
-    coverage: buildCoverage(matching, replay, bounds),
+    status: dayRecords.length === 0 ? 'EMPTY' : targetIds.size < 2 ? 'INSUFFICIENT' : 'OBSERVED',
+    coverage: buildCoverage(dayRecords, matching, replay, bounds, date),
     stability: {
       fifteenMinute: {
         overlapping: summarizeComparisons(fifteenRows, REVIEW_THRESHOLDS.fifteenMinute),
-        canonicalNonOverlapping: summarizeComparisons(
-          fifteenCanonicalRows,
-          REVIEW_THRESHOLDS.fifteenMinute,
-        ),
+        canonicalNonOverlapping: summarizeComparisons(fifteenCanonicalRows, REVIEW_THRESHOLDS.fifteenMinute),
       },
       sixtyMinute: {
         overlapping: summarizeComparisons(sixtyRows, REVIEW_THRESHOLDS.sixtyMinute),
-        canonicalNonOverlapping: summarizeComparisons(
-          sixtyCanonicalRows,
-          REVIEW_THRESHOLDS.sixtyMinute,
-        ),
+        canonicalNonOverlapping: summarizeComparisons(sixtyCanonicalRows, REVIEW_THRESHOLDS.sixtyMinute),
       },
     },
     pairing: {
-      fifteenMinuteExclusions: countReasons(replay.pairSets.fifteenMinute.exclusions),
-      sixtyMinuteExclusions: countReasons(replay.pairSets.sixtyMinute.exclusions),
+      fifteenMinuteExclusions: countReasons(filterExclusions(
+        replay.pairSets.fifteenMinute.exclusions,
+        targetIds,
+      )),
+      sixtyMinuteExclusions: countReasons(filterExclusions(
+        replay.pairSets.sixtyMinute.exclusions,
+        targetIds,
+      )),
       serialCorrelationNotice: replay.pairSets.fifteenMinute.serialCorrelationNotice,
     },
     residence: {
@@ -231,7 +235,7 @@ export function aggregateTopStoriesDaily(records = [], { date, studyId } = {}) {
       observation.identityVersion,
       observation.periodClassifierVersion,
     ].join('|')))].sort(),
-    inputManifest: buildInputManifest(matching),
+    inputManifest: buildInputManifest(matching, bounds),
     replayVersion: replay.replayVersion,
     reviewThresholds: REVIEW_THRESHOLDS,
   };
