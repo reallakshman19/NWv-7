@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { evaluateTopStories } from './topStoriesRanker.js';
 import {
   createTopStoriesRunArtifacts,
+  MAX_RUN_SNAPSHOT_BYTES,
 } from '../../../scripts/top-stories-shadow/artifactBundle.mjs';
 import { sha256Text } from '../../../scripts/top-stories-shadow/canonicalJson.mjs';
 
@@ -185,6 +186,7 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
     expect(first.files).toEqual(second.files);
     expect(file.name).toBe('snapshot.json');
     expect(file.byteSize).toBe(Buffer.byteLength(snapshotText, 'utf8'));
+    expect(file.byteSize).toBeLessThan(MAX_RUN_SNAPSHOT_BYTES);
     expect(file.sha256).toBe(sha256Text(snapshotText));
     expect(manifest.integrityScope)
       .toBe('accidental-corruption-and-transfer-completeness-only');
@@ -213,7 +215,7 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
       .toBe('INPUT_CHANGED_UNINTERPRETABLE');
   });
 
-  it('emits failure artifacts for invalid configuration and input', () => {
+  it('emits failure artifacts for invalid configuration, input, and timing', () => {
     const badConfig = createTopStoriesRunArtifacts({
       studyConfig: { ...CONFIG, studyId: '' },
       inputBundle: inputBundle(),
@@ -224,6 +226,13 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
       inputBundle: {},
       metadata: metadata(),
     });
+    const badTiming = createTopStoriesRunArtifacts({
+      studyConfig: CONFIG,
+      inputBundle: inputBundle(),
+      metadata: metadata({
+        scheduledAt: '2026-07-16T17:30:00.000Z',
+      }),
+    });
 
     expect(badConfig.ok).toBe(false);
     expect(badConfig.files['failure.json']).toContain('missing_study_configuration');
@@ -231,5 +240,8 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
     expect(badInput.ok).toBe(false);
     expect(badInput.files['failure.json'])
       .toContain('missing_repository_snapshot_input');
+    expect(badTiming.ok).toBe(false);
+    expect(badTiming.files['failure.json'])
+      .toContain('runAt cannot be earlier than scheduledAt');
   });
 });
