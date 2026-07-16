@@ -1,18 +1,18 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784223803843,
-  "contentHash": "c0d076799245c046",
+  "generatedAt": 1784225100498,
+  "contentHash": "e259f21c3d17a968",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 769,
+  "storyCount": 755,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
   "avgAngles": 1.3,
-  "avgTemporalTiers": 1.5,
-  "avgEvolutionRoles": 1.5,
-  "baseReportShare": 0.17647058823529413,
+  "avgTemporalTiers": 1.4,
+  "avgEvolutionRoles": 1.4,
+  "baseReportShare": 0.1875,
   "multiAngleCount": 3,
   "weakParentCount": 7,
   "runtimeQualityGate": {
@@ -23,53 +23,53 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 32,
+      "signalScore": 30,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 702,
+      "storyCount": 691,
       "risingCount": 0,
       "thinCount": 7,
       "multiAngleCount": 3,
       "lowAngleCount": 7,
       "strongAngleCount": 0,
       "avgAngles": 1.3,
-      "avgChildren": 1.7,
-      "avgScore": 0.6587087628418298,
-      "sourceDiversityCoverage": 7,
+      "avgChildren": 1.6,
+      "avgScore": 0.6613632070111614,
+      "sourceDiversityCoverage": 6,
       "snapshotCoverage": 4,
       "coverageLabel": "3/10",
       "warnings": [
         "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "3 cluster(s) are below source-diversity target.",
+        "4 cluster(s) are below source-diversity target.",
         "6 cluster(s) have weak snapshot coverage.",
         "7 cluster(s) are marked thin.",
-        "674 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "644 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 32,
+      "signalScore": 30,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 702,
+      "storyCount": 691,
       "risingCount": 0,
       "thinCount": 7,
       "multiAngleCount": 3,
       "lowAngleCount": 7,
       "strongAngleCount": 0,
       "avgAngles": 1.3,
-      "avgChildren": 1.7,
-      "avgScore": 0.6587087628418298,
-      "sourceDiversityCoverage": 7,
+      "avgChildren": 1.6,
+      "avgScore": 0.6613632070111614,
+      "sourceDiversityCoverage": 6,
       "snapshotCoverage": 4,
       "coverageLabel": "3/10",
       "warnings": [
         "7 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "3 cluster(s) are below source-diversity target.",
+        "4 cluster(s) are below source-diversity target.",
         "6 cluster(s) have weak snapshot coverage.",
         "7 cluster(s) are marked thin.",
         "2 duplicate/near-duplicate item(s) were hidden or downgraded."
@@ -107,7 +107,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_614_c884c27f5f2504cb",
+      "parentId": "cluster_617_c884c27f5f2504cb",
       "headline": "Files relating to India’s largest nuclear power plant Kudankulam exposed in data breach - Reuters",
       "score": 0.6292600000000002,
       "postTreeScore": 1.0293,
@@ -148,7 +148,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_473_17448d814f42084f",
+      "parentId": "cluster_474_17448d814f42084f",
       "headline": "Swiggy Instamart and HPCL launch q-comm cylinder delivery",
       "score": 0.7012467197849983,
       "postTreeScore": 0.5912,
@@ -165,26 +165,6 @@
         "corroboration"
       ],
       "baseReportShare": 1,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_651_6bc300ab5a56ad6c",
-      "headline": "Marine engineer missing following attack on ship off Oman coast is dead, says family",
-      "score": 0.6961467197849984,
-      "postTreeScore": 0.5861,
-      "childCount": 2,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "public_reaction"
-      ],
-      "baseReportShare": 0,
       "weakTree": true
     },
     {
@@ -277,6 +257,24 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
+    },
+    {
+      "parentId": "cluster_108_c6828ca95fe07bb5",
+      "headline": "Polycab Q1 Results: Profit surges 33% YoY to Rs 797 crore, revenue jumps 39%",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
     }
   ],
   "warnings": [
@@ -298,7 +296,7 @@
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.176,
+        "actual": 0.188,
         "required": "<= 0.55"
       },
       {
@@ -340,7 +338,7 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.5,
+        "actual": 1.4,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
@@ -348,7 +346,7 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.5,
+        "actual": 1.4,
         "required": ">= 1.6",
         "severity": "fail",
         "fix": "C+E output should include distinct event evolution roles."
@@ -365,15 +363,15 @@
     "summary": {
       "parentCount": 10,
       "avgAngles": 1.3,
-      "avgTemporalTiers": 1.5,
-      "avgEvolutionRoles": 1.5,
-      "baseReportShare": 0.176,
+      "avgTemporalTiers": 1.4,
+      "avgEvolutionRoles": 1.4,
+      "baseReportShare": 0.188,
       "multiAngleCount": 3,
       "weakParentCount": 7,
       "weakParentRatio": 0.7,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 769,
+      "storyCount": 755,
       "sourceGroupCount": 9
     }
   }

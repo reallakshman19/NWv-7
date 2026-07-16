@@ -830,7 +830,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat",
         "ranked Up Ahead set is category-dominated"
@@ -838,6 +838,8 @@
       "destination": "upAhead",
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "VIT gets ₹50 lakh endowment fund for student innovation programmes: futureValidity failed — expired display window",
+        "VIT gets ₹50 lakh endowment fund for student innovation programmes: alertUrgency failed — alert expired",
         "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window",
         "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: alertUrgency failed — alert expired",
         "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: futureValidity failed — expired display window",
@@ -876,8 +878,8 @@
         "festivals": 0,
         "inputItemCount": 41,
         "locationCounts": {
-          "chennai": 19,
-          "trichy": 11
+          "chennai": 20,
+          "trichy": 10
         },
         "locationsCovered": [
           "chennai",
@@ -887,10 +889,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 29,
         "rankedItemCount": 30,
-        "suppressedItemCount": 5
+        "suppressedItemCount": 6
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8471,
+      "qualityScore": 0.8458,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -3313,121 +3315,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "6eee19bdd96b7249"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784224509000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "e811ca5e8355cb07",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784224509000,
-            "id": "e811ca5e8355cb07",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784829309000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784224509000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784138109000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "The initiative will extend beyond financial assistance by offering industry mentorship, startup guidance, and leadership development opportunities",
-            "suppressionReason": null,
-            "title": "VIT gets ₹50 lakh endowment fund for student innovation programmes",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/vit-gets-50-lakh-endowment-fund-for-student-innovation-programmes/article71226026.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "VIT gets ₹50 lakh endowment fund for student innovation programmes"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "ea93ab5600ef1d4f"
               },
               "name": "dedup",
@@ -4341,6 +4228,121 @@
           ],
           "score": 0.7925,
           "title": "Revelling in the power of visual politics"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "76c9c574f9dd54ad"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784299813000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "ddb02e2099cc0e48",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784299813000,
+            "id": "ddb02e2099cc0e48",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784904613000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784299813000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784213413000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "He says the service has been witnessing high demand and appointments are being booked well in advance",
+            "suppressionReason": null,
+            "title": "T.N. govt. to expand Master Health Check-up to district hospitals: Minister Arunraj",
+            "url": "https://www.thehindu.com/news/cities/chennai/tn-govt-to-expand-master-health-check-up-services-to-district-hospitals-minister-arunraj/article71230160.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "T.N. govt. to expand Master Health Check-up to district hospitals: Minister Arunraj"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4348,14 +4350,14 @@
         "actionabilityScore": 1.0,
         "categoryPriorityScore": 1.0,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9533,
+        "locationScore": 0.944,
         "plannerFitScore": 0.9667,
         "sourceConfidenceScore": 0.58,
         "urgencyOrExpiryScore": 0.78
       }
     }
   },
-  "generatedAt": 1784223804751,
+  "generatedAt": 1784225101224,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4374,7 +4376,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "ranked Up Ahead set is category-dominated",
@@ -4391,7 +4393,7 @@
       "buzz": 0.0,
       "insight": 0.3795,
       "localTravel": 0.0,
-      "upAhead": 0.8471
+      "upAhead": 0.8458
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4399,7 +4401,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3066,
+    "overallScore": 0.3063,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4409,6 +4411,8 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "VIT gets ₹50 lakh endowment fund for student innovation programmes: futureValidity failed — expired display window",
+      "VIT gets ₹50 lakh endowment fund for student innovation programmes: alertUrgency failed — alert expired",
       "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: futureValidity failed — expired display window",
       "Agnikul ropes in former ISRO chairman Somanath ahead of Mission 02: alertUrgency failed — alert expired",
       "IAS officers reshuffled in Tamil Nadu: J. Radhakrishnan, Supriya Sahu transferred: futureValidity failed — expired display window",
