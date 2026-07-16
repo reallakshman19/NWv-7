@@ -3,6 +3,7 @@ import { buildTopStoriesRunSnapshot } from './snapshotBuilder.mjs';
 
 export const ARTIFACT_MANIFEST_SCHEMA_VERSION = 'nw-top-stories-artifact-manifest/v1';
 export const RUN_FAILURE_SCHEMA_VERSION = 'nw-top-stories-run-failure/v1';
+export const MAX_RUN_SNAPSHOT_BYTES = 5 * 1024 * 1024;
 
 function toJsonText(value) {
   return `${stableJson(value)}\n`;
@@ -42,17 +43,25 @@ function bundleFile(name, schemaVersion, value, context) {
   };
 }
 
+function assertSnapshotSize(files) {
+  const byteSize = Buffer.byteLength(files['snapshot.json'], 'utf8');
+  if (byteSize <= MAX_RUN_SNAPSHOT_BYTES) return;
+  const error = new Error(
+    `snapshot.json exceeds ${MAX_RUN_SNAPSHOT_BYTES} byte study budget`,
+  );
+  error.code = 'snapshot_artifact_too_large';
+  throw error;
+}
+
 export function createSuccessArtifactBundle(snapshot) {
-  return {
-    ok: true,
+  const files = bundleFile(
+    'snapshot.json',
+    snapshot.schemaVersion,
     snapshot,
-    files: bundleFile(
-      'snapshot.json',
-      snapshot.schemaVersion,
-      snapshot,
-      snapshot,
-    ),
-  };
+    snapshot,
+  );
+  assertSnapshotSize(files);
+  return { ok: true, snapshot, files };
 }
 
 function getFailureContext(args = {}) {
