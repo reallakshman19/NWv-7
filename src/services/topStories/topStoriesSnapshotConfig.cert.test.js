@@ -75,6 +75,17 @@ describe('NW-RANK-011C fixed study configuration', () => {
       { nowMs: Date.UTC(2026, 8, 1) },
     )).toThrow(/expired/);
   });
+
+  it('rejects schema drift and an impossible display depth', () => {
+    expect(() => validateTopStoriesStudyConfig(
+      { ...CONFIG, schemaVersion: 'study/v-next' },
+      { nowMs: RUN_AT },
+    )).toThrow(/schemaVersion/);
+    expect(() => validateTopStoriesStudyConfig(
+      { ...CONFIG, displayDepth: 26, rankerLimit: 25 },
+      { nowMs: RUN_AT },
+    )).toThrow(/displayDepth/);
+  });
 });
 
 describe('NW-RANK-011C canonical input digests', () => {
@@ -131,6 +142,9 @@ describe('NW-RANK-011C repository input and minimization', () => {
     expect(validateRepositoryReplayInput(inputBundle()).inputSource)
       .toBe('repository-public-newsdata-sections');
     expect(() => validateRepositoryReplayInput({})).toThrow(/sectionItems/);
+    expect(() => validateRepositoryReplayInput(inputBundle({
+      inputSource: 'user-visible-snapshot',
+    }))).toThrow(/repository snapshot source/);
   });
 
   it('keeps ranking evidence while removing bodies, secrets, and read state', () => {
