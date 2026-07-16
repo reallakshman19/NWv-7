@@ -117,7 +117,7 @@ describe('Top Stories shadow artifact reader', () => {
     const record = await readTopStoriesArtifactDirectory(root);
     expect(record.schemaValid).toBe(false);
     expect(record.status).toBe('INVALID_ARTIFACT');
-    expect(record.exclusionReason).toBe('artifact_byte_size_mismatch');
+    expect(record.exclusionReason).toBe('artifact_hash_mismatch');
   });
 
   it('rejects unknown publication schemas', async () => {
