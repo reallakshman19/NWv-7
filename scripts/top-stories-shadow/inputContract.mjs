@@ -16,8 +16,9 @@ const ANALYTICAL_STATES = new Set([
 const STORY_FIELDS = [
   'id', 'rowId', 'canonicalId', 'clusterId', 'title', 'url', 'link',
   'source', 'sourceGroup', 'sourceFamily', 'section', 'sourceSection',
-  'publishedAt', 'updatedAt', 'timestampConfidence', 'sourceCount',
-  'clusteredItems', 'allSources', '_topStoryRank', '_studyIdentity',
+  'country', 'geography', 'location', 'publishedAt', 'updatedAt',
+  'timestampConfidence', 'sourceCount', 'clusteredItems', 'allSources',
+  '_topStoryRank', '_studyIdentity',
 ];
 
 const SENSITIVE_KEYS = new Set([
