@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1784159888458,
+  "generatedAt": 1784176779235,
   "windowDays": 7,
   "latest": {
     "insightGrade": "D",
     "insightScore": 0,
-    "totalStories": 660,
-    "usableStories36h": 654,
-    "sourceGroups": 9,
+    "totalStories": 607,
+    "usableStories36h": 578,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3084,
+    "rankingOverallScore": 0.3069,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3084,
+    "overallScore": 0.3069,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1784159887341,
+    "generatedAt": 1784176778414,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.3718,
+      "insight": 0.3667,
       "localTravel": 0,
-      "upAhead": 0.8616
+      "upAhead": 0.8607
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.3718,
+        "score": 0.3667,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8616,
+        "score": 0.8607,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,11 +74,11 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 11,
-        "strongParents": 11,
+        "parentClusters": 9,
+        "strongParents": 9,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
-        "baseReportHeavyParents": 1,
+        "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0
       },
       "localTravel": {
@@ -92,7 +92,7 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 13,
+        "suppressedItemCount": 6,
         "events": 0,
         "onlineOffers": 0,
         "offlineOffers": 0,
@@ -105,23 +105,24 @@
       }
     },
     "topFindings": [
+      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
       "Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
-      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "T.N. Medical Services Corporation invites bids for scheme to gift gold rings to babies born in government hospitals: futureValidity failed — expired display window",
-      "T.N. Medical Services Corporation invites bids for scheme to gift gold rings to babies born in government hospitals: alertUrgency failed — alert expired",
-      "Heatwave conditions to prevail in parts of Tamil Nadu on July 15, says RMC: futureValidity failed — expired display window",
-      "Heatwave conditions to prevail in parts of Tamil Nadu on July 15, says RMC: alertUrgency failed — alert expired",
-      "Signal failure disrupts trains services on Beach-Tambaram and Chengalpattu corridor: futureValidity failed — expired display window",
-      "Signal failure disrupts trains services on Beach-Tambaram and Chengalpattu corridor: alertUrgency failed — alert expired",
-      "Migrant worker from Bihar dies in boiler explosion at factory in Gummidipoondi: futureValidity failed — expired display window",
-      "Migrant worker from Bihar dies in boiler explosion at factory in Gummidipoondi: alertUrgency failed — alert expired",
-      "Efforts are on to expand our products base, says CPCL MD: futureValidity failed — expired display window"
+      "Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
+      "Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match",
+      "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: futureValidity failed — expired display window",
+      "PAL launches 3-day flash sale: Up to 50% off flights — book before cut-off date - Gulf News: offerValidity failed — offer expired",
+      "upAhead: Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "upAhead: Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
+      "upAhead: Deal | 34-inch 240 Hz LG OLED gaming monitor sees $500 discount in new Amazon sale - Notebookcheck: location failed — offline/local item lacks configured location match",
+      "upAhead: Philippine Airlines Middle East Flight Sale - Nomad Lawyer: location failed — offline/local item lacks configured location match",
+      "upAhead: Best Fire TV Stick deal: Save $15 on Amazon Fire TV Stick HD - Mashable: location failed — offline/local item lacks configured location match"
     ],
     "actionRequired": [
-      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "6 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
+      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -129,8 +130,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "1 base-report-heavy Insight parent(s) demoted",
-      "buzz: no local Buzz item in ranked set"
+      "2 base-report-heavy Insight parent(s) demoted"
     ]
   },
   "sourceHealth": {
@@ -152,23 +152,6 @@
     "avgRankingWeakDestinations7d": 4
   },
   "history": [
-    {
-      "date": "2026-07-09",
-      "generatedAt": 1783632128809,
-      "insightGrade": "C",
-      "insightScore": 0,
-      "totalStories": 702,
-      "usableStories36h": 675,
-      "sourceGroups": 10,
-      "angleHintCoverage": 1,
-      "sectionsTotalStories": 0,
-      "sectionsCount": 10,
-      "rankingOverallScore": 0.3061,
-      "rankingOverallStatus": "FAIL",
-      "sourceUptimePercent": 0,
-      "angleDiversityScore": 0,
-      "rankingWeakDestinationCount": 4
-    },
     {
       "date": "2026-07-10",
       "generatedAt": 1783727791888,
@@ -266,6 +249,23 @@
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
       "rankingOverallScore": 0.3084,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-16",
+      "generatedAt": 1784176779235,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 607,
+      "usableStories36h": 578,
+      "sourceGroups": 10,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3069,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,
