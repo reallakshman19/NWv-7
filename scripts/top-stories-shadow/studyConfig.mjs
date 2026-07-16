@@ -1,3 +1,6 @@
+import { TOP_STORIES_IDENTITY_VERSION } from '../../src/services/topStories/topStoriesStudyIdentity.js';
+import { TOP_STORIES_PERIOD_CLASSIFIER_VERSION } from '../../src/services/topStories/topStoriesPeriodClassifier.js';
+
 const REQUIRED_STRINGS = [
   'schemaVersion',
   'studyId',
@@ -50,6 +53,21 @@ function assertMode(config) {
   }
 }
 
+function assertExecutableVersions(config) {
+  if (config.identityVersion !== TOP_STORIES_IDENTITY_VERSION) {
+    throw new StudyConfigurationError(
+      'identity_version_mismatch',
+      'Configured identityVersion does not match the executable identity contract',
+    );
+  }
+  if (config.periodClassifierVersion !== TOP_STORIES_PERIOD_CLASSIFIER_VERSION) {
+    throw new StudyConfigurationError(
+      'period_classifier_version_mismatch',
+      'Configured periodClassifierVersion does not match the executable classifier',
+    );
+  }
+}
+
 function assertExpiry(config, nowMs) {
   const expiryMs = Date.parse(config.expiryAt);
   if (!Number.isFinite(expiryMs)) {
@@ -84,6 +102,7 @@ export function validateTopStoriesStudyConfig(config, options = {}) {
   assertPositiveInteger(config, 'displayDepth');
   assertPositiveInteger(config, 'rankerLimit');
   assertMode(config);
+  assertExecutableVersions(config);
   assertExpiry(config, Number(options.nowMs));
   return deepFreeze({ ...config });
 }
