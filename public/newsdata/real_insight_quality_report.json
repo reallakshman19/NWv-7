@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784225627892,
-  "contentHash": "28b8d331c50d32a2",
+  "generatedAt": 1784229240508,
+  "contentHash": "5390275c42421a99",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 773,
+  "storyCount": 782,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.3,
-  "avgTemporalTiers": 1.4,
-  "avgEvolutionRoles": 1.4,
-  "baseReportShare": 0.1875,
-  "multiAngleCount": 3,
-  "weakParentCount": 7,
+  "avgAngles": 1.2,
+  "avgTemporalTiers": 1.3,
+  "avgEvolutionRoles": 1.3,
+  "baseReportShare": 0.2,
+  "multiAngleCount": 2,
+  "weakParentCount": 8,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -23,55 +23,55 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 30,
+      "signalScore": 24,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 708,
+      "storyCount": 712,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
-      "avgChildren": 1.6,
-      "avgScore": 0.6613632070111614,
-      "sourceDiversityCoverage": 6,
+      "avgAngles": 1.2,
+      "avgChildren": 1.5,
+      "avgScore": 0.6642826511804932,
+      "sourceDiversityCoverage": 5,
       "snapshotCoverage": 4,
-      "coverageLabel": "3/10",
+      "coverageLabel": "2/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) are below source-diversity target.",
+        "5 cluster(s) are below source-diversity target.",
         "6 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin.",
-        "654 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "8 cluster(s) are marked thin.",
+        "704 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 30,
+      "signalScore": 24,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 708,
+      "storyCount": 712,
       "risingCount": 0,
-      "thinCount": 7,
-      "multiAngleCount": 3,
-      "lowAngleCount": 7,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.3,
-      "avgChildren": 1.6,
-      "avgScore": 0.6613632070111614,
-      "sourceDiversityCoverage": 6,
+      "avgAngles": 1.2,
+      "avgChildren": 1.5,
+      "avgScore": 0.6642826511804932,
+      "sourceDiversityCoverage": 5,
       "snapshotCoverage": 4,
-      "coverageLabel": "3/10",
+      "coverageLabel": "2/10",
       "warnings": [
-        "7 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "4 cluster(s) are below source-diversity target.",
+        "5 cluster(s) are below source-diversity target.",
         "6 cluster(s) have weak snapshot coverage.",
-        "7 cluster(s) are marked thin.",
+        "8 cluster(s) are marked thin.",
         "2 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
@@ -86,28 +86,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_317_73639a6259358687",
-      "headline": "Kota C-section victims demand kidney transplant in 48 hours, write to President",
-      "score": 0.6934967197849984,
-      "postTreeScore": 1.0735,
-      "childCount": 2,
-      "angles": [
-        "fact_update",
-        "reaction_public"
-      ],
-      "temporalTiers": [
-        "reaction",
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "corroboration",
-        "public_reaction"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_631_c884c27f5f2504cb",
+      "parentId": "cluster_660_c884c27f5f2504cb",
       "headline": "Files relating to India’s largest nuclear power plant Kudankulam exposed in data breach - Reuters",
       "score": 0.6292600000000002,
       "postTreeScore": 1.0293,
@@ -127,7 +106,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_62_0e2bbc0261b777c1",
+      "parentId": "cluster_86_0e2bbc0261b777c1",
       "headline": "Duration of US visa stay changes - what it means for foreign students, exchange visitors and journalists",
       "score": 0.6010273179616862,
       "postTreeScore": 1.021,
@@ -148,7 +127,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_488_17448d814f42084f",
+      "parentId": "cluster_515_17448d814f42084f",
       "headline": "Swiggy Instamart and HPCL launch q-comm cylinder delivery",
       "score": 0.7012467197849983,
       "postTreeScore": 0.5912,
@@ -168,7 +147,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_68_3f1aaf6f2e804218",
+      "parentId": "cluster_93_3f1aaf6f2e804218",
       "headline": "Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters",
       "score": 0.5693433333333333,
       "postTreeScore": 0.4793,
@@ -187,7 +166,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_186_d1ee91f5183ee7b0",
+      "parentId": "cluster_211_d1ee91f5183ee7b0",
       "headline": "Parliament approves Serhii Koretskyi amid cabinet shuffle",
       "score": 0.5275933333333334,
       "postTreeScore": 0.4376,
@@ -205,7 +184,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_137_48e013d49647d59d",
+      "parentId": "cluster_162_48e013d49647d59d",
       "headline": "BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40%",
       "score": 0.7235911614783158,
       "postTreeScore": 0.4236,
@@ -223,7 +202,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_99_0f63150bcd350916",
+      "parentId": "cluster_124_0f63150bcd350916",
       "headline": "SBI Funds Management gets highest applications for any IPO this year, sees Rs 2.98 lakh crore investor rush",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -241,7 +220,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_109_d6c830664e75beb0",
+      "parentId": "cluster_134_d6c830664e75beb0",
       "headline": "Jio Financial Q1 Results: Profit skyrockets 155% YoY to Rs 830 crore",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -259,8 +238,26 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_122_c6828ca95fe07bb5",
+      "parentId": "cluster_147_c6828ca95fe07bb5",
       "headline": "Polycab Q1 Results: Profit surges 33% YoY to Rs 797 crore, revenue jumps 39%",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_191_878690feacefab93",
+      "headline": "Tech Mahindra Q1 Results: Net profit rises 28% YoY to Rs 1,465 crore, revenue up 18%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
@@ -296,13 +293,13 @@
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.188,
+        "actual": 0.2,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 3,
+        "actual": 2,
         "required": ">= 1"
       },
       {
@@ -330,7 +327,7 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.3,
+        "actual": 1.2,
         "required": ">= 1.4",
         "severity": "fail",
         "fix": "Angle-diverse child selection is not strong enough on real data."
@@ -338,7 +335,7 @@
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.4,
+        "actual": 1.3,
         "required": ">= 1.8",
         "severity": "fail",
         "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
@@ -346,7 +343,7 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.4,
+        "actual": 1.3,
         "required": ">= 1.6",
         "severity": "fail",
         "fix": "C+E output should include distinct event evolution roles."
@@ -354,7 +351,7 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.7,
+        "actual": 0.8,
         "required": "<= 0.5",
         "severity": "warn",
         "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
@@ -362,16 +359,16 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.3,
-      "avgTemporalTiers": 1.4,
-      "avgEvolutionRoles": 1.4,
-      "baseReportShare": 0.188,
-      "multiAngleCount": 3,
-      "weakParentCount": 7,
-      "weakParentRatio": 0.7,
+      "avgAngles": 1.2,
+      "avgTemporalTiers": 1.3,
+      "avgEvolutionRoles": 1.3,
+      "baseReportShare": 0.2,
+      "multiAngleCount": 2,
+      "weakParentCount": 8,
+      "weakParentRatio": 0.8,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 773,
+      "storyCount": 782,
       "sourceGroupCount": 9
     }
   }
