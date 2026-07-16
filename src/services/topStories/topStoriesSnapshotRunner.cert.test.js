@@ -215,13 +215,17 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
       .toBe('INPUT_CHANGED_UNINTERPRETABLE');
   });
 
-  it('emits failure artifacts for invalid configuration, input, and timing', () => {
+  it('emits distinct failure artifacts for missing, malformed, and invalid inputs', () => {
     const badConfig = createTopStoriesRunArtifacts({
       studyConfig: { ...CONFIG, studyId: '' },
       inputBundle: inputBundle(),
       metadata: metadata(),
     });
-    const badInput = createTopStoriesRunArtifacts({
+    const missingInput = createTopStoriesRunArtifacts({
+      studyConfig: CONFIG,
+      metadata: metadata(),
+    });
+    const malformedInput = createTopStoriesRunArtifacts({
       studyConfig: CONFIG,
       inputBundle: {},
       metadata: metadata(),
@@ -237,9 +241,12 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
     expect(badConfig.ok).toBe(false);
     expect(badConfig.files['failure.json']).toContain('missing_study_configuration');
     expect(badConfig.files['snapshot.json']).toBeUndefined();
-    expect(badInput.ok).toBe(false);
-    expect(badInput.files['failure.json'])
+    expect(missingInput.ok).toBe(false);
+    expect(missingInput.files['failure.json'])
       .toContain('missing_repository_snapshot_input');
+    expect(malformedInput.ok).toBe(false);
+    expect(malformedInput.files['failure.json'])
+      .toContain('invalid_repository_snapshot_input');
     expect(badTiming.ok).toBe(false);
     expect(badTiming.files['failure.json'])
       .toContain('runAt cannot be earlier than scheduledAt');
