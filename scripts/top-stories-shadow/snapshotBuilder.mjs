@@ -96,9 +96,30 @@ function buildFunnel(evaluation) {
   ];
 }
 
-function attachAndSanitize(stories, identityVersion) {
-  return attachTopStoryStudyIdentities(stories, { identityVersion })
-    .map(sanitizeStoryEvidence);
+function getEvidenceKey(story = {}) {
+  return String(
+    story.id || story.canonicalId || story.url || story.link || story.title || '',
+  ).trim().toLowerCase();
+}
+
+function buildEvidencePopulations(evaluation, identityVersion) {
+  const identified = attachTopStoryStudyIdentities(
+    evaluation.scoredCandidates,
+    { identityVersion },
+  );
+  const identities = new Map(identified.map(story => [
+    getEvidenceKey(story),
+    story._studyIdentity,
+  ]));
+  const sanitizeRows = stories => stories.map(story => sanitizeStoryEvidence({
+    ...story,
+    _studyIdentity: identities.get(getEvidenceKey(story)) || null,
+  }));
+  return {
+    candidateEvidence: identified.map(sanitizeStoryEvidence),
+    ranked: sanitizeRows(evaluation.selected),
+    displayed: sanitizeRows(evaluation.displayed),
+  };
 }
 
 function buildDigests(config, inputBundle, evaluation) {
@@ -129,6 +150,7 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
   );
   const states = deriveObservationStates(input);
   const digests = buildDigests(config, input, evaluation);
+  const evidence = buildEvidencePopulations(evaluation, config.identityVersion);
   const scheduleDelaySeconds = (nowMs - Date.parse(metadata.scheduledAt)) / 1000;
   const observationId = `${config.studyId}:${metadata.scheduledAt}:${metadata.workflowRunId}:${metadata.workflowRunAttempt}`;
 
@@ -159,9 +181,9 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
     displayedCount: evaluation.displayedCount,
     rankedIds: evaluation.rankedIds,
     displayedTopNIds: evaluation.displayedTopNIds,
-    ranked: attachAndSanitize(evaluation.selected, config.identityVersion),
-    displayed: attachAndSanitize(evaluation.displayed, config.identityVersion),
-    candidateEvidence: attachAndSanitize(evaluation.scoredCandidates, config.identityVersion),
+    ranked: evidence.ranked,
+    displayed: evidence.displayed,
+    candidateEvidence: evidence.candidateEvidence,
     candidateBuildTrace: sanitizeObservationEvidence(evaluation.candidateBuildTrace),
     selectionTrace: sanitizeObservationEvidence(evaluation.selectionTrace),
     funnel: buildFunnel(evaluation),
