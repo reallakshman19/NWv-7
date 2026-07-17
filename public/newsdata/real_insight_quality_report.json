@@ -1,11 +1,11 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784267059941,
-  "contentHash": "9d4c6f7352936bb7",
+  "generatedAt": 1784273654042,
+  "contentHash": "01216006208ec604",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 654,
+  "storyCount": 649,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
@@ -23,10 +23,10 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 19,
+      "signalScore": 20,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 598,
+      "storyCount": 595,
       "risingCount": 0,
       "thinCount": 9,
       "multiAngleCount": 1,
@@ -34,27 +34,27 @@
       "strongAngleCount": 0,
       "avgAngles": 1.1,
       "avgChildren": 1.5,
-      "avgScore": 0.6488989792019935,
+      "avgScore": 0.6576976511804931,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 4,
       "coverageLabel": "1/10",
       "warnings": [
         "9 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) have weak snapshot coverage.",
         "9 cluster(s) are marked thin.",
-        "565 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "545 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 19,
+      "signalScore": 20,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 598,
+      "storyCount": 595,
       "risingCount": 0,
       "thinCount": 9,
       "multiAngleCount": 1,
@@ -62,15 +62,15 @@
       "strongAngleCount": 0,
       "avgAngles": 1.1,
       "avgChildren": 1.5,
-      "avgScore": 0.6488989792019935,
+      "avgScore": 0.6576976511804931,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 4,
       "coverageLabel": "1/10",
       "warnings": [
         "9 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "6 cluster(s) have weak snapshot coverage.",
         "9 cluster(s) are marked thin.",
         "2 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
@@ -86,7 +86,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_209_0e2bbc0261b777c1",
+      "parentId": "cluster_238_0e2bbc0261b777c1",
       "headline": "Duration of US visa stay changes - what it means for foreign students, exchange visitors and journalists",
       "score": 0.6210273179616861,
       "postTreeScore": 1.041,
@@ -107,10 +107,10 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_77_4702db0051724a4a",
+      "parentId": "cluster_105_4702db0051724a4a",
       "headline": "NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify",
-      "score": 0.6225766666666668,
-      "postTreeScore": 0.5326,
+      "score": 0.6425766666666668,
+      "postTreeScore": 0.5526,
       "childCount": 2,
       "angles": [
         "fact_update"
@@ -127,7 +127,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_340_d1ee91f5183ee7b0",
+      "parentId": "cluster_370_d1ee91f5183ee7b0",
       "headline": "Parliament approves Serhii Koretskyi amid cabinet shuffle",
       "score": 0.5955800531183317,
       "postTreeScore": 0.4856,
@@ -145,7 +145,26 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_89_14d779082de96b43",
+      "parentId": "cluster_247_3f1aaf6f2e804218",
+      "headline": "Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters",
+      "score": 0.5693433333333333,
+      "postTreeScore": 0.4793,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_117_14d779082de96b43",
       "headline": "US to revive rule of no green cards for those who use public benefits",
       "score": 0.5340933333333333,
       "postTreeScore": 0.4441,
@@ -165,26 +184,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_217_3f1aaf6f2e804218",
-      "headline": "Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters",
-      "score": 0.5013566135483352,
-      "postTreeScore": 0.3914,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "official_response"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_290_48e013d49647d59d",
+      "parentId": "cluster_320_48e013d49647d59d",
       "headline": "BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40%",
       "score": 0.7235911614783158,
       "postTreeScore": 0.4236,
@@ -202,7 +202,43 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_13_e837a1e34782ceec",
+      "parentId": "cluster_20_7745ad0f53c98d3e",
+      "headline": "Relaxo Footwears jumps 14%, snaps 3-day losing streak. What should investors do now?",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_25_d9bc3924830f1136",
+      "headline": "Polycab India shares fall 4% despite strong Q1 earnings, profit jumps 33% YoY",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_39_e837a1e34782ceec",
       "headline": "CEAT shares crash 9% after Q1 net profit tumbles 96% YoY to Rs 4 crore. What lies ahead?",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -220,49 +256,13 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_18_4b58b117308d3725",
+      "parentId": "cluster_44_4b58b117308d3725",
       "headline": "WeWork India Management shares slide 5%; Q1 loss narrows, revenue jumps 27% YoY",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
       "angles": [
         "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_37_92e27f5124177b3f",
-      "headline": "Tech Mahindra shares jump 3% after Q1 earnings beat estimates. What Nomura, Nuvama, other brokerages now expect",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_38_2722f9fdfed0809b",
-      "headline": "Jio Financial Services shares rally 6% after stellar Q1 results. Buy, sell or hold the stock?",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "market_reaction"
       ],
       "temporalTiers": [
         "breaking"
@@ -368,7 +368,7 @@
       "weakParentRatio": 0.9,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 654,
+      "storyCount": 649,
       "sourceGroupCount": 9
     }
   }
