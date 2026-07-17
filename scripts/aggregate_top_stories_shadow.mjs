@@ -1,7 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { discoverTopStoriesArtifactDirectories, readTopStoriesArtifactDirectory } from './top-stories-shadow/artifactReader.mjs';
-import { aggregateTopStoriesDaily, serializeTopStoriesDailyReport } from './top-stories-shadow/dailyAggregation.mjs';
+import { serializeTopStoriesDailyReport } from './top-stories-shadow/dailyAggregation.mjs';
+import { aggregateTopStoriesDailyEvidence } from './top-stories-shadow/dailyEvidenceAggregation.mjs';
 import { renderTopStoriesDailyMarkdown } from './top-stories-shadow/dailyReportMarkdown.mjs';
 import { sha256Text, stableJson } from './top-stories-shadow/canonicalJson.mjs';
 
@@ -40,7 +41,7 @@ async function main() {
   for (const directory of directories) {
     records.push(await readTopStoriesArtifactDirectory(directory));
   }
-  const { report } = aggregateTopStoriesDaily(records, {
+  const { report } = aggregateTopStoriesDailyEvidence(records, {
     date: args.date,
     studyId: config.studyId,
   });
