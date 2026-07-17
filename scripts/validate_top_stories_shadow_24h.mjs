@@ -5,7 +5,9 @@ import {
   TOP_STORIES_OPERATIONAL_VALIDATION_SCHEMA,
   validateTopStoriesOperationalDay,
 } from './top-stories-shadow/operationalValidation.mjs';
-import { renderTopStoriesOperationalValidationMarkdown } from './top-stories-shadow/operationalValidationMarkdown.mjs';
+import {
+  renderTopStoriesOperationalValidationMarkdown,
+} from './top-stories-shadow/operationalValidationMarkdown.mjs';
 
 const REQUIRED_ARGS = [
   'daily-report',
@@ -21,7 +23,9 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 2) {
     const key = String(argv[index] || '').replace(/^--/, '');
     const value = argv[index + 1];
-    if (!key || value === undefined) throw new Error(`Invalid CLI argument near ${argv[index]}`);
+    if (!key || value === undefined) {
+      throw new Error(`Invalid CLI argument near ${argv[index]}`);
+    }
     args[key] = value;
   }
   REQUIRED_ARGS.forEach(key => {
@@ -46,7 +50,19 @@ function parseJson(text, name) {
 
 function descriptorErrors(manifest, files) {
   const errors = [];
-  const descriptors = new Map((manifest?.files || []).map(item => [item.name, item]));
+  const descriptors = new Map();
+  if (!Array.isArray(manifest?.files)) {
+    return ['invalid_descriptor_collection'];
+  }
+  manifest.files.forEach(item => {
+    if (!item?.name || typeof item.name !== 'string') {
+      errors.push('invalid_descriptor_name');
+    } else if (descriptors.has(item.name)) {
+      errors.push(`duplicate_descriptor:${item.name}`);
+    } else {
+      descriptors.set(item.name, item);
+    }
+  });
   for (const [name, text] of Object.entries(files)) {
     const descriptor = descriptors.get(name);
     if (!descriptor) {
@@ -60,7 +76,7 @@ function descriptorErrors(manifest, files) {
       errors.push(`sha256_mismatch:${name}`);
     }
   }
-  return errors.sort();
+  return [...new Set(errors)].sort();
 }
 
 function failureValidation(error, context = {}) {
@@ -125,13 +141,8 @@ async function writeOutputs(outputDir, validation) {
 }
 
 async function execute(args) {
-  const [
-    dailyReportText,
-    dailyMarkdownText,
-    aggregationManifestText,
-    downloadManifestText,
-    configText,
-  ] = await Promise.all([
+  const [dailyReportText, dailyMarkdownText, aggregationManifestText,
+    downloadManifestText, configText] = await Promise.all([
     readText(args['daily-report']),
     readText(args['daily-markdown']),
     readText(args['aggregation-manifest']),
@@ -167,10 +178,10 @@ async function main() {
   } catch (error) {
     let context = {};
     try {
-      const config = args?.config ? parseJson(await readText(args.config), 'study config') : null;
+      const config = args?.config
+        ? parseJson(await readText(args.config), 'study config') : null;
       const report = args?.['daily-report']
-        ? parseJson(await readText(args['daily-report']), 'daily_report.json')
-        : null;
+        ? parseJson(await readText(args['daily-report']), 'daily_report.json') : null;
       context = { studyId: config?.studyId, date: report?.date };
     } catch {
       context = {};
