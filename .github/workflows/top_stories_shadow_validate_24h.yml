@@ -1,0 +1,109 @@
+name: Top Stories Shadow Validate 24h
+
+on:
+  workflow_run:
+    workflows:
+      - Top Stories Shadow Aggregate
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      aggregate_run_id:
+        description: Completed Top Stories Shadow Aggregate workflow run ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Resolve aggregate workflow run
+        id: context
+        shell: bash
+        run: |
+          RUN_ID='${{ github.event.workflow_run.id || inputs.aggregate_run_id }}'
+          if ! [[ "$RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "Invalid aggregate workflow run ID: $RUN_ID" >&2
+            exit 1
+          fi
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download aggregate report artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          run-id: ${{ steps.context.outputs.run_id }}
+          github-token: ${{ github.token }}
+          pattern: top-stories-shadow-daily-*
+          path: .shadow-daily
+          merge-multiple: true
+
+      - name: Resolve validation inputs
+        id: inputs
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .shadow-daily .shadow-validation
+          resolve_file() {
+            local name="$1"
+            local found
+            found=$(find .shadow-daily -type f -name "$name" -print -quit)
+            if [ -z "$found" ]; then
+              found=".shadow-daily/$name"
+              printf '{}\n' > "$found"
+            fi
+            echo "$found"
+          }
+          echo "daily_report=$(resolve_file daily_report.json)" >> "$GITHUB_OUTPUT"
+          echo "daily_markdown=$(resolve_file daily_report.md)" >> "$GITHUB_OUTPUT"
+          echo "aggregation_manifest=$(resolve_file aggregation_manifest.json)" >> "$GITHUB_OUTPUT"
+          echo "download_manifest=$(resolve_file download_manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Validate 24-hour operational evidence
+        id: validation
+        if: always()
+        continue-on-error: true
+        run: |
+          node scripts/validate_top_stories_shadow_24h.mjs \
+            --daily-report '${{ steps.inputs.outputs.daily_report }}' \
+            --daily-markdown '${{ steps.inputs.outputs.daily_markdown }}' \
+            --aggregation-manifest '${{ steps.inputs.outputs.aggregation_manifest }}' \
+            --download-manifest '${{ steps.inputs.outputs.download_manifest }}' \
+            --config config/top_stories_shadow_study.json \
+            --output .shadow-validation
+
+      - name: Upload operational validation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-stories-shadow-24h-validation-${{ steps.context.outputs.run_id }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: .shadow-validation/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce technical failure
+        if: always()
+        shell: bash
+        run: |
+          if [ '${{ steps.validation.outcome }}' = 'failure' ]; then
+            echo '24-hour operational validation reported a technical FAIL.' >&2
+            exit 1
+          fi
