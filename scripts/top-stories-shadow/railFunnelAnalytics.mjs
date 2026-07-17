@@ -147,6 +147,26 @@ function sourceHealthState(observation = {}) {
   return 'UNAVAILABLE';
 }
 
+function displayedIdentityEvidence(displayed = []) {
+  const displayedEditorialIdentities = [];
+  const displayedIdentityStateCounts = {};
+  displayed.forEach(item => {
+    const identity = item?._studyIdentity || {};
+    const state = identity.identityState ||
+      (identity.editorialIdentity ? 'IDENTITY_RESOLVED' : 'IDENTITY_UNAVAILABLE');
+    increment(displayedIdentityStateCounts, state);
+    if (state === 'IDENTITY_RESOLVED' && identity.editorialIdentity) {
+      displayedEditorialIdentities.push(identity.editorialIdentity);
+    }
+  });
+  return {
+    displayedEditorialIdentities,
+    displayedResolvedIdentityCount: displayedEditorialIdentities.length,
+    displayedUnresolvedIdentityCount: Math.max(0, displayed.length - displayedEditorialIdentities.length),
+    displayedIdentityStateCounts,
+  };
+}
+
 function buildObservationRow(observation) {
   const displayedCount = Number(observation.displayedCount ?? observation.displayed?.length ?? 0);
   const rankedCount = Number(observation.rankedCount ?? observation.ranked?.length ?? 0);
@@ -177,6 +197,7 @@ function buildObservationRow(observation) {
     railBucket: getRailBucket(displayedCount, displayDepth),
     underfilled: displayedCount < displayDepth,
     belowSoftReviewDepth: displayedCount < Math.min(SOFT_REVIEW_DEPTH, displayDepth),
+    ...displayedIdentityEvidence(observation.displayed || []),
     funnelStageCounts,
     candidateBuildDispositionCounts: countBy(observation.candidateBuildTrace, 'buildDisposition'),
     finalDispositionCounts: trace.finalDispositionCounts,

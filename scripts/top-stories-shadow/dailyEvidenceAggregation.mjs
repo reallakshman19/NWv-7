@@ -1,4 +1,5 @@
 import { aggregateTopStoriesDaily } from './dailyAggregation.mjs';
+import { buildTopStoriesInputChangeAnalytics } from './inputChangeAnalytics.mjs';
 import { buildTopStoriesRailFunnelAnalytics } from './railFunnelAnalytics.mjs';
 
 function reportDayBounds(date) {
@@ -22,6 +23,7 @@ export function aggregateTopStoriesDailyEvidence(records = [], options = {}) {
     report: {
       ...result.report,
       railAndFunnel: buildTopStoriesRailFunnelAnalytics(targetObservations),
+      inputChange: buildTopStoriesInputChangeAnalytics(result.replay, targetObservations),
     },
   };
 }

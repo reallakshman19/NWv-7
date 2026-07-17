@@ -1,0 +1,105 @@
+name: Top Stories Shadow Pilot Decision
+
+on:
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch:
+    inputs:
+      evaluation_time:
+        description: Optional ISO-8601 evaluation time; defaults to current UTC time
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Resolve fixed pilot context
+        id: context
+        shell: bash
+        run: |
+          STUDY_ID=$(node -p "require('./config/top_stories_shadow_study.json').studyId")
+          START_DATE=$(node -p "require('./config/top_stories_shadow_study.json').pilotStartDate")
+          WINDOW_DAYS=$(node -p "require('./config/top_stories_shadow_study.json').pilotWindowDays")
+          EVALUATION_TIME='${{ inputs.evaluation_time }}'
+          if [ -z "$EVALUATION_TIME" ]; then
+            EVALUATION_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          if ! node -e "if (!Number.isFinite(Date.parse(process.argv[1]))) process.exit(1)" "$EVALUATION_TIME"; then
+            echo "Invalid evaluation time: $EVALUATION_TIME" >&2
+            exit 1
+          fi
+          echo "study_id=$STUDY_ID" >> "$GITHUB_OUTPUT"
+          echo "start_date=$START_DATE" >> "$GITHUB_OUTPUT"
+          echo "window_days=$WINDOW_DAYS" >> "$GITHUB_OUTPUT"
+          echo "evaluation_time=$EVALUATION_TIME" >> "$GITHUB_OUTPUT"
+
+      - name: Download daily and validation artifacts
+        id: download
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .pilot-downloads
+          node scripts/download_top_stories_pilot_artifacts.mjs \
+            --output .pilot-downloads \
+            --repository '${{ github.repository }}' \
+            --study-id '${{ steps.context.outputs.study_id }}' \
+            --start-date '${{ steps.context.outputs.start_date }}' \
+            --days '${{ steps.context.outputs.window_days }}'
+
+      - name: Extract pilot artifacts
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p .pilot-artifacts .pilot-decision
+          shopt -s nullglob
+          for archive in .pilot-downloads/*.zip; do
+            name=$(basename "$archive" .zip)
+            mkdir -p ".pilot-artifacts/$name"
+            unzip -q "$archive" -d ".pilot-artifacts/$name"
+          done
+
+      - name: Build seven-day decision pack
+        id: decision
+        if: always()
+        continue-on-error: true
+        run: |
+          node scripts/build_top_stories_pilot_decision.mjs \
+            --input .pilot-artifacts \
+            --download-manifest .pilot-downloads/pilot_download_manifest.json \
+            --config config/top_stories_shadow_study.json \
+            --output .pilot-decision \
+            --now '${{ steps.context.outputs.evaluation_time }}'
+
+      - name: Upload pilot decision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: top-stories-shadow-pilot-decision-${{ steps.context.outputs.study_id }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
+          path: .pilot-decision/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Enforce technical failure
+        if: always()
+        shell: bash
+        run: |
+          if [ '${{ steps.decision.outcome }}' = 'failure' ]; then
+            echo 'Seven-day pilot decision reported a technical FAIL.' >&2
+            exit 1
+          fi
