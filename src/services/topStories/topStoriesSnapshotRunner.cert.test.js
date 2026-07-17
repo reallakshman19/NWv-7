@@ -141,6 +141,7 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
     const keys = collectKeys(snapshot);
 
     expect(snapshot).toMatchObject({
+      candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
       observationMode: 'repository-snapshot-replay',
       completenessState: 'COMPLETE',
       analyticalEligibility: 'ELIGIBLE',
