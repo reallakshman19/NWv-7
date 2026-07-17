@@ -10,24 +10,24 @@
 - Base report share: `0.06666666666666667`
 - Multi-angle parents: `1`
 - Weak parents: `9`
-- Story count: `637`
+- Story count: `654`
 - Source groups: `9`
-- Content hash: `00a891b31ca62443`
+- Content hash: `9d4c6f7352936bb7`
 
 ## Top parents
 
 | # | Headline | Children | Angles | Weak | Score |
 |---:|---|---:|---|---|---:|
 | 1 | Duration of US visa stay changes - what it means for foreign students, exchange visitors and journalists | 2 | base_report, expert_analysis | NO | 0.6210273179616861 |
-| 2 | NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify | 2 | fact_update | YES | 0.6425766666666668 |
+| 2 | NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify | 2 | fact_update | YES | 0.6225766666666668 |
 | 3 | Parliament approves Serhii Koretskyi amid cabinet shuffle | 2 | official_response | YES | 0.5955800531183317 |
 | 4 | US to revive rule of no green cards for those who use public benefits | 2 | reaction_public | YES | 0.5340933333333333 |
 | 5 | Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters | 2 | official_response | YES | 0.5013566135483352 |
 | 6 | BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40% | 1 | fact_update | YES | 0.7235911614783158 |
-| 7 | Tech Mahindra shares jump 3% after Q1 earnings beat estimates. What Nomura, Nuvama, other brokerages now expect | 1 | fact_update | YES | 0.7226911614783158 |
-| 8 | Jio Financial Services shares rally 6% after stellar Q1 results. Buy, sell or hold the stock? | 1 | market_reaction | YES | 0.7226911614783158 |
-| 9 | SBI Funds Management gets highest applications for any IPO this year, sees Rs 2.98 lakh crore investor rush | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | Jio Financial Q1 Results: Profit skyrockets 155% YoY to Rs 830 crore | 1 | fact_update | YES | 0.7226911614783158 |
+| 7 | CEAT shares crash 9% after Q1 net profit tumbles 96% YoY to Rs 4 crore. What lies ahead? | 1 | fact_update | YES | 0.7226911614783158 |
+| 8 | WeWork India Management shares slide 5%; Q1 loss narrows, revenue jumps 27% YoY | 1 | fact_update | YES | 0.7226911614783158 |
+| 9 | Tech Mahindra shares jump 3% after Q1 earnings beat estimates. What Nomura, Nuvama, other brokerages now expect | 1 | fact_update | YES | 0.7226911614783158 |
+| 10 | Jio Financial Services shares rally 6% after stellar Q1 results. Buy, sell or hold the stock? | 1 | market_reaction | YES | 0.7226911614783158 |
 
 ## Warnings
 
