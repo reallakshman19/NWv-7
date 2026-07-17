@@ -10,20 +10,25 @@ const CONFIG = Object.freeze({
   identityVersion: 'nw-top-stories-identity-v1',
   periodClassifierVersion: 'nw-top-stories-period-classifier-v1',
 });
-const SEGMENT = [
-  CONFIG.studyId,
-  CONFIG.rankerVersion,
-  CONFIG.identityVersion,
-  CONFIG.periodClassifierVersion,
-].join('|');
+const SEGMENT = [CONFIG.studyId, CONFIG.rankerVersion, CONFIG.identityVersion,
+  CONFIG.periodClassifierVersion].join('|');
+
+function slotKey(time) {
+  return `${time.toISOString().slice(0, 16).replace(/[-:]/g, '')}Z`;
+}
 
 function acquisitionRows(count, offset = 0) {
   const start = Date.parse(`${DATE}T00:07:00.000Z`);
-  return Array.from({ length: count }, (_, index) => ({
-    runId: String(1000 + offset + index),
-    runAttempt: 1,
-    runCreatedAt: new Date(start + (index * 15 * 60 * 1000)).toISOString(),
-  }));
+  return Array.from({ length: count }, (_, index) => {
+    const time = new Date(start + (index * 15 * 60 * 1000));
+    const runId = String(1000 + offset + index);
+    return {
+      runId,
+      runAttempt: 1,
+      runCreatedAt: time.toISOString(),
+      artifactName: `top-stories-shadow-${STUDY}-${slotKey(time)}-${runId}-attempt-1`,
+    };
+  });
 }
 
 function excludedRows(count, offset = 0) {
@@ -36,64 +41,48 @@ function excludedRows(count, offset = 0) {
   }));
 }
 
-function dailyReport(overrides = {}) {
-  const coverageOverrides = overrides.coverage || {};
+function baseCoverage() {
   return {
+    scheduledRuns: 96,
+    scheduledSlots: 96,
+    scheduleSlotCoverage: 0.9583333333,
+    startedRuns: 92,
+    successfulRuns: 92,
+    completeRuns: 91,
+    analyticallyEligibleRuns: 90,
+    failureRuns: 0,
+    failedInputRuns: 0,
+    invalidArtifacts: 0,
+    unassignedInvalidArtifacts: 0,
+    valid15mPairs: 88,
+    canonical15mPairs: 43,
+    valid60mPairs: 80,
+    canonical60mPairs: 20,
+    scheduleDelaySeconds: { p90: 240 },
+  };
+}
+
+function dailyReport(overrides = {}) {
+  const coverage = { ...baseCoverage(), ...(overrides.coverage || {}) };
+  const report = {
     schemaVersion: 'nw-top-stories-daily-stability-report/v1',
     studyId: STUDY,
     date: DATE,
     status: 'OBSERVED',
-    coverage: {
-      scheduledRuns: 96,
-      scheduledSlots: 96,
-      scheduleSlotCoverage: 0.9583333333,
-      successfulRuns: 92,
-      completeRuns: 91,
-      analyticallyEligibleRuns: 90,
-      failureRuns: 0,
-      failedInputRuns: 0,
-      invalidArtifacts: 0,
-      unassignedInvalidArtifacts: 0,
-      valid15mPairs: 88,
-      canonical15mPairs: 43,
-      valid60mPairs: 80,
-      canonical60mPairs: 20,
-      scheduleDelaySeconds: { p90: 240 },
-      ...coverageOverrides,
-    },
+    coverage,
     versionSegments: [SEGMENT],
     stability: {
       fifteenMinute: {
-        overlapping: {
-          calm: { incumbentRetention: { median: 0.92 } },
-        },
+        overlapping: { calm: { incumbentRetention: { median: 0.92 } } },
       },
       sixtyMinute: {
-        overlapping: {
-          calm: { incumbentRetention: { median: 0.84 } },
-        },
+        overlapping: { calm: { incumbentRetention: { median: 0.84 } } },
       },
     },
     ...overrides,
-    coverage: {
-      scheduledRuns: 96,
-      scheduledSlots: 96,
-      scheduleSlotCoverage: 0.9583333333,
-      successfulRuns: 92,
-      completeRuns: 91,
-      analyticallyEligibleRuns: 90,
-      failureRuns: 0,
-      failedInputRuns: 0,
-      invalidArtifacts: 0,
-      unassignedInvalidArtifacts: 0,
-      valid15mPairs: 88,
-      canonical15mPairs: 43,
-      valid60mPairs: 80,
-      canonical60mPairs: 20,
-      scheduleDelaySeconds: { p90: 240 },
-      ...coverageOverrides,
-    },
   };
+  report.coverage = coverage;
+  return report;
 }
 
 function inputs({ report = dailyReport(), downloaded = 92, excluded = 0 } = {}) {
@@ -129,10 +118,11 @@ describe('Top Stories 24-hour operational validation', () => {
   it('returns PASS_WITH_WARNINGS for usable but degraded evidence', () => {
     const report = dailyReport({
       coverage: {
-        scheduleSlotCoverage: 0.80,
-        successfulRuns: 80,
-        completeRuns: 64,
-        analyticallyEligibleRuns: 64,
+        scheduleSlotCoverage: 0.7916666667,
+        startedRuns: 76,
+        successfulRuns: 76,
+        completeRuns: 61,
+        analyticallyEligibleRuns: 61,
         valid15mPairs: 60,
         canonical15mPairs: 25,
         valid60mPairs: 50,
@@ -148,6 +138,7 @@ describe('Top Stories 24-hour operational validation', () => {
     expect(result.decision).toBe('PASS_WITH_WARNINGS');
     expect(result.warningReasonCodes).toContain('schedule_slot_coverage_degraded');
     expect(result.warningReasonCodes).toContain('complete_run_rate_degraded');
+    expect(result.warningReasonCodes).toContain('missing_artifact_runs_present');
   });
 
   it('does not fail a partial day and reports insufficient evidence', () => {
@@ -155,6 +146,7 @@ describe('Top Stories 24-hour operational validation', () => {
       status: 'INSUFFICIENT',
       coverage: {
         scheduleSlotCoverage: 0.25,
+        startedRuns: 24,
         successfulRuns: 24,
         completeRuns: 24,
         analyticallyEligibleRuns: 24,
@@ -165,10 +157,7 @@ describe('Top Stories 24-hour operational validation', () => {
       },
       versionSegments: [SEGMENT],
     });
-    const result = validateTopStoriesOperationalDay(inputs({
-      report,
-      downloaded: 24,
-    }));
+    const result = validateTopStoriesOperationalDay(inputs({ report, downloaded: 24 }));
     expect(result.decision).toBe('INSUFFICIENT');
     expect(result.failureReasonCodes).toEqual([]);
     expect(result.insufficiencyReasonCodes.length).toBeGreaterThan(0);
@@ -194,6 +183,7 @@ describe('Top Stories 24-hour operational validation', () => {
       status: 'INSUFFICIENT',
       coverage: {
         scheduleSlotCoverage: 0,
+        startedRuns: 0,
         successfulRuns: 0,
         completeRuns: 0,
         analyticallyEligibleRuns: 0,
@@ -205,10 +195,7 @@ describe('Top Stories 24-hour operational validation', () => {
       },
       versionSegments: [],
     });
-    const result = validateTopStoriesOperationalDay(inputs({
-      report,
-      downloaded: 0,
-    }));
+    const result = validateTopStoriesOperationalDay(inputs({ report, downloaded: 0 }));
     expect(result.decision).toBe('INSUFFICIENT');
     expect(result.metrics.artifactEmissionRate).toBeNull();
     expect(result.metrics.completeRunRate).toBeNull();
