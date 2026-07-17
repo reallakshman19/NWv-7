@@ -10,9 +10,9 @@
 - Base report share: `0.17647058823529413`
 - Multi-angle parents: `3`
 - Weak parents: `7`
-- Story count: `734`
+- Story count: `746`
 - Source groups: `9`
-- Content hash: `c2c696fb78cb4fd3`
+- Content hash: `f641c54eb5966fc5`
 
 ## Top parents
 
@@ -26,8 +26,8 @@
 | 6 | Parliament approves Serhii Koretskyi amid cabinet shuffle | 2 | official_response | YES | 0.5955800531183317 |
 | 7 | Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters | 2 | official_response | YES | 0.5013566135483352 |
 | 8 | BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40% | 1 | fact_update | YES | 0.7235911614783158 |
-| 9 | JSW Steel Q1 Results: Net profit doubles to Rs 4,696 crore | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | Zepto said to face sharply lower valuation for IPO | 1 | fact_update | YES | 0.7226911614783158 |
+| 9 | Rs 9,000 crore bet! Reliance Industries promoters increase stake by 0.5% in June quarter | 1 | fact_update | YES | 0.7226911614783158 |
+| 10 | JSW Steel Q1 Results: Net profit doubles to Rs 4,696 crore | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Warnings
 
