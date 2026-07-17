@@ -1,3 +1,6 @@
+const GOVERNING_WORKFLOW = 'top_stories_shadow_pilot_decision.yml';
+const GOVERNING_DECISION_SCHEMA = 'nw-top-stories-seven-day-pilot-decision/v1';
+
 function percentage(value) {
   return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : 'n/a';
 }
@@ -32,15 +35,19 @@ function excludedLines(rows = []) {
 export function renderTopStoriesPilotRollupMarkdown(rollup) {
   const metrics = rollup.metrics || {};
   const reasons = metrics.dominantReasons || [];
+  const decisionAuthority = rollup.decisionAuthority === true;
+  const diagnosticOnly = rollup.diagnosticOnly !== false;
+  const governingWorkflow = rollup.governingWorkflow || GOVERNING_WORKFLOW;
+  const governingDecisionSchema = rollup.governingDecisionSchema || GOVERNING_DECISION_SCHEMA;
   return [
     '# Top Stories pilot diagnostic rollup',
     '',
     `- Study: \`${rollup.studyId || 'unknown'}\``,
     `- Diagnostic result: **${rollup.decision}**`,
-    `- Decision authority: **${rollup.decisionAuthority ? 'yes' : 'no'}**`,
-    `- Diagnostic only: **${rollup.diagnosticOnly ? 'yes' : 'no'}**`,
-    `- Governing workflow: \`${rollup.governingWorkflow || 'unknown'}\``,
-    `- Governing decision schema: \`${rollup.governingDecisionSchema || 'unknown'}\``,
+    `- Decision authority: **${decisionAuthority ? 'yes' : 'no'}**`,
+    `- Diagnostic only: **${diagnosticOnly ? 'yes' : 'no'}**`,
+    `- Governing workflow: \`${governingWorkflow}\``,
+    `- Governing decision schema: \`${governingDecisionSchema}\``,
     `- Evidence sufficient: **${rollup.evidenceSufficient ? 'yes' : 'no'}**`,
     `- Active-event evidence sufficient: **${rollup.activeEvidenceSufficient ? 'yes' : 'no'}**`,
     `- Production change authorized: **${rollup.productionChangeAuthorized ? 'yes' : 'no'}**`,
@@ -106,7 +113,7 @@ export function renderTopStoriesPilotRollupMarkdown(rollup) {
     '## Interpretation',
     '',
     `The diagnostic result is **${rollup.decision}**. It is not the governing seven-day pilot decision.`,
-    `Only \`${rollup.governingWorkflow || 'top_stories_shadow_pilot_decision.yml'}\` may publish the fixed-window authoritative decision.`,
+    `Only \`${governingWorkflow}\` may publish the fixed-window authoritative decision.`,
     'Overlapping interval comparisons are not treated as independent experiments; this diagnostic uses day-level summaries and canonical non-overlapping pair counts.',
     'This artifact does not authorize a ranking, recall, persistence, source, UI, or deployment change.',
     '',
