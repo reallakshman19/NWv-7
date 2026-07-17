@@ -175,7 +175,7 @@
             "storyIds": [
               "90d917bf9ae536bc",
               "82ea0749d0de2b8d",
-              "a47f9861bbd2cc3a",
+              "4ee739c53b939a61",
               "86e809c754b9139e",
               "c0b89c693126f623"
             ],
@@ -191,7 +191,7 @@
               "updates",
               "july",
               "declares",
-              "operation",
+              "neelkanth",
               "brazil",
               "strong"
             ],
@@ -1571,7 +1571,7 @@
         "suppressedItemCount": 10
       },
       "qualityGrade": "B",
-      "qualityScore": 0.834,
+      "qualityScore": 0.835,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -4332,6 +4332,121 @@
           "title": "Man beaten to death in Padappai, two persons surrender before police"
         },
         {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "17a70f76d3ad7db3"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784416356000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 23.35
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "8980887c7978b794",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784416356000,
+            "id": "8980887c7978b794",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785021156000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784416356000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784243556000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5\" target=\"_blank\">7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Daily Meal</font>",
+            "suppressionReason": null,
+            "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal",
+            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal"
+        },
+        {
           "category": "alerts",
           "gates": [
             {
@@ -4490,7 +4605,7 @@
             },
             {
               "details": {
-                "hoursLeft": 34.73
+                "hoursLeft": 31.74
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4559,121 +4674,6 @@
           ],
           "score": 0.726,
           "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "17a70f76d3ad7db3"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784416356000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 26.34
-              },
-              "name": "offerValidity",
-              "reason": "offer active within three days",
-              "score": 0.82,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "8980887c7978b794",
-          "item": {
-            "actionabilityScore": 0.65,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784416356000,
-            "id": "8980887c7978b794",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785021156000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784416356000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1784243556000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.82
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5\" target=\"_blank\">7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Daily Meal</font>",
-            "suppressionReason": null,
-            "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal",
-            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5"
-          },
-          "locationKey": "online",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.726,
-          "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4684,11 +4684,11 @@
         "locationScore": 0.9274,
         "plannerFitScore": 0.9259,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.7911
+        "urgencyOrExpiryScore": 0.7978
       }
     }
   },
-  "generatedAt": 1784321541306,
+  "generatedAt": 1784332308802,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4722,7 +4722,7 @@
       "buzz": 0.0,
       "insight": 0.3671,
       "localTravel": 0.0,
-      "upAhead": 0.834
+      "upAhead": 0.835
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4730,7 +4730,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3003,
+    "overallScore": 0.3005,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
