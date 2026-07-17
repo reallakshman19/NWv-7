@@ -1,4 +1,5 @@
 import { evaluateTopStories } from '../../src/services/topStories/topStoriesRanker.js';
+import { TOP_STORY_TRACE_SCHEMA_VERSION } from '../../src/services/topStories/topStoriesTrace.js';
 import { attachTopStoryStudyIdentities } from '../../src/services/topStories/topStoriesStudyIdentity.js';
 import {
   digestCanonicalJson,
@@ -161,6 +162,7 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
 
   return {
     schemaVersion: RUN_SNAPSHOT_SCHEMA_VERSION,
+    candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
     observationId,
     repositorySha: String(metadata.repositorySha),
     workflowRunId: String(metadata.workflowRunId),
