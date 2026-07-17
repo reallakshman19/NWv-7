@@ -33,10 +33,14 @@ export function renderTopStoriesPilotRollupMarkdown(rollup) {
   const metrics = rollup.metrics || {};
   const reasons = metrics.dominantReasons || [];
   return [
-    '# Top Stories seven-day pilot decision pack',
+    '# Top Stories pilot diagnostic rollup',
     '',
     `- Study: \`${rollup.studyId || 'unknown'}\``,
-    `- Decision: **${rollup.decision}**`,
+    `- Diagnostic result: **${rollup.decision}**`,
+    `- Decision authority: **${rollup.decisionAuthority ? 'yes' : 'no'}**`,
+    `- Diagnostic only: **${rollup.diagnosticOnly ? 'yes' : 'no'}**`,
+    `- Governing workflow: \`${rollup.governingWorkflow || 'unknown'}\``,
+    `- Governing decision schema: \`${rollup.governingDecisionSchema || 'unknown'}\``,
     `- Evidence sufficient: **${rollup.evidenceSufficient ? 'yes' : 'no'}**`,
     `- Active-event evidence sufficient: **${rollup.activeEvidenceSufficient ? 'yes' : 'no'}**`,
     `- Production change authorized: **${rollup.productionChangeAuthorized ? 'yes' : 'no'}**`,
@@ -101,8 +105,9 @@ export function renderTopStoriesPilotRollupMarkdown(rollup) {
     '',
     '## Interpretation',
     '',
-    `The decision code is **${rollup.decision}**. Thresholds are review criteria, not production truth.`,
-    'Overlapping interval comparisons are not treated as independent experiments; the recommendation uses day-level summaries and canonical non-overlapping pair counts.',
+    `The diagnostic result is **${rollup.decision}**. It is not the governing seven-day pilot decision.`,
+    `Only \`${rollup.governingWorkflow || 'top_stories_shadow_pilot_decision.yml'}\` may publish the fixed-window authoritative decision.`,
+    'Overlapping interval comparisons are not treated as independent experiments; this diagnostic uses day-level summaries and canonical non-overlapping pair counts.',
     'This artifact does not authorize a ranking, recall, persistence, source, UI, or deployment change.',
     '',
     `Rollup schema: \`${rollup.schemaVersion}\`.`,
