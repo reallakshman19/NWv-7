@@ -15,6 +15,14 @@ function parseArgs(argv) {
   ['input', 'output', 'config'].forEach(key => {
     if (!args[key]) throw new Error(`Missing required --${key}`);
   });
+  for (const key of ['start-date', 'end-date']) {
+    if (args[key] && !/^\d{4}-\d{2}-\d{2}$/.test(args[key])) {
+      throw new Error(`--${key} must use YYYY-MM-DD`);
+    }
+  }
+  if (args['start-date'] && args['end-date'] && args['start-date'] > args['end-date']) {
+    throw new Error('--start-date cannot be after --end-date');
+  }
   return args;
 }
 
@@ -41,7 +49,14 @@ function descriptor(name, text) {
   };
 }
 
-async function discoverInputs(root) {
+function dateIncluded(date, startDate, endDate) {
+  if (!date) return false;
+  if (startDate && date < startDate) return false;
+  if (endDate && date > endDate) return false;
+  return true;
+}
+
+async function discoverInputs(root, bounds = {}) {
   const files = await walk(root);
   const dailyPaths = files.filter(file => path.basename(file) === 'daily_report.json');
   const validationPaths = files.filter(file => path.basename(file) === 'operational_validation.json');
@@ -50,7 +65,7 @@ async function discoverInputs(root) {
   const dates = [...new Set([
     ...daily.map(row => row.value?.date),
     ...validation.map(row => row.value?.date),
-  ].filter(Boolean))].sort();
+  ].filter(date => dateIncluded(date, bounds.startDate, bounds.endDate)))].sort();
   const entries = [];
   const inputManifest = [];
   for (const date of dates) {
@@ -71,9 +86,8 @@ async function discoverInputs(root) {
     }
     for (const dailyRow of dailyRows) {
       for (const validationRow of validationRows) {
-        const sourceId = `${dailyRow.file}|${validationRow.file}`;
         entries.push({
-          sourceId,
+          sourceId: `${dailyRow.file}|${validationRow.file}`,
           dailyReport: dailyRow.value,
           operationalValidation: validationRow.value,
         });
@@ -93,7 +107,10 @@ async function discoverInputs(root) {
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const studyConfig = await readJson(args.config);
-  const discovered = await discoverInputs(args.input);
+  const discovered = await discoverInputs(args.input, {
+    startDate: args['start-date'],
+    endDate: args['end-date'],
+  });
   const rollup = buildTopStoriesPilotRollup(discovered.entries, { studyConfig });
   const jsonText = `${stableJson(rollup)}\n`;
   const markdownText = `${renderTopStoriesPilotRollupMarkdown(rollup)}\n`;
@@ -106,6 +123,10 @@ async function main() {
     studyId: studyConfig.studyId,
     decision: rollup.decision,
     deterministicReplay: true,
+    requestedRange: {
+      startDate: args['start-date'] || null,
+      endDate: args['end-date'] || null,
+    },
     discoveredFileCount: discovered.discoveredFiles.length,
     inputManifest: discovered.inputManifest,
     files: Object.entries(files)
