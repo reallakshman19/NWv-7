@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 9
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,133 +79,16 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 9,
-        "parentClusters": 9,
-        "strongParents": 9,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3757,
+      "qualityScore": 0.3648,
       "qualityStatus": "WARN",
       "rankedItems": [
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 5
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 5
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "90d917bf9ae536bc",
-            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.95,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 5,
-            "storyIds": [
-              "90d917bf9ae536bc",
-              "82ea0749d0de2b8d",
-              "a47f9861bbd2cc3a",
-              "86e809c754b9139e",
-              "c0b89c693126f623"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 5
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "july",
-              "declares",
-              "operation",
-              "brazil",
-              "strong"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.479,
-          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
-        },
         {
           "category": "insightEvent",
           "gates": [
@@ -316,6 +199,117 @@
           ],
           "score": 0.401,
           "title": "NEET re-test results 2026: 12 students from Tamil Nadu score above 690"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "90d917bf9ae536bc",
+            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "90d917bf9ae536bc",
+              "82ea0749d0de2b8d"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "july",
+              "declares"
+            ],
+            "topicKey": "breaking|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -485,14 +479,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:768c327fc1",
+          "id": "sketch:3628afb6a3",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "3ebc80c15ea13c87",
-            "representativeTitle": "India news Live Updates, 17 July 2026: Congress leader Pawan Khera meets Sonam Wangchuk - The Indian Express",
+            "id": "sketch:3628afb6a3",
+            "representativeId": "cb0c23884441bcc3",
+            "representativeTitle": "India, Japan agree to launch bullet train operations with indigenous trainsets until E10 arrives: MEA",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -504,30 +498,30 @@
             },
             "slotCount": 1,
             "slots": [
-              "now"
+              "minus24h"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "google_news"
+              "business_line"
             ],
             "storyCount": 2,
             "storyIds": [
-              "3ebc80c15ea13c87",
-              "c70e8d70a297d2f1"
+              "cb0c23884441bcc3",
+              "cf6e3c0795a8091e"
             ],
             "topAngles": [
               {
-                "angle": "fact_update",
+                "angle": "official_response",
                 "count": 2
               }
             ],
             "topTokens": [
               "india",
-              "live",
-              "updates",
-              "july"
+              "japan",
+              "agree",
+              "launch"
             ],
-            "topicKey": "india|live|updates"
+            "topicKey": "india|japan|agree"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -536,7 +530,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "India news Live Updates, 17 July 2026: Congress leader Pawan Khera meets Sonam Wangchuk - The Indian Express"
+          "title": "India, Japan agree to launch bullet train operations with indigenous trainsets until E10 arrives: MEA"
         },
         {
           "category": "insightEvent",
@@ -705,6 +699,116 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:49837191e1",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:49837191e1",
+            "representativeId": "5eef4778e1879f06",
+            "representativeTitle": "JSW Steel Q1 net doubles to ₹4,696 crore on better realisation",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "business_line"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "5eef4778e1879f06",
+              "e80fc472111a0e93"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "crore",
+              "steel",
+              "doubles",
+              "better"
+            ],
+            "topicKey": "crore|steel|doubles"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "JSW Steel Q1 net doubles to ₹4,696 crore on better realisation"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:cdf9ad6603",
           "item": {
             "angleCount": 1,
@@ -757,6 +861,116 @@
           ],
           "score": 0.389,
           "title": "Netflix India delivers a record breaking half-year as Indian stories win audiences worldwide - Bollywood Hungama"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:ee052a2b9a",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:ee052a2b9a",
+            "representativeId": "ba1ecc254fbdcc2a",
+            "representativeTitle": "Palakkad Smart City: Promotional campaigns to begin in December",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "business_line"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "ba1ecc254fbdcc2a",
+              "07f74524c77512a4"
+            ],
+            "topAngles": [
+              {
+                "angle": "regional_followup",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "palakkad",
+              "smart",
+              "city",
+              "promotional"
+            ],
+            "topicKey": "palakkad|smart|city"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Palakkad Smart City: Promotional campaigns to begin in December"
         },
         {
           "category": "insightEvent",
@@ -1101,12 +1315,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.63,
+        "eventImportanceScore": 0.59,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4611,
-        "sourceAuthorityScore": 0.4333,
-        "sourceDiversityScore": 0.4322,
-        "temporalEvolutionScore": 0.4233
+        "noveltyDeltaScore": 0.4591,
+        "sourceAuthorityScore": 0.4236,
+        "sourceDiversityScore": 0.4173,
+        "temporalEvolutionScore": 0.4136
       }
     },
     "localTravel": {
@@ -1166,14 +1380,16 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "2 invalid/expired/duplicate Up Ahead item(s) suppressed",
+        "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no active offer items in ranked Up Ahead set",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match",
-        "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match"
+        "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News: futureValidity failed — expired display window",
+        "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -1219,7 +1435,7 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 29,
         "rankedItemCount": 30,
-        "suppressedItemCount": 2
+        "suppressedItemCount": 3
       },
       "qualityGrade": "B",
       "qualityScore": 0.848,
@@ -4685,7 +4901,7 @@
       }
     }
   },
-  "generatedAt": 1784311498246,
+  "generatedAt": 1784313644635,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4704,7 +4920,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "2 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no active offer items in ranked Up Ahead set",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
@@ -4718,7 +4934,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3757,
+      "insight": 0.3648,
       "localTravel": 0.0,
       "upAhead": 0.848
     },
@@ -4728,7 +4944,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3059,
+    "overallScore": 0.3032,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4738,7 +4954,9 @@
     },
     "topFindings": [
       "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match",
-      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match"
+      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News: futureValidity failed — expired display window",
+      "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News: offerValidity failed — offer expired"
     ]
   }
 }
