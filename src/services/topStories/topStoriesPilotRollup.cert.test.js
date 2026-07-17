@@ -203,7 +203,7 @@ describe('Top Stories seven-day pilot rollup', () => {
     expect(result.activeEvidenceSufficient).toBe(false);
   });
 
-  it('resolves duplicate dates deterministically and renders an expert pack', () => {
+  it('resolves duplicate dates deterministically and renders a fail-closed diagnostic pack', () => {
     const input = entries();
     input.push({
       sourceId: 'zzz-duplicate',
@@ -216,7 +216,10 @@ describe('Top Stories seven-day pilot rollup', () => {
     expect(first.dayCounts.supplied).toBe(7);
     expect(first.supersededInputs).toHaveLength(1);
     const markdown = renderTopStoriesPilotRollupMarkdown(first);
-    expect(markdown).toContain('seven-day pilot decision pack');
+    expect(markdown).toContain('# Top Stories pilot diagnostic rollup');
+    expect(markdown).toContain('Decision authority: **no**');
+    expect(markdown).toContain('Diagnostic only: **yes**');
+    expect(markdown).toContain('Governing workflow: `top_stories_shadow_pilot_decision.yml`');
     expect(markdown).toContain('Production change authorized: **no**');
   });
 });

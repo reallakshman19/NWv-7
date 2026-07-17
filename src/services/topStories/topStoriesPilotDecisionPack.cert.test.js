@@ -71,7 +71,19 @@ function entry(index, canonicalActivePairs = 0) {
   };
 }
 
-describe('Top Stories canonical pilot decision pack', () => {
+function expectDiagnosticAuthority(result) {
+  expect(result).toMatchObject({
+    decisionAuthority: false,
+    diagnosticOnly: true,
+    governingWorkflow: 'top_stories_shadow_pilot_decision.yml',
+    governingDecisionSchema: 'nw-top-stories-seven-day-pilot-decision/v1',
+    productionChangeAuthorized: false,
+    persistenceChangeAuthorized: false,
+    automaticPolicyChangeAuthorized: false,
+  });
+}
+
+describe('Top Stories canonical pilot diagnostic pack', () => {
   it('does not accept overlapping active pairs as canonical responsiveness evidence', () => {
     const result = buildTopStoriesPilotDecisionPack(
       Array.from({ length: 7 }, (_, index) => entry(index, 0)),
@@ -80,6 +92,7 @@ describe('Top Stories canonical pilot decision pack', () => {
     expect(result.metrics.active.canonicalPairs).toBe(0);
     expect(result.activeEvidenceSufficient).toBe(false);
     expect(result.decision).toBe('CONTINUE_OBSERVATION');
+    expectDiagnosticAuthority(result);
   });
 
   it('preserves unchanged and changed input pair populations separately', () => {
@@ -98,5 +111,6 @@ describe('Top Stories canonical pilot decision pack', () => {
     });
     expect(result.metrics.residence.episodeCount).toBe(84);
     expect(result.decision).toBe('RETAIN_POLICY');
+    expectDiagnosticAuthority(result);
   });
 });

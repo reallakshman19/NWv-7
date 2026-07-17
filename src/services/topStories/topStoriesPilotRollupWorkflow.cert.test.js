@@ -8,6 +8,10 @@ import { stableJson } from '../../../scripts/top-stories-shadow/canonicalJson.mj
 const ROOT = process.cwd();
 const CLI = path.join(ROOT, 'scripts/build_top_stories_pilot_rollup.mjs');
 const WORKFLOW = path.join(ROOT, '.github/workflows/top_stories_shadow_pilot_rollup.yml');
+const AUTHORITY_WORKFLOW = path.join(
+  ROOT,
+  '.github/workflows/top_stories_shadow_pilot_decision.yml',
+);
 const CONFIG = path.join(ROOT, 'config/top_stories_shadow_study.json');
 const STUDY = 'nw-rank-011-shadow-pilot-2026-07';
 const SEGMENT = [
@@ -90,8 +94,8 @@ async function text(filePath) {
   return readFile(filePath, 'utf8');
 }
 
-describe('Top Stories pilot rollup CLI and workflow', () => {
-  it('applies exact date bounds and writes byte-stable outputs', async () => {
+describe('Top Stories pilot diagnostic rollup CLI and workflow', () => {
+  it('applies exact date bounds and writes byte-stable diagnostic outputs', async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), 'nw-pilot-rollup-'));
     const input = path.join(root, 'input');
     for (const date of ['2026-07-16', '2026-07-17', '2026-07-18']) {
@@ -108,9 +112,20 @@ describe('Top Stories pilot rollup CLI and workflow', () => {
     const manifest = JSON.parse(await text(path.join(outputA, 'pilot_manifest.json')));
     expect(rollup.decision).toBe('INSUFFICIENT');
     expect(rollup.includedDates).toEqual(['2026-07-17', '2026-07-18']);
-    expect(manifest.requestedRange).toEqual({
-      startDate: '2026-07-17',
-      endDate: '2026-07-18',
+    expect(rollup).toMatchObject({
+      diagnosticOnly: true,
+      decisionAuthority: false,
+      governingWorkflow: 'top_stories_shadow_pilot_decision.yml',
+    });
+    expect(manifest).toMatchObject({
+      diagnosticResult: 'INSUFFICIENT',
+      diagnosticOnly: true,
+      decisionAuthority: false,
+      governingWorkflow: 'top_stories_shadow_pilot_decision.yml',
+      requestedRange: {
+        startDate: '2026-07-17',
+        endDate: '2026-07-18',
+      },
     });
   });
 
@@ -127,10 +142,13 @@ describe('Top Stories pilot rollup CLI and workflow', () => {
     expect(result.stderr).toContain('--start-date cannot be after --end-date');
   });
 
-  it('is a read-only artifact workflow with manual and scheduled ranges', async () => {
+  it('keeps the rollup manual-only and the fixed-window decision as sole schedule authority', async () => {
     const workflow = await text(WORKFLOW);
-    expect(workflow).toContain("cron: '17 3 * * *'");
+    const authority = await text(AUTHORITY_WORKFLOW);
+    expect(workflow).toContain('Top Stories Shadow Pilot Rollup Diagnostic');
     expect(workflow).toContain('workflow_dispatch:');
+    expect(workflow).not.toContain('schedule:');
+    expect(workflow).not.toContain('cron:');
     expect(workflow).toContain('start_date:');
     expect(workflow).toContain('end_date:');
     expect(workflow).toContain('contents: read');
@@ -140,7 +158,13 @@ describe('Top Stories pilot rollup CLI and workflow', () => {
     expect(workflow).toContain('top_stories_shadow_aggregate.yml');
     expect(workflow).toContain('top_stories_shadow_validate_24h.yml');
     expect(workflow).toContain('gh run download');
+    expect(workflow).toContain('non-authoritative diagnostic rollup');
     expect(workflow).toContain('actions/upload-artifact@v4');
     expect(workflow).not.toMatch(/rss|feedUrl|public\/newsdata/i);
+
+    expect(authority).toContain("cron: '47 3 * * *'");
+    expect(authority).toContain('pilotStartDate');
+    expect(authority).toContain('pilotWindowDays');
+    expect(authority).toContain('build_top_stories_pilot_decision.mjs');
   });
 });

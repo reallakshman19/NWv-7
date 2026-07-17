@@ -1,8 +1,6 @@
-name: Top Stories Shadow Pilot Rollup
+name: Top Stories Shadow Pilot Rollup Diagnostic
 
 on:
-  schedule:
-    - cron: '17 3 * * *'
   workflow_dispatch:
     inputs:
       start_date:
@@ -19,7 +17,7 @@ permissions:
   actions: read
 
 jobs:
-  rollup:
+  diagnostic-rollup:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,7 +29,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Resolve date range
+      - name: Resolve diagnostic date range
         id: range
         shell: bash
         run: |
@@ -70,7 +68,7 @@ jobs:
             gh run download "$run_id" --dir ".pilot-input/validation/$run_id" || true
           done
 
-      - name: Build expert decision pack
+      - name: Build non-authoritative diagnostic rollup
         run: |
           node scripts/build_top_stories_pilot_rollup.mjs \
             --input .pilot-input \
@@ -79,11 +77,11 @@ jobs:
             --start-date '${{ steps.range.outputs.start_date }}' \
             --end-date '${{ steps.range.outputs.end_date }}'
 
-      - name: Upload decision pack
+      - name: Upload diagnostic rollup
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: top-stories-shadow-pilot-${{ steps.range.outputs.start_date }}-to-${{ steps.range.outputs.end_date }}-${{ github.run_id }}
+          name: top-stories-shadow-pilot-diagnostic-${{ steps.range.outputs.start_date }}-to-${{ steps.range.outputs.end_date }}-${{ github.run_id }}
           path: .pilot-output/
           if-no-files-found: error
           retention-days: 30
