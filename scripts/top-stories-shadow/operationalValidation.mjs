@@ -17,6 +17,7 @@ export const TOP_STORIES_OPERATIONAL_THRESHOLDS = Object.freeze({
     scheduleSlotCoverage: 0.75,
     artifactEmissionRate: 0.75,
     completeRunRate: 0.75,
+    analyticalEligibilityRate: 0.75,
     valid15mPairs: 53,
     canonical15mPairs: 23,
     valid60mPairs: 45,
@@ -32,12 +33,16 @@ const EXPECTED_SCHEMAS = Object.freeze({
   studyConfig: 'nw-top-stories-shadow-study/v1',
 });
 
+function finiteMetric(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
 function ratio(numerator, denominator) {
-  const top = Number(numerator);
-  const bottom = Number(denominator);
-  return Number.isFinite(top) && Number.isFinite(bottom) && bottom > 0
-    ? top / bottom
-    : null;
+  const top = finiteMetric(numerator);
+  const bottom = finiteMetric(denominator);
+  return top !== null && bottom !== null && bottom > 0 ? top / bottom : null;
 }
 
 function inReportDay(value, date) {
@@ -60,11 +65,12 @@ function buildAcquisitionMetrics(downloadManifest, date) {
     .map(row => ({ ...row, _reportDate: date }));
   const downloadedRuns = uniqueRunKeys(downloaded, 'runCreatedAt');
   const excludedRuns = uniqueRunKeys(excluded, 'createdAt');
-  const workflowRuns = new Set([...downloadedRuns, ...excludedRuns]);
+  const missingRuns = new Set([...excludedRuns].filter(key => !downloadedRuns.has(key)));
+  const workflowRuns = new Set([...downloadedRuns, ...missingRuns]);
   return {
     workflowRunCount: workflowRuns.size,
     downloadedRunCount: downloadedRuns.size,
-    missingArtifactRunCount: excludedRuns.size,
+    missingArtifactRunCount: missingRuns.size,
     artifactEmissionRate: ratio(downloadedRuns.size, workflowRuns.size),
   };
 }
@@ -110,50 +116,36 @@ function identityChecks(checks, report, aggregationManifest, downloadManifest, c
   ].filter(Boolean);
   const dates = [report?.date, aggregationManifest?.date, downloadManifest?.date]
     .filter(Boolean);
-  addCheck(
-    checks,
-    'study_identity_consistency',
-    new Set(studyIds).size === 1 && studyIds.length === 4 ? 'PASS' : 'FAIL',
-    [...new Set(studyIds)],
-    config?.studyId || null,
-    new Set(studyIds).size === 1 && studyIds.length === 4
-      ? null : 'study_identity_mismatch',
-  );
-  addCheck(
-    checks,
-    'report_date_consistency',
-    new Set(dates).size === 1 && dates.length === 3 ? 'PASS' : 'FAIL',
-    [...new Set(dates)],
-    report?.date || null,
-    new Set(dates).size === 1 && dates.length === 3
-      ? null : 'report_date_mismatch',
-  );
+  const studyConsistent = new Set(studyIds).size === 1 && studyIds.length === 4;
+  const dateConsistent = new Set(dates).size === 1 && dates.length === 3;
+  addCheck(checks, 'study_identity_consistency', studyConsistent ? 'PASS' : 'FAIL',
+    [...new Set(studyIds)], config?.studyId || null,
+    studyConsistent ? null : 'study_identity_mismatch');
+  addCheck(checks, 'report_date_consistency', dateConsistent ? 'PASS' : 'FAIL',
+    [...new Set(dates)], report?.date || null,
+    dateConsistent ? null : 'report_date_mismatch');
 }
 
 function hardIntegrityChecks(checks, report, config, integrity) {
   const coverage = report?.coverage || {};
   const expectedSegment = expectedVersionSegment(config);
   const segments = Array.isArray(report?.versionSegments) ? report.versionSegments : [];
+  const versionOkay = segments.length === 0
+    ? report?.status !== 'OBSERVED'
+    : segments.length === 1 && segments[0] === expectedSegment;
   const rows = [
     ['input_file_integrity', integrity?.ok === true, integrity?.errors || [], true,
       'input_integrity_failure'],
-    ['invalid_artifacts', Number(coverage.invalidArtifacts || 0) === 0,
-      Number(coverage.invalidArtifacts || 0), 0, 'invalid_artifact_detected'],
-    ['unassigned_invalid_artifacts', Number(coverage.unassignedInvalidArtifacts || 0) === 0,
-      Number(coverage.unassignedInvalidArtifacts || 0), 0,
+    ['invalid_artifacts', finiteMetric(coverage.invalidArtifacts) === 0,
+      finiteMetric(coverage.invalidArtifacts), 0, 'invalid_artifact_detected'],
+    ['unassigned_invalid_artifacts', finiteMetric(coverage.unassignedInvalidArtifacts) === 0,
+      finiteMetric(coverage.unassignedInvalidArtifacts), 0,
       'unassigned_invalid_artifact_detected'],
-    ['version_segment', report?.status !== 'OBSERVED' ||
-      (segments.length === 1 && segments[0] === expectedSegment),
-    segments, expectedSegment, 'version_segment_mismatch'],
+    ['version_segment', versionOkay, segments, expectedSegment, 'version_segment_mismatch'],
   ];
   rows.forEach(([id, passed, actual, threshold, reasonCode]) => addCheck(
-    checks,
-    id,
-    passed ? 'PASS' : 'FAIL',
-    actual,
-    threshold,
-    passed ? null : reasonCode,
-  ));
+    checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
+    passed ? null : reasonCode));
 }
 
 function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold, higherIsBetter = true) {
@@ -184,33 +176,33 @@ function operationalChecks(checks, report, acquisition) {
   );
   const pass = TOP_STORIES_OPERATIONAL_THRESHOLDS.pass;
   const sufficient = TOP_STORIES_OPERATIONAL_THRESHOLDS.sufficient;
-  thresholdCheck(checks, 'schedule_slot_coverage', Number(coverage.scheduleSlotCoverage),
+  thresholdCheck(checks, 'schedule_slot_coverage', finiteMetric(coverage.scheduleSlotCoverage),
     pass.scheduleSlotCoverage, sufficient.scheduleSlotCoverage);
   thresholdCheck(checks, 'artifact_emission_rate', acquisition.artifactEmissionRate,
     pass.artifactEmissionRate, sufficient.artifactEmissionRate);
   thresholdCheck(checks, 'complete_run_rate', completeRunRate,
     pass.completeRunRate, sufficient.completeRunRate);
   thresholdCheck(checks, 'analytical_eligibility_rate', eligibilityRate,
-    pass.analyticalEligibilityRate, sufficient.completeRunRate);
-  thresholdCheck(checks, 'valid_15m_pairs', Number(coverage.valid15mPairs),
+    pass.analyticalEligibilityRate, sufficient.analyticalEligibilityRate);
+  thresholdCheck(checks, 'valid_15m_pairs', finiteMetric(coverage.valid15mPairs),
     pass.valid15mPairs, sufficient.valid15mPairs);
-  thresholdCheck(checks, 'canonical_15m_pairs', Number(coverage.canonical15mPairs),
+  thresholdCheck(checks, 'canonical_15m_pairs', finiteMetric(coverage.canonical15mPairs),
     pass.canonical15mPairs, sufficient.canonical15mPairs);
-  thresholdCheck(checks, 'valid_60m_pairs', Number(coverage.valid60mPairs),
+  thresholdCheck(checks, 'valid_60m_pairs', finiteMetric(coverage.valid60mPairs),
     pass.valid60mPairs, sufficient.valid60mPairs);
-  thresholdCheck(checks, 'canonical_60m_pairs', Number(coverage.canonical60mPairs),
+  thresholdCheck(checks, 'canonical_60m_pairs', finiteMetric(coverage.canonical60mPairs),
     pass.canonical60mPairs, sufficient.canonical60mPairs);
   thresholdCheck(checks, 'p90_schedule_delay_seconds',
-    Number(coverage.scheduleDelaySeconds?.p90),
+    finiteMetric(coverage.scheduleDelaySeconds?.p90),
     pass.p90ScheduleDelaySeconds,
     sufficient.p90ScheduleDelaySeconds,
     false);
-  if (Number(coverage.failureRuns || 0) > 0) {
-    addCheck(checks, 'failure_runs', 'WARN', Number(coverage.failureRuns), 0,
+  if (finiteMetric(coverage.failureRuns) > 0) {
+    addCheck(checks, 'failure_runs', 'WARN', finiteMetric(coverage.failureRuns), 0,
       'failure_runs_present');
   }
-  if (Number(coverage.failedInputRuns || 0) > 0) {
-    addCheck(checks, 'failed_input_runs', 'WARN', Number(coverage.failedInputRuns), 0,
+  if (finiteMetric(coverage.failedInputRuns) > 0) {
+    addCheck(checks, 'failed_input_runs', 'WARN', finiteMetric(coverage.failedInputRuns), 0,
       'degraded_input_runs_present');
   }
   if (acquisition.missingArtifactRunCount > 0) {
