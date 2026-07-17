@@ -1,6 +1,6 @@
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildTopStoriesPilotRollup } from './top-stories-shadow/pilotRollup.mjs';
+import { buildTopStoriesPilotDecisionPack } from './top-stories-shadow/pilotDecisionPack.mjs';
 import { renderTopStoriesPilotRollupMarkdown } from './top-stories-shadow/pilotRollupMarkdown.mjs';
 import { sha256Text, stableJson } from './top-stories-shadow/canonicalJson.mjs';
 
@@ -111,7 +111,7 @@ async function main() {
     startDate: args['start-date'],
     endDate: args['end-date'],
   });
-  const rollup = buildTopStoriesPilotRollup(discovered.entries, { studyConfig });
+  const rollup = buildTopStoriesPilotDecisionPack(discovered.entries, { studyConfig });
   const jsonText = `${stableJson(rollup)}\n`;
   const markdownText = `${renderTopStoriesPilotRollupMarkdown(rollup)}\n`;
   const files = {
