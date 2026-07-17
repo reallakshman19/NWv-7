@@ -49,6 +49,24 @@ function descriptor(name, text) {
   };
 }
 
+async function readInputRecord(file) {
+  const text = await readFile(file, 'utf8');
+  return {
+    file,
+    value: JSON.parse(text),
+    byteSize: Buffer.byteLength(text, 'utf8'),
+    sha256: sha256Text(text),
+  };
+}
+
+function inputDescriptor(row) {
+  return {
+    path: row.file,
+    byteSize: row.byteSize,
+    sha256: row.sha256,
+  };
+}
+
 function dateIncluded(date, startDate, endDate) {
   if (!date) return false;
   if (startDate && date < startDate) return false;
@@ -60,8 +78,8 @@ async function discoverInputs(root, bounds = {}) {
   const files = await walk(root);
   const dailyPaths = files.filter(file => path.basename(file) === 'daily_report.json');
   const validationPaths = files.filter(file => path.basename(file) === 'operational_validation.json');
-  const daily = await Promise.all(dailyPaths.map(async file => ({ file, value: await readJson(file) })));
-  const validation = await Promise.all(validationPaths.map(async file => ({ file, value: await readJson(file) })));
+  const daily = await Promise.all(dailyPaths.map(readInputRecord));
+  const validation = await Promise.all(validationPaths.map(readInputRecord));
   const dates = [...new Set([
     ...daily.map(row => row.value?.date),
     ...validation.map(row => row.value?.date),
@@ -79,8 +97,8 @@ async function discoverInputs(root, bounds = {}) {
           !dailyRows.length ? 'missing_daily_report' : null,
           !validationRows.length ? 'missing_operational_validation' : null,
         ].filter(Boolean),
-        dailyPaths: dailyRows.map(row => row.file),
-        validationPaths: validationRows.map(row => row.file),
+        dailyFiles: dailyRows.map(inputDescriptor),
+        validationFiles: validationRows.map(inputDescriptor),
       });
       continue;
     }
@@ -97,8 +115,8 @@ async function discoverInputs(root, bounds = {}) {
       date,
       status: 'CANDIDATE',
       reasonCodes: [],
-      dailyPaths: dailyRows.map(row => row.file),
-      validationPaths: validationRows.map(row => row.file),
+      dailyFiles: dailyRows.map(inputDescriptor),
+      validationFiles: validationRows.map(inputDescriptor),
     });
   }
   return { entries, inputManifest, discoveredFiles: files };
