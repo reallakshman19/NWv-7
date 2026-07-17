@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 9
+            "itemCount": 7
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 9,
-        "parentClusters": 9,
-        "strongParents": 9,
+        "inputCandidateCount": 7,
+        "parentClusters": 7,
+        "strongParents": 7,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3733,
+      "qualityScore": 0.3741,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -210,124 +210,6 @@
           "gates": [
             {
               "details": {
-                "storyCount": 6
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 6
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:313fbb8095",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "90d917bf9ae536bc",
-            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 1.0,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 6,
-            "storyIds": [
-              "90d917bf9ae536bc",
-              "82ea0749d0de2b8d",
-              "a47f9861bbd2cc3a",
-              "4ee739c53b939a61",
-              "86e809c754b9139e",
-              "c0b89c693126f623"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 6
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "live",
-              "updates",
-              "july",
-              "operation",
-              "neelkanth",
-              "brazil",
-              "strong"
-            ],
-            "topicKey": "breaking|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.4915,
-          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -380,14 +262,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:fcde5c7120",
+          "id": "sketch:313fbb8095",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "id": "sketch:313fbb8095",
+            "representativeId": "90d917bf9ae536bc",
+            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -399,30 +281,30 @@
             },
             "slotCount": 1,
             "slots": [
-              "minus24h"
+              "now"
             ],
             "sourceGroupCount": 1,
             "sourceGroups": [
-              "moneycontrol"
+              "google_news"
             ],
             "storyCount": 2,
             "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
+              "90d917bf9ae536bc",
+              "82ea0749d0de2b8d"
             ],
             "topAngles": [
               {
-                "angle": "market_reaction",
+                "angle": "fact_update",
                 "count": 2
               }
             ],
             "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
+              "breaking",
+              "live",
+              "updates",
+              "july"
             ],
-            "topicKey": "bajaj|finance|target"
+            "topicKey": "breaking|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -431,7 +313,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -543,116 +425,6 @@
           ],
           "score": 0.389,
           "title": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:768c327fc1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:768c327fc1",
-            "representativeId": "9b24fac6e2c44c06",
-            "representativeTitle": "India news Live Updates, 16 July 2026:India news Live Updates, 16 July 2026: Indian national stabbed 15 times in US mall over his religion - The Indian Express",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "9b24fac6e2c44c06",
-              "c70e8d70a297d2f1"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "india",
-              "live",
-              "updates",
-              "july"
-            ],
-            "topicKey": "india|live|updates"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "India news Live Updates, 16 July 2026:India news Live Updates, 16 July 2026: Indian national stabbed 15 times in US mall over his religion - The Indian Express"
         },
         {
           "category": "insightEvent",
@@ -1100,13 +872,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3089,
-        "eventImportanceScore": 0.6356,
+        "angleDiversityScore": 0.3257,
+        "eventImportanceScore": 0.59,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4611,
-        "sourceAuthorityScore": 0.4067,
-        "sourceDiversityScore": 0.3911,
-        "temporalEvolutionScore": 0.41
+        "noveltyDeltaScore": 0.4643,
+        "sourceAuthorityScore": 0.4143,
+        "sourceDiversityScore": 0.4029,
+        "temporalEvolutionScore": 0.4214
       }
     },
     "localTravel": {
@@ -4690,7 +4462,7 @@
       }
     }
   },
-  "generatedAt": 1784263359508,
+  "generatedAt": 1784265287332,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4723,7 +4495,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3733,
+      "insight": 0.3741,
       "localTravel": 0.0,
       "upAhead": 0.8518
     },
@@ -4733,7 +4505,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3063,
+    "overallScore": 0.3065,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
