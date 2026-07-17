@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 7
+            "itemCount": 9
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 7,
-        "parentClusters": 7,
-        "strongParents": 7,
+        "inputCandidateCount": 9,
+        "parentClusters": 9,
+        "strongParents": 9,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3686,
+      "qualityScore": 0.3625,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -190,6 +190,7 @@
               "live",
               "updates",
               "july",
+              "declares",
               "brazil",
               "strong",
               "govt"
@@ -373,6 +374,117 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:08ce0ab641",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:08ce0ab641",
+            "representativeId": "dd73fd9ace6cfe22",
+            "representativeTitle": "Caliber Mining & Logistics IPO Day 1: Issue subscribed 61% so far; GMP signals 25% listing gain",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "dd73fd9ace6cfe22",
+              "f981661c7b7e8db9"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "caliber",
+              "mining",
+              "logistics",
+              "issue",
+              "opens"
+            ],
+            "topicKey": "caliber|mining|logistics"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Caliber Mining & Logistics IPO Day 1: Issue subscribed 61% so far; GMP signals 25% listing gain"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:6490d07a5a",
           "item": {
             "angleCount": 1,
@@ -426,6 +538,116 @@
           ],
           "score": 0.389,
           "title": "Explained: Why ICICI Lombard shares tumbled 15% in their biggest fall since the COVID crash"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:384d417f5f",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:384d417f5f",
+            "representativeId": "8b4dafe2d70fc8a9",
+            "representativeTitle": "Is the AI stock boom losing steam after the latest chip selloff?",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "8b4dafe2d70fc8a9",
+              "c5a99e7b13b4c258"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "selloff",
+              "stock",
+              "boom",
+              "losing"
+            ],
+            "topicKey": "selloff|stock|boom"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Is the AI stock boom losing steam after the latest chip selloff?"
         },
         {
           "category": "insightEvent",
@@ -874,12 +1096,12 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.25,
-        "eventImportanceScore": 0.6586,
+        "eventImportanceScore": 0.6433,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.45,
-        "sourceAuthorityScore": 0.4143,
-        "sourceDiversityScore": 0.4029,
-        "temporalEvolutionScore": 0.4043
+        "sourceAuthorityScore": 0.4067,
+        "sourceDiversityScore": 0.3911,
+        "temporalEvolutionScore": 0.3967
       }
     },
     "localTravel": {
@@ -939,16 +1161,21 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
-        "no active offer items in ranked Up Ahead set",
+        "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
         "no ranked Up Ahead item for muscat"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Chennai Metro Rail’s major interchange station gets ready in Koyambedu: futureValidity failed — expired display window",
+        "Chennai Metro Rail’s major interchange station gets ready in Koyambedu: alertUrgency failed — alert expired",
+        "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region: futureValidity failed — expired display window",
+        "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region: alertUrgency failed — alert expired",
         "What is the row over Karur ‘temple land’? | Explained: futureValidity failed — expired display window",
         "What is the row over Karur ‘temple land’? | Explained: alertUrgency failed — alert expired",
-        "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match"
+        "Amazon Prime Day sale ends with mega deals - News.com.au: futureValidity failed — expired display window",
+        "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
+        "Amazon Prime Day sale ends with mega deals - News.com.au: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -963,20 +1190,22 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 29,
+              "alerts": 27,
+              "shopping": 2,
               "weather_alerts": 1
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.5,
+          "score": 0.75,
           "status": "PASS"
         }
       ],
       "gateSummary": {
-        "alerts": 30,
+        "alerts": 28,
         "categoryCounts": {
-          "alerts": 29,
+          "alerts": 27,
+          "shopping": 2,
           "weather_alerts": 1
         },
         "events": 0,
@@ -984,20 +1213,22 @@
         "inputItemCount": 35,
         "locationCounts": {
           "chennai": 21,
-          "trichy": 9
+          "online": 1,
+          "trichy": 8
         },
         "locationsCovered": [
           "chennai",
+          "online",
           "trichy"
         ],
-        "offlineOffers": 0,
-        "onlineOffers": 0,
+        "offlineOffers": 1,
+        "onlineOffers": 1,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 3
+        "suppressedItemCount": 5
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8475,
+      "qualityScore": 0.8416,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1574,121 +1805,6 @@
           ],
           "score": 0.8485,
           "title": "Chennai Corporation identifies 115 missing links in city’s drain network"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "9d8900c0527de98d"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784275536000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "25b5a1cfc27e00fe",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784275536000,
-            "id": "25b5a1cfc27e00fe",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784880336000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784275536000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784189136000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "It will be opened when the stretch from Koyambedu to Chennai Trade Centre, a part of corridor 5, is completed.",
-            "suppressionReason": null,
-            "title": "Chennai Metro Rail’s major interchange station gets ready in Koyambedu",
-            "url": "https://www.thehindu.com/news/cities/chennai/koyambedu-chennai-metro-rails-major-interchange-station-gets-ready/article71225959.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai Metro Rail’s major interchange station gets ready in Koyambedu"
         },
         {
           "category": "alerts",
@@ -2724,121 +2840,6 @@
           ],
           "score": 0.8485,
           "title": "Padur residents seek retrieval of temple land from private college"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "5aa54426ee3b1499"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784274926000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "trichy",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "6aaec615303957e3",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Trichy",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784274926000,
-            "id": "6aaec615303957e3",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784879726000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784274926000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.9,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784188526000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Trichy",
-            "sourceGroup": "the_hindu",
-            "summary": "All is not well in the famed ‘Granary of South India’. Between a poor southwest  monsoon and lack of water in the Cauvery, crops and farmers are left high and dry. The kuruvai cultivation area in Thanjavur alone has dipped to around 89,000 acres this season from around 1,94,000 acres in the previous cultivation year.  This report describes the situation on the ground",
-            "suppressionReason": null,
-            "title": "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/poor-monsoon-and-no-cauvery-water-distress-in-delta-region-of-tamil-nadu-2026-kharif-season/article71211621.ece"
-          },
-          "locationKey": "trichy",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region"
         },
         {
           "category": "alerts",
@@ -4449,21 +4450,251 @@
           ],
           "score": 0.7585,
           "title": "Tourism Minister inaugurates 3-day ‘travel mart’ exhibition in Chennai"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "395b0df07a5d1779"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784313193000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 9.47
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "9f3a6a7e4e5d9b46",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784313193000,
+            "id": "9f3a6a7e4e5d9b46",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1784917993000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784313193000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784140393000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiswFBVV95cUxPRDZ6RHRXTWlLNVRCdnZ2Ry1ua3JUNG81eWZzR0dPZm5USUJMY3dCWk1rWEUtTVJXbzlUejdtVFlDZzdaX25CdGZCWUw5Mm1NVDlhNHRNMlpZTlBEdEU4bVlCTWc5bk1hZTd6MHpETGtFaFlXN2YtNWVLc3FwRFIyQnVNclFtWmxYTF9UWGJFNWRRX1FBUFFuTDJYdnBTUUJRWm9PX0wtaE8zcTBGY3RHOTNwMA?oc=5\" target=\"_blank\">Amazon has a hidden sale on ACs and fans for up to 40% off right now</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">NBC News</font>",
+            "suppressionReason": null,
+            "title": "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News",
+            "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxPRDZ6RHRXTWlLNVRCdnZ2Ry1ua3JUNG81eWZzR0dPZm5USUJMY3dCWk1rWEUtTVJXbzlUejdtVFlDZzdaX25CdGZCWUw5Mm1NVDlhNHRNMlpZTlBEdEU4bVlCTWc5bk1hZTd6MHpETGtFaFlXN2YtNWVLc3FwRFIyQnVNclFtWmxYTF9UWGJFNWRRX1FBUFFuTDJYdnBTUUJRWm9PX0wtaE8zcTBGY3RHOTNwMA?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "Amazon has a hidden sale on ACs and fans for up to 40% off right now - NBC News"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "17a70f76d3ad7db3"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784416356000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 38.13
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "8980887c7978b794",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784416356000,
+            "id": "8980887c7978b794",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785021156000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784416356000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784243556000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5\" target=\"_blank\">7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Daily Meal</font>",
+            "suppressionReason": null,
+            "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal",
+            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.726,
+          "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 1.0,
-        "categoryPriorityScore": 0.9993,
+        "actionabilityScore": 0.99,
+        "categoryPriorityScore": 0.978,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9233,
+        "locationScore": 0.9047,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.78
+        "urgencyOrExpiryScore": 0.7887
       }
     }
   },
-  "generatedAt": 1784273654714,
+  "generatedAt": 1784279094670,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4482,8 +4713,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "3 invalid/expired/duplicate Up Ahead item(s) suppressed",
-      "no active offer items in ranked Up Ahead set",
+      "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no ranked Up Ahead item for muscat",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
@@ -4496,9 +4726,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3686,
+      "insight": 0.3625,
       "localTravel": 0.0,
-      "upAhead": 0.8475
+      "upAhead": 0.8416
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4506,7 +4736,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.304,
+    "overallScore": 0.301,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4516,9 +4746,15 @@
     },
     "topFindings": [
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Chennai Metro Rail’s major interchange station gets ready in Koyambedu: futureValidity failed — expired display window",
+      "Chennai Metro Rail’s major interchange station gets ready in Koyambedu: alertUrgency failed — alert expired",
+      "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region: futureValidity failed — expired display window",
+      "Poor monsoon and no Cauvery water: distress in Tamil Nadu’s delta region: alertUrgency failed — alert expired",
       "What is the row over Karur ‘temple land’? | Explained: futureValidity failed — expired display window",
       "What is the row over Karur ‘temple land’? | Explained: alertUrgency failed — alert expired",
-      "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match"
+      "Amazon Prime Day sale ends with mega deals - News.com.au: futureValidity failed — expired display window",
+      "Amazon Prime Day sale ends with mega deals - News.com.au: location failed — offline/local item lacks configured location match",
+      "Amazon Prime Day sale ends with mega deals - News.com.au: offerValidity failed — offer expired"
     ]
   }
 }
