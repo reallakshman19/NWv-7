@@ -10,9 +10,9 @@
 - Base report share: `0.17647058823529413`
 - Multi-angle parents: `3`
 - Weak parents: `7`
-- Story count: `716`
+- Story count: `743`
 - Source groups: `9`
-- Content hash: `72fe52c9beaa94cf`
+- Content hash: `62bc2c616f8c6b35`
 
 ## Top parents
 
@@ -21,13 +21,13 @@
 | 1 | Duration of US visa stay changes - what it means for foreign students, exchange visitors and journalists | 2 | base_report, expert_analysis | NO | 0.6210273179616861 |
 | 2 | What is testosterone screening, and why is the U.S. military introducing it? / Explained | 2 | official_response, base_report | NO | 0.6052599999999999 |
 | 3 | US Senate Bill seeks 100% tariffs on India, China for buying Russian oil | 2 | fact_update, base_report | NO | 0.5976566135483352 |
-| 4 | US to revive rule of no green cards for those who use public benefits | 2 | reaction_public | YES | 0.6660800531183316 |
-| 5 | NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify | 2 | fact_update | YES | 0.6425766666666668 |
+| 4 | NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify | 2 | fact_update | YES | 0.6425766666666668 |
+| 5 | US to revive rule of no green cards for those who use public benefits | 2 | reaction_public | YES | 0.6220800531183317 |
 | 6 | Parliament approves Serhii Koretskyi amid cabinet shuffle | 2 | official_response | YES | 0.5955800531183317 |
-| 7 | Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters | 2 | official_response | YES | 0.5693433333333333 |
+| 7 | Indian court orders Maruti to replace car in first E20 fuel damage ruling - Reuters | 2 | official_response | YES | 0.5013566135483352 |
 | 8 | BHEL shares jump 4% after Maharatna PSU posts net profit of Rs 377 crore in Q1, revenue jumps 40% | 1 | fact_update | YES | 0.7235911614783158 |
-| 9 | Relaxo Footwears jumps 14%, snaps 3-day losing streak. What should investors do now? | 1 | market_reaction | YES | 0.7226911614783158 |
-| 10 | Polycab India shares fall 4% despite strong Q1 earnings, profit jumps 33% YoY | 1 | market_reaction | YES | 0.7226911614783158 |
+| 9 | JSW Steel Q1 Results: Net profit doubles to Rs 4,696 crore | 1 | fact_update | YES | 0.7226911614783158 |
+| 10 | Zepto said to face sharply lower valuation for IPO | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Warnings
 
