@@ -3,6 +3,13 @@ import {
   PILOT_THRESHOLDS,
 } from './pilotRollup.mjs';
 
+export const TOP_STORIES_PILOT_DIAGNOSTIC_AUTHORITY = Object.freeze({
+  decisionAuthority: false,
+  diagnosticOnly: true,
+  governingWorkflow: 'top_stories_shadow_pilot_decision.yml',
+  governingDecisionSchema: 'nw-top-stories-seven-day-pilot-decision/v1',
+});
+
 function finite(value) {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
@@ -107,5 +114,9 @@ export function buildTopStoriesPilotDecisionPack(entries = [], options = {}) {
     decision,
     activeEvidenceSufficient: activeSufficient,
     metrics,
+    ...TOP_STORIES_PILOT_DIAGNOSTIC_AUTHORITY,
+    productionChangeAuthorized: false,
+    persistenceChangeAuthorized: false,
+    automaticPolicyChangeAuthorized: false,
   };
 }
