@@ -139,7 +139,11 @@ async function main() {
   const manifest = {
     schemaVersion: 'nw-top-stories-pilot-manifest/v1',
     studyId: studyConfig.studyId,
-    decision: rollup.decision,
+    diagnosticResult: rollup.decision,
+    diagnosticOnly: rollup.diagnosticOnly === true,
+    decisionAuthority: rollup.decisionAuthority === true,
+    governingWorkflow: rollup.governingWorkflow || null,
+    governingDecisionSchema: rollup.governingDecisionSchema || null,
     deterministicReplay: true,
     requestedRange: {
       startDate: args['start-date'] || null,
@@ -156,7 +160,8 @@ async function main() {
   await Promise.all(Object.entries(files).map(([name, text]) =>
     writeFile(path.join(args.output, name), text, 'utf8')));
   console.log(JSON.stringify({
-    decision: rollup.decision,
+    diagnosticResult: rollup.decision,
+    decisionAuthority: rollup.decisionAuthority,
     suppliedDays: rollup.dayCounts.supplied,
     usableDays: rollup.dayCounts.usable,
   }));
