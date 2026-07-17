@@ -52,19 +52,22 @@ function inReportDay(value, date) {
     time >= start && time < start + (24 * 60 * 60 * 1000);
 }
 
-function uniqueRunKeys(rows = [], timeField) {
-  return new Set(rows
-    .filter(row => inReportDay(row?.[timeField], row?._reportDate))
-    .map(row => `${row.runId || 'run'}:${row.runAttempt || 1}`));
+function runKey(row = {}) {
+  return `${row.runId || 'run'}:${row.runAttempt || 1}`;
+}
+
+function downloadedInReportDay(row, date) {
+  const slotDate = String(row?.artifactName || '').match(/-(\d{8})T\d{4}Z-/)?.[1];
+  return slotDate
+    ? slotDate === String(date || '').replaceAll('-', '')
+    : inReportDay(row?.runCreatedAt, date);
 }
 
 function buildAcquisitionMetrics(downloadManifest, date) {
-  const downloaded = (downloadManifest?.downloaded || [])
-    .map(row => ({ ...row, _reportDate: date }));
-  const excluded = (downloadManifest?.excludedRuns || [])
-    .map(row => ({ ...row, _reportDate: date }));
-  const downloadedRuns = uniqueRunKeys(downloaded, 'runCreatedAt');
-  const excludedRuns = uniqueRunKeys(excluded, 'createdAt');
+  const downloadedRuns = new Set((downloadManifest?.downloaded || [])
+    .filter(row => downloadedInReportDay(row, date)).map(runKey));
+  const excludedRuns = new Set((downloadManifest?.excludedRuns || [])
+    .filter(row => inReportDay(row?.createdAt, date)).map(runKey));
   const missingRuns = new Set([...excludedRuns].filter(key => !downloadedRuns.has(key)));
   const workflowRuns = new Set([...downloadedRuns, ...missingRuns]);
   return {
@@ -76,12 +79,8 @@ function buildAcquisitionMetrics(downloadManifest, date) {
 }
 
 function expectedVersionSegment(config = {}) {
-  return [
-    config.studyId,
-    config.rankerVersion,
-    config.identityVersion,
-    config.periodClassifierVersion,
-  ].join('|');
+  return [config.studyId, config.rankerVersion, config.identityVersion,
+    config.periodClassifierVersion].join('|');
 }
 
 function addCheck(checks, id, status, actual, threshold, reasonCode) {
@@ -97,23 +96,14 @@ function schemaChecks(checks, report, aggregationManifest, downloadManifest, con
       EXPECTED_SCHEMAS.downloadManifest],
     ['study_config_schema', config?.schemaVersion, EXPECTED_SCHEMAS.studyConfig],
   ];
-  rows.forEach(([id, actual, expected]) => addCheck(
-    checks,
-    id,
-    actual === expected ? 'PASS' : 'FAIL',
-    actual || null,
-    expected,
-    actual === expected ? null : 'unsupported_schema',
-  ));
+  rows.forEach(([id, actual, expected]) => addCheck(checks, id,
+    actual === expected ? 'PASS' : 'FAIL', actual || null, expected,
+    actual === expected ? null : 'unsupported_schema'));
 }
 
 function identityChecks(checks, report, aggregationManifest, downloadManifest, config) {
-  const studyIds = [
-    report?.studyId,
-    aggregationManifest?.studyId,
-    downloadManifest?.studyId,
-    config?.studyId,
-  ].filter(Boolean);
+  const studyIds = [report?.studyId, aggregationManifest?.studyId,
+    downloadManifest?.studyId, config?.studyId].filter(Boolean);
   const dates = [report?.date, aggregationManifest?.date, downloadManifest?.date]
     .filter(Boolean);
   const studyConsistent = new Set(studyIds).size === 1 && studyIds.length === 4;
@@ -126,13 +116,22 @@ function identityChecks(checks, report, aggregationManifest, downloadManifest, c
     dateConsistent ? null : 'report_date_mismatch');
 }
 
-function hardIntegrityChecks(checks, report, config, integrity) {
+function hardIntegrityChecks(checks, report, config, integrity, acquisition) {
   const coverage = report?.coverage || {};
   const expectedSegment = expectedVersionSegment(config);
   const segments = Array.isArray(report?.versionSegments) ? report.versionSegments : [];
   const versionOkay = segments.length === 0
     ? report?.status !== 'OBSERVED'
     : segments.length === 1 && segments[0] === expectedSegment;
+  const started = finiteMetric(coverage.startedRuns);
+  const successful = finiteMetric(coverage.successfulRuns);
+  const failed = finiteMetric(coverage.failureRuns);
+  const complete = finiteMetric(coverage.completeRuns);
+  const eligible = finiteMetric(coverage.analyticallyEligibleRuns);
+  const countsOkay = [started, successful, failed, complete, eligible]
+    .every(value => value !== null && value >= 0) &&
+    complete <= successful && eligible <= successful &&
+    successful + failed <= started && acquisition.downloadedRunCount === started;
   const rows = [
     ['input_file_integrity', integrity?.ok === true, integrity?.errors || [], true,
       'input_integrity_failure'],
@@ -142,13 +141,19 @@ function hardIntegrityChecks(checks, report, config, integrity) {
       finiteMetric(coverage.unassignedInvalidArtifacts), 0,
       'unassigned_invalid_artifact_detected'],
     ['version_segment', versionOkay, segments, expectedSegment, 'version_segment_mismatch'],
+    ['coverage_count_conservation', countsOkay,
+      { started, successful, failed, complete, eligible,
+        downloaded: acquisition.downloadedRunCount },
+    'complete <= successful; eligible <= successful; successful + failed <= started; downloaded = started',
+    'coverage_count_inconsistency'],
   ];
   rows.forEach(([id, passed, actual, threshold, reasonCode]) => addCheck(
     checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
     passed ? null : reasonCode));
 }
 
-function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold, higherIsBetter = true) {
+function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold,
+  higherIsBetter = true) {
   if (!Number.isFinite(actual)) {
     addCheck(checks, id, 'INSUFFICIENT', null, passThreshold, 'metric_unavailable');
     return;
@@ -157,23 +162,15 @@ function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold, 
   const sufficient = higherIsBetter
     ? actual >= sufficientThreshold
     : actual <= sufficientThreshold;
-  addCheck(
-    checks,
-    id,
-    passes ? 'PASS' : sufficient ? 'WARN' : 'INSUFFICIENT',
-    actual,
-    { pass: passThreshold, sufficient: sufficientThreshold },
-    passes ? null : sufficient ? `${id}_degraded` : `${id}_insufficient`,
-  );
+  addCheck(checks, id, passes ? 'PASS' : sufficient ? 'WARN' : 'INSUFFICIENT',
+    actual, { pass: passThreshold, sufficient: sufficientThreshold },
+    passes ? null : sufficient ? `${id}_degraded` : `${id}_insufficient`);
 }
 
 function operationalChecks(checks, report, acquisition) {
   const coverage = report?.coverage || {};
   const completeRunRate = ratio(coverage.completeRuns, coverage.successfulRuns);
-  const eligibilityRate = ratio(
-    coverage.analyticallyEligibleRuns,
-    coverage.successfulRuns,
-  );
+  const eligibilityRate = ratio(coverage.analyticallyEligibleRuns, coverage.successfulRuns);
   const pass = TOP_STORIES_OPERATIONAL_THRESHOLDS.pass;
   const sufficient = TOP_STORIES_OPERATIONAL_THRESHOLDS.sufficient;
   thresholdCheck(checks, 'schedule_slot_coverage', finiteMetric(coverage.scheduleSlotCoverage),
@@ -193,22 +190,14 @@ function operationalChecks(checks, report, acquisition) {
   thresholdCheck(checks, 'canonical_60m_pairs', finiteMetric(coverage.canonical60mPairs),
     pass.canonical60mPairs, sufficient.canonical60mPairs);
   thresholdCheck(checks, 'p90_schedule_delay_seconds',
-    finiteMetric(coverage.scheduleDelaySeconds?.p90),
-    pass.p90ScheduleDelaySeconds,
-    sufficient.p90ScheduleDelaySeconds,
-    false);
-  if (finiteMetric(coverage.failureRuns) > 0) {
-    addCheck(checks, 'failure_runs', 'WARN', finiteMetric(coverage.failureRuns), 0,
-      'failure_runs_present');
-  }
-  if (finiteMetric(coverage.failedInputRuns) > 0) {
-    addCheck(checks, 'failed_input_runs', 'WARN', finiteMetric(coverage.failedInputRuns), 0,
-      'degraded_input_runs_present');
-  }
-  if (acquisition.missingArtifactRunCount > 0) {
-    addCheck(checks, 'missing_artifact_runs', 'WARN',
-      acquisition.missingArtifactRunCount, 0, 'missing_artifact_runs_present');
-  }
+    finiteMetric(coverage.scheduleDelaySeconds?.p90), pass.p90ScheduleDelaySeconds,
+    sufficient.p90ScheduleDelaySeconds, false);
+  if (finiteMetric(coverage.failureRuns) > 0) addCheck(checks, 'failure_runs', 'WARN',
+    finiteMetric(coverage.failureRuns), 0, 'failure_runs_present');
+  if (finiteMetric(coverage.failedInputRuns) > 0) addCheck(checks, 'failed_input_runs',
+    'WARN', finiteMetric(coverage.failedInputRuns), 0, 'degraded_input_runs_present');
+  if (acquisition.missingArtifactRunCount > 0) addCheck(checks, 'missing_artifact_runs',
+    'WARN', acquisition.missingArtifactRunCount, 0, 'missing_artifact_runs_present');
   return { completeRunRate, eligibilityRate };
 }
 
@@ -221,23 +210,17 @@ function decide(checks, report) {
 }
 
 function collectReasons(checks, status) {
-  return [...new Set(checks
-    .filter(check => check.status === status && check.reasonCode)
+  return [...new Set(checks.filter(check => check.status === status && check.reasonCode)
     .map(check => check.reasonCode))].sort();
 }
 
-export function validateTopStoriesOperationalDay({
-  dailyReport,
-  aggregationManifest,
-  downloadManifest,
-  studyConfig,
-  integrity = { ok: true, errors: [] },
-} = {}) {
+export function validateTopStoriesOperationalDay({ dailyReport, aggregationManifest,
+  downloadManifest, studyConfig, integrity = { ok: true, errors: [] } } = {}) {
   const checks = [];
   schemaChecks(checks, dailyReport, aggregationManifest, downloadManifest, studyConfig);
   identityChecks(checks, dailyReport, aggregationManifest, downloadManifest, studyConfig);
-  hardIntegrityChecks(checks, dailyReport, studyConfig, integrity);
   const acquisition = buildAcquisitionMetrics(downloadManifest, dailyReport?.date);
+  hardIntegrityChecks(checks, dailyReport, studyConfig, integrity, acquisition);
   const rates = operationalChecks(checks, dailyReport, acquisition);
   const decision = decide(checks, dailyReport);
   return {
