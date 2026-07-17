@@ -157,15 +157,18 @@ export function canonicalizeTopStoriesPilotArtifacts(records = []) {
 
 export function buildPilotArtifactInputManifest(records, canonicalized, downloadManifest) {
   const retainedIds = new Set(canonicalized.canonical.map(row => row.artifactId));
+  const expectedStudyId = downloadManifest?.studyId || null;
   return {
     schemaVersion: 'nw-top-stories-pilot-input-manifest/v1',
-    studyId: downloadManifest?.studyId || null,
+    studyId: expectedStudyId,
     pilotStartDate: downloadManifest?.pilotStartDate || null,
     pilotWindowDays: downloadManifest?.pilotWindowDays || null,
     downloadedArtifactCount: records.length,
     canonicalArtifactCount: canonicalized.canonical.length,
     supersededCount: canonicalized.superseded.length,
     unassignedCount: canonicalized.unassigned.length,
+    foreignStudyCount: records.filter(record =>
+      record.studyId && expectedStudyId && record.studyId !== expectedStudyId).length,
     excludedRuns: downloadManifest?.excludedRuns || [],
     artifacts: records.map(record => ({
       type: record.type || null,
