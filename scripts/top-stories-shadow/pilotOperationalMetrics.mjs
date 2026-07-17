@@ -21,7 +21,7 @@ export function buildPilotOperationalMetrics(days = []) {
   const usable = days.filter(isUsablePilotDay);
   return {
     expectedDayCount: days.length,
-    representedDayCount: days.filter(day => day.dailyReport || day.validation).length,
+    representedDayCount: days.filter(day => day.dailyReport && day.validation).length,
     usableDayCount: usable.length,
     validationDecisionCounts,
     scheduleSlotCoverage: summarizePilotValues(usable.map(day =>
