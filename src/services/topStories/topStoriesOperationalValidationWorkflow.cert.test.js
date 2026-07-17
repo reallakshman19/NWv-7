@@ -25,11 +25,17 @@ function descriptor(name, text) {
 
 function downloadRows(count) {
   const start = Date.parse(`${DATE}T00:07:00.000Z`);
-  return Array.from({ length: count }, (_, index) => ({
-    runId: String(5000 + index),
-    runAttempt: 1,
-    runCreatedAt: new Date(start + (index * 15 * 60 * 1000)).toISOString(),
-  }));
+  return Array.from({ length: count }, (_, index) => {
+    const time = new Date(start + (index * 15 * 60 * 1000));
+    const runId = String(5000 + index);
+    const slot = `${time.toISOString().slice(0, 16).replace(/[-:]/g, '')}Z`;
+    return {
+      runId,
+      runAttempt: 1,
+      runCreatedAt: time.toISOString(),
+      artifactName: `top-stories-shadow-${STUDY}-${slot}-${runId}-attempt-1`,
+    };
+  });
 }
 
 async function writeInputs(root) {
@@ -40,6 +46,7 @@ async function writeInputs(root) {
     status: 'OBSERVED',
     coverage: {
       scheduleSlotCoverage: 0.95,
+      startedRuns: 92,
       successfulRuns: 92,
       completeRuns: 91,
       analyticallyEligibleRuns: 90,
