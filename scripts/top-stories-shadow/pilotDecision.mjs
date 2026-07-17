@@ -20,11 +20,16 @@ export function validatePilotConfiguration(config = {}) {
     throw new Error('pilotStartDate must use YYYY-MM-DD');
   }
   const days = Number(config.pilotWindowDays);
-  if (!Number.isInteger(days) || days <= 0 || days > 31) {
-    throw new Error('pilotWindowDays must be an integer from 1 to 31');
+  if (!Number.isInteger(days) || days !== TOP_STORIES_PILOT_THRESHOLDS.expectedDays) {
+    throw new Error('pilotWindowDays must equal the fixed seven-day study window');
   }
-  if (!Number.isFinite(Date.parse(config.pilotDecisionNotBefore))) {
+  const decisionNotBefore = Date.parse(config.pilotDecisionNotBefore);
+  if (!Number.isFinite(decisionNotBefore)) {
     throw new Error('pilotDecisionNotBefore must be a valid timestamp');
+  }
+  const windowEndExclusive = Date.parse(`${addDays(config.pilotStartDate, days)}T00:00:00.000Z`);
+  if (decisionNotBefore < windowEndExclusive) {
+    throw new Error('pilotDecisionNotBefore cannot precede the completed UTC study window');
   }
   return {
     ...config,
