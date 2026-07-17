@@ -1,6 +1,7 @@
 const SOFT_REVIEW_DEPTH = 8;
 
 function finiteNumber(value) {
+  if (value === null || value === undefined || value === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -37,6 +38,10 @@ function increment(counts, key, amount = 1) {
 function mergeCounts(target, source = {}) {
   Object.entries(source).forEach(([key, value]) => increment(target, key, Number(value) || 0));
   return target;
+}
+
+function combineCounts(...sources) {
+  return sources.reduce((counts, source) => mergeCounts(counts, source), {});
 }
 
 function countBy(rows = [], field) {
@@ -115,8 +120,10 @@ function summarizeFunnelStages(observations) {
         });
       }
       const aggregate = byKey.get(key);
-      if (finiteNumber(stage.inputCount) !== null) aggregate.inputCounts.push(Number(stage.inputCount));
-      if (finiteNumber(stage.outputCount) !== null) aggregate.outputCounts.push(Number(stage.outputCount));
+      const inputCount = finiteNumber(stage.inputCount);
+      const outputCount = finiteNumber(stage.outputCount);
+      if (inputCount !== null) aggregate.inputCounts.push(inputCount);
+      if (outputCount !== null) aggregate.outputCounts.push(outputCount);
       mergeCounts(aggregate.reasonCounts, stage.reasonCounts);
     });
   });
@@ -145,6 +152,8 @@ function buildObservationRow(observation) {
   const rankedCount = Number(observation.rankedCount ?? observation.ranked?.length ?? 0);
   const displayDepth = Number(observation.displayDepth ?? 10);
   const trace = countTraceReasons(observation.selectionTrace || []);
+  const buildReasons = countBy(observation.candidateBuildTrace, 'reasonCode');
+  const combinedReasons = combineCounts(buildReasons, trace.finalReasonCounts);
   const funnelStageCounts = Object.fromEntries((observation.funnel || []).map(stage => [
     stage.stage,
     {
@@ -171,10 +180,7 @@ function buildObservationRow(observation) {
     funnelStageCounts,
     candidateBuildDispositionCounts: countBy(observation.candidateBuildTrace, 'buildDisposition'),
     finalDispositionCounts: trace.finalDispositionCounts,
-    dominantReasonCodes: dominantReasons({
-      ...countBy(observation.candidateBuildTrace, 'reasonCode'),
-      ...trace.finalReasonCounts,
-    }),
+    dominantReasonCodes: dominantReasons(combinedReasons),
   };
 }
 
@@ -206,8 +212,9 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       mergeCounts(stageReasonCounts[stage], trace.stageReasonCounts[stage]));
   });
 
+  const combinedReasonCounts = combineCounts(candidateBuildReasonCounts, finalReasonCounts);
   const categoryReasonCounts = {};
-  Object.entries({ ...candidateBuildReasonCounts, ...finalReasonCounts }).forEach(([reason, count]) =>
+  Object.entries(combinedReasonCounts).forEach(([reason, count]) =>
     increment(categoryReasonCounts, classifyReason(reason), count));
   const observationCount = rows.length;
   const underfilledCount = rows.filter(row => row.underfilled).length;
@@ -239,7 +246,7 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       Object.fromEntries(Object.entries(counts).sort()),
     ])),
     categoryReasonCounts: Object.fromEntries(Object.entries(categoryReasonCounts).sort()),
-    dominantReasonCodes: dominantReasons({ ...candidateBuildReasonCounts, ...finalReasonCounts }, 10),
+    dominantReasonCodes: dominantReasons(combinedReasonCounts, 10),
     observations: rows,
   };
 }
