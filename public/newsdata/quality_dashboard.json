@@ -1,30 +1,30 @@
 {
   "schemaVersion": 2,
-  "generatedAt": 1784407391938,
+  "generatedAt": 1784418725166,
   "windowDays": 7,
   "latest": {
     "insightGrade": "C",
     "insightScore": 0,
-    "totalStories": 587,
-    "usableStories36h": 577,
-    "sourceGroups": 9,
+    "totalStories": 546,
+    "usableStories36h": 500,
+    "sourceGroups": 10,
     "angleHintCoverage": 1,
     "sectionsTotalStories": 0,
     "sectionsCount": 10,
-    "rankingOverallScore": 0.3091,
+    "rankingOverallScore": 0.3094,
     "rankingOverallStatus": "FAIL"
   },
   "rankingAudit": {
     "status": "FAIL",
-    "overallScore": 0.3091,
+    "overallScore": 0.3094,
     "overallGrade": "F",
     "rankingVersion": "tab-specific-quality-ranking-v1",
-    "generatedAt": 1784407390999,
+    "generatedAt": 1784418724276,
     "destinationScores": {
       "buzz": 0,
-      "insight": 0.3856,
+      "insight": 0.3781,
       "localTravel": 0,
-      "upAhead": 0.8509
+      "upAhead": 0.8596
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -48,7 +48,7 @@
       {
         "destination": "insight",
         "status": "WARN",
-        "score": 0.3856,
+        "score": 0.3781,
         "profile": "insight-v2-event-angle-tree"
       },
       {
@@ -60,7 +60,7 @@
       {
         "destination": "upAhead",
         "status": "WARN",
-        "score": 0.8509,
+        "score": 0.8596,
         "profile": "upAhead-v2-lifecycle-location-category"
       }
     ],
@@ -74,8 +74,8 @@
         "oneSourceCappedCount": 0
       },
       "insight": {
-        "parentClusters": 11,
-        "strongParents": 11,
+        "parentClusters": 10,
+        "strongParents": 10,
         "weakParentsDemoted": 0,
         "avgAnglesPerParent": 0,
         "baseReportHeavyParents": 0,
@@ -92,16 +92,14 @@
       },
       "upAhead": {
         "rankedItemCount": 30,
-        "suppressedItemCount": 13,
+        "suppressedItemCount": 8,
         "events": 0,
-        "onlineOffers": 1,
-        "offlineOffers": 2,
-        "alerts": 27,
+        "onlineOffers": 0,
+        "offlineOffers": 0,
+        "alerts": 30,
         "festivals": 0,
         "locationsCovered": [
           "chennai",
-          "muscat",
-          "online",
           "trichy"
         ]
       }
@@ -111,17 +109,20 @@
       "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
       "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
-      "CCB arrests ‘absconding’ accused after 17 years: futureValidity failed — expired display window",
-      "CCB arrests ‘absconding’ accused after 17 years: alertUrgency failed — alert expired",
-      "Greater Chennai Police destroys over 1,339 kg of ganja: futureValidity failed — expired display window",
-      "Greater Chennai Police destroys over 1,339 kg of ganja: alertUrgency failed — alert expired",
-      "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: futureValidity failed — expired display window",
-      "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: alertUrgency failed — alert expired",
-      "T.N. government launches public grievance portal for 5 Audit Departments: futureValidity failed — expired display window",
-      "T.N. government launches public grievance portal for 5 Audit Departments: alertUrgency failed — alert expired"
+      "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
+      "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
+      "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match",
+      "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal: futureValidity failed — expired display window",
+      "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal: offerValidity failed — offer expired",
+      "upAhead: Amazon’s $25 Billion Bond Sale Created 3 More Reasons for Me to Keep Buying - 24/7 Wall St.: location failed — offline/local item lacks configured location match",
+      "upAhead: Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
+      "upAhead: Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match"
     ],
     "actionRequired": [
-      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "no active offer items in ranked Up Ahead set",
+      "no ranked Up Ahead item for muscat",
+      "ranked Up Ahead set is category-dominated",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -129,10 +130,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding",
-      "buzz: no local Buzz item in ranked set",
-      "buzz: no travel Buzz item in ranked set",
-      "insight: Insight event/angle ranking has no critical demotion finding"
+      "Insight event/angle ranking has no critical demotion finding"
     ]
   },
   "sourceHealth": {
@@ -258,16 +256,16 @@
     },
     {
       "date": "2026-07-18",
-      "generatedAt": 1784407391938,
+      "generatedAt": 1784418725166,
       "insightGrade": "C",
       "insightScore": 0,
-      "totalStories": 587,
-      "usableStories36h": 577,
-      "sourceGroups": 9,
+      "totalStories": 546,
+      "usableStories36h": 500,
+      "sourceGroups": 10,
       "angleHintCoverage": 1,
       "sectionsTotalStories": 0,
       "sectionsCount": 10,
-      "rankingOverallScore": 0.3091,
+      "rankingOverallScore": 0.3094,
       "rankingOverallStatus": "FAIL",
       "sourceUptimePercent": 0,
       "angleDiversityScore": 0,

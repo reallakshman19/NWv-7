@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784407390136,
-  "contentHash": "ee22f7de76854419",
+  "generatedAt": 1784418723480,
+  "contentHash": "51c29cd030461218",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 587,
-  "sourceGroupCount": 9,
+  "storyCount": 546,
+  "sourceGroupCount": 10,
   "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.6,
-  "avgTemporalTiers": 1.8,
-  "avgEvolutionRoles": 1.9,
-  "baseReportShare": 0.047619047619047616,
-  "multiAngleCount": 5,
-  "weakParentCount": 5,
+  "avgAngles": 1.7,
+  "avgTemporalTiers": 2,
+  "avgEvolutionRoles": 2.1,
+  "baseReportShare": 0.043478260869565216,
+  "multiAngleCount": 6,
+  "weakParentCount": 4,
   "runtimeQualityGate": {
     "attempted": false,
     "recovered": false,
@@ -23,60 +23,58 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 48,
+      "signalScore": 56,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 528,
+      "storyCount": 489,
       "risingCount": 1,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "thinCount": 4,
+      "multiAngleCount": 6,
+      "lowAngleCount": 4,
       "strongAngleCount": 1,
-      "avgAngles": 1.6,
-      "avgChildren": 2.1,
-      "avgScore": 0.6545856655811587,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 6,
-      "coverageLabel": "5/10",
+      "avgAngles": 1.7,
+      "avgChildren": 2.3,
+      "avgScore": 0.6364781052639953,
+      "sourceDiversityCoverage": 10,
+      "snapshotCoverage": 7,
+      "coverageLabel": "6/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin.",
-        "597 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "4 cluster(s) have fewer than two visible child angles.",
+        "3 cluster(s) have weak snapshot coverage.",
+        "4 cluster(s) are marked thin.",
+        "578 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 48,
+      "signalScore": 56,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 528,
+      "storyCount": 489,
       "risingCount": 1,
-      "thinCount": 5,
-      "multiAngleCount": 5,
-      "lowAngleCount": 5,
+      "thinCount": 4,
+      "multiAngleCount": 6,
+      "lowAngleCount": 4,
       "strongAngleCount": 1,
-      "avgAngles": 1.6,
-      "avgChildren": 2.1,
-      "avgScore": 0.6545856655811587,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 6,
-      "coverageLabel": "5/10",
+      "avgAngles": 1.7,
+      "avgChildren": 2.3,
+      "avgScore": 0.6364781052639953,
+      "sourceDiversityCoverage": 10,
+      "snapshotCoverage": 7,
+      "coverageLabel": "6/10",
       "warnings": [
-        "5 cluster(s) have fewer than two visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "5 cluster(s) are marked thin.",
-        "597 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "4 cluster(s) have fewer than two visible child angles.",
+        "3 cluster(s) have weak snapshot coverage.",
+        "4 cluster(s) are marked thin.",
+        "578 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_108_120040df631580fb",
+      "parentId": "cluster_124_120040df631580fb",
       "headline": "India's Skyroot launches Vikram-1 in first private orbital rocket mission - Reuters",
       "score": 0.6672972665083364,
       "postTreeScore": 1.2973,
@@ -98,7 +96,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_165_a71b2e1cf62ddd80",
+      "parentId": "cluster_92_cd5dd342a2e48f34",
+      "headline": "Tamil Nadu has near-100% MoU conversion rate, says Niti Aayog report",
+      "score": 0.6854766666666667,
+      "postTreeScore": 1.0855,
+      "childCount": 2,
+      "angles": [
+        "regional_followup",
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "corroboration"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_181_a71b2e1cf62ddd80",
       "headline": "CJP’s Abhijeet Dipke begins indefinite hunger strike, as police shifts Wangchuk to hospital",
       "score": 0.6152616650016849,
       "postTreeScore": 1.0353,
@@ -121,7 +140,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_81_c8fef97549437164",
+      "parentId": "cluster_230_df2f1212e0a72ed9",
+      "headline": "US prosecutor says Justice Department made call to drop Gautam Adani case",
+      "score": 0.6245766666666667,
+      "postTreeScore": 1.0246,
+      "childCount": 2,
+      "angles": [
+        "expert_analysis",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "developing"
+      ],
+      "evolutionRoles": [
+        "first_report",
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_94_c8fef97549437164",
       "headline": "ISRO-SCTIMST sign pact for research in space medicine, Bioastronautics",
       "score": 0.60551,
       "postTreeScore": 1.0055,
@@ -142,28 +182,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_213_df2f1212e0a72ed9",
-      "headline": "US prosecutor says Justice Department made call to drop Gautam Adani case",
-      "score": 0.6005899468816684,
-      "postTreeScore": 1.0006,
-      "childCount": 2,
-      "angles": [
-        "expert_analysis",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_77_794c69e445c3ad02",
+      "parentId": "cluster_90_794c69e445c3ad02",
       "headline": "Indian-origin woman jailed in UK for more than 2 years over Rs 2.8 crore Covid loan fraud",
       "score": 0.58631,
       "postTreeScore": 0.9863,
@@ -184,10 +203,10 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_179_7ab83b21770b9735",
+      "parentId": "cluster_195_7ab83b21770b9735",
       "headline": "India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters",
-      "score": 0.6954600000000002,
-      "postTreeScore": 0.6055,
+      "score": 0.7034467197849983,
+      "postTreeScore": 0.5934,
       "childCount": 2,
       "angles": [
         "fact_update"
@@ -202,7 +221,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_223_cd5003f05158dbbb",
+      "parentId": "cluster_240_cd5003f05158dbbb",
       "headline": "A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far",
       "score": 0.6934967197849984,
       "postTreeScore": 0.5835,
@@ -222,7 +241,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_183_22a846e147c63d2a",
+      "parentId": "cluster_199_22a846e147c63d2a",
       "headline": "Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com",
       "score": 0.6365487346782661,
       "postTreeScore": 0.5465,
@@ -243,37 +262,21 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_107_352dcb79aeece722",
-      "headline": "Lohia Corp IPO opens on July 23: Here’s all you need to know",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
+      "parentId": "cluster_275_794850214560d915",
+      "headline": "BCCI secretary dismisses speculation on Rohit Sharma's ODI future",
+      "score": 0.546856613548335,
+      "postTreeScore": 0.4569,
+      "childCount": 2,
       "angles": [
-        "market_reaction"
+        "official_response"
       ],
       "temporalTiers": [
-        "breaking"
+        "breaking",
+        "reaction"
       ],
       "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_109_411ca18304fb39e0",
-      "headline": "JK Cement Q1 profit drops 15.3% YoY to Rs 274.62 crore",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
+        "first_report",
+        "corroboration"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -302,31 +305,31 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.6,
+        "actual": 1.7,
         "required": ">= 1.4"
       },
       {
         "id": "avg-temporal-tier-count",
         "label": "Average temporal tier count",
-        "actual": 1.8,
+        "actual": 2,
         "required": ">= 1.8"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.9,
+        "actual": 2.1,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.048,
+        "actual": 0.043,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 5,
+        "actual": 6,
         "required": ">= 1"
       },
       {
@@ -344,24 +347,24 @@
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.5,
+        "actual": 0.4,
         "required": "<= 0.5"
       }
     ],
     "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.6,
-      "avgTemporalTiers": 1.8,
-      "avgEvolutionRoles": 1.9,
-      "baseReportShare": 0.048,
-      "multiAngleCount": 5,
-      "weakParentCount": 5,
-      "weakParentRatio": 0.5,
+      "avgAngles": 1.7,
+      "avgTemporalTiers": 2,
+      "avgEvolutionRoles": 2.1,
+      "baseReportShare": 0.043,
+      "multiAngleCount": 6,
+      "weakParentCount": 4,
+      "weakParentRatio": 0.4,
       "topParentAngles": 3,
       "topParentChildren": 3,
-      "storyCount": 587,
-      "sourceGroupCount": 9
+      "storyCount": 546,
+      "sourceGroupCount": 10
     }
   }
 }
