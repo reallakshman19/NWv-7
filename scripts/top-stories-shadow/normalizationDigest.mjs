@@ -33,6 +33,28 @@ export const NORMALIZATION_OMIT_KEYS = Object.freeze([
   'viewed',
 ]);
 
+const NORMALIZATION_OMIT_KEY_SET = new Set(
+  NORMALIZATION_OMIT_KEYS.map(key => key.toLowerCase()),
+);
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stripExcludedNormalizationMetadata(value) {
+  if (Array.isArray(value)) {
+    return value.map(stripExcludedNormalizationMetadata);
+  }
+  if (!isPlainObject(value)) return value;
+  return Object.entries(value).reduce((result, [key, nested]) => {
+    if (NORMALIZATION_OMIT_KEY_SET.has(key.toLowerCase())) return result;
+    return {
+      ...result,
+      [key]: stripExcludedNormalizationMetadata(nested),
+    };
+  }, {});
+}
+
 function increment(counts, key) {
   const normalized = String(key || 'unknown');
   counts[normalized] = (counts[normalized] || 0) + 1;
@@ -64,10 +86,10 @@ export function buildTopStoriesNormalizationDigestValue(evaluation = {}) {
       candidateBuildTrace,
       'reasonCode',
     ),
-    candidates: canonicalizeJson(candidates, {
-      omitKeys: NORMALIZATION_OMIT_KEYS,
-      sortArrays: true,
-    }),
+    candidates: canonicalizeJson(
+      stripExcludedNormalizationMetadata(candidates),
+      { sortArrays: true },
+    ),
   };
 }
 
