@@ -2,9 +2,9 @@
 
 - Status: **WARN**
 - Schema: `2`
-- Content hash: `7d9adfeff1f6`
+- Content hash: `8c9ccd437c8a`
 - Sections: `10`
-- Stories: `280`
+- Stories: `272`
 - Source groups: `10`
 - Retain hours: `36`
 
@@ -15,7 +15,7 @@
 | topStories | 30 | 3 | False |
 | india | 30 | 3 | False |
 | tn | 30 | 2 | False |
-| trichy | 25 | 2 | False |
+| trichy | 17 | 2 | False |
 | muscat | 30 | 2 | False |
 | world | 30 | 2 | False |
 | business | 30 | 3 | False |
