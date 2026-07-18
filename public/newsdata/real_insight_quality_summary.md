@@ -2,17 +2,17 @@
 
 - Status: **PASS**
 - Reason: -
-- Grade: `D`
+- Grade: `C`
 - Parents: `10`
-- Average angles: `1.5`
-- Average temporal tiers: `1.6`
-- Average evolution roles: `1.9`
-- Base report share: `0.15`
-- Multi-angle parents: `4`
-- Weak parents: `6`
-- Story count: `607`
+- Average angles: `1.6`
+- Average temporal tiers: `1.8`
+- Average evolution roles: `2.1`
+- Base report share: `0.13636363636363635`
+- Multi-angle parents: `5`
+- Weak parents: `5`
+- Story count: `616`
 - Source groups: `9`
-- Content hash: `c15d7cbde9f67de6`
+- Content hash: `34bd7c61d4b8499d`
 
 ## Top parents
 
@@ -21,45 +21,42 @@
 | 1 | PM launches India’s first hydrogen-powered train | 4 | base_report, official_response, fact_update | NO | 0.7083373324356643 |
 | 2 | US Senate Bill seeks 100% tariffs on India, China for buying Russian oil | 2 | fact_update, base_report | NO | 0.6976300531183317 |
 | 3 | DCET results announced | 2 | official_response, fact_update | NO | 0.6697800531183317 |
-| 4 | US prosecutor says Justice Department made call to drop Gautam Adani case | 2 | expert_analysis, fact_update | NO | 0.6005899468816684 |
-| 5 | NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify | 2 | fact_update | YES | 0.7065633864516649 |
+| 4 | Vikram-1, country’s first private orbital-class rocket, successfully places tech payloads, postcards into orbit | 2 | market_reaction, official_response | NO | 0.60551 |
+| 5 | US prosecutor says Justice Department made call to drop Gautam Adani case | 2 | expert_analysis, fact_update | NO | 0.6005899468816684 |
 | 6 | Supreme Court to examine whether persons deleted from voter list in SIR can be denied welfare schemes | 2 | official_response | YES | 0.6692467197849983 |
-| 7 | Sonam Wangchuk shifted to hospital; CJP founder Dipke under detention by Delhi Police | 2 | official_response | YES | 0.59551 |
-| 8 | A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far | 2 | official_response | YES | 0.5935232802150019 |
-| 9 | Zepto IPO anchor book nears closure; Norges, Motilal Oswal may take 40-45% | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | Reliance Retail Q1 results: Quick-commerce spends drag PAT 14% YoY to Rs 2,806 crore; revenue rises 7% | 1 | fact_update | YES | 0.7226911614783158 |
-
-## Warnings
-
-- Real snapshot still produces low Insight grade.
+| 7 | Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com | 3 | official_response | YES | 0.6365487346782661 |
+| 8 | CJP’s Abhijeet Dipke begins indefinite hunger strike, as police shifts Wangchuk to hospital | 2 | official_response | YES | 0.60551 |
+| 9 | A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far | 2 | official_response | YES | 0.5935232802150019 |
+| 10 | Kotak Mahindra Bank Q1 Results: Net profit climbs 26% YoY to Rs 4,123 crore; NII rises 9% | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Real Snapshot Ratchet Gate
 
-- Status: **FAIL**
+- Status: **PASS**
 - Gate version: `real-insight-snapshot-ratchet-v1`
-- Grade: `D`
-- Score: `42`
+- Grade: `C`
+- Score: `100`
 - Parents: `10`
-- Average angles: `1.5`
-- Average temporal tiers: `1.6`
-- Average evolution roles: `1.9`
-- Base report share: `0.15`
-- Multi-angle parents: `4`
+- Average angles: `1.6`
+- Average temporal tiers: `1.8`
+- Average evolution roles: `2.1`
+- Base report share: `0.136`
+- Multi-angle parents: `5`
 - Top parent angles: `3`
 - Top parent children: `4`
 
 ### Failed gates
 
-- **Real snapshot grade floor** — actual `D`, required `A/B/C`. Fix: Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake.
-- **Average temporal tier count** — actual `1.6`, required `>= 1.8`. Fix: C+E output should cover multiple event-time tiers, not only source buckets.
-- **Weak parent ratio** — actual `0.6`, required `<= 0.5`. Fix: Too many weak trees remain. Repair or demote weak trees after diversity repair.
+- None
 
 ### Passed gates
 
+- Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
-- Average visible angle count: `1.5` / `>= 1.4`
-- Average evolution role count: `1.9` / `>= 1.6`
-- Base report share: `0.15` / `<= 0.55`
-- Multi-angle parent count: `4` / `>= 1`
+- Average visible angle count: `1.6` / `>= 1.4`
+- Average temporal tier count: `1.8` / `>= 1.8`
+- Average evolution role count: `2.1` / `>= 1.6`
+- Base report share: `0.136` / `<= 0.55`
+- Multi-angle parent count: `5` / `>= 1`
 - Top parent angle count: `3` / `>= 2`
 - Top parent child depth: `4` / `>= 2`
+- Weak parent ratio: `0.5` / `<= 0.5`

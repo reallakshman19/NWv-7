@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3718,
+      "qualityScore": 0.3833,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -229,12 +229,12 @@
             },
             {
               "details": {
-                "sourceGroupCount": 1
+                "sourceGroupCount": 2
               },
               "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
+              "reason": "multi-source event",
+              "score": 0.72,
+              "status": "PASS"
             },
             {
               "details": {
@@ -262,21 +262,21 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:cd8d736950",
+          "id": "sketch:644bbe25c8",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:cd8d736950",
-            "representativeId": "faf960dda33bec77",
-            "representativeTitle": "India’s gig internet workforce may reach 17-21 million by 2030, says Bengaluru firm Redseer",
+            "id": "sketch:644bbe25c8",
+            "representativeId": "22a846e147c63d2a",
+            "representativeTitle": "Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
+              "sourceAuthorityScore": 0.62,
+              "sourceDiversityScore": 0.72,
               "temporalEvolutionScore": 0.49
             },
             "slotCount": 2,
@@ -284,28 +284,147 @@
               "minus4h",
               "now"
             ],
-            "sourceGroupCount": 1,
+            "sourceGroupCount": 2,
             "sourceGroups": [
+              "google_news",
               "the_hindu"
             ],
             "storyCount": 2,
             "storyIds": [
-              "faf960dda33bec77",
-              "dba4b47f9873d70a"
+              "22a846e147c63d2a",
+              "33d683d954579fbd"
             ],
             "topAngles": [
               {
-                "angle": "fact_update",
+                "angle": "official_response",
                 "count": 2
               }
             ],
             "topTokens": [
-              "workers",
-              "india",
-              "internet",
-              "workforce"
+              "sonam",
+              "wangchuk",
+              "wife",
+              "breaks",
+              "gitanjali"
             ],
-            "topicKey": "workers|india|internet"
+            "topicKey": "sonam|wangchuk|wife"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "multi-source event"
+          ],
+          "score": 0.4925,
+          "title": "Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 5
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 5
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:313fbb8095",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:313fbb8095",
+            "representativeId": "90d917bf9ae536bc",
+            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.95,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 5,
+            "storyIds": [
+              "90d917bf9ae536bc",
+              "82ea0749d0de2b8d",
+              "4ee739c53b939a61",
+              "86e809c754b9139e",
+              "c0b89c693126f623"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 5
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "live",
+              "updates",
+              "july",
+              "declares",
+              "neelkanth",
+              "brazil",
+              "strong"
+            ],
+            "topicKey": "breaking|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -313,8 +432,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.401,
-          "title": "India’s gig internet workforce may reach 17-21 million by 2030, says Bengaluru firm Redseer"
+          "score": 0.479,
+          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -595,14 +714,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:313fbb8095",
+          "id": "sketch:b837ab3232",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:313fbb8095",
-            "representativeId": "90d917bf9ae536bc",
-            "representativeTitle": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India",
+            "id": "sketch:b837ab3232",
+            "representativeId": "e61433a4ba7d82ce",
+            "representativeTitle": "Breaking News Highlights Updates: 7.3-magnitude quake jolts Mexico-Guatemala border, no immediate damage ... - The Economic Times",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -622,8 +741,8 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "90d917bf9ae536bc",
-              "82ea0749d0de2b8d"
+              "e61433a4ba7d82ce",
+              "76c70eeead844e34"
             ],
             "topAngles": [
               {
@@ -633,12 +752,12 @@
             ],
             "topTokens": [
               "breaking",
-              "live",
+              "highlights",
               "updates",
-              "july",
-              "declares"
+              "3-magnitude",
+              "whatsapp"
             ],
-            "topicKey": "breaking|live|updates"
+            "topicKey": "breaking|highlights|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -647,7 +766,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "Breaking news live updates, July 17: 'China stole voter data of 220m Americans' - Trump blames Beijing for 2020 election interference - The Times of India"
+          "title": "Breaking News Highlights Updates: 7.3-magnitude quake jolts Mexico-Guatemala border, no immediate damage ... - The Economic Times"
         },
         {
           "category": "insightEvent",
@@ -817,6 +936,116 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:768c327fc1",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:768c327fc1",
+            "representativeId": "3ebc80c15ea13c87",
+            "representativeTitle": "India news Live Updates, 17 July 2026: Congress leader Pawan Khera meets Sonam Wangchuk - The Indian Express",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "3ebc80c15ea13c87",
+              "c70e8d70a297d2f1"
+            ],
+            "topAngles": [
+              {
+                "angle": "fact_update",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "india",
+              "live",
+              "updates",
+              "july"
+            ],
+            "topicKey": "india|live|updates"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "India news Live Updates, 17 July 2026: Congress leader Pawan Khera meets Sonam Wangchuk - The Indian Express"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:3628afb6a3",
           "item": {
             "angleCount": 1,
@@ -927,116 +1156,6 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:384d417f5f",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:384d417f5f",
-            "representativeId": "8b4dafe2d70fc8a9",
-            "representativeTitle": "Is the AI stock boom losing steam after the latest chip selloff?",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "economic_times"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "8b4dafe2d70fc8a9",
-              "c5a99e7b13b4c258"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "selloff",
-              "stock",
-              "boom",
-              "losing"
-            ],
-            "topicKey": "selloff|stock|boom"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Is the AI stock boom losing steam after the latest chip selloff?"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
           "id": "sketch:49837191e1",
           "item": {
             "angleCount": 1,
@@ -1089,116 +1208,6 @@
           ],
           "score": 0.389,
           "title": "JSW Steel Q1 net doubles to ₹4,696 crore on better realisation"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:cdf9ad6603",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:cdf9ad6603",
-            "representativeId": "90eee7adf9cbb13d",
-            "representativeTitle": "Netflix India delivers a record breaking half-year as Indian stories win audiences worldwide - Bollywood Hungama",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "90eee7adf9cbb13d",
-              "41b63e20a69b3c0e"
-            ],
-            "topAngles": [
-              {
-                "angle": "fact_update",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "netflix",
-              "india",
-              "delivers",
-              "record"
-            ],
-            "topicKey": "netflix|india|delivers"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Netflix India delivers a record breaking half-year as Indian stories win audiences worldwide - Bollywood Hungama"
         },
         {
           "category": "insightEvent",
@@ -1430,11 +1439,11 @@
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.2942,
-        "eventImportanceScore": 0.59,
+        "eventImportanceScore": 0.62,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4667,
-        "sourceAuthorityScore": 0.42,
-        "sourceDiversityScore": 0.4117,
+        "sourceAuthorityScore": 0.44,
+        "sourceDiversityScore": 0.4425,
         "temporalEvolutionScore": 0.42
       }
     },
@@ -1495,13 +1504,11 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "4 invalid/expired/duplicate Up Ahead item(s) suppressed",
-        "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "5 invalid/expired/duplicate Up Ahead item(s) suppressed"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
+        "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
         "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
         "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
@@ -1520,156 +1527,45 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 28,
+              "shopping": 2
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
-        "alerts": 30,
+        "alerts": 28,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 28,
+          "shopping": 2
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 38,
+        "inputItemCount": 39,
         "locationCounts": {
-          "chennai": 23,
-          "trichy": 7
+          "chennai": 21,
+          "muscat": 1,
+          "trichy": 8
         },
         "locationsCovered": [
           "chennai",
+          "muscat",
           "trichy"
         ],
-        "offlineOffers": 0,
+        "offlineOffers": 2,
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 4
+        "suppressedItemCount": 5
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8532,
+      "qualityScore": 0.8494,
       "qualityStatus": "WARN",
       "rankedItems": [
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "b22ccb315be3986f"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784358881000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "582c1ae1f7746876",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784358881000,
-            "id": "582c1ae1f7746876",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784963681000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784358881000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784272481000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Greater Chennai Corporation’s gym for women at 4th Trust Link Street promises to draw many fitness enthusiasts, for sure teachers of a neighbouring school",
-            "suppressionReason": null,
-            "title": "A new ‘hangout’ in Santhome",
-            "url": "https://www.thehindu.com/news/cities/chennai/a-new-hangout-in-santhome/article71210203.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "A new ‘hangout’ in Santhome"
-        },
         {
           "category": "alerts",
           "gates": [
@@ -1899,121 +1795,6 @@
           ],
           "score": 0.8485,
           "title": "Chennai Corporation forms monitoring committees to crack down on unauthorised buildings"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "2a25bc8a9cc328f1"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784354939000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "66a89705763f286c",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784354939000,
-            "id": "66a89705763f286c",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784959739000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784354939000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784268539000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "House of Venu Krishna, housed in a 120-year-old choultry in Chennai’s George Town, offers Andhra meals and tiffin in a setting steeped in history.",
-            "suppressionReason": null,
-            "title": "Chennai’s House of Venu Krishna serves Andhra meals in a restored 120-year-old George Town landmark",
-            "url": "https://www.thehindu.com/food/dining/chennais-house-of-venu-krishna-serves-andhra-meals-in-a-restored-120-year-old-george-town-landmark/article71141316.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai’s House of Venu Krishna serves Andhra meals in a restored 120-year-old George Town landmark"
         },
         {
           "category": "alerts",
@@ -2374,7 +2155,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784376615000
+                "displayUntil": 1784437244000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -2430,13 +2211,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784376615000,
+            "expiryAt": 1784437244000,
             "id": "811e155cb7f65874",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784981415000,
+              "archiveUntil": 1785042044000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784376615000,
+              "displayUntil": 1784437244000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -2447,7 +2228,7 @@
             "localityScore": 1.0,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1784290215000,
+            "publishedAt": 1784350844000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -3285,7 +3066,7 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "49f1710907d8d381"
+                "dedupKey": "c68a0b10ccb17145"
               },
               "name": "dedup",
               "reason": "unique item",
@@ -3344,7 +3125,7 @@
           "item": {
             "actionabilityScore": 0.7,
             "category": "alerts",
-            "city": "Chennai",
+            "city": "Trichy",
             "contentClass": "upahead_alert",
             "dateConfidence": "unknown",
             "dateSource": "none",
@@ -3364,7 +3145,7 @@
               "retentionReason": "expiryAt",
               "withinSevenDayHorizon": true
             },
-            "localityScore": 1.0,
+            "localityScore": 0.9,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
             "publishedAt": 1784281576000,
@@ -3378,14 +3159,14 @@
               "sourceConfidenceScore": 0.58,
               "urgencyOrExpiryScore": 0.78
             },
-            "source": "The Hindu Chennai",
+            "source": "The Hindu Trichy",
             "sourceGroup": "the_hindu",
             "summary": "Many say they have been waiting since March, when the conflict began in West Asia. They complain that cooking with induction stoves is not always convenient for them",
             "suppressionReason": null,
             "title": "Oil marketing companies yet to issue new LPG connections to domestic consumers in Chennai",
             "url": "https://www.thehindu.com/news/cities/chennai/oil-marketing-companies-yet-to-issue-new-lpg-connections-to-domestic-consumers/article71231132.ece"
           },
-          "locationKey": "chennai",
+          "locationKey": "trichy",
           "rankingReasons": [
             "alerts",
             "valid undated item with active display window",
@@ -3509,6 +3290,121 @@
           ],
           "score": 0.8485,
           "title": "PM Modi inaugurates redeveloped Park railway station"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "d854ff9de0ce69dd"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784441972000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "a4f137e212c37a78",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784441972000,
+            "id": "a4f137e212c37a78",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785046772000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784441972000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784355572000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "Land prices have corrected, enquiries have slowed, and developers are repositioning projects around the region’s industrial growth",
+            "suppressionReason": null,
+            "title": "Parandur airport uncertainty slows western Chennai land market",
+            "url": "https://www.thehindu.com/real-estate/parandur-airport-uncertainty-slows-western-chennai-land-market/article71229270.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Parandur airport uncertainty slows western Chennai land market"
         },
         {
           "category": "alerts",
@@ -3639,7 +3535,7 @@
             },
             {
               "details": {
-                "displayUntil": 1784382064000
+                "displayUntil": 1784434915000
               },
               "name": "futureValidity",
               "reason": "valid undated item with active display window",
@@ -3695,13 +3591,13 @@
             "dateSource": "none",
             "eventEndAt": null,
             "eventStartAt": null,
-            "expiryAt": 1784382064000,
+            "expiryAt": 1784434915000,
             "id": "97a77019becc55c0",
             "language": "en",
             "lifecycle": {
-              "archiveUntil": 1784986864000,
+              "archiveUntil": 1785039715000,
               "contentClass": "upahead_alert",
-              "displayUntil": 1784382064000,
+              "displayUntil": 1784434915000,
               "isActionValid": true,
               "isVisible": true,
               "plannerEligibleByLifecycle": true,
@@ -3712,7 +3608,7 @@
             "localityScore": 0.9,
             "normalizedCategory": "alerts",
             "plannerEligible": true,
-            "publishedAt": 1784295664000,
+            "publishedAt": 1784348515000,
             "region": "tn",
             "scoreBreakdown": {
               "actionabilityScore": 1.0,
@@ -3854,121 +3750,6 @@
           ],
           "score": 0.8485,
           "title": "Study explores potential of abandoned quarries in Chennai to augment water sources"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "ae3e74276ff758ac"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784360783000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "10d695d9e5394fa6",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784360783000,
-            "id": "10d695d9e5394fa6",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1784965583000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784360783000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784274383000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "This increase will take the total number of MBBS seats in 78 colleges in the State to 13,999",
-            "suppressionReason": null,
-            "title": "Tamil Nadu adds 950 MBBS seats for 2026-27 academic year",
-            "url": "https://www.thehindu.com/news/cities/chennai/tamil-nadu-adds-950-mbbs-seats-for-2026-27-academic-year/article71226405.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Tamil Nadu adds 950 MBBS seats for 2026-27 academic year"
         },
         {
           "category": "alerts",
@@ -4546,6 +4327,121 @@
           "title": "‘Nalam TN’ gets donations to tune of ₹2.8 crore: Arunraj"
         },
         {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "4677315f1db844a8"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784523479000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "muscat",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 44.57
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "a1b86a421390107e",
+          "item": {
+            "actionabilityScore": 0.45,
+            "category": "shopping",
+            "city": "Muscat",
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784523479000,
+            "id": "a1b86a421390107e",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785128279000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784523479000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784350679000,
+            "region": "oman",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Muscat Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE90UHV2VUsta2I2bnA0eHk1M3lDaW5TaTVmYml1WC0tMFY5dm82SjRZa3ZDOGRkZGZ2c3U1cHlscExuVFJFa192TUFkbmlTRTExT0pIOFVsQ2p5dFVkX3dCanM5MVN4YVBxRzFKRzJB?oc=5\" target=\"_blank\">Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Travel And Tour World</font>",
+            "suppressionReason": null,
+            "title": "Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol? - Travel And Tour World",
+            "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE90UHV2VUsta2I2bnA0eHk1M3lDaW5TaTVmYml1WC0tMFY5dm82SjRZa3ZDOGRkZGZ2c3U1cHlscExuVFJFa192TUFkbmlTRTExT0pIOFVsQ2p5dFVkX3dCanM5MVN4YVBxRzFKRzJB?oc=5"
+          },
+          "locationKey": "muscat",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8045,
+          "title": "Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol? - Travel And Tour World"
+        },
+        {
           "category": "alerts",
           "gates": [
             {
@@ -5004,21 +4900,136 @@
           ],
           "score": 0.7925,
           "title": "T.N. government launches public grievance portal for 5 Audit Departments"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "5ebfa2bb05e165c7"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784446557000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 23.2
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "5c8e3d717a507e0a",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784446557000,
+            "id": "5c8e3d717a507e0a",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785051357000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784446557000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784273757000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNNXZTWFlFZjVqTHFPX1FlTTlDVk1tekVka3dyOWU3Qm9VVy1aV1BEQ19DcXMtM2hZTnlycnN2WWtEbHBKTnQteTJpVGtScndQNGVzZHo4OVVXdnplR2tVM3UwSVNmdlE3QjQtUlJGZ3lKclRCVkNScklRV0V4THJCVjVGdVZHdFBvZHNr?oc=5\" target=\"_blank\">4 Mini Chainsaws On Amazon With Deep Discounts In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">SlashGear</font>",
+            "suppressionReason": null,
+            "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear",
+            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNNXZTWFlFZjVqTHFPX1FlTTlDVk1tekVka3dyOWU3Qm9VVy1aV1BEQ19DcXMtM2hZTnlycnN2WWtEbHBKTnQteTJpVGtScndQNGVzZHo4OVVXdnplR2tVM3UwSVNmdlE3QjQtUlJGZ3lKclRCVkNScklRV0V4THJCVjVGdVZHdFBvZHNr?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "actionabilityScore": 0.995,
+        "categoryPriorityScore": 0.9787,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9627,
+        "locationScore": 0.9533,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.78
+        "urgencyOrExpiryScore": 0.7887
       }
     }
   },
-  "generatedAt": 1784350751681,
+  "generatedAt": 1784363026314,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5037,10 +5048,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "4 invalid/expired/duplicate Up Ahead item(s) suppressed",
-      "no active offer items in ranked Up Ahead set",
-      "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
+      "5 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -5052,9 +5060,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3718,
+      "insight": 0.3833,
       "localTravel": 0.0,
-      "upAhead": 0.8532
+      "upAhead": 0.8494
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -5062,7 +5070,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3063,
+    "overallScore": 0.3082,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5071,6 +5079,7 @@
       "upAhead": "upAhead-v2-lifecycle-location-category"
     },
     "topFindings": [
+      "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
       "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
       "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",

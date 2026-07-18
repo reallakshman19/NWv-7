@@ -1,89 +1,82 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784350751018,
-  "contentHash": "c15d7cbde9f67de6",
+  "generatedAt": 1784363025084,
+  "contentHash": "34bd7c61d4b8499d",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 607,
+  "storyCount": 616,
   "sourceGroupCount": 9,
-  "grade": "D",
+  "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.5,
-  "avgTemporalTiers": 1.6,
-  "avgEvolutionRoles": 1.9,
-  "baseReportShare": 0.15,
-  "multiAngleCount": 4,
-  "weakParentCount": 6,
+  "avgAngles": 1.6,
+  "avgTemporalTiers": 1.8,
+  "avgEvolutionRoles": 2.1,
+  "baseReportShare": 0.13636363636363635,
+  "multiAngleCount": 5,
+  "weakParentCount": 5,
   "runtimeQualityGate": {
-    "attempted": true,
+    "attempted": false,
     "recovered": false,
-    "reason": "relaxed-tree recovery could not produce acceptable output",
+    "reason": "first-pass acceptable",
     "before": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 42,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 50,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 554,
-      "risingCount": 1,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "storyCount": 566,
+      "risingCount": 2,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 1,
-      "avgAngles": 1.5,
-      "avgChildren": 2,
-      "avgScore": 0.6686563094962293,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 3,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.6,
+      "avgChildren": 2.2,
+      "avgScore": 0.6509367281710577,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 4,
+      "coverageLabel": "5/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin.",
-        "530 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "5 cluster(s) have fewer than two visible child angles.",
+        "1 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin.",
+        "500 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
-      "grade": "D",
-      "tone": "danger",
-      "title": "Weak insight signal",
-      "signalScore": 42,
+      "grade": "C",
+      "tone": "warn",
+      "title": "Thin but usable signal",
+      "signalScore": 50,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 554,
-      "risingCount": 1,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "storyCount": 566,
+      "risingCount": 2,
+      "thinCount": 5,
+      "multiAngleCount": 5,
+      "lowAngleCount": 5,
       "strongAngleCount": 1,
-      "avgAngles": 1.5,
-      "avgChildren": 2,
-      "avgScore": 0.6686563094962293,
-      "sourceDiversityCoverage": 8,
-      "snapshotCoverage": 3,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.6,
+      "avgChildren": 2.2,
+      "avgScore": 0.6509367281710577,
+      "sourceDiversityCoverage": 9,
+      "snapshotCoverage": 4,
+      "coverageLabel": "5/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
-        "2 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin."
+        "5 cluster(s) have fewer than two visible child angles.",
+        "1 cluster(s) are below source-diversity target.",
+        "6 cluster(s) have weak snapshot coverage.",
+        "5 cluster(s) are marked thin.",
+        "500 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
-    },
-    "recoveryConfig": {
-      "MIN_CHILD_INFO_GAIN": 0.08,
-      "WEAK_TREE_CHILD_MIN": 2,
-      "MIN_SOURCES_PER_TREE": 2,
-      "MAX_PER_SOURCE_GROUP": 3,
-      "MAX_PER_ANGLE": 4,
-      "TIER_D_EXCLUDE": false
     }
   },
   "parents": [
     {
-      "parentId": "cluster_171_24ad4691e9c67ac0",
+      "parentId": "cluster_218_24ad4691e9c67ac0",
       "headline": "PM launches India’s first hydrogen-powered train",
       "score": 0.7083373324356643,
       "postTreeScore": 1.3183,
@@ -107,7 +100,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_309_c92fee49bdb9e33d",
+      "parentId": "cluster_358_c92fee49bdb9e33d",
       "headline": "US Senate Bill seeks 100% tariffs on India, China for buying Russian oil",
       "score": 0.6976300531183317,
       "postTreeScore": 1.0776,
@@ -127,7 +120,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_48_532e90073384d905",
+      "parentId": "cluster_94_532e90073384d905",
       "headline": "DCET results announced",
       "score": 0.6697800531183317,
       "postTreeScore": 1.0498,
@@ -148,7 +141,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_12_df2f1212e0a72ed9",
+      "parentId": "cluster_1_525d0cdeac499b78",
+      "headline": "Vikram-1, country’s first private orbital-class rocket, successfully places tech payloads, postcards into orbit",
+      "score": 0.60551,
+      "postTreeScore": 1.0055,
+      "childCount": 2,
+      "angles": [
+        "market_reaction",
+        "official_response"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "market_reaction",
+        "legal_or_regulatory"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_55_df2f1212e0a72ed9",
       "headline": "US prosecutor says Justice Department made call to drop Gautam Adani case",
       "score": 0.6005899468816684,
       "postTreeScore": 1.0006,
@@ -169,27 +183,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_459_4702db0051724a4a",
-      "headline": "NEET UG 2026 results: Punjab’s Aryan Gupta, Haryana’s Panshul Bansal top; 11.21 lakh qualify",
-      "score": 0.7065633864516649,
-      "postTreeScore": 0.5966,
-      "childCount": 2,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_281_7f37f20d76559150",
+      "parentId": "cluster_330_7f37f20d76559150",
       "headline": "Supreme Court to examine whether persons deleted from voter list in SIR can be denied welfare schemes",
       "score": 0.6692467197849983,
       "postTreeScore": 0.5592,
@@ -208,18 +202,20 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_3_a7795acfbfa34cd4",
-      "headline": "Sonam Wangchuk shifted to hospital; CJP founder Dipke under detention by Delhi Police",
-      "score": 0.59551,
-      "postTreeScore": 0.5055,
-      "childCount": 2,
+      "parentId": "cluster_27_22a846e147c63d2a",
+      "headline": "Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com",
+      "score": 0.6365487346782661,
+      "postTreeScore": 0.5465,
+      "childCount": 3,
       "angles": [
         "official_response"
       ],
       "temporalTiers": [
+        "developing",
         "breaking"
       ],
       "evolutionRoles": [
+        "corroboration",
         "cause_claim",
         "official_response"
       ],
@@ -227,7 +223,27 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_21_cd5003f05158dbbb",
+      "parentId": "cluster_9_a71b2e1cf62ddd80",
+      "headline": "CJP’s Abhijeet Dipke begins indefinite hunger strike, as police shifts Wangchuk to hospital",
+      "score": 0.60551,
+      "postTreeScore": 0.5155,
+      "childCount": 2,
+      "angles": [
+        "official_response"
+      ],
+      "temporalTiers": [
+        "established",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_65_cd5003f05158dbbb",
       "headline": "A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far",
       "score": 0.5935232802150019,
       "postTreeScore": 0.5035,
@@ -247,26 +263,8 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_141_96d0a00bcf22171c",
-      "headline": "Zepto IPO anchor book nears closure; Norges, Motilal Oswal may take 40-45%",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_144_cda0b363ba056333",
-      "headline": "Reliance Retail Q1 results: Quick-commerce spends drag PAT 14% YoY to Rs 2,806 crore; revenue rises 7%",
+      "parentId": "cluster_8_8c8e2861253faff3",
+      "headline": "Kotak Mahindra Bank Q1 Results: Net profit climbs 26% YoY to Rs 4,123 crore; NII rises 9%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
       "childCount": 1,
@@ -283,16 +281,20 @@
       "weakTree": true
     }
   ],
-  "warnings": [
-    "Real snapshot still produces low Insight grade."
-  ],
+  "warnings": [],
   "errors": [],
   "ratchetGate": {
-    "status": "FAIL",
+    "status": "PASS",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
-    "grade": "D",
-    "score": 42,
+    "grade": "C",
+    "score": 100,
     "passed": [
+      {
+        "id": "grade-floor",
+        "label": "Real snapshot grade floor",
+        "actual": "C",
+        "required": "A/B/C"
+      },
       {
         "id": "parent-count",
         "label": "Parent cluster count",
@@ -302,25 +304,31 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.5,
+        "actual": 1.6,
         "required": ">= 1.4"
+      },
+      {
+        "id": "avg-temporal-tier-count",
+        "label": "Average temporal tier count",
+        "actual": 1.8,
+        "required": ">= 1.8"
       },
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.9,
+        "actual": 2.1,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.15,
+        "actual": 0.136,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 4,
+        "actual": 5,
         "required": ">= 1"
       },
       {
@@ -334,46 +342,27 @@
         "label": "Top parent child depth",
         "actual": 4,
         "required": ">= 2"
-      }
-    ],
-    "failed": [
-      {
-        "id": "grade-floor",
-        "label": "Real snapshot grade floor",
-        "actual": "D",
-        "required": "A/B/C",
-        "severity": "fail",
-        "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
-      },
-      {
-        "id": "avg-temporal-tier-count",
-        "label": "Average temporal tier count",
-        "actual": 1.6,
-        "required": ">= 1.8",
-        "severity": "fail",
-        "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
       },
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.6,
-        "required": "<= 0.5",
-        "severity": "warn",
-        "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
+        "actual": 0.5,
+        "required": "<= 0.5"
       }
     ],
+    "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.5,
-      "avgTemporalTiers": 1.6,
-      "avgEvolutionRoles": 1.9,
-      "baseReportShare": 0.15,
-      "multiAngleCount": 4,
-      "weakParentCount": 6,
-      "weakParentRatio": 0.6,
+      "avgAngles": 1.6,
+      "avgTemporalTiers": 1.8,
+      "avgEvolutionRoles": 2.1,
+      "baseReportShare": 0.136,
+      "multiAngleCount": 5,
+      "weakParentCount": 5,
+      "weakParentRatio": 0.5,
       "topParentAngles": 3,
       "topParentChildren": 4,
-      "storyCount": 607,
+      "storyCount": 616,
       "sourceGroupCount": 9
     }
   }
