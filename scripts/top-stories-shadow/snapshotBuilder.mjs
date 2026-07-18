@@ -7,6 +7,11 @@ import {
   VOLATILE_INPUT_KEYS,
 } from './canonicalJson.mjs';
 import {
+  buildEditorialIdentityFunnelStage,
+  buildEditorialIdentityPopulation,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+} from './editorialIdentityPopulation.mjs';
+import {
   deriveObservationStates,
   sanitizeObservationEvidence,
   sanitizeStoryEvidence,
@@ -51,7 +56,7 @@ function countReasons(rows = [], field) {
   }, {});
 }
 
-function buildFunnel(evaluation) {
+function buildFunnel(evaluation, editorialIdentityPopulation) {
   const admissionRejected = evaluation.selectionTrace.filter(row => (
     row.finalDisposition === 'REJECTED_BY_ADMISSION'
   ));
@@ -75,6 +80,7 @@ function buildFunnel(evaluation) {
       outputCount: evaluation.candidates.length,
       reasonCounts: countReasons(evaluation.candidateBuildTrace, 'reasonCode'),
     },
+    buildEditorialIdentityFunnelStage(editorialIdentityPopulation),
     {
       stage: 'admission',
       inputUnit: 'RANKING_CANDIDATE',
@@ -125,6 +131,7 @@ function buildEvidencePopulations(evaluation, identityVersion) {
     candidateEvidence: identified.map(sanitizeStoryEvidence),
     ranked: sanitizeRows(evaluation.selected),
     displayed: sanitizeRows(evaluation.displayed),
+    editorialIdentityPopulation: buildEditorialIdentityPopulation(identified),
   };
 }
 
@@ -163,6 +170,8 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
   return {
     schemaVersion: RUN_SNAPSHOT_SCHEMA_VERSION,
     candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
+    editorialIdentityPopulationSchemaVersion:
+      EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
     observationId,
     repositorySha: String(metadata.repositorySha),
     workflowRunId: String(metadata.workflowRunId),
@@ -191,9 +200,12 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
     ranked: evidence.ranked,
     displayed: evidence.displayed,
     candidateEvidence: evidence.candidateEvidence,
+    editorialIdentityPopulation: sanitizeObservationEvidence(
+      evidence.editorialIdentityPopulation,
+    ),
     candidateBuildTrace: sanitizeObservationEvidence(evaluation.candidateBuildTrace),
     selectionTrace: sanitizeObservationEvidence(evaluation.selectionTrace),
-    funnel: buildFunnel(evaluation),
+    funnel: buildFunnel(evaluation, evidence.editorialIdentityPopulation),
     sourceHealth: sanitizeObservationEvidence(input.sourceHealth),
     inputDiagnostics: sanitizeObservationEvidence(input.inputDiagnostics || null),
     policySnapshot: sanitizeObservationEvidence(evaluation.policySnapshot),
