@@ -12,6 +12,10 @@ import {
   EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
 } from './editorialIdentityPopulation.mjs';
 import {
+  getTopStoriesNormalizationDigest,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from './normalizationDigest.mjs';
+import {
   deriveObservationStates,
   sanitizeObservationEvidence,
   sanitizeStoryEvidence,
@@ -139,6 +143,7 @@ function buildDigests(config, inputBundle, evaluation) {
   return {
     studyConfigDigest: digestCanonicalJson(config),
     inputDigest: getRankingInputDigest(inputBundle),
+    normalizationDigest: getTopStoriesNormalizationDigest(evaluation),
     settingsDigest: digestCanonicalJson(inputBundle.settings),
     topFeedDigest: digestCanonicalJson(inputBundle.topFeedItems, {
       omitKeys: VOLATILE_INPUT_KEYS,
@@ -172,6 +177,7 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
     candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
     editorialIdentityPopulationSchemaVersion:
       EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+    normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
     observationId,
     repositorySha: String(metadata.repositorySha),
     workflowRunId: String(metadata.workflowRunId),
