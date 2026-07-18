@@ -315,6 +315,14 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
   const observationCount = rows.length;
   const underfilledCount = rows.filter(row => row.underfilled).length;
   const belowSoftDepthCount = rows.filter(row => row.belowSoftReviewDepth).length;
+  const identityAccountingChecks = rows
+    .map(row => row.identityAccountingConserved)
+    .filter(value => typeof value === 'boolean');
+  const identityAccountingEvidenceCount = identityAccountingChecks.length;
+  const identityAccountingConserved = identityAccountingEvidenceCount
+    ? identityAccountingEvidenceCount === observationCount &&
+      identityAccountingChecks.every(Boolean)
+    : null;
 
   return {
     observationCount,
@@ -323,9 +331,8 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
     displayedCount: summarize(rows.map(row => row.displayedCount)),
     editorialIdentityCount: summarize(rows.map(row => row.editorialIdentityCount)),
     identityResolutionCoverage: summarize(rows.map(row => row.identityResolutionCoverage)),
-    identityAccountingConserved: rows.every(
-      row => row.identityAccountingConserved !== false,
-    ),
+    identityAccountingEvidenceCount,
+    identityAccountingConserved,
     railBuckets: bucketCounts,
     underfilledAgainstDisplayDepth: {
       count: underfilledCount,
