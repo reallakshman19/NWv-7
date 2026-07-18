@@ -53,7 +53,7 @@
     },
     "insight": {
       "actionableFindings": [
-        "1 base-report-heavy Insight parent(s) demoted"
+        "Insight event/angle ranking has no critical demotion finding"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
@@ -77,7 +77,7 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 1,
+        "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
         "inputCandidateCount": 12,
         "parentClusters": 12,
@@ -932,6 +932,116 @@
               "status": "PASS"
             }
           ],
+          "id": "sketch:384d417f5f",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:384d417f5f",
+            "representativeId": "8b4dafe2d70fc8a9",
+            "representativeTitle": "Is the AI stock boom losing steam after the latest chip selloff?",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "8b4dafe2d70fc8a9",
+              "c5a99e7b13b4c258"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "selloff",
+              "stock",
+              "boom",
+              "losing"
+            ],
+            "topicKey": "selloff|stock|boom"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Is the AI stock boom losing steam after the latest chip selloff?"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
           "id": "sketch:49837191e1",
           "item": {
             "angleCount": 1,
@@ -1321,114 +1431,6 @@
           ],
           "score": 0.2764,
           "title": "India's development did not come to standstill despite oil supply crisis: PM Modi"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:35b457e4f1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:35b457e4f1",
-            "representativeId": "22834d838d943345",
-            "representativeTitle": "Top news of the day | July 5, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "22834d838d943345",
-              "af97b141f1b4b7cb"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "july",
-              "hindu"
-            ],
-            "topicKey": "july|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Top news of the day | July 5, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
@@ -1499,10 +1501,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
-        "no active offer items in ranked Up Ahead set",
-        "no ranked Up Ahead item for muscat",
-        "ranked Up Ahead set is category-dominated"
+        "11 invalid/expired/duplicate Up Ahead item(s) suppressed"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
@@ -1510,6 +1509,14 @@
         "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
         "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Greater Chennai Police destroys over 1,339 kg of ganja: futureValidity failed — expired display window",
+        "Greater Chennai Police destroys over 1,339 kg of ganja: alertUrgency failed — alert expired",
+        "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: futureValidity failed — expired display window",
+        "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: alertUrgency failed — alert expired",
+        "T.N. government launches public grievance portal for 5 Audit Departments: futureValidity failed — expired display window",
+        "T.N. government launches public grievance portal for 5 Audit Departments: alertUrgency failed — alert expired",
+        "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: futureValidity failed — expired display window",
+        "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: alertUrgency failed — alert expired",
         "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
         "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
         "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match"
@@ -1527,39 +1534,43 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 30
+              "alerts": 28,
+              "shopping": 2
             }
           },
           "name": "categoryCoverage",
           "reason": "category coverage available",
-          "score": 0.25,
+          "score": 0.5,
           "status": "PASS"
         }
       ],
       "gateSummary": {
-        "alerts": 30,
+        "alerts": 28,
         "categoryCounts": {
-          "alerts": 30
+          "alerts": 28,
+          "shopping": 2
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 46,
         "locationCounts": {
-          "chennai": 19,
-          "trichy": 11
+          "chennai": 17,
+          "muscat": 1,
+          "trichy": 12
         },
         "locationsCovered": [
           "chennai",
+          "muscat",
           "trichy"
         ],
-        "offlineOffers": 0,
+        "offlineOffers": 2,
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 7
+        "suppressedItemCount": 11
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8586,
+      "qualityScore": 0.8534,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -3062,121 +3073,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "6e37bb8aaff117a7"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784401089000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "ee456055ffa84167",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784401089000,
-            "id": "ee456055ffa84167",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785005889000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784401089000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784314689000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Greater Chennai Police destroys over 1,339 kg of ganja",
-            "url": "https://www.thehindu.com/news/cities/chennai/greater-chennai-police-destroys-over-1339-kg-of-ganja/article71234039.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Greater Chennai Police destroys over 1,339 kg of ganja"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "d4b508f55242f334"
               },
               "name": "dedup",
@@ -3292,121 +3188,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "3643c2512b9211eb"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784400241000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "c625b6a1b03aaa98",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784400241000,
-            "id": "c625b6a1b03aaa98",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785005041000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784400241000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784313841000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Man attending IIT conference held for stealing fellow delegate’s cash from guest house",
-            "url": "https://www.thehindu.com/news/cities/chennai/man-attending-iit-conference-held-for-stealing-fellow-delegates-cash-from-guest-house/article71233892.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Man attending IIT conference held for stealing fellow delegate’s cash from guest house"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "ba086b08359a61b2"
               },
               "name": "dedup",
@@ -3516,121 +3297,6 @@
           ],
           "score": 0.8485,
           "title": "Man, two-year-old boy killed in road accidents in Tiruchi"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "20d8d3862e2c07dc"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784398482000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "363b16ccbeaff996",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784398482000,
-            "id": "363b16ccbeaff996",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785003282000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784398482000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784312082000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani",
-            "url": "https://www.thehindu.com/news/cities/chennai/metrowater-seizes-eight-more-motor-pumps-used-for-illegal-drinking-water-drawal-in-taramani/article71233877.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani"
         },
         {
           "category": "alerts",
@@ -5011,21 +4677,366 @@
           ],
           "score": 0.8485,
           "title": "Woman, daughter killed as container lorry crashes into two-wheeler"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "4677315f1db844a8"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784523479000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "muscat",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 33.97
+              },
+              "name": "offerValidity",
+              "reason": "offer active within three days",
+              "score": 0.82,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "a1b86a421390107e",
+          "item": {
+            "actionabilityScore": 0.45,
+            "category": "shopping",
+            "city": "Muscat",
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784523479000,
+            "id": "a1b86a421390107e",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785128279000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784523479000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784350679000,
+            "region": "oman",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.82
+            },
+            "source": "Google News Muscat Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE90UHV2VUsta2I2bnA0eHk1M3lDaW5TaTVmYml1WC0tMFY5dm82SjRZa3ZDOGRkZGZ2c3U1cHlscExuVFJFa192TUFkbmlTRTExT0pIOFVsQ2p5dFVkX3dCanM5MVN4YVBxRzFKRzJB?oc=5\" target=\"_blank\">Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Travel And Tour World</font>",
+            "suppressionReason": null,
+            "title": "Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol? - Travel And Tour World",
+            "url": "https://news.google.com/rss/articles/CBMibkFVX3lxTE90UHV2VUsta2I2bnA0eHk1M3lDaW5TaTVmYml1WC0tMFY5dm82SjRZa3ZDOGRkZGZ2c3U1cHlscExuVFJFa192TUFkbmlTRTExT0pIOFVsQ2p5dFVkX3dCanM5MVN4YVBxRzFKRzJB?oc=5"
+          },
+          "locationKey": "muscat",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8045,
+          "title": "Oman Teams Up with Saudi Arabia to Lead Middle East’s New Luxury Travel Trend as Elite Tourists Ditch Dubai for Hidden Retreats: Why Is Quiet Luxury Becoming the Ultimate Status Symbol? - Travel And Tour World"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "0d4b5368550f2f99"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784473566000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "9cebf503d0f25eeb",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784473566000,
+            "id": "9cebf503d0f25eeb",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785078366000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784473566000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784387166000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "The civic body has prepared an estimate to appoint an agency to operate and maintain 13 sewage liftingand pumping stations in Wards 39, 40, and 42 for one year",
+            "suppressionReason": null,
+            "title": "Tiruchi Corporation to appoint new agency for pumping sewage",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/tiruchi-corporation-to-appoint-new-agency-for-pumping-sewage/article71238047.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.7925,
+          "title": "Tiruchi Corporation to appoint new agency for pumping sewage"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "5ebfa2bb05e165c7"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784446557000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "chennai",
+                "relevance": "secondary",
+                "scope": "region"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 12.6
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "5c8e3d717a507e0a",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784446557000,
+            "id": "5c8e3d717a507e0a",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785051357000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784446557000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784273757000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNNXZTWFlFZjVqTHFPX1FlTTlDVk1tekVka3dyOWU3Qm9VVy1aV1BEQ19DcXMtM2hZTnlycnN2WWtEbHBKTnQteTJpVGtScndQNGVzZHo4OVVXdnplR2tVM3UwSVNmdlE3QjQtUlJGZ3lKclRCVkNScklRV0V4THJCVjVGdVZHdFBvZHNr?oc=5\" target=\"_blank\">4 Mini Chainsaws On Amazon With Deep Discounts In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">SlashGear</font>",
+            "suppressionReason": null,
+            "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear",
+            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNNXZTWFlFZjVqTHFPX1FlTTlDVk1tekVka3dyOWU3Qm9VVy1aV1BEQ19DcXMtM2hZTnlycnN2WWtEbHBKTnQteTJpVGtScndQNGVzZHo4OVVXdnplR2tVM3UwSVNmdlE3QjQtUlJGZ3lKclRCVkNScklRV0V4THJCVjVGdVZHdFBvZHNr?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 1.0,
-        "categoryPriorityScore": 1.0,
+        "actionabilityScore": 0.995,
+        "categoryPriorityScore": 0.9787,
         "lifecycleScore": 0.65,
-        "locationScore": 1.0,
+        "locationScore": 0.9813,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.78
+        "urgencyOrExpiryScore": 0.7887
       }
     }
   },
-  "generatedAt": 1784397334516,
+  "generatedAt": 1784401192386,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5044,10 +5055,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "7 invalid/expired/duplicate Up Ahead item(s) suppressed",
-      "no active offer items in ranked Up Ahead set",
-      "no ranked Up Ahead item for muscat",
-      "ranked Up Ahead set is category-dominated",
+      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -5055,13 +5063,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "1 base-report-heavy Insight parent(s) demoted"
+      "Insight event/angle ranking has no critical demotion finding"
     ],
     "destinationScores": {
       "buzz": 0.0,
       "insight": 0.3819,
       "localTravel": 0.0,
-      "upAhead": 0.8586
+      "upAhead": 0.8534
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -5069,7 +5077,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3101,
+    "overallScore": 0.3088,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5082,6 +5090,14 @@
       "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
       "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Greater Chennai Police destroys over 1,339 kg of ganja: futureValidity failed — expired display window",
+      "Greater Chennai Police destroys over 1,339 kg of ganja: alertUrgency failed — alert expired",
+      "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: futureValidity failed — expired display window",
+      "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: alertUrgency failed — alert expired",
+      "T.N. government launches public grievance portal for 5 Audit Departments: futureValidity failed — expired display window",
+      "T.N. government launches public grievance portal for 5 Audit Departments: alertUrgency failed — alert expired",
+      "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: futureValidity failed — expired display window",
+      "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: alertUrgency failed — alert expired",
       "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
       "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
       "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match"
