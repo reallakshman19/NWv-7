@@ -4,9 +4,24 @@ import {
   evaluateTopStories,
   rankTopStories,
 } from './topStoriesRanker.js';
+import {
+  TOP_STORY_TRACE_SCHEMA_VERSION,
+  TOP_STORY_TRACE_STAGES,
+} from './topStoriesTrace.js';
 
 const NOW = Date.UTC(2026, 6, 16, 12, 0, 0);
 const HOUR = 60 * 60 * 1000;
+const COMPLETE_TRACE_STAGES = [
+  TOP_STORY_TRACE_STAGES.TIMESTAMP_VALIDATION,
+  TOP_STORY_TRACE_STAGES.AGE_WINDOW,
+  TOP_STORY_TRACE_STAGES.EVENT_CLASSIFICATION,
+  TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
+  TOP_STORY_TRACE_STAGES.THRESHOLD,
+  TOP_STORY_TRACE_STAGES.FALLBACK_CORROBORATION,
+  TOP_STORY_TRACE_STAGES.ADMISSION,
+  TOP_STORY_TRACE_STAGES.SELECTION,
+  TOP_STORY_TRACE_STAGES.DISPLAY,
+];
 
 function story(id, extra = {}) {
   return {
@@ -36,6 +51,12 @@ function deepFreeze(value) {
   Object.freeze(value);
   Object.values(value).forEach(deepFreeze);
   return value;
+}
+
+function stageOf(trace, stageName) {
+  const result = trace.stages.find(stage => stage.stage === stageName);
+  expect(result).toBeTruthy();
+  return result;
 }
 
 describe('NW-RANK-011A Top Stories evaluator trace', () => {
@@ -76,23 +97,120 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
     expect(traces.every(trace => trace.finalDisposition)).toBe(true);
     expect(traces.every(trace => trace.finalStage)).toBe(true);
     expect(traces.every(trace => trace.finalReasonCode)).toBe(true);
+    expect(traces.every(trace => trace.terminalStage)).toBe(true);
+    expect(traces.every(trace => trace.terminalReasonCode)).toBe(true);
     expect(traces.find(trace => trace.candidateId === 'displayed'))
       .toMatchObject({
         finalDisposition: 'DISPLAYED',
         displayedRank: 1,
+        terminalStage: 'display',
       });
     expect(traces.find(
       trace => trace.candidateId === 'ranked-not-displayed',
     )).toMatchObject({
       finalDisposition: 'RANKED_NOT_DISPLAYED',
       finalReasonCode: 'outside_display_limit',
+      terminalStage: 'display',
     });
     expect(traces.find(trace => trace.candidateId === 'rejected'))
       .toMatchObject({
         finalDisposition: 'REJECTED_BY_ADMISSION',
         finalStage: 'admission',
         finalReasonCode: 'unqualified_without_independent_evidence',
+        terminalStage: 'qualification_evidence',
+        terminalReasonCode: 'unqualified_without_independent_evidence',
       });
+  });
+
+  it('records every evaluator gate and the precise rejecting stage', () => {
+    const scenarios = [
+      {
+        candidate: story('low-timestamp', { timestampConfidence: 'low' }),
+        options: {},
+        reason: 'low_confidence_timestamp',
+        terminalStage: TOP_STORY_TRACE_STAGES.TIMESTAMP_VALIDATION,
+      },
+      {
+        candidate: story('expired', { publishedAt: NOW - (13 * HOUR) }),
+        options: {},
+        reason: 'outside_fallback_window',
+        terminalStage: TOP_STORY_TRACE_STAGES.AGE_WINDOW,
+      },
+      {
+        candidate: story('unqualified', { title: 'Community update' }),
+        options: {},
+        reason: 'unqualified_without_independent_evidence',
+        terminalStage: TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
+      },
+      {
+        candidate: story('below-threshold'),
+        options: { policy: { thresholds: { primary: 2 } } },
+        reason: 'below_primary_threshold',
+        terminalStage: TOP_STORY_TRACE_STAGES.THRESHOLD,
+      },
+      {
+        candidate: story('fallback-aggregator', {
+          source: 'Google News',
+          sourceGroup: 'google_news',
+          publishedAt: NOW - (9 * HOUR),
+        }),
+        options: {},
+        reason: 'fallback_aggregator_without_corroboration',
+        terminalStage: TOP_STORY_TRACE_STAGES.FALLBACK_CORROBORATION,
+      },
+    ];
+
+    for (const scenario of scenarios) {
+      const evaluation = evaluateTopStories(
+        makeInput([scenario.candidate]),
+        scenario.options,
+      );
+      const trace = evaluation.selectionTrace[0];
+      expect(trace.schemaVersion).toBe(TOP_STORY_TRACE_SCHEMA_VERSION);
+      expect(trace.stages.map(stage => stage.stage)).toEqual(COMPLETE_TRACE_STAGES);
+      expect(trace.finalDisposition).toBe('REJECTED_BY_ADMISSION');
+      expect(trace.finalStage).toBe(TOP_STORY_TRACE_STAGES.ADMISSION);
+      expect(trace.finalReasonCode).toBe(scenario.reason);
+      expect(trace.terminalStage).toBe(scenario.terminalStage);
+      expect(trace.terminalReasonCode).toBe(scenario.reason);
+      expect(stageOf(trace, scenario.terminalStage)).toMatchObject({
+        status: 'rejected',
+        reasonCodes: [scenario.reason],
+      });
+    }
+  });
+
+  it('records complete passing stages without changing selected output', () => {
+    const input = makeInput([story('complete-pass')]);
+    const evaluation = evaluateTopStories(input, { limit: 1, displayDepth: 1 });
+    const trace = evaluation.selectionTrace[0];
+
+    expect(rankTopStories(input, { limit: 1, displayDepth: 1 }))
+      .toEqual(evaluation.selected);
+    expect(trace.stages.map(stage => stage.stage)).toEqual(COMPLETE_TRACE_STAGES);
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.TIMESTAMP_VALIDATION).status)
+      .toBe('passed');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.AGE_WINDOW).status)
+      .toBe('passed');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.EVENT_CLASSIFICATION).status)
+      .toBe('classified');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE).status)
+      .toBe('not_required');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.THRESHOLD).status)
+      .toBe('passed');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.FALLBACK_CORROBORATION).status)
+      .toBe('not_required');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.ADMISSION).status)
+      .toBe('passed');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.SELECTION).status)
+      .toBe('selected');
+    expect(stageOf(trace, TOP_STORY_TRACE_STAGES.DISPLAY).status)
+      .toBe('displayed');
+    expect(trace).toMatchObject({
+      finalDisposition: 'DISPLAYED',
+      terminalStage: 'display',
+      terminalReasonCode: 'displayed',
+    });
   });
 
   it('conserves source-row accounting through candidate creation', () => {

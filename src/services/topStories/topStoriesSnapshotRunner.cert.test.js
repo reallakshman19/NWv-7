@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { evaluateTopStories } from './topStoriesRanker.js';
 import {
+  TOP_STORY_TRACE_SCHEMA_VERSION,
+  TOP_STORY_TRACE_STAGES,
+} from './topStoriesTrace.js';
+import {
   createTopStoriesRunArtifacts,
   MAX_RUN_SNAPSHOT_BYTES,
 } from '../../../scripts/top-stories-shadow/artifactBundle.mjs';
@@ -9,6 +13,17 @@ import { sha256Text } from '../../../scripts/top-stories-shadow/canonicalJson.mj
 
 const RUN_AT = '2026-07-16T17:22:00.000Z';
 const RUN_MS = Date.parse(RUN_AT);
+const COMPLETE_TRACE_STAGES = [
+  TOP_STORY_TRACE_STAGES.TIMESTAMP_VALIDATION,
+  TOP_STORY_TRACE_STAGES.AGE_WINDOW,
+  TOP_STORY_TRACE_STAGES.EVENT_CLASSIFICATION,
+  TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
+  TOP_STORY_TRACE_STAGES.THRESHOLD,
+  TOP_STORY_TRACE_STAGES.FALLBACK_CORROBORATION,
+  TOP_STORY_TRACE_STAGES.ADMISSION,
+  TOP_STORY_TRACE_STAGES.SELECTION,
+  TOP_STORY_TRACE_STAGES.DISPLAY,
+];
 const CONFIG = JSON.parse(readFileSync(
   new URL('../../../config/top_stories_shadow_study.json', import.meta.url),
   'utf8',
@@ -126,6 +141,7 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
     const keys = collectKeys(snapshot);
 
     expect(snapshot).toMatchObject({
+      candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
       observationMode: 'repository-snapshot-replay',
       completenessState: 'COMPLETE',
       analyticalEligibility: 'ELIGIBLE',
@@ -140,6 +156,14 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
       'RANKED_ITEM',
       'DISPLAYED_ITEM',
     ]);
+    expect(snapshot.selectionTrace.every(trace => (
+      trace.schemaVersion === TOP_STORY_TRACE_SCHEMA_VERSION
+    ))).toBe(true);
+    expect(snapshot.selectionTrace.every(trace => (
+      trace.terminalStage && trace.terminalReasonCode
+    ))).toBe(true);
+    expect(snapshot.selectionTrace[0].stages.map(stage => stage.stage))
+      .toEqual(COMPLETE_TRACE_STAGES);
     [
       'firstSeen', 'previousRank', 'entrant', 'exit', 'residence',
       'incumbentRetention', 'jaccard',

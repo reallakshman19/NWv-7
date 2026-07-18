@@ -90,28 +90,36 @@ function getSlotDecision(signals, event, policy, normalizedScore) {
   const ageBand = getAgeBand(signals, policy);
   if (ageBand === 'rejected') {
     return {
+      ageBand,
+      admissionThreshold: null,
       slotBand: 'rejected',
       admissionReason: 'low_confidence_timestamp',
     };
   }
   if (ageBand === 'expired') {
     return {
+      ageBand,
+      admissionThreshold: null,
       slotBand: 'expired',
       admissionReason: 'outside_fallback_window',
     };
   }
 
+  const admissionThreshold = Number(policy.thresholds?.[ageBand] || 0);
   const independentEvidence = hasIndependentEvidence(signals);
   if (event.qualified === false && !independentEvidence) {
     return {
+      ageBand,
+      admissionThreshold,
       slotBand: 'rejected',
       admissionReason: 'unqualified_without_independent_evidence',
     };
   }
 
-  const threshold = Number(policy.thresholds?.[ageBand] || 0);
-  if (normalizedScore < threshold) {
+  if (normalizedScore < admissionThreshold) {
     return {
+      ageBand,
+      admissionThreshold,
       slotBand: 'rejected',
       admissionReason: `below_${ageBand}_threshold`,
     };
@@ -123,12 +131,16 @@ function getSlotDecision(signals, event, policy, normalizedScore) {
     !independentEvidence
   ) {
     return {
+      ageBand,
+      admissionThreshold,
       slotBand: 'rejected',
       admissionReason: 'fallback_aggregator_without_corroboration',
     };
   }
 
   return {
+    ageBand,
+    admissionThreshold,
     slotBand: ageBand,
     admissionReason: 'admitted',
   };
@@ -192,6 +204,8 @@ export function scoreTopStoryCandidate(story, context = {}) {
       priorityBucket,
       priorityBucketLabel: getPriorityBucketLabel(priorityBucket),
       coldStartCritical,
+      ageBand: slotDecision.ageBand,
+      admissionThreshold: slotDecision.admissionThreshold,
       slotBand: slotDecision.slotBand,
       admissionReason: slotDecision.admissionReason,
       eventType: event.eventType,
