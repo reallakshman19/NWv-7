@@ -70,6 +70,13 @@ function observation(id, scheduledAt) {
   };
 }
 
+function legacyObservation(id, scheduledAt) {
+  const result = observation(id, scheduledAt);
+  delete result.editorialIdentityPopulation;
+  result.funnel = [];
+  return result;
+}
+
 function metric() {
   return {
     count: 2,
@@ -102,6 +109,7 @@ describe('Top Stories editorial identity rail/funnel analytics', () => {
     expect(stage.outputCount.median).toBe(2);
     expect(result.editorialIdentityCount.median).toBe(2);
     expect(result.identityResolutionCoverage.median).toBe(0.6);
+    expect(result.identityAccountingEvidenceCount).toBe(2);
     expect(result.identityAccountingConserved).toBe(true);
     expect(result.editorialIdentityReasonCounts).toEqual({
       identity_ambiguous: 2,
@@ -114,6 +122,29 @@ describe('Top Stories editorial identity rail/funnel analytics', () => {
       IDENTITY_UNAVAILABLE: 2,
     });
     expect(result.categoryReasonCounts.identity).toBe(6);
+  });
+
+  it('fails closed for mixed-version identity accounting evidence', () => {
+    const result = buildTopStoriesRailFunnelAnalytics([
+      observation('current', '2026-07-18T00:07:00Z'),
+      legacyObservation('legacy', '2026-07-18T00:22:00Z'),
+    ]);
+
+    expect(result.observationCount).toBe(2);
+    expect(result.identityAccountingEvidenceCount).toBe(1);
+    expect(result.identityAccountingConserved).toBe(false);
+    expect(result.editorialIdentityCount.count).toBe(1);
+  });
+
+  it('reports absent legacy identity evidence as unknown, not conserved', () => {
+    const result = buildTopStoriesRailFunnelAnalytics([
+      legacyObservation('legacy-a', '2026-07-18T00:07:00Z'),
+      legacyObservation('legacy-b', '2026-07-18T00:22:00Z'),
+    ]);
+
+    expect(result.identityAccountingEvidenceCount).toBe(0);
+    expect(result.identityAccountingConserved).toBeNull();
+    expect(result.editorialIdentityCount.count).toBe(0);
   });
 
   it('surfaces the population and conservation status in daily Markdown', () => {
