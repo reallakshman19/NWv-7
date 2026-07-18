@@ -15,6 +15,7 @@ import {
 
 const RUN_AT = '2026-07-18T12:22:00.000Z';
 const RUN_MS = Date.parse(RUN_AT);
+const PUBLISHED_AT = RUN_MS - (30 * 60 * 1000);
 const CONFIG = JSON.parse(readFileSync(
   new URL('../../../config/top_stories_shadow_study.json', import.meta.url),
   'utf8',
@@ -29,7 +30,7 @@ function story(id, extra = {}) {
     source: `Trusted Source ${id}`,
     sourceGroup: `publisher-${id}`,
     section: 'world',
-    publishedAt: RUN_MS - (30 * 60 * 1000),
+    publishedAt: PUBLISHED_AT,
     fetchedAt: RUN_MS - (25 * 60 * 1000),
     timestampConfidence: 'high',
     ...extra,
@@ -87,7 +88,7 @@ describe('Top Stories normalization digest', () => {
   it('detects rank-relevant timestamp evidence hidden by the raw input digest', () => {
     const firstInput = input([story('a', {
       timestampConfidence: undefined,
-      fetchedAt: RUN_MS - (29 * 60 * 1000),
+      fetchedAt: PUBLISHED_AT + 10_000,
     })]);
     const secondInput = input([story('a', {
       timestampConfidence: undefined,
@@ -97,6 +98,8 @@ describe('Top Stories normalization digest', () => {
     const second = evaluate(secondInput);
 
     expect(getRankingInputDigest(firstInput)).toBe(getRankingInputDigest(secondInput));
+    expect(first.scoredCandidates[0]._topStoryRank.timestampConfidence).toBe('low');
+    expect(second.scoredCandidates[0]._topStoryRank.timestampConfidence).toBe('high');
     expect(getTopStoriesNormalizationDigest(first))
       .not.toBe(getTopStoriesNormalizationDigest(second));
   });
@@ -144,7 +147,13 @@ describe('Top Stories normalization digest', () => {
   it('publishes the versioned digest in deterministic run snapshots', () => {
     const args = {
       studyConfig: CONFIG,
-      inputBundle: input([story('a'), story('b')]),
+      inputBundle: input([
+        story('a', {
+          body: 'licensed article body',
+          token: 'secret-one',
+        }),
+        story('b'),
+      ]),
       metadata: metadata(),
     };
     const first = createTopStoriesRunArtifacts(args);
