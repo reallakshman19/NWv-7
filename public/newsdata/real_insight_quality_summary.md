@@ -10,9 +10,9 @@
 - Base report share: `0.16666666666666666`
 - Multi-angle parents: `7`
 - Weak parents: `3`
-- Story count: `679`
+- Story count: `655`
 - Source groups: `9`
-- Content hash: `55e83575927576ed`
+- Content hash: `3260e9e96f17d063`
 
 ## Top parents
 
@@ -23,8 +23,8 @@
 | 3 | US Senate Bill seeks 100% tariffs on India, China for buying Russian oil | 2 | fact_update, base_report | NO | 0.6976300531183317 |
 | 4 | DCET results announced | 2 | official_response, fact_update | NO | 0.6697800531183317 |
 | 5 | CJP’s Abhijeet Dipke begins indefinite hunger strike, as police shifts Wangchuk to hospital | 3 | official_response, reaction_public | NO | 0.6152616650016849 |
-| 6 | ISRO-SCTIMST sign pact for research in space medicine, Bioastronautics | 2 | official_response, base_report | NO | 0.60551 |
-| 7 | US prosecutor says Justice Department made call to drop Gautam Adani case | 2 | expert_analysis, fact_update | NO | 0.6005899468816684 |
+| 6 | US prosecutor says Justice Department made call to drop Gautam Adani case | 2 | expert_analysis, fact_update | NO | 0.6005899468816684 |
+| 7 | ISRO-SCTIMST sign pact for research in space medicine, Bioastronautics | 2 | official_response, base_report | NO | 0.58551 |
 | 8 | India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters | 2 | fact_update | YES | 0.6954600000000002 |
 | 9 | A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far | 2 | official_response | YES | 0.6934967197849984 |
 | 10 | Supreme Court to examine whether persons deleted from voter list in SIR can be denied welfare schemes | 2 | official_response | YES | 0.6692467197849983 |
