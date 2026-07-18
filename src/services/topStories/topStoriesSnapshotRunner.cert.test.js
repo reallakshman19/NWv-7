@@ -9,6 +9,12 @@ import {
   createTopStoriesRunArtifacts,
   MAX_RUN_SNAPSHOT_BYTES,
 } from '../../../scripts/top-stories-shadow/artifactBundle.mjs';
+import {
+  EDITORIAL_IDENTITY_FUNNEL_STAGE,
+  EDITORIAL_IDENTITY_POPULATION_ROLE,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+  EDITORIAL_IDENTITY_UNIT,
+} from '../../../scripts/top-stories-shadow/editorialIdentityPopulation.mjs';
 import { sha256Text } from '../../../scripts/top-stories-shadow/canonicalJson.mjs';
 
 const RUN_AT = '2026-07-16T17:22:00.000Z';
@@ -142,6 +148,8 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
 
     expect(snapshot).toMatchObject({
       candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
+      editorialIdentityPopulationSchemaVersion:
+        EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
       observationMode: 'repository-snapshot-replay',
       completenessState: 'COMPLETE',
       analyticalEligibility: 'ELIGIBLE',
@@ -149,13 +157,36 @@ describe('NW-RANK-011C stateless snapshot runner', () => {
       displayDepth: 10,
     });
     expect(snapshot.candidateEvidence.every(item => item._studyIdentity)).toBe(true);
+    expect(snapshot.editorialIdentityPopulation).toMatchObject({
+      schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+      populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
+      inputUnit: 'RANKING_CANDIDATE',
+      inputCount: 12,
+      outputUnit: EDITORIAL_IDENTITY_UNIT,
+      outputCount: 12,
+      accountingDelta: 0,
+      accountingConserved: true,
+      reasonCounts: {},
+    });
     expect(snapshot.funnel.map(stage => stage.outputUnit)).toEqual([
       'SOURCE_ROW',
       'RANKING_CANDIDATE',
+      EDITORIAL_IDENTITY_UNIT,
       'RANKING_CANDIDATE',
       'RANKED_ITEM',
       'DISPLAYED_ITEM',
     ]);
+    expect(snapshot.funnel.find(
+      stage => stage.stage === EDITORIAL_IDENTITY_FUNNEL_STAGE,
+    )).toMatchObject({
+      populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
+      populationSchemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+      inputUnit: 'RANKING_CANDIDATE',
+      inputCount: 12,
+      outputUnit: EDITORIAL_IDENTITY_UNIT,
+      outputCount: 12,
+      accountingConserved: true,
+    });
     expect(snapshot.selectionTrace.every(trace => (
       trace.schemaVersion === TOP_STORY_TRACE_SCHEMA_VERSION
     ))).toBe(true);
