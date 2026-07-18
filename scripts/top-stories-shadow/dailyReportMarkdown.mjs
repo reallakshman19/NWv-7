@@ -6,6 +6,19 @@ function count(value) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
 
+function identityPopulationLines(rail = {}) {
+  const stage = (rail.funnelStages || []).find(
+    row => row.stage === 'editorial_identity_population',
+  );
+  if (!stage) return [];
+  return [
+    `- Median resolved \`EDITORIAL_IDENTITY\` population: **${rail.editorialIdentityCount?.median ?? 'n/a'}**`,
+    `- Median candidate identity-resolution coverage: **${percentage(rail.identityResolutionCoverage?.median)}**`,
+    `- Identity population role: \`${stage.populationRole || 'unknown'}\``,
+    `- Identity accounting conserved: **${rail.identityAccountingConserved ? 'yes' : 'no'}**`,
+  ];
+}
+
 function railLines(report) {
   const rail = report.railAndFunnel;
   if (!rail) return ['## Visible rail and funnel', '', 'Rail/funnel analytics were not supplied.', ''];
@@ -18,6 +31,7 @@ function railLines(report) {
     `- Minimum displayed stories: **${rail.displayedCount?.minimum ?? 'n/a'}**`,
     `- Runs below soft review depth ${rail.softReviewDepth}: **${count(rail.belowSoftReviewDepth?.count)}** (${percentage(rail.belowSoftReviewDepth?.fraction)})`,
     `- Runs below configured display depth: **${count(rail.underfilledAgainstDisplayDepth?.count)}** (${percentage(rail.underfilledAgainstDisplayDepth?.fraction)})`,
+    ...identityPopulationLines(rail),
     '',
     '| Displayed stories | Observations |',
     '|---|---:|',
