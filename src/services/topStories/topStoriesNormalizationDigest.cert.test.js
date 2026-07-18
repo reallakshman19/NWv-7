@@ -104,16 +104,22 @@ describe('Top Stories normalization digest', () => {
       .not.toBe(getTopStoriesNormalizationDigest(second));
   });
 
-  it('ignores licensed bodies, secrets and runtime-only candidate timestamps', () => {
+  it('ignores sensitive and runtime metadata regardless of key casing', () => {
     const first = evaluate(input([story('a', {
       body: 'licensed article body one',
       content: 'full article one',
       token: 'secret-one',
+      apiKey: 'api-key-one',
+      Authorization: 'Bearer one',
+      diagnostics: { Token: 'nested-secret-one' },
     })]));
     const second = evaluate(input([story('a', {
       body: 'licensed article body two',
       content: 'full article two',
       token: 'secret-two',
+      apiKey: 'api-key-two',
+      Authorization: 'Bearer two',
+      diagnostics: { Token: 'nested-secret-two' },
     })]));
 
     expect(getTopStoriesNormalizationDigest(first))
@@ -151,6 +157,7 @@ describe('Top Stories normalization digest', () => {
         story('a', {
           body: 'licensed article body',
           token: 'secret-one',
+          apiKey: 'api-key-one',
         }),
         story('b'),
       ]),
@@ -168,5 +175,6 @@ describe('Top Stories normalization digest', () => {
     expect(first.files).toEqual(second.files);
     expect(first.files['snapshot.json']).not.toContain('licensed article body');
     expect(first.files['snapshot.json']).not.toContain('secret-one');
+    expect(first.files['snapshot.json']).not.toContain('api-key-one');
   });
 });
