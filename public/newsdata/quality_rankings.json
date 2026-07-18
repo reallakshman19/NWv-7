@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 12
+            "itemCount": 11
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 12,
-        "parentClusters": 12,
-        "strongParents": 12,
+        "inputCandidateCount": 11,
+        "parentClusters": 11,
+        "strongParents": 11,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3819,
+      "qualityScore": 0.3856,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -490,14 +490,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:84476cc645",
+          "id": "sketch:cd8d736950",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:84476cc645",
-            "representativeId": "cdc9d140efb3074e",
-            "representativeTitle": "NEET re-test results 2026: 12 students from Tamil Nadu score above 690",
+            "id": "sketch:cd8d736950",
+            "representativeId": "faf960dda33bec77",
+            "representativeTitle": "India’s gig internet workforce may reach 17-21 million by 2030, says Bengaluru firm Redseer",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -518,22 +518,22 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "cdc9d140efb3074e",
-              "81f0d640344a0a48"
+              "faf960dda33bec77",
+              "dba4b47f9873d70a"
             ],
             "topAngles": [
               {
-                "angle": "regional_followup",
+                "angle": "fact_update",
                 "count": 2
               }
             ],
             "topTokens": [
-              "neet",
-              "results",
-              "year",
-              "re-test"
+              "workers",
+              "india",
+              "internet",
+              "workforce"
             ],
-            "topicKey": "neet|results|year"
+            "topicKey": "workers|india|internet"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -542,7 +542,7 @@
             "one-source event candidate"
           ],
           "score": 0.401,
-          "title": "NEET re-test results 2026: 12 students from Tamil Nadu score above 690"
+          "title": "India’s gig internet workforce may reach 17-21 million by 2030, says Bengaluru firm Redseer"
         },
         {
           "category": "insightEvent",
@@ -874,116 +874,6 @@
           ],
           "score": 0.389,
           "title": "India, Japan agree to launch bullet train operations with indigenous trainsets until E10 arrives: MEA"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:384d417f5f",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:384d417f5f",
-            "representativeId": "8b4dafe2d70fc8a9",
-            "representativeTitle": "Is the AI stock boom losing steam after the latest chip selloff?",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "economic_times"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "8b4dafe2d70fc8a9",
-              "c5a99e7b13b4c258"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "selloff",
-              "stock",
-              "boom",
-              "losing"
-            ],
-            "topicKey": "selloff|stock|boom"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Is the AI stock boom losing steam after the latest chip selloff?"
         },
         {
           "category": "insightEvent",
@@ -1435,13 +1325,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.2942,
-        "eventImportanceScore": 0.61,
+        "angleDiversityScore": 0.2982,
+        "eventImportanceScore": 0.6118,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4667,
-        "sourceAuthorityScore": 0.44,
-        "sourceDiversityScore": 0.4425,
-        "temporalEvolutionScore": 0.42
+        "noveltyDeltaScore": 0.4682,
+        "sourceAuthorityScore": 0.4455,
+        "sourceDiversityScore": 0.4509,
+        "temporalEvolutionScore": 0.4245
       }
     },
     "localTravel": {
@@ -1501,7 +1391,7 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "11 invalid/expired/duplicate Up Ahead item(s) suppressed"
+        "13 invalid/expired/duplicate Up Ahead item(s) suppressed"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
@@ -1509,6 +1399,8 @@
         "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
         "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "CCB arrests ‘absconding’ accused after 17 years: futureValidity failed — expired display window",
+        "CCB arrests ‘absconding’ accused after 17 years: alertUrgency failed — alert expired",
         "Greater Chennai Police destroys over 1,339 kg of ganja: futureValidity failed — expired display window",
         "Greater Chennai Police destroys over 1,339 kg of ganja: alertUrgency failed — alert expired",
         "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: futureValidity failed — expired display window",
@@ -1519,7 +1411,9 @@
         "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: alertUrgency failed — alert expired",
         "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
         "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
-        "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match"
+        "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match",
+        "Use These Shutterfly Promo Codes And Coupons To Save Up To 50% This Week - Forbes: futureValidity failed — expired display window",
+        "Use These Shutterfly Promo Codes And Coupons To Save Up To 50% This Week - Forbes: offerValidity failed — offer expired"
       ],
       "gateResults": [
         {
@@ -1534,8 +1428,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 28,
-              "shopping": 2
+              "alerts": 27,
+              "shopping": 3
             }
           },
           "name": "categoryCoverage",
@@ -1545,32 +1439,34 @@
         }
       ],
       "gateSummary": {
-        "alerts": 28,
+        "alerts": 27,
         "categoryCounts": {
-          "alerts": 28,
-          "shopping": 2
+          "alerts": 27,
+          "shopping": 3
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 46,
         "locationCounts": {
-          "chennai": 17,
+          "chennai": 16,
           "muscat": 1,
+          "online": 1,
           "trichy": 12
         },
         "locationsCovered": [
           "chennai",
           "muscat",
+          "online",
           "trichy"
         ],
         "offlineOffers": 2,
-        "onlineOffers": 0,
+        "onlineOffers": 1,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 11
+        "suppressedItemCount": 13
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8534,
+      "qualityScore": 0.8509,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -2032,121 +1928,6 @@
           ],
           "score": 0.8485,
           "title": "Bank holds Kisan Diwas outreach  in Tiruchi"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "06ce3f96264b13bb"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784401234000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "5fd1bff78f90cb52",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784401234000,
-            "id": "5fd1bff78f90cb52",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785006034000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784401234000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784314834000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "CCB arrests ‘absconding’ accused after 17 years",
-            "url": "https://www.thehindu.com/news/cities/chennai/ccb-arrests-absconding-accused-after-17-years/article71233919.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "CCB arrests ‘absconding’ accused after 17 years"
         },
         {
           "category": "alerts",
@@ -4723,7 +4504,7 @@
             },
             {
               "details": {
-                "hoursLeft": 33.97
+                "hoursLeft": 32.25
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -4953,7 +4734,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.6
+                "hoursLeft": 10.88
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -5022,21 +4803,136 @@
           ],
           "score": 0.744,
           "title": "4 Mini Chainsaws On Amazon With Deep Discounts In July 2026 - SlashGear"
+        },
+        {
+          "category": "shopping",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "17a70f76d3ad7db3"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784416356000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 0.72,
+                "matchedLocation": "online",
+                "relevance": "onlineOnly",
+                "scope": "online"
+              },
+              "name": "location",
+              "reason": "online/global item allowed without city match",
+              "score": 0.72,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "hasPlace": false,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 0.85,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hoursLeft": 2.49
+              },
+              "name": "offerValidity",
+              "reason": "offer expires soon",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "alertUrgency",
+              "reason": "not an alert",
+              "score": 0.6,
+              "status": "PASS"
+            }
+          ],
+          "id": "8980887c7978b794",
+          "item": {
+            "actionabilityScore": 0.65,
+            "category": "shopping",
+            "city": null,
+            "contentClass": "upahead_offer",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784416356000,
+            "id": "8980887c7978b794",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785021156000,
+              "contentClass": "upahead_offer",
+              "displayUntil": 1784416356000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.3,
+            "normalizedCategory": "shopping",
+            "plannerEligible": true,
+            "publishedAt": 1784243556000,
+            "region": null,
+            "scoreBreakdown": {
+              "actionabilityScore": 0.8500000000000001,
+              "categoryPriorityScore": 0.68,
+              "lifecycleScore": 0.65,
+              "locationScore": 0.72,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 1.0
+            },
+            "source": "Google News Shopping",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5\" target=\"_blank\">7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Daily Meal</font>",
+            "suppressionReason": null,
+            "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal",
+            "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxNQTJGNnV2S0Z0OUlUc3lpeGJIUG1mdGpDM2txTUdwdHdRalBQZk80QXBzckh5dzJPUFdmbG4wU0F0SDN4MlllR1Btc29SQkJSNHhVRnBxaENhRFVrSDdBLUF2dDBpdk9TTTlMMlZPbmUyZXhvV1daalR5Q0dIaS16N2p4WmgxZm15UHBJ?oc=5"
+          },
+          "locationKey": "online",
+          "rankingReasons": [
+            "shopping",
+            "valid undated item with active display window",
+            "online/global item allowed without city match",
+            "planner advisory fit"
+          ],
+          "score": 0.744,
+          "title": "7 Best Kitchen Appliance Deals To Look For On Amazon In July 2026 - Daily Meal"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.995,
-        "categoryPriorityScore": 0.9787,
+        "actionabilityScore": 0.99,
+        "categoryPriorityScore": 0.968,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9813,
+        "locationScore": 0.972,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.7887
+        "urgencyOrExpiryScore": 0.796
       }
     }
   },
-  "generatedAt": 1784401192386,
+  "generatedAt": 1784407390999,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5055,7 +4951,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "11 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "13 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -5067,9 +4963,9 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3819,
+      "insight": 0.3856,
       "localTravel": 0.0,
-      "upAhead": 0.8534
+      "upAhead": 0.8509
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -5077,7 +4973,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3088,
+    "overallScore": 0.3091,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -5090,6 +4986,8 @@
       "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
       "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "CCB arrests ‘absconding’ accused after 17 years: futureValidity failed — expired display window",
+      "CCB arrests ‘absconding’ accused after 17 years: alertUrgency failed — alert expired",
       "Greater Chennai Police destroys over 1,339 kg of ganja: futureValidity failed — expired display window",
       "Greater Chennai Police destroys over 1,339 kg of ganja: alertUrgency failed — alert expired",
       "Man attending IIT conference held for stealing fellow delegate’s cash from guest house: futureValidity failed — expired display window",
@@ -5100,7 +4998,9 @@
       "Metrowater seizes eight more motor pumps used for illegal drinking water drawal in Taramani: alertUrgency failed — alert expired",
       "Amazon just dropped a bunch of great UGREEN NAS deals — including a hefty discount on the 'best starter NAS' we've tested - Android Central: location failed — offline/local item lacks configured location match",
       "CHITA’S 2026 Amazon Prime Day Sale: Exclusive Offers on Customer Favorites - The National Law Review: location failed — offline/local item lacks configured location match",
-      "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match"
+      "LG TV deals: Buy an OLED, QNED, or RGB TV on sale, get up to $200 in DoorDash or Uber Eats credit - Mashable: location failed — offline/local item lacks configured location match",
+      "Use These Shutterfly Promo Codes And Coupons To Save Up To 50% This Week - Forbes: futureValidity failed — expired display window",
+      "Use These Shutterfly Promo Codes And Coupons To Save Up To 50% This Week - Forbes: offerValidity failed — offer expired"
     ]
   }
 }
