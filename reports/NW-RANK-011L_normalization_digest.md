@@ -49,7 +49,7 @@ The digest value contains:
 
 The digest is deterministic under source-row permutation. Object keys and candidate arrays are canonicalized before SHA-256 hashing.
 
-The digest excludes fields that are not part of ranking normalization evidence:
+The digest recursively excludes fields that are not part of ranking normalization evidence. Exclusion matching is case-insensitive so alternate credential-key casing cannot perturb the digest:
 
 - article bodies and licensed full content;
 - HTML;
@@ -67,8 +67,8 @@ Focused certification demonstrates that:
 
 1. repeated evaluation produces the same digest;
 2. permutation of distinct source rows produces the same digest;
-3. a `fetchedAt` change can leave `inputDigest` unchanged while changing `normalizationDigest`;
-4. licensed bodies, secrets and runtime-only candidate timestamps do not change the normalization digest;
+3. a `fetchedAt` change can leave `inputDigest` unchanged while changing executable timestamp confidence and `normalizationDigest`;
+4. licensed bodies, secrets, mixed-case credential keys, nested tokens and runtime-only candidate timestamps do not change the normalization digest;
 5. duplicate collapse and candidate-build accounting change the digest;
 6. snapshots publish a 64-character SHA-256 digest and the executable normalization version;
 7. repeated artifact generation remains byte-stable;
