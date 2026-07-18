@@ -1,4 +1,6 @@
 const SOFT_REVIEW_DEPTH = 8;
+const EDITORIAL_IDENTITY_STAGE = 'editorial_identity_population';
+const SEQUENTIAL_POPULATION_ROLE = 'SEQUENTIAL_FLOW';
 
 function finiteNumber(value) {
   if (value === null || value === undefined || value === '') return null;
@@ -63,6 +65,9 @@ function getRailBucket(displayedCount, displayDepth) {
 function classifyReason(reasonCode) {
   const reason = String(reasonCode || 'unknown').toLowerCase();
   if (reason === 'duplicate_identity') return 'duplicate';
+  if (reason === 'shared_editorial_identity' || reason.startsWith('identity_')) {
+    return 'identity';
+  }
   if (reason.startsWith('max_per_')) return 'diversity';
   if (reason.includes('timestamp')) return 'timestamp';
   if (reason.includes('expired') || reason.includes('age_window') || reason.includes('stale')) {
@@ -108,15 +113,24 @@ function summarizeFunnelStages(observations) {
   const byKey = new Map();
   observations.forEach(observation => {
     (observation.funnel || []).forEach(stage => {
-      const key = [stage.stage, stage.inputUnit || 'null', stage.outputUnit || 'null'].join('|');
+      const populationRole = stage.populationRole || SEQUENTIAL_POPULATION_ROLE;
+      const key = [
+        stage.stage,
+        populationRole,
+        stage.inputUnit || 'null',
+        stage.outputUnit || 'null',
+      ].join('|');
       if (!byKey.has(key)) {
         byKey.set(key, {
           stage: stage.stage,
+          populationRole,
           inputUnit: stage.inputUnit || null,
           outputUnit: stage.outputUnit || null,
           inputCounts: [],
           outputCounts: [],
           reasonCounts: {},
+          populationSchemaVersions: new Set(),
+          accountingChecks: [],
         });
       }
       const aggregate = byKey.get(key);
@@ -124,11 +138,24 @@ function summarizeFunnelStages(observations) {
       const outputCount = finiteNumber(stage.outputCount);
       if (inputCount !== null) aggregate.inputCounts.push(inputCount);
       if (outputCount !== null) aggregate.outputCounts.push(outputCount);
+      if (stage.populationSchemaVersion) {
+        aggregate.populationSchemaVersions.add(stage.populationSchemaVersion);
+      }
+      if (typeof stage.accountingConserved === 'boolean') {
+        aggregate.accountingChecks.push(stage.accountingConserved);
+      }
       mergeCounts(aggregate.reasonCounts, stage.reasonCounts);
     });
   });
   return [...byKey.values()].map(stage => ({
     stage: stage.stage,
+    populationRole: stage.populationRole,
+    populationSchemaVersion: stage.populationSchemaVersions.size === 1
+      ? [...stage.populationSchemaVersions][0]
+      : null,
+    accountingConserved: stage.accountingChecks.length
+      ? stage.accountingChecks.every(Boolean)
+      : null,
     inputUnit: stage.inputUnit,
     outputUnit: stage.outputUnit,
     observationCount: Math.max(stage.inputCounts.length, stage.outputCounts.length),
@@ -167,16 +194,52 @@ function displayedIdentityEvidence(displayed = []) {
   };
 }
 
+function editorialIdentityEvidence(observation = {}) {
+  const population = observation.editorialIdentityPopulation || {};
+  const stage = (observation.funnel || []).find(
+    row => row.stage === EDITORIAL_IDENTITY_STAGE,
+  ) || {};
+  const inputCount = finiteNumber(population.inputCount ?? stage.inputCount);
+  const outputCount = finiteNumber(population.outputCount ?? stage.outputCount);
+  const resolvedCandidateCount = finiteNumber(population.resolvedCandidateCount);
+  return {
+    editorialIdentityInputCount: inputCount,
+    editorialIdentityCount: outputCount,
+    resolvedIdentityCandidateCount: resolvedCandidateCount,
+    sharedIdentityCandidateCount: finiteNumber(
+      population.sharedIdentityCandidateCount,
+    ),
+    unresolvedIdentityCandidateCount: finiteNumber(
+      population.unresolvedCandidateCount,
+    ),
+    identityResolutionCoverage:
+      inputCount && resolvedCandidateCount !== null
+        ? resolvedCandidateCount / inputCount
+        : null,
+    identityAccountingConserved:
+      population.accountingConserved ?? stage.accountingConserved ?? null,
+    identityStateCounts: population.identityStateCounts || {},
+    identityMethodCounts: population.identityMethodCounts || {},
+    identityReasonCounts: population.reasonCounts || stage.reasonCounts || {},
+  };
+}
+
 function buildObservationRow(observation) {
   const displayedCount = Number(observation.displayedCount ?? observation.displayed?.length ?? 0);
   const rankedCount = Number(observation.rankedCount ?? observation.ranked?.length ?? 0);
   const displayDepth = Number(observation.displayDepth ?? 10);
   const trace = countTraceReasons(observation.selectionTrace || []);
   const buildReasons = countBy(observation.candidateBuildTrace, 'reasonCode');
-  const combinedReasons = combineCounts(buildReasons, trace.finalReasonCounts);
+  const identityEvidence = editorialIdentityEvidence(observation);
+  const combinedReasons = combineCounts(
+    buildReasons,
+    identityEvidence.identityReasonCounts,
+    trace.finalReasonCounts,
+  );
   const funnelStageCounts = Object.fromEntries((observation.funnel || []).map(stage => [
     stage.stage,
     {
+      populationRole: stage.populationRole || SEQUENTIAL_POPULATION_ROLE,
       inputUnit: stage.inputUnit || null,
       inputCount: finiteNumber(stage.inputCount),
       outputUnit: stage.outputUnit || null,
@@ -198,6 +261,7 @@ function buildObservationRow(observation) {
     underfilled: displayedCount < displayDepth,
     belowSoftReviewDepth: displayedCount < Math.min(SOFT_REVIEW_DEPTH, displayDepth),
     ...displayedIdentityEvidence(observation.displayed || []),
+    ...identityEvidence,
     funnelStageCounts,
     candidateBuildDispositionCounts: countBy(observation.candidateBuildTrace, 'buildDisposition'),
     finalDispositionCounts: trace.finalDispositionCounts,
@@ -212,6 +276,9 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
   const bucketCounts = { '0': 0, '1-3': 0, '4-7': 0, '8-9': 0, '10': 0, other: 0 };
   const candidateBuildDispositionCounts = {};
   const candidateBuildReasonCounts = {};
+  const editorialIdentityReasonCounts = {};
+  const identityStateCounts = {};
+  const identityMethodCounts = {};
   const finalDispositionCounts = {};
   const finalReasonCounts = {};
   const stageReasonCounts = { admission: {}, selection: {}, display: {} };
@@ -226,6 +293,10 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       'buildDisposition',
     ));
     mergeCounts(candidateBuildReasonCounts, countBy(observation.candidateBuildTrace, 'reasonCode'));
+    const identityEvidence = editorialIdentityEvidence(observation);
+    mergeCounts(editorialIdentityReasonCounts, identityEvidence.identityReasonCounts);
+    mergeCounts(identityStateCounts, identityEvidence.identityStateCounts);
+    mergeCounts(identityMethodCounts, identityEvidence.identityMethodCounts);
     const trace = countTraceReasons(observation.selectionTrace || []);
     mergeCounts(finalDispositionCounts, trace.finalDispositionCounts);
     mergeCounts(finalReasonCounts, trace.finalReasonCounts);
@@ -233,19 +304,35 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       mergeCounts(stageReasonCounts[stage], trace.stageReasonCounts[stage]));
   });
 
-  const combinedReasonCounts = combineCounts(candidateBuildReasonCounts, finalReasonCounts);
+  const combinedReasonCounts = combineCounts(
+    candidateBuildReasonCounts,
+    editorialIdentityReasonCounts,
+    finalReasonCounts,
+  );
   const categoryReasonCounts = {};
   Object.entries(combinedReasonCounts).forEach(([reason, count]) =>
     increment(categoryReasonCounts, classifyReason(reason), count));
   const observationCount = rows.length;
   const underfilledCount = rows.filter(row => row.underfilled).length;
   const belowSoftDepthCount = rows.filter(row => row.belowSoftReviewDepth).length;
+  const identityAccountingChecks = rows
+    .map(row => row.identityAccountingConserved)
+    .filter(value => typeof value === 'boolean');
+  const identityAccountingEvidenceCount = identityAccountingChecks.length;
+  const identityAccountingConserved = identityAccountingEvidenceCount
+    ? identityAccountingEvidenceCount === observationCount &&
+      identityAccountingChecks.every(Boolean)
+    : null;
 
   return {
     observationCount,
     softReviewDepth: SOFT_REVIEW_DEPTH,
     rankedCount: summarize(rows.map(row => row.rankedCount)),
     displayedCount: summarize(rows.map(row => row.displayedCount)),
+    editorialIdentityCount: summarize(rows.map(row => row.editorialIdentityCount)),
+    identityResolutionCoverage: summarize(rows.map(row => row.identityResolutionCoverage)),
+    identityAccountingEvidenceCount,
+    identityAccountingConserved,
     railBuckets: bucketCounts,
     underfilledAgainstDisplayDepth: {
       count: underfilledCount,
@@ -260,6 +347,11 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       Object.entries(candidateBuildDispositionCounts).sort(),
     ),
     candidateBuildReasonCounts: Object.fromEntries(Object.entries(candidateBuildReasonCounts).sort()),
+    editorialIdentityReasonCounts: Object.fromEntries(
+      Object.entries(editorialIdentityReasonCounts).sort(),
+    ),
+    identityStateCounts: Object.fromEntries(Object.entries(identityStateCounts).sort()),
+    identityMethodCounts: Object.fromEntries(Object.entries(identityMethodCounts).sort()),
     finalDispositionCounts: Object.fromEntries(Object.entries(finalDispositionCounts).sort()),
     finalReasonCounts: Object.fromEntries(Object.entries(finalReasonCounts).sort()),
     stageReasonCounts: Object.fromEntries(Object.entries(stageReasonCounts).map(([stage, counts]) => [
