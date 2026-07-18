@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784390056997,
-  "contentHash": "3260e9e96f17d063",
+  "generatedAt": 1784390922513,
+  "contentHash": "a8aa20ea5d2f7c95",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 655,
+  "storyCount": 648,
   "sourceGroupCount": 9,
   "grade": "C",
   "parentCount": 10,
-  "avgAngles": 1.9,
+  "avgAngles": 2,
   "avgTemporalTiers": 1.9,
-  "avgEvolutionRoles": 2.1,
-  "baseReportShare": 0.16666666666666666,
-  "multiAngleCount": 7,
-  "weakParentCount": 3,
+  "avgEvolutionRoles": 2,
+  "baseReportShare": 0.13043478260869565,
+  "multiAngleCount": 8,
+  "weakParentCount": 2,
   "runtimeQualityGate": {
     "attempted": false,
     "recovered": false,
@@ -23,82 +23,58 @@
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 60,
+      "signalScore": 64,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 588,
+      "storyCount": 584,
       "risingCount": 1,
-      "thinCount": 3,
-      "multiAngleCount": 7,
-      "lowAngleCount": 3,
+      "thinCount": 2,
+      "multiAngleCount": 8,
+      "lowAngleCount": 2,
       "strongAngleCount": 2,
-      "avgAngles": 1.9,
-      "avgChildren": 2.4,
-      "avgScore": 0.6602609756634015,
+      "avgAngles": 2,
+      "avgChildren": 2.3,
+      "avgScore": 0.6495150092051619,
       "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 5,
-      "coverageLabel": "7/10",
+      "snapshotCoverage": 6,
+      "coverageLabel": "8/10",
       "warnings": [
-        "3 cluster(s) have fewer than two visible child angles.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "3 cluster(s) are marked thin.",
-        "675 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "2 cluster(s) have fewer than two visible child angles.",
+        "4 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are marked thin.",
+        "646 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "C",
       "tone": "warn",
       "title": "Thin but usable signal",
-      "signalScore": 60,
+      "signalScore": 64,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 588,
+      "storyCount": 584,
       "risingCount": 1,
-      "thinCount": 3,
-      "multiAngleCount": 7,
-      "lowAngleCount": 3,
+      "thinCount": 2,
+      "multiAngleCount": 8,
+      "lowAngleCount": 2,
       "strongAngleCount": 2,
-      "avgAngles": 1.9,
-      "avgChildren": 2.4,
-      "avgScore": 0.6602609756634015,
+      "avgAngles": 2,
+      "avgChildren": 2.3,
+      "avgScore": 0.6495150092051619,
       "sourceDiversityCoverage": 10,
-      "snapshotCoverage": 5,
-      "coverageLabel": "7/10",
+      "snapshotCoverage": 6,
+      "coverageLabel": "8/10",
       "warnings": [
-        "3 cluster(s) have fewer than two visible child angles.",
-        "5 cluster(s) have weak snapshot coverage.",
-        "3 cluster(s) are marked thin.",
-        "675 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "2 cluster(s) have fewer than two visible child angles.",
+        "4 cluster(s) have weak snapshot coverage.",
+        "2 cluster(s) are marked thin.",
+        "646 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     }
   },
   "parents": [
     {
-      "parentId": "cluster_308_24ad4691e9c67ac0",
-      "headline": "PM launches India’s first hydrogen-powered train",
-      "score": 0.7083373324356643,
-      "postTreeScore": 1.3183,
-      "childCount": 4,
-      "angles": [
-        "base_report",
-        "official_response",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "developing",
-        "established"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration",
-        "fact_update"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_42_120040df631580fb",
+      "parentId": "cluster_53_120040df631580fb",
       "headline": "India's Skyroot launches Vikram-1 in first private orbital rocket mission - Reuters",
       "score": 0.6672972665083364,
       "postTreeScore": 1.2973,
@@ -120,7 +96,29 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_450_c92fee49bdb9e33d",
+      "parentId": "cluster_320_24ad4691e9c67ac0",
+      "headline": "PM launches India’s first hydrogen-powered train",
+      "score": 0.6838143876382675,
+      "postTreeScore": 1.2938,
+      "childCount": 3,
+      "angles": [
+        "official_response",
+        "base_report",
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking",
+        "established"
+      ],
+      "evolutionRoles": [
+        "corroboration",
+        "fact_update"
+      ],
+      "baseReportShare": 0.3333333333333333,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_462_c92fee49bdb9e33d",
       "headline": "US Senate Bill seeks 100% tariffs on India, China for buying Russian oil",
       "score": 0.6976300531183317,
       "postTreeScore": 1.0776,
@@ -140,7 +138,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_184_532e90073384d905",
+      "parentId": "cluster_195_532e90073384d905",
       "headline": "DCET results announced",
       "score": 0.6697800531183317,
       "postTreeScore": 1.0498,
@@ -161,7 +159,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_95_a71b2e1cf62ddd80",
+      "parentId": "cluster_106_a71b2e1cf62ddd80",
       "headline": "CJP’s Abhijeet Dipke begins indefinite hunger strike, as police shifts Wangchuk to hospital",
       "score": 0.6152616650016849,
       "postTreeScore": 1.0353,
@@ -184,7 +182,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_143_df2f1212e0a72ed9",
+      "parentId": "cluster_154_df2f1212e0a72ed9",
       "headline": "US prosecutor says Justice Department made call to drop Gautam Adani case",
       "score": 0.6005899468816684,
       "postTreeScore": 1.0006,
@@ -205,7 +203,28 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_15_c8fef97549437164",
+      "parentId": "cluster_23_794c69e445c3ad02",
+      "headline": "Indian-origin woman jailed in UK for more than 2 years over Rs 2.8 crore Covid loan fraud",
+      "score": 0.58631,
+      "postTreeScore": 0.9863,
+      "childCount": 2,
+      "angles": [
+        "fact_update",
+        "investigative_detail"
+      ],
+      "temporalTiers": [
+        "developing",
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update",
+        "official_response"
+      ],
+      "baseReportShare": 0,
+      "weakTree": false
+    },
+    {
+      "parentId": "cluster_26_c8fef97549437164",
       "headline": "ISRO-SCTIMST sign pact for research in space medicine, Bioastronautics",
       "score": 0.58551,
       "postTreeScore": 0.9855,
@@ -226,7 +245,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_109_7ab83b21770b9735",
+      "parentId": "cluster_120_7ab83b21770b9735",
       "headline": "India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters",
       "score": 0.6954600000000002,
       "postTreeScore": 0.6055,
@@ -244,7 +263,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_153_cd5003f05158dbbb",
+      "parentId": "cluster_164_cd5003f05158dbbb",
       "headline": "A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far",
       "score": 0.6934967197849984,
       "postTreeScore": 0.5835,
@@ -259,25 +278,6 @@
       "evolutionRoles": [
         "corroboration",
         "cause_claim"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_421_7f37f20d76559150",
-      "headline": "Supreme Court to examine whether persons deleted from voter list in SIR can be denied welfare schemes",
-      "score": 0.6692467197849983,
-      "postTreeScore": 0.5592,
-      "childCount": 2,
-      "angles": [
-        "official_response"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "official_response"
       ],
       "baseReportShare": 0,
       "weakTree": true
@@ -306,7 +306,7 @@
       {
         "id": "avg-angle-count",
         "label": "Average visible angle count",
-        "actual": 1.9,
+        "actual": 2,
         "required": ">= 1.4"
       },
       {
@@ -318,19 +318,19 @@
       {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 2.1,
+        "actual": 2,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.167,
+        "actual": 0.13,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 7,
+        "actual": 8,
         "required": ">= 1"
       },
       {
@@ -342,29 +342,29 @@
       {
         "id": "top-parent-child-depth",
         "label": "Top parent child depth",
-        "actual": 4,
+        "actual": 3,
         "required": ">= 2"
       },
       {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.3,
+        "actual": 0.2,
         "required": "<= 0.5"
       }
     ],
     "failed": [],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.9,
+      "avgAngles": 2,
       "avgTemporalTiers": 1.9,
-      "avgEvolutionRoles": 2.1,
-      "baseReportShare": 0.167,
-      "multiAngleCount": 7,
-      "weakParentCount": 3,
-      "weakParentRatio": 0.3,
+      "avgEvolutionRoles": 2,
+      "baseReportShare": 0.13,
+      "multiAngleCount": 8,
+      "weakParentCount": 2,
+      "weakParentRatio": 0.2,
       "topParentAngles": 3,
-      "topParentChildren": 4,
-      "storyCount": 655,
+      "topParentChildren": 3,
+      "storyCount": 648,
       "sourceGroupCount": 9
     }
   }
