@@ -2,8 +2,12 @@ import {
   TOP_STORIES_IDENTITY_STATES,
 } from '../../src/services/topStories/topStoriesStudyIdentity.js';
 
-export const EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION =
+export const EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1 =
   'nw-top-stories-editorial-identity-population/v1';
+export const EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2 =
+  'nw-top-stories-editorial-identity-population/v2';
+export const EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION =
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2;
 export const EDITORIAL_IDENTITY_UNIT = 'EDITORIAL_IDENTITY';
 export const RANKING_CANDIDATE_UNIT = 'RANKING_CANDIDATE';
 export const EDITORIAL_IDENTITY_POPULATION_ROLE = 'ANALYTICAL_SIDE_POPULATION';
@@ -98,7 +102,7 @@ export function buildEditorialIdentityPopulation(identifiedCandidates = []) {
   const accountedCandidateCount = outputCount + totalCounts(reasonCounts);
 
   return {
-    schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+    schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
     populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
     inputUnit: RANKING_CANDIDATE_UNIT,
     inputCount,
@@ -117,6 +121,15 @@ export function buildEditorialIdentityPopulation(identifiedCandidates = []) {
   };
 }
 
+function v2FunnelFields(population = {}) {
+  if (!Array.isArray(population.identityMembershipEdges)) return {};
+  return {
+    membershipEdgeCount: Number(population.identityMembershipEdgeCount || 0),
+    dispositionCount: Number(population.dispositionCount || 0),
+    identityStateCounts: sortedCounts(population.identityStateCounts || {}),
+  };
+}
+
 export function buildEditorialIdentityFunnelStage(population = {}) {
   return {
     stage: EDITORIAL_IDENTITY_FUNNEL_STAGE,
@@ -127,6 +140,7 @@ export function buildEditorialIdentityFunnelStage(population = {}) {
     inputCount: Number(population.inputCount || 0),
     outputUnit: population.outputUnit || EDITORIAL_IDENTITY_UNIT,
     outputCount: Number(population.outputCount || 0),
+    ...v2FunnelFields(population),
     reasonCounts: sortedCounts(population.reasonCounts || {}),
     accountingConserved: population.accountingConserved === true,
   };
