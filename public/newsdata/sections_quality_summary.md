@@ -2,9 +2,9 @@
 
 - Status: **WARN**
 - Schema: `2`
-- Content hash: `ecf5b35832bb`
+- Content hash: `312ac0ed92d6`
 - Sections: `10`
-- Stories: `283`
+- Stories: `281`
 - Source groups: `10`
 - Retain hours: `36`
 
@@ -19,9 +19,9 @@
 | muscat | 30 | 2 | False |
 | world | 30 | 2 | False |
 | business | 30 | 3 | False |
-| technology | 30 | 3 | False |
+| technology | 27 | 3 | False |
 | sports | 30 | 3 | False |
-| entertainment | 16 | 1 | True |
+| entertainment | 17 | 1 | True |
 
 ## Warnings
 
