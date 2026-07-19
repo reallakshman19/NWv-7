@@ -5,14 +5,14 @@
 - Grade: `C`
 - Parents: `10`
 - Average angles: `1.7`
-- Average temporal tiers: `2`
-- Average evolution roles: `2.1`
-- Base report share: `0.043478260869565216`
+- Average temporal tiers: `1.9`
+- Average evolution roles: `2`
+- Base report share: `0.045454545454545456`
 - Multi-angle parents: `6`
 - Weak parents: `4`
-- Story count: `546`
-- Source groups: `10`
-- Content hash: `51c29cd030461218`
+- Story count: `471`
+- Source groups: `9`
+- Content hash: `e7eb02b474ebbc16`
 
 ## Top parents
 
@@ -27,7 +27,7 @@
 | 7 | India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters | 2 | fact_update | YES | 0.7034467197849983 |
 | 8 | A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far | 2 | official_response | YES | 0.6934967197849984 |
 | 9 | Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com | 3 | official_response | YES | 0.6365487346782661 |
-| 10 | BCCI secretary dismisses speculation on Rohit Sharma's ODI future | 2 | official_response | YES | 0.546856613548335 |
+| 10 | Lohia Corp IPO opens on July 23: Here’s all you need to know | 1 | market_reaction | YES | 0.7226911614783158 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -37,9 +37,9 @@
 - Score: `100`
 - Parents: `10`
 - Average angles: `1.7`
-- Average temporal tiers: `2`
-- Average evolution roles: `2.1`
-- Base report share: `0.043`
+- Average temporal tiers: `1.9`
+- Average evolution roles: `2`
+- Base report share: `0.045`
 - Multi-angle parents: `6`
 - Top parent angles: `3`
 - Top parent children: `3`
@@ -53,9 +53,9 @@
 - Real snapshot grade floor: `C` / `A/B/C`
 - Parent cluster count: `10` / `>= 3`
 - Average visible angle count: `1.7` / `>= 1.4`
-- Average temporal tier count: `2` / `>= 1.8`
-- Average evolution role count: `2.1` / `>= 1.6`
-- Base report share: `0.043` / `<= 0.55`
+- Average temporal tier count: `1.9` / `>= 1.8`
+- Average evolution role count: `2` / `>= 1.6`
+- Base report share: `0.045` / `<= 0.55`
 - Multi-angle parent count: `6` / `>= 1`
 - Top parent angle count: `3` / `>= 2`
 - Top parent child depth: `3` / `>= 2`
