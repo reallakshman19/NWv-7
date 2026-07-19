@@ -53,13 +53,46 @@ function getRank(candidate = {}) {
   return candidate._topStoryRank || candidate.rank || {};
 }
 
-function getCandidates(snapshot = {}, candidateTrace) {
+function getScoredCandidates(snapshot = {}, candidateTrace) {
   if (Array.isArray(snapshot.scoredCandidates)) return snapshot.scoredCandidates;
   if (Array.isArray(candidateTrace?.scoredCandidates)) {
     return candidateTrace.scoredCandidates;
   }
   if (Array.isArray(candidateTrace)) return candidateTrace;
   return [];
+}
+
+function getRankedCandidatePopulation(snapshot = {}, candidateTrace) {
+  const candidateSources = [
+    snapshot.rankedCandidates,
+    snapshot.ranked,
+    snapshot.selected,
+    candidateTrace?.rankedCandidates,
+    candidateTrace?.ranked,
+    candidateTrace?.selected,
+  ];
+  const candidates = candidateSources.find(Array.isArray);
+  return {
+    available: Boolean(candidates),
+    candidates: candidates || [],
+  };
+}
+
+function getCandidatePopulation(snapshot = {}, candidateTrace, policy) {
+  if (policy.includeOutsideRankerLimit !== false) {
+    return {
+      available: true,
+      candidates: getScoredCandidates(snapshot, candidateTrace),
+    };
+  }
+  return getRankedCandidatePopulation(snapshot, candidateTrace);
+}
+
+function getCandidatePopulationUncertainty(population, label, policy) {
+  if (policy.includeOutsideRankerLimit !== false || population.available) {
+    return null;
+  }
+  return `${label}_ranked_candidate_population_missing`;
 }
 
 function getSnapshotUncertainty(snapshot, label) {
@@ -173,9 +206,21 @@ export function classifyTopStoriesPeriod({
     criticalEventTypes: classifierPolicy.criticalEventTypes ||
       DEFAULT_TOP_STORIES_PERIOD_POLICY.criticalEventTypes,
   };
+  const priorPopulation = getCandidatePopulation(
+    priorSnapshot,
+    null,
+    policy,
+  );
+  const currentPopulation = getCandidatePopulation(
+    currentSnapshot,
+    candidateTrace,
+    policy,
+  );
   const uncertainties = [
     getSnapshotUncertainty(priorSnapshot, 'prior'),
     getSnapshotUncertainty(currentSnapshot, 'current'),
+    getCandidatePopulationUncertainty(priorPopulation, 'prior', policy),
+    getCandidatePopulationUncertainty(currentPopulation, 'current', policy),
     getSourceHealthUncertainty(sourceHealth, policy),
     getIdentityUncertainty(identityTransitions),
   ].filter(Boolean);
@@ -190,11 +235,9 @@ export function classifyTopStoriesPeriod({
     };
   }
 
-  const priorCandidates = getCandidates(priorSnapshot);
-  const currentCandidates = getCandidates(currentSnapshot, candidateTrace);
   const activeEvidence = findActiveEvidence(
-    priorCandidates,
-    currentCandidates,
+    priorPopulation.candidates,
+    currentPopulation.candidates,
     policy,
   );
   return {
