@@ -53,18 +53,18 @@
     },
     "insight": {
       "actionableFindings": [
-        "Insight event/angle ranking has no critical demotion finding"
+        "2 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 3
+            "itemCount": 6
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
-          "score": 0.5,
+          "score": 1.0,
           "status": "PASS"
         },
         {
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 0,
+        "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 3,
-        "parentClusters": 3,
-        "strongParents": 3,
+        "inputCandidateCount": 6,
+        "parentClusters": 6,
+        "strongParents": 6,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.4457,
+      "qualityScore": 0.3993,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -330,6 +330,116 @@
             },
             {
               "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:66b5e4d079",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:66b5e4d079",
+            "representativeId": "544d7acd4c78e4ca",
+            "representativeTitle": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "544d7acd4c78e4ca",
+              "e89c88fb92141e90"
+            ],
+            "topAngles": [
+              {
+                "angle": "reaction_public",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "breaking",
+              "facebook",
+              "suffers",
+              "widespread"
+            ],
+            "topicKey": "breaking|facebook|suffers"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
                 "baseReportRatio": 0.5,
                 "distinctAngles": 1
               },
@@ -431,17 +541,235 @@
           ],
           "score": 0.2764,
           "title": "US military launches new airstrikes to 'swiftly punish' Iran for deaths of US troops"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 3
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 3
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.75,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:35b457e4f1",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:35b457e4f1",
+            "representativeId": "22834d838d943345",
+            "representativeTitle": "Top news of the day | July 5, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.71,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 3,
+            "storyIds": [
+              "22834d838d943345",
+              "af97b141f1b4b7cb",
+              "469eb159c1656943"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 3
+              }
+            ],
+            "topTokens": [
+              "july",
+              "hindu"
+            ],
+            "topicKey": "july|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1885,
+          "title": "Top news of the day | July 5, 2026 - The Hindu"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 3
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 3
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.75,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:c1c58008d6",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:c1c58008d6",
+            "representativeId": "b65533a7f527bd54",
+            "representativeTitle": "Top news of the day | June 29, 2026 - The Hindu",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.71,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "google_news"
+            ],
+            "storyCount": 3,
+            "storyIds": [
+              "b65533a7f527bd54",
+              "df71bc9e8f9d5353",
+              "bf952c0b99344c4d"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 3
+              }
+            ],
+            "topTokens": [
+              "june",
+              "hindu"
+            ],
+            "topicKey": "june|hindu"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1885,
+          "title": "Top news of the day | June 29, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.4267,
-        "eventImportanceScore": 0.59,
+        "angleDiversityScore": 0.3383,
+        "eventImportanceScore": 0.63,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.5167,
-        "sourceAuthorityScore": 0.54,
-        "sourceDiversityScore": 0.5967,
-        "temporalEvolutionScore": 0.45
+        "noveltyDeltaScore": 0.4833,
+        "sourceAuthorityScore": 0.46,
+        "sourceDiversityScore": 0.4733,
+        "temporalEvolutionScore": 0.41
       }
     },
     "localTravel": {
@@ -501,13 +829,17 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "8 invalid/expired/duplicate Up Ahead item(s) suppressed"
+        "10 invalid/expired/duplicate Up Ahead item(s) suppressed"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Back-to-school shopping just got more affordable— Target is offering up to 76% off right now - NBC News: location failed — offline/local item lacks configured location match",
         "Ready for a patio refresh? Wayfair is offering up to 71% off outdoor furniture this weekend — here’s what to shop - NBC News: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: futureValidity failed — expired display window",
+        "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: alertUrgency failed — alert expired",
+        "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: futureValidity failed — expired display window",
+        "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: alertUrgency failed — alert expired",
         "Amazon’s $25 Billion Bond Sale Created 3 More Reasons for Me to Keep Buying - 24/7 Wall St.: location failed — offline/local item lacks configured location match",
         "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
         "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
@@ -527,9 +859,9 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 25,
+              "alerts": 24,
               "shopping": 4,
-              "weather_alerts": 1
+              "weather_alerts": 2
             }
           },
           "name": "categoryCoverage",
@@ -541,17 +873,17 @@
       "gateSummary": {
         "alerts": 26,
         "categoryCounts": {
-          "alerts": 25,
+          "alerts": 24,
           "shopping": 4,
-          "weather_alerts": 1
+          "weather_alerts": 2
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 42,
+        "inputItemCount": 44,
         "locationCounts": {
-          "chennai": 25,
+          "chennai": 24,
           "muscat": 2,
-          "trichy": 3
+          "trichy": 4
         },
         "locationsCovered": [
           "chennai",
@@ -562,10 +894,10 @@
         "onlineOffers": 0,
         "plannerAdvisoryItems": 30,
         "rankedItemCount": 30,
-        "suppressedItemCount": 8
+        "suppressedItemCount": 10
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8452,
+      "qualityScore": 0.8472,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1493,6 +1825,121 @@
           "gates": [
             {
               "details": {
+                "dedupKey": "eed05241dc353313"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784567254000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "trichy",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "7fdec291fe1d1d73",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Trichy",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784567254000,
+            "id": "7fdec291fe1d1d73",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785172054000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784567254000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 0.9,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784480854000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Trichy",
+            "sourceGroup": "the_hindu",
+            "summary": "P.R. Pandian, president of the Coordination Committee of All Farmers Associations of Tamil Nadu, says it will jeopardise the farmers of the State and is against the law and farmers’ interests",
+            "suppressionReason": null,
+            "title": "Farmers body urges the DMK to drop its demand to form Mekedatu tribunal",
+            "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/farmers-body-urges-the-dmk-to-drop-its-demand-to-form-mekedatu-tribunal/article71241509.ece"
+          },
+          "locationKey": "trichy",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "Farmers body urges the DMK to drop its demand to form Mekedatu tribunal"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
                 "dedupKey": "07a53c522573b0a9"
               },
               "name": "dedup",
@@ -1602,121 +2049,6 @@
           ],
           "score": 0.8485,
           "title": "Key link road behind DMS Metro in Teynampet leading to Gopalapuram hit by ‘blocks’"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "864b1a609b3e4606"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784482845000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "d067e9e288be7d36",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784482845000,
-            "id": "d067e9e288be7d36",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785087645000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784482845000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784396445000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road",
-            "url": "https://www.thehindu.com/news/cities/chennai/lorry-runs-over-elderly-man-while-reversing-onto-vanagaram-poonamallee-service-road/article71238482.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road"
         },
         {
           "category": "alerts",
@@ -2984,6 +3316,121 @@
           "title": "Heavy rain forecast in Tamil Nadu’s Western Ghat; dry spell to continue in northern districts - DD News"
         },
         {
+          "category": "weather_alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "b1cb6a76a92a8c93"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784524156000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "e7cdfadfc374f2b0",
+          "item": {
+            "actionabilityScore": 1.0,
+            "category": "weather_alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784524156000,
+            "id": "e7cdfadfc374f2b0",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785128956000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784524156000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "weather_alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784437756000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 0.98,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "Google News Chennai Weather",
+            "sourceGroup": "google_news",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2AFBVV95cUxNbk1HS1g2cVNsMmpJX3p0UnUzRW5xbnJ3azZSdnl6dV9VOUptRmVTd0xzZkQ1dU1JRWhsSHY3ZnpqQ1ZpSVdkS01wbGNTeVpoblZJQ2tyVGtnd3p6NEg0UDRUUlFrRG45dTlGcV83QTQwbTZvWFBBNjdIa0pFX2dfZ1dXbEZqazlDalFkMlA3OHV3NkJORWE4RXg5bC1tYzRBNjl4d3Y4dHpUQ3B2b0d3RnVVRWtWM2psd2hEUkg4Z0U0dFZZVkpWeHk5UERmbndfMTJiUVFXbjjSAeMBQVVfeXFMT0gwU3FnYXBuRHdhSkltX196S0h4M1NhdGNJaHRWbmdoclI0RXVTYzg1aTd3LTA2NTVkU3Y3dmQ5VE9EYl9kVk04NGdUeEZXYzhrSDUyaGo2REtsM0NyZUs1ME1GMXNNY0VwdFlSc0NtQTYwUGQtS18zSDk2ZEFjTmpMUkZYN19UYUtuX0w5Q185LXB0Zm1hcXRpMVdsS0FJRXQ5R1VJWUlISDQzeF9OT1gtR2JueTBkMTJMUXViWnRCaC1EQnM4TW5IVDd0WXhGZ0l2X1ZaNXZGUUxqZVlyTUdKSjQ?oc=5\" target=\"_blank\">Mumbai Weather Alert: IMD Issues ‘Yellow Alert’ Warning, Maharashtra Capital To See Rainfall Next Week</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Goodreturns</font>",
+            "suppressionReason": null,
+            "title": "Mumbai Weather Alert: IMD Issues ‘Yellow Alert’ Warning, Maharashtra Capital To See Rainfall Next Week - Goodreturns",
+            "url": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxNbk1HS1g2cVNsMmpJX3p0UnUzRW5xbnJ3azZSdnl6dV9VOUptRmVTd0xzZkQ1dU1JRWhsSHY3ZnpqQ1ZpSVdkS01wbGNTeVpoblZJQ2tyVGtnd3p6NEg0UDRUUlFrRG45dTlGcV83QTQwbTZvWFBBNjdIa0pFX2dfZ1dXbEZqazlDalFkMlA3OHV3NkJORWE4RXg5bC1tYzRBNjl4d3Y4dHpUQ3B2b0d3RnVVRWtWM2psd2hEUkg4Z0U0dFZZVkpWeHk5UERmbndfMTJiUVFXbjjSAeMBQVVfeXFMT0gwU3FnYXBuRHdhSkltX196S0h4M1NhdGNJaHRWbmdoclI0RXVTYzg1aTd3LTA2NTVkU3Y3dmQ5VE9EYl9kVk04NGdUeEZXYzhrSDUyaGo2REtsM0NyZUs1ME1GMXNNY0VwdFlSc0NtQTYwUGQtS18zSDk2ZEFjTmpMUkZYN19UYUtuX0w5Q185LXB0Zm1hcXRpMVdsS0FJRXQ5R1VJWUlISDQzeF9OT1gtR2JueTBkMTJMUXViWnRCaC1EQnM4TW5IVDd0WXhGZ0l2X1ZaNXZGUUxqZVlyTUdKSjQ?oc=5"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "weather_alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8455,
+          "title": "Mumbai Weather Alert: IMD Issues ‘Yellow Alert’ Warning, Maharashtra Capital To See Rainfall Next Week - Goodreturns"
+        },
+        {
           "category": "shopping",
           "gates": [
             {
@@ -3028,7 +3475,7 @@
             },
             {
               "details": {
-                "hoursLeft": 12.27
+                "hoursLeft": 11.02
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3143,7 +3590,7 @@
             },
             {
               "details": {
-                "hoursLeft": 35.08
+                "hoursLeft": 33.82
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -3674,121 +4121,6 @@
           "title": "With her dance moves, this conservancy worker from Chennai has become the new face of social media algorithm"
         },
         {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "7a2b9c1eea15d903"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784482810000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.55,
-                "matchedLocation": "global",
-                "relevance": "global",
-                "scope": "global"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.55,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "40e3a7969545124d",
-          "item": {
-            "actionabilityScore": 1.0,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784482810000,
-            "id": "40e3a7969545124d",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785087610000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784482810000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784396410000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.55,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Passengers and industry representatives stress need for a modern second airport to attract airlines; Chennai trails behind Bengaluru in international flight connectivity; bigger airport will serve city’s rising population, business needs, says report",
-            "suppressionReason": null,
-            "title": "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog",
-            "url": "https://www.thehindu.com/news/cities/chennai/chennai-needs-expanded-airport-has-limited-direct-flights-to-europe-niti-aayog/article71237892.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.7585,
-          "title": "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog"
-        },
-        {
           "category": "shopping",
           "gates": [
             {
@@ -3833,7 +4165,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.21
+                "hoursLeft": 7.95
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3948,7 +4280,7 @@
             },
             {
               "details": {
-                "hoursLeft": 20.74
+                "hoursLeft": 19.49
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4022,16 +4354,16 @@
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
         "actionabilityScore": 0.99,
-        "categoryPriorityScore": 0.9567,
+        "categoryPriorityScore": 0.956,
         "lifecycleScore": 0.65,
-        "locationScore": 0.929,
+        "locationScore": 0.944,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
         "urgencyOrExpiryScore": 0.8107
       }
     }
   },
-  "generatedAt": 1784479294587,
+  "generatedAt": 1784483815140,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4050,7 +4382,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "8 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "10 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4058,13 +4390,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "Insight event/angle ranking has no critical demotion finding"
+      "2 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.4457,
+      "insight": 0.3993,
       "localTravel": 0.0,
-      "upAhead": 0.8452
+      "upAhead": 0.8472
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4072,7 +4404,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3227,
+    "overallScore": 0.3116,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4084,6 +4416,10 @@
       "Back-to-school shopping just got more affordable— Target is offering up to 76% off right now - NBC News: location failed — offline/local item lacks configured location match",
       "Ready for a patio refresh? Wayfair is offering up to 71% off outdoor furniture this weekend — here’s what to shop - NBC News: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: futureValidity failed — expired display window",
+      "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: alertUrgency failed — alert expired",
+      "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: futureValidity failed — expired display window",
+      "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: alertUrgency failed — alert expired",
       "Amazon’s $25 Billion Bond Sale Created 3 More Reasons for Me to Keep Buying - 24/7 Wall St.: location failed — offline/local item lacks configured location match",
       "Amazon beauty sale 2026 makes high-end beauty affordable - international quality, Indian pricing - MSN: location failed — offline/local item lacks configured location match",
       "Amazon Mega Electronic Days Sale: Deals on laptops, tablets and more - FoneArena.com: location failed — offline/local item lacks configured location match",
