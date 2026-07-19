@@ -996,7 +996,7 @@
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 54,
+        "inputItemCount": 53,
         "locationCounts": {
           "chennai": 20,
           "trichy": 10
@@ -1819,121 +1819,6 @@
           ],
           "score": 0.8485,
           "title": "Chennai hospital gets non-invasive ventilator, pulse oximeters"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "135977b4a606ecb7"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784457549000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "1438258555622823",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784457549000,
-            "id": "1438258555622823",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785062349000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784457549000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784371149000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "Ahead of the FIFA World Cup final, Vyasarpadi residents share their hopes and dreams for Indian football",
-            "suppressionReason": null,
-            "title": "Chennai’s mini Brazil has a World Cup dream",
-            "url": "https://www.thehindu.com/life-and-style/chennais-mini-brazil-has-a-world-cup-dream/article71237173.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Chennai’s mini Brazil has a World Cup dream"
         },
         {
           "category": "alerts",
@@ -4464,6 +4349,121 @@
           ],
           "score": 0.8485,
           "title": "T.N. government implements e-Zero FIR system for faster action against cyber financial scams"
+        },
+        {
+          "category": "alerts",
+          "gates": [
+            {
+              "details": {
+                "dedupKey": "d704b79a6e949ba6"
+              },
+              "name": "dedup",
+              "reason": "unique item",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "displayUntil": 1784528850000
+              },
+              "name": "futureValidity",
+              "reason": "valid undated item with active display window",
+              "score": 0.65,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "matchScore": 1.0,
+                "matchedLocation": "chennai",
+                "relevance": "primary",
+                "scope": "exactCity"
+              },
+              "name": "location",
+              "reason": "location matches configured profile",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "hasPlace": true,
+                "hasTime": true
+              },
+              "name": "actionability",
+              "reason": "item has enough action fields",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "offerValidity",
+              "reason": "not an offer",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "severe": false
+              },
+              "name": "alertUrgency",
+              "reason": "active alert",
+              "score": 0.78,
+              "status": "PASS"
+            }
+          ],
+          "id": "d576fd7ca9142535",
+          "item": {
+            "actionabilityScore": 0.7,
+            "category": "alerts",
+            "city": "Chennai",
+            "contentClass": "upahead_alert",
+            "dateConfidence": "unknown",
+            "dateSource": "none",
+            "eventEndAt": null,
+            "eventStartAt": null,
+            "expiryAt": 1784528850000,
+            "id": "d576fd7ca9142535",
+            "language": "en",
+            "lifecycle": {
+              "archiveUntil": 1785133650000,
+              "contentClass": "upahead_alert",
+              "displayUntil": 1784528850000,
+              "isActionValid": true,
+              "isVisible": true,
+              "plannerEligibleByLifecycle": true,
+              "plannerPastGraceHours": 6,
+              "retentionReason": "expiryAt",
+              "withinSevenDayHorizon": true
+            },
+            "localityScore": 1.0,
+            "normalizedCategory": "alerts",
+            "plannerEligible": true,
+            "publishedAt": 1784442450000,
+            "region": "tn",
+            "scoreBreakdown": {
+              "actionabilityScore": 1.0,
+              "categoryPriorityScore": 1.0,
+              "lifecycleScore": 0.65,
+              "locationScore": 1.0,
+              "plannerFitScore": 1.0,
+              "sourceConfidenceScore": 0.58,
+              "urgencyOrExpiryScore": 0.78
+            },
+            "source": "The Hindu Chennai",
+            "sourceGroup": "the_hindu",
+            "summary": "A leitmotif among blood donation organisations is the increasing difficulty in finding people with “generous veins”; and the solution could strangely be found in the living rooms of households, as illustrated by these two accounts from Chennai of parents inspiring their children to join the cause",
+            "suppressionReason": null,
+            "title": "The fine art of creating blood donors at home; and resources for those in Chennai seeking to donate blood",
+            "url": "https://www.thehindu.com/news/cities/chennai/collective-kindness-when-families-support-the-cause-of-blood-donation/article71239297.ece"
+          },
+          "locationKey": "chennai",
+          "rankingReasons": [
+            "alerts",
+            "valid undated item with active display window",
+            "location matches configured profile",
+            "planner advisory fit"
+          ],
+          "score": 0.8485,
+          "title": "The fine art of creating blood donors at home; and resources for those in Chennai seeking to donate blood"
         }
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
@@ -4478,7 +4478,7 @@
       }
     }
   },
-  "generatedAt": 1784455692796,
+  "generatedAt": 1784461027339,
   "implementedDestinations": [
     "upAhead",
     "buzz",
