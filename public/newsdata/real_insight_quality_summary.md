@@ -10,9 +10,9 @@
 - Base report share: `0.17391304347826086`
 - Multi-angle parents: `9`
 - Weak parents: `1`
-- Story count: `475`
-- Source groups: `10`
-- Content hash: `9344e4607ffc7ca4`
+- Story count: `463`
+- Source groups: `9`
+- Content hash: `fa6eee676f0cf70b`
 
 ## Top parents
 
@@ -26,7 +26,7 @@
 | 6 | Indian-origin woman jailed in UK for more than 2 years over Rs 2.8 crore Covid loan fraud | 2 | fact_update, investigative_detail | NO | 0.6502967197849984 |
 | 7 | India's Skyroot launches Vikram-1 in first private orbital rocket mission - Reuters | 2 | fact_update, investigative_detail | NO | 0.6169462101805387 |
 | 8 | US military launches new airstrikes to 'swiftly punish' Iran for deaths of US troops | 2 | official_response, base_report | NO | 0.6045100000000001 |
-| 9 | Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless' | 2 | market_reaction, official_response | NO | 0.5385933333333333 |
+| 9 | Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless' | 2 | market_reaction, official_response | NO | 0.5585933333333333 |
 | 10 | India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters | 2 | fact_update | YES | 0.6954600000000002 |
 
 ## Real Snapshot Ratchet Gate
