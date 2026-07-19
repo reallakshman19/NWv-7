@@ -5,6 +5,8 @@ import {
   EDITORIAL_IDENTITY_FUNNEL_STAGE,
   EDITORIAL_IDENTITY_POPULATION_ROLE,
   EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2,
   EDITORIAL_IDENTITY_UNIT,
   RANKING_CANDIDATE_UNIT,
 } from '../../../scripts/top-stories-shadow/editorialIdentityPopulation.mjs';
@@ -52,12 +54,14 @@ function population(rows = candidates()) {
   );
 }
 
-describe('Top Stories editorial identity population', () => {
-  it('conserves candidates across resolved, shared and excluded identities', () => {
+describe('Top Stories editorial identity population v1 compatibility', () => {
+  it('keeps v1 semantics while publishing v2 as the active contract', () => {
     const result = population();
 
+    expect(EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION)
+      .toBe(EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2);
     expect(result).toMatchObject({
-      schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+      schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
       populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
       inputUnit: RANKING_CANDIDATE_UNIT,
       inputCount: 5,
@@ -85,14 +89,14 @@ describe('Top Stories editorial identity population', () => {
     expect(result.editorialIdentities).toHaveLength(1);
   });
 
-  it('builds a side-population funnel stage without changing candidate flow', () => {
+  it('keeps the historical v1 side-population funnel shape', () => {
     const result = population();
     const stage = buildEditorialIdentityFunnelStage(result);
 
     expect(stage).toEqual({
       stage: EDITORIAL_IDENTITY_FUNNEL_STAGE,
       populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
-      populationSchemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
+      populationSchemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
       inputUnit: RANKING_CANDIDATE_UNIT,
       inputCount: 5,
       outputUnit: EDITORIAL_IDENTITY_UNIT,
@@ -102,14 +106,11 @@ describe('Top Stories editorial identity population', () => {
     });
   });
 
-  it('is deterministic under source permutation', () => {
-    const forward = population(candidates());
-    const reverse = population([...candidates()].reverse());
-
-    expect(reverse).toEqual(forward);
+  it('keeps v1 deterministic under source permutation', () => {
+    expect(population([...candidates()].reverse())).toEqual(population());
   });
 
-  it('fails closed when a resolved state has no identity value', () => {
+  it('keeps the v1 resolved-without-value historical disposition', () => {
     const result = buildEditorialIdentityPopulation([{
       _studyIdentity: {
         identityState: TOP_STORIES_IDENTITY_STATES.RESOLVED,
@@ -119,6 +120,7 @@ describe('Top Stories editorial identity population', () => {
     }]);
 
     expect(result).toMatchObject({
+      schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
       inputCount: 1,
       outputCount: 0,
       resolvedCandidateCount: 0,
