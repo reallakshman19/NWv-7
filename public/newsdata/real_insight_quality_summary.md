@@ -6,13 +6,13 @@
 - Parents: `10`
 - Average angles: `2`
 - Average temporal tiers: `2.1`
-- Average evolution roles: `2.1`
-- Base report share: `0.13043478260869565`
+- Average evolution roles: `2.2`
+- Base report share: `0.125`
 - Multi-angle parents: `8`
 - Weak parents: `2`
-- Story count: `453`
-- Source groups: `10`
-- Content hash: `11d25468a61fb57d`
+- Story count: `390`
+- Source groups: `9`
+- Content hash: `50fa8525790faf98`
 
 ## Top parents
 
@@ -27,7 +27,7 @@
 | 7 | Indian-origin woman jailed in UK for more than 2 years over Rs 2.8 crore Covid loan fraud | 2 | fact_update, investigative_detail | NO | 0.58631 |
 | 8 | Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless' | 2 | market_reaction, official_response | NO | 0.5385933333333333 |
 | 9 | India's Axis Bank report 23% rise in Q1 net profit, beating estimates - Reuters | 2 | fact_update | YES | 0.6954600000000002 |
-| 10 | A 7.3-magnitude earthquake hits Mexico-Guatemala border; no damage reported so far | 2 | official_response | YES | 0.6934967197849984 |
+| 10 | Sonam Wangchuk’s wife breaks silence after Delhi Police shift him to hospital, warns authorities against brea - India.Com | 3 | official_response | YES | 0.6365487346782661 |
 
 ## Real Snapshot Ratchet Gate
 
@@ -38,8 +38,8 @@
 - Parents: `10`
 - Average angles: `2`
 - Average temporal tiers: `2.1`
-- Average evolution roles: `2.1`
-- Base report share: `0.13`
+- Average evolution roles: `2.2`
+- Base report share: `0.125`
 - Multi-angle parents: `8`
 - Top parent angles: `3`
 - Top parent children: `3`
@@ -54,8 +54,8 @@
 - Parent cluster count: `10` / `>= 3`
 - Average visible angle count: `2` / `>= 1.4`
 - Average temporal tier count: `2.1` / `>= 1.8`
-- Average evolution role count: `2.1` / `>= 1.6`
-- Base report share: `0.13` / `<= 0.55`
+- Average evolution role count: `2.2` / `>= 1.6`
+- Base report share: `0.125` / `<= 0.55`
 - Multi-angle parent count: `8` / `>= 1`
 - Top parent angle count: `3` / `>= 2`
 - Top parent child depth: `3` / `>= 2`
