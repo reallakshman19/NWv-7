@@ -1,5 +1,12 @@
 export const TOP_STORIES_PERIOD_CLASSIFIER_VERSION =
   'nw-top-stories-period-classifier-v1';
+export const TOP_STORIES_PERIOD_CLASSIFIER_SCOPE_VERSION =
+  'nw-top-stories-period-classifier-v2';
+
+const SUPPORTED_PERIOD_CLASSIFIER_VERSIONS = new Set([
+  TOP_STORIES_PERIOD_CLASSIFIER_VERSION,
+  TOP_STORIES_PERIOD_CLASSIFIER_SCOPE_VERSION,
+]);
 
 export const DEFAULT_TOP_STORIES_PERIOD_POLICY = Object.freeze({
   version: TOP_STORIES_PERIOD_CLASSIFIER_VERSION,
@@ -53,13 +60,57 @@ function getRank(candidate = {}) {
   return candidate._topStoryRank || candidate.rank || {};
 }
 
-function getCandidates(snapshot = {}, candidateTrace) {
+function getScoredCandidates(snapshot = {}, candidateTrace) {
   if (Array.isArray(snapshot.scoredCandidates)) return snapshot.scoredCandidates;
   if (Array.isArray(candidateTrace?.scoredCandidates)) {
     return candidateTrace.scoredCandidates;
   }
   if (Array.isArray(candidateTrace)) return candidateTrace;
   return [];
+}
+
+function getRankedCandidatePopulation(snapshot = {}, candidateTrace) {
+  const candidateSources = [
+    snapshot.rankedCandidates,
+    snapshot.ranked,
+    candidateTrace?.rankedCandidates,
+    candidateTrace?.ranked,
+  ];
+  const candidates = candidateSources.find(Array.isArray);
+  return {
+    available: Boolean(candidates),
+    candidates: candidates || [],
+  };
+}
+
+function getPolicyScopeUncertainty(policy) {
+  if (!SUPPORTED_PERIOD_CLASSIFIER_VERSIONS.has(policy.version)) {
+    return 'period_classifier_version_unsupported';
+  }
+  if (
+    policy.version === TOP_STORIES_PERIOD_CLASSIFIER_VERSION &&
+    policy.includeOutsideRankerLimit === false
+  ) {
+    return 'period_classifier_scope_requires_v2';
+  }
+  return null;
+}
+
+function getCandidatePopulation(snapshot = {}, candidateTrace, policy) {
+  if (policy.includeOutsideRankerLimit !== false) {
+    return {
+      available: true,
+      candidates: getScoredCandidates(snapshot, candidateTrace),
+    };
+  }
+  return getRankedCandidatePopulation(snapshot, candidateTrace);
+}
+
+function getCandidatePopulationUncertainty(population, label, policy) {
+  if (policy.includeOutsideRankerLimit !== false || population.available) {
+    return null;
+  }
+  return `${label}_ranked_candidate_population_missing`;
 }
 
 function getSnapshotUncertainty(snapshot, label) {
@@ -159,6 +210,56 @@ function findActiveEvidence(priorCandidates, currentCandidates, policy) {
   return evidence;
 }
 
+function buildPolicy(classifierPolicy) {
+  return {
+    ...DEFAULT_TOP_STORIES_PERIOD_POLICY,
+    ...classifierPolicy,
+    criticalEventTypes: classifierPolicy.criticalEventTypes ||
+      DEFAULT_TOP_STORIES_PERIOD_POLICY.criticalEventTypes,
+  };
+}
+
+function getUncertainties({
+  priorSnapshot,
+  currentSnapshot,
+  priorPopulation,
+  currentPopulation,
+  sourceHealth,
+  identityTransitions,
+  policy,
+}) {
+  return [
+    getPolicyScopeUncertainty(policy),
+    getSnapshotUncertainty(priorSnapshot, 'prior'),
+    getSnapshotUncertainty(currentSnapshot, 'current'),
+    getCandidatePopulationUncertainty(priorPopulation, 'prior', policy),
+    getCandidatePopulationUncertainty(currentPopulation, 'current', policy),
+    getSourceHealthUncertainty(sourceHealth, policy),
+    getIdentityUncertainty(identityTransitions),
+  ].filter(Boolean);
+}
+
+function buildClassificationResult(policy, activeEvidence, uncertainties) {
+  let periodClass = 'calm';
+  let reasonCodes = ['no_new_qualified_critical_event'];
+  let evidenceIds = activeEvidence.map(item => item.identity).filter(Boolean);
+  if (uncertainties.length > 0) {
+    periodClass = 'uncertain';
+    reasonCodes = uncertainties;
+    evidenceIds = [];
+  } else if (activeEvidence.length > 0) {
+    periodClass = 'active';
+    reasonCodes = [...new Set(activeEvidence.map(item => item.reasonCode))];
+  }
+  return {
+    periodClass,
+    reasonCodes,
+    evidenceIds,
+    policyVersion: policy.version,
+    policyDigest: stablePolicyDigest(policy),
+  };
+}
+
 export function classifyTopStoriesPeriod({
   priorSnapshot,
   currentSnapshot,
@@ -167,43 +268,28 @@ export function classifyTopStoriesPeriod({
   identityTransitions,
   classifierPolicy = {},
 } = {}) {
-  const policy = {
-    ...DEFAULT_TOP_STORIES_PERIOD_POLICY,
-    ...classifierPolicy,
-    criticalEventTypes: classifierPolicy.criticalEventTypes ||
-      DEFAULT_TOP_STORIES_PERIOD_POLICY.criticalEventTypes,
-  };
-  const uncertainties = [
-    getSnapshotUncertainty(priorSnapshot, 'prior'),
-    getSnapshotUncertainty(currentSnapshot, 'current'),
-    getSourceHealthUncertainty(sourceHealth, policy),
-    getIdentityUncertainty(identityTransitions),
-  ].filter(Boolean);
-
-  if (uncertainties.length > 0) {
-    return {
-      periodClass: 'uncertain',
-      reasonCodes: uncertainties,
-      evidenceIds: [],
-      policyVersion: policy.version,
-      policyDigest: stablePolicyDigest(policy),
-    };
-  }
-
-  const priorCandidates = getCandidates(priorSnapshot);
-  const currentCandidates = getCandidates(currentSnapshot, candidateTrace);
-  const activeEvidence = findActiveEvidence(
-    priorCandidates,
-    currentCandidates,
+  const policy = buildPolicy(classifierPolicy);
+  const priorPopulation = getCandidatePopulation(priorSnapshot, null, policy);
+  const currentPopulation = getCandidatePopulation(
+    currentSnapshot,
+    candidateTrace,
     policy,
   );
-  return {
-    periodClass: activeEvidence.length > 0 ? 'active' : 'calm',
-    reasonCodes: activeEvidence.length > 0
-      ? [...new Set(activeEvidence.map(item => item.reasonCode))]
-      : ['no_new_qualified_critical_event'],
-    evidenceIds: activeEvidence.map(item => item.identity).filter(Boolean),
-    policyVersion: policy.version,
-    policyDigest: stablePolicyDigest(policy),
-  };
+  const uncertainties = getUncertainties({
+    priorSnapshot,
+    currentSnapshot,
+    priorPopulation,
+    currentPopulation,
+    sourceHealth,
+    identityTransitions,
+    policy,
+  });
+  const activeEvidence = uncertainties.length > 0
+    ? []
+    : findActiveEvidence(
+      priorPopulation.candidates,
+      currentPopulation.candidates,
+      policy,
+    );
+  return buildClassificationResult(policy, activeEvidence, uncertainties);
 }
