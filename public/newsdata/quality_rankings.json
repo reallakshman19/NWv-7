@@ -53,14 +53,14 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "1 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
       "gateResults": [
         {
           "details": {
-            "itemCount": 6
+            "itemCount": 7
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -77,16 +77,16 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 1,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 6,
-        "parentClusters": 6,
-        "strongParents": 6,
+        "inputCandidateCount": 7,
+        "parentClusters": 7,
+        "strongParents": 7,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3964,
+      "qualityScore": 0.391,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -211,7 +211,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 2
+                "storyCount": 3
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -248,11 +248,11 @@
             },
             {
               "details": {
-                "childCount": 2
+                "childCount": 3
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
-              "score": 0.5,
+              "score": 0.75,
               "status": "PASS"
             },
             {
@@ -263,17 +263,17 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:53ea8477bf",
+          "id": "sketch:313fbb8095",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:53ea8477bf",
-            "representativeId": "50aab6227caf2edd",
-            "representativeTitle": "Breaking news live updates, July 18: With Vikram-1 success, India becomes 3rd country with private orbital launch capability - The Times of India",
+            "id": "sketch:313fbb8095",
+            "representativeId": "82ea0749d0de2b8d",
+            "representativeTitle": "Breaking News Live Updates: NTA declares NEET UG 2026 results; over 11.21 lakh qualify - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
+              "eventImportanceScore": 0.71,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -288,24 +288,27 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 2,
+            "storyCount": 3,
             "storyIds": [
-              "50aab6227caf2edd",
-              "c049c67dbddb0f12"
+              "82ea0749d0de2b8d",
+              "ff468e02cc84fa44",
+              "4ee739c53b939a61"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 2
+                "count": 3
               }
             ],
             "topTokens": [
-              "india",
               "breaking",
               "live",
-              "updates"
+              "updates",
+              "declares",
+              "july",
+              "neelkanth"
             ],
-            "topicKey": "india|breaking|live"
+            "topicKey": "breaking|live|updates"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -313,8 +316,8 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.389,
-          "title": "Breaking news live updates, July 18: With Vikram-1 success, India becomes 3rd country with private orbital launch capability - The Times of India"
+          "score": 0.419,
+          "title": "Breaking News Live Updates: NTA declares NEET UG 2026 results; over 11.21 lakh qualify - The Times of India"
         },
         {
           "category": "insightEvent",
@@ -425,6 +428,226 @@
           ],
           "score": 0.389,
           "title": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:d723b88481",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:d723b88481",
+            "representativeId": "30151a1e66bf4921",
+            "representativeTitle": "Don’t Want Data Centres in Residential Areas: Thane residents protest against Amazon data centre",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "business_line"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "30151a1e66bf4921",
+              "98caa1c03867276f"
+            ],
+            "topAngles": [
+              {
+                "angle": "reaction_public",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "data",
+              "residents",
+              "want",
+              "centres"
+            ],
+            "topicKey": "data|residents|want"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Don’t Want Data Centres in Residential Areas: Thane residents protest against Amazon data centre"
         },
         {
           "category": "insightEvent",
@@ -650,125 +873,17 @@
           ],
           "score": 0.1885,
           "title": "Top news of the day | July 5, 2026 - The Hindu"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:c1c58008d6",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:c1c58008d6",
-            "representativeId": "b65533a7f527bd54",
-            "representativeTitle": "Top news of the day | June 29, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "b65533a7f527bd54",
-              "bf952c0b99344c4d"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "june",
-              "hindu"
-            ],
-            "topicKey": "june|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1751,
-          "title": "Top news of the day | June 29, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3383,
-        "eventImportanceScore": 0.61,
+        "angleDiversityScore": 0.3257,
+        "eventImportanceScore": 0.6243,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4833,
-        "sourceAuthorityScore": 0.46,
-        "sourceDiversityScore": 0.4733,
-        "temporalEvolutionScore": 0.41
+        "noveltyDeltaScore": 0.4786,
+        "sourceAuthorityScore": 0.4486,
+        "sourceDiversityScore": 0.4557,
+        "temporalEvolutionScore": 0.4043
       }
     },
     "localTravel": {
@@ -828,13 +943,19 @@
     },
     "upAhead": {
       "actionableFindings": [
-        "17 invalid/expired/duplicate Up Ahead item(s) suppressed"
+        "21 invalid/expired/duplicate Up Ahead item(s) suppressed"
       ],
       "destination": "upAhead",
       "diagnosticReasons": [
         "Back-to-school shopping just got more affordable— Target is offering up to 76% off right now - NBC News: location failed — offline/local item lacks configured location match",
         "Ready for a patio refresh? Wayfair is offering up to 71% off outdoor furniture this weekend — here’s what to shop - NBC News: location failed — offline/local item lacks configured location match",
         "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+        "Quicksand in Chennai’s Pallikaranai marshland: futureValidity failed — expired display window",
+        "Quicksand in Chennai’s Pallikaranai marshland: alertUrgency failed — alert expired",
+        "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators: futureValidity failed — expired display window",
+        "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators: alertUrgency failed — alert expired",
+        "Anbumani seeks white paper on CMDA ‘crisis’: futureValidity failed — expired display window",
+        "Anbumani seeks white paper on CMDA ‘crisis’: alertUrgency failed — alert expired",
         "Two arrested for pledging fake gold chain at Kolathur pawn shop: futureValidity failed — expired display window",
         "Two arrested for pledging fake gold chain at Kolathur pawn shop: alertUrgency failed — alert expired",
         "Seven GCC officials suspended following DVAC raid: futureValidity failed — expired display window",
@@ -845,18 +966,12 @@
         "CBSE Class 10 second board exam results announced after two months: alertUrgency failed — alert expired",
         "Emergency exercise conducted at Kalpakkam Department of Atomic Energy Centre: futureValidity failed — expired display window",
         "Emergency exercise conducted at Kalpakkam Department of Atomic Energy Centre: alertUrgency failed — alert expired",
-        "Doctor honoured with Lifetime Achievement Award: futureValidity failed — expired display window",
-        "Doctor honoured with Lifetime Achievement Award: alertUrgency failed — alert expired",
-        "T.N. government implements e-Zero FIR system for faster action against cyber financial scams: futureValidity failed — expired display window",
-        "T.N. government implements e-Zero FIR system for faster action against cyber financial scams: alertUrgency failed — alert expired",
-        "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: futureValidity failed — expired display window",
-        "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: alertUrgency failed — alert expired",
-        "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: futureValidity failed — expired display window"
+        "Doctor honoured with Lifetime Achievement Award: futureValidity failed — expired display window"
       ],
       "gateResults": [
         {
           "details": {
-            "itemCount": 27
+            "itemCount": 23
           },
           "name": "upAheadPool",
           "reason": "rankable Up Ahead pool",
@@ -866,8 +981,8 @@
         {
           "details": {
             "categoryCounts": {
-              "alerts": 17,
-              "shopping": 8,
+              "alerts": 14,
+              "shopping": 7,
               "weather_alerts": 2
             }
           },
@@ -878,17 +993,17 @@
         }
       ],
       "gateSummary": {
-        "alerts": 19,
+        "alerts": 16,
         "categoryCounts": {
-          "alerts": 17,
-          "shopping": 8,
+          "alerts": 14,
+          "shopping": 7,
           "weather_alerts": 2
         },
         "events": 0,
         "festivals": 0,
         "inputItemCount": 44,
         "locationCounts": {
-          "chennai": 20,
+          "chennai": 16,
           "muscat": 2,
           "online": 1,
           "trichy": 4
@@ -899,14 +1014,14 @@
           "online",
           "trichy"
         ],
-        "offlineOffers": 7,
+        "offlineOffers": 6,
         "onlineOffers": 1,
-        "plannerAdvisoryItems": 27,
-        "rankedItemCount": 27,
-        "suppressedItemCount": 17
+        "plannerAdvisoryItems": 23,
+        "rankedItemCount": 23,
+        "suppressedItemCount": 21
       },
       "qualityGrade": "B",
-      "qualityScore": 0.8351,
+      "qualityScore": 0.836,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -1368,121 +1483,6 @@
           ],
           "score": 0.8485,
           "title": "Amidst opposition to a new stone quarry, Minister inspects site in Pudukottai district"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "af68404634d5ffa3"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784488089000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "00aedabcddea22fe",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784488089000,
-            "id": "00aedabcddea22fe",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785092889000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784488089000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784401689000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "",
-            "suppressionReason": null,
-            "title": "Anbumani seeks white paper on CMDA ‘crisis’",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/anbumani-seeks-white-paper-on-cmda-crisis/article71237658.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Anbumani seeks white paper on CMDA ‘crisis’"
         },
         {
           "category": "alerts",
@@ -2058,121 +2058,6 @@
           ],
           "score": 0.8485,
           "title": "Plea to help ‘wilting’ plants at the GCC park on MGR Road in Kalakshetra Colony"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "3d57ea1c090c8d9e"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784490024000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 1.0,
-                "matchedLocation": "chennai",
-                "relevance": "primary",
-                "scope": "exactCity"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "16fbe8d3935ee3a4",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784490024000,
-            "id": "16fbe8d3935ee3a4",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785094824000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784490024000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784403624000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 1.0,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "The prime accused had formulated the plan under the code name ‘Meghalaya Project’, police say; proprietors of a finance firm arrested for handling money given by the accused in the case",
-            "suppressionReason": null,
-            "title": "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators",
-            "url": "https://www.thehindu.com/news/cities/chennai/police-expand-probe-in-tvk-mla-poaching-case-conspiracy-allegedly-targeted-15-legislators/article71238032.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.8485,
-          "title": "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators"
         },
         {
           "category": "alerts",
@@ -2794,7 +2679,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.91
+                "hoursLeft": 8.26
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -2909,7 +2794,7 @@
             },
             {
               "details": {
-                "hoursLeft": 32.72
+                "hoursLeft": 31.06
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -2978,121 +2863,6 @@
           ],
           "score": 0.8045,
           "title": "Oman and Saudi Arabia Lead Middle East Quiet Luxury Trend as Elite Travelers Shift from Dubai in 2026 - Nomad Lawyer"
-        },
-        {
-          "category": "alerts",
-          "gates": [
-            {
-              "details": {
-                "dedupKey": "e0cea604ece93063"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784492064000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "online",
-                "relevance": "onlineOnly",
-                "scope": "online"
-              },
-              "name": "location",
-              "reason": "online/global item allowed without city match",
-              "score": 0.72,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "hasPlace": true,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "offerValidity",
-              "reason": "not an offer",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "severe": false
-              },
-              "name": "alertUrgency",
-              "reason": "active alert",
-              "score": 0.78,
-              "status": "PASS"
-            }
-          ],
-          "id": "ddc302152f38131a",
-          "item": {
-            "actionabilityScore": 0.7,
-            "category": "alerts",
-            "city": "Chennai",
-            "contentClass": "upahead_alert",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784492064000,
-            "id": "ddc302152f38131a",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785096864000,
-              "contentClass": "upahead_alert",
-              "displayUntil": 1784492064000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 1.0,
-            "normalizedCategory": "alerts",
-            "plannerEligible": true,
-            "publishedAt": 1784405664000,
-            "region": "tn",
-            "scoreBreakdown": {
-              "actionabilityScore": 1.0,
-              "categoryPriorityScore": 1.0,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 0.78
-            },
-            "source": "The Hindu Chennai",
-            "sourceGroup": "the_hindu",
-            "summary": "The first expansion of the city of Chennai in modern times happened along its southern stretch. As the government in its wisdom decided to locate the IT corridor in south Chennai, breathless development happened over a couple of decades, right around a rich natural reserve, the Pallikaranai marshland. Today, two decades later, there’s a conflict that pits development against preservation. This report attempts to pull together the several threads that have brought this particular tapestry to the fore today",
-            "suppressionReason": null,
-            "title": "Quicksand in Chennai’s Pallikaranai marshland",
-            "url": "https://www.thehindu.com/news/national/tamil-nadu/quicksand-in-pallikaranai-marshland-in-chennai/article71239210.ece"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "alerts",
-            "valid undated item with active display window",
-            "online/global item allowed without city match",
-            "planner advisory fit"
-          ],
-          "score": 0.7925,
-          "title": "Quicksand in Chennai’s Pallikaranai marshland"
         },
         {
           "category": "alerts",
@@ -3369,7 +3139,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.85
+                "hoursLeft": 5.19
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3484,7 +3254,7 @@
             },
             {
               "details": {
-                "hoursLeft": 18.38
+                "hoursLeft": 16.73
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3559,121 +3329,6 @@
           "gates": [
             {
               "details": {
-                "dedupKey": "e522bdb29df330af"
-              },
-              "name": "dedup",
-              "reason": "unique item",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "displayUntil": 1784493608000
-              },
-              "name": "futureValidity",
-              "reason": "valid undated item with active display window",
-              "score": 0.65,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "matchScore": 0.72,
-                "matchedLocation": "chennai",
-                "relevance": "secondary",
-                "scope": "region"
-              },
-              "name": "location",
-              "reason": "location matches configured profile",
-              "score": 0.72,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hasPlace": false,
-                "hasTime": true
-              },
-              "name": "actionability",
-              "reason": "item has enough action fields",
-              "score": 0.85,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "hoursLeft": 1.61
-              },
-              "name": "offerValidity",
-              "reason": "offer expires soon",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "alertUrgency",
-              "reason": "not an alert",
-              "score": 0.6,
-              "status": "PASS"
-            }
-          ],
-          "id": "557fb8c398cd9ed3",
-          "item": {
-            "actionabilityScore": 0.45,
-            "category": "shopping",
-            "city": null,
-            "contentClass": "upahead_offer",
-            "dateConfidence": "unknown",
-            "dateSource": "none",
-            "eventEndAt": null,
-            "eventStartAt": null,
-            "expiryAt": 1784493608000,
-            "id": "557fb8c398cd9ed3",
-            "language": "en",
-            "lifecycle": {
-              "archiveUntil": 1785098408000,
-              "contentClass": "upahead_offer",
-              "displayUntil": 1784493608000,
-              "isActionValid": true,
-              "isVisible": true,
-              "plannerEligibleByLifecycle": true,
-              "plannerPastGraceHours": 6,
-              "retentionReason": "expiryAt",
-              "withinSevenDayHorizon": true
-            },
-            "localityScore": 0.3,
-            "normalizedCategory": "shopping",
-            "plannerEligible": true,
-            "publishedAt": 1784320808000,
-            "region": null,
-            "scoreBreakdown": {
-              "actionabilityScore": 0.8500000000000001,
-              "categoryPriorityScore": 0.68,
-              "lifecycleScore": 0.65,
-              "locationScore": 0.72,
-              "plannerFitScore": 1.0,
-              "sourceConfidenceScore": 0.58,
-              "urgencyOrExpiryScore": 1.0
-            },
-            "source": "Google News Shopping",
-            "sourceGroup": "google_news",
-            "summary": "<a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxPSWJkczk1bWxjd21EYk95aHR0TVo0SmVYcUI0Z2ZYSmJpTnpYb3FHUFJBT3BhYjkzZUNUM2hHZ2VGdHBDZmJxUmNOUmtaSlJDbHBxN0F6RWxjTjFoYjhDdEdYT0tUQzQ0azdmTC05TVE5RkZNNzlFbFRWYnE1SmlZRA?oc=5\" target=\"_blank\">Here’s how you can get three months of Audible for free</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">NBC News</font>",
-            "suppressionReason": null,
-            "title": "Here’s how you can get three months of Audible for free - NBC News",
-            "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxPSWJkczk1bWxjd21EYk95aHR0TVo0SmVYcUI0Z2ZYSmJpTnpYb3FHUFJBT3BhYjkzZUNUM2hHZ2VGdHBDZmJxUmNOUmtaSlJDbHBxN0F6RWxjTjFoYjhDdEdYT0tUQzQ0azdmTC05TVE5RkZNNzlFbFRWYnE1SmlZRA?oc=5"
-          },
-          "locationKey": "chennai",
-          "rankingReasons": [
-            "shopping",
-            "valid undated item with active display window",
-            "location matches configured profile",
-            "planner advisory fit"
-          ],
-          "score": 0.744,
-          "title": "Here’s how you can get three months of Audible for free - NBC News"
-        },
-        {
-          "category": "shopping",
-          "gates": [
-            {
-              "details": {
                 "dedupKey": "1876fc46cf8cfd01"
               },
               "name": "dedup",
@@ -3714,7 +3369,7 @@
             },
             {
               "details": {
-                "hoursLeft": 15.95
+                "hoursLeft": 14.29
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3829,7 +3484,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.95
+                "hoursLeft": 12.29
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3944,7 +3599,7 @@
             },
             {
               "details": {
-                "hoursLeft": 2.45
+                "hoursLeft": 0.79
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4017,17 +3672,17 @@
       ],
       "rankingProfile": "upAhead-v2-lifecycle-location-category",
       "scoreBreakdown": {
-        "actionabilityScore": 0.9667,
-        "categoryPriorityScore": 0.9037,
+        "actionabilityScore": 0.9674,
+        "categoryPriorityScore": 0.9009,
         "lifecycleScore": 0.65,
-        "locationScore": 0.9067,
+        "locationScore": 0.9148,
         "plannerFitScore": 1.0,
         "sourceConfidenceScore": 0.58,
-        "urgencyOrExpiryScore": 0.8385
+        "urgencyOrExpiryScore": 0.8391
       }
     }
   },
-  "generatedAt": 1784487795736,
+  "generatedAt": 1784493755384,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4046,7 +3701,7 @@
   "schemaVersion": 1,
   "summary": {
     "actionRequired": [
-      "17 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "21 invalid/expired/duplicate Up Ahead item(s) suppressed",
       "no local Buzz item in ranked set",
       "no travel Buzz item in ranked set",
       "no active local/travel disruption item",
@@ -4054,13 +3709,13 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "1 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3964,
+      "insight": 0.391,
       "localTravel": 0.0,
-      "upAhead": 0.8351
+      "upAhead": 0.836
     },
     "destinationStatuses": {
       "buzz": "FAIL",
@@ -4068,7 +3723,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3079,
+    "overallScore": 0.3067,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
@@ -4080,6 +3735,12 @@
       "Back-to-school shopping just got more affordable— Target is offering up to 76% off right now - NBC News: location failed — offline/local item lacks configured location match",
       "Ready for a patio refresh? Wayfair is offering up to 71% off outdoor furniture this weekend — here’s what to shop - NBC News: location failed — offline/local item lacks configured location match",
       "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Quicksand in Chennai’s Pallikaranai marshland: futureValidity failed — expired display window",
+      "Quicksand in Chennai’s Pallikaranai marshland: alertUrgency failed — alert expired",
+      "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators: futureValidity failed — expired display window",
+      "Police expand probe in TVK MLA poaching case; conspiracy allegedly targeted 15 legislators: alertUrgency failed — alert expired",
+      "Anbumani seeks white paper on CMDA ‘crisis’: futureValidity failed — expired display window",
+      "Anbumani seeks white paper on CMDA ‘crisis’: alertUrgency failed — alert expired",
       "Two arrested for pledging fake gold chain at Kolathur pawn shop: futureValidity failed — expired display window",
       "Two arrested for pledging fake gold chain at Kolathur pawn shop: alertUrgency failed — alert expired",
       "Seven GCC officials suspended following DVAC raid: futureValidity failed — expired display window",
@@ -4090,13 +3751,7 @@
       "CBSE Class 10 second board exam results announced after two months: alertUrgency failed — alert expired",
       "Emergency exercise conducted at Kalpakkam Department of Atomic Energy Centre: futureValidity failed — expired display window",
       "Emergency exercise conducted at Kalpakkam Department of Atomic Energy Centre: alertUrgency failed — alert expired",
-      "Doctor honoured with Lifetime Achievement Award: futureValidity failed — expired display window",
-      "Doctor honoured with Lifetime Achievement Award: alertUrgency failed — alert expired",
-      "T.N. government implements e-Zero FIR system for faster action against cyber financial scams: futureValidity failed — expired display window",
-      "T.N. government implements e-Zero FIR system for faster action against cyber financial scams: alertUrgency failed — alert expired",
-      "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: futureValidity failed — expired display window",
-      "Lorry runs over elderly man while reversing onto Vanagaram-Poonamallee service road: alertUrgency failed — alert expired",
-      "Chennai needs expanded airport, has limited direct flights to Europe: NITI Aayog: futureValidity failed — expired display window"
+      "Doctor honoured with Lifetime Achievement Award: futureValidity failed — expired display window"
     ]
   }
 }
