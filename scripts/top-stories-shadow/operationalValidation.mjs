@@ -1,6 +1,9 @@
+import {
+  buildTopStoriesVersionSegmentKey,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from '../../src/services/topStories/topStoriesVersionSegment.js';
 export const TOP_STORIES_OPERATIONAL_VALIDATION_SCHEMA =
   'nw-top-stories-24h-operational-validation/v1';
-
 export const TOP_STORIES_OPERATIONAL_THRESHOLDS = Object.freeze({
   pass: Object.freeze({
     scheduleSlotCoverage: 0.90,
@@ -25,44 +28,37 @@ export const TOP_STORIES_OPERATIONAL_THRESHOLDS = Object.freeze({
     p90ScheduleDelaySeconds: 1200,
   }),
 });
-
 const EXPECTED_SCHEMAS = Object.freeze({
   report: 'nw-top-stories-daily-stability-report/v1',
   aggregationManifest: 'nw-top-stories-shadow-aggregation-manifest/v1',
   downloadManifest: 'nw-top-stories-shadow-download-manifest/v1',
   studyConfig: 'nw-top-stories-shadow-study/v1',
 });
-
 function finiteMetric(value) {
   if (value === null || value === undefined || value === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
-
 function ratio(numerator, denominator) {
   const top = finiteMetric(numerator);
   const bottom = finiteMetric(denominator);
   return top !== null && bottom !== null && bottom > 0 ? top / bottom : null;
 }
-
 function inReportDay(value, date) {
   const start = Date.parse(`${date}T00:00:00.000Z`);
   const time = Date.parse(value || 0);
   return Number.isFinite(start) && Number.isFinite(time) &&
     time >= start && time < start + (24 * 60 * 60 * 1000);
 }
-
 function runKey(row = {}) {
   return `${row.runId || 'run'}:${row.runAttempt || 1}`;
 }
-
 function downloadedInReportDay(row, date) {
   const slotDate = String(row?.artifactName || '').match(/-(\d{8})T\d{4}Z-/)?.[1];
   return slotDate
     ? slotDate === String(date || '').replaceAll('-', '')
     : inReportDay(row?.runCreatedAt, date);
 }
-
 function buildAcquisitionMetrics(downloadManifest, date) {
   const downloadedRuns = new Set((downloadManifest?.downloaded || [])
     .filter(row => downloadedInReportDay(row, date)).map(runKey));
@@ -77,16 +73,9 @@ function buildAcquisitionMetrics(downloadManifest, date) {
     artifactEmissionRate: ratio(downloadedRuns.size, workflowRuns.size),
   };
 }
-
-function expectedVersionSegment(config = {}) {
-  return [config.studyId, config.rankerVersion, config.identityVersion,
-    config.periodClassifierVersion].join('|');
-}
-
 function addCheck(checks, id, status, actual, threshold, reasonCode) {
   checks.push({ id, status, actual, threshold, reasonCode });
 }
-
 function schemaChecks(checks, report, aggregationManifest, downloadManifest, config) {
   const rows = [
     ['daily_report_schema', report?.schemaVersion, EXPECTED_SCHEMAS.report],
@@ -96,11 +85,11 @@ function schemaChecks(checks, report, aggregationManifest, downloadManifest, con
       EXPECTED_SCHEMAS.downloadManifest],
     ['study_config_schema', config?.schemaVersion, EXPECTED_SCHEMAS.studyConfig],
   ];
-  rows.forEach(([id, actual, expected]) => addCheck(checks, id,
-    actual === expected ? 'PASS' : 'FAIL', actual || null, expected,
-    actual === expected ? null : 'unsupported_schema'));
+  rows.forEach(([id, actual, expected]) => addCheck(
+    checks, id, actual === expected ? 'PASS' : 'FAIL', actual || null, expected,
+    actual === expected ? null : 'unsupported_schema',
+  ));
 }
-
 function identityChecks(checks, report, aggregationManifest, downloadManifest, config) {
   const studyIds = [report?.studyId, aggregationManifest?.studyId,
     downloadManifest?.studyId, config?.studyId].filter(Boolean);
@@ -115,14 +104,57 @@ function identityChecks(checks, report, aggregationManifest, downloadManifest, c
     [...new Set(dates)], report?.date || null,
     dateConsistent ? null : 'report_date_mismatch');
 }
-
+function addBooleanCheck(checks, id, passed, actual, threshold, reasonCode) {
+  addCheck(checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
+    passed ? null : reasonCode);
+}
+function normalizationChecks(checks, report, config) {
+  const observed = report?.status === 'OBSERVED';
+  const expectedKey = buildTopStoriesVersionSegmentKey(config);
+  const segments = Array.isArray(report?.versionSegments) ? report.versionSegments : [];
+  const coverage = report?.normalizationEvidenceCoverage ||
+    report?.coverage?.normalizationEvidence || {};
+  const summaries = Array.isArray(report?.segmentSummaries) ? report.segmentSummaries : [];
+  const configValid = config?.normalizationVersion === TOP_STORIES_NORMALIZATION_VERSION;
+  addBooleanCheck(checks, 'normalization_config_version', configValid,
+    config?.normalizationVersion || null, TOP_STORIES_NORMALIZATION_VERSION,
+    config?.normalizationVersion ? 'normalization_version_mismatch' :
+      'normalization_version_missing');
+  if (!observed) return;
+  const defectRows = [
+    ['normalization_version_missing', 'normalizationVersionMissingCount'],
+    ['normalization_version_unsupported', 'normalizationVersionUnsupportedCount'],
+    ['normalization_version_mismatch', 'normalizationVersionMismatchCount'],
+    ['normalization_digest_missing', 'normalizationDigestMissingCount'],
+    ['normalization_digest_invalid', 'normalizationDigestInvalidCount'],
+  ];
+  defectRows.forEach(([reason, field]) => addBooleanCheck(
+    checks, field, finiteMetric(coverage[field]) === 0,
+    finiteMetric(coverage[field]), 0, reason,
+  ));
+  const total = finiteMetric(coverage.totalCanonicalObservations);
+  const valid = finiteMetric(coverage.validNormalizationEvidenceCount);
+  addBooleanCheck(checks, 'normalization_evidence_coverage',
+    total !== null && total > 0 && valid === total,
+    { total, valid }, 'valid = total > 0', 'normalization_evidence_incomplete');
+  addBooleanCheck(checks, 'normalization_version_segment',
+    segments.length === 1 && segments[0] === expectedKey,
+    segments, expectedKey, segments.length > 1 ?
+      'normalization_version_boundary' : 'normalization_version_mismatch');
+  addBooleanCheck(checks, 'normalization_segment_summary',
+    summaries.length === 1 && summaries[0]?.segmentKey === expectedKey &&
+      summaries[0]?.headlineKpiEligible === true,
+    summaries, 'one expected headline-eligible segment',
+    summaries.length > 1 ? 'normalization_version_boundary' :
+      'normalization_segment_ineligible');
+  addBooleanCheck(checks, 'normalization_headline_kpi_eligibility',
+    report?.headlineKpiEligibility?.eligible === true,
+    report?.headlineKpiEligibility || null, true,
+    report?.headlineKpiEligibility?.reasonCodes?.[0] ||
+      'normalization_headline_ineligible');
+}
 function hardIntegrityChecks(checks, report, config, integrity, acquisition) {
   const coverage = report?.coverage || {};
-  const expectedSegment = expectedVersionSegment(config);
-  const segments = Array.isArray(report?.versionSegments) ? report.versionSegments : [];
-  const versionOkay = segments.length === 0
-    ? report?.status !== 'OBSERVED'
-    : segments.length === 1 && segments[0] === expectedSegment;
   const started = finiteMetric(coverage.startedRuns);
   const successful = finiteMetric(coverage.successfulRuns);
   const failed = finiteMetric(coverage.failureRuns);
@@ -140,18 +172,15 @@ function hardIntegrityChecks(checks, report, config, integrity, acquisition) {
     ['unassigned_invalid_artifacts', finiteMetric(coverage.unassignedInvalidArtifacts) === 0,
       finiteMetric(coverage.unassignedInvalidArtifacts), 0,
       'unassigned_invalid_artifact_detected'],
-    ['version_segment', versionOkay, segments, expectedSegment, 'version_segment_mismatch'],
     ['coverage_count_conservation', countsOkay,
-      { started, successful, failed, complete, eligible,
-        downloaded: acquisition.downloadedRunCount },
-    'complete <= successful; eligible <= successful; successful + failed <= started; downloaded = started',
-    'coverage_count_inconsistency'],
+      { started, successful, failed, complete, eligible, downloaded: acquisition.downloadedRunCount },
+      'complete <= successful; eligible <= successful; successful + failed <= started; downloaded = started',
+      'coverage_count_inconsistency'],
   ];
-  rows.forEach(([id, passed, actual, threshold, reasonCode]) => addCheck(
-    checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
-    passed ? null : reasonCode));
+  rows.forEach(([id, passed, actual, threshold, reasonCode]) =>
+    addBooleanCheck(checks, id, passed, actual, threshold, reasonCode));
+  normalizationChecks(checks, report, config);
 }
-
 function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold,
   higherIsBetter = true) {
   if (!Number.isFinite(actual)) {
@@ -160,38 +189,37 @@ function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold,
   }
   const passes = higherIsBetter ? actual >= passThreshold : actual <= passThreshold;
   const sufficient = higherIsBetter
-    ? actual >= sufficientThreshold
-    : actual <= sufficientThreshold;
+    ? actual >= sufficientThreshold : actual <= sufficientThreshold;
   addCheck(checks, id, passes ? 'PASS' : sufficient ? 'WARN' : 'INSUFFICIENT',
     actual, { pass: passThreshold, sufficient: sufficientThreshold },
     passes ? null : sufficient ? `${id}_degraded` : `${id}_insufficient`);
 }
-
 function operationalChecks(checks, report, acquisition) {
   const coverage = report?.coverage || {};
   const completeRunRate = ratio(coverage.completeRuns, coverage.successfulRuns);
   const eligibilityRate = ratio(coverage.analyticallyEligibleRuns, coverage.successfulRuns);
   const pass = TOP_STORIES_OPERATIONAL_THRESHOLDS.pass;
   const sufficient = TOP_STORIES_OPERATIONAL_THRESHOLDS.sufficient;
-  thresholdCheck(checks, 'schedule_slot_coverage', finiteMetric(coverage.scheduleSlotCoverage),
-    pass.scheduleSlotCoverage, sufficient.scheduleSlotCoverage);
-  thresholdCheck(checks, 'artifact_emission_rate', acquisition.artifactEmissionRate,
-    pass.artifactEmissionRate, sufficient.artifactEmissionRate);
-  thresholdCheck(checks, 'complete_run_rate', completeRunRate,
-    pass.completeRunRate, sufficient.completeRunRate);
-  thresholdCheck(checks, 'analytical_eligibility_rate', eligibilityRate,
-    pass.analyticalEligibilityRate, sufficient.analyticalEligibilityRate);
-  thresholdCheck(checks, 'valid_15m_pairs', finiteMetric(coverage.valid15mPairs),
-    pass.valid15mPairs, sufficient.valid15mPairs);
-  thresholdCheck(checks, 'canonical_15m_pairs', finiteMetric(coverage.canonical15mPairs),
-    pass.canonical15mPairs, sufficient.canonical15mPairs);
-  thresholdCheck(checks, 'valid_60m_pairs', finiteMetric(coverage.valid60mPairs),
-    pass.valid60mPairs, sufficient.valid60mPairs);
-  thresholdCheck(checks, 'canonical_60m_pairs', finiteMetric(coverage.canonical60mPairs),
-    pass.canonical60mPairs, sufficient.canonical60mPairs);
-  thresholdCheck(checks, 'p90_schedule_delay_seconds',
-    finiteMetric(coverage.scheduleDelaySeconds?.p90), pass.p90ScheduleDelaySeconds,
-    sufficient.p90ScheduleDelaySeconds, false);
+  [
+    ['schedule_slot_coverage', finiteMetric(coverage.scheduleSlotCoverage),
+      pass.scheduleSlotCoverage, sufficient.scheduleSlotCoverage, true],
+    ['artifact_emission_rate', acquisition.artifactEmissionRate,
+      pass.artifactEmissionRate, sufficient.artifactEmissionRate, true],
+    ['complete_run_rate', completeRunRate,
+      pass.completeRunRate, sufficient.completeRunRate, true],
+    ['analytical_eligibility_rate', eligibilityRate,
+      pass.analyticalEligibilityRate, sufficient.analyticalEligibilityRate, true],
+    ['valid_15m_pairs', finiteMetric(coverage.valid15mPairs),
+      pass.valid15mPairs, sufficient.valid15mPairs, true],
+    ['canonical_15m_pairs', finiteMetric(coverage.canonical15mPairs),
+      pass.canonical15mPairs, sufficient.canonical15mPairs, true],
+    ['valid_60m_pairs', finiteMetric(coverage.valid60mPairs),
+      pass.valid60mPairs, sufficient.valid60mPairs, true],
+    ['canonical_60m_pairs', finiteMetric(coverage.canonical60mPairs),
+      pass.canonical60mPairs, sufficient.canonical60mPairs, true],
+    ['p90_schedule_delay_seconds', finiteMetric(coverage.scheduleDelaySeconds?.p90),
+      pass.p90ScheduleDelaySeconds, sufficient.p90ScheduleDelaySeconds, false],
+  ].forEach(row => thresholdCheck(checks, ...row));
   if (finiteMetric(coverage.failureRuns) > 0) addCheck(checks, 'failure_runs', 'WARN',
     finiteMetric(coverage.failureRuns), 0, 'failure_runs_present');
   if (finiteMetric(coverage.failedInputRuns) > 0) addCheck(checks, 'failed_input_runs',
@@ -200,7 +228,6 @@ function operationalChecks(checks, report, acquisition) {
     'WARN', acquisition.missingArtifactRunCount, 0, 'missing_artifact_runs_present');
   return { completeRunRate, eligibilityRate };
 }
-
 function decide(checks, report) {
   if (checks.some(check => check.status === 'FAIL')) return 'FAIL';
   if (report?.status !== 'OBSERVED') return 'INSUFFICIENT';
@@ -208,12 +235,10 @@ function decide(checks, report) {
   if (checks.some(check => check.status === 'WARN')) return 'PASS_WITH_WARNINGS';
   return 'PASS';
 }
-
 function collectReasons(checks, status) {
   return [...new Set(checks.filter(check => check.status === status && check.reasonCode)
     .map(check => check.reasonCode))].sort();
 }
-
 export function validateTopStoriesOperationalDay({ dailyReport, aggregationManifest,
   downloadManifest, studyConfig, integrity = { ok: true, errors: [] } } = {}) {
   const checks = [];
