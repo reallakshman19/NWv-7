@@ -11,6 +11,8 @@ import {
 
 const STUDY = 'nw-rank-011-shadow-pilot-2026-07';
 const DATE = '2026-07-16';
+const INPUT_CHANGE_INTERPRETATION =
+  'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.';
 const CONFIG = Object.freeze({
   studyId: STUDY,
   rankerVersion: 'nw-top-stories-ranker-observed-v1',
@@ -165,7 +167,12 @@ describe('Top Stories daily comparison evidence and normalization segmentation',
     expect(report.coverage.canonical15mPairs).toBe(3);
     expect(report.coverage.valid60mPairs).toBe(3);
     expect(report.coverage.canonical60mPairs).toBe(1);
+    expect(report.inputChange.interpretation).toBe(INPUT_CHANGE_INTERPRETATION);
     expect(validateTopStoriesDailyComparisonEvidence(report).status).toBe('VALID');
+    const altered = structuredClone(report);
+    altered.inputChange.interpretation = 'Altered interpretation';
+    expect(validateTopStoriesDailyComparisonEvidence(altered).reasonCodes)
+      .toContain('comparison_evidence_summary_mismatch');
   });
 
   it('retains missing normalization evidence while excluding it analytically', () => {
@@ -235,6 +242,7 @@ describe('Top Stories daily comparison evidence and normalization segmentation',
     expect(empty.headlineKpiEligibility.eligible).toBe(false);
     expect(empty.comparisonEvidence.comparisonRecords).toEqual([]);
     expect(empty.comparisonEvidence.canonicalComparisonIds).toEqual([]);
+    expect(empty.inputChange.interpretation).toBe(INPUT_CHANGE_INTERPRETATION);
     expect(validateTopStoriesDailyComparisonEvidence(empty).valid).toBe(true);
   });
 });
