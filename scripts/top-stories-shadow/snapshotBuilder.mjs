@@ -8,9 +8,9 @@ import {
 } from './canonicalJson.mjs';
 import {
   buildEditorialIdentityFunnelStage,
-  buildEditorialIdentityPopulation,
   EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
 } from './editorialIdentityPopulation.mjs';
+import { buildEditorialIdentityRelations } from './editorialIdentityRelations.mjs';
 import {
   getTopStoriesNormalizationDigest,
   TOP_STORIES_NORMALIZATION_VERSION,
@@ -135,7 +135,7 @@ function buildEvidencePopulations(evaluation, identityVersion) {
     candidateEvidence: identified.map(sanitizeStoryEvidence),
     ranked: sanitizeRows(evaluation.selected),
     displayed: sanitizeRows(evaluation.displayed),
-    editorialIdentityPopulation: buildEditorialIdentityPopulation(identified),
+    editorialIdentityPopulation: buildEditorialIdentityRelations(identified),
   };
 }
 

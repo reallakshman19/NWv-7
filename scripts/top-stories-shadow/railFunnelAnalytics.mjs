@@ -1,13 +1,11 @@
+import { getDisplayedIdentityEvidence, getEditorialIdentityEvidence, summarizeIdentityAccountingBySchema } from './editorialIdentityRelations.mjs';
 const SOFT_REVIEW_DEPTH = 8;
 const EDITORIAL_IDENTITY_STAGE = 'editorial_identity_population';
 const SEQUENTIAL_POPULATION_ROLE = 'SEQUENTIAL_FLOW';
-
-function finiteNumber(value) {
-  if (value === null || value === undefined || value === '') return null;
+function finiteNumber(value) { if (value === null || value === undefined || value === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
-
 function quantile(values, fraction) {
   if (values.length === 0) return null;
   const sorted = [...values].sort((left, right) => left - right);
@@ -17,7 +15,6 @@ function quantile(values, fraction) {
   if (lower === upper) return sorted[lower];
   return sorted[lower] + ((sorted[upper] - sorted[lower]) * (position - lower));
 }
-
 function summarize(values = []) {
   const finite = values.map(finiteNumber).filter(value => value !== null);
   return {
@@ -31,28 +28,21 @@ function summarize(values = []) {
     maximum: finite.length ? Math.max(...finite) : null,
   };
 }
-
 function increment(counts, key, amount = 1) {
   const normalized = String(key || 'unknown');
   counts[normalized] = (counts[normalized] || 0) + amount;
 }
-
 function mergeCounts(target, source = {}) {
   Object.entries(source).forEach(([key, value]) => increment(target, key, Number(value) || 0));
   return target;
 }
-
-function combineCounts(...sources) {
-  return sources.reduce((counts, source) => mergeCounts(counts, source), {});
-}
-
+function combineCounts(...sources) { return sources.reduce((counts, source) => mergeCounts(counts, source), {}); }
 function countBy(rows = [], field) {
   return rows.reduce((counts, row) => {
     increment(counts, row?.[field]);
     return counts;
   }, {});
 }
-
 function getRailBucket(displayedCount, displayDepth) {
   if (displayedCount === 0) return '0';
   if (displayedCount <= 3) return '1-3';
@@ -61,7 +51,6 @@ function getRailBucket(displayedCount, displayDepth) {
   if (displayedCount === displayDepth) return String(displayDepth);
   return 'other';
 }
-
 function classifyReason(reasonCode) {
   const reason = String(reasonCode || 'unknown').toLowerCase();
   if (reason === 'duplicate_identity') return 'duplicate';
@@ -83,7 +72,6 @@ function classifyReason(reasonCode) {
   if (reason === 'candidate_created' || reason === 'displayed') return 'successful_progression';
   return 'other';
 }
-
 function countTraceReasons(selectionTrace = []) {
   const finalReasonCounts = {};
   const finalDispositionCounts = {};
@@ -100,7 +88,6 @@ function countTraceReasons(selectionTrace = []) {
   });
   return { finalReasonCounts, finalDispositionCounts, stageReasonCounts };
 }
-
 function dominantReasons(counts = {}, limit = 5) {
   return Object.entries(counts)
     .filter(([reason]) => !['displayed', 'candidate_created'].includes(reason))
@@ -108,7 +95,6 @@ function dominantReasons(counts = {}, limit = 5) {
     .slice(0, limit)
     .map(([reasonCode, count]) => ({ reasonCode, count, category: classifyReason(reasonCode) }));
 }
-
 function summarizeFunnelStages(observations) {
   const byKey = new Map();
   observations.forEach(observation => {
@@ -117,6 +103,7 @@ function summarizeFunnelStages(observations) {
       const key = [
         stage.stage,
         populationRole,
+        stage.populationSchemaVersion || 'unversioned',
         stage.inputUnit || 'null',
         stage.outputUnit || 'null',
       ].join('|');
@@ -164,73 +151,21 @@ function summarizeFunnelStages(observations) {
     totalInputCount: stage.inputCounts.reduce((sum, value) => sum + value, 0),
     totalOutputCount: stage.outputCounts.reduce((sum, value) => sum + value, 0),
     reasonCounts: Object.fromEntries(Object.entries(stage.reasonCounts).sort()),
-  })).sort((left, right) => left.stage.localeCompare(right.stage));
+  })).sort((left, right) => left.stage.localeCompare(right.stage) ||
+    String(left.populationSchemaVersion).localeCompare(String(right.populationSchemaVersion)));
 }
-
 function sourceHealthState(observation = {}) {
   if (observation.sourceHealth?.ok === false) return 'FAILED_OR_DEGRADED';
   if (observation.sourceHealth?.complete === false) return 'PARTIAL';
-  if (observation.sourceHealth) return 'AVAILABLE';
-  return 'UNAVAILABLE';
+  return observation.sourceHealth ? 'AVAILABLE' : 'UNAVAILABLE';
 }
-
-function displayedIdentityEvidence(displayed = []) {
-  const displayedEditorialIdentities = [];
-  const displayedIdentityStateCounts = {};
-  displayed.forEach(item => {
-    const identity = item?._studyIdentity || {};
-    const state = identity.identityState ||
-      (identity.editorialIdentity ? 'IDENTITY_RESOLVED' : 'IDENTITY_UNAVAILABLE');
-    increment(displayedIdentityStateCounts, state);
-    if (state === 'IDENTITY_RESOLVED' && identity.editorialIdentity) {
-      displayedEditorialIdentities.push(identity.editorialIdentity);
-    }
-  });
-  return {
-    displayedEditorialIdentities,
-    displayedResolvedIdentityCount: displayedEditorialIdentities.length,
-    displayedUnresolvedIdentityCount: Math.max(0, displayed.length - displayedEditorialIdentities.length),
-    displayedIdentityStateCounts,
-  };
-}
-
-function editorialIdentityEvidence(observation = {}) {
-  const population = observation.editorialIdentityPopulation || {};
-  const stage = (observation.funnel || []).find(
-    row => row.stage === EDITORIAL_IDENTITY_STAGE,
-  ) || {};
-  const inputCount = finiteNumber(population.inputCount ?? stage.inputCount);
-  const outputCount = finiteNumber(population.outputCount ?? stage.outputCount);
-  const resolvedCandidateCount = finiteNumber(population.resolvedCandidateCount);
-  return {
-    editorialIdentityInputCount: inputCount,
-    editorialIdentityCount: outputCount,
-    resolvedIdentityCandidateCount: resolvedCandidateCount,
-    sharedIdentityCandidateCount: finiteNumber(
-      population.sharedIdentityCandidateCount,
-    ),
-    unresolvedIdentityCandidateCount: finiteNumber(
-      population.unresolvedCandidateCount,
-    ),
-    identityResolutionCoverage:
-      inputCount && resolvedCandidateCount !== null
-        ? resolvedCandidateCount / inputCount
-        : null,
-    identityAccountingConserved:
-      population.accountingConserved ?? stage.accountingConserved ?? null,
-    identityStateCounts: population.identityStateCounts || {},
-    identityMethodCounts: population.identityMethodCounts || {},
-    identityReasonCounts: population.reasonCounts || stage.reasonCounts || {},
-  };
-}
-
 function buildObservationRow(observation) {
   const displayedCount = Number(observation.displayedCount ?? observation.displayed?.length ?? 0);
   const rankedCount = Number(observation.rankedCount ?? observation.ranked?.length ?? 0);
   const displayDepth = Number(observation.displayDepth ?? 10);
   const trace = countTraceReasons(observation.selectionTrace || []);
   const buildReasons = countBy(observation.candidateBuildTrace, 'reasonCode');
-  const identityEvidence = editorialIdentityEvidence(observation);
+  const identityEvidence = getEditorialIdentityEvidence(observation, EDITORIAL_IDENTITY_STAGE);
   const combinedReasons = combineCounts(
     buildReasons,
     identityEvidence.identityReasonCounts,
@@ -260,7 +195,8 @@ function buildObservationRow(observation) {
     railBucket: getRailBucket(displayedCount, displayDepth),
     underfilled: displayedCount < displayDepth,
     belowSoftReviewDepth: displayedCount < Math.min(SOFT_REVIEW_DEPTH, displayDepth),
-    ...displayedIdentityEvidence(observation.displayed || []),
+    ...getDisplayedIdentityEvidence(observation.displayed || []),
+    editorialIdentityPopulationSchemaVersion: identityEvidence.schemaVersion,
     ...identityEvidence,
     funnelStageCounts,
     candidateBuildDispositionCounts: countBy(observation.candidateBuildTrace, 'buildDisposition'),
@@ -268,10 +204,8 @@ function buildObservationRow(observation) {
     dominantReasonCodes: dominantReasons(combinedReasons),
   };
 }
-
 export function buildTopStoriesRailFunnelAnalytics(observations = []) {
-  const ordered = [...observations].sort((left, right) =>
-    String(left.scheduledAt || '').localeCompare(String(right.scheduledAt || '')));
+  const ordered = [...observations].sort((left, right) => String(left.scheduledAt || '').localeCompare(String(right.scheduledAt || '')));
   const rows = ordered.map(buildObservationRow);
   const bucketCounts = { '0': 0, '1-3': 0, '4-7': 0, '8-9': 0, '10': 0, other: 0 };
   const candidateBuildDispositionCounts = {};
@@ -282,7 +216,6 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
   const finalDispositionCounts = {};
   const finalReasonCounts = {};
   const stageReasonCounts = { admission: {}, selection: {}, display: {} };
-
   ordered.forEach(observation => {
     increment(bucketCounts, getRailBucket(
       Number(observation.displayedCount ?? observation.displayed?.length ?? 0),
@@ -293,7 +226,7 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
       'buildDisposition',
     ));
     mergeCounts(candidateBuildReasonCounts, countBy(observation.candidateBuildTrace, 'reasonCode'));
-    const identityEvidence = editorialIdentityEvidence(observation);
+    const identityEvidence = getEditorialIdentityEvidence(observation, EDITORIAL_IDENTITY_STAGE);
     mergeCounts(editorialIdentityReasonCounts, identityEvidence.identityReasonCounts);
     mergeCounts(identityStateCounts, identityEvidence.identityStateCounts);
     mergeCounts(identityMethodCounts, identityEvidence.identityMethodCounts);
@@ -303,7 +236,6 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
     Object.keys(stageReasonCounts).forEach(stage =>
       mergeCounts(stageReasonCounts[stage], trace.stageReasonCounts[stage]));
   });
-
   const combinedReasonCounts = combineCounts(
     candidateBuildReasonCounts,
     editorialIdentityReasonCounts,
@@ -319,11 +251,12 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
     .map(row => row.identityAccountingConserved)
     .filter(value => typeof value === 'boolean');
   const identityAccountingEvidenceCount = identityAccountingChecks.length;
+  const accountingBySchemaVersion = summarizeIdentityAccountingBySchema(rows);
+  const schemaVersions = Object.keys(accountingBySchemaVersion).filter(version => version !== 'unversioned');
   const identityAccountingConserved = identityAccountingEvidenceCount
     ? identityAccountingEvidenceCount === observationCount &&
-      identityAccountingChecks.every(Boolean)
+      schemaVersions.length <= 1 && identityAccountingChecks.every(Boolean)
     : null;
-
   return {
     observationCount,
     softReviewDepth: SOFT_REVIEW_DEPTH,
@@ -333,6 +266,7 @@ export function buildTopStoriesRailFunnelAnalytics(observations = []) {
     identityResolutionCoverage: summarize(rows.map(row => row.identityResolutionCoverage)),
     identityAccountingEvidenceCount,
     identityAccountingConserved,
+    identityAccountingBySchemaVersion: accountingBySchemaVersion,
     railBuckets: bucketCounts,
     underfilledAgainstDisplayDepth: {
       count: underfilledCount,
