@@ -57,10 +57,12 @@ function stabilityRow(label, horizon, metric) {
 }
 
 export function renderTopStoriesDailyMarkdown(report) {
-  const f15 = report.stability.fifteenMinute.overlapping.calm.incumbentRetention;
-  const f60 = report.stability.sixtyMinute.overlapping.calm.incumbentRetention;
-  const c15 = report.stability.fifteenMinute.canonicalNonOverlapping.calm.incumbentRetention;
-  const c60 = report.stability.sixtyMinute.canonicalNonOverlapping.calm.incumbentRetention;
+  const f15 = report.stability?.fifteenMinute?.overlapping?.calm?.incumbentRetention || {};
+  const f60 = report.stability?.sixtyMinute?.overlapping?.calm?.incumbentRetention || {};
+  const c15 = report.stability?.fifteenMinute?.canonicalNonOverlapping
+    ?.calm?.incumbentRetention || {};
+  const c60 = report.stability?.sixtyMinute?.canonicalNonOverlapping
+    ?.calm?.incumbentRetention || {};
   return [
     `# Top Stories shadow daily report — ${report.date}`,
     '',
@@ -69,9 +71,9 @@ export function renderTopStoriesDailyMarkdown(report) {
     `- Scheduled-slot coverage: **${percentage(report.coverage.scheduleSlotCoverage)}** (${report.coverage.observedSlotCount}/96)`,
     `- Successful observations: **${report.coverage.successfulRuns}**`,
     `- Valid 15-minute pairs: **${report.coverage.valid15mPairs}**`,
-    `- Canonical 15-minute decision pairs: **${report.coverage.canonical15mPairs}**`,
+    `- Canonical 15-minute decision pairs: **${count(report.coverage.canonical15mPairs)}**`,
     `- Valid 60-minute pairs: **${report.coverage.valid60mPairs}**`,
-    `- Canonical 60-minute decision pairs: **${report.coverage.canonical60mPairs}**`,
+    `- Canonical 60-minute decision pairs: **${count(report.coverage.canonical60mPairs)}**`,
     `- Invalid artifacts: **${report.coverage.invalidArtifacts}**`,
     `- Superseded duplicates: **${report.coverage.supersededDuplicateCount}**`,
     '',
@@ -87,7 +89,8 @@ export function renderTopStoriesDailyMarkdown(report) {
     '',
     '## Statistical interpretation',
     '',
-    report.pairing.serialCorrelationNotice,
+    report.pairing?.serialCorrelationNotice ||
+      'Overlapping pairs are serially correlated and are not independent experiments.',
     'Overlapping comparisons are descriptive, serially correlated evidence and are not used as independent readiness volume.',
     'Canonical non-overlapping comparisons are the decision evidence within each horizon.',
     'The 15-minute and 60-minute horizons are separate evidence domains and are never pooled.',
