@@ -3,6 +3,7 @@ import {
   aggregateTopStoriesDaily,
   serializeTopStoriesDailyReport,
 } from '../../../scripts/top-stories-shadow/dailyAggregation.mjs';
+import { validateTopStoriesDailyComparisonEvidence } from '../../../scripts/top-stories-shadow/comparisonEvidenceValidation.mjs';
 import {
   buildTopStoriesVersionSegmentKey,
   TOP_STORIES_NORMALIZATION_VERSION,
@@ -122,10 +123,14 @@ function buildSequence() {
   return [
     validRecord({ minute: 7, runId: 101, normalizationDigest: '1'.repeat(64) }),
     validRecord({ minute: 22, runId: 102, normalizationDigest: '2'.repeat(64) }),
-    validRecord({ minute: 37, runId: 103, ids: ['a', 'b', 'd'], normalizationDigest: '3'.repeat(64) }),
-    validRecord({ minute: 52, runId: 104, ids: ['a', 'b', 'd'], normalizationDigest: '4'.repeat(64) }),
-    validRecord({ hour: 11, minute: 7, runId: 105, ids: ['a', 'b', 'd'], normalizationDigest: '5'.repeat(64) }),
-    validRecord({ hour: 11, minute: 22, runId: 106, ids: ['a', 'b', 'e'], normalizationDigest: '6'.repeat(64) }),
+    validRecord({ minute: 37, runId: 103, ids: ['a', 'b', 'd'],
+      normalizationDigest: '3'.repeat(64) }),
+    validRecord({ minute: 52, runId: 104, ids: ['a', 'b', 'd'],
+      normalizationDigest: '4'.repeat(64) }),
+    validRecord({ hour: 11, minute: 7, runId: 105, ids: ['a', 'b', 'd'],
+      normalizationDigest: '5'.repeat(64) }),
+    validRecord({ hour: 11, minute: 22, runId: 106, ids: ['a', 'b', 'e'],
+      normalizationDigest: '6'.repeat(64) }),
   ];
 }
 
@@ -133,8 +138,8 @@ function aggregate(records, date = DATE) {
   return aggregateTopStoriesDaily(records, { date, studyConfig: CONFIG });
 }
 
-describe('Top Stories daily aggregation with normalization segmentation', () => {
-  it('uses canonical attempts while preserving superseded and failure evidence', () => {
+describe('Top Stories daily comparison evidence and normalization segmentation', () => {
+  it('uses canonical attempts while preserving operational evidence', () => {
     const records = buildSequence();
     records.push(validRecord({ minute: 22, runId: 202, attempt: 2 }));
     records.push(failureRecord());
@@ -154,9 +159,16 @@ describe('Top Stories daily aggregation with normalization segmentation', () => 
     expect(report.versionSegments).toEqual([buildTopStoriesVersionSegmentKey(CONFIG)]);
     expect(report.segmentSummaries).toHaveLength(1);
     expect(report.headlineKpiEligibility).toEqual({ eligible: true, reasonCodes: [] });
+    expect(report.comparisonEvidenceSchemaVersion)
+      .toBe('nw-top-stories-comparison-evidence/v1');
+    expect(report.coverage.valid15mPairs).toBe(5);
+    expect(report.coverage.canonical15mPairs).toBe(3);
+    expect(report.coverage.valid60mPairs).toBe(3);
+    expect(report.coverage.canonical60mPairs).toBe(1);
+    expect(validateTopStoriesDailyComparisonEvidence(report).status).toBe('VALID');
   });
 
-  it('retains missing evidence operationally while excluding it analytically', () => {
+  it('retains missing normalization evidence while excluding it analytically', () => {
     const records = buildSequence();
     records[2] = validRecord({
       minute: 37, runId: 103, ids: ['a', 'b', 'd'], normalizationDigest: '',
@@ -169,9 +181,10 @@ describe('Top Stories daily aggregation with normalization segmentation', () => 
     expect(report.headlineKpiEligibility.reasonCodes)
       .toContain('normalization_digest_missing');
     expect(report.pairing.fifteenMinuteExclusions.normalization_digest_missing).toBe(1);
+    expect(validateTopStoriesDailyComparisonEvidence(report).valid).toBe(true);
   });
 
-  it('partitions mixed versions and rejects homogeneous headline eligibility', () => {
+  it('partitions mixed versions without joining incompatible comparisons', () => {
     const records = buildSequence();
     [3, 4, 5].forEach(index => {
       const original = records[index].snapshot;
@@ -192,28 +205,25 @@ describe('Top Stories daily aggregation with normalization segmentation', () => 
       .toContain('normalization_version_boundary');
     expect(report.pairing.fifteenMinuteExclusions.normalization_version_boundary)
       .toBeGreaterThan(0);
+    expect(validateTopStoriesDailyComparisonEvidence(report).valid).toBe(true);
   });
 
-  it('does not let context-window observations inflate target-day coverage', () => {
+  it('does not let context observations inflate target-day ownership', () => {
     const priorContext = validRecord({ minute: 7, runId: 1 });
-    priorContext.snapshot = {
-      ...priorContext.snapshot,
-      scheduledAt: '2026-07-15T23:52:00.000Z',
-      runAt: '2026-07-15T23:53:00.000Z',
-    };
-    priorContext.operational = {
-      ...priorContext.operational,
-      scheduledAt: '2026-07-15T23:52:00.000Z',
-      runAt: '2026-07-15T23:53:00.000Z',
-      nominalSlotKey: '20260715T2352Z',
-    };
+    priorContext.snapshot = { ...priorContext.snapshot,
+      scheduledAt: '2026-07-15T23:52:00.000Z', runAt: '2026-07-15T23:53:00.000Z' };
+    priorContext.operational = { ...priorContext.operational,
+      scheduledAt: '2026-07-15T23:52:00.000Z', runAt: '2026-07-15T23:53:00.000Z',
+      nominalSlotKey: '20260715T2352Z' };
     const { report } = aggregate([priorContext, ...buildSequence()]);
     expect(report.coverage.discoveredArtifacts).toBe(6);
     expect(report.coverage.contextArtifactCount).toBe(1);
     expect(report.normalizationEvidenceCoverage.totalCanonicalObservations).toBe(6);
+    expect(report.comparisonEvidence.comparisonRecords
+      .every(row => row.ownerDate === DATE)).toBe(true);
   });
 
-  it('is deterministic and emits an explicit empty-day report', () => {
+  it('is deterministic and emits explicit empty comparison evidence', () => {
     const records = buildSequence();
     const first = aggregate(records).report;
     const second = aggregate(records).report;
@@ -223,5 +233,8 @@ describe('Top Stories daily aggregation with normalization segmentation', () => 
     expect(empty.status).toBe('EMPTY');
     expect(empty.coverage.observedSlotCount).toBe(0);
     expect(empty.headlineKpiEligibility.eligible).toBe(false);
+    expect(empty.comparisonEvidence.comparisonRecords).toEqual([]);
+    expect(empty.comparisonEvidence.canonicalComparisonIds).toEqual([]);
+    expect(validateTopStoriesDailyComparisonEvidence(empty).valid).toBe(true);
   });
 });
