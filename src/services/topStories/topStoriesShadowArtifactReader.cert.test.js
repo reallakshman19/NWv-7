@@ -37,18 +37,26 @@ function metadata() {
     runAt: RUN_AT,
   };
 }
+function story(id, extra = {}) {
+  return {
+    id: `story-${id}`,
+    canonicalId: `canonical-${id}`,
+    title: `Flood evacuation alert ${id}`,
+    source: 'Trusted Source',
+    sourceGroup: 'trusted-source',
+    publishedAt: Date.parse(RUN_AT) - (60 * 60 * 1000),
+    timestampConfidence: 'high',
+    sourceCount: 2,
+    ...extra,
+  };
+}
 function inputBundle() {
   return {
-    sectionItems: { world: [{
-      id: 'story-1',
-      canonicalId: 'canonical-1',
-      title: 'Flood evacuation alert issued for residents',
-      source: 'Trusted Source',
-      sourceGroup: 'trusted-source',
-      publishedAt: Date.parse(RUN_AT) - (60 * 60 * 1000),
-      timestampConfidence: 'high',
-      sourceCount: 2,
-    }] },
+    sectionItems: { world: [
+      story('1'),
+      story('2'),
+      story('rejected', { title: 'Community update', sourceCount: 1 }),
+    ] },
     topFeedItems: [],
     settings: {},
     sourceHealth: { ok: true, complete: true, failedSourceCount: 0 },
@@ -149,7 +157,7 @@ describe('Top Stories shadow artifact reader', () => {
     expect(records.every(record => record.schemaValid)).toBe(true);
   });
 
-  it('fails closed for incomplete, unsupported, or corrupt v3 evidence', async () => {
+  it('fails closed for incomplete, unsupported, or semantically corrupt v3 evidence', async () => {
     const cases = [
       {
         reason: 'trace_relation_fields_incomplete',
@@ -163,6 +171,13 @@ describe('Top Stories shadow artifact reader', () => {
         reason: 'trace_relation_validation_failed',
         mutate: payload => {
           payload.traceRelations.sourceCandidateEdges[0].candidateId = 'missing';
+        },
+      },
+      {
+        reason: 'trace_relation_validation_failed',
+        mutate: payload => {
+          const record = payload.traceRelations.candidateDispositionRecords[0];
+          record.finalDisposition = 'ELIGIBLE_NOT_SELECTED';
         },
       },
     ];
