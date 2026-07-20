@@ -159,12 +159,16 @@ describe('NW-RANK-012C trace relation ledger v3', () => {
     expect(Object.isFrozen(ledger.sourceEvidenceGroups[0].sanitizedEvidence)).toBe(true);
   });
 
-  it('rejects malformed endpoints, multiplicities, ranks, and declarations', () => {
+  it('rejects malformed endpoints, ownership, multiplicities, ranks, and declarations', () => {
     const { ledger } = build(input({ world: [story('a'), story('b')] }), {
       displayDepth: 1,
     });
     const cases = [
       value => { value.sourceCandidateEdges[0].candidateId = 'missing'; },
+      value => {
+        const [first, second] = value.sourceCandidateEdges;
+        [first.candidateId, second.candidateId] = [second.candidateId, first.candidateId];
+      },
       value => { value.sourceCandidateEdges[0].occurrenceCount = 0; },
       value => { value.rankedPositions[0].rank = 2; },
       value => { value.rankDisplayEdges[0].displayedPositionId = 'missing'; },
