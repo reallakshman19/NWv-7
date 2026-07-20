@@ -173,12 +173,16 @@ describe('Top Stories daily aggregation with normalization segmentation', () => 
 
   it('partitions mixed versions and rejects homogeneous headline eligibility', () => {
     const records = buildSequence();
-    records[3] = validRecord({
-      minute: 52,
-      runId: 104,
-      ids: ['a', 'b', 'd'],
-      normalizationVersion: 'nw-top-stories-normalization-v2',
-      normalizationDigest: '4'.repeat(64),
+    [3, 4, 5].forEach(index => {
+      const original = records[index].snapshot;
+      records[index] = validRecord({
+        hour: Number(original.scheduledAt.slice(11, 13)),
+        minute: Number(original.scheduledAt.slice(14, 16)),
+        runId: original.workflowRunId,
+        ids: original.displayed.map(row => row.canonicalId),
+        normalizationVersion: 'nw-top-stories-normalization-v2',
+        normalizationDigest: String(index + 1).repeat(64),
+      });
     });
     const { report } = aggregate(records);
     expect(report.versionSegments).toHaveLength(2);
