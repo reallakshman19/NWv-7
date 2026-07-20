@@ -5,6 +5,7 @@ import { serializeTopStoriesDailyReport } from './top-stories-shadow/dailyAggreg
 import { aggregateTopStoriesDailyEvidence } from './top-stories-shadow/dailyEvidenceAggregation.mjs';
 import { renderTopStoriesDailyMarkdown } from './top-stories-shadow/dailyReportMarkdown.mjs';
 import { sha256Text, stableJson } from './top-stories-shadow/canonicalJson.mjs';
+import { validateTopStoriesStudyConfig } from './top-stories-shadow/studyConfig.mjs';
 
 function parseArgs(argv) {
   const args = {};
@@ -25,17 +26,14 @@ async function readJson(filePath) {
 }
 
 function describe(name, text) {
-  return {
-    name,
-    byteSize: Buffer.byteLength(text, 'utf8'),
-    sha256: sha256Text(text),
-  };
+  return { name, byteSize: Buffer.byteLength(text, 'utf8'), sha256: sha256Text(text) };
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const config = await readJson(args.config);
-  if (!config?.studyId) throw new Error('Study configuration requires studyId');
+  const studyConfig = validateTopStoriesStudyConfig(await readJson(args.config), {
+    nowMs: Date.now(),
+  });
   const directories = await discoverTopStoriesArtifactDirectories(args.input);
   const records = [];
   for (const directory of directories) {
@@ -43,17 +41,14 @@ async function main() {
   }
   const { report } = aggregateTopStoriesDailyEvidence(records, {
     date: args.date,
-    studyId: config.studyId,
+    studyConfig,
   });
   const jsonText = serializeTopStoriesDailyReport(report);
   const markdownText = `${renderTopStoriesDailyMarkdown(report)}\n`;
-  const files = {
-    'daily_report.json': jsonText,
-    'daily_report.md': markdownText,
-  };
+  const files = { 'daily_report.json': jsonText, 'daily_report.md': markdownText };
   const manifest = {
     schemaVersion: 'nw-top-stories-shadow-aggregation-manifest/v1',
-    studyId: config.studyId,
+    studyId: studyConfig.studyId,
     date: args.date,
     deterministicReplay: true,
     sourceDirectoryCount: directories.length,

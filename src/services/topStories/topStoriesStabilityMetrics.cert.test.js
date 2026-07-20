@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { buildStandardTopStoriesPairSets } from './topStoriesObservationPairing.js';
 import { classifyTopStoriesPeriod } from './topStoriesPeriodClassifier.js';
 import { compareDisplayedTopStories } from './topStoriesStabilityMetrics.js';
+import { TOP_STORIES_NORMALIZATION_VERSION } from './topStoriesVersionSegment.js';
+
+const FIXTURE_NORMALIZATION_DIGEST = 'a'.repeat(64);
 
 function resolved(identity) {
   return {
@@ -22,6 +25,8 @@ function observation(id, runAt, extra = {}) {
     identityVersion: 'identity-v1',
     rankerVersion: 'ranker-v1',
     periodClassifierVersion: 'period-v1',
+    normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
+    normalizationDigest: FIXTURE_NORMALIZATION_DIGEST,
     ...extra,
   };
 }

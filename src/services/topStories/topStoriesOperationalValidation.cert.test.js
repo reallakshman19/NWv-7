@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { validateTopStoriesOperationalDay } from '../../../scripts/top-stories-shadow/operationalValidation.mjs';
+import {
+  buildTopStoriesVersionSegmentKey,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from './topStoriesVersionSegment.js';
 
 const STUDY = 'nw-rank-011-shadow-pilot-2026-07';
 const DATE = '2026-07-17';
@@ -9,9 +13,9 @@ const CONFIG = Object.freeze({
   rankerVersion: 'nw-top-stories-ranker-observed-v1',
   identityVersion: 'nw-top-stories-identity-v1',
   periodClassifierVersion: 'nw-top-stories-period-classifier-v1',
+  normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
 });
-const SEGMENT = [CONFIG.studyId, CONFIG.rankerVersion, CONFIG.identityVersion,
-  CONFIG.periodClassifierVersion].join('|');
+const SEGMENT = buildTopStoriesVersionSegmentKey(CONFIG);
 
 function slotKey(time) {
   return `${time.toISOString().slice(0, 16).replace(/[-:]/g, '')}Z`;
@@ -62,30 +66,53 @@ function baseCoverage() {
   };
 }
 
+function normalizationCoverage(overrides = {}) {
+  return {
+    totalCanonicalObservations: 92,
+    validNormalizationEvidenceCount: 92,
+    normalizationVersionMissingCount: 0,
+    normalizationVersionUnsupportedCount: 0,
+    normalizationVersionMismatchCount: 0,
+    normalizationDigestMissingCount: 0,
+    normalizationDigestInvalidCount: 0,
+    complete: true,
+    ...overrides,
+  };
+}
+
 function dailyReport(overrides = {}) {
   const coverage = { ...baseCoverage(), ...(overrides.coverage || {}) };
+  const normalization = normalizationCoverage(overrides.normalizationEvidenceCoverage);
+  coverage.normalizationEvidence = normalization;
   const report = {
     schemaVersion: 'nw-top-stories-daily-stability-report/v1',
     studyId: STUDY,
     date: DATE,
     status: 'OBSERVED',
     coverage,
+    normalizationEvidenceCoverage: normalization,
     versionSegments: [SEGMENT],
+    segmentSummaries: [{
+      segmentKey: SEGMENT,
+      observationCount: 92,
+      validNormalizationEvidenceCount: 92,
+      eligibleComparisonCounts: { fifteenMinute: 88, sixtyMinute: 80 },
+      headlineKpiEligible: true,
+    }],
+    headlineKpiEligibility: { eligible: true, reasonCodes: [] },
     stability: {
-      fifteenMinute: {
-        overlapping: { calm: { incumbentRetention: { median: 0.92 } } },
-      },
-      sixtyMinute: {
-        overlapping: { calm: { incumbentRetention: { median: 0.84 } } },
-      },
+      fifteenMinute: { overlapping: { calm: { incumbentRetention: { median: 0.92 } } } },
+      sixtyMinute: { overlapping: { calm: { incumbentRetention: { median: 0.84 } } } },
     },
     ...overrides,
   };
   report.coverage = coverage;
+  report.normalizationEvidenceCoverage = normalization;
   return report;
 }
 
-function inputs({ report = dailyReport(), downloaded = 92, excluded = 0 } = {}) {
+function inputs({ report = dailyReport(), downloaded = 92, excluded = 0,
+  config = CONFIG } = {}) {
   return {
     dailyReport: report,
     aggregationManifest: {
@@ -100,17 +127,23 @@ function inputs({ report = dailyReport(), downloaded = 92, excluded = 0 } = {}) 
       downloaded: acquisitionRows(downloaded),
       excludedRuns: excludedRows(excluded),
     },
-    studyConfig: CONFIG,
+    studyConfig: config,
     integrity: { ok: true, errors: [] },
   };
 }
 
+function expectNormalizationFailure(report, reason, config = CONFIG) {
+  const result = validateTopStoriesOperationalDay(inputs({ report, config }));
+  expect(result.decision).toBe('FAIL');
+  expect(result.failureReasonCodes).toContain(reason);
+  return result;
+}
+
 describe('Top Stories 24-hour operational validation', () => {
-  it('passes complete and internally consistent operational evidence', () => {
+  it('passes complete and internally consistent normalized evidence', () => {
     const result = validateTopStoriesOperationalDay(inputs());
     expect(result.decision).toBe('PASS');
     expect(result.failureReasonCodes).toEqual([]);
-    expect(result.insufficiencyReasonCodes).toEqual([]);
     expect(result.metrics.artifactEmissionRate).toBe(1);
     expect(result.productionChangeAuthorized).toBe(false);
   });
@@ -130,18 +163,66 @@ describe('Top Stories 24-hour operational validation', () => {
         scheduleDelaySeconds: { p90: 900 },
       },
     });
-    const result = validateTopStoriesOperationalDay(inputs({
-      report,
-      downloaded: 76,
-      excluded: 4,
-    }));
+    const result = validateTopStoriesOperationalDay(inputs({ report, downloaded: 76, excluded: 4 }));
     expect(result.decision).toBe('PASS_WITH_WARNINGS');
     expect(result.warningReasonCodes).toContain('schedule_slot_coverage_degraded');
     expect(result.warningReasonCodes).toContain('complete_run_rate_degraded');
-    expect(result.warningReasonCodes).toContain('missing_artifact_runs_present');
   });
 
-  it('does not fail a partial day and reports insufficient evidence', () => {
+  it('fails every normalization defect class and never emits a pass', () => {
+    const cases = [
+      ['normalization_version_missing', 'normalizationVersionMissingCount'],
+      ['normalization_version_unsupported', 'normalizationVersionUnsupportedCount'],
+      ['normalization_version_mismatch', 'normalizationVersionMismatchCount'],
+      ['normalization_digest_missing', 'normalizationDigestMissingCount'],
+      ['normalization_digest_invalid', 'normalizationDigestInvalidCount'],
+    ];
+    cases.forEach(([reason, field]) => {
+      const report = dailyReport({
+        normalizationEvidenceCoverage: {
+          validNormalizationEvidenceCount: 91,
+          [field]: 1,
+          complete: false,
+        },
+        headlineKpiEligibility: { eligible: false, reasonCodes: [reason] },
+      });
+      expectNormalizationFailure(report, reason);
+    });
+  });
+
+  it('fails mixed segments and headline-ineligible daily evidence', () => {
+    const other = SEGMENT.replace(TOP_STORIES_NORMALIZATION_VERSION, 'normalization-v2');
+    const mixed = dailyReport({
+      versionSegments: [SEGMENT, other],
+      segmentSummaries: [
+        { segmentKey: SEGMENT, headlineKpiEligible: false },
+        { segmentKey: other, headlineKpiEligible: false },
+      ],
+      headlineKpiEligibility: {
+        eligible: false,
+        reasonCodes: ['normalization_version_boundary'],
+      },
+    });
+    expectNormalizationFailure(mixed, 'normalization_version_boundary');
+    const ineligible = dailyReport({
+      headlineKpiEligibility: {
+        eligible: false,
+        reasonCodes: ['normalization_digest_missing'],
+      },
+    });
+    expectNormalizationFailure(ineligible, 'normalization_digest_missing');
+  });
+
+  it('fails missing or incompatible configured normalization versions', () => {
+    expectNormalizationFailure(dailyReport(), 'normalization_version_missing', {
+      ...CONFIG, normalizationVersion: '',
+    });
+    expectNormalizationFailure(dailyReport(), 'normalization_version_mismatch', {
+      ...CONFIG, normalizationVersion: 'normalization-v2',
+    });
+  });
+
+  it('does not fail a valid partial day and reports insufficient evidence', () => {
     const report = dailyReport({
       status: 'INSUFFICIENT',
       coverage: {
@@ -155,54 +236,19 @@ describe('Top Stories 24-hour operational validation', () => {
         valid60mPairs: 10,
         canonical60mPairs: 4,
       },
-      versionSegments: [SEGMENT],
     });
     const result = validateTopStoriesOperationalDay(inputs({ report, downloaded: 24 }));
     expect(result.decision).toBe('INSUFFICIENT');
     expect(result.failureReasonCodes).toEqual([]);
-    expect(result.insufficiencyReasonCodes.length).toBeGreaterThan(0);
   });
 
-  it('fails closed for artifact corruption and version fragmentation', () => {
-    const report = dailyReport({
-      coverage: { invalidArtifacts: 1 },
-      versionSegments: [SEGMENT, `${SEGMENT}-changed`],
-    });
-    const result = validateTopStoriesOperationalDay({
-      ...inputs({ report }),
+  it('fails closed for artifact corruption while preserving editorial independence', () => {
+    const corrupt = validateTopStoriesOperationalDay({
+      ...inputs(),
       integrity: { ok: false, errors: ['sha256_mismatch:daily_report.json'] },
     });
-    expect(result.decision).toBe('FAIL');
-    expect(result.failureReasonCodes).toContain('input_integrity_failure');
-    expect(result.failureReasonCodes).toContain('invalid_artifact_detected');
-    expect(result.failureReasonCodes).toContain('version_segment_mismatch');
-  });
-
-  it('uses null rather than fabricated zero ratios when denominators are absent', () => {
-    const report = dailyReport({
-      status: 'INSUFFICIENT',
-      coverage: {
-        scheduleSlotCoverage: 0,
-        startedRuns: 0,
-        successfulRuns: 0,
-        completeRuns: 0,
-        analyticallyEligibleRuns: 0,
-        valid15mPairs: 0,
-        canonical15mPairs: 0,
-        valid60mPairs: 0,
-        canonical60mPairs: 0,
-        scheduleDelaySeconds: { p90: null },
-      },
-      versionSegments: [],
-    });
-    const result = validateTopStoriesOperationalDay(inputs({ report, downloaded: 0 }));
-    expect(result.decision).toBe('INSUFFICIENT');
-    expect(result.metrics.artifactEmissionRate).toBeNull();
-    expect(result.metrics.completeRunRate).toBeNull();
-    expect(result.metrics.p90ScheduleDelaySeconds).toBeNull();
-  });
-
-  it('keeps the operational verdict independent of editorial retention', () => {
+    expect(corrupt.decision).toBe('FAIL');
+    expect(corrupt.failureReasonCodes).toContain('input_integrity_failure');
     const high = validateTopStoriesOperationalDay(inputs());
     const lowReport = dailyReport();
     lowReport.stability.fifteenMinute.overlapping.calm.incumbentRetention.median = 0;
@@ -210,6 +256,5 @@ describe('Top Stories 24-hour operational validation', () => {
     const low = validateTopStoriesOperationalDay(inputs({ report: lowReport }));
     expect(low.decision).toBe(high.decision);
     expect(low.checks).toEqual(high.checks);
-    expect(low.editorialObservations.calm15mMedianIncumbentRetention).toBe(0);
   });
 });

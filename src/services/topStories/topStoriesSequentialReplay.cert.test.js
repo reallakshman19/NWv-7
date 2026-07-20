@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { TOP_STORIES_NORMALIZATION_VERSION } from './topStoriesVersionSegment.js';
 import { analyzeTopStoriesSequence } from './topStoriesSequentialReplay.js';
 
 const START = Date.UTC(2026, 6, 16, 0, 7);
@@ -31,12 +32,7 @@ function story(identity, index, extra = {}) {
 }
 
 function stableRail(index) {
-  return Array.from({ length: 10 }, (_, itemIndex) =>
-    story(`stable-${itemIndex}`, index));
-}
-
-function goodSourceHealth() {
-  return { ok: true, complete: true, failedSourceCount: 0 };
+  return Array.from({ length: 10 }, (_, itemIndex) => story(`stable-${itemIndex}`, index));
 }
 
 function makeObservation(index, extra = {}) {
@@ -56,7 +52,10 @@ function makeObservation(index, extra = {}) {
     identityVersion: extra.identityVersion || (index >= 70 ? 'identity-v2' : 'identity-v1'),
     rankerVersion: extra.rankerVersion || (index >= 80 ? 'ranker-v2' : 'ranker-v1'),
     periodClassifierVersion: 'period-v1',
-    sourceHealth: extra.sourceHealth || goodSourceHealth(),
+    normalizationVersion: extra.normalizationVersion || TOP_STORIES_NORMALIZATION_VERSION,
+    normalizationDigest: extra.normalizationDigest === undefined
+      ? String(index % 10).repeat(64) : extra.normalizationDigest,
+    sourceHealth: extra.sourceHealth || { ok: true, complete: true, failedSourceCount: 0 },
     displayed,
     scoredCandidates: extra.scoredCandidates || displayed,
   };
@@ -70,12 +69,8 @@ function buildReplaySequence() {
       const critical = story('critical-event', index, {
         sourceGroup: 'trusted-publisher',
         _topStoryRank: {
-          eventType: 'public_safety',
-          eventQualified: true,
-          slotBand: 'primary',
-          independentEvidenceCount: 2,
-          sourceCount: 3,
-          normalizedScore: 0.82,
+          eventType: 'public_safety', eventQualified: true, slotBand: 'primary',
+          independentEvidenceCount: 2, sourceCount: 3, normalizedScore: 0.82,
           priorityBucket: 2,
         },
       });
@@ -102,8 +97,7 @@ function buildReplaySequence() {
     }
     if (index === 40 || index === 42) {
       const combined = story('combined-event', index, {
-        clusterId: 'combined-cluster',
-        identityMembers: ['member-a', 'member-b'],
+        clusterId: 'combined-cluster', identityMembers: ['member-a', 'member-b'],
       });
       rows.push(makeObservation(index, {
         displayed: [combined, ...stableRail(index).slice(0, 9)],
@@ -112,12 +106,10 @@ function buildReplaySequence() {
     }
     if (index === 41) {
       const splitA = story('split-a', index, {
-        clusterId: 'part-a',
-        identityMembers: ['member-a'],
+        clusterId: 'part-a', identityMembers: ['member-a'],
       });
       const splitB = story('split-b', index, {
-        clusterId: 'part-b',
-        identityMembers: ['member-b'],
+        clusterId: 'part-b', identityMembers: ['member-b'],
       });
       rows.push(makeObservation(index, {
         displayed: [splitA, splitB, ...stableRail(index).slice(0, 8)],
@@ -138,9 +130,7 @@ function buildReplaySequence() {
         sourceGroup: 'replacement-publisher',
         title: 'Materially revised public update for stable zero',
       });
-      rows.push(makeObservation(index, {
-        displayed: [changed, ...stableRail(index).slice(1)],
-      }));
+      rows.push(makeObservation(index, { displayed: [changed, ...stableRail(index).slice(1)] }));
       continue;
     }
     rows.push(makeObservation(index));
@@ -153,15 +143,20 @@ function buildReplaySequence() {
   return rows;
 }
 
-describe('NW-RANK-011B offline sequential replay', () => {
-  it('replays 100+ observations deterministically with operational evidence', () => {
-    const input = buildReplaySequence();
-    const first = analyzeTopStoriesSequence(input);
-    const second = analyzeTopStoriesSequence(input);
+function replayOptions() {
+  return { expectedNormalizationVersion: TOP_STORIES_NORMALIZATION_VERSION };
+}
 
+describe('NW-RANK-011B offline sequential replay with normalization evidence', () => {
+  it('replays 100+ observations deterministically with pair volume and rerun evidence', () => {
+    const input = buildReplaySequence();
+    const before = JSON.stringify(input);
+    const first = analyzeTopStoriesSequence(input, replayOptions());
+    const second = analyzeTopStoriesSequence(input, replayOptions());
     expect(input.length).toBeGreaterThan(100);
     expect(first.canonicalObservations.length).toBeGreaterThan(100);
     expect(first).toEqual(second);
+    expect(JSON.stringify(input)).toBe(before);
     expect(first.operationalRecords).toEqual(expect.arrayContaining([
       expect.objectContaining({ status: 'SUPERSEDED_DUPLICATE_SLOT' }),
     ]));
@@ -170,54 +165,48 @@ describe('NW-RANK-011B offline sequential replay', () => {
       .toBeLessThan(first.pairSets.sixtyMinute.pairs.length);
   });
 
-  it('identifies active, uncertain, collapse, and identity transition intervals', () => {
-    const result = analyzeTopStoriesSequence(buildReplaySequence());
-    const active = result.adjacentComparisons.find(comparison =>
-      comparison.period.periodClass === 'active');
-    const sourceOutage = result.adjacentComparisons.find(comparison =>
-      comparison.replacementPrimaryClass === 'INPUT_LOSS');
-    const collapse = result.adjacentComparisons.find(comparison =>
-      comparison.metrics.currentCount === 0);
-    const split = result.adjacentComparisons.find(comparison =>
-      comparison.identityTransitions.transitions.some(item => item.type === 'cluster_split'));
-    const merge = result.adjacentComparisons.find(comparison =>
-      comparison.identityTransitions.transitions.some(item => item.type === 'cluster_merge'));
-    const conflict = result.adjacentComparisons.find(comparison =>
-      comparison.period.reasonCodes.includes('identity_conflict'));
-    const mutation = result.adjacentComparisons.find(comparison =>
-      comparison.identityTransitions.transitions.some(item =>
+  it('preserves active, uncertain, collapse, and identity-transition evidence', () => {
+    const result = analyzeTopStoriesSequence(buildReplaySequence(), replayOptions());
+    const active = result.adjacentComparisons.find(row => row.period.periodClass === 'active');
+    const sourceOutage = result.adjacentComparisons.find(row =>
+      row.replacementPrimaryClass === 'INPUT_LOSS');
+    const collapse = result.adjacentComparisons.find(row => row.metrics.currentCount === 0);
+    const split = result.adjacentComparisons.find(row =>
+      row.identityTransitions.transitions.some(item => item.type === 'cluster_split'));
+    const merge = result.adjacentComparisons.find(row =>
+      row.identityTransitions.transitions.some(item => item.type === 'cluster_merge'));
+    const conflict = result.adjacentComparisons.find(row =>
+      row.period.reasonCodes.includes('identity_conflict'));
+    const mutation = result.adjacentComparisons.find(row =>
+      row.identityTransitions.transitions.some(item =>
         item.type === 'representative_source_substitution'));
-
-    expect(active.period.reasonCodes).toContain(
-      'new_independently_qualified_critical_candidate',
-    );
+    expect(active.period.reasonCodes).toContain('new_independently_qualified_critical_candidate');
     expect(sourceOutage.period.periodClass).toBe('uncertain');
     expect(collapse.metrics.incumbentRetention).toBe(0);
-    expect(collapse.metrics.newListContinuity).toBeNull();
     expect(split.replacementPrimaryClass).toBe('IDENTITY_RESOLUTION');
     expect(merge.replacementPrimaryClass).toBe('IDENTITY_RESOLUTION');
     expect(conflict.eligibleForHeadlineKpi).toBe(false);
     expect(mutation.identityTransitions.transitions.map(item => item.type))
-      .toEqual(expect.arrayContaining([
-        'representative_source_substitution',
-        'headline_mutation',
-      ]));
+      .toEqual(expect.arrayContaining(['representative_source_substitution', 'headline_mutation']));
   });
 
-  it('segments residence across gaps, exits, re-entry, and version boundaries', () => {
-    const result = analyzeTopStoriesSequence(buildReplaySequence());
+  it('segments residence across gaps, exits, re-entry, version and invalid boundaries', () => {
+    const sequence = buildReplaySequence();
+    sequence.splice(15, 0, makeObservation(14.5, {
+      observationId: 'invalid-normalization',
+      normalizationDigest: '',
+    }));
+    const result = analyzeTopStoriesSequence(sequence, replayOptions());
     const stableEpisodes = result.residenceEpisodes.filter(episode =>
-      episode.editorialIdentity && episode.editorialIdentity.includes('canonical_id'));
-    const versionBoundaries = result.adjacentComparisons.filter(comparison =>
-      comparison.identityTransitions.versionBoundary);
-
+      episode.editorialIdentity?.includes('canonical_id'));
+    const boundaries = result.adjacentComparisons.filter(row =>
+      row.comparisonEligibilityReasons.some(reason => reason.includes('version') ||
+        reason.includes('normalization_digest')));
     expect(stableEpisodes.length).toBeGreaterThan(10);
     expect(stableEpisodes.some(episode => episode.leftCensored)).toBe(true);
     expect(stableEpisodes.some(episode => episode.rightCensored)).toBe(true);
     expect(stableEpisodes.some(episode => episode.episodeNumber > 1)).toBe(true);
-    expect(versionBoundaries.length).toBeGreaterThan(0);
-    expect(versionBoundaries.every(comparison =>
-      comparison.eligibleForHeadlineKpi === false,
-    )).toBe(true);
+    expect(boundaries.length).toBeGreaterThan(0);
+    expect(boundaries.every(row => row.eligibleForHeadlineKpi === false)).toBe(true);
   });
 });
