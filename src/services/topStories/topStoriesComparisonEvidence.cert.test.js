@@ -166,11 +166,14 @@ describe('NW-RANK-012D comparison evidence', () => {
     const reused = structuredClone(validReport());
     const canonical = reused.comparisonEvidence.canonicalComparisonIds;
     const records = reused.comparisonEvidence.comparisonRecords;
-    const first = records.find(row => row.comparisonId === canonical[0]);
-    const second = records.find(row => row.comparisonId === canonical[1]);
+    const canonicalSet = new Set(canonical);
+    const sameHorizon = records.filter(row =>
+      row.horizon === 'fifteenMinute' && canonicalSet.has(row.comparisonId));
+    const [first, second] = sameHorizon;
+    const priorSecondId = second.comparisonId;
     second.anchorObservationId = first.currentObservationId;
     second.comparisonId = buildTopStoriesComparisonId({ studyId: STUDY, ...second });
-    canonical[1] = second.comparisonId;
+    canonical[canonical.indexOf(priorSecondId)] = second.comparisonId;
     canonical.sort();
     expect(validateTopStoriesDailyComparisonEvidence(reused, { reconcile: false }).reasonCodes)
       .toContain('canonical_observation_reuse');
@@ -184,8 +187,11 @@ describe('NW-RANK-012D comparison evidence', () => {
     const overlap = structuredClone(validReport());
     const ids = overlap.comparisonEvidence.canonicalComparisonIds;
     const records = overlap.comparisonEvidence.comparisonRecords;
-    const first = records.find(row => row.comparisonId === ids[0]);
-    const second = records.find(row => row.comparisonId === ids[1]);
+    const canonicalSet = new Set(ids);
+    const sameHorizon = records.filter(row =>
+      row.horizon === 'fifteenMinute' && canonicalSet.has(row.comparisonId));
+    const [first, second] = sameHorizon;
+    const priorSecondId = second.comparisonId;
     second.anchorAt = first.anchorAt + MINUTE;
     second.currentAt = first.currentAt + MINUTE;
     second.intervalMs = second.currentAt - second.anchorAt;
@@ -193,7 +199,7 @@ describe('NW-RANK-012D comparison evidence', () => {
     second.anchorScheduledAt = new Date(second.anchorAt).toISOString();
     second.currentScheduledAt = new Date(second.currentAt).toISOString();
     second.comparisonId = buildTopStoriesComparisonId({ studyId: STUDY, ...second });
-    ids[1] = second.comparisonId;
+    ids[ids.indexOf(priorSecondId)] = second.comparisonId;
     ids.sort();
     records.sort((left, right) => (left.horizon === right.horizon ? 0 :
       left.horizon === 'fifteenMinute' ? -1 : 1) ||
