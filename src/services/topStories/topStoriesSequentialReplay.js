@@ -6,6 +6,11 @@ import {
   attachTopStoryStudyIdentities,
   TOP_STORIES_IDENTITY_VERSION,
 } from './topStoriesStudyIdentity.js';
+import {
+  buildTopStoriesVersionSegmentKey,
+  compareTopStoriesVersionSegments,
+  validateTopStoriesNormalizationEvidence,
+} from './topStoriesVersionSegment.js';
 
 const DEFAULT_MAX_RESIDENCE_GAP_MS = 45 * 60 * 1000;
 
@@ -16,12 +21,7 @@ function parseTime(value) {
 }
 
 function completenessRank(state) {
-  return {
-    FAILED: 0,
-    PARTIAL_INPUT: 1,
-    PARTIAL_TRACE: 2,
-    COMPLETE: 3,
-  }[state] ?? 0;
+  return { FAILED: 0, PARTIAL_INPUT: 1, PARTIAL_TRACE: 2, COMPLETE: 3 }[state] ?? 0;
 }
 
 function getSlotKey(observation = {}) {
@@ -36,8 +36,7 @@ function chooseCanonicalAttempt(left, right) {
     completenessRank(left.completenessState);
   if (completenessDelta !== 0) return completenessDelta > 0 ? right : left;
   return Number(right.workflowRunAttempt || 1) >= Number(left.workflowRunAttempt || 1)
-    ? right
-    : left;
+    ? right : left;
 }
 
 export function canonicalizeTopStoriesObservations(observations = []) {
@@ -63,8 +62,7 @@ export function canonicalizeTopStoriesObservations(observations = []) {
   });
   const canonical = [...bySlot.values()].sort((left, right) =>
     (parseTime(left.runAt) ?? Infinity) - (parseTime(right.runAt) ?? Infinity) ||
-    left._inputIndex - right._inputIndex,
-  );
+    left._inputIndex - right._inputIndex);
   return { canonical, operationalRecords };
 }
 
@@ -86,15 +84,6 @@ function normalizeObservation(observation = {}, options = {}) {
   };
 }
 
-function getSegmentKey(observation = {}) {
-  return [
-    observation.studyId || 'study',
-    observation.rankerVersion || 'ranker',
-    observation.identityVersion || 'identity',
-    observation.periodClassifierVersion || 'period',
-  ].join('|');
-}
-
 function getReplacementClass(period, transitions, prior, current) {
   const transitionTypes = new Set(transitions.transitions.map(item => item.type));
   if (transitionTypes.has('cluster_split') || transitionTypes.has('cluster_merge')) {
@@ -108,11 +97,21 @@ function getReplacementClass(period, transitions, prior, current) {
   return 'ORDINARY_RANK_CHANGE';
 }
 
-function buildIntervalComparison(prior, current, classifierPolicy) {
-  const identityTransitions = compareTopStoryIdentitySnapshots(
-    prior.displayed,
-    current.displayed,
-  );
+function comparisonEligibility(prior, current, period, expectedNormalizationVersion) {
+  const compatibility = compareTopStoriesVersionSegments(prior, current, {
+    normalizationVersion: expectedNormalizationVersion,
+  });
+  const reasons = [...compatibility.reasonCodes];
+  if (period.periodClass === 'uncertain') reasons.push('uncertain_period_classification');
+  return {
+    eligible: reasons.length === 0,
+    reasonCodes: [...new Set(reasons)].sort(),
+    compatibility,
+  };
+}
+
+function buildIntervalComparison(prior, current, classifierPolicy, expectedVersion) {
+  const identityTransitions = compareTopStoryIdentitySnapshots(prior.displayed, current.displayed);
   const period = classifyTopStoriesPeriod({
     priorSnapshot: prior,
     currentSnapshot: current,
@@ -122,22 +121,18 @@ function buildIntervalComparison(prior, current, classifierPolicy) {
     classifierPolicy,
   });
   const metrics = compareDisplayedTopStories(prior.displayed, current.displayed);
+  const eligibility = comparisonEligibility(prior, current, period, expectedVersion);
   return {
     priorObservationId: prior.observationId,
     currentObservationId: current.observationId,
     intervalMs: current.runAt - prior.runAt,
-    segmentKey: getSegmentKey(prior),
+    segmentKey: buildTopStoriesVersionSegmentKey(prior),
     period,
     identityTransitions,
     metrics,
-    eligibleForHeadlineKpi: period.periodClass !== 'uncertain' &&
-      getSegmentKey(prior) === getSegmentKey(current),
-    replacementPrimaryClass: getReplacementClass(
-      period,
-      identityTransitions,
-      prior,
-      current,
-    ),
+    eligibleForHeadlineKpi: eligibility.eligible,
+    comparisonEligibilityReasons: eligibility.reasonCodes,
+    replacementPrimaryClass: getReplacementClass(period, identityTransitions, prior, current),
   };
 }
 
@@ -160,41 +155,57 @@ function getResolvedDisplayedIds(observation) {
     .map(identity => identity.editorialIdentity);
 }
 
-function buildResidenceEpisodes(observations, maxGapMs) {
+function shouldCloseResidence(previous, current, maxGapMs, expectedVersion) {
+  if (!previous) return false;
+  if (current.runAt - previous.runAt > maxGapMs) return true;
+  return !compareTopStoriesVersionSegments(previous, current, {
+    normalizationVersion: expectedVersion,
+  }).compatible;
+}
+
+function addCurrentResidence(active, episodes, observation, observationIndex, previousAt) {
+  const currentIds = new Set(getResolvedDisplayedIds(observation));
+  [...active.keys()]
+    .filter(identity => !currentIds.has(identity))
+    .forEach(identity => closeEpisode(
+      episodes, active, identity, previousAt ?? observation.runAt, false,
+    ));
+  currentIds.forEach(identity => {
+    if (active.has(identity)) {
+      const episode = active.get(identity);
+      episode.observationCount += 1;
+      episode.lastObservedAt = observation.runAt;
+      return;
+    }
+    const priorEpisodes = episodes.filter(item => item.editorialIdentity === identity);
+    active.set(identity, {
+      editorialIdentity: identity,
+      episodeNumber: priorEpisodes.length + 1,
+      startedAt: observation.runAt,
+      lastObservedAt: observation.runAt,
+      observationCount: 1,
+      leftCensored: observationIndex === 0,
+    });
+  });
+}
+
+function buildResidenceEpisodes(observations, maxGapMs, expectedVersion) {
   const episodes = [];
   const active = new Map();
   let previous = null;
   observations.forEach((observation, observationIndex) => {
-    if (!previous ||
-      observation.runAt - previous.runAt > maxGapMs ||
-      getSegmentKey(previous) !== getSegmentKey(observation)) {
-      if (previous) closeAllEpisodes(episodes, active, previous.runAt);
-    }
-    const currentIds = new Set(getResolvedDisplayedIds(observation));
-    [...active.keys()]
-      .filter(identity => !currentIds.has(identity))
-      .forEach(identity => closeEpisode(
-        episodes,
-        active,
-        identity,
-        previous?.runAt ?? observation.runAt,
-      ));
-    currentIds.forEach(identity => {
-      if (active.has(identity)) {
-        active.get(identity).observationCount += 1;
-        active.get(identity).lastObservedAt = observation.runAt;
-        return;
-      }
-      const priorEpisodes = episodes.filter(item => item.editorialIdentity === identity);
-      active.set(identity, {
-        editorialIdentity: identity,
-        episodeNumber: priorEpisodes.length + 1,
-        startedAt: observation.runAt,
-        lastObservedAt: observation.runAt,
-        observationCount: 1,
-        leftCensored: observationIndex === 0,
-      });
+    const normalization = validateTopStoriesNormalizationEvidence(observation, {
+      expectedNormalizationVersion: expectedVersion,
     });
+    if (!normalization.eligible) {
+      if (previous) closeAllEpisodes(episodes, active, previous.runAt);
+      previous = null;
+      return;
+    }
+    if (shouldCloseResidence(previous, observation, maxGapMs, expectedVersion)) {
+      closeAllEpisodes(episodes, active, previous.runAt);
+    }
+    addCurrentResidence(active, episodes, observation, observationIndex, previous?.runAt);
     previous = observation;
   });
   if (previous) {
@@ -204,58 +215,54 @@ function buildResidenceEpisodes(observations, maxGapMs) {
   return episodes;
 }
 
-function comparePairSet(pairSet, observationMap, classifierPolicy) {
+function comparePairSet(pairSet, observationMap, options) {
   return pairSet.map(pair => buildIntervalComparison(
     observationMap.get(pair.anchorId),
     observationMap.get(pair.currentId),
-    classifierPolicy,
+    options.classifierPolicy,
+    options.expectedNormalizationVersion,
   ));
 }
 
 export function analyzeTopStoriesSequence(observations = [], options = {}) {
+  const expectedNormalizationVersion = options.studyConfig?.normalizationVersion ||
+    options.expectedNormalizationVersion;
   const canonicalized = canonicalizeTopStoriesObservations(observations);
   const canonicalObservations = canonicalized.canonical
     .map(observation => normalizeObservation(observation, options))
     .filter(observation => observation.runAt !== null);
   const observationMap = new Map(canonicalObservations
     .map(observation => [observation.observationId, observation]));
+  const comparisonOptions = { ...options, expectedNormalizationVersion };
   const adjacentComparisons = canonicalObservations.slice(1).map((current, index) =>
     buildIntervalComparison(
       canonicalObservations[index],
       current,
       options.classifierPolicy,
+      expectedNormalizationVersion,
     ));
-  const pairSets = buildStandardTopStoriesPairSets(canonicalObservations);
+  const pairSets = buildStandardTopStoriesPairSets(canonicalObservations, {
+    expectedNormalizationVersion,
+  });
   return {
     canonicalObservations,
     operationalRecords: canonicalized.operationalRecords,
     adjacentComparisons,
     pairSets,
     pairComparisons: {
-      fifteenMinute: comparePairSet(
-        pairSets.fifteenMinute.pairs,
-        observationMap,
-        options.classifierPolicy,
-      ),
+      fifteenMinute: comparePairSet(pairSets.fifteenMinute.pairs, observationMap, comparisonOptions),
       fifteenMinuteCanonical: comparePairSet(
-        pairSets.fifteenMinute.canonicalPairs,
-        observationMap,
-        options.classifierPolicy,
+        pairSets.fifteenMinute.canonicalPairs, observationMap, comparisonOptions,
       ),
-      sixtyMinute: comparePairSet(
-        pairSets.sixtyMinute.pairs,
-        observationMap,
-        options.classifierPolicy,
-      ),
+      sixtyMinute: comparePairSet(pairSets.sixtyMinute.pairs, observationMap, comparisonOptions),
       sixtyMinuteCanonical: comparePairSet(
-        pairSets.sixtyMinute.canonicalPairs,
-        observationMap,
-        options.classifierPolicy,
+        pairSets.sixtyMinute.canonicalPairs, observationMap, comparisonOptions,
       ),
     },
     residenceEpisodes: buildResidenceEpisodes(
       canonicalObservations,
       options.maxResidenceGapMs || DEFAULT_MAX_RESIDENCE_GAP_MS,
+      expectedNormalizationVersion,
     ),
     replayVersion: 'nw-top-stories-sequential-replay-v1',
   };
