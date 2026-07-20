@@ -148,11 +148,16 @@ export function buildCanonicalNonOverlappingPairs(pairs = []) {
   const sorted = [...pairs].sort((left, right) =>
     left.anchorAt - right.anchorAt || left.currentAt - right.currentAt);
   const canonical = [];
+  const occupiedObservationIds = new Set();
   let occupiedUntil = -Infinity;
   sorted.forEach(pair => {
-    if (pair.anchorAt < occupiedUntil) return;
+    const reusesObservation = occupiedObservationIds.has(pair.anchorId) ||
+      occupiedObservationIds.has(pair.currentId);
+    if (pair.anchorAt < occupiedUntil || reusesObservation) return;
     canonical.push(pair);
     occupiedUntil = pair.currentAt;
+    occupiedObservationIds.add(pair.anchorId);
+    occupiedObservationIds.add(pair.currentId);
   });
   return canonical;
 }
