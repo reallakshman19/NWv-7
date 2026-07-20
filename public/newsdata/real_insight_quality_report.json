@@ -1,12 +1,12 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784512011269,
-  "contentHash": "55a281d5f5686856",
+  "generatedAt": 1784523998351,
+  "contentHash": "6d6bb2bafb14e597",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 454,
-  "sourceGroupCount": 10,
+  "storyCount": 453,
+  "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
   "avgAngles": 1.5,
@@ -23,10 +23,10 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 34,
+      "signalScore": 33,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 414,
+      "storyCount": 418,
       "risingCount": 0,
       "thinCount": 6,
       "multiAngleCount": 4,
@@ -34,26 +34,26 @@
       "strongAngleCount": 1,
       "avgAngles": 1.5,
       "avgChildren": 1.7,
-      "avgScore": 0.6806994653825658,
+      "avgScore": 0.6888048040277324,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 2,
       "coverageLabel": "4/10",
       "warnings": [
         "6 cluster(s) have fewer than two visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) have weak snapshot coverage.",
         "6 cluster(s) are marked thin.",
-        "400 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "350 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 34,
+      "signalScore": 33,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 414,
+      "storyCount": 418,
       "risingCount": 0,
       "thinCount": 6,
       "multiAngleCount": 4,
@@ -61,14 +61,14 @@
       "strongAngleCount": 1,
       "avgAngles": 1.5,
       "avgChildren": 1.7,
-      "avgScore": 0.6806994653825658,
+      "avgScore": 0.6888048040277324,
       "sourceDiversityCoverage": 5,
-      "snapshotCoverage": 3,
+      "snapshotCoverage": 2,
       "coverageLabel": "4/10",
       "warnings": [
         "6 cluster(s) have fewer than two visible child angles.",
         "5 cluster(s) are below source-diversity target.",
-        "7 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) have weak snapshot coverage.",
         "6 cluster(s) are marked thin."
       ]
     },
@@ -83,7 +83,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_197_76627092be3888f3",
+      "parentId": "cluster_232_76627092be3888f3",
       "headline": "Sonam Wangchuk’s wife moves Delhi HC, seeks his transfer to private hospital",
       "score": 0.691508740197415,
       "postTreeScore": 1.3415,
@@ -107,7 +107,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_243_b12f5624c7f1acd1",
+      "parentId": "cluster_279_b12f5624c7f1acd1",
       "headline": "Safdarjung Hospital",
       "score": 0.6874967197849983,
       "postTreeScore": 1.0675,
@@ -128,7 +128,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_235_598db3ebd1de122e",
+      "parentId": "cluster_270_598db3ebd1de122e",
       "headline": "US military launches new airstrikes to 'swiftly punish' Iran for deaths of US troops",
       "score": 0.6724967197849983,
       "postTreeScore": 1.0525,
@@ -149,10 +149,10 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_260_1996112cce593b8f",
+      "parentId": "cluster_296_1996112cce593b8f",
       "headline": "Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless'",
-      "score": 0.5585933333333333,
-      "postTreeScore": 0.9586,
+      "score": 0.6265800531183316,
+      "postTreeScore": 1.0066,
       "childCount": 2,
       "angles": [
         "market_reaction",
@@ -170,7 +170,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_121_3ed883c752d20d1e",
+      "parentId": "cluster_156_3ed883c752d20d1e",
       "headline": "IMA suspends July 20 strike after Bombay HC stays Shiv Sena corporator's bail",
       "score": 0.59651,
       "postTreeScore": 0.5065,
@@ -189,7 +189,61 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_5_b401ec98f9aee2d6",
+      "parentId": "cluster_7_18277138a4b3ba36",
+      "headline": "Yes Bank shares drop 4% after Q1 results. What are Nuvama, other brokerages saying?",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_9_477cf91b6ae0905e",
+      "headline": "Axis Bank shares fall 5% after Q1 earnings fail to cheer D-Street. What brokerages say",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_16_d4cb68b2fb0793ba",
+      "headline": "HDFC Bank shares fall 5% after Q1 results. Should you buy, sell or hold the stock?",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "market_reaction"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_37_b401ec98f9aee2d6",
       "headline": "Q1 earnings begin on a strong note as banks fuel double-digit growth",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -207,64 +261,10 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_27_07c4f91953e7ac08",
+      "parentId": "cluster_60_07c4f91953e7ac08",
       "headline": "Axis Bank weighs raising stake in its insurance venture to 30%",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_231_4853e68ae61898c0",
-      "headline": "Axis Bank Standalone Profit Soars 23% in Q1",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_236_43646db53b043a00",
-      "headline": "ICICI Bank net profit jumps 16% YoY to Rs 14,805 crore",
-      "score": 0.7226911614783158,
-      "postTreeScore": 0.4227,
-      "childCount": 1,
-      "angles": [
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking"
-      ],
-      "evolutionRoles": [
-        "fact_update"
-      ],
-      "baseReportShare": 0,
-      "weakTree": true
-    },
-    {
-      "parentId": "cluster_10_8d6a42ba854b57f5",
-      "headline": "Carnelian Capital plans PE foray with Rs 2,000 crore fund",
-      "score": 0.7096244948116492,
-      "postTreeScore": 0.4096,
       "childCount": 1,
       "angles": [
         "fact_update"
@@ -371,8 +371,8 @@
       "weakParentRatio": 0.6,
       "topParentAngles": 3,
       "topParentChildren": 4,
-      "storyCount": 454,
-      "sourceGroupCount": 10
+      "storyCount": 453,
+      "sourceGroupCount": 9
     }
   }
 }

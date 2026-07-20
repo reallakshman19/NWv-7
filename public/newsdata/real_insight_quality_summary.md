@@ -10,9 +10,9 @@
 - Base report share: `0.17647058823529413`
 - Multi-angle parents: `4`
 - Weak parents: `6`
-- Story count: `454`
-- Source groups: `10`
-- Content hash: `55a281d5f5686856`
+- Story count: `453`
+- Source groups: `9`
+- Content hash: `6d6bb2bafb14e597`
 
 ## Top parents
 
@@ -21,13 +21,13 @@
 | 1 | Sonam Wangchuk’s wife moves Delhi HC, seeks his transfer to private hospital | 4 | base_report, official_response, investigative_detail | NO | 0.691508740197415 |
 | 2 | Safdarjung Hospital | 2 | base_report, reaction_public | NO | 0.6874967197849983 |
 | 3 | US military launches new airstrikes to 'swiftly punish' Iran for deaths of US troops | 2 | official_response, base_report | NO | 0.6724967197849983 |
-| 4 | Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless' | 2 | market_reaction, official_response | NO | 0.5585933333333333 |
+| 4 | Iran's Supreme Leader says U.S. breaches show Trump's signature is 'worthless' | 2 | market_reaction, official_response | NO | 0.6265800531183316 |
 | 5 | IMA suspends July 20 strike after Bombay HC stays Shiv Sena corporator's bail | 2 | official_response | YES | 0.59651 |
-| 6 | Q1 earnings begin on a strong note as banks fuel double-digit growth | 1 | market_reaction | YES | 0.7226911614783158 |
-| 7 | Axis Bank weighs raising stake in its insurance venture to 30% | 1 | fact_update | YES | 0.7226911614783158 |
-| 8 | Axis Bank Standalone Profit Soars 23% in Q1 | 1 | fact_update | YES | 0.7226911614783158 |
-| 9 | ICICI Bank net profit jumps 16% YoY to Rs 14,805 crore | 1 | fact_update | YES | 0.7226911614783158 |
-| 10 | Carnelian Capital plans PE foray with Rs 2,000 crore fund | 1 | fact_update | YES | 0.7096244948116492 |
+| 6 | Yes Bank shares drop 4% after Q1 results. What are Nuvama, other brokerages saying? | 1 | market_reaction | YES | 0.7226911614783158 |
+| 7 | Axis Bank shares fall 5% after Q1 earnings fail to cheer D-Street. What brokerages say | 1 | market_reaction | YES | 0.7226911614783158 |
+| 8 | HDFC Bank shares fall 5% after Q1 results. Should you buy, sell or hold the stock? | 1 | market_reaction | YES | 0.7226911614783158 |
+| 9 | Q1 earnings begin on a strong note as banks fuel double-digit growth | 1 | market_reaction | YES | 0.7226911614783158 |
+| 10 | Axis Bank weighs raising stake in its insurance venture to 30% | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Warnings
 
