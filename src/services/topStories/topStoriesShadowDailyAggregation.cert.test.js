@@ -3,14 +3,21 @@ import {
   aggregateTopStoriesDaily,
   serializeTopStoriesDailyReport,
 } from '../../../scripts/top-stories-shadow/dailyAggregation.mjs';
+import {
+  buildTopStoriesVersionSegmentKey,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from './topStoriesVersionSegment.js';
 
 const STUDY = 'nw-rank-011-shadow-pilot-2026-07';
 const DATE = '2026-07-16';
-const VERSIONS = {
+const CONFIG = Object.freeze({
+  studyId: STUDY,
   rankerVersion: 'nw-top-stories-ranker-observed-v1',
   identityVersion: 'nw-top-stories-identity-v1',
   periodClassifierVersion: 'nw-top-stories-period-classifier-v1',
-};
+  normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
+});
+const DIGEST = 'a'.repeat(64);
 
 function story(id) {
   return {
@@ -20,12 +27,8 @@ function story(id) {
     source: 'Reuters',
     sourceGroup: 'reuters',
     _topStoryRank: {
-      slotBand: 'secondary',
-      eventType: 'unknown',
-      eventQualified: false,
-      independentEvidenceCount: 0,
-      normalizedScore: 0.5,
-      sourceCount: 1,
+      slotBand: 'secondary', eventType: 'unknown', eventQualified: false,
+      independentEvidenceCount: 0, normalizedScore: 0.5, sourceCount: 1,
       priorityBucket: 2,
     },
   };
@@ -44,6 +47,8 @@ function validRecord({
   completenessState = 'COMPLETE',
   analyticalEligibility = 'ELIGIBLE',
   sourceHealth = { ok: true, complete: true, failedSourceCount: 0 },
+  normalizationVersion = TOP_STORIES_NORMALIZATION_VERSION,
+  normalizationDigest = DIGEST,
 } = {}) {
   const scheduledAt = isoAt(hour, minute);
   const runAt = isoAt(hour, minute + 1);
@@ -57,7 +62,9 @@ function validRecord({
     workflowRunAttempt: attempt,
     completenessState,
     analyticalEligibility,
-    ...VERSIONS,
+    ...CONFIG,
+    normalizationVersion,
+    normalizationDigest,
     displayed: ids.map(story),
     candidateEvidence: [],
     sourceHealth,
@@ -113,26 +120,25 @@ function failureRecord({ hour = 10, minute = 37, runId = 900 } = {}) {
 
 function buildSequence() {
   return [
-    validRecord({ minute: 7, runId: 101 }),
-    validRecord({ minute: 22, runId: 102 }),
-    validRecord({ minute: 37, runId: 103, ids: ['a', 'b', 'd'] }),
-    validRecord({ minute: 52, runId: 104, ids: ['a', 'b', 'd'] }),
-    validRecord({ hour: 11, minute: 7, runId: 105, ids: ['a', 'b', 'd'] }),
-    validRecord({ hour: 11, minute: 22, runId: 106, ids: ['a', 'b', 'e'] }),
+    validRecord({ minute: 7, runId: 101, normalizationDigest: '1'.repeat(64) }),
+    validRecord({ minute: 22, runId: 102, normalizationDigest: '2'.repeat(64) }),
+    validRecord({ minute: 37, runId: 103, ids: ['a', 'b', 'd'], normalizationDigest: '3'.repeat(64) }),
+    validRecord({ minute: 52, runId: 104, ids: ['a', 'b', 'd'], normalizationDigest: '4'.repeat(64) }),
+    validRecord({ hour: 11, minute: 7, runId: 105, ids: ['a', 'b', 'd'], normalizationDigest: '5'.repeat(64) }),
+    validRecord({ hour: 11, minute: 22, runId: 106, ids: ['a', 'b', 'e'], normalizationDigest: '6'.repeat(64) }),
   ];
 }
 
-describe('Top Stories daily aggregation', () => {
+function aggregate(records, date = DATE) {
+  return aggregateTopStoriesDaily(records, { date, studyConfig: CONFIG });
+}
+
+describe('Top Stories daily aggregation with normalization segmentation', () => {
   it('uses canonical attempts while preserving superseded and failure evidence', () => {
     const records = buildSequence();
     records.push(validRecord({ minute: 22, runId: 202, attempt: 2 }));
     records.push(failureRecord());
-
-    const { report, replay } = aggregateTopStoriesDaily(records, {
-      date: DATE,
-      studyId: STUDY,
-    });
-
+    const { report, replay } = aggregate(records);
     expect(report.status).toBe('OBSERVED');
     expect(report.coverage.startedRuns).toBe(8);
     expect(report.coverage.successfulRuns).toBe(7);
@@ -140,47 +146,78 @@ describe('Top Stories daily aggregation', () => {
     expect(report.coverage.supersededDuplicateCount).toBe(1);
     expect(report.coverage.canonicalObservationCount).toBe(6);
     expect(replay.canonicalObservations).toHaveLength(6);
-    expect(report.stability.fifteenMinute.overlapping.totalComparisons).toBeGreaterThan(0);
-    expect(report.stability.sixtyMinute.overlapping.totalComparisons).toBeGreaterThan(0);
-    expect(
-      report.stability.sixtyMinute.canonicalNonOverlapping.totalComparisons,
-    ).toBeLessThanOrEqual(report.stability.sixtyMinute.overlapping.totalComparisons);
+    expect(report.normalizationEvidenceCoverage).toMatchObject({
+      totalCanonicalObservations: 6,
+      validNormalizationEvidenceCount: 6,
+      complete: true,
+    });
+    expect(report.versionSegments).toEqual([buildTopStoriesVersionSegmentKey(CONFIG)]);
+    expect(report.segmentSummaries).toHaveLength(1);
+    expect(report.headlineKpiEligibility).toEqual({ eligible: true, reasonCodes: [] });
+  });
+
+  it('retains missing evidence operationally while excluding it analytically', () => {
+    const records = buildSequence();
+    records[2] = validRecord({
+      minute: 37, runId: 103, ids: ['a', 'b', 'd'], normalizationDigest: '',
+    });
+    const { report } = aggregate(records);
+    expect(report.inputManifest).toHaveLength(6);
+    expect(report.normalizationEvidenceCoverage.normalizationDigestMissingCount).toBe(1);
+    expect(report.normalizationEvidenceCoverage.validNormalizationEvidenceCount).toBe(5);
+    expect(report.headlineKpiEligibility.eligible).toBe(false);
+    expect(report.headlineKpiEligibility.reasonCodes)
+      .toContain('normalization_digest_missing');
+    expect(report.pairing.fifteenMinuteExclusions.normalization_digest_missing).toBe(1);
+  });
+
+  it('partitions mixed versions and rejects homogeneous headline eligibility', () => {
+    const records = buildSequence();
+    records[3] = validRecord({
+      minute: 52,
+      runId: 104,
+      ids: ['a', 'b', 'd'],
+      normalizationVersion: 'nw-top-stories-normalization-v2',
+      normalizationDigest: '4'.repeat(64),
+    });
+    const { report } = aggregate(records);
+    expect(report.versionSegments).toHaveLength(2);
+    expect(report.segmentSummaries).toHaveLength(2);
+    expect(report.headlineKpiEligibility.eligible).toBe(false);
+    expect(report.headlineKpiEligibility.reasonCodes)
+      .toContain('normalization_version_boundary');
+    expect(report.pairing.fifteenMinuteExclusions.normalization_version_boundary)
+      .toBeGreaterThan(0);
   });
 
   it('does not let context-window observations inflate target-day coverage', () => {
-    const priorContext = {
-      ...validRecord({ minute: 7, runId: 1 }),
-      snapshot: {
-        ...validRecord({ minute: 7, runId: 1 }).snapshot,
-        scheduledAt: '2026-07-15T23:52:00.000Z',
-        runAt: '2026-07-15T23:53:00.000Z',
-      },
-      operational: {
-        ...validRecord({ minute: 7, runId: 1 }).operational,
-        scheduledAt: '2026-07-15T23:52:00.000Z',
-        runAt: '2026-07-15T23:53:00.000Z',
-        nominalSlotKey: '20260715T2352Z',
-      },
+    const priorContext = validRecord({ minute: 7, runId: 1 });
+    priorContext.snapshot = {
+      ...priorContext.snapshot,
+      scheduledAt: '2026-07-15T23:52:00.000Z',
+      runAt: '2026-07-15T23:53:00.000Z',
     };
-    const records = [priorContext, ...buildSequence()];
-    const { report } = aggregateTopStoriesDaily(records, { date: DATE, studyId: STUDY });
-
+    priorContext.operational = {
+      ...priorContext.operational,
+      scheduledAt: '2026-07-15T23:52:00.000Z',
+      runAt: '2026-07-15T23:53:00.000Z',
+      nominalSlotKey: '20260715T2352Z',
+    };
+    const { report } = aggregate([priorContext, ...buildSequence()]);
     expect(report.coverage.discoveredArtifacts).toBe(6);
     expect(report.coverage.contextArtifactCount).toBe(1);
-    expect(report.inputManifest.filter(row => row.withinReportDay)).toHaveLength(6);
+    expect(report.normalizationEvidenceCoverage.totalCanonicalObservations).toBe(6);
   });
 
   it('is deterministic and emits an explicit empty-day report', () => {
     const records = buildSequence();
-    const first = aggregateTopStoriesDaily(records, { date: DATE, studyId: STUDY }).report;
-    const second = aggregateTopStoriesDaily(records, { date: DATE, studyId: STUDY }).report;
+    const first = aggregate(records).report;
+    const second = aggregate(records).report;
     expect(second).toEqual(first);
     expect(serializeTopStoriesDailyReport(second)).toBe(serializeTopStoriesDailyReport(first));
-
-    const empty = aggregateTopStoriesDaily([], { date: DATE, studyId: STUDY }).report;
+    const empty = aggregate([], DATE).report;
     expect(empty.status).toBe('EMPTY');
-    expect(empty.coverage.scheduledSlots).toBe(96);
     expect(empty.coverage.observedSlotCount).toBe(0);
-    expect(empty.stability.fifteenMinute.overlapping.totalComparisons).toBe(0);
+    expect(empty.headlineKpiEligibility.eligible).toBe(false);
   });
 });
