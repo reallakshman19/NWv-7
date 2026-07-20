@@ -1,4 +1,8 @@
 import { getPilotExpectedDates } from '../../../../scripts/top-stories-shadow/pilotDecision.mjs';
+import {
+  buildTopStoriesVersionSegmentKey,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from '../topStoriesVersionSegment.js';
 
 export const PILOT_STUDY_ID = 'nw-rank-011-shadow-pilot-2026-07';
 export const PILOT_READY_NOW = Date.parse('2026-07-24T03:00:00.000Z');
@@ -10,6 +14,7 @@ export const PILOT_CONFIG = Object.freeze({
   rankerVersion: 'nw-top-stories-ranker-observed-v1',
   identityVersion: 'nw-top-stories-identity-v1',
   periodClassifierVersion: 'nw-top-stories-period-classifier-v1',
+  normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
   inputContractVersion: 'nw-top-stories-repository-input/v1',
   displayDepth: 10,
   rankerLimit: 25,
@@ -21,12 +26,12 @@ export const PILOT_CONFIG = Object.freeze({
   approver: 'reviewer',
 });
 
-const SEGMENT = [
-  PILOT_STUDY_ID,
-  PILOT_CONFIG.rankerVersion,
-  PILOT_CONFIG.identityVersion,
-  PILOT_CONFIG.periodClassifierVersion,
-].join('|');
+const SEGMENT = buildTopStoriesVersionSegmentKey(PILOT_CONFIG);
+
+function fixtureDigest(date, index) {
+  const seed = `${date.replaceAll('-', '')}${String(index).padStart(2, '0')}`;
+  return seed.padEnd(64, 'a').slice(0, 64);
+}
 
 function identityList(count) {
   return Array.from({ length: count }, (_, index) => `story-${index + 1}`);
@@ -40,6 +45,8 @@ function observationRows(date, displayedCount) {
     scheduledAt: new Date(start + (index * 15 * 60 * 1000)).toISOString(),
     runAt: new Date(start + (index * 15 * 60 * 1000)).toISOString(),
     inputDigest: `digest-${date}-${Math.floor(index / 4)}`,
+    normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
+    normalizationDigest: fixtureDigest(date, index),
     displayedCount,
     rankedCount: displayedCount,
     displayDepth: 10,
@@ -61,6 +68,20 @@ function inputPopulation(comparisonCount, median) {
   };
 }
 
+function normalizationEvidence(overrides = {}) {
+  return {
+    totalCanonicalObservations: 96,
+    validNormalizationEvidenceCount: 96,
+    normalizationVersionMissingCount: 0,
+    normalizationVersionUnsupportedCount: 0,
+    normalizationVersionMismatchCount: 0,
+    normalizationDigestMissingCount: 0,
+    normalizationDigestInvalidCount: 0,
+    complete: true,
+    ...overrides,
+  };
+}
+
 function dailyReport(date, options = {}) {
   const displayedCount = options.displayedCount ?? 10;
   const lowRail = displayedCount < 8;
@@ -73,13 +94,33 @@ function dailyReport(date, options = {}) {
     displayedCount <= 9 ? '8-9' : '10';
   const railBuckets = { '0': 0, '1-3': 0, '4-7': 0, '8-9': 0, '10': 0, other: 0 };
   railBuckets[bucket] = 96;
+  const coverage = normalizationEvidence(options.normalizationCoverage);
+  const segments = options.mixedNormalization
+    ? [SEGMENT, SEGMENT.replace(TOP_STORIES_NORMALIZATION_VERSION, 'normalization-v2')]
+    : [SEGMENT];
+  const headlineEligible = options.headlineEligible ??
+    (coverage.complete && !options.mixedNormalization);
   return {
     schemaVersion: 'nw-top-stories-daily-stability-report/v1',
     studyId: PILOT_STUDY_ID,
     date,
     status: 'OBSERVED',
-    coverage: { scheduleSlotCoverage: 0.96 },
-    versionSegments: [SEGMENT],
+    coverage: { scheduleSlotCoverage: 0.96, normalizationEvidence: coverage },
+    normalizationEvidenceCoverage: coverage,
+    versionSegments: segments,
+    segmentSummaries: segments.map(segmentKey => ({
+      segmentKey,
+      observationCount: options.mixedNormalization ? 48 : 96,
+      validNormalizationEvidenceCount: options.mixedNormalization ? 48 : 96,
+      eligibleComparisonCounts: { fifteenMinute: 80, sixtyMinute: 70 },
+      headlineKpiEligible: headlineEligible && segmentKey === SEGMENT,
+    })),
+    headlineKpiEligibility: {
+      eligible: headlineEligible,
+      reasonCodes: headlineEligible ? [] : [options.normalizationReason ||
+        (options.mixedNormalization
+          ? 'normalization_version_boundary' : 'normalization_evidence_incomplete')],
+    },
     stability: {
       fifteenMinute: {
         canonicalNonOverlapping: {
@@ -149,6 +190,7 @@ export function buildPilotArtifacts(options = {}) {
   const records = [];
   getPilotExpectedDates(PILOT_CONFIG).forEach((date, index) => {
     if (options.missingDailyIndex !== index) {
+      const normalizationDefect = options.normalizationDefectIndex === index;
       records.push({
         type: 'daily',
         artifactId: 100 + index,
@@ -162,6 +204,15 @@ export function buildPilotArtifacts(options = {}) {
           unchanged15: options.unchanged15,
           unchanged60: options.unchanged60,
           active: (options.activeDays || []).includes(index),
+          mixedNormalization: options.mixedNormalizationIndex === index,
+          headlineEligible: normalizationDefect ? false : undefined,
+          normalizationCoverage: normalizationDefect ? {
+            validNormalizationEvidenceCount: 95,
+            normalizationDigestMissingCount: 1,
+            complete: false,
+          } : undefined,
+          normalizationReason: normalizationDefect
+            ? 'normalization_digest_missing' : undefined,
         }),
       });
     }
