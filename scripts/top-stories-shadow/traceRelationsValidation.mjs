@@ -126,8 +126,12 @@ function validateSourceRelations(ledger, sourceMap, candidateMap) {
   const add = (map, key, value) => map.set(key, (map.get(key) || 0) + value);
   ['sourceCandidateEdges', 'sourceDispositionRecords'].forEach(field => assertUniqueRelations(ledger[field], field));
   ledger.sourceCandidateEdges.forEach(edge => {
-    if (!sourceMap.has(edge.sourceEvidenceId)) fail('TRACE_RELATION_SOURCE_ENDPOINT_UNKNOWN');
-    if (!candidateMap.has(edge.candidateId)) fail('TRACE_RELATION_CANDIDATE_ENDPOINT_UNKNOWN');
+    const source = sourceMap.get(edge.sourceEvidenceId);
+    const candidate = candidateMap.get(edge.candidateId);
+    if (!source) fail('TRACE_RELATION_SOURCE_ENDPOINT_UNKNOWN');
+    if (!candidate) fail('TRACE_RELATION_CANDIDATE_ENDPOINT_UNKNOWN');
+    if (getTopStoryDedupeKey(source.sanitizedEvidence) !== candidate.candidateKey)
+      fail('TRACE_RELATION_SOURCE_CANDIDATE_MISMATCH', edge.sourceEvidenceId);
     integer(edge.occurrenceCount, true, 'TRACE_RELATION_MULTIPLICITY_INVALID');
     const reasons = { PROMOTED_TO_CANDIDATE: 'candidate_created',
       COLLAPSED_AS_DUPLICATE: 'duplicate_identity' };
