@@ -14,11 +14,10 @@ import {
   TOP_STORIES_COMPARISON_EVIDENCE_SCHEMA,
 } from './comparisonEvidence.mjs';
 import { validateTopStoriesDailyComparisonEvidence } from './comparisonEvidenceValidation.mjs';
+import { TOP_STORIES_INPUT_CHANGE_INTERPRETATION } from './inputChangeAnalytics.mjs';
 
 export const TOP_STORIES_DAILY_REPORT_SCHEMA = 'nw-top-stories-daily-stability-report/v1';
 const REVIEW_THRESHOLDS = Object.freeze({ fifteenMinute: 0.9, sixtyMinute: 0.8 });
-const INPUT_CHANGE_INTERPRETATION =
-  'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.';
 
 function parseDay(day) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(day || ''))) throw new Error('date must use YYYY-MM-DD');
@@ -161,7 +160,7 @@ function buildEvidenceSummaries(evidence) {
       canonicalNonOverlapping: summarizeTopStoriesInputChange(canonical),
     };
   });
-  inputChange.interpretation = INPUT_CHANGE_INTERPRETATION;
+  inputChange.interpretation = TOP_STORIES_INPUT_CHANGE_INTERPRETATION;
   return { stability, inputChange };
 }
 
