@@ -1,16 +1,23 @@
+import {
+  buildTopStoriesVersionSegmentKey,
+  compareTopStoriesVersionSegments,
+  TOP_STORIES_NORMALIZATION_REASON_CODES,
+  validateTopStoriesNormalizationEvidence,
+} from './topStoriesVersionSegment.js';
+
 const MINUTE = 60 * 1000;
 
 export const TOP_STORIES_PAIR_WINDOWS = Object.freeze({
-  fifteenMinute: {
+  fifteenMinute: Object.freeze({
     horizonMs: 15 * MINUTE,
     minIntervalMs: 8 * MINUTE,
     maxIntervalMs: 30 * MINUTE,
-  },
-  sixtyMinute: {
+  }),
+  sixtyMinute: Object.freeze({
     horizonMs: 60 * MINUTE,
     minIntervalMs: 45 * MINUTE,
     maxIntervalMs: 75 * MINUTE,
-  },
+  }),
 });
 
 function getRunAt(observation = {}) {
@@ -25,16 +32,7 @@ function getObservationId(observation = {}, index = 0) {
     `${observation.studyId || 'study'}:${observation.scheduledAt || getRunAt(observation) || index}`;
 }
 
-function getSegmentKey(observation = {}) {
-  return [
-    observation.studyId || 'study',
-    observation.rankerVersion || 'ranker',
-    observation.identityVersion || 'identity',
-    observation.periodClassifierVersion || 'period',
-  ].join('|');
-}
-
-function getEligibilityReason(observation = {}) {
+function getEligibilityReason(observation = {}, expectedNormalizationVersion) {
   if (getRunAt(observation) === null) return 'invalid_run_at';
   if (observation.completenessState && observation.completenessState !== 'COMPLETE') {
     return 'incomplete_observation';
@@ -42,75 +40,98 @@ function getEligibilityReason(observation = {}) {
   if (observation.analyticalEligibility && observation.analyticalEligibility !== 'ELIGIBLE') {
     return 'analytically_ineligible';
   }
-  return null;
+  return validateTopStoriesNormalizationEvidence(observation, {
+    expectedNormalizationVersion,
+  }).reasonCodes[0] || null;
 }
 
 function sortObservations(observations = []) {
   return observations
     .map((observation, index) => ({ observation, index, runAt: getRunAt(observation) }))
-    .sort((left, right) => (left.runAt ?? Infinity) - (right.runAt ?? Infinity) || left.index - right.index);
+    .sort((left, right) =>
+      (left.runAt ?? Infinity) - (right.runAt ?? Infinity) || left.index - right.index);
 }
 
 function choosePairCandidate(anchor, rows, startIndex, config) {
   const candidates = [];
+  let normalizationBoundary = false;
   for (let index = startIndex; index < rows.length; index += 1) {
     const current = rows[index];
     if (current.runAt === null) continue;
     const intervalMs = current.runAt - anchor.runAt;
     if (intervalMs > config.maxIntervalMs) break;
     if (intervalMs < config.minIntervalMs) continue;
-    if (getEligibilityReason(current.observation)) continue;
-    if (getSegmentKey(anchor.observation) !== getSegmentKey(current.observation)) continue;
+    if (anchor.observation.normalizationVersion && current.observation.normalizationVersion &&
+      anchor.observation.normalizationVersion !== current.observation.normalizationVersion) {
+      normalizationBoundary = true;
+      continue;
+    }
+    if (getEligibilityReason(current.observation, config.expectedNormalizationVersion)) continue;
+    const compatibility = compareTopStoriesVersionSegments(
+      anchor.observation,
+      current.observation,
+      { normalizationVersion: config.expectedNormalizationVersion },
+    );
+    if (!compatibility.compatible) {
+      if (compatibility.reasonCodes.includes(
+        TOP_STORIES_NORMALIZATION_REASON_CODES.versionBoundary,
+      )) normalizationBoundary = true;
+      continue;
+    }
     candidates.push({
       current,
       intervalMs,
       distanceMs: Math.abs(intervalMs - config.horizonMs),
     });
   }
-  return candidates.sort((left, right) =>
-    left.distanceMs - right.distanceMs ||
-    left.current.runAt - right.current.runAt ||
-    left.current.index - right.current.index,
-  )[0] || null;
+  return {
+    selected: candidates.sort((left, right) =>
+      left.distanceMs - right.distanceMs ||
+      left.current.runAt - right.current.runAt ||
+      left.current.index - right.current.index)[0] || null,
+    normalizationBoundary,
+  };
 }
 
 export function buildTopStoriesObservationPairs(observations = [], config = {}) {
-  const effective = {
-    ...TOP_STORIES_PAIR_WINDOWS.fifteenMinute,
-    ...config,
-  };
+  const effective = { ...TOP_STORIES_PAIR_WINDOWS.fifteenMinute, ...config };
   const rows = sortObservations(observations);
   const pairs = [];
   const exclusions = [];
 
   rows.forEach((anchor, index) => {
-    const reason = getEligibilityReason(anchor.observation);
+    const reason = getEligibilityReason(
+      anchor.observation,
+      effective.expectedNormalizationVersion,
+    );
     if (reason) {
-      exclusions.push({
-        anchorId: getObservationId(anchor.observation, anchor.index),
-        reason,
-      });
+      exclusions.push({ anchorId: getObservationId(anchor.observation, anchor.index), reason });
       return;
     }
-    const selected = choosePairCandidate(anchor, rows, index + 1, effective);
-    if (!selected) {
+    const result = choosePairCandidate(anchor, rows, index + 1, effective);
+    if (!result.selected) {
       exclusions.push({
         anchorId: getObservationId(anchor.observation, anchor.index),
-        reason: 'no_valid_subsequent_observation_in_window',
+        reason: result.normalizationBoundary
+          ? TOP_STORIES_NORMALIZATION_REASON_CODES.versionBoundary
+          : 'no_valid_subsequent_observation_in_window',
       });
       return;
     }
     pairs.push({
       anchorId: getObservationId(anchor.observation, anchor.index),
-      currentId: getObservationId(selected.current.observation, selected.current.index),
+      currentId: getObservationId(
+        result.selected.current.observation,
+        result.selected.current.index,
+      ),
       anchor: anchor.observation,
-      current: selected.current.observation,
+      current: result.selected.current.observation,
       anchorAt: anchor.runAt,
-      currentAt: selected.current.runAt,
-      intervalMs: selected.intervalMs,
+      currentAt: result.selected.current.runAt,
+      intervalMs: result.selected.intervalMs,
       targetHorizonMs: effective.horizonMs,
-      intervalErrorMs: selected.distanceMs,
-      segmentKey: getSegmentKey(anchor.observation),
+      intervalErrorMs: result.selected.distanceMs,
+      segmentKey: buildTopStoriesVersionSegmentKey(anchor.observation),
     });
   });
 
@@ -125,8 +146,7 @@ export function buildTopStoriesObservationPairs(observations = [], config = {}) 
 
 export function buildCanonicalNonOverlappingPairs(pairs = []) {
   const sorted = [...pairs].sort((left, right) =>
-    left.anchorAt - right.anchorAt || left.currentAt - right.currentAt,
-  );
+    left.anchorAt - right.anchorAt || left.currentAt - right.currentAt);
   const canonical = [];
   let occupiedUntil = -Infinity;
   sorted.forEach(pair => {
@@ -137,15 +157,13 @@ export function buildCanonicalNonOverlappingPairs(pairs = []) {
   return canonical;
 }
 
-export function buildStandardTopStoriesPairSets(observations = []) {
-  const fifteen = buildTopStoriesObservationPairs(
-    observations,
-    TOP_STORIES_PAIR_WINDOWS.fifteenMinute,
-  );
-  const sixty = buildTopStoriesObservationPairs(
-    observations,
-    TOP_STORIES_PAIR_WINDOWS.sixtyMinute,
-  );
+export function buildStandardTopStoriesPairSets(observations = [], options = {}) {
+  const build = window => buildTopStoriesObservationPairs(observations, {
+    ...window,
+    expectedNormalizationVersion: options.expectedNormalizationVersion,
+  });
+  const fifteen = build(TOP_STORIES_PAIR_WINDOWS.fifteenMinute);
+  const sixty = build(TOP_STORIES_PAIR_WINDOWS.sixtyMinute);
   return {
     fifteenMinute: {
       ...fifteen,
