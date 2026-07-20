@@ -120,7 +120,9 @@ function normalizationChecks(checks, report, config) {
     config?.normalizationVersion || null, TOP_STORIES_NORMALIZATION_VERSION,
     config?.normalizationVersion ? 'normalization_version_mismatch' :
       'normalization_version_missing');
-  if (!observed) return;
+  const hasNormalizationEvidence = observed ||
+    Number(coverage.totalCanonicalObservations) > 0 || segments.length > 0;
+  if (!hasNormalizationEvidence) return;
   const defectRows = [
     ['normalization_version_missing', 'normalizationVersionMissingCount'],
     ['normalization_version_unsupported', 'normalizationVersionUnsupportedCount'],
