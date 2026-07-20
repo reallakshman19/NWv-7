@@ -13,6 +13,7 @@ import {
   StudyConfigurationError,
   validateTopStoriesStudyConfig,
 } from '../../../scripts/top-stories-shadow/studyConfig.mjs';
+import { TOP_STORIES_NORMALIZATION_VERSION } from './topStoriesVersionSegment.js';
 
 const RUN_AT = Date.UTC(2026, 6, 16, 17, 22);
 const CONFIG = JSON.parse(readFileSync(
@@ -40,73 +41,70 @@ function inputBundle(extra = {}) {
   };
 }
 
-describe('NW-RANK-011C fixed study configuration', () => {
-  it('validates the committed immutable study configuration', () => {
-    const result = validateTopStoriesStudyConfig(CONFIG, { nowMs: RUN_AT });
+function expectConfigError(config, code) {
+  expect(() => validateTopStoriesStudyConfig(config, { nowMs: RUN_AT }))
+    .toThrowError(StudyConfigurationError);
+  try {
+    validateTopStoriesStudyConfig(config, { nowMs: RUN_AT });
+  } catch (error) {
+    expect(error.code).toBe(code);
+  }
+}
 
+describe('NW-RANK-012B fixed study configuration', () => {
+  it('validates the committed immutable configuration and normalization contract', () => {
+    const result = validateTopStoriesStudyConfig(CONFIG, { nowMs: RUN_AT });
     expect(result.studyId).toBe('nw-rank-011-shadow-pilot-2026-07');
     expect(result.observationMode).toBe('repository-snapshot-replay');
+    expect(result.normalizationVersion).toBe(TOP_STORIES_NORMALIZATION_VERSION);
     expect(Object.isFrozen(result)).toBe(true);
   });
 
-  it('fails closed without a study ID instead of defaulting', () => {
-    const invalid = { ...CONFIG, studyId: '' };
-
-    expect(() => validateTopStoriesStudyConfig(invalid, { nowMs: RUN_AT }))
-      .toThrowError(StudyConfigurationError);
-    try {
-      validateTopStoriesStudyConfig(invalid, { nowMs: RUN_AT });
-    } catch (error) {
-      expect(error.code).toBe('missing_study_configuration');
-    }
+  it('fails closed without required study or normalization identity', () => {
+    expectConfigError({ ...CONFIG, studyId: '' }, 'missing_study_configuration');
+    expectConfigError({ ...CONFIG, normalizationVersion: '' }, 'missing_study_configuration');
   });
 
-  it('rejects unsupported modes, version drift, and expired studies', () => {
-    expect(() => validateTopStoriesStudyConfig(
-      { ...CONFIG, observationMode: 'user-visible-snapshot' },
-      { nowMs: RUN_AT },
-    )).toThrow(/repository-snapshot-replay/);
-    expect(() => validateTopStoriesStudyConfig(
-      { ...CONFIG, identityVersion: 'identity-v-next' },
-      { nowMs: RUN_AT },
-    )).toThrow(/identityVersion/);
-    expect(() => validateTopStoriesStudyConfig(
-      CONFIG,
-      { nowMs: Date.UTC(2026, 8, 1) },
-    )).toThrow(/expired/);
+  it('rejects incompatible normalization, identity, mode, and expiry', () => {
+    expectConfigError({
+      ...CONFIG,
+      normalizationVersion: 'nw-top-stories-normalization-v2',
+    }, 'normalization_version_mismatch');
+    expect(() => validateTopStoriesStudyConfig({
+      ...CONFIG, observationMode: 'user-visible-snapshot',
+    }, { nowMs: RUN_AT })).toThrow(/repository-snapshot-replay/);
+    expect(() => validateTopStoriesStudyConfig({
+      ...CONFIG, identityVersion: 'identity-v-next',
+    }, { nowMs: RUN_AT })).toThrow(/identityVersion/);
+    expect(() => validateTopStoriesStudyConfig(CONFIG, {
+      nowMs: Date.UTC(2026, 8, 1),
+    })).toThrow(/expired/);
   });
 
   it('rejects schema drift and an impossible display depth', () => {
-    expect(() => validateTopStoriesStudyConfig(
-      { ...CONFIG, schemaVersion: 'study/v-next' },
-      { nowMs: RUN_AT },
-    )).toThrow(/schemaVersion/);
-    expect(() => validateTopStoriesStudyConfig(
-      { ...CONFIG, displayDepth: 26, rankerLimit: 25 },
-      { nowMs: RUN_AT },
-    )).toThrow(/displayDepth/);
+    expect(() => validateTopStoriesStudyConfig({
+      ...CONFIG, schemaVersion: 'study/v-next',
+    }, { nowMs: RUN_AT })).toThrow(/schemaVersion/);
+    expect(() => validateTopStoriesStudyConfig({
+      ...CONFIG, displayDepth: 26, rankerLimit: 25,
+    }, { nowMs: RUN_AT })).toThrow(/displayDepth/);
   });
 });
 
 describe('NW-RANK-011C canonical input digests', () => {
   it('is stable under object-key and source-row ordering', () => {
     const first = inputBundle({
-      sectionItems: {
-        world: [
-          { id: 'b', title: 'Flood alert B', source: 'B' },
-          { id: 'a', title: 'Flood alert A', source: 'A' },
-        ],
-      },
+      sectionItems: { world: [
+        { id: 'b', title: 'Flood alert B', source: 'B' },
+        { id: 'a', title: 'Flood alert A', source: 'A' },
+      ] },
     });
     const second = inputBundle({
-      sectionItems: {
-        world: [
-          { source: 'A', title: 'Flood alert A', id: 'a' },
-          { source: 'B', id: 'b', title: 'Flood alert B' },
-        ],
-      },
+      sectionItems: { world: [
+        { source: 'A', title: 'Flood alert A', id: 'a' },
+        { source: 'B', id: 'b', title: 'Flood alert B' },
+      ] },
     });
-
     expect(getRankingInputDigest(first)).toBe(getRankingInputDigest(second));
     expect(digestCanonicalJson({ b: 2, a: 1 }))
       .toBe(digestCanonicalJson({ a: 1, b: 2 }));
@@ -115,23 +113,18 @@ describe('NW-RANK-011C canonical input digests', () => {
   it('ignores declared volatile diagnostics but detects story changes', () => {
     const first = inputBundle();
     const volatileChange = inputBundle({
-      sectionItems: {
-        world: [{
-          ...first.sectionItems.world[0],
-          fetchedAt: '2026-07-16T17:15:00Z',
-          sectionFetchDurationMs: 999,
-        }],
-      },
+      sectionItems: { world: [{
+        ...first.sectionItems.world[0],
+        fetchedAt: '2026-07-16T17:15:00Z',
+        sectionFetchDurationMs: 999,
+      }] },
     });
     const meaningfulChange = inputBundle({
-      sectionItems: {
-        world: [{
-          ...first.sectionItems.world[0],
-          title: 'Flood evacuation order expanded to more residents',
-        }],
-      },
+      sectionItems: { world: [{
+        ...first.sectionItems.world[0],
+        title: 'Flood evacuation order expanded to more residents',
+      }] },
     });
-
     expect(getRankingInputDigest(first)).toBe(getRankingInputDigest(volatileChange));
     expect(getRankingInputDigest(first)).not.toBe(getRankingInputDigest(meaningfulChange));
   });
@@ -149,26 +142,15 @@ describe('NW-RANK-011C repository input and minimization', () => {
 
   it('keeps ranking evidence while removing bodies, secrets, and read state', () => {
     const story = sanitizeStoryEvidence({
-      id: 's1',
-      title: 'Public alert',
-      country: 'Oman',
-      body: 'licensed body',
-      content: 'full article',
-      html: '<p>article</p>',
-      token: 'secret-token',
-      viewed: true,
-      _topStoryRank: { normalizedScore: 0.8, token: 'nested-secret' },
+      id: 's1', title: 'Public alert', country: 'Oman', body: 'licensed body',
+      content: 'full article', html: '<p>article</p>', token: 'secret-token',
+      viewed: true, _topStoryRank: { normalizedScore: 0.8, token: 'nested-secret' },
     });
     const diagnostics = sanitizeObservationEvidence({
-      ok: true,
-      authorization: 'Bearer secret',
-      nested: { password: 'hidden', count: 3 },
+      ok: true, authorization: 'Bearer secret', nested: { password: 'hidden', count: 3 },
     });
-
     expect(story).toMatchObject({
-      id: 's1',
-      title: 'Public alert',
-      country: 'Oman',
+      id: 's1', title: 'Public alert', country: 'Oman',
       _topStoryRank: { normalizedScore: 0.8 },
     });
     expect(JSON.stringify(story)).not.toContain('licensed body');
