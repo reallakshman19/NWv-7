@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -8,6 +8,7 @@ const ROOT = process.cwd();
 const WORKFLOW = path.join(ROOT, '.github/workflows/top_stories_shadow_aggregate.yml');
 const DOWNLOADER = path.join(ROOT, 'scripts/download_top_stories_shadow_artifacts.mjs');
 const AGGREGATOR = path.join(ROOT, 'scripts/aggregate_top_stories_shadow.mjs');
+const STUDY_CONFIG = path.join(ROOT, 'config/top_stories_shadow_study.json');
 
 async function text(filePath) {
   return readFile(filePath, 'utf8');
@@ -43,16 +44,12 @@ describe('Top Stories shadow aggregation workflow', () => {
     const input = path.join(root, 'input');
     const outputA = path.join(root, 'output-a');
     const outputB = path.join(root, 'output-b');
-    const configPath = path.join(root, 'study.json');
     await mkdir(input, { recursive: true });
-    await writeFile(configPath, JSON.stringify({
-      studyId: 'nw-rank-011-shadow-pilot-2026-07',
-    }), 'utf8');
 
     const args = [
       AGGREGATOR,
       '--input', input,
-      '--config', configPath,
+      '--config', STUDY_CONFIG,
       '--date', '2026-07-16',
     ];
     execFileSync(process.execPath, [...args, '--output', outputA], { cwd: ROOT });
