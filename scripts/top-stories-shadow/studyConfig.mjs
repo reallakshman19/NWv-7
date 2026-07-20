@@ -1,5 +1,6 @@
 import { TOP_STORIES_IDENTITY_VERSION } from '../../src/services/topStories/topStoriesStudyIdentity.js';
 import { TOP_STORIES_PERIOD_CLASSIFIER_VERSION } from '../../src/services/topStories/topStoriesPeriodClassifier.js';
+import { TOP_STORIES_NORMALIZATION_VERSION } from '../../src/services/topStories/topStoriesVersionSegment.js';
 
 export const STUDY_CONFIG_SCHEMA_VERSION = 'nw-top-stories-shadow-study/v1';
 export const REPOSITORY_INPUT_CONTRACT_VERSION = 'nw-top-stories-repository-input/v1';
@@ -12,6 +13,7 @@ const REQUIRED_STRINGS = [
   'rankerVersion',
   'identityVersion',
   'periodClassifierVersion',
+  'normalizationVersion',
   'inputContractVersion',
   'expiryAt',
   'owner',
@@ -66,24 +68,32 @@ function assertMode(config) {
   if (config.observationMode !== 'repository-snapshot-replay') {
     throw new StudyConfigurationError(
       'unsupported_observation_mode',
-      'Only repository-snapshot-replay is permitted in NW-RANK-011C',
+      'Only repository-snapshot-replay is permitted',
     );
   }
 }
 
 function assertExecutableVersions(config) {
-  if (config.identityVersion !== TOP_STORIES_IDENTITY_VERSION) {
-    throw new StudyConfigurationError(
+  const checks = [
+    [
+      config.identityVersion === TOP_STORIES_IDENTITY_VERSION,
       'identity_version_mismatch',
       'Configured identityVersion does not match the executable identity contract',
-    );
-  }
-  if (config.periodClassifierVersion !== TOP_STORIES_PERIOD_CLASSIFIER_VERSION) {
-    throw new StudyConfigurationError(
+    ],
+    [
+      config.periodClassifierVersion === TOP_STORIES_PERIOD_CLASSIFIER_VERSION,
       'period_classifier_version_mismatch',
       'Configured periodClassifierVersion does not match the executable classifier',
-    );
-  }
+    ],
+    [
+      config.normalizationVersion === TOP_STORIES_NORMALIZATION_VERSION,
+      'normalization_version_mismatch',
+      'Configured normalizationVersion does not match the executable normalization contract',
+    ],
+  ];
+  checks.forEach(([passed, code, message]) => {
+    if (!passed) throw new StudyConfigurationError(code, message);
+  });
 }
 
 function assertLimits(config) {
