@@ -29,21 +29,18 @@ function identifiedCandidate(id, state, extra = {}) {
     },
   };
 }
-
 function resolved(id, editorialIdentity = `canonical_id:${id}`) {
   return identifiedCandidate(id, STATES.RESOLVED, {
     identityMethod: 'canonical_id',
     editorialIdentity,
   });
 }
-
 function unresolved(id, state) {
   const method = state === STATES.AMBIGUOUS
     ? 'title_fingerprint_fallback'
     : 'none';
   return identifiedCandidate(id, state, { identityMethod: method });
 }
-
 function mixedCandidates() {
   return [
     resolved('resolved-a', 'canonical_id:shared'),
@@ -54,11 +51,7 @@ function mixedCandidates() {
     unresolved('unavailable', STATES.UNAVAILABLE),
   ];
 }
-
-function clone(value) {
-  return structuredClone(value);
-}
-
+function clone(value) { return structuredClone(value); }
 function deepFreeze(value) {
   if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
   Object.freeze(value);
@@ -69,7 +62,6 @@ function deepFreeze(value) {
 describe('NW-RANK-012A editorial identity relation ledger v2', () => {
   it('publishes one resolved candidate, identity and membership edge', () => {
     const result = buildEditorialIdentityRelations([resolved('one')]);
-
     expect(result).toMatchObject({
       schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2,
       populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
@@ -91,7 +83,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
 
   it('represents shared identity fan-in using three explicit edges', () => {
     const result = buildEditorialIdentityRelations(mixedCandidates().slice(0, 3));
-
     expect(result.candidates).toHaveLength(3);
     expect(result.editorialIdentities).toEqual([expect.objectContaining({
       memberCandidateCount: 3,
@@ -109,7 +100,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
     [STATES.UNAVAILABLE, 'identity_unavailable'],
   ])('preserves %s as one explicit disposition without an edge', (state, reason) => {
     const result = buildEditorialIdentityRelations([unresolved('candidate', state)]);
-
     expect(result.identityMembershipEdges).toEqual([]);
     expect(result.identityDispositionRecords).toEqual([{
       candidateId: 'id:candidate',
@@ -126,7 +116,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
 
   it('proves strict mixed-state conservation from records and edges', () => {
     const result = buildEditorialIdentityRelations(mixedCandidates());
-
     expect(result.candidateCount).toBe(6);
     expect(result.resolvedCandidateCount + result.ambiguousCandidateCount +
       result.conflictCandidateCount + result.unavailableCandidateCount).toBe(6);
@@ -145,7 +134,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
   it('publishes the required v2 analytical-side funnel fields', () => {
     const population = buildEditorialIdentityRelations(mixedCandidates());
     const stage = buildEditorialIdentityFunnelStage(population);
-
     expect(stage).toMatchObject({
       populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
       populationSchemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2,
@@ -188,17 +176,15 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
     )])).toThrow('EDITORIAL_IDENTITY_RESOLVED_WITHOUT_VALUE');
   });
 
-  it('rejects duplicate candidate IDs and duplicate membership edges', () => {
+  it('rejects duplicate candidate IDs, edges and dispositions', () => {
     expect(() => buildEditorialIdentityRelations([
       resolved('duplicate'),
       resolved('DUPLICATE', 'canonical_id:other'),
     ])).toThrow('EDITORIAL_IDENTITY_DUPLICATE_CANDIDATE_ID');
-
     const invalid = clone(buildEditorialIdentityRelations([resolved('one')]));
     invalid.identityMembershipEdges.push(clone(invalid.identityMembershipEdges[0]));
     expect(() => validateEditorialIdentityRelations(invalid))
       .toThrow('EDITORIAL_IDENTITY_DUPLICATE_MEMBERSHIP_EDGE');
-
     const disposition = clone(buildEditorialIdentityRelations([
       unresolved('ambiguous', STATES.AMBIGUOUS),
     ]));
@@ -217,7 +203,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
     missing.identityDispositionRecords = [];
     expect(() => validateEditorialIdentityRelations(missing))
       .toThrow('EDITORIAL_IDENTITY_CANDIDATE_COVERAGE_INVALID');
-
     const both = clone(buildEditorialIdentityRelations([resolved('resolved')]));
     both.identityDispositionRecords.push({
       candidateId: both.candidates[0].candidateId,
@@ -227,7 +212,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
     });
     expect(() => validateEditorialIdentityRelations(both))
       .toThrow('EDITORIAL_IDENTITY_CANDIDATE_COVERAGE_INVALID');
-
     const foreign = clone(buildEditorialIdentityRelations([resolved('resolved')]));
     foreign.identityDispositionRecords.push({
       candidateId: 'id:foreign',
@@ -239,21 +223,52 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
       .toThrow('EDITORIAL_IDENTITY_UNKNOWN_CANDIDATE_REFERENCE');
   });
 
-  it('rejects identity member-count mismatch', () => {
-    const invalid = clone(buildEditorialIdentityRelations([
+  it('rejects state-to-record ownership and payload mismatches', () => {
+    const swapped = clone(buildEditorialIdentityRelations([
+      resolved('resolved'),
+      unresolved('conflict', STATES.CONFLICT),
+    ]));
+    const edgeId = swapped.identityMembershipEdges[0].candidateId;
+    swapped.identityMembershipEdges[0].candidateId =
+      swapped.identityDispositionRecords[0].candidateId;
+    swapped.identityDispositionRecords[0].candidateId = edgeId;
+    expect(() => validateEditorialIdentityRelations(swapped))
+      .toThrow('EDITORIAL_IDENTITY_RELATION_TYPE_MISMATCH');
+    const edgeMismatch = clone(buildEditorialIdentityRelations([resolved('edge')]));
+    edgeMismatch.identityMembershipEdges[0].identityMethod = 'other';
+    expect(() => validateEditorialIdentityRelations(edgeMismatch))
+      .toThrow('EDITORIAL_IDENTITY_EDGE_CANDIDATE_MISMATCH');
+    const dispositionMismatch = clone(buildEditorialIdentityRelations([
+      unresolved('ambiguous', STATES.AMBIGUOUS),
+    ]));
+    dispositionMismatch.identityDispositionRecords[0].terminalReasonCode =
+      'identity_unavailable';
+    expect(() => validateEditorialIdentityRelations(dispositionMismatch))
+      .toThrow('EDITORIAL_IDENTITY_DISPOSITION_CANDIDATE_MISMATCH');
+  });
+
+  it('rejects orphan identities and member-count mismatches', () => {
+    const orphan = clone(buildEditorialIdentityRelations([resolved('one')]));
+    orphan.editorialIdentities.push({
+      editorialIdentityId: 'v:orphan',
+      editorialIdentity: 'orphan',
+      identityVersion: 'v',
+      memberCandidateCount: 0,
+    });
+    expect(() => validateEditorialIdentityRelations(orphan))
+      .toThrow('EDITORIAL_IDENTITY_ORPHAN_IDENTITY_RECORD');
+    const mismatch = clone(buildEditorialIdentityRelations([
       resolved('a', 'canonical_id:shared'),
       resolved('b', 'canonical_id:shared'),
     ]));
-    invalid.editorialIdentities[0].memberCandidateCount = 1;
-
-    expect(() => validateEditorialIdentityRelations(invalid))
+    mismatch.editorialIdentities[0].memberCandidateCount = 1;
+    expect(() => validateEditorialIdentityRelations(mismatch))
       .toThrow('EDITORIAL_IDENTITY_MEMBER_COUNT_MISMATCH');
   });
 
   it('rejects declared counts that disagree with explicit records', () => {
     const invalid = clone(buildEditorialIdentityRelations(mixedCandidates()));
     invalid.resolvedCandidateCount -= 1;
-
     expect(() => validateEditorialIdentityRelations(invalid))
       .toThrow('EDITORIAL_IDENTITY_DECLARED_COUNT_MISMATCH');
   });
@@ -263,12 +278,9 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
     const before = JSON.stringify(input);
     const forward = buildEditorialIdentityRelations(input);
     const reverse = buildEditorialIdentityRelations([...input].reverse());
-
     expect(reverse).toEqual(forward);
     expect(JSON.stringify(input)).toBe(before);
   });
-
-
 
   it('guards v2 conservation, candidate identity and test arithmetic statically', () => {
     const relationSource = readFileSync(
@@ -280,7 +292,6 @@ describe('NW-RANK-012A editorial identity relation ledger v2', () => {
       'topStoriesEditorialIdentityRailFunnel.cert.test.js',
       'topStoriesEditorialIdentityRelations.cert.test.js',
     ].map(file => readFileSync(new URL(file, import.meta.url), 'utf8')).join('\n');
-
     expect(relationSource).not.toMatch(/totalCounts\s*\(/);
     expect(relationSource).not.toMatch(/account\w*[^\n]*reasonCounts/i);
     expect(relationSource).not.toContain('shared_editorial_identity');
