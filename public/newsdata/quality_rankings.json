@@ -53,7 +53,7 @@
     },
     "insight": {
       "actionableFindings": [
-        "1 base-report-heavy Insight parent(s) demoted"
+        "Insight event/angle ranking has no critical demotion finding"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
@@ -77,7 +77,7 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 1,
+        "baseReportHeavyParents": 0,
         "duplicateChildrenSuppressed": 0,
         "inputCandidateCount": 6,
         "parentClusters": 6,
@@ -211,7 +211,7 @@
           "gates": [
             {
               "details": {
-                "storyCount": 4
+                "storyCount": 5
               },
               "name": "eventCoherence",
               "reason": "event sketch has repeated story count",
@@ -248,7 +248,7 @@
             },
             {
               "details": {
-                "childCount": 4
+                "childCount": 5
               },
               "name": "weakTree",
               "reason": "child tree has enough depth",
@@ -273,7 +273,7 @@
             "representativeTitle": "Breaking news live updates, July 18: Former PM HD Deve Gowda's wife Chennamma dies after cardiac arrest - The Times of India",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.83,
+              "eventImportanceScore": 0.95,
               "freshnessScore": 0.0,
               "noveltyDeltaScore": 0.44999999999999996,
               "sourceAuthorityScore": 0.38,
@@ -288,17 +288,18 @@
             "sourceGroups": [
               "google_news"
             ],
-            "storyCount": 4,
+            "storyCount": 5,
             "storyIds": [
               "c049c67dbddb0f12",
               "82ea0749d0de2b8d",
               "ff468e02cc84fa44",
-              "4ee739c53b939a61"
+              "4ee739c53b939a61",
+              "55cf58dd032da79f"
             ],
             "topAngles": [
               {
                 "angle": "fact_update",
-                "count": 4
+                "count": 5
               }
             ],
             "topTokens": [
@@ -307,7 +308,8 @@
               "updates",
               "july",
               "declares",
-              "neelkanth"
+              "neelkanth",
+              "govt"
             ],
             "topicKey": "breaking|live|updates"
           },
@@ -317,7 +319,7 @@
             "weak child angle diversity",
             "one-source event candidate"
           ],
-          "score": 0.449,
+          "score": 0.479,
           "title": "Breaking news live updates, July 18: Former PM HD Deve Gowda's wife Chennamma dies after cardiac arrest - The Times of India"
         },
         {
@@ -429,6 +431,116 @@
           ],
           "score": 0.389,
           "title": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:fcde5c7120",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:fcde5c7120",
+            "representativeId": "cefd0947496f8de7",
+            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus24h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "moneycontrol"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cefd0947496f8de7",
+              "d0020e471404281a"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "bajaj",
+              "finance",
+              "target",
+              "emkay"
+            ],
+            "topicKey": "bajaj|finance|target"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.389,
+          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
         },
         {
           "category": "insightEvent",
@@ -655,115 +767,6 @@
           ],
           "score": 0.2764,
           "title": "US military launches new airstrikes to 'swiftly punish' Iran for deaths of US troops"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 3
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0,
-                "distinctAngles": 0
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 1.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report dominated event candidate",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "childCount": 3
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.75,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:35b457e4f1",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 1.0,
-            "childScores": [],
-            "id": "sketch:35b457e4f1",
-            "representativeId": "22834d838d943345",
-            "representativeTitle": "Top news of the day | July 5, 2026 - The Hindu",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.71,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 3,
-            "storyIds": [
-              "22834d838d943345",
-              "af97b141f1b4b7cb",
-              "469eb159c1656943"
-            ],
-            "topAngles": [
-              {
-                "angle": "base_report",
-                "count": 3
-              }
-            ],
-            "topTokens": [
-              "july",
-              "hindu"
-            ],
-            "topicKey": "july|hindu"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.1885,
-          "title": "Top news of the day | July 5, 2026 - The Hindu"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
@@ -2570,7 +2573,7 @@
             },
             {
               "details": {
-                "hoursLeft": 5.05
+                "hoursLeft": 3.19
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -2685,7 +2688,7 @@
             },
             {
               "details": {
-                "hoursLeft": 27.86
+                "hoursLeft": 25.99
               },
               "name": "offerValidity",
               "reason": "offer active within three days",
@@ -3030,7 +3033,7 @@
             },
             {
               "details": {
-                "hoursLeft": 1.99
+                "hoursLeft": 0.12
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3145,7 +3148,7 @@
             },
             {
               "details": {
-                "hoursLeft": 13.52
+                "hoursLeft": 11.65
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3260,7 +3263,7 @@
             },
             {
               "details": {
-                "hoursLeft": 11.09
+                "hoursLeft": 9.22
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3375,7 +3378,7 @@
             },
             {
               "details": {
-                "hoursLeft": 9.09
+                "hoursLeft": 7.22
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -3458,7 +3461,7 @@
       }
     }
   },
-  "generatedAt": 1784505283265,
+  "generatedAt": 1784512012124,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -3485,7 +3488,7 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "1 base-report-heavy Insight parent(s) demoted"
+      "Insight event/angle ranking has no critical demotion finding"
     ],
     "destinationScores": {
       "buzz": 0.0,
