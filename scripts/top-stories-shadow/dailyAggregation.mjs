@@ -5,14 +5,26 @@ import {
   summarizeTopStoriesNormalizationEvidence,
 } from '../../src/services/topStories/topStoriesVersionSegment.js';
 import { stableJson } from './canonicalJson.mjs';
+import {
+  buildTopStoriesComparisonEvidence,
+  getTopStoriesComparisonRecords,
+  summarizeTopStoriesComparisons,
+  summarizeTopStoriesInputChange,
+  summarizeTopStoriesValues,
+  TOP_STORIES_COMPARISON_EVIDENCE_SCHEMA,
+} from './comparisonEvidence.mjs';
+import { validateTopStoriesDailyComparisonEvidence } from './comparisonEvidenceValidation.mjs';
+
 export const TOP_STORIES_DAILY_REPORT_SCHEMA = 'nw-top-stories-daily-stability-report/v1';
 const REVIEW_THRESHOLDS = Object.freeze({ fifteenMinute: 0.9, sixtyMinute: 0.8 });
+
 function parseDay(day) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(day || ''))) throw new Error('date must use YYYY-MM-DD');
   const startMs = Date.parse(`${day}T00:00:00.000Z`);
   if (!Number.isFinite(startMs)) throw new Error('date must be valid');
   return { startMs, endMs: startMs + (24 * 60 * 60 * 1000) };
 }
+
 function requireStudyConfig(options = {}) {
   const config = options.studyConfig;
   if (!config?.studyId || !config?.normalizationVersion) {
@@ -20,82 +32,17 @@ function requireStudyConfig(options = {}) {
   }
   return config;
 }
+
 function inDay(value, bounds) {
   const ms = Date.parse(value || 0);
   return Number.isFinite(ms) && ms >= bounds.startMs && ms < bounds.endMs;
 }
+
 function getRecordScheduledAt(record = {}) {
   return record.operational?.scheduledAt || record.snapshot?.scheduledAt ||
     record.failure?.scheduledAt || null;
 }
-function quantile(values, fraction) {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const position = (sorted.length - 1) * fraction;
-  const lower = Math.floor(position);
-  const upper = Math.ceil(position);
-  if (lower === upper) return sorted[lower];
-  return sorted[lower] + ((sorted[upper] - sorted[lower]) * (position - lower));
-}
-function summarizeValues(values = [], threshold = null) {
-  const finite = values.filter(Number.isFinite);
-  return {
-    count: finite.length,
-    median: quantile(finite, 0.5),
-    p10: quantile(finite, 0.1),
-    p25: quantile(finite, 0.25),
-    p75: quantile(finite, 0.75),
-    p90: quantile(finite, 0.9),
-    minimum: finite.length ? Math.min(...finite) : null,
-    maximum: finite.length ? Math.max(...finite) : null,
-    fractionBelowThreshold: Number.isFinite(threshold) && finite.length
-      ? finite.filter(value => value < threshold).length / finite.length : null,
-    threshold,
-  };
-}
-function maximumLowSequence(rows, threshold) {
-  let current = 0;
-  let maximum = 0;
-  rows.forEach(row => {
-    const retention = row.metrics?.incumbentRetention;
-    if (row.period?.periodClass === 'calm' &&
-      Number.isFinite(retention) && retention < threshold) {
-      current += 1;
-      maximum = Math.max(maximum, current);
-    } else current = 0;
-  });
-  return maximum;
-}
-function classifyRows(rows = []) {
-  return rows.reduce((counts, row) => {
-    const key = row.period?.periodClass || 'unclassified';
-    counts[key] = (counts[key] || 0) + 1;
-    return counts;
-  }, {});
-}
-function summarizeComparisons(rows, threshold) {
-  const eligible = rows.filter(row => row.eligibleForHeadlineKpi);
-  const mapMetrics = subset => ({
-    incumbentRetention: summarizeValues(subset.map(row => row.metrics?.incumbentRetention), threshold),
-    newListContinuity: summarizeValues(subset.map(row => row.metrics?.newListContinuity)),
-    jaccard: summarizeValues(subset.map(row => row.metrics?.jaccard)),
-    normalizedWeightedRankDisplacement: summarizeValues(
-      subset.map(row => row.metrics?.normalizedWeightedRankDisplacement),
-    ),
-    countDelta: summarizeValues(subset.map(row => row.metrics?.countDelta)),
-    entrantCount: summarizeValues(subset.map(row => row.metrics?.entrantCount)),
-    exitCount: summarizeValues(subset.map(row => row.metrics?.exitCount)),
-  });
-  return {
-    totalComparisons: rows.length,
-    eligibleComparisons: eligible.length,
-    periodClassCounts: classifyRows(rows),
-    allEligible: mapMetrics(eligible),
-    calm: mapMetrics(eligible.filter(row => row.period?.periodClass === 'calm')),
-    active: mapMetrics(eligible.filter(row => row.period?.periodClass === 'active')),
-    maximumConsecutiveCalmLowRetention: maximumLowSequence(eligible, threshold),
-  };
-}
+
 function countReasons(rows = []) {
   return rows.reduce((counts, row) => {
     const reason = row.reason || row.exclusionReason || 'unknown';
@@ -103,6 +50,7 @@ function countReasons(rows = []) {
     return counts;
   }, {});
 }
+
 function toReplayObservation(record) {
   const snapshot = record.snapshot;
   return {
@@ -112,20 +60,13 @@ function toReplayObservation(record) {
     scoredCandidates: snapshot.candidateEvidence || [],
   };
 }
+
 function targetObservationIds(replay, bounds) {
   return new Set(replay.canonicalObservations
     .filter(observation => inDay(observation.scheduledAt, bounds))
     .map(observation => observation.observationId));
 }
-function countUnchangedPairs(pairs, replay, targetIds) {
-  const observations = new Map(replay.canonicalObservations.map(row => [row.observationId, row]));
-  return pairs.filter(pair => {
-    if (!targetIds.has(pair.anchorId)) return false;
-    const prior = observations.get(pair.anchorId);
-    const current = observations.get(pair.currentId);
-    return Boolean(prior?.inputDigest) && prior.inputDigest === current?.inputDigest;
-  }).length;
-}
+
 function buildInputManifest(records, bounds) {
   return records.map(record => ({
     directory: record.directory,
@@ -147,13 +88,18 @@ function buildInputManifest(records, bounds) {
     String(left.workflowRunId || '').localeCompare(String(right.workflowRunId || '')) ||
     Number(left.workflowRunAttempt || 0) - Number(right.workflowRunAttempt || 0));
 }
-function buildCoverage(dayRecords, matching, replay, bounds, date, pairData, normalization) {
+
+function buildCoverage(dayRecords, matching, replay, date, evidence, exclusions, normalization) {
   const operational = dayRecords.filter(record => record.operational);
   const successful = operational.filter(record => record.status === 'VALID_SNAPSHOT');
   const complete = successful.filter(record => record.snapshot?.completenessState === 'COMPLETE');
   const eligible = successful.filter(record => record.snapshot?.analyticalEligibility === 'ELIGIBLE');
   const delays = operational.map(record => Number(record.operational?.scheduleDelaySeconds))
     .filter(Number.isFinite);
+  const fifteen = getTopStoriesComparisonRecords(evidence, 'fifteenMinute');
+  const sixty = getTopStoriesComparisonRecords(evidence, 'sixtyMinute');
+  const canonical15 = getTopStoriesComparisonRecords(evidence, 'fifteenMinute', true);
+  const canonical60 = getTopStoriesComparisonRecords(evidence, 'sixtyMinute', true);
   return {
     scheduledRuns: 96,
     scheduledSlots: 96,
@@ -179,30 +125,43 @@ function buildCoverage(dayRecords, matching, replay, bounds, date, pairData, nor
       record.snapshot?.completenessState !== 'COMPLETE' ||
       record.snapshot?.analyticalEligibility !== 'ELIGIBLE').length,
     delayedOverFiveMinutes: delays.filter(value => value > 300).length,
-    scheduleDelaySeconds: summarizeValues(delays),
+    scheduleDelaySeconds: summarizeTopStoriesValues(delays),
     canonicalObservationCount: normalization.totalCanonicalObservations,
     supersededDuplicateCount: replay.operationalRecords.filter(row =>
       row.status === 'SUPERSEDED_DUPLICATE_SLOT' && String(row.slotKey).includes(`|${date}`)).length,
-    valid15mPairs: pairData.fifteenMinute.length,
-    valid60mPairs: pairData.sixtyMinute.length,
-    canonical15mPairs: pairData.fifteenCanonical.length,
-    canonical60mPairs: pairData.sixtyCanonical.length,
-    unchangedInput15mPairs: countUnchangedPairs(
-      replay.pairSets.fifteenMinute.pairs, replay, pairData.targetIds,
-    ),
-    unchangedInput60mPairs: countUnchangedPairs(
-      replay.pairSets.sixtyMinute.pairs, replay, pairData.targetIds,
-    ),
-    uncertain15mPairs: pairData.fifteenMinute.filter(row =>
-      row.period?.periodClass === 'uncertain').length,
-    uncertain60mPairs: pairData.sixtyMinute.filter(row =>
-      row.period?.periodClass === 'uncertain').length,
-    excludedPairsByReason: pairData.excludedPairsByReason,
+    valid15mPairs: fifteen.length,
+    valid60mPairs: sixty.length,
+    canonical15mPairs: canonical15.length,
+    canonical60mPairs: canonical60.length,
+    unchangedInput15mPairs: fifteen.filter(row => row.inputClass === 'unchanged').length,
+    unchangedInput60mPairs: sixty.filter(row => row.inputClass === 'unchanged').length,
+    uncertain15mPairs: fifteen.filter(row => row.periodClass === 'uncertain').length,
+    uncertain60mPairs: sixty.filter(row => row.periodClass === 'uncertain').length,
+    excludedPairsByReason: exclusions,
     artifactExclusionReasons: countReasons(dayRecords.filter(record =>
       !record.schemaValid || record.failure)),
     normalizationEvidence: normalization,
   };
 }
+
+function buildEvidenceSummaries(evidence) {
+  const stability = {};
+  const inputChange = {};
+  Object.entries(REVIEW_THRESHOLDS).forEach(([horizon, threshold]) => {
+    const overlapping = getTopStoriesComparisonRecords(evidence, horizon);
+    const canonical = getTopStoriesComparisonRecords(evidence, horizon, true);
+    stability[horizon] = {
+      overlapping: summarizeTopStoriesComparisons(overlapping, threshold),
+      canonicalNonOverlapping: summarizeTopStoriesComparisons(canonical, threshold),
+    };
+    inputChange[horizon] = {
+      overlapping: summarizeTopStoriesInputChange(overlapping),
+      canonicalNonOverlapping: summarizeTopStoriesInputChange(canonical),
+    };
+  });
+  return { stability, inputChange };
+}
+
 export function aggregateTopStoriesDaily(records = [], options = {}) {
   const config = requireStudyConfig(options);
   const bounds = parseDay(options.date);
@@ -215,26 +174,23 @@ export function aggregateTopStoriesDaily(records = [], options = {}) {
     .map(toReplayObservation);
   const replay = analyzeTopStoriesSequence(replayInputs, { studyConfig: config });
   const targetIds = targetObservationIds(replay, bounds);
-  const filterComparisons = rows => rows.filter(row => targetIds.has(row.priorObservationId));
   const filterExclusions = rows => rows.filter(row => targetIds.has(row.anchorId));
-  const pairData = {
-    targetIds,
-    fifteenMinute: filterComparisons(replay.pairComparisons.fifteenMinute),
-    fifteenCanonical: filterComparisons(replay.pairComparisons.fifteenMinuteCanonical),
-    sixtyMinute: filterComparisons(replay.pairComparisons.sixtyMinute),
-    sixtyCanonical: filterComparisons(replay.pairComparisons.sixtyMinuteCanonical),
-    excludedPairsByReason: {
-      fifteenMinute: countReasons(filterExclusions(replay.pairSets.fifteenMinute.exclusions)),
-      sixtyMinute: countReasons(filterExclusions(replay.pairSets.sixtyMinute.exclusions)),
-    },
+  const exclusions = {
+    fifteenMinute: countReasons(filterExclusions(replay.pairSets.fifteenMinute.exclusions)),
+    sixtyMinute: countReasons(filterExclusions(replay.pairSets.sixtyMinute.exclusions)),
   };
+  const evidence = buildTopStoriesComparisonEvidence(replay, {
+    studyId: config.studyId,
+    ownerDate: options.date,
+  });
+  const summaries = buildEvidenceSummaries(evidence);
   const targetObservations = replay.canonicalObservations.filter(row => targetIds.has(row.observationId));
   const normalization = summarizeTopStoriesNormalizationEvidence(
     targetObservations, config.normalizationVersion,
   );
   const comparisons = {
-    fifteenMinute: pairData.fifteenMinute,
-    sixtyMinute: pairData.sixtyMinute,
+    fifteenMinute: getTopStoriesComparisonRecords(evidence, 'fifteenMinute'),
+    sixtyMinute: getTopStoriesComparisonRecords(evidence, 'sixtyMinute'),
   };
   const segmentSummaries = buildTopStoriesVersionSegmentSummaries(
     targetObservations, comparisons, config,
@@ -250,30 +206,20 @@ export function aggregateTopStoriesDaily(records = [], options = {}) {
     date: options.date,
     generatedFromImmutableArtifacts: true,
     status,
+    comparisonEvidenceSchemaVersion: TOP_STORIES_COMPARISON_EVIDENCE_SCHEMA,
+    comparisonEvidence: evidence,
     coverage: buildCoverage(
-      dayRecords, matching, replay, bounds, options.date, pairData, normalization,
+      dayRecords, matching, replay, options.date, evidence, exclusions, normalization,
     ),
     normalizationEvidenceCoverage: normalization,
     versionSegments,
     segmentSummaries,
     headlineKpiEligibility,
-    stability: {
-      fifteenMinute: {
-        overlapping: summarizeComparisons(pairData.fifteenMinute, REVIEW_THRESHOLDS.fifteenMinute),
-        canonicalNonOverlapping: summarizeComparisons(
-          pairData.fifteenCanonical, REVIEW_THRESHOLDS.fifteenMinute,
-        ),
-      },
-      sixtyMinute: {
-        overlapping: summarizeComparisons(pairData.sixtyMinute, REVIEW_THRESHOLDS.sixtyMinute),
-        canonicalNonOverlapping: summarizeComparisons(
-          pairData.sixtyCanonical, REVIEW_THRESHOLDS.sixtyMinute,
-        ),
-      },
-    },
+    stability: summaries.stability,
+    inputChange: summaries.inputChange,
     pairing: {
-      fifteenMinuteExclusions: pairData.excludedPairsByReason.fifteenMinute,
-      sixtyMinuteExclusions: pairData.excludedPairsByReason.sixtyMinute,
+      fifteenMinuteExclusions: exclusions.fifteenMinute,
+      sixtyMinuteExclusions: exclusions.sixtyMinute,
       serialCorrelationNotice: replay.pairSets.fifteenMinute.serialCorrelationNotice,
     },
     residence: {
@@ -285,8 +231,11 @@ export function aggregateTopStoriesDaily(records = [], options = {}) {
     replayVersion: replay.replayVersion,
     reviewThresholds: REVIEW_THRESHOLDS,
   };
+  const validation = validateTopStoriesDailyComparisonEvidence(report);
+  if (!validation.valid) throw new Error(`comparison_evidence_invalid:${validation.reasonCodes.join(',')}`);
   return { report, replay };
 }
+
 export function serializeTopStoriesDailyReport(report) {
   return `${stableJson(report)}\n`;
 }
