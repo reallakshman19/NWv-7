@@ -223,6 +223,8 @@ describe('Top Stories rail and funnel analytics', () => {
     expect(buildStage.inputUnit).toBe('SOURCE_ROW');
     expect(buildStage.outputUnit).toBe('RANKING_CANDIDATE');
     expect(buildStage.reasonCounts.duplicate_identity).toBe(5);
+    expect(result.categoryReasonCounts.evidence).toBe(5);
+    expect(result.categoryReasonCounts.diversity).toBe(5);
   });
 
   it('keeps context observations out of target-day rail analytics', () => {
@@ -240,6 +242,7 @@ describe('Top Stories rail and funnel analytics', () => {
     expect(first.headlineKpiEligibility.eligible).toBe(true);
     expect(second).toEqual(first);
     expect(renderTopStoriesDailyMarkdown(first)).toContain('Visible rail and funnel');
+    expect(renderTopStoriesDailyMarkdown(first)).toContain('| 1–3 | 1 |');
   });
 
   it('does not allow rail/funnel analytics to alter the technical verdict', () => {
