@@ -52,9 +52,15 @@ function railLines(report) {
   ];
 }
 
+function stabilityRow(label, horizon, metric) {
+  return `| ${label} | ${horizon} | ${metric?.count ?? 0} | ${percentage(metric?.median)} | ${percentage(metric?.p10)} | ${percentage(metric?.fractionBelowThreshold)} |`;
+}
+
 export function renderTopStoriesDailyMarkdown(report) {
   const f15 = report.stability.fifteenMinute.overlapping.calm.incumbentRetention;
   const f60 = report.stability.sixtyMinute.overlapping.calm.incumbentRetention;
+  const c15 = report.stability.fifteenMinute.canonicalNonOverlapping.calm.incumbentRetention;
+  const c60 = report.stability.sixtyMinute.canonicalNonOverlapping.calm.incumbentRetention;
   return [
     `# Top Stories shadow daily report — ${report.date}`,
     '',
@@ -63,22 +69,28 @@ export function renderTopStoriesDailyMarkdown(report) {
     `- Scheduled-slot coverage: **${percentage(report.coverage.scheduleSlotCoverage)}** (${report.coverage.observedSlotCount}/96)`,
     `- Successful observations: **${report.coverage.successfulRuns}**`,
     `- Valid 15-minute pairs: **${report.coverage.valid15mPairs}**`,
+    `- Canonical 15-minute decision pairs: **${report.coverage.canonical15mPairs}**`,
     `- Valid 60-minute pairs: **${report.coverage.valid60mPairs}**`,
+    `- Canonical 60-minute decision pairs: **${report.coverage.canonical60mPairs}**`,
     `- Invalid artifacts: **${report.coverage.invalidArtifacts}**`,
     `- Superseded duplicates: **${report.coverage.supersededDuplicateCount}**`,
     '',
     ...railLines(report),
     '## Calm-period stability',
     '',
-    '| Horizon | Comparisons | Median incumbent retention | p10 | Below review threshold |',
-    '|---|---:|---:|---:|---:|',
-    `| 15 minutes | ${f15.count} | ${percentage(f15.median)} | ${percentage(f15.p10)} | ${percentage(f15.fractionBelowThreshold)} |`,
-    `| 60 minutes | ${f60.count} | ${percentage(f60.median)} | ${percentage(f60.p10)} | ${percentage(f60.fractionBelowThreshold)} |`,
+    '| Evidence role | Horizon | Comparisons | Median incumbent retention | p10 | Below review threshold |',
+    '|---|---|---:|---:|---:|---:|',
+    stabilityRow('Descriptive / serially correlated', '15 minutes', f15),
+    stabilityRow('Descriptive / serially correlated', '60 minutes', f60),
+    stabilityRow('Decision evidence / canonical non-overlapping', '15 minutes', c15),
+    stabilityRow('Decision evidence / canonical non-overlapping', '60 minutes', c60),
     '',
     '## Statistical interpretation',
     '',
     report.pairing.serialCorrelationNotice,
-    'Canonical non-overlapping sensitivity results are retained separately in the JSON report.',
+    'Overlapping comparisons are descriptive, serially correlated evidence and are not used as independent readiness volume.',
+    'Canonical non-overlapping comparisons are the decision evidence within each horizon.',
+    'The 15-minute and 60-minute horizons are separate evidence domains and are never pooled.',
     '',
     'This is observational evidence only. It does not change production ranking or persistence behavior.',
     '',
