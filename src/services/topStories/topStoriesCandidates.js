@@ -1,13 +1,45 @@
 const SOURCE_ROW_UNIT = 'SOURCE_ROW';
 const CANDIDATE_UNIT = 'RANKING_CANDIDATE';
 
+export const TOP_STORY_SOURCE_LANES = Object.freeze({
+  SECTION_ITEMS_ARRAY: 'section_items_array',
+  SECTION_ITEMS_OBJECT: 'section_items_object',
+  TOP_FEED_ITEMS: 'top_feed_items',
+});
+
 function asArray(value) {
   return Array.isArray(value) ? value : [];
 }
 
-function flattenSectionItems(sectionItems) {
-  if (Array.isArray(sectionItems)) return sectionItems;
-  return Object.values(sectionItems || {}).flatMap(asArray);
+function listSectionRows(sectionItems) {
+  if (Array.isArray(sectionItems)) {
+    return sectionItems.map(sourceRow => ({
+      sourceLane: TOP_STORY_SOURCE_LANES.SECTION_ITEMS_ARRAY,
+      sourceSectionKey: null,
+      sourceRow,
+    }));
+  }
+  return Object.entries(sectionItems || {}).flatMap(([sectionKey, items]) =>
+    asArray(items).map(sourceRow => ({
+      sourceLane: TOP_STORY_SOURCE_LANES.SECTION_ITEMS_OBJECT,
+      sourceSectionKey: sectionKey,
+      sourceRow,
+    })));
+}
+
+export function listTopStorySourceRows({
+  sectionItems = {},
+  topFeedItems = [],
+} = {}) {
+  const rows = [
+    ...listSectionRows(sectionItems),
+    ...asArray(topFeedItems).map(sourceRow => ({
+      sourceLane: TOP_STORY_SOURCE_LANES.TOP_FEED_ITEMS,
+      sourceSectionKey: null,
+      sourceRow,
+    })),
+  ];
+  return rows.map((row, sourceRowIndex) => ({ ...row, sourceRowIndex }));
 }
 
 export function getTopStoryDedupeKey(story = {}) {
@@ -64,11 +96,11 @@ export function buildTopStoryCandidatesWithTrace({
   topFeedItems = [],
   nowMs = Date.now(),
 } = {}) {
-  const rows = [...flattenSectionItems(sectionItems), ...asArray(topFeedItems)];
+  const rows = listTopStorySourceRows({ sectionItems, topFeedItems });
   const merged = new Map();
   const candidateBuildTrace = [];
 
-  rows.forEach((item, index) => {
+  rows.forEach(({ sourceRow: item, sourceRowIndex: index }) => {
     if (!item || typeof item !== 'object') {
       candidateBuildTrace.push(makeBuildTrace({
         index,

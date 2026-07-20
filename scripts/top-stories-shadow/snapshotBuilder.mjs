@@ -22,6 +22,10 @@ import {
   validateRepositoryReplayInput,
 } from './inputContract.mjs';
 import { validateTopStoriesStudyConfig } from './studyConfig.mjs';
+import {
+  buildTopStoriesTraceRelations,
+  TOP_STORIES_TRACE_RELATION_SCHEMA_VERSION,
+} from './traceRelations.mjs';
 
 export const RUN_SNAPSHOT_SCHEMA_VERSION = 'nw-top-stories-run-snapshot/v1';
 
@@ -169,12 +173,15 @@ export function buildTopStoriesRunSnapshot({ studyConfig, inputBundle, metadata 
   const states = deriveObservationStates(input);
   const digests = buildDigests(config, input, evaluation);
   const evidence = buildEvidencePopulations(evaluation, config.identityVersion);
+  const traceRelations = buildTopStoriesTraceRelations({ inputBundle: input, evaluation });
   const scheduleDelaySeconds = (nowMs - Date.parse(metadata.scheduledAt)) / 1000;
   const observationId = `${config.studyId}:${metadata.scheduledAt}:${metadata.workflowRunId}:${metadata.workflowRunAttempt}`;
 
   return {
     schemaVersion: RUN_SNAPSHOT_SCHEMA_VERSION,
     candidateTraceSchemaVersion: TOP_STORY_TRACE_SCHEMA_VERSION,
+    traceRelationSchemaVersion: TOP_STORIES_TRACE_RELATION_SCHEMA_VERSION,
+    traceRelations,
     editorialIdentityPopulationSchemaVersion:
       EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION,
     normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
