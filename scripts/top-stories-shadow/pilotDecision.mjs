@@ -5,6 +5,10 @@ import {
   buildPilotSignals,
   TOP_STORIES_PILOT_THRESHOLDS,
 } from './pilotRecommendation.mjs';
+import {
+  buildTopStoriesVersionSegmentKey,
+  TOP_STORIES_NORMALIZATION_VERSION,
+} from '../../src/services/topStories/topStoriesVersionSegment.js';
 
 export const TOP_STORIES_PILOT_DECISION_SCHEMA =
   'nw-top-stories-seven-day-pilot-decision/v1';
@@ -22,6 +26,9 @@ export function validatePilotConfiguration(config = {}) {
   const days = Number(config.pilotWindowDays);
   if (!Number.isInteger(days) || days !== TOP_STORIES_PILOT_THRESHOLDS.expectedDays) {
     throw new Error('pilotWindowDays must equal the fixed seven-day study window');
+  }
+  if (config.normalizationVersion !== TOP_STORIES_NORMALIZATION_VERSION) {
+    throw new Error('normalizationVersion must match the executable normalization contract');
   }
   const decisionNotBefore = Date.parse(config.pilotDecisionNotBefore);
   if (!Number.isFinite(decisionNotBefore)) {
@@ -44,19 +51,49 @@ export function getPilotExpectedDates(config) {
     addDays(valid.pilotStartDate, index));
 }
 
-function expectedSegment(config) {
-  return [
-    config.studyId,
-    config.rankerVersion,
-    config.identityVersion,
-    config.periodClassifierVersion,
-  ].join('|');
-}
-
 function mapArtifacts(records, type, studyId) {
   return new Map(records
     .filter(record => record.type === type && record.studyId === studyId)
     .map(record => [record.date, record]));
+}
+
+function normalizationDayErrors(report, config) {
+  if (report?.status !== 'OBSERVED') return [];
+  const errors = [];
+  const expectedKey = buildTopStoriesVersionSegmentKey(config);
+  const segments = Array.isArray(report.versionSegments) ? report.versionSegments : [];
+  const coverage = report.normalizationEvidenceCoverage ||
+    report.coverage?.normalizationEvidence || {};
+  const summaries = Array.isArray(report.segmentSummaries) ? report.segmentSummaries : [];
+  if (segments.length !== 1 || segments[0] !== expectedKey) {
+    errors.push(segments.length > 1
+      ? 'normalization_version_boundary' : 'normalization_version_mismatch');
+  }
+  const defects = [
+    ['normalizationVersionMissingCount', 'normalization_version_missing'],
+    ['normalizationVersionUnsupportedCount', 'normalization_version_unsupported'],
+    ['normalizationVersionMismatchCount', 'normalization_version_mismatch'],
+    ['normalizationDigestMissingCount', 'normalization_digest_missing'],
+    ['normalizationDigestInvalidCount', 'normalization_digest_invalid'],
+  ];
+  defects.forEach(([field, reason]) => {
+    if (Number(coverage[field] || 0) > 0) errors.push(reason);
+  });
+  const total = Number(coverage.totalCanonicalObservations);
+  const valid = Number(coverage.validNormalizationEvidenceCount);
+  if (!Number.isFinite(total) || total <= 0 || valid !== total) {
+    errors.push('normalization_evidence_incomplete');
+  }
+  if (summaries.length !== 1 || summaries[0]?.segmentKey !== expectedKey ||
+    summaries[0]?.headlineKpiEligible !== true) {
+    errors.push(summaries.length > 1
+      ? 'normalization_version_boundary' : 'normalization_segment_ineligible');
+  }
+  if (report.headlineKpiEligibility?.eligible !== true) {
+    errors.push(report.headlineKpiEligibility?.reasonCodes?.[0] ||
+      'normalization_headline_ineligible');
+  }
+  return [...new Set(errors)].sort();
 }
 
 function classifyDay(date, daily, validation, config) {
@@ -71,18 +108,14 @@ function classifyDay(date, daily, validation, config) {
   if (validation?.validation?.date && validation.validation.date !== date) {
     errors.push('validation_date_mismatch');
   }
-  const segments = daily?.dailyReport?.versionSegments || [];
-  if (daily?.dailyReport?.status === 'OBSERVED' &&
-    (segments.length !== 1 || segments[0] !== expectedSegment(config))) {
-    errors.push('version_segment_mismatch');
-  }
+  errors.push(...normalizationDayErrors(daily?.dailyReport, config));
   const validationDecision = validation?.validation?.decision || null;
+  const technical = errors.some(code =>
+    code.startsWith('invalid_') || code.endsWith('_mismatch') ||
+    code.startsWith('normalization_'));
   let status = 'MISSING';
-  if (errors.some(code => code.startsWith('invalid_') || code.endsWith('_mismatch'))) {
-    status = 'TECHNICAL_FAILURE';
-  } else if (validationDecision === 'FAIL') {
-    status = 'TECHNICAL_FAILURE';
-  } else if (validationDecision === 'PASS') {
+  if (technical || validationDecision === 'FAIL') status = 'TECHNICAL_FAILURE';
+  else if (validationDecision === 'PASS') {
     status = daily?.dailyReport?.status === 'OBSERVED' ? 'USABLE_PASS' : 'INSUFFICIENT';
   } else if (validationDecision === 'PASS_WITH_WARNINGS') {
     status = daily?.dailyReport?.status === 'OBSERVED' ? 'USABLE_WARNING' : 'INSUFFICIENT';
@@ -93,7 +126,7 @@ function classifyDay(date, daily, validation, config) {
     date,
     status,
     usable: ['USABLE_PASS', 'USABLE_WARNING'].includes(status),
-    errors,
+    errors: [...new Set(errors)].sort(),
     dailyReport: daily?.dailyReport || null,
     validation: validation?.validation || null,
     dailyArtifactId: daily?.artifactId || null,
@@ -174,8 +207,7 @@ function buildReadiness(days, metrics, config, nowMs, inputManifest) {
   }
   return {
     decision: failureReasonCodes.length
-      ? 'FAIL'
-      : insufficiencyReasonCodes.length ? 'INSUFFICIENT' : 'READY_FOR_EXPERT_REVIEW',
+      ? 'FAIL' : insufficiencyReasonCodes.length ? 'INSUFFICIENT' : 'READY_FOR_EXPERT_REVIEW',
     failureReasonCodes: [...new Set(failureReasonCodes)].sort(),
     insufficiencyReasonCodes: [...new Set(insufficiencyReasonCodes)].sort(),
   };
