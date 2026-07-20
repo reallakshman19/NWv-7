@@ -1,31 +1,67 @@
-import { normalizeTopStoryCanonicalUrl, TOP_STORIES_IDENTITY_STATES }
-  from '../../src/services/topStories/topStoriesStudyIdentity.js';
-import { EDITORIAL_IDENTITY_POPULATION_ROLE, EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2, EDITORIAL_IDENTITY_UNIT, RANKING_CANDIDATE_UNIT }
-  from './editorialIdentityPopulation.mjs';
+import {
+  normalizeTopStoryCanonicalUrl,
+  TOP_STORIES_IDENTITY_STATES,
+} from '../../src/services/topStories/topStoriesStudyIdentity.js';
+import {
+  EDITORIAL_IDENTITY_POPULATION_ROLE,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1,
+  EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2,
+  EDITORIAL_IDENTITY_UNIT,
+  RANKING_CANDIDATE_UNIT,
+} from './editorialIdentityPopulation.mjs';
+
 const STATES = TOP_STORIES_IDENTITY_STATES;
 const KNOWN_STATES = new Set(Object.values(STATES));
-const ARRAY_FIELDS = ['candidates', 'editorialIdentities', 'identityMembershipEdges', 'identityDispositionRecords'];
-const REASON_BY_STATE = Object.freeze({ [STATES.AMBIGUOUS]: 'identity_ambiguous', [STATES.CONFLICT]: 'identity_conflict', [STATES.UNAVAILABLE]: 'identity_unavailable' });
-function fail(code, detail = '') { throw new Error(`${code}${detail ? `: ${detail}` : ''}`); }
-function token(value) { return String(value || '').trim().toLowerCase(); }
-function increment(counts, key) { counts[key] = (counts[key] || 0) + 1; }
-function sortedCounts(counts) { return Object.fromEntries(Object.entries(counts).sort()); }
+const ARRAY_FIELDS = [
+  'candidates',
+  'editorialIdentities',
+  'identityMembershipEdges',
+  'identityDispositionRecords',
+];
+const REASON_BY_STATE = Object.freeze({
+  [STATES.AMBIGUOUS]: 'identity_ambiguous',
+  [STATES.CONFLICT]: 'identity_conflict',
+  [STATES.UNAVAILABLE]: 'identity_unavailable',
+});
+
+function fail(code, detail = '') {
+  throw new Error(`${code}${detail ? `: ${detail}` : ''}`);
+}
+function token(value) {
+  return String(value || '').trim().toLowerCase();
+}
+function increment(counts, key) {
+  counts[key] = (counts[key] || 0) + 1;
+}
+function sortedCounts(counts) {
+  return Object.fromEntries(Object.entries(counts).sort());
+}
 function numberOrNull(value) {
   if (value === null || value === undefined || value === '') return null;
   return Number.isFinite(Number(value)) ? Number(value) : null;
 }
+function expectedReason(state) {
+  return REASON_BY_STATE[state] || null;
+}
+
 export function getEditorialIdentityCandidateId(candidate = {}) {
   const explicitId = token(candidate.id);
   if (explicitId) return `id:${explicitId}`;
   const canonicalId = token(candidate.canonicalId || candidate.canonical_id);
   if (canonicalId) return `canonical-id:${canonicalId}`;
-  const url = normalizeTopStoryCanonicalUrl(candidate.canonicalUrl || candidate.canonical_url || candidate.url || candidate.link);
+  const url = normalizeTopStoryCanonicalUrl(
+    candidate.canonicalUrl || candidate.canonical_url || candidate.url || candidate.link,
+  );
   if (url) return `canonical-url:${url}`;
   return fail('EDITORIAL_IDENTITY_CANDIDATE_ID_UNAVAILABLE');
 }
+
 function identityState(identity) {
   if (KNOWN_STATES.has(identity.identityState)) return identity.identityState;
-  return fail('EDITORIAL_IDENTITY_STATE_UNSUPPORTED', identity.identityState || 'missing');
+  return fail(
+    'EDITORIAL_IDENTITY_STATE_UNSUPPORTED',
+    identity.identityState || 'missing',
+  );
 }
 function resolvedRelation(candidateId, identity) {
   const editorialIdentity = String(identity.editorialIdentity || '').trim();
@@ -36,22 +72,31 @@ function resolvedRelation(candidateId, identity) {
   const identityMethod = identity.identityMethod || 'none';
   return {
     candidate: {
-      candidateId, identityState: STATES.RESOLVED, identityMethod,
-      editorialIdentityId, terminalReasonCode: null,
+      candidateId,
+      identityState: STATES.RESOLVED,
+      identityMethod,
+      editorialIdentityId,
+      terminalReasonCode: null,
     },
     edge: { candidateId, editorialIdentityId, identityMethod, identityVersion },
     identity: { editorialIdentityId, editorialIdentity, identityVersion },
   };
 }
 function dispositionRelation(candidateId, state, identity) {
-  const terminalReasonCode = REASON_BY_STATE[state];
+  const terminalReasonCode = expectedReason(state);
   return {
     candidate: {
-      candidateId, identityState: state, identityMethod: identity.identityMethod || 'none',
-      editorialIdentityId: null, terminalReasonCode,
+      candidateId,
+      identityState: state,
+      identityMethod: identity.identityMethod || 'none',
+      editorialIdentityId: null,
+      terminalReasonCode,
     },
     disposition: {
-      candidateId, identityState: state, terminalReasonCode, editorialIdentityId: null,
+      candidateId,
+      identityState: state,
+      terminalReasonCode,
+      editorialIdentityId: null,
     },
   };
 }
@@ -65,11 +110,18 @@ function relationFor(candidate) {
 }
 function addIdentity(identityMap, identity) {
   if (!identity) return;
-  const current = identityMap.get(identity.editorialIdentityId) || { ...identity, memberCandidateCount: 0 };
-  identityMap.set(identity.editorialIdentityId, { ...current, memberCandidateCount: current.memberCandidateCount + 1 });
+  const current = identityMap.get(identity.editorialIdentityId) || {
+    ...identity,
+    memberCandidateCount: 0,
+  };
+  identityMap.set(identity.editorialIdentityId, {
+    ...current,
+    memberCandidateCount: current.memberCandidateCount + 1,
+  });
 }
 function sortRecords(records, identityMap) {
-  const byCandidate = (left, right) => left.candidateId.localeCompare(right.candidateId);
+  const byCandidate = (left, right) =>
+    left.candidateId.localeCompare(right.candidateId);
   return {
     candidates: records.candidates.sort(byCandidate),
     editorialIdentities: [...identityMap.values()].sort((left, right) =>
@@ -79,17 +131,25 @@ function sortRecords(records, identityMap) {
   };
 }
 function relationRecords(input) {
-  const records = { candidates: [], identityMembershipEdges: [], identityDispositionRecords: [] };
+  const records = {
+    candidates: [],
+    identityMembershipEdges: [],
+    identityDispositionRecords: [],
+  };
   const candidateIds = new Set();
   const identityMap = new Map();
   input.forEach(candidate => {
     const relation = relationFor(candidate);
     const id = relation.candidate.candidateId;
-    if (candidateIds.has(id)) fail('EDITORIAL_IDENTITY_DUPLICATE_CANDIDATE_ID', id);
+    if (candidateIds.has(id)) {
+      fail('EDITORIAL_IDENTITY_DUPLICATE_CANDIDATE_ID', id);
+    }
     candidateIds.add(id);
     records.candidates.push(relation.candidate);
     if (relation.edge) records.identityMembershipEdges.push(relation.edge);
-    if (relation.disposition) records.identityDispositionRecords.push(relation.disposition);
+    if (relation.disposition) {
+      records.identityDispositionRecords.push(relation.disposition);
+    }
     addIdentity(identityMap, relation.identity);
   });
   return sortRecords(records, identityMap);
@@ -104,9 +164,15 @@ function aggregateCounts(records) {
   });
   records.identityDispositionRecords.forEach(record =>
     increment(reasonCounts, record.terminalReasonCode));
-  return { identityStateCounts: sortedCounts(identityStateCounts), identityMethodCounts: sortedCounts(identityMethodCounts), reasonCounts: sortedCounts(reasonCounts) };
+  return {
+    identityStateCounts: sortedCounts(identityStateCounts),
+    identityMethodCounts: sortedCounts(identityMethodCounts),
+    reasonCounts: sortedCounts(reasonCounts),
+  };
 }
-function countState(counts, state) { return counts.identityStateCounts[state] || 0; }
+function countState(counts, state) {
+  return counts.identityStateCounts[state] || 0;
+}
 function populationFrom(records) {
   const counts = aggregateCounts(records);
   const candidateCount = records.candidates.length;
@@ -116,106 +182,189 @@ function populationFrom(records) {
   return {
     schemaVersion: EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2,
     populationRole: EDITORIAL_IDENTITY_POPULATION_ROLE,
-    inputUnit: RANKING_CANDIDATE_UNIT, inputCount: candidateCount, candidateCount,
-    outputUnit: EDITORIAL_IDENTITY_UNIT, outputCount: distinctCount,
-    distinctEditorialIdentityCount: distinctCount, resolvedCandidateCount,
+    inputUnit: RANKING_CANDIDATE_UNIT,
+    inputCount: candidateCount,
+    candidateCount,
+    outputUnit: EDITORIAL_IDENTITY_UNIT,
+    outputCount: distinctCount,
+    distinctEditorialIdentityCount: distinctCount,
+    resolvedCandidateCount,
     ambiguousCandidateCount: countState(counts, STATES.AMBIGUOUS),
     conflictCandidateCount: countState(counts, STATES.CONFLICT),
     unavailableCandidateCount: countState(counts, STATES.UNAVAILABLE),
     unresolvedCandidateCount: dispositionCount,
     sharedIdentityCandidateCount: resolvedCandidateCount - distinctCount,
-    identityMembershipEdgeCount: resolvedCandidateCount, dispositionCount,
+    identityMembershipEdgeCount: resolvedCandidateCount,
+    dispositionCount,
     accountedCandidateCount: resolvedCandidateCount + dispositionCount,
     accountingDelta: candidateCount - resolvedCandidateCount - dispositionCount,
-    accountingConserved: true, ...counts, ...records,
+    accountingConserved: true,
+    ...counts,
+    ...records,
   };
 }
+
 export function buildEditorialIdentityRelations(identifiedCandidates = []) {
   const input = Array.isArray(identifiedCandidates) ? identifiedCandidates : [];
   const population = populationFrom(relationRecords(input));
   validateEditorialIdentityRelations(population);
   return population;
 }
-function uniqueValues(rows, field, code) {
-  const values = new Set();
+
+function uniqueMap(rows, field, code) {
+  const values = new Map();
   rows.forEach(row => {
     const value = String(row?.[field] || '');
     if (!value || values.has(value)) fail(code, value || field);
-    values.add(value);
+    values.set(value, row);
   });
   return values;
 }
-function validateCoverage(population, candidateIds) {
-  const edgeIds = uniqueValues(
-    population.identityMembershipEdges, 'candidateId',
+function validateCandidateRelation(candidate, edge, disposition) {
+  const isResolved = candidate.identityState === STATES.RESOLVED;
+  if (Number(Boolean(edge)) + Number(Boolean(disposition)) !== 1) {
+    fail('EDITORIAL_IDENTITY_CANDIDATE_COVERAGE_INVALID', candidate.candidateId);
+  }
+  if (isResolved !== Boolean(edge)) {
+    fail('EDITORIAL_IDENTITY_RELATION_TYPE_MISMATCH', candidate.candidateId);
+  }
+  if (edge && (
+    edge.editorialIdentityId !== candidate.editorialIdentityId ||
+    edge.identityMethod !== candidate.identityMethod
+  )) {
+    fail('EDITORIAL_IDENTITY_EDGE_CANDIDATE_MISMATCH', candidate.candidateId);
+  }
+  if (disposition && (
+    disposition.identityState !== candidate.identityState ||
+    disposition.terminalReasonCode !== candidate.terminalReasonCode ||
+    disposition.terminalReasonCode !== expectedReason(candidate.identityState) ||
+    disposition.editorialIdentityId !== null ||
+    candidate.editorialIdentityId !== null
+  )) {
+    fail('EDITORIAL_IDENTITY_DISPOSITION_CANDIDATE_MISMATCH', candidate.candidateId);
+  }
+}
+function validateCoverage(population, candidateMap) {
+  const edgeMap = uniqueMap(
+    population.identityMembershipEdges,
+    'candidateId',
     'EDITORIAL_IDENTITY_DUPLICATE_MEMBERSHIP_EDGE',
   );
-  const dispositionIds = uniqueValues(
-    population.identityDispositionRecords, 'candidateId',
+  const dispositionMap = uniqueMap(
+    population.identityDispositionRecords,
+    'candidateId',
     'EDITORIAL_IDENTITY_DUPLICATE_DISPOSITION',
   );
-  candidateIds.forEach(id => {
-    if (Number(edgeIds.has(id)) + Number(dispositionIds.has(id)) !== 1) {
-      fail('EDITORIAL_IDENTITY_CANDIDATE_COVERAGE_INVALID', id);
+  candidateMap.forEach(candidate => validateCandidateRelation(
+    candidate,
+    edgeMap.get(candidate.candidateId),
+    dispositionMap.get(candidate.candidateId),
+  ));
+  [...edgeMap.keys(), ...dispositionMap.keys()].forEach(id => {
+    if (!candidateMap.has(id)) {
+      fail('EDITORIAL_IDENTITY_UNKNOWN_CANDIDATE_REFERENCE', id);
     }
-  });
-  [...edgeIds, ...dispositionIds].forEach(id => {
-    if (!candidateIds.has(id)) fail('EDITORIAL_IDENTITY_UNKNOWN_CANDIDATE_REFERENCE', id);
   });
 }
 function validateIdentityMembers(population) {
-  const identityIds = uniqueValues(
-    population.editorialIdentities, 'editorialIdentityId',
+  const identityMap = uniqueMap(
+    population.editorialIdentities,
+    'editorialIdentityId',
     'EDITORIAL_IDENTITY_DUPLICATE_IDENTITY_RECORD',
   );
   const memberCounts = {};
   population.identityMembershipEdges.forEach(edge => {
-    if (!identityIds.has(edge.editorialIdentityId)) {
+    const identity = identityMap.get(edge.editorialIdentityId);
+    if (!identity) {
       fail('EDITORIAL_IDENTITY_UNKNOWN_IDENTITY_REFERENCE', edge.editorialIdentityId);
+    }
+    if (
+      edge.identityVersion !== identity.identityVersion ||
+      identity.editorialIdentityId !==
+        `${identity.identityVersion}:${identity.editorialIdentity}`
+    ) {
+      fail('EDITORIAL_IDENTITY_EDGE_IDENTITY_MISMATCH', edge.editorialIdentityId);
     }
     increment(memberCounts, edge.editorialIdentityId);
   });
-  population.editorialIdentities.forEach(identity => {
+  identityMap.forEach(identity => {
     const actual = Number(memberCounts[identity.editorialIdentityId] || 0);
+    if (actual <= 0) {
+      fail('EDITORIAL_IDENTITY_ORPHAN_IDENTITY_RECORD', identity.editorialIdentityId);
+    }
     if (Number(identity.memberCandidateCount) !== actual) {
       fail('EDITORIAL_IDENTITY_MEMBER_COUNT_MISMATCH', identity.editorialIdentityId);
     }
   });
 }
-function assertDeclaredCount(population, field, actual) { if (Number(population[field]) !== actual) fail('EDITORIAL_IDENTITY_DECLARED_COUNT_MISMATCH', field); }
+function assertDeclaredCount(population, field, actual) {
+  if (Number(population[field]) !== actual) {
+    fail('EDITORIAL_IDENTITY_DECLARED_COUNT_MISMATCH', field);
+  }
+}
 function validatedCounts(population) {
   const counts = aggregateCounts(population);
   const candidateCount = population.candidates.length;
   const resolvedCandidateCount = countState(counts, STATES.RESOLVED);
   const dispositionCount = population.identityDispositionRecords.length;
   const distinctEditorialIdentityCount = population.editorialIdentities.length;
-  const values = { candidateCount, resolvedCandidateCount, ambiguousCandidateCount: countState(counts, STATES.AMBIGUOUS), conflictCandidateCount: countState(counts, STATES.CONFLICT), unavailableCandidateCount: countState(counts, STATES.UNAVAILABLE), identityMembershipEdgeCount: population.identityMembershipEdges.length, dispositionCount, distinctEditorialIdentityCount };
-  const stateTotal = values.resolvedCandidateCount + values.ambiguousCandidateCount +
-    values.conflictCandidateCount + values.unavailableCandidateCount;
-  if (candidateCount !== stateTotal) fail('EDITORIAL_IDENTITY_STATE_CONSERVATION_FAILED');
+  const values = {
+    candidateCount,
+    resolvedCandidateCount,
+    ambiguousCandidateCount: countState(counts, STATES.AMBIGUOUS),
+    conflictCandidateCount: countState(counts, STATES.CONFLICT),
+    unavailableCandidateCount: countState(counts, STATES.UNAVAILABLE),
+    identityMembershipEdgeCount: population.identityMembershipEdges.length,
+    dispositionCount,
+    distinctEditorialIdentityCount,
+  };
+  const stateTotal = values.resolvedCandidateCount +
+    values.ambiguousCandidateCount + values.conflictCandidateCount +
+    values.unavailableCandidateCount;
+  if (candidateCount !== stateTotal) {
+    fail('EDITORIAL_IDENTITY_STATE_CONSERVATION_FAILED');
+  }
   if (resolvedCandidateCount !== values.identityMembershipEdgeCount) {
     fail('EDITORIAL_IDENTITY_EDGE_CONSERVATION_FAILED');
   }
   Object.entries(values).forEach(([field, actual]) =>
     assertDeclaredCount(population, field, actual));
-  const aliases = { inputCount: candidateCount, outputCount: distinctEditorialIdentityCount, unresolvedCandidateCount: dispositionCount, sharedIdentityCandidateCount: resolvedCandidateCount - distinctEditorialIdentityCount, accountedCandidateCount: candidateCount, accountingDelta: 0 };
+  const aliases = {
+    inputCount: candidateCount,
+    outputCount: distinctEditorialIdentityCount,
+    unresolvedCandidateCount: dispositionCount,
+    sharedIdentityCandidateCount:
+      resolvedCandidateCount - distinctEditorialIdentityCount,
+    accountedCandidateCount: candidateCount,
+    accountingDelta: 0,
+  };
   Object.entries(aliases).forEach(([field, actual]) =>
     assertDeclaredCount(population, field, actual));
-  if (population.accountingConserved !== true) fail('EDITORIAL_IDENTITY_CONSERVATION_FLAG_INVALID');
+  if (population.accountingConserved !== true) {
+    fail('EDITORIAL_IDENTITY_CONSERVATION_FLAG_INVALID');
+  }
   return { ...values, accountingConserved: true };
 }
+
 export function validateEditorialIdentityRelations(population = {}) {
   if (population.schemaVersion !== EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2) {
     return fail('EDITORIAL_IDENTITY_RELATION_SCHEMA_UNSUPPORTED');
   }
   ARRAY_FIELDS.forEach(field => {
-    if (!Array.isArray(population[field])) fail('EDITORIAL_IDENTITY_RELATION_ARRAY_REQUIRED', field);
+    if (!Array.isArray(population[field])) {
+      fail('EDITORIAL_IDENTITY_RELATION_ARRAY_REQUIRED', field);
+    }
   });
-  const candidateIds = uniqueValues(population.candidates, 'candidateId', 'EDITORIAL_IDENTITY_DUPLICATE_CANDIDATE_ID');
-  validateCoverage(population, candidateIds);
+  const candidateMap = uniqueMap(
+    population.candidates,
+    'candidateId',
+    'EDITORIAL_IDENTITY_DUPLICATE_CANDIDATE_ID',
+  );
+  validateCoverage(population, candidateMap);
   validateIdentityMembers(population);
   return validatedCounts(population);
 }
+
 export function getDisplayedIdentityEvidence(displayed = []) {
   const displayedEditorialIdentities = [];
   const displayedIdentityStateCounts = {};
@@ -228,7 +377,29 @@ export function getDisplayedIdentityEvidence(displayed = []) {
       displayedEditorialIdentities.push(identity.editorialIdentity);
     }
   });
-  return { displayedEditorialIdentities, displayedResolvedIdentityCount: displayedEditorialIdentities.length, displayedUnresolvedIdentityCount: Math.max(0, displayed.length - displayedEditorialIdentities.length), displayedIdentityStateCounts };
+  return {
+    displayedEditorialIdentities,
+    displayedResolvedIdentityCount: displayedEditorialIdentities.length,
+    displayedUnresolvedIdentityCount:
+      Math.max(0, displayed.length - displayedEditorialIdentities.length),
+    displayedIdentityStateCounts,
+  };
+}
+function invalidEvidence(schemaVersion, message) {
+  return {
+    schemaVersion,
+    editorialIdentityInputCount: null,
+    editorialIdentityCount: null,
+    resolvedIdentityCandidateCount: null,
+    sharedIdentityCandidateCount: null,
+    unresolvedIdentityCandidateCount: null,
+    identityResolutionCoverage: null,
+    identityAccountingConserved: false,
+    identityStateCounts: {},
+    identityMethodCounts: {},
+    identityReasonCounts: {},
+    identityRelationValidationError: message,
+  };
 }
 function v2Evidence(population, stage) {
   try {
@@ -241,7 +412,8 @@ function v2Evidence(population, stage) {
         counts.resolvedCandidateCount - counts.distinctEditorialIdentityCount,
       unresolvedIdentityCandidateCount: counts.dispositionCount,
       identityResolutionCoverage: counts.candidateCount
-        ? counts.resolvedCandidateCount / counts.candidateCount : null,
+        ? counts.resolvedCandidateCount / counts.candidateCount
+        : null,
       identityAccountingConserved: true,
       identityStateCounts: population.identityStateCounts || {},
       identityMethodCounts: population.identityMethodCounts || {},
@@ -249,33 +421,24 @@ function v2Evidence(population, stage) {
       identityRelationValidationError: null,
     };
   } catch (error) {
-    return {
-      editorialIdentityInputCount: population.candidates?.length ?? null,
-      editorialIdentityCount: population.editorialIdentities?.length ?? null,
-      resolvedIdentityCandidateCount: null, sharedIdentityCandidateCount: null,
-      unresolvedIdentityCandidateCount: null, identityResolutionCoverage: null,
-      identityAccountingConserved: false, identityStateCounts: {},
-      identityMethodCounts: {}, identityReasonCounts: {},
-      identityRelationValidationError: error.message,
-    };
+    return invalidEvidence(population.schemaVersion, error.message);
   }
 }
-export function getEditorialIdentityEvidence(observation = {}, stageName) {
-  const population = observation.editorialIdentityPopulation || {};
-  const stage = (observation.funnel || []).find(row => row.stage === stageName) || {};
-  const schemaVersion = population.schemaVersion || stage.populationSchemaVersion || null;
-  if (schemaVersion === EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2) {
-    return { schemaVersion, ...v2Evidence(population, stage) };
-  }
+function v1Evidence(population, stage, schemaVersion) {
   const inputCount = numberOrNull(population.inputCount ?? stage.inputCount);
   const outputCount = numberOrNull(population.outputCount ?? stage.outputCount);
   const resolved = numberOrNull(population.resolvedCandidateCount);
   return {
-    schemaVersion, editorialIdentityInputCount: inputCount,
-    editorialIdentityCount: outputCount, resolvedIdentityCandidateCount: resolved,
-    sharedIdentityCandidateCount: numberOrNull(population.sharedIdentityCandidateCount),
-    unresolvedIdentityCandidateCount: numberOrNull(population.unresolvedCandidateCount),
-    identityResolutionCoverage: inputCount && resolved !== null ? resolved / inputCount : null,
+    schemaVersion,
+    editorialIdentityInputCount: inputCount,
+    editorialIdentityCount: outputCount,
+    resolvedIdentityCandidateCount: resolved,
+    sharedIdentityCandidateCount:
+      numberOrNull(population.sharedIdentityCandidateCount),
+    unresolvedIdentityCandidateCount:
+      numberOrNull(population.unresolvedCandidateCount),
+    identityResolutionCoverage:
+      inputCount && resolved !== null ? resolved / inputCount : null,
     identityAccountingConserved:
       population.accountingConserved ?? stage.accountingConserved ?? null,
     identityStateCounts: population.identityStateCounts || {},
@@ -284,6 +447,28 @@ export function getEditorialIdentityEvidence(observation = {}, stageName) {
     identityRelationValidationError: null,
   };
 }
+
+export function getEditorialIdentityEvidence(observation = {}, stageName) {
+  const population = observation.editorialIdentityPopulation || {};
+  const stage = (observation.funnel || [])
+    .find(row => row.stage === stageName) || {};
+  const schemaVersion = population.schemaVersion ||
+    stage.populationSchemaVersion || null;
+  if (schemaVersion === EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V2) {
+    return { schemaVersion, ...v2Evidence(population, stage) };
+  }
+  if (
+    schemaVersion !== null &&
+    schemaVersion !== EDITORIAL_IDENTITY_POPULATION_SCHEMA_VERSION_V1
+  ) {
+    return invalidEvidence(
+      schemaVersion,
+      `EDITORIAL_IDENTITY_ANALYTICS_SCHEMA_UNSUPPORTED: ${schemaVersion}`,
+    );
+  }
+  return v1Evidence(population, stage, schemaVersion);
+}
+
 export function summarizeIdentityAccountingBySchema(rows = []) {
   const grouped = {};
   rows.forEach(row => {
@@ -295,5 +480,13 @@ export function summarizeIdentityAccountingBySchema(rows = []) {
     }
     grouped[version] = entry;
   });
-  return Object.fromEntries(Object.entries(grouped).sort().map(([version, entry]) => [version, { observationCount: entry.observationCount, evidenceCount: entry.checks.length, accountingConserved: entry.checks.length ? entry.checks.every(Boolean) : null }]));
+  return Object.fromEntries(Object.entries(grouped).sort().map(
+    ([version, entry]) => [version, {
+      observationCount: entry.observationCount,
+      evidenceCount: entry.checks.length,
+      accountingConserved: entry.checks.length
+        ? entry.checks.every(Boolean)
+        : null,
+    }],
+  ));
 }
