@@ -27,7 +27,8 @@ const METRIC_KEYS = Object.freeze([
   'incumbentRetention', 'newListContinuity', 'jaccard', 'numberOneContinuity',
   'normalizedWeightedRankDisplacement', 'countDelta', 'entrantCount', 'exitCount',
 ]);
-
+const INPUT_CHANGE_INTERPRETATION =
+  'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.';
 function uniqueSorted(values = []) {
   return [...new Set(values.filter(Boolean))].sort();
 }
@@ -129,8 +130,8 @@ function expectedStability(evidence, report) {
   }]));
 }
 
-function expectedInputChange(evidence) {
-  return Object.fromEntries(HORIZONS.map(horizon => [horizon, {
+function expectedInputChange(evidence, report) {
+  const summaries = Object.fromEntries(HORIZONS.map(horizon => [horizon, {
     overlapping: summarizeTopStoriesInputChange(
       getTopStoriesComparisonRecords(evidence, horizon, false),
     ),
@@ -138,6 +139,8 @@ function expectedInputChange(evidence) {
       getTopStoriesComparisonRecords(evidence, horizon, true),
     ),
   }]));
+  return report?.inputChange?.interpretation === undefined ? summaries :
+    { ...summaries, interpretation: INPUT_CHANGE_INTERPRETATION };
 }
 
 function summariesReconcile(report, evidence) {
@@ -170,7 +173,7 @@ function summariesReconcile(report, evidence) {
     .every(key => same(segmentCounts.get(key) || { fifteenMinute: 0, sixtyMinute: 0 },
       expectedSegments.get(key) || { fifteenMinute: 0, sixtyMinute: 0 }));
   return countsMatch && same(report?.stability, expectedStability(evidence, report)) &&
-    same(report?.inputChange, expectedInputChange(evidence)) && segmentsMatch;
+    same(report?.inputChange, expectedInputChange(evidence, report)) && segmentsMatch;
 }
 
 export function validateTopStoriesDailyComparisonEvidence(report = {}, options = {}) {
