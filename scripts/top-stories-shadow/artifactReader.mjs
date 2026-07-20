@@ -1,6 +1,10 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { sha256Text } from './canonicalJson.mjs';
+import {
+  TOP_STORIES_TRACE_RELATION_SCHEMA_VERSION,
+  validateTopStoriesTraceRelations,
+} from './traceRelationsValidation.mjs';
 
 const PUBLICATION_SCHEMA = 'nw-top-stories-shadow-publication-manifest/v1';
 const CORE_MANIFEST_SCHEMA = 'nw-top-stories-artifact-manifest/v1';
@@ -22,25 +26,26 @@ function parseJson(text, name) {
   }
 }
 
+function codedError(code, message) {
+  return Object.assign(new Error(message), { code });
+}
+
 function assertSchema(value, expected, name) {
   if (value?.schemaVersion !== expected) {
-    const error = new Error(`Unsupported ${name} schema: ${value?.schemaVersion || 'missing'}`);
-    error.code = 'unsupported_schema';
-    throw error;
+    throw codedError(
+      'unsupported_schema',
+      `Unsupported ${name} schema: ${value?.schemaVersion || 'missing'}`,
+    );
   }
 }
 
 function assertDescriptor(descriptor, text) {
   const bytes = Buffer.byteLength(text, 'utf8');
   if (Number(descriptor.byteSize) !== bytes) {
-    const error = new Error(`Byte-size mismatch for ${descriptor.name}`);
-    error.code = 'artifact_byte_size_mismatch';
-    throw error;
+    throw codedError('artifact_byte_size_mismatch', `Byte-size mismatch for ${descriptor.name}`);
   }
   if (descriptor.sha256 !== sha256Text(text)) {
-    const error = new Error(`SHA-256 mismatch for ${descriptor.name}`);
-    error.code = 'artifact_hash_mismatch';
-    throw error;
+    throw codedError('artifact_hash_mismatch', `SHA-256 mismatch for ${descriptor.name}`);
   }
 }
 
@@ -49,9 +54,10 @@ async function readDescribedFiles(directory, descriptors = []) {
   const names = new Set();
   for (const descriptor of descriptors) {
     if (!descriptor?.name || names.has(descriptor.name)) {
-      const error = new Error('Publication manifest contains an invalid or duplicate file name');
-      error.code = 'invalid_file_descriptor';
-      throw error;
+      throw codedError(
+        'invalid_file_descriptor',
+        'Publication manifest contains an invalid or duplicate file name',
+      );
     }
     names.add(descriptor.name);
     const text = await readText(path.join(directory, descriptor.name));
@@ -70,31 +76,78 @@ function assertCrossFileConsistency(publication, operational, payload) {
   shared.forEach(([field, ...values]) => {
     const present = values.filter(value => value !== undefined && value !== null && value !== '');
     if (new Set(present.map(String)).size > 1) {
-      const error = new Error(`Cross-file ${field} mismatch`);
-      error.code = 'cross_file_identity_mismatch';
-      throw error;
+      throw codedError('cross_file_identity_mismatch', `Cross-file ${field} mismatch`);
     }
   });
 }
 
 async function validateCoreManifest(directory, files) {
   const text = files.get('manifest.json');
-  if (!text) {
-    const error = new Error('manifest.json is missing');
-    error.code = 'missing_core_manifest';
-    throw error;
-  }
+  if (!text) throw codedError('missing_core_manifest', 'manifest.json is missing');
   const manifest = parseJson(text, 'manifest.json');
   assertSchema(manifest, CORE_MANIFEST_SCHEMA, 'core manifest');
   if (!Array.isArray(manifest.files) || manifest.files.length !== 1) {
-    const error = new Error('Core manifest must describe exactly one payload');
-    error.code = 'invalid_core_manifest';
-    throw error;
+    throw codedError('invalid_core_manifest', 'Core manifest must describe exactly one payload');
   }
   const descriptor = manifest.files[0];
-  const payloadText = files.get(descriptor.name) || await readText(path.join(directory, descriptor.name));
+  const payloadText = files.get(descriptor.name) ||
+    await readText(path.join(directory, descriptor.name));
   assertDescriptor(descriptor, payloadText);
   return { manifest, payloadText, payloadName: descriptor.name };
+}
+
+function assertSnapshotTraceRoot(snapshot) {
+  const arrays = ['candidateBuildTrace', 'candidateEvidence', 'ranked', 'displayed'];
+  arrays.forEach(field => {
+    if (!Array.isArray(snapshot[field])) {
+      throw codedError('trace_relation_validation_failed', `Snapshot ${field} must be an array`);
+    }
+  });
+  ['rankedCount', 'displayedCount'].forEach(field => {
+    if (!Number.isInteger(snapshot[field]) || snapshot[field] < 0) {
+      throw codedError('trace_relation_validation_failed', `Snapshot ${field} is invalid`);
+    }
+  });
+  const expectedRankedIds = snapshot.ranked.map(item => item?.id || null);
+  const expectedDisplayedIds = snapshot.displayed.map(item => item?.id || null);
+  if (JSON.stringify(snapshot.rankedIds) !== JSON.stringify(expectedRankedIds) ||
+    JSON.stringify(snapshot.displayedTopNIds) !== JSON.stringify(expectedDisplayedIds)) {
+    throw codedError('trace_relation_validation_failed', 'Snapshot projection IDs are inconsistent');
+  }
+}
+
+function validateSnapshotTraceRelations(snapshot) {
+  const hasSchema = Object.hasOwn(snapshot, 'traceRelationSchemaVersion');
+  const hasLedger = Object.hasOwn(snapshot, 'traceRelations');
+  if (!hasSchema && !hasLedger) return 'MISSING_LEGACY';
+  if (!hasSchema || !hasLedger) {
+    throw codedError(
+      'trace_relation_fields_incomplete',
+      'Trace relation schema and ledger must be published together',
+    );
+  }
+  if (snapshot.traceRelationSchemaVersion !== TOP_STORIES_TRACE_RELATION_SCHEMA_VERSION ||
+    snapshot.traceRelations?.schemaVersion !== TOP_STORIES_TRACE_RELATION_SCHEMA_VERSION) {
+    throw codedError(
+      'trace_relation_schema_unsupported',
+      `Unsupported trace relation schema: ${snapshot.traceRelationSchemaVersion ||
+        snapshot.traceRelations?.schemaVersion || 'missing'}`,
+    );
+  }
+  assertSnapshotTraceRoot(snapshot);
+  try {
+    validateTopStoriesTraceRelations(snapshot.traceRelations, {
+      rawInputCount: snapshot.candidateBuildTrace.length,
+      candidateEvidence: snapshot.candidateEvidence,
+      ranked: snapshot.ranked,
+      displayed: snapshot.displayed,
+      rankedCount: snapshot.rankedCount,
+      displayedCount: snapshot.displayedCount,
+    });
+  } catch (error) {
+    throw codedError('trace_relation_validation_failed', error.message || String(error));
+  }
+  return 'VALID';
 }
 
 export async function readTopStoriesArtifactDirectory(directory) {
@@ -103,16 +156,12 @@ export async function readTopStoriesArtifactDirectory(directory) {
     const publicationManifest = parseJson(publicationText, 'publication_manifest.json');
     assertSchema(publicationManifest, PUBLICATION_SCHEMA, 'publication manifest');
     if (!Array.isArray(publicationManifest.files)) {
-      throw Object.assign(new Error('Publication manifest files must be an array'), {
-        code: 'invalid_publication_manifest',
-      });
+      throw codedError('invalid_publication_manifest', 'Publication manifest files must be an array');
     }
     const files = await readDescribedFiles(directory, publicationManifest.files);
     const operationalText = files.get('operational.json');
     if (!operationalText) {
-      throw Object.assign(new Error('operational.json is missing'), {
-        code: 'missing_operational_record',
-      });
+      throw codedError('missing_operational_record', 'operational.json is missing');
     }
     const operational = parseJson(operationalText, 'operational.json');
     assertSchema(operational, OPERATIONAL_SCHEMA, 'operational record');
@@ -120,17 +169,22 @@ export async function readTopStoriesArtifactDirectory(directory) {
     const hasSnapshot = core.payloadName === 'snapshot.json';
     const hasFailure = core.payloadName === 'failure.json';
     if (hasSnapshot === hasFailure) {
-      throw Object.assign(new Error('Artifact must contain exactly one snapshot or failure payload'), {
-        code: 'invalid_payload_selection',
-      });
+      throw codedError(
+        'invalid_payload_selection',
+        'Artifact must contain exactly one snapshot or failure payload',
+      );
     }
     const payload = parseJson(core.payloadText, core.payloadName);
     assertSchema(payload, hasSnapshot ? SNAPSHOT_SCHEMA : FAILURE_SCHEMA, core.payloadName);
     assertCrossFileConsistency(publicationManifest, operational, payload);
+    const traceRelationStatus = hasSnapshot
+      ? validateSnapshotTraceRelations(payload)
+      : 'NOT_APPLICABLE';
     return {
       directory,
       schemaValid: true,
       status: hasSnapshot ? 'VALID_SNAPSHOT' : 'VALID_FAILURE',
+      traceRelationStatus,
       publicationManifest,
       coreManifest: core.manifest,
       operational,
@@ -143,6 +197,7 @@ export async function readTopStoriesArtifactDirectory(directory) {
       directory,
       schemaValid: false,
       status: 'INVALID_ARTIFACT',
+      traceRelationStatus: 'INVALID',
       publicationManifest: null,
       coreManifest: null,
       operational: null,
