@@ -60,7 +60,7 @@
       "gateResults": [
         {
           "details": {
-            "itemCount": 11
+            "itemCount": 10
           },
           "name": "insightEventPool",
           "reason": "rankable Insight event pool",
@@ -79,14 +79,14 @@
         "avgAnglesPerParent": 0.0,
         "baseReportHeavyParents": 2,
         "duplicateChildrenSuppressed": 0,
-        "inputCandidateCount": 11,
-        "parentClusters": 11,
-        "strongParents": 11,
+        "inputCandidateCount": 10,
+        "parentClusters": 10,
+        "strongParents": 10,
         "suppressedCandidateCount": 0,
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3905,
+      "qualityScore": 0.3954,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -326,116 +326,6 @@
           ],
           "score": 0.577,
           "title": "Tamil Nadu Today: Population Census exercise begins in State"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:66b5e4d079",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:66b5e4d079",
-            "representativeId": "544d7acd4c78e4ca",
-            "representativeTitle": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "google_news"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "544d7acd4c78e4ca",
-              "e89c88fb92141e90"
-            ],
-            "topAngles": [
-              {
-                "angle": "reaction_public",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "breaking",
-              "facebook",
-              "suffers",
-              "widespread"
-            ],
-            "topicKey": "breaking|facebook|suffers"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Breaking: Facebook suffers widespread outrage, users across India - Babushahi.com"
         },
         {
           "category": "insightEvent",
@@ -1327,13 +1217,13 @@
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
-        "angleDiversityScore": 0.3464,
-        "eventImportanceScore": 0.6664,
+        "angleDiversityScore": 0.356,
+        "eventImportanceScore": 0.674,
         "freshnessScore": 0.0,
-        "noveltyDeltaScore": 0.4773,
-        "sourceAuthorityScore": 0.4236,
-        "sourceDiversityScore": 0.4173,
-        "temporalEvolutionScore": 0.4027
+        "noveltyDeltaScore": 0.48,
+        "sourceAuthorityScore": 0.428,
+        "sourceDiversityScore": 0.424,
+        "temporalEvolutionScore": 0.406
       }
     },
     "localTravel": {
@@ -4850,7 +4740,7 @@
             },
             {
               "details": {
-                "hoursLeft": 6.61
+                "hoursLeft": 3.84
               },
               "name": "offerValidity",
               "reason": "offer expires soon",
@@ -4933,7 +4823,7 @@
       }
     }
   },
-  "generatedAt": 1784581803532,
+  "generatedAt": 1784591771975,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -4964,7 +4854,7 @@
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3905,
+      "insight": 0.3954,
       "localTravel": 0.0,
       "upAhead": 0.8602
     },
@@ -4974,7 +4864,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.3127,
+    "overallScore": 0.3139,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",

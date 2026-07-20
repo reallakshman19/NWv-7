@@ -10,9 +10,9 @@
 - Base report share: `0.1111111111111111`
 - Multi-angle parents: `4`
 - Weak parents: `6`
-- Story count: `668`
+- Story count: `637`
 - Source groups: `9`
-- Content hash: `02eeef19eb713d77`
+- Content hash: `ff5b05711c36f46e`
 
 ## Top parents
 
