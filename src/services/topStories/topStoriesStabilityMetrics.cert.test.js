@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { buildStandardTopStoriesPairSets } from './topStoriesObservationPairing.js';
+import {
+  buildCanonicalNonOverlappingPairs,
+  buildStandardTopStoriesPairSets,
+} from './topStoriesObservationPairing.js';
 import { classifyTopStoriesPeriod } from './topStoriesPeriodClassifier.js';
 import { compareDisplayedTopStories } from './topStoriesStabilityMetrics.js';
 import { TOP_STORIES_NORMALIZATION_VERSION } from './topStoriesVersionSegment.js';
@@ -19,6 +22,7 @@ function observation(id, runAt, extra = {}) {
   return {
     observationId: id,
     studyId: 'study-1',
+    scheduledAt: new Date(runAt).toISOString(),
     runAt,
     completenessState: 'COMPLETE',
     analyticalEligibility: 'ELIGIBLE',
@@ -51,6 +55,11 @@ function criticalCandidate(id, extraRank = {}) {
       ...extraRank,
     },
   };
+}
+
+function expectObservationDisjoint(pairs) {
+  const ids = pairs.flatMap(pair => [pair.anchorId, pair.currentId]);
+  expect(new Set(ids).size).toBe(ids.length);
 }
 
 describe('NW-RANK-011B stability metrics', () => {
@@ -111,17 +120,33 @@ describe('NW-RANK-011B stability metrics', () => {
 });
 
 describe('NW-RANK-011B observation pairing', () => {
-  it('builds overlapping and canonical non-overlapping pair sets', () => {
+  it('builds overlapping and observation-disjoint canonical pair sets', () => {
     const start = Date.UTC(2026, 6, 16, 12, 7);
     const rows = Array.from({ length: 8 }, (_, index) =>
       observation(`run-${index}`, start + index * 15 * 60 * 1000));
     const result = buildStandardTopStoriesPairSets(rows);
-    expect(result.fifteenMinute.pairs.length).toBe(7);
-    expect(result.fifteenMinute.canonicalPairs.length).toBeLessThanOrEqual(7);
+    expect(result.fifteenMinute.pairs).toHaveLength(7);
+    expect(result.fifteenMinute.canonicalPairs).toHaveLength(4);
+    expectObservationDisjoint(result.fifteenMinute.canonicalPairs);
     expect(result.sixtyMinute.pairs.length).toBeGreaterThan(0);
     expect(result.sixtyMinute.canonicalPairs.length)
       .toBeLessThan(result.sixtyMinute.pairs.length);
+    expectObservationDisjoint(result.sixtyMinute.canonicalPairs);
     expect(result.sixtyMinute.serialCorrelationNotice).toContain('serially correlated');
+    const fifteenIds = new Set(result.fifteenMinute.canonicalPairs
+      .flatMap(pair => [pair.anchorId, pair.currentId]));
+    const sixtyIds = new Set(result.sixtyMinute.canonicalPairs
+      .flatMap(pair => [pair.anchorId, pair.currentId]));
+    expect([...fifteenIds].some(id => sixtyIds.has(id))).toBe(true);
+  });
+
+  it('preserves deterministic sorted-greedy precedence when endpoints are reused', () => {
+    const pairs = [
+      { anchorId: 'a', currentId: 'b', anchorAt: 0, currentAt: 10 },
+      { anchorId: 'b', currentId: 'c', anchorAt: 10, currentAt: 20 },
+      { anchorId: 'c', currentId: 'd', anchorAt: 20, currentAt: 30 },
+    ];
+    expect(buildCanonicalNonOverlappingPairs(pairs)).toEqual([pairs[0], pairs[2]]);
   });
 
   it('excludes incomplete anchors and version-crossing candidates', () => {

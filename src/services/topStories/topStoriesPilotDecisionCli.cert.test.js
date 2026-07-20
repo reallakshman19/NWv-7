@@ -68,6 +68,13 @@ describe('Top Stories pilot decision CLI', () => {
     expect(decision.decision).toBe('INSUFFICIENT');
     expect(decision.recommendation).toBe('CONTINUE_OBSERVATION');
     expect(decision.productionChangeAuthorized).toBe(false);
+    expect(decision.decisionEvidence).toMatchObject({
+      schemaVersion: 'nw-top-stories-comparison-evidence/v1',
+      fifteenMinute: { comparisonCount: 0, usableDayCount: 0 },
+      sixtyMinute: { comparisonCount: 0, usableDayCount: 0 },
+      crossHorizonPooled: false,
+      accountingConserved: true,
+    });
   });
 
   it('writes structured FAIL evidence before returning nonzero on schema mismatch', async () => {

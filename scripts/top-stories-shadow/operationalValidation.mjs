@@ -2,6 +2,7 @@ import {
   buildTopStoriesVersionSegmentKey,
   TOP_STORIES_NORMALIZATION_VERSION,
 } from '../../src/services/topStories/topStoriesVersionSegment.js';
+import { validateTopStoriesDailyComparisonEvidence } from './comparisonEvidenceValidation.mjs';
 export const TOP_STORIES_OPERATIONAL_VALIDATION_SCHEMA =
   'nw-top-stories-24h-operational-validation/v1';
 export const TOP_STORIES_OPERATIONAL_THRESHOLDS = Object.freeze({
@@ -76,6 +77,10 @@ function buildAcquisitionMetrics(downloadManifest, date) {
 function addCheck(checks, id, status, actual, threshold, reasonCode) {
   checks.push({ id, status, actual, threshold, reasonCode });
 }
+function addBooleanCheck(checks, id, passed, actual, threshold, reasonCode) {
+  addCheck(checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
+    passed ? null : reasonCode);
+}
 function schemaChecks(checks, report, aggregationManifest, downloadManifest, config) {
   const rows = [
     ['daily_report_schema', report?.schemaVersion, EXPECTED_SCHEMAS.report],
@@ -97,16 +102,10 @@ function identityChecks(checks, report, aggregationManifest, downloadManifest, c
     .filter(Boolean);
   const studyConsistent = new Set(studyIds).size === 1 && studyIds.length === 4;
   const dateConsistent = new Set(dates).size === 1 && dates.length === 3;
-  addCheck(checks, 'study_identity_consistency', studyConsistent ? 'PASS' : 'FAIL',
-    [...new Set(studyIds)], config?.studyId || null,
-    studyConsistent ? null : 'study_identity_mismatch');
-  addCheck(checks, 'report_date_consistency', dateConsistent ? 'PASS' : 'FAIL',
-    [...new Set(dates)], report?.date || null,
-    dateConsistent ? null : 'report_date_mismatch');
-}
-function addBooleanCheck(checks, id, passed, actual, threshold, reasonCode) {
-  addCheck(checks, id, passed ? 'PASS' : 'FAIL', actual, threshold,
-    passed ? null : reasonCode);
+  addBooleanCheck(checks, 'study_identity_consistency', studyConsistent,
+    [...new Set(studyIds)], config?.studyId || null, 'study_identity_mismatch');
+  addBooleanCheck(checks, 'report_date_consistency', dateConsistent,
+    [...new Set(dates)], report?.date || null, 'report_date_mismatch');
 }
 function normalizationChecks(checks, report, config) {
   const observed = report?.status === 'OBSERVED';
@@ -120,9 +119,9 @@ function normalizationChecks(checks, report, config) {
     config?.normalizationVersion || null, TOP_STORIES_NORMALIZATION_VERSION,
     config?.normalizationVersion ? 'normalization_version_mismatch' :
       'normalization_version_missing');
-  const hasNormalizationEvidence = observed ||
-    Number(coverage.totalCanonicalObservations) > 0 || segments.length > 0;
-  if (!hasNormalizationEvidence) return;
+  const hasEvidence = observed || Number(coverage.totalCanonicalObservations) > 0 ||
+    segments.length > 0;
+  if (!hasEvidence) return;
   const defectRows = [
     ['normalization_version_missing', 'normalizationVersionMissingCount'],
     ['normalization_version_unsupported', 'normalizationVersionUnsupportedCount'],
@@ -155,6 +154,20 @@ function normalizationChecks(checks, report, config) {
     report?.headlineKpiEligibility?.reasonCodes?.[0] ||
       'normalization_headline_ineligible');
 }
+function comparisonEvidenceChecks(checks, report, config) {
+  const result = validateTopStoriesDailyComparisonEvidence(report, {
+    expectedSegmentKey: buildTopStoriesVersionSegmentKey(config),
+  });
+  const required = report?.status === 'OBSERVED';
+  if (result.status === 'MISSING_LEGACY' && !required) return;
+  if (result.valid) {
+    addCheck(checks, 'comparison_evidence', 'PASS', result.status, 'VALID', null);
+    return;
+  }
+  result.reasonCodes.forEach(reason => addCheck(
+    checks, `comparison_evidence_${reason}`, 'FAIL', result.status, 'VALID', reason,
+  ));
+}
 function hardIntegrityChecks(checks, report, config, integrity, acquisition) {
   const coverage = report?.coverage || {};
   const started = finiteMetric(coverage.startedRuns);
@@ -182,6 +195,7 @@ function hardIntegrityChecks(checks, report, config, integrity, acquisition) {
   rows.forEach(([id, passed, actual, threshold, reasonCode]) =>
     addBooleanCheck(checks, id, passed, actual, threshold, reasonCode));
   normalizationChecks(checks, report, config);
+  comparisonEvidenceChecks(checks, report, config);
 }
 function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold,
   higherIsBetter = true) {
@@ -190,8 +204,7 @@ function thresholdCheck(checks, id, actual, passThreshold, sufficientThreshold,
     return;
   }
   const passes = higherIsBetter ? actual >= passThreshold : actual <= passThreshold;
-  const sufficient = higherIsBetter
-    ? actual >= sufficientThreshold : actual <= sufficientThreshold;
+  const sufficient = higherIsBetter ? actual >= sufficientThreshold : actual <= sufficientThreshold;
   addCheck(checks, id, passes ? 'PASS' : sufficient ? 'WARN' : 'INSUFFICIENT',
     actual, { pass: passThreshold, sufficient: sufficientThreshold },
     passes ? null : sufficient ? `${id}_degraded` : `${id}_insufficient`);

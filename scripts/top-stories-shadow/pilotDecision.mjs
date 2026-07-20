@@ -9,16 +9,22 @@ import {
   buildTopStoriesVersionSegmentKey,
   TOP_STORIES_NORMALIZATION_VERSION,
 } from '../../src/services/topStories/topStoriesVersionSegment.js';
-
+import {
+  buildPilotInputChangeMetrics,
+  buildPilotStabilityMetrics,
+} from './pilotOperationalMetrics.mjs';
+import { summarizeTopStoriesComparisons } from './comparisonEvidence.mjs';
+import {
+  validateTopStoriesDailyComparisonEvidence,
+  validateTopStoriesPilotComparisonEvidence,
+} from './comparisonEvidenceValidation.mjs';
 export const TOP_STORIES_PILOT_DECISION_SCHEMA =
   'nw-top-stories-seven-day-pilot-decision/v1';
-
 function addDays(date, days) {
   const start = Date.parse(`${date}T00:00:00.000Z`);
   if (!Number.isFinite(start)) throw new Error('pilotStartDate must be valid');
   return new Date(start + (days * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10);
 }
-
 export function validatePilotConfiguration(config = {}) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(config.pilotStartDate || ''))) {
     throw new Error('pilotStartDate must use YYYY-MM-DD');
@@ -44,13 +50,11 @@ export function validatePilotConfiguration(config = {}) {
     pilotEndDate: addDays(config.pilotStartDate, days - 1),
   };
 }
-
 export function getPilotExpectedDates(config) {
   const valid = validatePilotConfiguration(config);
   return Array.from({ length: valid.pilotWindowDays }, (_, index) =>
     addDays(valid.pilotStartDate, index));
 }
-
 function mapArtifacts(records, type, studyId) {
   return new Map(records
     .filter(record => record.type === type && record.studyId === studyId)
@@ -96,6 +100,28 @@ function normalizationDayErrors(report, config) {
   return [...new Set(errors)].sort();
 }
 
+function comparisonDayErrors(daily, config) {
+  if (!daily?.dailyReport) return [];
+  const expectedSegmentKey = buildTopStoriesVersionSegmentKey(config);
+  const result = validateTopStoriesDailyComparisonEvidence(daily.dailyReport, {
+    expectedSegmentKey,
+  });
+  if (daily.comparisonEvidenceStatus === 'MISSING_LEGACY') {
+    return ['comparison_evidence_missing'];
+  }
+  if (daily.comparisonEvidenceStatus === 'INVALID') {
+    return daily.comparisonEvidenceReasonCodes?.length
+      ? daily.comparisonEvidenceReasonCodes : ['comparison_evidence_invalid'];
+  }
+  return result.valid ? [] : result.reasonCodes;
+}
+
+function isTechnicalError(code) {
+  return code.startsWith('invalid_') || code.endsWith('_mismatch') ||
+    code.startsWith('normalization_') || code.startsWith('comparison_') ||
+    code.startsWith('canonical_');
+}
+
 function classifyDay(date, daily, validation, config) {
   const errors = [];
   if (!daily) errors.push('missing_daily_artifact');
@@ -109,10 +135,9 @@ function classifyDay(date, daily, validation, config) {
     errors.push('validation_date_mismatch');
   }
   errors.push(...normalizationDayErrors(daily?.dailyReport, config));
+  errors.push(...comparisonDayErrors(daily, config));
   const validationDecision = validation?.validation?.decision || null;
-  const technical = errors.some(code =>
-    code.startsWith('invalid_') || code.endsWith('_mismatch') ||
-    code.startsWith('normalization_'));
+  const technical = errors.some(isTechnicalError);
   let status = 'MISSING';
   if (technical || validationDecision === 'FAIL') status = 'TECHNICAL_FAILURE';
   else if (validationDecision === 'PASS') {
@@ -146,11 +171,14 @@ export function buildPilotDayRecords(canonicalArtifacts = [], config = {}) {
   ));
 }
 
-function daySummary(day) {
-  const calm15 = day.dailyReport?.stability?.fifteenMinute
-    ?.canonicalNonOverlapping?.calm?.incumbentRetention;
-  const calm60 = day.dailyReport?.stability?.sixtyMinute
-    ?.canonicalNonOverlapping?.calm?.incumbentRetention;
+function daySummary(day, evidenceValidation) {
+  const canonical = evidenceValidation?.perDay?.get(day.date)?.canonicalRecords || [];
+  const summary15 = summarizeTopStoriesComparisons(
+    canonical.filter(row => row.horizon === 'fifteenMinute'),
+  );
+  const summary60 = summarizeTopStoriesComparisons(
+    canonical.filter(row => row.horizon === 'sixtyMinute'),
+  );
   return {
     date: day.date,
     status: day.status,
@@ -159,22 +187,23 @@ function daySummary(day) {
     dailyStatus: day.dailyReport?.status || null,
     errors: day.errors,
     scheduleSlotCoverage: day.dailyReport?.coverage?.scheduleSlotCoverage ?? null,
-    calm15mCanonicalCount: calm15?.count ?? 0,
-    calm15mMedianRetention: calm15?.median ?? null,
-    calm60mCanonicalCount: calm60?.count ?? 0,
-    calm60mMedianRetention: calm60?.median ?? null,
+    calm15mCanonicalCount: summary15.calm.incumbentRetention.count,
+    calm15mMedianRetention: summary15.calm.incumbentRetention.median,
+    calm60mCanonicalCount: summary60.calm.incumbentRetention.count,
+    calm60mMedianRetention: summary60.calm.incumbentRetention.median,
     displayedMedian: day.dailyReport?.railAndFunnel?.displayedCount?.median ?? null,
     belowSoftDepthFraction:
       day.dailyReport?.railAndFunnel?.belowSoftReviewDepth?.fraction ?? null,
   };
 }
 
-function buildReadiness(days, metrics, config, nowMs, inputManifest) {
+function buildReadiness(days, metrics, config, nowMs, inputManifest, evidenceValidation) {
   const failureReasonCodes = [];
   const insufficiencyReasonCodes = [];
   if (days.some(day => day.status === 'TECHNICAL_FAILURE')) {
     failureReasonCodes.push('technical_day_failure');
   }
+  if (!evidenceValidation.valid) failureReasonCodes.push(...evidenceValidation.reasonCodes);
   if (Number(inputManifest?.unassignedCount || 0) > 0) {
     failureReasonCodes.push('unassigned_artifact_evidence');
   }
@@ -221,8 +250,18 @@ export function buildTopStoriesPilotDecision({
 } = {}) {
   const config = validatePilotConfiguration(studyConfig);
   const days = buildPilotDayRecords(canonicalArtifacts, config);
-  const metrics = buildTopStoriesPilotMetrics(days);
-  const readiness = buildReadiness(days, metrics, config, nowMs, inputManifest);
+  const evidenceValidation = validateTopStoriesPilotComparisonEvidence(days, {
+    expectedSegmentKey: buildTopStoriesVersionSegmentKey(config),
+  });
+  const baseMetrics = buildTopStoriesPilotMetrics(days);
+  const metrics = {
+    ...baseMetrics,
+    stability: buildPilotStabilityMetrics(days, evidenceValidation),
+    inputChange: buildPilotInputChangeMetrics(days, evidenceValidation),
+  };
+  const readiness = buildReadiness(
+    days, metrics, config, nowMs, inputManifest, evidenceValidation,
+  );
   const signals = buildPilotSignals(metrics);
   const recommendation = buildPilotRecommendation(readiness, signals);
   return {
@@ -237,7 +276,8 @@ export function buildTopStoriesPilotDecision({
     signals,
     evidenceGaps: buildPilotEvidenceGaps(signals, metrics),
     thresholds: TOP_STORIES_PILOT_THRESHOLDS,
-    days: days.map(daySummary),
+    decisionEvidence: evidenceValidation.decisionEvidence,
+    days: days.map(day => daySummary(day, evidenceValidation)),
     metrics,
     reviewChecklist: {
       sevenDatesRepresented: metrics.operational.representedDayCount === config.pilotWindowDays,

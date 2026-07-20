@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { sha256Text } from './canonicalJson.mjs';
+import { validateTopStoriesDailyComparisonEvidence } from './comparisonEvidenceValidation.mjs';
 
 export const PILOT_DOWNLOAD_SCHEMA = 'nw-top-stories-pilot-download-manifest/v1';
 const DAILY_REPORT_SCHEMA = 'nw-top-stories-daily-stability-report/v1';
@@ -60,12 +61,16 @@ async function readDaily(directory, metadata) {
   if (dailyReport?.schemaVersion !== DAILY_REPORT_SCHEMA) errors.push('daily_report_schema_mismatch');
   if (dailyReport?.studyId !== manifest?.studyId) errors.push('daily_study_mismatch');
   if (dailyReport?.date !== manifest?.date) errors.push('daily_date_mismatch');
+  const comparison = validateTopStoriesDailyComparisonEvidence(dailyReport);
+  if (comparison.status === 'INVALID') errors.push(...comparison.reasonCodes);
   return {
     ...metadata,
     type: 'daily',
     directory,
     schemaValid: errors.length === 0,
-    integrityErrors: errors.sort(),
+    integrityErrors: [...new Set(errors)].sort(),
+    comparisonEvidenceStatus: comparison.status,
+    comparisonEvidenceReasonCodes: comparison.reasonCodes,
     studyId: dailyReport?.studyId || manifest?.studyId || null,
     date: dailyReport?.date || manifest?.date || null,
     dailyReport,
@@ -93,6 +98,8 @@ async function readValidation(directory, metadata) {
     directory,
     schemaValid: errors.length === 0,
     integrityErrors: errors.sort(),
+    comparisonEvidenceStatus: 'NOT_APPLICABLE',
+    comparisonEvidenceReasonCodes: [],
     studyId: validation?.studyId || manifest?.studyId || null,
     date: validation?.date || manifest?.date || null,
     validation,
@@ -111,6 +118,9 @@ export async function readTopStoriesPilotArtifact(directory, metadata = {}) {
       directory,
       schemaValid: false,
       integrityErrors: [error.message || String(error)],
+      comparisonEvidenceStatus: metadata.type === 'daily' ? 'INVALID' : 'NOT_APPLICABLE',
+      comparisonEvidenceReasonCodes: metadata.type === 'daily'
+        ? ['comparison_evidence_invalid'] : [],
       studyId: null,
       date: null,
     };
@@ -180,6 +190,9 @@ export function buildPilotArtifactInputManifest(records, canonicalized, download
       date: record.date || null,
       schemaValid: record.schemaValid === true,
       integrityErrors: record.integrityErrors || [],
+      comparisonEvidenceStatus: record.comparisonEvidenceStatus ||
+        (record.type === 'daily' ? 'MISSING_LEGACY' : 'NOT_APPLICABLE'),
+      comparisonEvidenceReasonCodes: record.comparisonEvidenceReasonCodes || [],
       disposition: retainedIds.has(record.artifactId) ? 'CANONICAL' :
         record.date && record.studyId ? 'SUPERSEDED' : 'UNASSIGNED',
     })).sort((left, right) =>

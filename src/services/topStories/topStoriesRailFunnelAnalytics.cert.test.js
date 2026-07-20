@@ -4,20 +4,14 @@ import { renderTopStoriesDailyMarkdown } from '../../../scripts/top-stories-shad
 import { buildTopStoriesRailFunnelAnalytics } from '../../../scripts/top-stories-shadow/railFunnelAnalytics.mjs';
 import { validateTopStoriesOperationalDay } from '../../../scripts/top-stories-shadow/operationalValidation.mjs';
 import {
-  buildTopStoriesVersionSegmentKey,
-  TOP_STORIES_NORMALIZATION_VERSION,
-} from './topStoriesVersionSegment.js';
+  buildPilotArtifacts,
+  PILOT_CONFIG,
+  PILOT_STUDY_ID,
+} from './fixtures/topStoriesPilotDecisionFixture.js';
+import { TOP_STORIES_NORMALIZATION_VERSION } from './topStoriesVersionSegment.js';
 
-const STUDY = 'nw-rank-011-shadow-pilot-2026-07';
-const CONFIG = Object.freeze({
-  schemaVersion: 'nw-top-stories-shadow-study/v1',
-  studyId: STUDY,
-  rankerVersion: 'nw-top-stories-ranker-observed-v1',
-  identityVersion: 'nw-top-stories-identity-v1',
-  periodClassifierVersion: 'nw-top-stories-period-classifier-v1',
-  normalizationVersion: TOP_STORIES_NORMALIZATION_VERSION,
-});
-const SEGMENT = buildTopStoriesVersionSegmentKey(CONFIG);
+const STUDY = PILOT_STUDY_ID;
+const CONFIG = PILOT_CONFIG;
 
 function selectionRow(disposition, reason, selectedRank = null, displayDepth = 10) {
   const admissionRejected = disposition === 'REJECTED_BY_ADMISSION';
@@ -29,21 +23,14 @@ function selectionRow(disposition, reason, selectedRank = null, displayDepth = 1
     finalReasonCode: reason,
     selectedRank,
     stages: [
-      {
-        stage: 'admission',
-        status: admissionRejected ? 'rejected' : 'passed',
-        reasonCodes: admissionRejected ? [reason] : [],
-      },
-      {
-        stage: 'selection',
+      { stage: 'admission', status: admissionRejected ? 'rejected' : 'passed',
+        reasonCodes: admissionRejected ? [reason] : [] },
+      { stage: 'selection',
         status: selected ? 'selected' : admissionRejected ? 'not_applicable' : 'not_selected',
-        reasonCodes: !selected && !admissionRejected ? [reason] : [],
-      },
-      {
-        stage: 'display',
+        reasonCodes: !selected && !admissionRejected ? [reason] : [] },
+      { stage: 'display',
         status: selected && selectedRank <= displayDepth ? 'displayed' : 'not_applicable',
-        reasonCodes: [],
-      },
+        reasonCodes: [] },
     ],
   };
 }
@@ -88,10 +75,8 @@ function observation({ id, scheduledAt, displayedCount, rankedCount = displayedC
     displayDepth: 10,
     displayedCount,
     displayed: Array.from({ length: displayedCount }, (_, index) => ({
-      id: `${id}-${index}`,
-      canonicalId: `${id}-${index}`,
-      title: `Story ${id} ${index}`,
-      source: 'Reuters',
+      id: `${id}-${index}`, canonicalId: `${id}-${index}`,
+      title: `Story ${id} ${index}`, source: 'Reuters',
     })),
     candidateEvidence: [],
     candidateBuildTrace: [
@@ -124,61 +109,26 @@ function record(options) {
   };
 }
 
-function normalizedCoverage() {
-  return {
-    totalCanonicalObservations: 92,
-    validNormalizationEvidenceCount: 92,
-    normalizationVersionMissingCount: 0,
-    normalizationVersionUnsupportedCount: 0,
-    normalizationVersionMismatchCount: 0,
-    normalizationDigestMissingCount: 0,
-    normalizationDigestInvalidCount: 0,
-    complete: true,
-  };
-}
-
 function operationalInputs(railAndFunnel) {
   const date = '2026-07-17';
-  const normalization = normalizedCoverage();
-  const report = {
-    schemaVersion: 'nw-top-stories-daily-stability-report/v1',
-    studyId: STUDY,
-    date,
-    status: 'OBSERVED',
-    coverage: {
-      scheduledRuns: 96,
-      scheduledSlots: 96,
-      startedRuns: 92,
-      scheduleSlotCoverage: 0.9583333333,
-      successfulRuns: 92,
-      completeRuns: 91,
-      analyticallyEligibleRuns: 90,
-      failureRuns: 0,
-      failedInputRuns: 0,
-      invalidArtifacts: 0,
-      unassignedInvalidArtifacts: 0,
-      valid15mPairs: 88,
-      canonical15mPairs: 43,
-      valid60mPairs: 80,
-      canonical60mPairs: 20,
-      scheduleDelaySeconds: { p90: 240 },
-      normalizationEvidence: normalization,
-    },
-    normalizationEvidenceCoverage: normalization,
-    versionSegments: [SEGMENT],
-    segmentSummaries: [{
-      segmentKey: SEGMENT,
-      observationCount: 92,
-      validNormalizationEvidenceCount: 92,
-      eligibleComparisonCounts: { fifteenMinute: 88, sixtyMinute: 80 },
-      headlineKpiEligible: true,
-    }],
-    headlineKpiEligibility: { eligible: true, reasonCodes: [] },
-    stability: {
-      fifteenMinute: { overlapping: { calm: { incumbentRetention: { median: 0.92 } } } },
-      sixtyMinute: { overlapping: { calm: { incumbentRetention: { median: 0.84 } } } },
-    },
-    railAndFunnel,
+  const report = structuredClone(
+    buildPilotArtifacts().find(row => row.type === 'daily').dailyReport,
+  );
+  report.railAndFunnel = railAndFunnel;
+  report.coverage = {
+    ...report.coverage,
+    scheduledRuns: 96,
+    scheduledSlots: 96,
+    startedRuns: 92,
+    scheduleSlotCoverage: 0.9583333333,
+    successfulRuns: 92,
+    completeRuns: 91,
+    analyticallyEligibleRuns: 90,
+    failureRuns: 0,
+    failedInputRuns: 0,
+    invalidArtifacts: 0,
+    unassignedInvalidArtifacts: 0,
+    scheduleDelaySeconds: { p90: 240 },
   };
   const downloaded = Array.from({ length: 92 }, (_, index) => ({
     runId: String(index + 1),
@@ -188,16 +138,11 @@ function operationalInputs(railAndFunnel) {
   return {
     dailyReport: report,
     aggregationManifest: {
-      schemaVersion: 'nw-top-stories-shadow-aggregation-manifest/v1',
-      studyId: STUDY,
-      date,
+      schemaVersion: 'nw-top-stories-shadow-aggregation-manifest/v1', studyId: STUDY, date,
     },
     downloadManifest: {
-      schemaVersion: 'nw-top-stories-shadow-download-manifest/v1',
-      studyId: STUDY,
-      date,
-      downloaded,
-      excludedRuns: [],
+      schemaVersion: 'nw-top-stories-shadow-download-manifest/v1', studyId: STUDY, date,
+      downloaded, excludedRuns: [],
     },
     studyConfig: CONFIG,
     integrity: { ok: true, errors: [] },
@@ -211,7 +156,8 @@ describe('Top Stories rail and funnel analytics', () => {
       observation({ id: 'b', scheduledAt: '2026-07-17T00:22:00Z', displayedCount: 3 }),
       observation({ id: 'c', scheduledAt: '2026-07-17T00:37:00Z', displayedCount: 6 }),
       observation({ id: 'd', scheduledAt: '2026-07-17T00:52:00Z', displayedCount: 9 }),
-      observation({ id: 'e', scheduledAt: '2026-07-17T01:07:00Z', displayedCount: 10, rankedCount: 14 }),
+      observation({ id: 'e', scheduledAt: '2026-07-17T01:07:00Z', displayedCount: 10,
+        rankedCount: 14 }),
     ];
     const result = buildTopStoriesRailFunnelAnalytics(observations);
     expect(result.railBuckets).toMatchObject({ '1-3': 2, '4-7': 1, '8-9': 1, '10': 1 });
@@ -240,9 +186,12 @@ describe('Top Stories rail and funnel analytics', () => {
     expect(first.railAndFunnel.railBuckets['1-3']).toBe(1);
     expect(first.railAndFunnel.railBuckets['10']).toBe(1);
     expect(first.headlineKpiEligibility.eligible).toBe(true);
+    expect(first.comparisonEvidenceSchemaVersion)
+      .toBe('nw-top-stories-comparison-evidence/v1');
     expect(second).toEqual(first);
     expect(renderTopStoriesDailyMarkdown(first)).toContain('Visible rail and funnel');
     expect(renderTopStoriesDailyMarkdown(first)).toContain('| 1–3 | 1 |');
+    expect(renderTopStoriesDailyMarkdown(first)).toContain('Decision evidence');
   });
 
   it('does not allow rail/funnel analytics to alter the technical verdict', () => {
