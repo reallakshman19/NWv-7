@@ -1,11 +1,11 @@
 {
-  "generatedAt": 1784561335295,
+  "generatedAt": 1784564557673,
   "policyVersion": "section-source-policy-v1",
   "reportVersion": "section-source-policy-report-v1",
   "schemaVersion": 1,
   "sectionQuality": {
     "business": {
-      "sourceGroupCount": 2,
+      "sourceGroupCount": 3,
       "storyCount": 30,
       "thin": false,
       "topCategories": [
@@ -20,8 +20,12 @@
           "sourceGroup": "business_line"
         },
         {
-          "count": 10,
+          "count": 9,
           "sourceGroup": "economic_times"
+        },
+        {
+          "count": 1,
+          "sourceGroup": "google_news"
         }
       ]
     },
@@ -58,11 +62,11 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 6,
+          "count": 5,
           "sourceGroup": "times_of_india"
         },
         {
-          "count": 4,
+          "count": 5,
           "sourceGroup": "ndtv"
         }
       ]
@@ -171,23 +175,23 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 6,
-          "sourceGroup": "ndtv"
+          "count": 5,
+          "sourceGroup": "economic_times"
         },
         {
-          "count": 4,
-          "sourceGroup": "economic_times"
+          "count": 5,
+          "sourceGroup": "ndtv"
         }
       ]
     },
     "trichy": {
       "sourceGroupCount": 2,
-      "storyCount": 23,
+      "storyCount": 22,
       "thin": false,
       "topCategories": [
         {
           "category": "trichy",
-          "count": 23
+          "count": 22
         }
       ],
       "topSources": [
@@ -196,7 +200,7 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 4,
+          "count": 3,
           "sourceGroup": "google_news"
         }
       ]
@@ -708,10 +712,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "error": "HTTPSConnectionPool(host='www.omanobserver.om', port=443): Max retries exceeded with url: /rss (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.omanobserver.om', port=443) at 0x7f526651b590>, 'Connection to www.omanobserver.om timed out. (connect timeout=15)'))",
         "feedUrl": "https://www.omanobserver.om/rss",
         "items": 0,
-        "ok": false,
+        "ok": true,
         "section": "muscat"
       },
       "sections": [
