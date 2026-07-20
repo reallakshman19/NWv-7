@@ -7,6 +7,7 @@ import {
   TOP_STORIES_COMPARISON_EVIDENCE_SCHEMA,
   TOP_STORIES_COMPARISON_HORIZONS,
 } from './comparisonEvidence.mjs';
+import { TOP_STORIES_INPUT_CHANGE_INTERPRETATION } from './inputChangeAnalytics.mjs';
 
 export const TOP_STORIES_COMPARISON_EVIDENCE_REASONS = Object.freeze({
   missing: 'comparison_evidence_missing',
@@ -27,8 +28,6 @@ const METRIC_KEYS = Object.freeze([
   'incumbentRetention', 'newListContinuity', 'jaccard', 'numberOneContinuity',
   'normalizedWeightedRankDisplacement', 'countDelta', 'entrantCount', 'exitCount',
 ]);
-const INPUT_CHANGE_INTERPRETATION =
-  'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.';
 function uniqueSorted(values = []) {
   return [...new Set(values.filter(Boolean))].sort();
 }
@@ -140,7 +139,7 @@ function expectedInputChange(evidence, report) {
     ),
   }]));
   return report?.inputChange?.interpretation === undefined ? summaries :
-    { ...summaries, interpretation: INPUT_CHANGE_INTERPRETATION };
+    { ...summaries, interpretation: TOP_STORIES_INPUT_CHANGE_INTERPRETATION };
 }
 
 function summariesReconcile(report, evidence) {
