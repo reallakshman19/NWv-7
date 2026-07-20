@@ -97,7 +97,9 @@ async function validateCoreManifest(directory, files) {
 }
 
 function assertSnapshotTraceRoot(snapshot) {
-  const arrays = ['candidateBuildTrace', 'candidateEvidence', 'ranked', 'displayed'];
+  const arrays = [
+    'candidateBuildTrace', 'candidateEvidence', 'ranked', 'displayed', 'selectionTrace',
+  ];
   arrays.forEach(field => {
     if (!Array.isArray(snapshot[field])) {
       throw codedError('trace_relation_validation_failed', `Snapshot ${field} must be an array`);
@@ -114,6 +116,44 @@ function assertSnapshotTraceRoot(snapshot) {
     JSON.stringify(snapshot.displayedTopNIds) !== JSON.stringify(expectedDisplayedIds)) {
     throw codedError('trace_relation_validation_failed', 'Snapshot projection IDs are inconsistent');
   }
+}
+
+function assertCandidateTraceOwnership(snapshot) {
+  const ledger = snapshot.traceRelations;
+  const candidateIdByKey = new Map();
+  ledger.candidates.forEach(candidate => {
+    if (candidateIdByKey.has(candidate.candidateKey)) {
+      throw codedError('trace_relation_validation_failed', 'Duplicate candidate trace key');
+    }
+    candidateIdByKey.set(candidate.candidateKey, candidate.candidateId);
+  });
+  const traceByCandidateId = new Map();
+  snapshot.selectionTrace.forEach(trace => {
+    const candidateId = candidateIdByKey.get(String(trace?.candidateKey || ''));
+    if (!candidateId || traceByCandidateId.has(candidateId)) {
+      throw codedError('trace_relation_validation_failed', 'Candidate trace coverage is invalid');
+    }
+    traceByCandidateId.set(candidateId, trace);
+  });
+  if (traceByCandidateId.size !== ledger.candidates.length) {
+    throw codedError('trace_relation_validation_failed', 'Candidate trace coverage is incomplete');
+  }
+  ledger.candidateRankEdges.forEach(edge => {
+    const trace = traceByCandidateId.get(edge.candidateId);
+    const ranked = ['DISPLAYED', 'RANKED_NOT_DISPLAYED'].includes(trace?.finalDisposition);
+    if (!ranked || Number(trace.selectedRank) !== edge.rank) {
+      throw codedError('trace_relation_validation_failed', 'Candidate rank trace mismatch');
+    }
+  });
+  ledger.candidateDispositionRecords.forEach(record => {
+    const trace = traceByCandidateId.get(record.candidateId);
+    if (!trace || trace.selectedRank !== null ||
+      trace.finalDisposition !== record.finalDisposition ||
+      trace.terminalStage !== record.terminalStage ||
+      trace.terminalReasonCode !== record.terminalReasonCode) {
+      throw codedError('trace_relation_validation_failed', 'Candidate disposition trace mismatch');
+    }
+  });
 }
 
 function validateSnapshotTraceRelations(snapshot) {
@@ -144,6 +184,7 @@ function validateSnapshotTraceRelations(snapshot) {
       rankedCount: snapshot.rankedCount,
       displayedCount: snapshot.displayedCount,
     });
+    assertCandidateTraceOwnership(snapshot);
   } catch (error) {
     throw codedError('trace_relation_validation_failed', error.message || String(error));
   }
