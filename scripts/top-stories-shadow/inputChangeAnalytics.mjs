@@ -5,6 +5,9 @@ import {
   TOP_STORIES_COMPARISON_EVIDENCE_SCHEMA,
 } from './comparisonEvidence.mjs';
 
+export const TOP_STORIES_INPUT_CHANGE_INTERPRETATION =
+  'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.';
+
 function replayRows(replay, targetObservations, horizon, canonical) {
   const observationMap = new Map((replay?.canonicalObservations || []).map(row => [
     row.observationId,
@@ -45,6 +48,6 @@ export function buildTopStoriesInputChangeAnalytics(source, targetObservations =
       overlapping: summarize('sixtyMinute', false),
       canonicalNonOverlapping: summarize('sixtyMinute', true),
     },
-    interpretation: 'Input classes compare canonical inputDigest values. They do not infer publisher changes or recreate ranking.',
+    interpretation: TOP_STORIES_INPUT_CHANGE_INTERPRETATION,
   };
 }
