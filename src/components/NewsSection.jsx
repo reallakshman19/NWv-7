@@ -62,6 +62,35 @@ function buildAreaRelevanceInfoText(areaRelevance) {
     ].join('\n');
 }
 
+async function writeStoryInfoToClipboard(text) {
+    const clipboard = typeof navigator !== 'undefined' ? navigator.clipboard : null;
+    if (clipboard?.writeText) {
+        try {
+            await clipboard.writeText(text);
+            return true;
+        } catch {
+            // Use the contained DOM fallback below.
+        }
+    }
+
+    if (typeof document === 'undefined' || !document.body) return false;
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    try {
+        return document.execCommand('copy');
+    } catch {
+        return false;
+    } finally {
+        textArea.remove();
+    }
+}
+
 function getCardRating(item, isTopStories) {
     if (isTopStories) {
         const rawScore = Number(item?._topStoryRank?.normalizedScore);
@@ -122,6 +151,7 @@ function NewsSection({
     const [expanded, setExpanded] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [infoText, setInfoText] = useState('');
+    const [copyStatus, setCopyStatus] = useState('idle');
     const [showHealthPopover, setShowHealthPopover] = useState(false);
     const { auditResults } = useNews();
     const effectiveHealthSummary = useMemo(() => resolveSectionHealthSummary({
@@ -156,10 +186,21 @@ function NewsSection({
         return 'Now';
     };
 
+    const openInfoText = (text) => {
+        setCopyStatus('idle');
+        setInfoText(text);
+    };
+
     const handleInfoClick = (item, options = {}) => {
         const baseInfo = buildStoryInfoText(item, options) || 'No source link available.';
         const areaInfo = buildAreaRelevanceInfoText(item?._areaRelevance);
-        setInfoText([baseInfo, areaInfo].filter(Boolean).join('\n\n'));
+        openInfoText([baseInfo, areaInfo].filter(Boolean).join('\n\n'));
+    };
+
+    const handleCopyInfo = async (event) => {
+        event.stopPropagation();
+        const copied = await writeStoryInfoToClipboard(infoText);
+        setCopyStatus(copied ? 'copied' : 'failed');
     };
 
     const handleHealthClick = (event) => {
@@ -239,6 +280,9 @@ function NewsSection({
                                             handleInfoClick(item, {
                                                 includeScoreBreakdown: isTopStories,
                                                 expectTopStoryRank: isTopStories,
+                                                groupTitle: title,
+                                                groupPosition: idx + 1,
+                                                groupTotal: news.length,
                                             });
                                         }}
                                     >ⓘ</button>
@@ -334,7 +378,7 @@ function NewsSection({
                             title="Ranked by context-qualified public interest, freshness, independent corroboration, source quality, location relevance, and diversity."
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setInfoText('Top Stories Ranking Logic:\n\n1. Context-qualified public-interest events are prioritised.\n2. Freshness and timestamp confidence are enforced.\n3. Independent corroboration and trusted top-feed evidence are rewarded.\n4. Source quality, location relevance, penalties, and diversity are applied.');
+                                openInfoText('Top Stories Ranking Logic:\n\n1. Context-qualified public-interest events are prioritised.\n2. Freshness and timestamp confidence are enforced.\n3. Independent corroboration and trusted top-feed evidence are rewarded.\n4. Source quality, location relevance, penalties, and diversity are applied.');
                             }}
                             style={{ cursor: 'help', fontSize: '0.8em', marginLeft: '5px', opacity: 0.7 }}
                         >
@@ -372,7 +416,28 @@ function NewsSection({
                     <div className="news-info-modal__content" onClick={(e) => e.stopPropagation()}>
                         <div className="news-info-modal__header">
                             <span className="nim-title">📊 Story Intelligence</span>
-                            <button type="button" className="nim-close-btn" onClick={() => setInfoText('')} aria-label="Close dialog">×</button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <button
+                                    type="button"
+                                    className="nim-close-btn"
+                                    onClick={handleCopyInfo}
+                                    aria-label="Copy story intelligence"
+                                    aria-live="polite"
+                                    title={copyStatus === 'copied' ? 'Copied all details' : copyStatus === 'failed' ? 'Copy failed' : 'Copy all details'}
+                                    style={{ fontSize: '1rem', minWidth: '24px' }}
+                                >
+                                    {copyStatus === 'copied' ? '✓' : copyStatus === 'failed' ? '!' : '⧉'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="nim-close-btn"
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setInfoText('');
+                                    }}
+                                    aria-label="Close dialog"
+                                >×</button>
+                            </div>
                         </div>
                         <div className="news-info-modal__body">
                             {(() => {
