@@ -2,59 +2,73 @@
 
 ## Mission result
 
-GitHub Pages deployment is now joined to one immutable repository source commit,
-one checked-out tree, one frozen build timestamp, one additive data manifest, and
-post-deployment byte verification.
+GitHub Pages deployment is joined to one observed checkout commit, one frozen build
+timestamp, one additive data manifest, and post-deployment byte verification.
 
 This closes the repository-to-deployed-data provenance gap only. It does not
 establish browser-visible Top Stories ranking equivalence and does not pass G3.
 
 ## Pre-mission gap
 
-The Pages workflow previously checked out without an explicit ref. A deployment
-triggered by `workflow_run` could therefore build a newer default-branch state
-than the upstream data workflow's immutable `head_sha`.
+The Pages workflow previously checked out without proving which repository tree
+entered the build. A `workflow_run` deployment could therefore observe a branch
+state different from the upstream workflow's starting commit, while the manifest
+published no repository or workflow provenance and only truncated file hashes.
 
-The existing `pages_data_manifest.json` preserved useful source/dist checks, but
-it did not identify the repository SHA, checked-out SHA, triggering workflow, or
-full SHA-256 values. The World-health browser verifier remained a UI-health gate,
-not a repository/build/deployed-byte provenance gate.
+The World-health browser verifier remains a UI-health gate, not a repository,
+build, or served-byte provenance gate.
 
-## Event-specific source authority
+## Three distinct evidence identities
 
-The deployment resolves exactly one source SHA before checkout:
+The implementation keeps these identities separate:
 
 ```text
-workflow_run      -> github.event.workflow_run.head_sha
-push              -> github.sha
-workflow_dispatch -> github.sha
+upstream workflow input SHA
+actual deployment checkout/source SHA
+deployed served-byte evidence
 ```
 
-Missing, malformed, or unsupported source context fails closed. A missing
-`workflow_run.head_sha` never falls back to current `main`.
+The upstream `workflow_run.head_sha` is antecedent trigger evidence. It is not
+claimed to be a later generated-data commit made during the upstream run.
 
-For a `workflow_run`, upstream workflow name, run ID, run attempt, head SHA, and
-conclusion are recorded. For push and manual dispatch, every upstream field is
-explicitly `null` in the manifest.
+## Event-specific source resolution
+
+The source-resolution modes are:
+
+```text
+workflow_run      -> workflow-run-default-branch-checkout
+push              -> push-event-sha
+workflow_dispatch -> workflow-dispatch-event-sha
+```
+
+For `push` and `workflow_dispatch`, the workflow checks out `github.sha` and
+requires the observed checkout SHA to equal that event SHA.
+
+For `workflow_run`, the workflow validates and records the upstream head SHA,
+checks out the repository default branch once after the upstream run completes,
+and immediately freezes `git rev-parse HEAD` as the deployment `sourceSha`.
+That frozen SHA is then used for the build, manifest, verifier checkout, evidence
+artifact identity, and commit-status target. The default branch is not resolved
+again later in the workflow.
+
+Missing, malformed, or unsupported source context fails closed.
 
 ## Exact checkout proof
 
-The build job exposes the resolved SHA as a job output and checks out:
-
-```yaml
-ref: ${{ steps.source.outputs.source_sha }}
-fetch-depth: 1
-```
-
-Before dependency installation or build, the workflow verifies:
+The workflow resolves one checkout ref before checkout, performs one checkout,
+and then captures:
 
 ```text
-git rev-parse HEAD == resolved source SHA
+checkedOutSha = git rev-parse HEAD
+sourceSha     = checkedOutSha
 ```
 
-A single UTC `frozenAt` timestamp is then captured and used by manifest
-publication. No concurrency cancellation mode was added; existing Pages
-sequencing remains intact.
+For push and manual dispatch, the checkout is additionally required to match the
+event SHA. For `workflow_run`, `upstreamHeadSha` remains complete antecedent
+evidence but is not required to equal the actual checkout/source SHA.
+
+A single UTC `frozenAt` timestamp is captured after checkout and used by manifest
+publication. Existing Pages concurrency sequencing remains unchanged.
 
 ## Additive manifest contract
 
@@ -66,26 +80,32 @@ manifestVersion: pages-data-publish-v1
 ```
 
 Existing top-level sections and file-record fields remain present. One additive
-object is published:
+`provenance` object publishes:
 
 ```text
-provenance.schemaVersion = nw-pages-deployment-provenance/v1
-provenance.sourceSha
-provenance.checkedOutSha
-provenance.triggerEvent
-provenance.deployWorkflowRunId
-provenance.deployWorkflowRunAttempt
-provenance.frozenAt
-provenance.upstreamWorkflowName
-provenance.upstreamWorkflowRunId
-provenance.upstreamWorkflowRunAttempt
-provenance.upstreamHeadSha
-provenance.upstreamConclusion
-provenance.sourceCheckoutMatched
+schemaVersion
+sourceSha
+checkedOutSha
+sourceResolutionMode
+triggerEvent
+deployWorkflowRunId
+deployWorkflowRunAttempt
+frozenAt
+upstreamWorkflowName
+upstreamWorkflowRunId
+upstreamWorkflowRunAttempt
+upstreamHeadSha
+upstreamConclusion
+sourceCheckoutMatched
 ```
 
-`generatedAt` equals the same frozen timestamp. Source and checked-out SHAs are
-lowercase 40-character Git SHAs, and publication fails unless they match.
+For push and manual dispatch, upstream fields are explicit `null`. For
+`workflow_run`, upstream workflow identity, run IDs, conclusion, and a valid
+40-character upstream head SHA are required.
+
+`generatedAt` equals the same frozen timestamp. Publication fails unless the
+actual source and checked-out SHAs are valid and equal, and unless the resolution
+mode matches the trigger event.
 
 ## Full byte-hash accounting
 
@@ -108,29 +128,20 @@ distSha256
 ```
 
 The legacy hashes remain the first 16 characters of the corresponding full
-SHA-256 digest. `matched` is derived from complete byte-digest equality, not the
-truncated display values. The tracked file set was not reduced.
+SHA-256 digest. `matched` is derived from complete byte equality. The tracked file
+set was not reduced.
 
 ## Deployed verification flow
 
 A separate Node-only verifier runs after Pages deployment. It does not use
 Playwright and does not alter the existing World-health verification.
 
-The verifier:
-
-1. fetches `newsdata/pages_data_manifest.json` with cache busting and
-   `cache: no-store`;
-2. rejects HTTP failures, HTML fallbacks, malformed JSON, invalid provenance,
-   checkout mismatch, wrong expected source SHA, or non-conserved tracked files;
-3. fetches deployed bytes for `sections_latest.json` and `source_health.json`;
-4. calculates SHA-256 over the served response bytes;
-5. compares each result with the manifest's `distSha256`;
-6. writes `artifacts/pages-deployment-provenance/report.json` before returning a
-   non-zero status.
-
-The evidence report contains the expected source SHA, observed provenance,
-request and final URLs, HTTP status, content type, byte size, expected and
-observed hashes, checked-file verdicts, final verdict, and reason codes.
+The verifier fetches the cache-busted manifest, rejects HTTP or HTML fallback
+responses and malformed provenance, requires the exact expected frozen
+`sourceSha`, fetches the served bytes for `sections_latest.json` and
+`source_health.json`, hashes those bytes, compares them with manifest
+`distSha256`, and writes `artifacts/pages-deployment-provenance/report.json`
+before returning a non-zero status.
 
 ## Commit-status semantics
 
@@ -140,9 +151,9 @@ The post-deployment gate publishes:
 deployment/pages-provenance
 ```
 
-against the resolved immutable `sourceSha`. It does not post against an
-ambiguous newer workflow/default-branch SHA. Evidence uploads use `if: always()`
-and 30-day retention.
+against the frozen checkout-derived `sourceSha`. It does not post against the
+upstream input SHA or a later re-resolved default-branch SHA. Evidence uploads use
+`if: always()` and 30-day retention.
 
 ## Compatibility posture
 
@@ -157,14 +168,14 @@ Unchanged:
 - Top Stories repository-snapshot observation semantics;
 - ranking, source collection, persistence, recommendation, UI, and policy.
 
-Historical deployed artifacts are not backfilled or rewritten. Newly deployed
-artifacts without valid provenance fail the new gate.
+Historical deployed artifacts are not backfilled. Newly deployed artifacts
+without valid provenance fail the new gate.
 
 ## G3 and production authorization
 
-The mission proves immutable repository/build/deployed-data provenance. It does
-not prove that repository replay equals personalized browser-visible Top Stories
-ranking, settings, travel prioritization, read/view ordering, or display depth.
+The mission proves repository checkout, build, Pages artifact, and deployed-data
+byte provenance. It does not prove that repository replay equals personalized
+browser-visible Top Stories ranking, settings, travel prioritization, read/view
+ordering, or display depth.
 
-G3 therefore remains blocked. No production ranking or policy change is
-authorized.
+G3 remains blocked. No production ranking or policy change is authorized.
