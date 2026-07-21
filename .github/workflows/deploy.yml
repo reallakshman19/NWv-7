@@ -40,57 +40,89 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     outputs:
-      source_sha: ${{ steps.source.outputs.source_sha }}
+      source_sha: ${{ steps.checkout.outputs.source_sha }}
     # For workflow_run, only publish when the upstream data run succeeded; push /
     # manual dispatch always build.
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Resolve immutable deployment source
+      - name: Resolve deployment checkout authority
         id: source
         shell: bash
         env:
           TRIGGER_EVENT: ${{ github.event_name }}
           EVENT_SHA: ${{ github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           UPSTREAM_HEAD_SHA: ${{ github.event.workflow_run.head_sha || '' }}
         run: |
           set -euo pipefail
+          event_sha="${EVENT_SHA,,}"
+          upstream_head_sha="${UPSTREAM_HEAD_SHA,,}"
           case "$TRIGGER_EVENT" in
             workflow_run)
-              source_sha="$UPSTREAM_HEAD_SHA"
+              if [[ ! "$upstream_head_sha" =~ ^[0-9a-f]{40}$ ]]; then
+                echo "Invalid workflow_run antecedent head SHA" >&2
+                exit 1
+              fi
+              if [ -z "$DEFAULT_BRANCH" ]; then
+                echo "Repository default branch is unavailable" >&2
+                exit 1
+              fi
+              checkout_ref="$DEFAULT_BRANCH"
+              expected_source_sha=""
+              source_resolution_mode="workflow-run-default-branch-checkout"
               ;;
-            push|workflow_dispatch)
-              source_sha="$EVENT_SHA"
+            push)
+              if [[ ! "$event_sha" =~ ^[0-9a-f]{40}$ ]]; then
+                echo "Invalid push event SHA" >&2
+                exit 1
+              fi
+              checkout_ref="$event_sha"
+              expected_source_sha="$event_sha"
+              source_resolution_mode="push-event-sha"
+              ;;
+            workflow_dispatch)
+              if [[ ! "$event_sha" =~ ^[0-9a-f]{40}$ ]]; then
+                echo "Invalid workflow_dispatch event SHA" >&2
+                exit 1
+              fi
+              checkout_ref="$event_sha"
+              expected_source_sha="$event_sha"
+              source_resolution_mode="workflow-dispatch-event-sha"
               ;;
             *)
               echo "Unsupported deployment trigger: $TRIGGER_EVENT" >&2
               exit 1
               ;;
           esac
-          source_sha="${source_sha,,}"
-          if [[ ! "$source_sha" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "Invalid immutable deployment source SHA" >&2
-            exit 1
-          fi
-          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=$checkout_ref" >> "$GITHUB_OUTPUT"
+          echo "expected_source_sha=$expected_source_sha" >> "$GITHUB_OUTPUT"
+          echo "source_resolution_mode=$source_resolution_mode" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout immutable deployment source
+      - name: Checkout deployment source once
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.source.outputs.source_sha }}
+          ref: ${{ steps.source.outputs.checkout_ref }}
           fetch-depth: 1
 
-      - name: Verify immutable checkout
+      - name: Freeze immutable checkout source
         id: checkout
         shell: bash
         env:
-          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          TRIGGER_EVENT: ${{ github.event_name }}
+          EXPECTED_SOURCE_SHA: ${{ steps.source.outputs.expected_source_sha }}
         run: |
           set -euo pipefail
           checked_out_sha=$(git rev-parse HEAD | tr '[:upper:]' '[:lower:]')
-          if [ "$checked_out_sha" != "$SOURCE_SHA" ]; then
-            echo "Checkout mismatch: expected $SOURCE_SHA, observed $checked_out_sha" >&2
+          if [[ ! "$checked_out_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid checked-out source SHA" >&2
             exit 1
           fi
+          if [ "$TRIGGER_EVENT" != "workflow_run" ] && \
+             [ "$checked_out_sha" != "$EXPECTED_SOURCE_SHA" ]; then
+            echo "Checkout mismatch: expected $EXPECTED_SOURCE_SHA, observed $checked_out_sha" >&2
+            exit 1
+          fi
+          echo "source_sha=$checked_out_sha" >> "$GITHUB_OUTPUT"
           echo "checked_out_sha=$checked_out_sha" >> "$GITHUB_OUTPUT"
 
       - name: Freeze build provenance timestamp
@@ -115,8 +147,10 @@ jobs:
 
       - name: Write pages data manifest
         env:
-          PAGES_SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          PAGES_EVENT_SHA: ${{ github.sha }}
+          PAGES_SOURCE_SHA: ${{ steps.checkout.outputs.source_sha }}
           PAGES_CHECKED_OUT_SHA: ${{ steps.checkout.outputs.checked_out_sha }}
+          PAGES_SOURCE_RESOLUTION_MODE: ${{ steps.source.outputs.source_resolution_mode }}
           PAGES_TRIGGER_EVENT: ${{ github.event_name }}
           PAGES_DEPLOY_WORKFLOW_RUN_ID: ${{ github.run_id }}
           PAGES_DEPLOY_WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
