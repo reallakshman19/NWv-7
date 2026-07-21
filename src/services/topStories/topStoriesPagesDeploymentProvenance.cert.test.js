@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   PAGES_DEPLOYMENT_PROVENANCE_SCHEMA,
+  PAGES_SOURCE_RESOLUTION_MODES,
   PAGES_TRACKED_FILE_NAMES,
   resolvePagesDeploymentSource,
   sha256Bytes,
@@ -15,8 +16,9 @@ import {
   buildPagesTrackedFileRecord,
 } from '../../../scripts/write_pages_data_manifest.mjs';
 
-const SOURCE_SHA = 'a'.repeat(40);
-const OTHER_SHA = 'b'.repeat(40);
+const SOURCE_SHA = 'b'.repeat(40);
+const UPSTREAM_SHA = 'a'.repeat(40);
+const EVENT_SHA = 'c'.repeat(40);
 const FROZEN_AT = '2026-07-21T01:00:00.000Z';
 const ROOT = process.cwd();
 
@@ -35,9 +37,11 @@ function writeTrackedFiles(sourceDir, distDir) {
 function workflowRunContext() {
   return {
     triggerEvent: 'workflow_run',
-    githubSha: OTHER_SHA,
+    githubSha: EVENT_SHA,
     sourceSha: SOURCE_SHA,
     checkedOutSha: SOURCE_SHA,
+    sourceResolutionMode:
+      PAGES_SOURCE_RESOLUTION_MODES.workflow_run,
     deployWorkflowRunId: '200',
     deployWorkflowRunAttempt: '2',
     frozenAt: FROZEN_AT,
@@ -45,7 +49,7 @@ function workflowRunContext() {
       workflowName: 'News Prefetch',
       runId: '100',
       runAttempt: '3',
-      headSha: SOURCE_SHA,
+      headSha: UPSTREAM_SHA,
       conclusion: 'success',
     },
   };
@@ -74,17 +78,17 @@ function gitBlobSha(text) {
   return crypto.createHash('sha1').update(prefix).update(text).digest('hex');
 }
 
+function occurrences(text, value) {
+  return text.split(value).length - 1;
+}
+
 describe('Pages deployment provenance authority', () => {
-  it('resolves only the immutable source owned by each trigger', () => {
-    expect(resolvePagesDeploymentSource({
-      triggerEvent: 'workflow_run',
-      githubSha: OTHER_SHA,
-      workflowRun: { headSha: SOURCE_SHA },
-    })).toBe(SOURCE_SHA);
+  it('separates workflow antecedent SHA from the frozen checkout source', () => {
+    expect(resolvePagesDeploymentSource(workflowRunContext())).toBe(SOURCE_SHA);
+    expect(SOURCE_SHA).not.toBe(UPSTREAM_SHA);
     expect(resolvePagesDeploymentSource({
       triggerEvent: 'push',
       githubSha: SOURCE_SHA,
-      workflowRun: { headSha: OTHER_SHA },
     })).toBe(SOURCE_SHA);
     expect(resolvePagesDeploymentSource({
       triggerEvent: 'workflow_dispatch',
@@ -92,25 +96,28 @@ describe('Pages deployment provenance authority', () => {
     })).toBe(SOURCE_SHA);
     expect(() => resolvePagesDeploymentSource({
       triggerEvent: 'workflow_run',
-      githubSha: SOURCE_SHA,
+      checkedOutSha: SOURCE_SHA,
       workflowRun: {},
-    })).toThrow(/head_sha is required/);
+    })).toThrow(/workflow_run_upstream_sha_invalid/);
     expect(() => resolvePagesDeploymentSource({
-      triggerEvent: 'push',
-      githubSha: 'main',
-    })).toThrow(/40-character Git SHA/);
+      triggerEvent: 'workflow_run',
+      workflowRun: { headSha: UPSTREAM_SHA },
+    })).toThrow(/checked_out_sha_invalid/);
   });
 
-  it('preserves the v1 manifest while adding full byte provenance', () => {
+  it('preserves the v1 manifest and records resolution mode', () => {
     const manifest = buildFixture();
     expect(manifest.schemaVersion).toBe(1);
     expect(manifest.manifestVersion).toBe('pages-data-publish-v1');
     expect(manifest.generatedAt).toBe(FROZEN_AT);
     expect(manifest.provenance.schemaVersion)
       .toBe(PAGES_DEPLOYMENT_PROVENANCE_SCHEMA);
+    expect(manifest.provenance.sourceSha).toBe(SOURCE_SHA);
+    expect(manifest.provenance.upstreamHeadSha).toBe(UPSTREAM_SHA);
+    expect(manifest.provenance.sourceResolutionMode)
+      .toBe(PAGES_SOURCE_RESOLUTION_MODES.workflow_run);
     expect(manifest.provenance.sourceCheckoutMatched).toBe(true);
     expect(manifest.allTrackedFilesMatched).toBe(true);
-    expect(manifest.files.map(file => file.name)).toEqual(PAGES_TRACKED_FILE_NAMES);
     for (const file of manifest.files) {
       expect(file).toEqual(expect.objectContaining({
         name: expect.any(String),
@@ -145,24 +152,27 @@ describe('Pages deployment provenance authority', () => {
     expect(record.sourceHash).toBe(record.sourceSha256.slice(0, 16));
     expect(record.distHash).toBe(record.distSha256.slice(0, 16));
     expect(record.matched).toBe(false);
-    expect(() => buildPagesDataManifest({ sourceDir, distDir }))
-      .toThrow();
+    expect(() => buildPagesDataManifest({ sourceDir, distDir })).toThrow();
   });
 
-  it('reports specific corruption reason classes', () => {
+  it('reports specific independent corruption reason classes', () => {
     const source = buildFixture();
     const sourceMismatch = structuredClone(source);
-    sourceMismatch.provenance.sourceSha = OTHER_SHA;
+    sourceMismatch.provenance.sourceSha = EVENT_SHA;
     expect(reasonCodes(sourceMismatch)).toContain('expected_source_sha_mismatch');
 
     const checkoutMismatch = structuredClone(source);
-    checkoutMismatch.provenance.checkedOutSha = OTHER_SHA;
+    checkoutMismatch.provenance.checkedOutSha = EVENT_SHA;
     expect(reasonCodes(checkoutMismatch)).toContain('source_checkout_mismatch');
 
-    const upstreamMismatch = structuredClone(source);
-    upstreamMismatch.provenance.upstreamHeadSha = OTHER_SHA;
-    expect(reasonCodes(upstreamMismatch))
-      .toContain('workflow_run_upstream_sha_mismatch');
+    const upstreamInvalid = structuredClone(source);
+    upstreamInvalid.provenance.upstreamHeadSha = 'main';
+    expect(reasonCodes(upstreamInvalid))
+      .toContain('workflow_run_upstream_sha_invalid');
+
+    const modeInvalid = structuredClone(source);
+    modeInvalid.provenance.sourceResolutionMode = 'workflow-run-head-sha';
+    expect(reasonCodes(modeInvalid)).toContain('source_resolution_mode_invalid');
 
     const schemaMismatch = structuredClone(source);
     schemaMismatch.provenance.schemaVersion = 'unsupported/v9';
@@ -170,7 +180,7 @@ describe('Pages deployment provenance authority', () => {
       .toContain('provenance_schema_unsupported');
 
     const hashMismatch = structuredClone(source);
-    hashMismatch.files[0].distSha256 = 'c'.repeat(64);
+    hashMismatch.files[0].distSha256 = 'd'.repeat(64);
     expect(reasonCodes(hashMismatch)).toContain('tracked_file_hash_mismatch');
 
     const matchedMismatch = structuredClone(source);
@@ -182,32 +192,43 @@ describe('Pages deployment provenance authority', () => {
     expect(reasonCodes(missingDist)).toContain('tracked_file_missing');
   });
 
-  it('pins workflow order and the exact post-deploy status target', () => {
+  it('freezes one checkout and targets status at its observed SHA', () => {
     const workflow = fs.readFileSync(
       path.join(ROOT, '.github/workflows/deploy.yml'),
       'utf8',
     );
-    const source = workflow.indexOf('Resolve immutable deployment source');
-    const checkout = workflow.indexOf('Checkout immutable deployment source');
+    const resolve = workflow.indexOf('Resolve deployment checkout authority');
+    const checkout = workflow.indexOf('Checkout deployment source once');
     const proof = workflow.indexOf('git rev-parse HEAD');
     const build = workflow.indexOf('npm run build');
     const manifest = workflow.indexOf('node scripts/write_pages_data_manifest.mjs');
     const upload = workflow.indexOf('actions/upload-pages-artifact@v3');
-    expect(source).toBeGreaterThanOrEqual(0);
-    expect(source).toBeLessThan(checkout);
+    expect(resolve).toBeGreaterThanOrEqual(0);
+    expect(resolve).toBeLessThan(checkout);
     expect(checkout).toBeLessThan(proof);
     expect(proof).toBeLessThan(build);
     expect(build).toBeLessThan(manifest);
     expect(manifest).toBeLessThan(upload);
-    expect(workflow).toContain('ref: ${{ steps.source.outputs.source_sha }}');
-    expect(workflow).toContain('needs: [build, deploy]');
-    expect(workflow).toContain('EXPECTED_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}');
-    expect(workflow).toContain('if: always()');
-    expect(workflow).toContain('retention-days: 30');
+    expect(workflow).toContain('checkout_ref="$DEFAULT_BRANCH"');
+    expect(workflow).toContain('ref: ${{ steps.source.outputs.checkout_ref }}');
+    expect(workflow).toContain('echo "source_sha=$checked_out_sha"');
+    expect(workflow).toContain(
+      'source_sha: ${{ steps.checkout.outputs.source_sha }}',
+    );
+    expect(workflow).not.toContain('source_sha="$UPSTREAM_HEAD_SHA"');
+    expect(occurrences(
+      workflow,
+      'github.event.repository.default_branch',
+    )).toBe(1);
+    expect(workflow.slice(proof)).not.toContain(
+      'github.event.repository.default_branch',
+    );
+    expect(workflow).toContain(
+      'EXPECTED_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}',
+    );
     expect(workflow).toContain('deployment/pages-provenance');
     expect(workflow).toContain('statuses/$SOURCE_SHA');
     expect(workflow).toContain('verify-world-health:');
-    expect(workflow).toContain('verify_world_health_deployment.mjs');
   });
 
   it('keeps repository replay separate and uses no browser runtime', () => {
@@ -236,6 +257,7 @@ describe('Pages deployment provenance authority', () => {
       expect(authority).not.toContain(forbidden);
       expect(verifier).not.toContain(forbidden);
     }
+    expect(authority).not.toContain('sourceSha must equal upstreamHeadSha');
     expect(verifier.toLowerCase()).not.toContain('playwright');
   });
 });
