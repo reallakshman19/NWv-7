@@ -66,14 +66,15 @@ describe('World-health hydration and evidence contract', () => {
   it('requires positive World hydration before badge readiness', () => {
     const source = readVerifier();
     const worldVisible = source.indexOf("page.locator('#world-news').waitFor");
-    const hydration = source.indexOf("document.querySelector('#world-news .news-count')");
-    const concreteBadge = source.indexOf("document.querySelector('#world-news .section-health-badge')");
+    const hydration = source.indexOf('await waitForWorldHydration(page)');
+    const concreteBadge = source.indexOf('await waitForConcreteBadge(page)');
     const badgeRead = source.indexOf("report.badgeStatus = await badge.getAttribute('data-status')");
 
     expect(worldVisible).toBeGreaterThanOrEqual(0);
     expect(hydration).toBeGreaterThan(worldVisible);
     expect(concreteBadge).toBeGreaterThan(hydration);
     expect(badgeRead).toBeGreaterThan(concreteBadge);
+    expect(source).toContain("document.querySelector('#world-news .news-count')");
     expect(source).toContain('match && Number(match[0]) > 0');
     expect(source).toContain('timeout: HYDRATION_TIMEOUT_MS');
     expect(source).toContain('const HYDRATION_TIMEOUT_MS = 90_000');
@@ -85,6 +86,7 @@ describe('World-health hydration and evidence contract', () => {
     expect(source).toContain("const CONCRETE_STATUSES = ['ok', 'warning', 'critical']");
     expect(source).toContain('statuses.includes(badge?.getAttribute');
     expect(source).toContain('timeout: BADGE_READY_TIMEOUT_MS');
+    expect(source).toContain("['ok', 'warning', 'critical'].includes(report.badgeStatus)");
     expect(source).toContain('World section health badge is not concrete after hydration');
     expect(source).toContain('Section health diagnostics');
     expect(source).toContain("report.sectionId !== 'world'");
