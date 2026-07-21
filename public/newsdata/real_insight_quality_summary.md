@@ -10,9 +10,9 @@
 - Base report share: `0.05555555555555555`
 - Multi-angle parents: `2`
 - Weak parents: `8`
-- Story count: `658`
-- Source groups: `10`
-- Content hash: `f3063a2e9731ca72`
+- Story count: `694`
+- Source groups: `9`
+- Content hash: `d0c4384a25d3e2ba`
 
 ## Top parents
 
@@ -25,9 +25,9 @@
 | 5 | India’s youth-led 'cockroach movement' clashes with police in New Delhi - Reuters | 2 | official_response | YES | 0.6403300531183316 |
 | 6 | Seafarer from Kasaragod killed in attack on cargo ship off Ukraine | 3 | fact_update | YES | 0.584583887223907 |
 | 7 | Police fire tear gas at India’s Cockroach movement supporters - BreakingNews.ie | 2 | official_response | YES | 0.5689933333333332 |
-| 8 | Bajaj Auto Q1 Results: Cons PAT surges 46% YoY to Rs 3,226 crore; revenue zooms 65% | 1 | fact_update | YES | 0.7226911614783158 |
-| 9 | Coal India subsidiary CMPDI shares climb 7% after Q1FY27 profit surges 54% YoY | 1 | market_reaction | YES | 0.7226911614783158 |
-| 10 | Mrs Bectors Food shares surge 30% in 4 days after Sunil Singhania's Abakkus acquires 1% stake. Do you own? | 1 | market_reaction | YES | 0.7226911614783158 |
+| 8 | Adani Total Gas Q1 Results: Profit falls 14% YoY to Rs 142 crore, revenue jumps 27% | 1 | fact_update | YES | 0.7226911614783158 |
+| 9 | TVS Motor shares jump 6% after Q1 net profit soars 67% YoY to Rs 1,019 crore, revenue up 33% | 1 | fact_update | YES | 0.7226911614783158 |
+| 10 | Adani Energy Q1 Results: Profit zooms 124% YoY to Rs 1,149 crore; revenue jumps 42% | 1 | fact_update | YES | 0.7226911614783158 |
 
 ## Warnings
 
