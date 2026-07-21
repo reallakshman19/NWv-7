@@ -1,20 +1,20 @@
 {
   "status": "PASS",
   "benchmarkVersion": "real-insight-snapshot-quality-v1",
-  "generatedAt": 1784595727276,
-  "contentHash": "3367b5e72054badc",
+  "generatedAt": 1784603046438,
+  "contentHash": "e200fa251db07165",
   "schemaVersion": 3,
   "collectorVersion": "insight-collector-json-v4",
-  "storyCount": 649,
+  "storyCount": 633,
   "sourceGroupCount": 9,
   "grade": "D",
   "parentCount": 10,
-  "avgAngles": 1.4,
-  "avgTemporalTiers": 1.8,
-  "avgEvolutionRoles": 1.8,
-  "baseReportShare": 0.1,
-  "multiAngleCount": 4,
-  "weakParentCount": 6,
+  "avgAngles": 1.2,
+  "avgTemporalTiers": 1.6,
+  "avgEvolutionRoles": 1.6,
+  "baseReportShare": 0.05555555555555555,
+  "multiAngleCount": 2,
+  "weakParentCount": 8,
   "runtimeQualityGate": {
     "attempted": true,
     "recovered": false,
@@ -23,55 +23,55 @@
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 42,
+      "signalScore": 30,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 587,
+      "storyCount": 575,
       "risingCount": 0,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 2,
-      "avgScore": 0.6341828544720516,
-      "sourceDiversityCoverage": 9,
-      "snapshotCoverage": 6,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.2,
+      "avgChildren": 1.8,
+      "avgScore": 0.6547620814558816,
+      "sourceDiversityCoverage": 7,
+      "snapshotCoverage": 5,
+      "coverageLabel": "2/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "1 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin.",
-        "620 duplicate/near-duplicate item(s) were hidden or downgraded."
+        "3 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) are marked thin.",
+        "580 duplicate/near-duplicate item(s) were hidden or downgraded."
       ]
     },
     "after": {
       "grade": "D",
       "tone": "danger",
       "title": "Weak insight signal",
-      "signalScore": 42,
+      "signalScore": 30,
       "sourceLabel": "Live",
       "rankedCount": 10,
-      "storyCount": 587,
+      "storyCount": 575,
       "risingCount": 0,
-      "thinCount": 6,
-      "multiAngleCount": 4,
-      "lowAngleCount": 6,
+      "thinCount": 8,
+      "multiAngleCount": 2,
+      "lowAngleCount": 8,
       "strongAngleCount": 0,
-      "avgAngles": 1.4,
-      "avgChildren": 2,
-      "avgScore": 0.6341828544720516,
-      "sourceDiversityCoverage": 9,
-      "snapshotCoverage": 6,
-      "coverageLabel": "4/10",
+      "avgAngles": 1.2,
+      "avgChildren": 1.8,
+      "avgScore": 0.6547620814558816,
+      "sourceDiversityCoverage": 7,
+      "snapshotCoverage": 5,
+      "coverageLabel": "2/10",
       "warnings": [
-        "6 cluster(s) have fewer than two visible child angles.",
+        "8 cluster(s) have fewer than two visible child angles.",
         "No cluster currently exposes three or more visible child angles.",
-        "1 cluster(s) are below source-diversity target.",
-        "4 cluster(s) have weak snapshot coverage.",
-        "6 cluster(s) are marked thin."
+        "3 cluster(s) are below source-diversity target.",
+        "5 cluster(s) have weak snapshot coverage.",
+        "8 cluster(s) are marked thin."
       ]
     },
     "recoveryConfig": {
@@ -85,28 +85,7 @@
   },
   "parents": [
     {
-      "parentId": "cluster_24_70d5a9793a865352",
-      "headline": "Monsoon Session off to a stormy start amid Opposition protests",
-      "score": 0.6814967197849984,
-      "postTreeScore": 1.0615,
-      "childCount": 2,
-      "angles": [
-        "official_response",
-        "reaction_public"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "analysis"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "public_reaction"
-      ],
-      "baseReportShare": 0,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_149_eb4f0a52ef4e72df",
+      "parentId": "cluster_174_eb4f0a52ef4e72df",
       "headline": "Hamas names Khalil al-Hayya as new overall leader",
       "score": 0.6112599999999999,
       "postTreeScore": 1.0113,
@@ -127,7 +106,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_197_ca4a3d8bc4bb5330",
+      "parentId": "cluster_224_ca4a3d8bc4bb5330",
       "headline": "UK’s latest PM | Infographics",
       "score": 0.60351,
       "postTreeScore": 1.0035,
@@ -147,28 +126,7 @@
       "weakTree": false
     },
     {
-      "parentId": "cluster_184_dc455a7b60cfe897",
-      "headline": "Samsung's 'Back to School' Sale Brings Discounts on Galaxy S26 Series, Galaxy Book 6 Pro, Galaxy Tab S11 Ultra and More",
-      "score": 0.5580933333333333,
-      "postTreeScore": 0.9581,
-      "childCount": 2,
-      "angles": [
-        "base_report",
-        "fact_update"
-      ],
-      "temporalTiers": [
-        "breaking",
-        "reaction"
-      ],
-      "evolutionRoles": [
-        "first_report",
-        "corroboration"
-      ],
-      "baseReportShare": 0.5,
-      "weakTree": false
-    },
-    {
-      "parentId": "cluster_202_9c11cfb600470ccb",
+      "parentId": "cluster_229_9c11cfb600470ccb",
       "headline": "Meghna Infracon Infrastructure expects Rs 300cr revenue from new commercial project",
       "score": 0.760613386451665,
       "postTreeScore": 0.6506,
@@ -187,7 +145,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_350_818f24b7f332ac24",
+      "parentId": "cluster_378_818f24b7f332ac24",
       "headline": "Rupee weakens to two-month low as oil climbs; state-run banks cushion",
       "score": 0.6742467197849984,
       "postTreeScore": 0.5642,
@@ -206,7 +164,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_78_3c61daaa22380271",
+      "parentId": "cluster_103_3c61daaa22380271",
       "headline": "Seafarer from Kasaragod killed in attack on cargo ship off Ukraine",
       "score": 0.5885805572205374,
       "postTreeScore": 0.5186,
@@ -227,7 +185,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_45_78fd24e757b2b9e6",
+      "parentId": "cluster_70_78fd24e757b2b9e6",
       "headline": "India’s youth-led 'cockroach movement' clashes with police in New Delhi - Reuters",
       "score": 0.5723433333333332,
       "postTreeScore": 0.4823,
@@ -247,7 +205,7 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_257_7d1c844ebc05a25f",
+      "parentId": "cluster_284_7d1c844ebc05a25f",
       "headline": "Police fire tear gas at India’s Cockroach movement supporters - BreakingNews.ie",
       "score": 0.5689933333333332,
       "postTreeScore": 0.479,
@@ -267,7 +225,25 @@
       "weakTree": true
     },
     {
-      "parentId": "cluster_9_95272c2bb75b445c",
+      "parentId": "cluster_17_19c2a3e54db227f5",
+      "headline": "Karur Vysya Bank net profit surges 45% to Rs 756 crore in Q1, asset quality sees slight slip",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
+    },
+    {
+      "parentId": "cluster_34_95272c2bb75b445c",
       "headline": "India's private banks draw thinner margins on tepid credit growth",
       "score": 0.7226911614783158,
       "postTreeScore": 0.4227,
@@ -283,6 +259,24 @@
       ],
       "baseReportShare": 0,
       "weakTree": true
+    },
+    {
+      "parentId": "cluster_173_549928759a527864",
+      "headline": "Indian Overseas Bank eyes $650 million foreign deposits by September",
+      "score": 0.7226911614783158,
+      "postTreeScore": 0.4227,
+      "childCount": 1,
+      "angles": [
+        "fact_update"
+      ],
+      "temporalTiers": [
+        "breaking"
+      ],
+      "evolutionRoles": [
+        "fact_update"
+      ],
+      "baseReportShare": 0,
+      "weakTree": true
     }
   ],
   "warnings": [
@@ -293,7 +287,7 @@
     "status": "FAIL",
     "gateVersion": "real-insight-snapshot-ratchet-v1",
     "grade": "D",
-    "score": 66,
+    "score": 18,
     "passed": [
       {
         "id": "parent-count",
@@ -302,33 +296,21 @@
         "required": ">= 3"
       },
       {
-        "id": "avg-angle-count",
-        "label": "Average visible angle count",
-        "actual": 1.4,
-        "required": ">= 1.4"
-      },
-      {
-        "id": "avg-temporal-tier-count",
-        "label": "Average temporal tier count",
-        "actual": 1.8,
-        "required": ">= 1.8"
-      },
-      {
         "id": "avg-evolution-role-count",
         "label": "Average evolution role count",
-        "actual": 1.8,
+        "actual": 1.6,
         "required": ">= 1.6"
       },
       {
         "id": "base-report-share",
         "label": "Base report share",
-        "actual": 0.1,
+        "actual": 0.056,
         "required": "<= 0.55"
       },
       {
         "id": "multi-angle-parent-count",
         "label": "Multi-angle parent count",
-        "actual": 4,
+        "actual": 2,
         "required": ">= 1"
       },
       {
@@ -354,9 +336,25 @@
         "fix": "Do not accept D/F real snapshot output. Improve child selection, parent rerank, or data intake."
       },
       {
+        "id": "avg-angle-count",
+        "label": "Average visible angle count",
+        "actual": 1.2,
+        "required": ">= 1.4",
+        "severity": "fail",
+        "fix": "Angle-diverse child selection is not strong enough on real data."
+      },
+      {
+        "id": "avg-temporal-tier-count",
+        "label": "Average temporal tier count",
+        "actual": 1.6,
+        "required": ">= 1.8",
+        "severity": "fail",
+        "fix": "C+E output should cover multiple event-time tiers, not only source buckets."
+      },
+      {
         "id": "weak-parent-ratio",
         "label": "Weak parent ratio",
-        "actual": 0.6,
+        "actual": 0.8,
         "required": "<= 0.5",
         "severity": "warn",
         "fix": "Too many weak trees remain. Repair or demote weak trees after diversity repair."
@@ -364,16 +362,16 @@
     ],
     "summary": {
       "parentCount": 10,
-      "avgAngles": 1.4,
-      "avgTemporalTiers": 1.8,
-      "avgEvolutionRoles": 1.8,
-      "baseReportShare": 0.1,
-      "multiAngleCount": 4,
-      "weakParentCount": 6,
-      "weakParentRatio": 0.6,
+      "avgAngles": 1.2,
+      "avgTemporalTiers": 1.6,
+      "avgEvolutionRoles": 1.6,
+      "baseReportShare": 0.056,
+      "multiAngleCount": 2,
+      "weakParentCount": 8,
+      "weakParentRatio": 0.8,
       "topParentAngles": 2,
       "topParentChildren": 2,
-      "storyCount": 649,
+      "storyCount": 633,
       "sourceGroupCount": 9
     }
   }
