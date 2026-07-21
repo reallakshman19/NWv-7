@@ -115,9 +115,10 @@ export function buildPagesDataManifest(options = {}) {
 export function provenanceContextFromEnv(env = process.env) {
   return {
     triggerEvent: env.PAGES_TRIGGER_EVENT,
-    githubSha: env.PAGES_SOURCE_SHA,
+    githubSha: env.PAGES_EVENT_SHA,
     sourceSha: env.PAGES_SOURCE_SHA,
     checkedOutSha: env.PAGES_CHECKED_OUT_SHA,
+    sourceResolutionMode: env.PAGES_SOURCE_RESOLUTION_MODE,
     deployWorkflowRunId: env.PAGES_DEPLOY_WORKFLOW_RUN_ID,
     deployWorkflowRunAttempt: env.PAGES_DEPLOY_WORKFLOW_RUN_ATTEMPT,
     frozenAt: env.PAGES_FROZEN_AT,
@@ -145,6 +146,7 @@ export function writePagesDataManifest(options = {}) {
     manifestPath,
     insightContentHash: manifest.insight.contentHash,
     sourceSha: manifest.provenance.sourceSha,
+    sourceResolutionMode: manifest.provenance.sourceResolutionMode,
     allTrackedFilesMatched: manifest.allTrackedFilesMatched,
   }, null, 2));
   if (!manifest.files.find(file => file.name === 'insight_latest.json')?.distExists) {
