@@ -2,9 +2,9 @@
 
 - Status: **WARN**
 - Schema: `2`
-- Content hash: `869b067b9aea`
+- Content hash: `f71bd2e295dd`
 - Sections: `10`
-- Stories: `285`
+- Stories: `286`
 - Source groups: `10`
 - Retain hours: `36`
 
@@ -21,7 +21,7 @@
 | business | 30 | 3 | False |
 | technology | 30 | 2 | False |
 | sports | 30 | 3 | False |
-| entertainment | 15 | 1 | True |
+| entertainment | 16 | 1 | True |
 
 ## Warnings
 
