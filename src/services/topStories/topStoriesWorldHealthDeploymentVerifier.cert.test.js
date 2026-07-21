@@ -17,6 +17,10 @@ function utcMinutes(value) {
   return (clock.getUTCHours() * 60) + clock.getUTCMinutes();
 }
 
+function readVerifier() {
+  return fs.readFileSync(VERIFIER_PATH, 'utf8');
+}
+
 describe('World-health deployed verifier segment determinism', () => {
   it('moves the pre-06:00 urgent window to same-day 06:30 UTC', () => {
     expect(iso('2026-07-21T05:59:00.000Z'))
@@ -56,31 +60,82 @@ describe('World-health deployed verifier segment determinism', () => {
     expect(() => resolveWorldHealthVerificationClock(new Date(Number.NaN)))
       .toThrow(/valid time/);
   });
+});
 
-  it('pins clock and timezone before navigation without weakening assertions', () => {
-    const source = fs.readFileSync(VERIFIER_PATH, 'utf8');
+describe('World-health hydration and evidence contract', () => {
+  it('requires positive World hydration before badge readiness', () => {
+    const source = readVerifier();
+    const worldVisible = source.indexOf("page.locator('#world-news').waitFor");
+    const hydration = source.indexOf('await waitForWorldHydration(page)');
+    const concreteBadge = source.indexOf('await waitForConcreteBadge(page)');
+    const badgeRead = source.indexOf("report.badgeStatus = await badge.getAttribute('data-status')");
+
+    expect(worldVisible).toBeGreaterThanOrEqual(0);
+    expect(hydration).toBeGreaterThan(worldVisible);
+    expect(concreteBadge).toBeGreaterThan(hydration);
+    expect(badgeRead).toBeGreaterThan(concreteBadge);
+    expect(source).toContain("document.querySelector('#world-news .news-count')");
+    expect(source).toContain('match && Number(match[0]) > 0');
+    expect(source).toContain('timeout: HYDRATION_TIMEOUT_MS');
+    expect(source).toContain('const HYDRATION_TIMEOUT_MS = 90_000');
+    expect(source).not.toContain('waitForTimeout(750)');
+  });
+
+  it('uses condition-based concrete badge readiness without weakening checks', () => {
+    const source = readVerifier();
+    expect(source).toContain("const CONCRETE_STATUSES = ['ok', 'warning', 'critical']");
+    expect(source).toContain('statuses.includes(badge?.getAttribute');
+    expect(source).toContain('timeout: BADGE_READY_TIMEOUT_MS');
+    expect(source).toContain("['ok', 'warning', 'critical'].includes(report.badgeStatus)");
+    expect(source).toContain('World section health badge is not concrete after hydration');
+    expect(source).toContain('Section health diagnostics');
+    expect(source).toContain("report.sectionId !== 'world'");
+    expect(source).toContain('report.storyCount <= 0');
+    expect(source).toContain('report.sourceGroupCount <= 0');
+    expect(source).toContain('World diagnostics do not contain top-source evidence');
+  });
+
+  it('records hydration, navigation, and browser diagnostics', () => {
+    const source = readVerifier();
+    for (const field of [
+      'finalUrl',
+      'hydrationMs',
+      'worldCountText',
+      'consoleErrors',
+      'pageErrors',
+    ]) {
+      expect(source).toContain(field);
+    }
+    expect(source).toContain("page.on('console'");
+    expect(source).toContain("page.on('pageerror'");
+    expect(source).toContain('report.hydrationMs = Date.now() - hydrationStartedAt');
+    expect(source).toContain("worldSection.locator('.news-count').textContent()");
+    expect(source).toContain('report.finalUrl = report.finalUrl || page.url()');
+  });
+
+  it('pins clock and timezone before navigation and remains import-safe', () => {
+    const source = readVerifier();
     const clock = source.indexOf('page.clock.setFixedTime(verificationClock)');
     const navigation = source.indexOf('page.goto(cacheBustedUrl(baseUrl)');
     expect(clock).toBeGreaterThanOrEqual(0);
     expect(navigation).toBeGreaterThan(clock);
     expect(source).toContain("timezoneId: 'UTC'");
     expect(source).toContain("serviceWorkers: 'block'");
-    expect(source).toContain("page.locator('#world-news')");
-    expect(source).toContain('.section-health-badge');
-    expect(source).toContain('Section health diagnostics');
-    expect(source).toContain("report.sectionId !== 'world'");
-    expect(source).toContain('report.storyCount <= 0');
-    expect(source).toContain('report.sourceGroupCount <= 0');
-    expect(source).toContain('World diagnostics do not contain top-source evidence');
     expect(source).toContain('actualCheckedAt');
     expect(source).toContain('verificationClock');
     expect(source).toContain('clockMode: CLOCK_MODE');
     expect(source).toContain('invokedPath === fileURLToPath(import.meta.url)');
+  });
+
+  it('does not import runtime, ranking, workflow, or generated-data authorities', () => {
+    const source = readVerifier();
     for (const forbidden of [
       'SegmentContext',
       'segmentScheduler',
       'MainPage',
       'topStoriesRanker',
+      'sectionHealthSummary',
+      'runtimeSectionHealthFallback',
       'public/newsdata',
     ]) {
       expect(source).not.toContain(forbidden);

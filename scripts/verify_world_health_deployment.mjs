@@ -8,6 +8,9 @@ const DEFAULT_ARTIFACT_DIR = 'artifacts/world-health-deployment';
 const VERIFICATION_TIMEZONE = 'UTC';
 const VERIFICATION_SEGMENT = 'non-urgent';
 const CLOCK_MODE = 'playwright-set-fixed-time';
+const HYDRATION_TIMEOUT_MS = 90_000;
+const BADGE_READY_TIMEOUT_MS = 30_000;
+const CONCRETE_STATUSES = ['ok', 'warning', 'critical'];
 
 export function resolveWorldHealthVerificationClock(input) {
   const clock = input instanceof Date ? new Date(input.getTime()) : new Date(input);
@@ -33,6 +36,26 @@ export function parseField(dialogText, label) {
   return normalized.match(pattern)?.[1]?.trim() || null;
 }
 
+function recordBrowserDiagnostic(list, value) {
+  if (list.length >= 50) return;
+  list.push(String(value || '').trim());
+}
+
+async function waitForWorldHydration(page) {
+  await page.waitForFunction(() => {
+    const count = document.querySelector('#world-news .news-count');
+    const match = String(count?.textContent || '').match(/\d+/);
+    return Boolean(match && Number(match[0]) > 0);
+  }, null, { timeout: HYDRATION_TIMEOUT_MS });
+}
+
+async function waitForConcreteBadge(page) {
+  await page.waitForFunction(statuses => {
+    const badge = document.querySelector('#world-news .section-health-badge');
+    return statuses.includes(badge?.getAttribute('data-status'));
+  }, CONCRETE_STATUSES, { timeout: BADGE_READY_TIMEOUT_MS });
+}
+
 async function main() {
   const actualCheckedAt = new Date().toISOString();
   const verificationClock = resolveWorldHealthVerificationClock(actualCheckedAt);
@@ -50,13 +73,18 @@ async function main() {
     verificationSegmentExpectation: VERIFICATION_SEGMENT,
     clockMode: CLOCK_MODE,
     baseUrl,
+    finalUrl: null,
     ok: false,
+    hydrationMs: null,
+    worldCountText: null,
     badgeStatus: null,
     badgeLabel: null,
     sectionId: null,
     storyCount: null,
     sourceGroupCount: null,
     topSourcesText: null,
+    consoleErrors: [],
+    pageErrors: [],
     error: null,
   };
 
@@ -73,6 +101,14 @@ async function main() {
       serviceWorkers: 'block',
     });
     const page = await context.newPage();
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        recordBrowserDiagnostic(report.consoleErrors, message.text());
+      }
+    });
+    page.on('pageerror', error => {
+      recordBrowserDiagnostic(report.pageErrors, error?.message || error);
+    });
     await page.clock.setFixedTime(verificationClock);
 
     let lastNavigationError = null;
@@ -96,16 +132,33 @@ async function main() {
 
     if (lastNavigationError) throw lastNavigationError;
 
+    report.finalUrl = page.url();
     const worldSection = page.locator('#world-news');
+    const hydrationStartedAt = Date.now();
+    await waitForWorldHydration(page);
+    report.hydrationMs = Date.now() - hydrationStartedAt;
+    report.worldCountText = (
+      await worldSection.locator('.news-count').textContent()
+    )?.trim() || null;
+
     const badge = worldSection.locator('.section-health-badge');
     await badge.waitFor({ state: 'visible', timeout: 20_000 });
+    let badgeReadinessError = null;
+    try {
+      await waitForConcreteBadge(page);
+    } catch (error) {
+      badgeReadinessError = error;
+    }
 
     report.badgeStatus = await badge.getAttribute('data-status');
     report.badgeLabel = (await badge.textContent())?.trim() || null;
-
-    if (!['ok', 'warning', 'critical'].includes(report.badgeStatus)) {
+    if (
+      badgeReadinessError ||
+      !['ok', 'warning', 'critical'].includes(report.badgeStatus)
+    ) {
       throw new Error(
-        `World section health badge is not concrete: ${report.badgeStatus || 'missing'}`,
+        `World section health badge is not concrete after hydration: ${report.badgeStatus || 'missing'}`,
+        { cause: badgeReadinessError || undefined },
       );
     }
 
@@ -148,7 +201,10 @@ async function main() {
     report.error = error?.stack || error?.message || String(error);
     try {
       const page = browser?.contexts().flatMap(context => context.pages()).at(-1);
-      if (page) await page.screenshot({ path: screenshotPath, fullPage: true });
+      if (page) {
+        report.finalUrl = report.finalUrl || page.url();
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+      }
     } catch {
       // Preserve the original verification error.
     }
