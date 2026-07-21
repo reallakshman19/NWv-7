@@ -53,7 +53,7 @@
     },
     "insight": {
       "actionableFindings": [
-        "2 base-report-heavy Insight parent(s) demoted"
+        "4 base-report-heavy Insight parent(s) demoted"
       ],
       "destination": "insight",
       "diagnosticReasons": [],
@@ -77,7 +77,7 @@
       ],
       "gateSummary": {
         "avgAnglesPerParent": 0.0,
-        "baseReportHeavyParents": 2,
+        "baseReportHeavyParents": 4,
         "duplicateChildrenSuppressed": 0,
         "inputCandidateCount": 12,
         "parentClusters": 12,
@@ -86,7 +86,7 @@
         "weakParentsDemoted": 0
       },
       "qualityGrade": "F",
-      "qualityScore": 0.3954,
+      "qualityScore": 0.4055,
       "qualityStatus": "WARN",
       "rankedItems": [
         {
@@ -448,6 +448,118 @@
           "gates": [
             {
               "details": {
+                "storyCount": 3
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0,
+                "distinctAngles": 1
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 0.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report ratio controlled",
+              "score": 1.0,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "childCount": 3
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.75,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:cd8d0423a0",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 0.0,
+            "childScores": [],
+            "id": "sketch:cd8d0423a0",
+            "representativeId": "5e5abb5ac4d2e8c1",
+            "representativeTitle": "HDFC Bank shares fall for 2nd day but Jefferies, others brokerages remain bullish. Should you buy the dip?",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.71,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "now"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "economic_times"
+            ],
+            "storyCount": 3,
+            "storyIds": [
+              "5e5abb5ac4d2e8c1",
+              "ebaa52bb212bd84f",
+              "d4cb68b2fb0793ba"
+            ],
+            "topAngles": [
+              {
+                "angle": "market_reaction",
+                "count": 3
+              }
+            ],
+            "topTokens": [
+              "hdfc",
+              "bank",
+              "shares",
+              "jefferies",
+              "stock"
+            ],
+            "topicKey": "hdfc|bank|shares"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.419,
+          "title": "HDFC Bank shares fall for 2nd day but Jefferies, others brokerages remain bullish. Should you buy the dip?"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
                 "storyCount": 2
               },
               "name": "eventCoherence",
@@ -552,227 +664,6 @@
           ],
           "score": 0.389,
           "title": "British government bond yields edge higher as Burnham becomes PM"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:fcde5c7120",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:fcde5c7120",
-            "representativeId": "cefd0947496f8de7",
-            "representativeTitle": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "minus24h"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "moneycontrol"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "cefd0947496f8de7",
-              "d0020e471404281a"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "bajaj",
-              "finance",
-              "target",
-              "emkay"
-            ],
-            "topicKey": "bajaj|finance|target"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "Buy Bajaj Finance; target of Rs 9000: Emkay Global Financial"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:cd8d0423a0",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:cd8d0423a0",
-            "representativeId": "ebaa52bb212bd84f",
-            "representativeTitle": "HDFC Bank shares crash 5%, wipe off Rs 70,000 cr from investor wealth. Why Jefferies, Nomura, others see up to 28% upside?",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "economic_times"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "ebaa52bb212bd84f",
-              "d4cb68b2fb0793ba"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "hdfc",
-              "bank",
-              "shares",
-              "jefferies",
-              "stock"
-            ],
-            "topicKey": "hdfc|bank|shares"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "HDFC Bank shares crash 5%, wipe off Rs 70,000 cr from investor wealth. Why Jefferies, Nomura, others see up to 28% upside?"
         },
         {
           "category": "insightEvent",
@@ -941,14 +832,14 @@
               "status": "PASS"
             }
           ],
-          "id": "sketch:98466e4430",
+          "id": "sketch:5cbd3fade0",
           "item": {
             "angleCount": 1,
             "baseReportRatio": 0.0,
             "childScores": [],
-            "id": "sketch:98466e4430",
-            "representativeId": "4495965dd1330b57",
-            "representativeTitle": "SBI Funds Management IPO to list today; GMP signals 17% premium debut",
+            "id": "sketch:5cbd3fade0",
+            "representativeId": "9587720382ccedf8",
+            "representativeTitle": "Mrs Bectors Food shares surge 30% in 4 days after Sunil Singhania's Abakkus acquires 1% stake. Do you own?",
             "scoreBreakdown": {
               "angleDiversityScore": 0.25,
               "eventImportanceScore": 0.59,
@@ -968,8 +859,8 @@
             ],
             "storyCount": 2,
             "storyIds": [
-              "4495965dd1330b57",
-              "a60d86ff54f90ebc"
+              "9587720382ccedf8",
+              "0d0e69c790552b93"
             ],
             "topAngles": [
               {
@@ -978,13 +869,13 @@
               }
             ],
             "topTokens": [
-              "listing",
-              "funds",
-              "management",
-              "premium",
-              "july"
+              "bectors",
+              "food",
+              "shares",
+              "abakkus",
+              "sunil"
             ],
-            "topicKey": "listing|funds|management"
+            "topicKey": "bectors|food|shares"
           },
           "locationKey": "event",
           "rankingReasons": [
@@ -993,118 +884,7 @@
             "one-source event candidate"
           ],
           "score": 0.389,
-          "title": "SBI Funds Management IPO to list today; GMP signals 17% premium debut"
-        },
-        {
-          "category": "insightEvent",
-          "gates": [
-            {
-              "details": {
-                "storyCount": 2
-              },
-              "name": "eventCoherence",
-              "reason": "event sketch has repeated story count",
-              "score": 0.62,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0,
-                "distinctAngles": 1
-              },
-              "name": "angleDiversity",
-              "reason": "weak child angle diversity",
-              "score": 0.25,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "sourceGroupCount": 1
-              },
-              "name": "sourceDiversity",
-              "reason": "one-source event candidate",
-              "score": 0.35,
-              "status": "WARN"
-            },
-            {
-              "details": {
-                "baseReportRatio": 0.0
-              },
-              "name": "baseReportCap",
-              "reason": "base-report ratio controlled",
-              "score": 1.0,
-              "status": "PASS"
-            },
-            {
-              "details": {
-                "childCount": 2
-              },
-              "name": "weakTree",
-              "reason": "child tree has enough depth",
-              "score": 0.5,
-              "status": "PASS"
-            },
-            {
-              "details": {},
-              "name": "duplicateChildren",
-              "reason": "no child objects to dedup",
-              "score": 0.7,
-              "status": "PASS"
-            }
-          ],
-          "id": "sketch:f53377fcbc",
-          "item": {
-            "angleCount": 1,
-            "baseReportRatio": 0.0,
-            "childScores": [],
-            "id": "sketch:f53377fcbc",
-            "representativeId": "2a557908d2f0f337",
-            "representativeTitle": "South Korea’s Kospi jumps 4% after 31% crash from June peak. What’s ahead?",
-            "scoreBreakdown": {
-              "angleDiversityScore": 0.25,
-              "eventImportanceScore": 0.59,
-              "freshnessScore": 0.0,
-              "noveltyDeltaScore": 0.44999999999999996,
-              "sourceAuthorityScore": 0.38,
-              "sourceDiversityScore": 0.35,
-              "temporalEvolutionScore": 0.37
-            },
-            "slotCount": 1,
-            "slots": [
-              "now"
-            ],
-            "sourceGroupCount": 1,
-            "sourceGroups": [
-              "economic_times"
-            ],
-            "storyCount": 2,
-            "storyIds": [
-              "2a557908d2f0f337",
-              "c661e1410ba5999f"
-            ],
-            "topAngles": [
-              {
-                "angle": "market_reaction",
-                "count": 2
-              }
-            ],
-            "topTokens": [
-              "market",
-              "south",
-              "korea",
-              "kospi",
-              "neutral"
-            ],
-            "topicKey": "market|south|korea"
-          },
-          "locationKey": "event",
-          "rankingReasons": [
-            "event sketch has repeated story count",
-            "weak child angle diversity",
-            "one-source event candidate"
-          ],
-          "score": 0.389,
-          "title": "South Korea’s Kospi jumps 4% after 31% crash from June peak. What’s ahead?"
+          "title": "Mrs Bectors Food shares surge 30% in 4 days after Sunil Singhania's Abakkus acquires 1% stake. Do you own?"
         },
         {
           "category": "insightEvent",
@@ -1222,6 +1002,118 @@
           ],
           "score": 0.2764,
           "title": "JD Vance says wife Usha and son 'happy and healthy' after birth of fourth child"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 2
+              },
+              "name": "sourceDiversity",
+              "reason": "multi-source event",
+              "score": 0.72,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:ffc1464086",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:ffc1464086",
+            "representativeId": "cb24f400b072a503",
+            "representativeTitle": "ASEAN's top diplomats meet in shadow of U.S.-Iran conflict",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.62,
+              "sourceDiversityScore": 0.72,
+              "temporalEvolutionScore": 0.49
+            },
+            "slotCount": 2,
+            "slots": [
+              "minus12h",
+              "minus24h"
+            ],
+            "sourceGroupCount": 2,
+            "sourceGroups": [
+              "business_line",
+              "the_hindu"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "cb24f400b072a503",
+              "59557f688d5635e5"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "asean",
+              "china",
+              "diplomats",
+              "meet"
+            ],
+            "topicKey": "asean|china|diplomats"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "multi-source event"
+          ],
+          "score": 0.2216,
+          "title": "ASEAN's top diplomats meet in shadow of U.S.-Iran conflict"
         },
         {
           "category": "insightEvent",
@@ -1441,17 +1333,128 @@
           ],
           "score": 0.1885,
           "title": "Top news of the day | July 5, 2026 - The Hindu"
+        },
+        {
+          "category": "insightEvent",
+          "gates": [
+            {
+              "details": {
+                "storyCount": 2
+              },
+              "name": "eventCoherence",
+              "reason": "event sketch has repeated story count",
+              "score": 0.62,
+              "status": "PASS"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0,
+                "distinctAngles": 0
+              },
+              "name": "angleDiversity",
+              "reason": "weak child angle diversity",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "sourceGroupCount": 1
+              },
+              "name": "sourceDiversity",
+              "reason": "one-source event candidate",
+              "score": 0.35,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "baseReportRatio": 1.0
+              },
+              "name": "baseReportCap",
+              "reason": "base-report dominated event candidate",
+              "score": 0.25,
+              "status": "WARN"
+            },
+            {
+              "details": {
+                "childCount": 2
+              },
+              "name": "weakTree",
+              "reason": "child tree has enough depth",
+              "score": 0.5,
+              "status": "PASS"
+            },
+            {
+              "details": {},
+              "name": "duplicateChildren",
+              "reason": "no child objects to dedup",
+              "score": 0.7,
+              "status": "PASS"
+            }
+          ],
+          "id": "sketch:33564bb2d8",
+          "item": {
+            "angleCount": 1,
+            "baseReportRatio": 1.0,
+            "childScores": [],
+            "id": "sketch:33564bb2d8",
+            "representativeId": "a166364a8fada4cc",
+            "representativeTitle": "Samsung Galaxy Watch 9 Leak Reveals Major Chipset Upgrade Before Galaxy Unpacked",
+            "scoreBreakdown": {
+              "angleDiversityScore": 0.25,
+              "eventImportanceScore": 0.59,
+              "freshnessScore": 0.0,
+              "noveltyDeltaScore": 0.44999999999999996,
+              "sourceAuthorityScore": 0.38,
+              "sourceDiversityScore": 0.35,
+              "temporalEvolutionScore": 0.37
+            },
+            "slotCount": 1,
+            "slots": [
+              "minus12h"
+            ],
+            "sourceGroupCount": 1,
+            "sourceGroups": [
+              "gadgets360"
+            ],
+            "storyCount": 2,
+            "storyIds": [
+              "a166364a8fada4cc",
+              "a418c17231e0fb45"
+            ],
+            "topAngles": [
+              {
+                "angle": "base_report",
+                "count": 2
+              }
+            ],
+            "topTokens": [
+              "galaxy",
+              "watch",
+              "samsung",
+              "leak",
+              "ultra"
+            ],
+            "topicKey": "galaxy|watch|samsung"
+          },
+          "locationKey": "event",
+          "rankingReasons": [
+            "event sketch has repeated story count",
+            "weak child angle diversity",
+            "one-source event candidate"
+          ],
+          "score": 0.1751,
+          "title": "Samsung Galaxy Watch 9 Leak Reveals Major Chipset Upgrade Before Galaxy Unpacked"
         }
       ],
       "rankingProfile": "insight-v2-event-angle-tree",
       "scoreBreakdown": {
         "angleDiversityScore": 0.3825,
-        "eventImportanceScore": 0.66,
+        "eventImportanceScore": 0.67,
         "freshnessScore": 0.0,
         "noveltyDeltaScore": 0.4833,
-        "sourceAuthorityScore": 0.42,
-        "sourceDiversityScore": 0.4117,
-        "temporalEvolutionScore": 0.41
+        "sourceAuthorityScore": 0.44,
+        "sourceDiversityScore": 0.4425,
+        "temporalEvolutionScore": 0.42
       }
     },
     "localTravel": {
@@ -1554,7 +1557,7 @@
         },
         "events": 0,
         "festivals": 0,
-        "inputItemCount": 49,
+        "inputItemCount": 48,
         "locationCounts": {
           "chennai": 19,
           "trichy": 11
@@ -5036,7 +5039,7 @@
       }
     }
   },
-  "generatedAt": 1784609269192,
+  "generatedAt": 1784620561416,
   "implementedDestinations": [
     "upAhead",
     "buzz",
@@ -5066,11 +5069,11 @@
       "no ranked local/travel item for muscat",
       "no ranked local/travel item for chennai",
       "no ranked local/travel item for trichy",
-      "2 base-report-heavy Insight parent(s) demoted"
+      "4 base-report-heavy Insight parent(s) demoted"
     ],
     "destinationScores": {
       "buzz": 0.0,
-      "insight": 0.3954,
+      "insight": 0.4055,
       "localTravel": 0.0,
       "upAhead": 0.8607
     },
@@ -5080,7 +5083,7 @@
       "localTravel": "FAIL",
       "upAhead": "WARN"
     },
-    "overallScore": 0.314,
+    "overallScore": 0.3165,
     "overallStatus": "FAIL",
     "rankingProfiles": {
       "buzz": "buzz-v2-trend-local-travel",
