@@ -97,9 +97,29 @@ function appendMissingTopStoryRank(lines, item) {
     }
 }
 
+function appendGroupPosition(lines, options = {}) {
+    const groupTitle = String(options.groupTitle || '').trim();
+    const position = Number(options.groupPosition);
+    const total = Number(options.groupTotal);
+
+    if (groupTitle) lines.push(`Group: ${groupTitle}`);
+    if (
+        Number.isInteger(position) && position > 0 &&
+        Number.isInteger(total) && total >= position
+    ) {
+        lines.push(`Position in Group: ${position} of ${total}`);
+    }
+}
+
 export function buildStoryInfoText(
     item,
-    { includeScoreBreakdown = false, expectTopStoryRank = false } = {}
+    {
+        includeScoreBreakdown = false,
+        expectTopStoryRank = false,
+        groupTitle = '',
+        groupPosition = null,
+        groupTotal = null,
+    } = {}
 ) {
     const storyUrl = getStoryUrl(item);
     const lines = [];
@@ -107,6 +127,7 @@ export function buildStoryInfoText(
     if (item?.source) lines.push(`Source: ${shortenSourceLabel(item.source)}`);
     if (storyUrl) lines.push(`Source Link: ${storyUrl}`);
     if (item?.headline || item?.title) lines.push(`Story: ${item.headline || item.title}`);
+    appendGroupPosition(lines, { groupTitle, groupPosition, groupTotal });
 
     if (includeScoreBreakdown && item?._topStoryRank) {
         appendTopStoryBreakdown(lines, item._topStoryRank);
