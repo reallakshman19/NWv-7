@@ -39,12 +39,64 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      source_sha: ${{ steps.source.outputs.source_sha }}
     # For workflow_run, only publish when the upstream data run succeeded; push /
     # manual dispatch always build.
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Checkout
+      - name: Resolve immutable deployment source
+        id: source
+        shell: bash
+        env:
+          TRIGGER_EVENT: ${{ github.event_name }}
+          EVENT_SHA: ${{ github.sha }}
+          UPSTREAM_HEAD_SHA: ${{ github.event.workflow_run.head_sha || '' }}
+        run: |
+          set -euo pipefail
+          case "$TRIGGER_EVENT" in
+            workflow_run)
+              source_sha="$UPSTREAM_HEAD_SHA"
+              ;;
+            push|workflow_dispatch)
+              source_sha="$EVENT_SHA"
+              ;;
+            *)
+              echo "Unsupported deployment trigger: $TRIGGER_EVENT" >&2
+              exit 1
+              ;;
+          esac
+          source_sha="${source_sha,,}"
+          if [[ ! "$source_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid immutable deployment source SHA" >&2
+            exit 1
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout immutable deployment source
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.source.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Verify immutable checkout
+        id: checkout
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          checked_out_sha=$(git rev-parse HEAD | tr '[:upper:]' '[:lower:]')
+          if [ "$checked_out_sha" != "$SOURCE_SHA" ]; then
+            echo "Checkout mismatch: expected $SOURCE_SHA, observed $checked_out_sha" >&2
+            exit 1
+          fi
+          echo "checked_out_sha=$checked_out_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Freeze build provenance timestamp
+        id: clock
+        shell: bash
+        run: echo "frozen_at=$(date -u +'%Y-%m-%dT%H:%M:%S.000Z')" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -62,6 +114,18 @@ jobs:
         run: npm run build
 
       - name: Write pages data manifest
+        env:
+          PAGES_SOURCE_SHA: ${{ steps.source.outputs.source_sha }}
+          PAGES_CHECKED_OUT_SHA: ${{ steps.checkout.outputs.checked_out_sha }}
+          PAGES_TRIGGER_EVENT: ${{ github.event_name }}
+          PAGES_DEPLOY_WORKFLOW_RUN_ID: ${{ github.run_id }}
+          PAGES_DEPLOY_WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+          PAGES_FROZEN_AT: ${{ steps.clock.outputs.frozen_at }}
+          PAGES_UPSTREAM_WORKFLOW_NAME: ${{ github.event.workflow_run.name || '' }}
+          PAGES_UPSTREAM_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || '' }}
+          PAGES_UPSTREAM_WORKFLOW_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt || '' }}
+          PAGES_UPSTREAM_HEAD_SHA: ${{ github.event.workflow_run.head_sha || '' }}
+          PAGES_UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
         run: node scripts/write_pages_data_manifest.mjs
 
       - name: Setup Pages
@@ -84,6 +148,67 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  verify-pages-provenance:
+    name: Verify deployed Pages source provenance
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout immutable verification source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.source_sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Verify deployed Pages provenance and bytes
+        env:
+          DEPLOYED_BASE_URL: ${{ needs.deploy.outputs.page_url }}
+          EXPECTED_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+          PAGES_PROVENANCE_ARTIFACT_DIR: artifacts/pages-deployment-provenance
+        run: node scripts/verify_pages_deployment_provenance.mjs
+
+      - name: Upload Pages provenance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-deployment-provenance-${{ needs.build.outputs.source_sha }}-${{ github.run_id }}
+          path: artifacts/pages-deployment-provenance
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish Pages provenance status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_JOB_STATUS: ${{ job.status }}
+          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          state="failure"
+          description="Pages deployment provenance verification failed"
+          if [ "$VERIFY_JOB_STATUS" = "success" ]; then
+            state="success"
+            description="Pages source checkout and served bytes verified"
+          fi
+          payload=$(jq -n \
+            --arg state "$state" \
+            --arg context "deployment/pages-provenance" \
+            --arg description "$description" \
+            --arg target_url "$RUN_URL" \
+            '{state: $state, context: $context, description: $description, target_url: $target_url}')
+          curl --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$SOURCE_SHA" \
+            --data "$payload"
 
   verify-world-health:
     name: Verify deployed World section health
