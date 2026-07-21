@@ -2,6 +2,11 @@ import crypto from 'node:crypto';
 
 export const PAGES_DEPLOYMENT_PROVENANCE_SCHEMA =
   'nw-pages-deployment-provenance/v1';
+export const PAGES_SOURCE_RESOLUTION_MODES = Object.freeze({
+  workflow_run: 'workflow-run-default-branch-checkout',
+  push: 'push-event-sha',
+  workflow_dispatch: 'workflow-dispatch-event-sha',
+});
 export const PAGES_TRACKED_FILE_NAMES = Object.freeze([
   'insight_latest.json',
   'sections_latest.json',
@@ -14,17 +19,18 @@ export const PAGES_TRACKED_FILE_NAMES = Object.freeze([
 const SHA_RE = /^[0-9a-f]{40}$/;
 const SHA256_RE = /^[0-9a-f]{64}$/;
 const INTEGER_RE = /^[1-9]\d*$/;
-const EVENTS = new Set(['workflow_run', 'push', 'workflow_dispatch']);
+const EVENTS = new Set(Object.keys(PAGES_SOURCE_RESOLUTION_MODES));
 const REASON_ORDER = [
   'provenance_missing', 'provenance_schema_unsupported',
-  'trigger_event_unsupported', 'source_sha_invalid',
-  'checked_out_sha_invalid', 'source_checkout_mismatch',
-  'expected_source_sha_mismatch', 'deploy_workflow_context_invalid',
-  'frozen_at_invalid', 'workflow_run_upstream_missing',
-  'workflow_run_upstream_sha_mismatch', 'upstream_fields_unexpected',
-  'tracked_file_missing', 'tracked_file_duplicate',
-  'tracked_file_record_invalid', 'tracked_file_hash_invalid',
-  'tracked_file_hash_mismatch', 'tracked_file_accounting_mismatch',
+  'trigger_event_unsupported', 'source_resolution_mode_invalid',
+  'source_sha_invalid', 'checked_out_sha_invalid',
+  'source_checkout_mismatch', 'expected_source_sha_mismatch',
+  'deploy_workflow_context_invalid', 'frozen_at_invalid',
+  'workflow_run_upstream_missing', 'workflow_run_upstream_sha_invalid',
+  'upstream_fields_unexpected', 'tracked_file_missing',
+  'tracked_file_duplicate', 'tracked_file_record_invalid',
+  'tracked_file_hash_invalid', 'tracked_file_hash_mismatch',
+  'tracked_file_accounting_mismatch',
 ];
 
 function fail(code, message) {
@@ -37,6 +43,12 @@ function normalizeSha(value, code = 'source_sha_invalid') {
   const sha = String(value || '').trim().toLowerCase();
   if (!SHA_RE.test(sha)) fail(code, `${code}: expected a 40-character Git SHA`);
   return sha;
+}
+
+function triggerEvent(context = {}) {
+  return String(
+    context.triggerEvent ?? context.eventName ?? context.event_name ?? '',
+  );
 }
 
 function workflowRun(context = {}) {
@@ -63,46 +75,57 @@ function normalizeFrozenAt(input) {
   return text;
 }
 
+function normalizeResolutionMode(input, event) {
+  const mode = String(input || '').trim();
+  if (mode !== PAGES_SOURCE_RESOLUTION_MODES[event]) {
+    fail(
+      'source_resolution_mode_invalid',
+      `sourceResolutionMode is invalid for ${event || 'missing event'}`,
+    );
+  }
+  return mode;
+}
+
 export function sha256Bytes(bytes) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
 
 export function resolvePagesDeploymentSource(context = {}) {
-  const event = String(
-    context.triggerEvent ?? context.eventName ?? context.event_name ?? '',
-  );
+  const event = triggerEvent(context);
   if (!EVENTS.has(event)) {
     fail('trigger_event_unsupported', `Unsupported deployment trigger: ${event || 'missing'}`);
   }
   if (event === 'workflow_run') {
-    const headSha = value(workflowRun(context), 'headSha', 'head_sha');
-    if (!headSha) {
-      fail('workflow_run_upstream_missing', 'workflow_run.head_sha is required');
-    }
-    return normalizeSha(headSha);
+    normalizeSha(
+      value(workflowRun(context), 'headSha', 'head_sha'),
+      'workflow_run_upstream_sha_invalid',
+    );
+    return normalizeSha(context.checkedOutSha, 'checked_out_sha_invalid');
   }
   return normalizeSha(context.githubSha ?? context.github_sha);
 }
 
-function upstreamProvenance(context, sourceSha) {
+function upstreamProvenance(context) {
   const run = workflowRun(context);
-  const upstreamHeadSha = normalizeSha(value(run, 'headSha', 'head_sha'));
   const upstreamWorkflowName = String(value(run, 'workflowName', 'name') || '').trim();
   const upstreamConclusion = String(value(run, 'conclusion', 'conclusion') || '').trim();
   if (!upstreamWorkflowName || !upstreamConclusion) {
     fail('workflow_run_upstream_missing', 'workflow_run name and conclusion are required');
   }
-  if (upstreamHeadSha !== sourceSha) {
-    fail('workflow_run_upstream_sha_mismatch', 'sourceSha must equal upstreamHeadSha');
-  }
   return {
     upstreamWorkflowName,
-    upstreamWorkflowRunId: normalizeRunId(value(run, 'runId', 'id'), 'upstreamWorkflowRunId'),
+    upstreamWorkflowRunId: normalizeRunId(
+      value(run, 'runId', 'id'),
+      'upstreamWorkflowRunId',
+    ),
     upstreamWorkflowRunAttempt: normalizeRunId(
       value(run, 'runAttempt', 'run_attempt'),
       'upstreamWorkflowRunAttempt',
     ),
-    upstreamHeadSha,
+    upstreamHeadSha: normalizeSha(
+      value(run, 'headSha', 'head_sha'),
+      'workflow_run_upstream_sha_invalid',
+    ),
     upstreamConclusion,
   };
 }
@@ -118,30 +141,32 @@ function nullUpstream() {
 }
 
 export function buildPagesDeploymentProvenance(context = {}) {
-  const triggerEvent = String(
-    context.triggerEvent ?? context.eventName ?? context.event_name ?? '',
-  );
+  const event = triggerEvent(context);
   const resolved = resolvePagesDeploymentSource(context);
   const sourceSha = normalizeSha(context.sourceSha ?? resolved);
   if (sourceSha !== resolved) {
-    fail('expected_source_sha_mismatch', 'sourceSha does not match the event source authority');
+    fail('expected_source_sha_mismatch', 'sourceSha does not match its event authority');
   }
   const checkedOutSha = normalizeSha(context.checkedOutSha, 'checked_out_sha_invalid');
-  const upstream = triggerEvent === 'workflow_run'
-    ? upstreamProvenance(context, sourceSha)
-    : nullUpstream();
   const provenance = {
     schemaVersion: PAGES_DEPLOYMENT_PROVENANCE_SCHEMA,
     sourceSha,
     checkedOutSha,
-    triggerEvent,
-    deployWorkflowRunId: normalizeRunId(context.deployWorkflowRunId, 'deployWorkflowRunId'),
+    sourceResolutionMode: normalizeResolutionMode(
+      context.sourceResolutionMode,
+      event,
+    ),
+    triggerEvent: event,
+    deployWorkflowRunId: normalizeRunId(
+      context.deployWorkflowRunId,
+      'deployWorkflowRunId',
+    ),
     deployWorkflowRunAttempt: normalizeRunId(
       context.deployWorkflowRunAttempt,
       'deployWorkflowRunAttempt',
     ),
     frozenAt: normalizeFrozenAt(context.frozenAt),
-    ...upstream,
+    ...(event === 'workflow_run' ? upstreamProvenance(context) : nullUpstream()),
     sourceCheckoutMatched: sourceSha === checkedOutSha,
   };
   const result = validatePagesDeploymentProvenance(
@@ -161,9 +186,12 @@ function validateProvenance(provenance, expected, reasons) {
     add(reasons, 'provenance_missing');
     return;
   }
+  const event = provenance.triggerEvent;
   add(reasons, 'provenance_schema_unsupported',
     provenance.schemaVersion !== PAGES_DEPLOYMENT_PROVENANCE_SCHEMA);
-  add(reasons, 'trigger_event_unsupported', !EVENTS.has(provenance.triggerEvent));
+  add(reasons, 'trigger_event_unsupported', !EVENTS.has(event));
+  add(reasons, 'source_resolution_mode_invalid',
+    provenance.sourceResolutionMode !== PAGES_SOURCE_RESOLUTION_MODES[event]);
   add(reasons, 'source_sha_invalid', !SHA_RE.test(String(provenance.sourceSha || '')));
   add(reasons, 'checked_out_sha_invalid',
     !SHA_RE.test(String(provenance.checkedOutSha || '')));
@@ -187,12 +215,16 @@ function validateProvenance(provenance, expected, reasons) {
     provenance.upstreamHeadSha,
     provenance.upstreamConclusion,
   ];
-  if (provenance.triggerEvent === 'workflow_run') {
+  if (event === 'workflow_run') {
     add(reasons, 'workflow_run_upstream_missing',
-      upstream.some(item => item === null || item === '' || item === undefined));
-    add(reasons, 'workflow_run_upstream_sha_mismatch',
-      provenance.upstreamHeadSha !== provenance.sourceSha);
-  } else if (EVENTS.has(provenance.triggerEvent)) {
+      upstream.slice(0, 3).concat(upstream[4])
+        .some(item => item === null || item === '' || item === undefined));
+    add(reasons, 'workflow_run_upstream_missing',
+      !INTEGER_RE.test(String(provenance.upstreamWorkflowRunId ?? '')) ||
+        !INTEGER_RE.test(String(provenance.upstreamWorkflowRunAttempt ?? '')));
+    add(reasons, 'workflow_run_upstream_sha_invalid',
+      !SHA_RE.test(String(provenance.upstreamHeadSha || '')));
+  } else if (EVENTS.has(event)) {
     add(reasons, 'upstream_fields_unexpected',
       upstream.some(item => item !== null));
   }
