@@ -152,7 +152,10 @@ async function main() {
 
     report.badgeStatus = await badge.getAttribute('data-status');
     report.badgeLabel = (await badge.textContent())?.trim() || null;
-    if (badgeReadinessError || !CONCRETE_STATUSES.includes(report.badgeStatus)) {
+    if (
+      badgeReadinessError ||
+      !['ok', 'warning', 'critical'].includes(report.badgeStatus)
+    ) {
       throw new Error(
         `World section health badge is not concrete after hydration: ${report.badgeStatus || 'missing'}`,
         { cause: badgeReadinessError || undefined },
