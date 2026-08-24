@@ -14,23 +14,23 @@ SOURCE_TASK: User-approved Top Stories/Live/Hybrid repair plan; auto mode Batch 
 PR_OR_WIP: WIP-NW-RANK-GEO-001
 BRANCH: agent/nw-rank-geo-001-evidence-provenance
 
-PR_HEAD_OBSERVED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
-REPORT_BASIS_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+PR_HEAD_OBSERVED: e779c49540885ef5c6c5db79aa1849980b4b9e92
+REPORT_BASIS_HEAD: e779c49540885ef5c6c5db79aa1849980b4b9e92
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-001
+GROUNDING_EPOCH: GE-002
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PLAN
-LAST_COMPLETED_STAGE: COORDINATION_CHECK
+CURRENT_STAGE: PR_CREATE
+LAST_COMPLETED_STAGE: VALIDATE
 CURRENT_BLOCKER: none
-HIGHEST_RISK: removing provenance fields could suppress legitimate geography if the story lacks explicit location evidence
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:22:14+04:00
+HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:25:43+04:00
 
-EXACT_NEXT_ACTION: implement a pure geography-evidence scorer that excludes acquisition fields and add focused contamination tests
+EXACT_NEXT_ACTION: open a draft PR, reconcile its remote diff/reviews/checks, and update this report with the PR number
 ```
 
 ## 2. Handover in 60 Seconds
@@ -38,18 +38,18 @@ EXACT_NEXT_ACTION: implement a pure geography-evidence scorer that excludes acqu
 ### What is now true
 
 - Current `main` is grounded at `900daeac937bfd1b21a7fe63495cbe2388f50ecd`.
-- `getLocationRelevanceScore()` currently concatenates `section`, `sourceSection`, `region`, and `title`.
+- Grounded `main` concatenates `section`, `sourceSection`, `region`, and `title`; this branch replaces that authority with story-only evidence.
 - Hybrid normalization uses `section`/`sourceSection` as requested/acquisition lane metadata.
 - Therefore a Seattle story acquired through an India lane can receive India relevance despite no India evidence in the story.
 - Open PRs #386/#387/#396/#483 do not touch this batch's intended files.
 
 ### What is currently being worked on
 
-A bounded scoring-signal correction that separates story geography from acquisition provenance.
+The implementation and focused certification are complete; draft PR allocation and reconciliation are next.
 
 ### What remains unfinished
 
-Implementation, focused tests, standalone validation, remote reconciliation, PR creation, and dependency-backed repository checks.
+Draft PR creation/reconciliation and dependency-backed repository checks.
 
 ### What must not be assumed
 
@@ -61,12 +61,15 @@ Implementation, focused tests, standalone validation, remote reconciliation, PR 
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:22:14+04:00
+verified_at: 2026-08-24T22:25:43+04:00
 default_branch: main
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 working_branch: agent/nw-rank-geo-001-evidence-provenance
 pr: not yet allocated
 merge_base: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+branch_head: e779c49540885ef5c6c5db79aa1849980b4b9e92
+ahead_by: 4
+behind_by: 0
 open_prs_checked: 386, 387, 396, 483
 coordination_state: SAFE
 ```
@@ -107,17 +110,17 @@ Ensure Top Stories location relevance is derived from story evidence, not the fe
 
 | Work item | Implementation | Validation | Remaining |
 |---|---|---|---|
-| Pure story-geography evidence scorer | UNSTARTED | NOT_RUN | implement |
-| Top Stories signal integration | UNSTARTED | NOT_RUN | implement |
-| Contamination certification | UNSTARTED | NOT_RUN | implement |
-| Full repository checks | UNSTARTED | NOT_RUN | full checkout/dependencies required |
+| Pure story-geography evidence scorer | COMPLETE | syntax + standalone PASS | repository suite |
+| Top Stories signal integration | COMPLETE | syntax + exact remote match PASS | repository suite |
+| Contamination certification | COMPLETE | syntax PASS; runner NOT_RUN | run Vitest |
+| Full repository checks | NOT_RUN | NOT_RUN | full checkout/dependencies required |
 
 ## 6. Active Item Register
 
 | ID | Type | Severity | Status | Summary | Evidence |
 |---|---|---|---|---|---|
-| ISS-001 | defect | high | OPEN | acquisition provenance is treated as story geography | `section`/`sourceSection` concatenation |
-| RISK-001 | risk | medium | OPEN | legitimate local evidence could be lost if explicit fields are incomplete | field-contract uncertainty |
+| ISS-001 | defect | high | RESOLVED | acquisition provenance was treated as story geography | pure evidence authority |
+| RISK-001 | risk | medium | MITIGATED | legitimate local evidence could be lost if explicit fields are incomplete | explicit region/country/code/city/location/title/summary fields retained |
 | DEC-001 | decision | medium | ACCEPTED | preserve numeric scores; change evidence authority only | bounded compatibility |
 | DEC-002 | decision | medium | ACCEPTED | UI evidence display is a later work pack | scope boundary |
 
@@ -164,17 +167,20 @@ Origin: PREEXISTING
 ### VAL-002 — Focused contamination test
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS (syntax/source review); Vitest runner NOT_RUN
+Observation: STATIC_AND_STANDALONE_EQUIVALENT
 Oracle: IMPLEMENTATION_COUPLED
+Cases: Seattle/India lane; provenance invariance; explicit India/Oman/country-code/location; explicit international evidence
 ```
 
 ### VAL-003 — Standalone pure-module validation
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS
+Observation: EXECUTED
 Oracle: INDEPENDENT
+Tested content: exact pure module published at e779c49540885ef5c6c5db79aa1849980b4b9e92
+Actual: Top Stories geography evidence provenance: PASS
 ```
 
 ### VAL-004 — Repository Vitest/lint/build/full certification
@@ -183,7 +189,18 @@ Oracle: INDEPENDENT
 Status: NOT_RUN
 Observation: NOT_OBSERVED
 Oracle: NONE
-Reason: implementation not yet complete; full connector-authenticated checkout unavailable
+Reason: full connector-authenticated checkout/dependency environment unavailable; current main has no Actions workflows
+```
+
+### VAL-005 — Remote reconciliation
+
+```text
+Status: PASS
+Observation: CONNECTOR_COMPARE
+Oracle: INDEPENDENT
+Base: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+Head: e779c49540885ef5c6c5db79aa1849980b4b9e92
+Result: ahead 4, behind 0; four intended files; all three source/test files match validated local contents exactly
 ```
 
 ## 10. Changed-File Ledger
@@ -191,9 +208,12 @@ Reason: implementation not yet complete; full connector-authenticated checkout u
 | File | Intended? | Purpose | Validation |
 |---|---:|---|---|
 | `reports/NW-RANK-GEO-001_location_evidence.md` | yes | living recovery report | source review |
+| `src/services/topStories/topStoriesSignals.js` | yes | delegate numeric geography score to pure evidence authority | syntax + exact remote match |
+| `src/services/topStories/topStoriesLocationSignals.js` | yes | story-only geography evidence scorer | syntax + standalone behavior + exact remote match |
+| `src/services/topStories/topStoriesLocationSignals.cert.test.js` | yes | provenance contamination certification | syntax + source review + exact remote match |
 
-Actual branch file count after report creation: 1.  
-Ledger count: 1.  
+Actual branch file count: 4.  
+Ledger count: 4.  
 Unexplained files: 0.
 
 ## 11. Review / CI State
@@ -216,11 +236,11 @@ COORDINATION_STATE: SAFE
 ## 13. Continuation State
 
 ```text
-Start here: src/services/topStories/topStoriesSignals.js#getLocationRelevanceScore
+Start here: create a draft PR from agent/nw-rank-geo-001-evidence-provenance to main
 Do not redo: live-main/open-PR grounding at GE-001 unless main moves
 Do not change: weights, thresholds, materiality, corroboration, source tiers, UI, workflows
-Validation required: provenance invariance, explicit local/world evidence, standalone syntax/behavior
-Exact next action: add pure evidence module, integrate numeric score, add cert
+Validation still required: repository Vitest/lint/build/full certification when available
+Exact next action: create draft PR and reconcile metadata/reviews/threads/checks
 Merge authority: NOT_GRANTED
 ```
 
@@ -239,12 +259,25 @@ checks_verified: no PR
 claims_verified: open PR changed-file inspection
 ```
 
+### GE-002
+
+```text
+verified_at: 2026-08-24T22:25:43+04:00
+BRANCH_HEAD: e779c49540885ef5c6c5db79aa1849980b4b9e92
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+changed_files_verified: 4 intended, 0 unexplained
+reviews_verified: no PR
+checks_verified: no PR; dependency-backed suite NOT_RUN
+claims_verified: no overlapping file claims in open PRs checked
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-001
+Qualification basis: GE-002
 Generated from: ISS-001, RISK-001
-Next intended stage: IMPLEMENT
+Next intended stage: PR_CREATE / RECONCILE
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -259,3 +292,4 @@ APPENDIX_A_STATUS: CURRENT
 ## Stage Execution Log
 
 - 2026-08-24T22:22:14+04:00 — GE-001 established; Batch 2 scope classified SAFE; implementation not started.
+- 2026-08-24T22:25:43+04:00 — implementation, syntax, standalone behavior, and GE-002 remote reconciliation completed.
