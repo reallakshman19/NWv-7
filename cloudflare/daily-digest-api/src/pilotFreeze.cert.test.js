@@ -21,6 +21,14 @@ const FIXTURES = Object.freeze({
   </item></channel></rss>`,
 });
 
+const RICH_EXPRESS_ARTICLE = `${FIXTURES[EXPRESS_ARTICLE]}
+  <a href="/article/india/court-1/">Supreme Court issues a major constitutional verdict</a>
+  <a href="/article/business/rbi-2/">RBI reviews inflation and banking conditions</a>
+  <a href="/article/india/cabinet-3/">Cabinet approves a national infrastructure policy</a>
+  <a href="/article/india/army-4/">Army reviews border security after ceasefire talks</a>
+  <a href="/article/world/china-5/">China and India hold a bilateral foreign ministers summit</a>
+  <a href="/article/technology/isro-6/">ISRO launches a new earth observation satellite</a>`;
+
 function fixtureFetch(counter = { count: 0 }, overrides = {}) {
   return async url => {
     counter.count += 1;
@@ -86,10 +94,33 @@ describe('Daily Digest pilot freeze', () => {
     expect(result.status).toBe('FROZEN');
     expect(result.snapshot.compositionState).toBe('DEGRADED_GLOBAL_UNAVAILABLE');
     expect(Object.keys(result.snapshot.selections)).toEqual(['I1', 'I2', 'I3']);
-    expect(result.snapshot.selections.I1.canonicalId).toContain('akashvani:morning-news');
-    expect(result.snapshot.selections.I2.canonicalId).toContain('indian-express:daily-briefing');
-    expect(result.snapshot.selections.I3.canonicalId).toContain('the-hindu:morning-digest');
     expect(result.globalDecision.state).toBe('GLOBAL_UNAVAILABLE');
+  });
+
+  it('automatically changes precedence from publisher-derived current-day quality evidence', async () => {
+    const result = await freezeDailyDigestPilot({
+      digestDate: '2026-08-24', now: FREEZE,
+      fetchImpl: fixtureFetch({ count: 0 }, { [EXPRESS_ARTICLE]: RICH_EXPRESS_ARTICLE }),
+      writeEnabled: false,
+    });
+    expect(result.snapshot.selections.I1.canonicalId).toContain('indian-express:daily-briefing');
+    const express = result.snapshot.candidates.find(row => row.publisherFamily === 'INDIAN_EXPRESS');
+    expect(express.significanceClass).toBe('HIGH');
+    expect(express.breadthClass).toBe('BROAD');
+    expect(express.diversityClass).toBe('DIVERSE');
+    expect(express.qualityEvidenceState).toBe('OBSERVED');
+    expect(JSON.stringify(result.snapshot)).not.toContain('constitutional verdict');
+  });
+
+  it('keeps The Hindu quality neutral when its article-body surface is unqualified', async () => {
+    const result = await freezeDailyDigestPilot({
+      digestDate: '2026-08-24', now: FREEZE, fetchImpl: fixtureFetch(), writeEnabled: false,
+    });
+    const hindu = result.snapshot.candidates.find(row => row.publisherFamily === 'THE_HINDU');
+    expect(hindu.qualityEvidenceState).toBe('UNAVAILABLE');
+    expect(hindu.significanceClass).toBe('ADEQUATE');
+    expect(hindu.breadthClass).toBe('ADEQUATE');
+    expect(hindu.diversityClass).toBe('MODERATE');
   });
 
   it('emits one D1 batch for snapshot plus three selections and three candidate traces', async () => {
@@ -104,14 +135,15 @@ describe('Daily Digest pilot freeze', () => {
     expect(db.batches[0]).toHaveLength(7);
   });
 
-  it('allows discrete current-day quality evidence to alter pre-freeze precedence', async () => {
+  it('allows explicit diagnostic overrides without bypassing evidence audit', async () => {
     const result = await freezeDailyDigestPilot({
       digestDate: '2026-08-24', now: FREEZE, fetchImpl: fixtureFetch(),
       writeEnabled: false,
       qualityOverrides: { THE_HINDU: { significanceClass: 'HIGH' } },
     });
-    expect(result.status).toBe('DRY_RUN_READY');
+    const hindu = result.snapshot.candidates.find(row => row.publisherFamily === 'THE_HINDU');
     expect(result.snapshot.selections.I1.canonicalId).toContain('the-hindu:morning-digest');
+    expect(hindu.qualityEvidenceState).toBe('UNAVAILABLE');
   });
 
   it('is idempotent by digest date and does not rediscover after freeze', async () => {
