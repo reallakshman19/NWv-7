@@ -112,7 +112,7 @@ NOT_RUN: npm run build
 NOT_RUN: npm run test:certify
 ```
 
-The PR must remain draft / not merge-ready until those dependency-backed checks are run in an environment with the repository dependencies. No GitHub Actions workflow was added, changed, or manually dispatched to work around this limitation.
+The PR remains draft / not merge-ready until those dependency-backed checks are run in an environment with the repository dependencies. No GitHub Actions workflow was added, changed, or manually dispatched to work around this limitation.
 
 ## Status
 
