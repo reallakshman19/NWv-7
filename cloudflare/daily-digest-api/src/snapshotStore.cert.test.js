@@ -31,11 +31,22 @@ function fakeReadDb() {
     frozen_at: '2026-08-24T04:45:00Z', snapshot_revision: 2,
     composition_state: 'DEGRADED_GLOBAL_UNAVAILABLE',
   };
-  const rows = [{ slot: 'I1', initial_canonical_id: 'a', effective_canonical_id: 'b' }];
+  const selections = [
+    { slot: 'I2', initial_canonical_id: 'a', effective_canonical_id: 'b', selection_reason: 'initial', replacement_reason: 'health_failover' },
+    { slot: 'I1', initial_canonical_id: 'c', effective_canonical_id: 'c', selection_reason: 'initial', replacement_reason: null },
+  ];
+  const candidates = [
+    { canonical_id: 'b', publisher_family: 'INDIAN_EXPRESS', product: 'DAILY_BRIEFING', edition: 'DEFAULT', role: 'INDIA_GENERAL', title: 'Daily Briefing', canonical_url: 'https://indianexpress.com/article/live-news/daily-briefing/' },
+    { canonical_id: 'c', publisher_family: 'AKASHVANI', product: 'MORNING_NEWS', edition: 'ENGLISH_NATIONAL', role: 'INDIA_GENERAL', title: 'Morning News', canonical_url: 'https://newsonair.gov.in/bulletins-detail-category/morning-news/' },
+  ];
   function statement(sql) {
     return {
       async first() { return snapshotRow; },
-      async all() { return { results: sql.includes('daily_digest_selections') ? rows : [] }; },
+      async all() {
+        if (sql.includes('daily_digest_selections')) return { results: selections };
+        if (sql.includes('daily_digest_candidates')) return { results: candidates };
+        return { results: [] };
+      },
     };
   }
   return {
@@ -68,7 +79,8 @@ function qualityCandidate() {
     scheduleState: 'EXPECTED', acquisitionState: 'OK', editionState: 'CURRENT',
     accessibilityState: 'UNKNOWN', roleFitClass: 'EXACT', significanceClass: 'HIGH',
     breadthClass: 'BROAD', diversityClass: 'DIVERSE', provenanceClass: 'PUBLIC_BROADCAST',
-    decision: 'SELECTED', decisionReason: 'SELECTED_I1',
+    decision: 'SELECTED', decisionReason: 'SELECTED_I1', title: 'Morning News',
+    canonicalUrl: 'https://newsonair.gov.in/bulletins-detail-category/morning-news/',
     publisherPublishedAt: '2026-08-24T02:45:00Z', observedAt: '2026-08-24T04:45:00Z',
     qualityEvidenceVersion: 'daily-digest-quality/v0.1', qualityEvidenceState: 'OBSERVED',
     qualityIntegrityClass: 'SUFFICIENT', qualityItemCount: 6, qualityTopicCount: 6,
@@ -88,21 +100,28 @@ describe('daily digest D1 store', () => {
     });
   });
 
-  it('persists derived quality audit fields without raw headline/body columns', () => {
+  it('persists derived quality audit plus digest-card metadata without raw bodies', () => {
     const db = fakeDb();
     const statements = buildSnapshotStatements(db, snapshot([qualityCandidate()]));
     const candidateInsert = statements.at(-1);
     expect(candidateInsert.sql).toContain('quality_evidence_version');
-    expect(candidateInsert.sql).toContain('quality_topic_counts_json');
-    expect(candidateInsert.sql).not.toMatch(/headline|article_body|raw_content/i);
-    expect(candidateInsert.values).toContain('daily-digest-quality/v0.1');
+    expect(candidateInsert.sql).toContain('canonical_url');
+    expect(candidateInsert.sql).toContain('title');
+    expect(candidateInsert.sql).not.toMatch(/article_body|raw_content/i);
+    expect(candidateInsert.values).toContain('Morning News');
   });
 
-  it('reconstructs initial and effective identities independently', async () => {
+  it('reconstructs identities and ordered public cards independently', async () => {
     const result = await readSnapshot(fakeReadDb(), '2026-08-24');
-    expect(result.initialSelection).toEqual({ I1: 'a' });
-    expect(result.effectiveSelection).toEqual({ I1: 'b' });
+    expect(result.initialSelection).toEqual({ I1: 'c', I2: 'a' });
+    expect(result.effectiveSelection).toEqual({ I1: 'c', I2: 'b' });
     expect(result.snapshotRevision).toBe(2);
+    expect(result.cards.map(card => card.slot)).toEqual(['I1', 'I2']);
+    expect(result.cards[1]).toMatchObject({
+      canonicalId: 'b',
+      publisherFamily: 'INDIAN_EXPRESS',
+      replacementReason: 'health_failover',
+    });
   });
 
   it('same-slot replacement preserves initial identity and appends evidence', async () => {

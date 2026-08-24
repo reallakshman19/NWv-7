@@ -21,8 +21,9 @@ function candidateStatements(db, snapshot) {
       publisher_published_at, observed_at, quality_evidence_version,
       quality_evidence_state, quality_integrity_class, quality_item_count,
       quality_topic_count, quality_core_topic_count,
-      quality_dominant_topic_share_bps, quality_topic_counts_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      quality_dominant_topic_share_bps, quality_topic_counts_json,
+      title, canonical_url
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     snapshot.snapshotId, candidate.canonicalId, candidate.publisherFamily, candidate.product,
     candidate.edition, candidate.role, candidate.qualificationState, candidate.scheduleState,
@@ -34,6 +35,7 @@ function candidateStatements(db, snapshot) {
     candidate.qualityIntegrityClass || null, candidate.qualityItemCount ?? null,
     candidate.qualityTopicCount ?? null, candidate.qualityCoreTopicCount ?? null,
     candidate.qualityDominantTopicShareBps ?? null, candidate.qualityTopicCountsJson || null,
+    candidate.title || null, candidate.canonicalUrl || null,
   ]));
 }
 
@@ -67,6 +69,46 @@ function selectionMap(rows, field) {
   return Object.fromEntries(rows.map(row => [row.slot, row[field]]));
 }
 
+const SLOT_ORDER = Object.freeze({ I1: 1, I2: 2, I3: 3, G1: 4 });
+
+function orderSelections(rows) {
+  return [...rows].sort((a, b) => (
+    (SLOT_ORDER[a.slot] || 99) - (SLOT_ORDER[b.slot] || 99)
+  ));
+}
+
+function buildPublicCards(selections, candidates) {
+  const byId = new Map(candidates.map(row => [row.canonical_id, row]));
+  return orderSelections(selections).map(selection => {
+    const candidate = byId.get(selection.effective_canonical_id);
+    if (!candidate) return null;
+    return {
+      slot: selection.slot,
+      canonicalId: selection.effective_canonical_id,
+      publisherFamily: candidate.publisher_family,
+      product: candidate.product,
+      edition: candidate.edition,
+      role: candidate.role,
+      title: candidate.title || null,
+      canonicalUrl: candidate.canonical_url || null,
+      selectionReason: selection.selection_reason,
+      replacementReason: selection.replacement_reason || null,
+    };
+  }).filter(Boolean);
+}
+
+async function readSnapshotRows(db, snapshotId) {
+  const selections = rowsFrom(await bind(db,
+    'SELECT * FROM daily_digest_selections WHERE snapshot_id = ?',
+    [snapshotId],
+  ).all());
+  const candidates = rowsFrom(await bind(db, `
+    SELECT canonical_id, publisher_family, product, edition, role, title, canonical_url
+    FROM daily_digest_candidates WHERE snapshot_id = ?
+  `, [snapshotId]).all());
+  return { selections: orderSelections(selections), candidates };
+}
+
 export async function readSnapshot(db, digestDate = null) {
   const query = digestDate
     ? 'SELECT * FROM daily_digest_snapshots WHERE digest_date = ? LIMIT 1'
@@ -74,10 +116,7 @@ export async function readSnapshot(db, digestDate = null) {
   const prepared = digestDate ? bind(db, query, [digestDate]) : db.prepare(query);
   const snapshot = await prepared.first();
   if (!snapshot) return null;
-  const selections = rowsFrom(await bind(db,
-    'SELECT * FROM daily_digest_selections WHERE snapshot_id = ? ORDER BY slot',
-    [snapshot.snapshot_id],
-  ).all());
+  const rows = await readSnapshotRows(db, snapshot.snapshot_id);
   return {
     schemaVersion: snapshot.schema_version,
     snapshotId: snapshot.snapshot_id,
@@ -88,8 +127,9 @@ export async function readSnapshot(db, digestDate = null) {
     frozenAt: snapshot.frozen_at,
     snapshotRevision: snapshot.snapshot_revision,
     compositionState: snapshot.composition_state,
-    initialSelection: selectionMap(selections, 'initial_canonical_id'),
-    effectiveSelection: selectionMap(selections, 'effective_canonical_id'),
+    initialSelection: selectionMap(rows.selections, 'initial_canonical_id'),
+    effectiveSelection: selectionMap(rows.selections, 'effective_canonical_id'),
+    cards: buildPublicCards(rows.selections, rows.candidates),
   };
 }
 
