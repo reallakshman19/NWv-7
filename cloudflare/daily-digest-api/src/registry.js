@@ -2,18 +2,35 @@ function entry(values) {
   return Object.freeze(values);
 }
 
+function calendar(publicationDays, start, end, graceMinutes, qualification) {
+  return {
+    publisherTimezone: 'Asia/Kolkata',
+    publicationDays: Object.freeze(publicationDays),
+    expectedPublicationStart: start,
+    expectedPublicationEnd: end,
+    publicationGraceMinutes: graceMinutes,
+    calendarQualification: qualification,
+  };
+}
+
+export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.2';
+
 export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
     publisherFamily: 'AKASHVANI', product: 'MORNING_NEWS', edition: 'ENGLISH_NATIONAL',
     role: 'INDIA_GENERAL', publisherClass: 'PUBLIC_BROADCASTER',
     qualificationState: 'QUALIFIED', precedence: 10,
-    publisherTimezone: 'Asia/Kolkata', publicationDays: 'DAILY', expectedPublicationLocalTime: '08:15',
+    discoveryUrl: 'https://newsonair.gov.in/bulletins-detail-category/morning-news/',
+    adapterKey: 'AKASHVANI_MORNING_NEWS',
+    ...calendar(['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], '08:15', '08:45', 30, 'QUALIFIED'),
   }),
   entry({
     publisherFamily: 'INDIAN_EXPRESS', product: 'DAILY_BRIEFING', edition: 'DEFAULT',
     role: 'INDIA_GENERAL', publisherClass: 'PRIVATE_PUBLISHER',
     qualificationState: 'QUALIFIED', precedence: 20,
-    publisherTimezone: 'Asia/Kolkata', publicationDays: 'DAILY', expectedPublicationWindow: '09:00-09:45',
+    discoveryUrl: 'https://indianexpress.com/section/live-news/',
+    adapterKey: 'INDIAN_EXPRESS_DAILY_BRIEFING',
+    ...calendar(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], '08:30', '10:15', 30, 'PILOT'),
   }),
   entry({
     publisherFamily: 'THE_HINDU', product: 'MORNING_DIGEST', edition: 'DEFAULT',
