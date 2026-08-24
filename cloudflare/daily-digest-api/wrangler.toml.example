@@ -1,0 +1,18 @@
+name = "daily-digest-api"
+main = "src/index.js"
+compatibility_date = "2026-08-24"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "daily-digest"
+database_id = "00000000-0000-0000-0000-000000000000"
+preview_database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[vars]
+DAILY_DIGEST_TIMEZONE = "Asia/Kolkata"
+DAILY_DIGEST_POLICY_VERSION = "daily-digest-policy/v0.2"
+DAILY_DIGEST_REGISTRY_VERSION = "daily-digest-registry/v0.1"
+
+# Production Cron is intentionally NOT configured in NW-DD-001.
+# Pilot candidate after qualification: 10:15 IST = 04:45 UTC = "45 4 * * *".
