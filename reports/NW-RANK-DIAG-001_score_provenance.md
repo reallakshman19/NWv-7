@@ -15,23 +15,23 @@ PR_OR_WIP: WIP-NW-RANK-DIAG-001
 BRANCH: agent/nw-rank-diag-001-score-provenance
 STACK_BASE: agent/nw-rank-corr-001-mature-evidence / PR#485
 
-PR_HEAD_OBSERVED: 2170616cd06c4967b872864b3393e28ef9198eb9
-REPORT_BASIS_HEAD: 2170616cd06c4967b872864b3393e28ef9198eb9
+PR_HEAD_OBSERVED: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+REPORT_BASIS_HEAD: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE_WITH_STACK: 2170616cd06c4967b872864b3393e28ef9198eb9
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-001
+GROUNDING_EPOCH: GE-002
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PLAN
-LAST_COMPLETED_STAGE: COORDINATION_CHECK
+CURRENT_STAGE: PR_CREATE
+LAST_COMPLETED_STAGE: VALIDATE
 CURRENT_BLOCKER: none
-HIGHEST_RISK: diagnostics arithmetic could diverge from the score actually used for admission
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:38:22+04:00
+HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:42:45+04:00
 
-EXACT_NEXT_ACTION: make one pure score-breakdown result the calculation authority and expose evidence/rank metadata
+EXACT_NEXT_ACTION: open a draft stacked PR against the PR #485 branch and reconcile its remote state
 ```
 
 ## 2. Handover in 60 Seconds
@@ -46,11 +46,11 @@ EXACT_NEXT_ACTION: make one pure score-breakdown result the calculation authorit
 
 ### What is currently being worked on
 
-A non-ranking diagnostics contract sourced from the exact arithmetic and evidence used by the ranker.
+Implementation and focused certification are complete; stacked draft PR allocation is next.
 
 ### What remains unfinished
 
-Implementation, focused tests, standalone validation, remote reconciliation, PR creation, and dependency-backed repository checks.
+Draft PR creation/reconciliation and dependency-backed repository checks.
 
 ### What must not be assumed
 
@@ -61,12 +61,15 @@ Implementation, focused tests, standalone validation, remote reconciliation, PR 
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:38:22+04:00
+verified_at: 2026-08-24T22:42:45+04:00
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 stack_base_pr: 485
 stack_base_head: 2170616cd06c4967b872864b3393e28ef9198eb9
 working_branch: agent/nw-rank-diag-001-score-provenance
 pr: not yet allocated
+branch_head: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+stack_relative_ahead_by: 5
+stack_relative_behind_by: 0
 coordination_state: SAFE_STACKED
 ```
 
@@ -107,19 +110,19 @@ Make Top Stories rank diagnostics self-contained and arithmetically identical to
 
 | Work item | Implementation | Validation | Remaining |
 |---|---|---|---|
-| Pure score-breakdown authority | UNSTARTED | NOT_RUN | implement |
-| Geography provenance propagation | UNSTARTED | NOT_RUN | implement |
-| Authoritative rank annotation | UNSTARTED | NOT_RUN | implement |
-| Focused certification | UNSTARTED | NOT_RUN | implement |
-| Full repository checks | UNSTARTED | NOT_RUN | dependencies required |
+| Pure score-breakdown authority | COMPLETE | syntax + standalone PASS | repository suite |
+| Geography provenance propagation | COMPLETE | syntax + exact remote match PASS | repository suite |
+| Authoritative rank annotation | COMPLETE | syntax + source review PASS | repository suite |
+| Focused certification | COMPLETE | syntax PASS; Vitest runner NOT_RUN | run Vitest |
+| Full repository checks | NOT_RUN | NOT_RUN | dependencies required |
 
 ## 6. Active Item Register
 
 | ID | Type | Severity | Status | Summary | Evidence |
 |---|---|---|---|---|---|
-| ISS-001 | diagnostics | high | OPEN | score inputs require manual reconstruction | `_topStoryRank` omissions |
-| ISS-002 | diagnostics | high | OPEN | visible position can be confused with ranker order | no authoritative-rank field |
-| RISK-001 | risk | high | OPEN | duplicate arithmetic could drift | single-authority requirement |
+| ISS-001 | diagnostics | high | RESOLVED | score inputs required manual reconstruction | score breakdown contract |
+| ISS-002 | diagnostics | high | RESOLVED | visible position could be confused with ranker order | explicit authoritative rank |
+| RISK-001 | risk | high | MITIGATED | duplicate arithmetic could drift | one result authors score and diagnostics |
 | DEC-001 | decision | medium | ACCEPTED | UI consumption deferred; backend contract first | scope boundary |
 
 ## 7. Technical Diagnosis
@@ -162,17 +165,21 @@ Actual: diagnostics omit location provenance/contributions/ranker index
 ### VAL-002 — Arithmetic cert
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS (syntax/source review); Vitest runner NOT_RUN
+Observation: STATIC_AND_STANDALONE_EQUIVALENT
 Oracle: IMPLEMENTATION_COUPLED
+Cases: contribution sum; penalty subtraction; max weight; normalized score; threshold margin; Seattle evidence; authoritative ranks
 ```
 
 ### VAL-003 — Independent standalone validation
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS
+Observation: EXECUTED
 Oracle: INDEPENDENT
+Tested content: exact pure score module published at 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+Actual: Top Stories score breakdown arithmetic: PASS
+Equivalence: raw score exactly equals previous inline formula for the reference fixture
 ```
 
 ### VAL-004 — Repository Vitest/lint/build/full certification
@@ -181,6 +188,18 @@ Oracle: INDEPENDENT
 Status: NOT_RUN
 Observation: NOT_OBSERVED
 Oracle: NONE
+Reason: full authenticated checkout/dependency environment unavailable; current main has no Actions workflows
+```
+
+### VAL-005 — Stack-relative remote reconciliation
+
+```text
+Status: PASS
+Observation: CONNECTOR_COMPARE
+Oracle: INDEPENDENT
+Base: agent/nw-rank-corr-001-mature-evidence @ 2170616cd06c4967b872864b3393e28ef9198eb9
+Head: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+Result: ahead 5, behind 0; five intended files; all four source/test files match validated local contents exactly
 ```
 
 ## 10. Changed-File Ledger
@@ -188,9 +207,13 @@ Oracle: NONE
 | File | Intended? | Purpose | Validation |
 |---|---:|---|---|
 | `reports/NW-RANK-DIAG-001_score_provenance.md` | yes | living recovery report | source review |
+| `src/services/topStories/topStoriesRanker.js` | yes | consume/publish exact breakdown and authoritative rank | syntax + exact remote match |
+| `src/services/topStories/topStoriesSignals.js` | yes | propagate story-only geography evidence | syntax + exact remote match |
+| `src/services/topStories/topStoriesScoreBreakdown.js` | yes | pure arithmetic authority | syntax + standalone behavior + exact remote match |
+| `src/services/topStories/topStoriesScoreBreakdown.cert.test.js` | yes | arithmetic/evidence/rank certification | syntax + source review + exact remote match |
 
-Stack-relative changed-file count after report creation: 1.  
-Ledger count: 1.  
+Stack-relative changed-file count: 5.  
+Ledger count: 5.  
 Unexplained files: 0.
 
 ## 11. Review / CI State
@@ -213,10 +236,10 @@ COORDINATION_STATE: SAFE_STACKED
 ## 13. Continuation State
 
 ```text
-Start here: scoreTopStoryCandidate and extractTopStorySignals
+Start here: create a draft PR from agent/nw-rank-diag-001-score-provenance to agent/nw-rank-corr-001-mature-evidence
 Do not change: policy values, admission logic, comparator, selection, browser processing, UI
-Validation required: arithmetic identity, evidence provenance, authoritative-rank stability
-Exact next action: add pure breakdown, propagate location signal, annotate sorted candidates
+Validation still required: repository Vitest/lint/build/full certification when available
+Exact next action: create stacked draft PR and reconcile metadata/reviews/threads/checks
 Merge authority: NOT_GRANTED
 ```
 
@@ -234,12 +257,25 @@ reviews_verified: no PR
 checks_verified: no PR
 ```
 
+### GE-002
+
+```text
+verified_at: 2026-08-24T22:42:45+04:00
+BRANCH_HEAD: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+STACK_BASE_HEAD: 2170616cd06c4967b872864b3393e28ef9198eb9
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+stack_relative_changed_files_verified: 5 intended, 0 unexplained
+reviews_verified: no PR
+checks_verified: no PR; dependency-backed suite NOT_RUN
+stack_base_pr_verified: PR #485 open, draft, mergeable, unchanged head
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-001
+Qualification basis: GE-002
 Generated from: ISS-001, ISS-002, RISK-001
-Next intended stage: IMPLEMENT
+Next intended stage: PR_CREATE / RECONCILE
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -254,3 +290,4 @@ APPENDIX_A_STATUS: CURRENT
 ## Stage Execution Log
 
 - 2026-08-24T22:38:22+04:00 — GE-001 established on PR #485 stack base; implementation not started.
+- 2026-08-24T22:42:45+04:00 — implementation, syntax, standalone arithmetic, and GE-002 stack reconciliation completed.
