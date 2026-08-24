@@ -1,11 +1,24 @@
-const SECTION_SNAPSHOT_PATH = '/newsdata/sections_latest.json';
-const SECTION_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
+import {
+  clearSectionsSnapshotLoadCache,
+  getRemainingBudgetMs,
+  isSupportedSectionsSnapshot,
+  loadSectionsSnapshot,
+  makeBudgetError,
+  makeBudgetExit,
+  SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS,
+  SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
+} from './sectionsSnapshotLoader.js';
+
+export {
+  loadSectionsSnapshot,
+  SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS,
+  SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
+};
+
 export const SECTION_SNAPSHOT_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 export const SECTION_ITEM_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 export const TOP_STORIES_ITEM_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 export const TOP_STORIES_WARN_AGE_MS = 6 * 60 * 60 * 1000;
-export const SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS = 1500;
-export const SECTION_SNAPSHOT_RETRY_BACKOFF_MS = Object.freeze([250, 500]);
 
 const SECTION_ALIASES = {
   chennai: 'tn',
@@ -27,7 +40,6 @@ const LOW_CONFIDENCE_TIMESTAMP_SOURCES = new Set([
   'unknown',
 ]);
 
-let memorySnapshot = null;
 const snapshotBudgetExitBySection = new Map();
 
 function safeArray(value) {
@@ -52,11 +64,6 @@ function hash(value) {
 function normalizeSectionKey(section) {
   const key = String(section || '').trim();
   return SECTION_ALIASES[key] || SECTION_ALIASES[key.toLowerCase()] || key;
-}
-
-function isSupportedSectionsSnapshot(snapshot) {
-  const schema = Number(snapshot?.schemaVersion || 0);
-  return schema === 1 || schema === 2;
 }
 
 function sectionSnapshotAgeMs(snapshot) {
@@ -109,61 +116,11 @@ function isFreshSectionItem(item, sourceSection = '', now = Date.now()) {
   return now - publishedAt <= maxAgeForSection(sourceSection, item);
 }
 
-function getSnapshotUrl() {
-  const base = import.meta?.env?.BASE_URL || '/';
-  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
-  return `${cleanBase}${SECTION_SNAPSHOT_PATH}?t=${Date.now()}`;
-}
-
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function getRemainingBudgetMs(startedAt, budgetMs) {
-  return Math.max(0, Number(budgetMs || 0) - (Date.now() - startedAt));
-}
-
-function makeBudgetError(startedAt, budgetMs) {
-  const elapsedMs = Date.now() - startedAt;
-  const error = new Error(`sections snapshot budget exceeded after ${elapsedMs}ms`);
-  error.code = 'snapshot-budget-exceeded';
-  error.elapsedMs = elapsedMs;
-  error.budgetMs = budgetMs;
-  return error;
-}
-
-function makeBudgetExit(error) {
-  if (error?.code !== 'snapshot-budget-exceeded') return null;
-  return {
-    fallbackReason: 'snapshot-budget-exceeded',
-    snapshotBudgetExceeded: true,
-    snapshotElapsedMs: Number(error.elapsedMs || 0),
-    snapshotBudgetMs: Number(error.budgetMs || 0),
-  };
-}
-
 function recordSnapshotBudgetExit(section, error) {
   const budgetExit = makeBudgetExit(error);
   if (!budgetExit) return;
   snapshotBudgetExitBySection.set(String(section || ''), budgetExit);
   snapshotBudgetExitBySection.set(normalizeSectionKey(section), budgetExit);
-}
-
-async function fetchWithBudget(url, remainingMs) {
-  const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), remainingMs) : null;
-  try {
-    return await fetch(url, {
-      cache: 'no-store',
-      signal: controller?.signal,
-      headers: {
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-      },
-    });
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
 }
 
 function normalizePrefetchedSectionItem(item, requestedSection, sourceSection) {
@@ -208,35 +165,6 @@ export function getSectionsSnapshotRuntimeSummary(snapshot) {
     hasSectionQuality: Boolean(snapshot?.sectionQuality),
     sectionQuality: snapshot?.sectionQuality || null,
   };
-}
-
-export async function loadSectionsSnapshot({ force = false, budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS } = {}) {
-  if (!force && memorySnapshot && Date.now() - memorySnapshot.loadedAt < SECTION_SNAPSHOT_TTL_MS) {
-    return memorySnapshot.snapshot;
-  }
-  const startedAt = Date.now();
-  let response;
-  let lastError;
-  for (let attempt = 0; attempt <= SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length; attempt += 1) {
-    const remainingMs = getRemainingBudgetMs(startedAt, budgetMs);
-    if (remainingMs <= 0) throw makeBudgetError(startedAt, budgetMs);
-    try {
-      response = await fetchWithBudget(getSnapshotUrl(), remainingMs);
-      if (!response.ok) throw new Error(`sections snapshot fetch failed: HTTP ${response.status}`);
-      break;
-    } catch (error) {
-      lastError = error?.name === 'AbortError' ? makeBudgetError(startedAt, budgetMs) : error;
-      const waitMs = Math.min(SECTION_SNAPSHOT_RETRY_BACKOFF_MS[attempt] || 0, getRemainingBudgetMs(startedAt, budgetMs));
-      if (attempt < SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length && waitMs > 0) await sleep(waitMs);
-    }
-  }
-  if (!response || !response.ok) throw lastError || new Error('sections snapshot fetch failed');
-  const snapshot = await response.json();
-  if (!isSupportedSectionsSnapshot(snapshot)) {
-    throw new Error(`unsupported sections snapshot schema: ${snapshot?.schemaVersion}`);
-  }
-  memorySnapshot = { loadedAt: Date.now(), snapshot };
-  return snapshot;
 }
 
 export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
@@ -316,7 +244,7 @@ export function consumeSectionsSnapshotBudgetExit(section) {
 }
 
 export function clearSectionsSnapshotCache() {
-  memorySnapshot = null;
+  clearSectionsSnapshotLoadCache();
   snapshotBudgetExitBySection.clear();
 }
 
@@ -331,3 +259,4 @@ export const __sectionsSnapshotInternalsForTest = {
 };
 
 export default fetchPrefetchedSectionNews;
+
