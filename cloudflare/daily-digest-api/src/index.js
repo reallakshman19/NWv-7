@@ -1,4 +1,5 @@
 import { isDigestDate } from './contracts.js';
+import { runScheduledPilot } from './pilotFreeze.js';
 import { readSnapshot } from './snapshotStore.js';
 
 const DATASET_PATH = '/api/datasets/dailyDigest';
@@ -49,11 +50,20 @@ export function runScheduledFoundation() {
   };
 }
 
+export function runScheduledDispatch(controller, env = {}) {
+  if (env.DAILY_DIGEST_PILOT_WRITE_ENABLED !== 'true') {
+    return Promise.resolve(runScheduledFoundation());
+  }
+  return runScheduledPilot(controller, env);
+}
+
 export default {
   fetch(request, env) {
     return handleDailyDigestRequest(request, env);
   },
-  scheduled(_controller, _env, ctx) {
-    ctx?.waitUntil?.(Promise.resolve(runScheduledFoundation()));
+  scheduled(controller, env, ctx) {
+    const work = runScheduledDispatch(controller, env);
+    ctx?.waitUntil?.(work);
+    return work;
   },
 };

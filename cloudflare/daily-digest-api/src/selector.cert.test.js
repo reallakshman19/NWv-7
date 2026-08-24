@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  compareQualityTuples,
   isChallengerMateriallySuperior,
   selectDailyDigest,
 } from './selector.js';
@@ -49,6 +50,21 @@ describe('daily digest selector', () => {
     ]);
     expect(Object.keys(result.selection)).toEqual(['I1', 'I2', 'G1']);
     expect(result.compositionState).toBe('DEGRADED_INDIA_SHORTFALL');
+  });
+
+  it('preserves simultaneous India and global shortfall', () => {
+    const result = selectDailyDigest([
+      candidate('a', 'A', 'INDIA_GENERAL', 10),
+      candidate('b', 'B', 'INDIA_GENERAL', 20),
+    ]);
+    expect(result.compositionState).toBe('DEGRADED_INDIA_AND_GLOBAL_SHORTFALL');
+  });
+
+  it('treats original editorial and public broadcast as peer provenance', () => {
+    expect(compareQualityTuples(
+      quality({ provenanceClass: 'ORIGINAL_EDITORIAL' }),
+      quality({ provenanceClass: 'PUBLIC_BROADCAST' }),
+    )).toBe(0);
   });
 
   it('requires material quality improvement for hysteresis', () => {

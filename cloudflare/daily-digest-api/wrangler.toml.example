@@ -13,6 +13,8 @@ migrations_dir = "migrations"
 DAILY_DIGEST_TIMEZONE = "Asia/Kolkata"
 DAILY_DIGEST_POLICY_VERSION = "daily-digest-policy/v0.2"
 DAILY_DIGEST_REGISTRY_VERSION = "daily-digest-registry/v0.5"
+DAILY_DIGEST_PILOT_WRITE_ENABLED = "false"
 
-# Production Cron is intentionally NOT configured through NW-DD-004A.
-# Pilot candidate after qualification: 10:15 IST = 04:45 UTC = "45 4 * * *".
+# Production Cron is intentionally NOT configured through NW-DD-005.
+# Qualified pilot boundary: 10:15 IST = 04:45 UTC = "45 4 * * *".
+# DD-005 documents this expression only; no [triggers] section is authorized here.

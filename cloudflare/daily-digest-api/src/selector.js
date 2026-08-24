@@ -10,18 +10,17 @@ export const QUALITY_FIELDS = Object.freeze([
   'accessibilityClass',
 ]);
 
-const CLASS_ORDER = Object.freeze({
-  roleFitClass: ['EXACT', 'ACCEPTABLE', 'INCOMPATIBLE'],
-  significanceClass: ['HIGH', 'ADEQUATE', 'LOW'],
-  breadthClass: ['BROAD', 'ADEQUATE', 'NARROW'],
-  diversityClass: ['DIVERSE', 'MODERATE', 'CONCENTRATED'],
-  provenanceClass: ['ORIGINAL_EDITORIAL', 'PUBLIC_BROADCAST', 'DERIVED_ROUNDUP'],
-  accessibilityClass: ['OPEN', 'PAYWALLED', 'REDIRECTED', 'BLOCKED_TO_COLLECTOR', 'UNKNOWN'],
+const CLASS_RANKS = Object.freeze({
+  roleFitClass: Object.freeze({ EXACT: 0, ACCEPTABLE: 1, INCOMPATIBLE: 2 }),
+  significanceClass: Object.freeze({ HIGH: 0, ADEQUATE: 1, LOW: 2 }),
+  breadthClass: Object.freeze({ BROAD: 0, ADEQUATE: 1, NARROW: 2 }),
+  diversityClass: Object.freeze({ DIVERSE: 0, MODERATE: 1, CONCENTRATED: 2 }),
+  provenanceClass: Object.freeze({ ORIGINAL_EDITORIAL: 0, PUBLIC_BROADCAST: 0, DERIVED_ROUNDUP: 1 }),
+  accessibilityClass: Object.freeze({ OPEN: 0, PAYWALLED: 1, REDIRECTED: 2, BLOCKED_TO_COLLECTOR: 3, UNKNOWN: 4 }),
 });
 
 function rank(field, value) {
-  const index = CLASS_ORDER[field]?.indexOf(value) ?? -1;
-  return index >= 0 ? index : Number.MAX_SAFE_INTEGER;
+  return CLASS_RANKS[field]?.[value] ?? Number.MAX_SAFE_INTEGER;
 }
 
 export function compareQualityTuples(a, b) {
@@ -61,7 +60,8 @@ export function resolveCompositionState(selection) {
   const hasGlobal = Boolean(selection?.G1);
   if (indiaCount === 3 && hasGlobal) return 'NORMAL';
   if (indiaCount === 2 && hasGlobal) return 'DEGRADED_INDIA_SHORTFALL';
-  if (indiaCount >= 2 && !hasGlobal) return 'DEGRADED_GLOBAL_UNAVAILABLE';
+  if (indiaCount === 3 && !hasGlobal) return 'DEGRADED_GLOBAL_UNAVAILABLE';
+  if (indiaCount === 2 && !hasGlobal) return 'DEGRADED_INDIA_AND_GLOBAL_SHORTFALL';
   return 'DEGRADED_INSUFFICIENT';
 }
 
