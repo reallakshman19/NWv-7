@@ -15,23 +15,23 @@ PR_OR_WIP: WIP-NW-RANK-CORR-001
 BRANCH: agent/nw-rank-corr-001-mature-evidence
 STACK_BASE: agent/nw-rank-geo-001-evidence-provenance / PR#484
 
-PR_HEAD_OBSERVED: d9a58e93cebf1068f94bc87e66998038124b96ec
-REPORT_BASIS_HEAD: d9a58e93cebf1068f94bc87e66998038124b96ec
+PR_HEAD_OBSERVED: d1831e6624570eb0ba2017bd0346f6ad5adcf597
+REPORT_BASIS_HEAD: d1831e6624570eb0ba2017bd0346f6ad5adcf597
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE_WITH_STACK: d9a58e93cebf1068f94bc87e66998038124b96ec
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-001
+GROUNDING_EPOCH: GE-002
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PLAN
-LAST_COMPLETED_STAGE: COORDINATION_CHECK
+CURRENT_STAGE: PR_CREATE
+LAST_COMPLETED_STAGE: VALIDATE
 CURRENT_BLOCKER: none
-HIGHEST_RISK: over-constraining legitimate breaking or authoritative single-source critical reporting
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:29:42+04:00
+HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:34:47+04:00
 
-EXACT_NEXT_ACTION: add a pure mature-evidence admission decision and integrate it before threshold admission
+EXACT_NEXT_ACTION: open a draft stacked PR against the PR #484 branch and reconcile its remote state
 ```
 
 ## 2. Handover in 60 Seconds
@@ -46,11 +46,11 @@ EXACT_NEXT_ACTION: add a pure mature-evidence admission decision and integrate i
 
 ### What is currently being worked on
 
-A bounded evidence gate for mature non-local critical events.
+Implementation and focused certification are complete; stacked draft PR allocation is next.
 
 ### What remains unfinished
 
-Implementation, focused pure/integration tests, standalone validation, remote reconciliation, PR creation, and dependency-backed repository checks.
+Draft PR creation/reconciliation and dependency-backed repository checks.
 
 ### What must not be assumed
 
@@ -62,13 +62,16 @@ Implementation, focused pure/integration tests, standalone validation, remote re
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:29:42+04:00
+verified_at: 2026-08-24T22:34:47+04:00
 default_branch: main
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 stack_base_branch: agent/nw-rank-geo-001-evidence-provenance
 stack_base_head: d9a58e93cebf1068f94bc87e66998038124b96ec
 working_branch: agent/nw-rank-corr-001-mature-evidence
 pr: not yet allocated
+branch_head: d1831e6624570eb0ba2017bd0346f6ad5adcf597
+stack_relative_ahead_by: 4
+stack_relative_behind_by: 0
 coordination_state: SAFE_STACKED
 ```
 
@@ -109,17 +112,17 @@ Prevent secondary/fallback non-local critical events from entering Top Stories o
 
 | Work item | Implementation | Validation | Remaining |
 |---|---|---|---|
-| Pure mature-evidence decision | UNSTARTED | NOT_RUN | implement |
-| Ranker integration | UNSTARTED | NOT_RUN | implement |
-| Pure/integration cert | UNSTARTED | NOT_RUN | implement |
-| Full repository checks | UNSTARTED | NOT_RUN | full checkout/dependencies required |
+| Pure mature-evidence decision | COMPLETE | syntax + standalone PASS | repository suite |
+| Ranker integration | COMPLETE | syntax + exact remote match PASS | repository suite |
+| Pure/integration cert | COMPLETE | syntax PASS; Vitest runner NOT_RUN | run Vitest |
+| Full repository checks | NOT_RUN | NOT_RUN | full checkout/dependencies required |
 
 ## 6. Active Item Register
 
 | ID | Type | Severity | Status | Summary | Evidence |
 |---|---|---|---|---|---|
-| ISS-001 | defect | high | OPEN | qualified critical type bypasses corroboration at mature ages | `getSlotDecision()` |
-| RISK-001 | risk | high | OPEN | gate could suppress authoritative or local reports | exception contract |
+| ISS-001 | defect | high | RESOLVED | qualified critical type bypassed corroboration at mature ages | mature evidence gate |
+| RISK-001 | risk | high | MITIGATED | gate could suppress authoritative or local reports | explicit primary/local/authoritative/independent exceptions |
 | DEC-001 | decision | high | ACCEPTED | secondary/fallback are mature bands; primary remains unchanged | age-band boundary |
 | DEC-002 | decision | medium | ACCEPTED | source quality `>=0.95` is bounded authoritative evidence | existing signal reuse |
 
@@ -167,25 +170,29 @@ Origin: PREEXISTING
 ### VAL-002 — Pure decision cert
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS (syntax/source review); Vitest runner NOT_RUN
+Observation: STATIC_AND_STANDALONE_EQUIVALENT
 Oracle: IMPLEMENTATION_COUPLED
+Cases: missing; independent; authoritative; primary; local; non-critical
 ```
 
 ### VAL-003 — Ranker integration cert
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS (syntax/source review); Vitest runner NOT_RUN
+Observation: STATIC_INTEGRATION_TRACE
 Oracle: IMPLEMENTATION_COUPLED
+Cases: Seattle rejection; corroborated Seattle; Reuters Seattle
 ```
 
 ### VAL-004 — Independent standalone validation
 
 ```text
-Status: NOT_RUN
-Observation: NOT_OBSERVED
+Status: PASS
+Observation: EXECUTED
 Oracle: INDEPENDENT
+Tested content: exact admission module published at d1831e6624570eb0ba2017bd0346f6ad5adcf597
+Actual: Top Stories mature evidence admission: PASS
 ```
 
 ### VAL-005 — Repository Vitest/lint/build/full certification
@@ -194,6 +201,18 @@ Oracle: INDEPENDENT
 Status: NOT_RUN
 Observation: NOT_OBSERVED
 Oracle: NONE
+Reason: full authenticated checkout/dependency environment unavailable; current main has no Actions workflows
+```
+
+### VAL-006 — Stack-relative remote reconciliation
+
+```text
+Status: PASS
+Observation: CONNECTOR_COMPARE
+Oracle: INDEPENDENT
+Base: agent/nw-rank-geo-001-evidence-provenance @ d9a58e93cebf1068f94bc87e66998038124b96ec
+Head: d1831e6624570eb0ba2017bd0346f6ad5adcf597
+Result: ahead 4, behind 0; four intended files; all three source/test files match validated local contents exactly
 ```
 
 ## 10. Changed-File Ledger
@@ -201,9 +220,12 @@ Oracle: NONE
 | File | Intended? | Purpose | Validation |
 |---|---:|---|---|
 | `reports/NW-RANK-CORR-001_mature_evidence.md` | yes | living recovery report | source review |
+| `src/services/topStories/topStoriesRanker.js` | yes | delegate slot admission to focused policy module | syntax + exact remote match |
+| `src/services/topStories/topStoriesEvidenceAdmission.js` | yes | preserve existing guards and add mature evidence gate | syntax + standalone behavior + exact remote match |
+| `src/services/topStories/topStoriesEvidenceAdmission.cert.test.js` | yes | pure and Seattle integration certification | syntax + source review + exact remote match |
 
-Stack-relative changed-file count after report creation: 1.  
-Ledger count: 1.  
+Stack-relative changed-file count: 4.  
+Ledger count: 4.  
 Unexplained files: 0.
 
 ## 11. Review / CI State
@@ -226,11 +248,11 @@ COORDINATION_STATE: SAFE_STACKED
 ## 13. Continuation State
 
 ```text
-Start here: src/services/topStories/topStoriesRanker.js#getSlotDecision
+Start here: create a draft PR from agent/nw-rank-corr-001-mature-evidence to agent/nw-rank-geo-001-evidence-provenance
 Do not redo: main/stack/open-PR grounding unless either base moves
 Do not change: classifier, materiality, public-interest values, primary/local policy, weights, thresholds, UI, workflows
-Validation required: all gate branches plus full Seattle integration
-Exact next action: implement pure decision and one ranker call site
+Validation still required: repository Vitest/lint/build/full certification when available
+Exact next action: create stacked draft PR and reconcile metadata/reviews/threads/checks
 Merge authority: NOT_GRANTED
 ```
 
@@ -249,12 +271,25 @@ checks_verified: no PR
 claims_verified: open PR changed-file inspection
 ```
 
+### GE-002
+
+```text
+verified_at: 2026-08-24T22:34:47+04:00
+BRANCH_HEAD: d1831e6624570eb0ba2017bd0346f6ad5adcf597
+STACK_BASE_HEAD: d9a58e93cebf1068f94bc87e66998038124b96ec
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+stack_relative_changed_files_verified: 4 intended, 0 unexplained
+reviews_verified: no PR
+checks_verified: no PR; dependency-backed suite NOT_RUN
+stack_base_pr_verified: PR #484 open, draft, mergeable, unchanged head
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-001
+Qualification basis: GE-002
 Generated from: ISS-001, RISK-001
-Next intended stage: IMPLEMENT
+Next intended stage: PR_CREATE / RECONCILE
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -269,3 +304,4 @@ APPENDIX_A_STATUS: CURRENT
 ## Stage Execution Log
 
 - 2026-08-24T22:29:42+04:00 — GE-001 established on PR #484 stack base; implementation not started.
+- 2026-08-24T22:34:47+04:00 — implementation, syntax, standalone behavior, and GE-002 stack reconciliation completed.
