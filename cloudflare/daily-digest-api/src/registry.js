@@ -13,7 +13,7 @@ function calendar(publicationDays, start, end, graceMinutes, qualification) {
   };
 }
 
-export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.4';
+export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.5';
 
 export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
@@ -44,6 +44,7 @@ export const DAILY_DIGEST_REGISTRY = Object.freeze([
     publisherFamily: 'FINANCIAL_TIMES', product: 'FIRSTFT', edition: 'ASIA',
     role: 'GLOBAL_BUSINESS_AND_WORLD', publisherClass: 'PRIVATE_PUBLISHER',
     qualificationState: 'HOLD', holdReason: 'CURRENT_EDITION_DISCOVERY_NOT_QUALIFIED', precedence: 40,
+    v1Eligibility: 'EXCLUDED', v1ExclusionReason: 'CURRENT_EDITION_DISCOVERY_AUTHORITY_NOT_PROVEN',
     productCatalogUrl: 'https://www.ft.com/newsletters',
     editionResolverKey: 'FINANCIAL_TIMES_FIRSTFT_ASIA', editionResolverQualification: 'QUALIFIED',
     acquisitionQualification: 'HOLD',
@@ -60,10 +61,26 @@ export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
     publisherFamily: 'REUTERS', product: 'TRADING_DAY', edition: 'ASIA_MARKETS',
     role: 'GLOBAL_MARKETS', qualificationState: 'HOLD', holdReason: 'ROLE_MISMATCH', precedence: 70,
+    v1Eligibility: 'EXCLUDED', v1ExclusionReason: 'G1_ROLE_MISMATCH',
   }),
   entry({
     publisherFamily: 'GUARDIAN', product: 'FIRST_EDITION', edition: 'UK',
     role: 'GLOBAL_GENERAL_UK', qualificationState: 'HOLD', holdReason: 'PUBLICATION_WINDOW', precedence: 80,
+    v1Eligibility: 'EXCLUDED', v1ExclusionReason: 'G1_ROLE_AND_1015_IST_TIMING_MISMATCH',
+  }),
+  entry({
+    publisherFamily: 'ASSOCIATED_PRESS', product: 'MORNING_WIRE', edition: 'DEFAULT',
+    role: 'GLOBAL_GENERAL', publisherClass: 'NEWS_AGENCY', precedence: 90,
+    qualificationState: 'HOLD', holdReason: 'PUBLIC_EDITION_DISCOVERY_NOT_QUALIFIED',
+    productQualification: 'QUALIFIED', acquisitionQualification: 'HOLD',
+    v1Eligibility: 'EXCLUDED', v1ExclusionReason: 'G1_ROLE_AND_PUBLIC_EDITION_DISCOVERY_NOT_QUALIFIED',
+  }),
+  entry({
+    publisherFamily: 'BBC', product: 'NEWS_BRIEFING', edition: 'INTERNATIONAL',
+    role: 'GLOBAL_GENERAL', publisherClass: 'PUBLIC_BROADCASTER', precedence: 100,
+    qualificationState: 'HOLD', holdReason: 'PUBLIC_EDITION_DISCOVERY_NOT_QUALIFIED',
+    productQualification: 'QUALIFIED', acquisitionQualification: 'HOLD',
+    v1Eligibility: 'EXCLUDED', v1ExclusionReason: 'G1_ROLE_AND_PUBLIC_EDITION_DISCOVERY_NOT_QUALIFIED',
   }),
 ]);
 
