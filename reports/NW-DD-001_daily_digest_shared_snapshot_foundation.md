@@ -90,13 +90,20 @@ PASS: deterministic contract/selector assertions
 PASS: SQLite migration structural application; 4 daily_digest_* tables created
 PASS: Worker route checks for 404 / 405 / invalid-date 400 / OPTIONS 204 / missing-store 503
 PASS: scheduled foundation returns SOURCE_ADAPTERS_NOT_AUTHORIZED and snapshotWritten=false
+PASS: scripts/test_daily_digest_foundation_static.mjs in a reconstructed git workspace
 ```
 
-The following repository/runtime validations require a complete checkout and/or Wrangler runtime and were not executed during connector authoring:
+Environment limitation encountered while attempting a full checkout:
+
+```text
+git clone https://github.com/reallaksh19/NWv-7.git
+-> Could not resolve host: github.com
+```
+
+The execution sandbox has Node and npm but no installed Vitest/Wrangler package and no outbound package/GitHub access, so the following complete-checkout/runtime validations remain unavailable here:
 
 ```text
 NOT_RUN: focused Vitest certification files
-NOT_RUN: node scripts/test_daily_digest_foundation_static.mjs
 NOT_RUN: Wrangler local D1 migration application
 NOT_RUN: Wrangler local Worker GET/CORS proof
 NOT_RUN: Wrangler --test-scheduled proof
@@ -105,7 +112,7 @@ NOT_RUN: npm run build
 NOT_RUN: npm run test:certify
 ```
 
-These must be executed before the PR is marked merge-ready.
+These must be executed in an environment with the repository dependencies before the PR is marked merge-ready.
 
 ## Explicit non-goals preserved
 
