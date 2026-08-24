@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Header from '../components/Header';
 import NewsSection from '../components/NewsSection';
+import DailyDigestSection from '../components/DailyDigestSection.jsx';
 import SectionNavigator from '../components/SectionNavigator';
 import BreakingNews from '../components/BreakingNews';
 import TimelineHeader from '../components/TimelineHeader';
@@ -15,6 +16,7 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import TravelLocationBanner from '../components/travel/TravelLocationBanner.jsx';
 import TravelLocalStories from '../components/travel/TravelLocalStories.jsx';
 import { useMainTabViewModel } from '../viewModels/useMainTabViewModel.js';
+import { useDailyDigestSectionViewModel } from '../viewModels/useDailyDigestSectionViewModel.js';
 
 const MainPage = () => {
     const {
@@ -44,10 +46,16 @@ const MainPage = () => {
         themeToggleProps,
         shellRuntimeProps,
     } = useMainTabViewModel();
+    const dailyDigest = useDailyDigestSectionViewModel();
 
     const { isWebView } = useMediaQuery();
-    // refreshAll delegates to Promise.allSettled — parallel crash-safe refresh
-    const { pullDistance } = usePullToRefresh(refreshAll);
+    const refreshPage = useCallback(async () => {
+        const results = await Promise.allSettled([refreshAll(), dailyDigest.refresh()]);
+        const mainResult = results[0];
+        if (mainResult.status === 'fulfilled') return mainResult.value;
+        return { ok: false, error: mainResult.reason?.message || String(mainResult.reason) };
+    }, [dailyDigest.refresh, refreshAll]);
+    const { pullDistance } = usePullToRefresh(refreshPage);
 
     const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -60,6 +68,9 @@ const MainPage = () => {
 
     const chennaiSectionNews = prioritizedNewsData.chennai || newsData.chennai;
     const localSectionNews = prioritizedNewsData.local || newsData.local;
+    const pageNavSections = dailyDigest.hasCards
+        ? [navSections[0], { id: 'daily-digest', icon: '🗞️', label: 'Digest' }, ...navSections.slice(1)].filter(Boolean)
+        : navSections;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -81,6 +92,15 @@ const MainPage = () => {
             <Link to="/settings" className="header__action-btn">⚙️</Link>
         </div>
     );
+
+    const dailyDigestSection = dailyDigest.hasCards ? (
+        <DailyDigestSection
+            cards={dailyDigest.cards}
+            digestDate={dailyDigest.digestDate}
+            frozenAt={dailyDigest.frozenAt}
+            compositionState={dailyDigest.compositionState}
+        />
+    ) : null;
 
     return (
         <div className={`page-container mode-${uiMode} ${isWebView ? 'page-container--desktop' : ''}`}>
@@ -132,7 +152,7 @@ const MainPage = () => {
                     envelope={envelope}
                     loading={isLoading}
                     error={error}
-                    onRetry={refreshAll}
+                    onRetry={refreshPage}
                     label="Main"
                     emptyTitle="No updates available"
                     emptyMessage="Main feed is empty. Try refreshing or checking source health."
@@ -195,6 +215,8 @@ const MainPage = () => {
                                                     healthSummary={getHealthSummary('topStories', 'top-stories', 'topstories', 'frontPage')}
                                                 />
                                             )}
+
+                                            {dailyDigestSection}
 
                                             {sections.india?.enabled && (
                                                 <NewsSection
@@ -272,6 +294,8 @@ const MainPage = () => {
                                                     />
                                                 )}
 
+                                                {dailyDigestSection}
+
                                                 {sections.india?.enabled && (
                                                     <NewsSection
                                                         id="india-news"
@@ -348,8 +372,8 @@ const MainPage = () => {
                 </DataStateBoundary>
             </main>
 
-            {navSections.length > 0 && (
-                <SectionNavigator sections={navSections} />
+            {pageNavSections.length > 0 && (
+                <SectionNavigator sections={pageNavSections} />
             )}
 
             {showBackToTop && (

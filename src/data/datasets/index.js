@@ -11,6 +11,7 @@ import * as plannerDataset from './plannerDataset.js';
 import * as followingDataset from './followingDataset.js';
 import * as insightDataset from './insightDataset.js';
 import * as mainDataset from './mainDataset.js';
+import * as dailyDigestDataset from './dailyDigestDataset.js';
 
 export const DATASET_LOADERS = Object.freeze({
   market: marketDataset,
@@ -26,6 +27,7 @@ export const DATASET_LOADERS = Object.freeze({
   following: followingDataset,
   insight: insightDataset,
   main: mainDataset,
+  dailyDigest: dailyDigestDataset,
 });
 
 export function getDatasetLoader(datasetId) {
