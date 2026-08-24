@@ -5,32 +5,32 @@
 ## 1. Recovery Header
 
 ```text
-HANDOVER_READINESS: DEGRADED
+HANDOVER_READINESS: READY
 PR_RECOVERY_STATE: RECOVERABLE
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 
 REPOSITORY: reallaksh19/NWv-7
 SOURCE_TASK: User-approved Top Stories/Live/Hybrid repair plan; auto mode
-PR_OR_WIP: WIP-NW-RANK-HYBRID-001
+PR_OR_WIP: PR#483
 BRANCH: agent/nw-rank-hybrid-001-snapshot-singleflight
 
-PR_HEAD_OBSERVED: 4dd0442bc7825ed5482b78b4bd22cc90f91e867e
+PR_HEAD_OBSERVED: 4e2360c9ca2ac333ed0dfe10b2f022a590ec88f6
 REPORT_BASIS_HEAD: 4dd0442bc7825ed5482b78b4bd22cc90f91e867e
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-002
+GROUNDING_EPOCH: GE-003
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PR_CREATE
-LAST_COMPLETED_STAGE: VALIDATE
+CURRENT_STAGE: HANDOVER_READY
+LAST_COMPLETED_STAGE: PR_RECONCILIATION
 CURRENT_BLOCKER: none
 HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:17:10+04:00
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:19:37+04:00
 
-EXACT_NEXT_ACTION: open a draft PR, reconcile its remote diff/reviews/checks, and update this report with the PR number
+EXACT_NEXT_ACTION: run dependency-backed repository checks when a full checkout is available; keep PR #483 draft and unmerged meanwhile
 ```
 
 ## 2. Handover in 60 Seconds
@@ -42,14 +42,12 @@ EXACT_NEXT_ACTION: open a draft PR, reconcile its remote diff/reviews/checks, an
 - Rejected shared loads are cleared so a later caller can retry.
 - Cache generation prevents an older pending request from repopulating memory after a clear.
 - The remote branch contains the exact three source/test files exercised locally.
-- The branch is four commits ahead of and zero commits behind grounded `main`.
+- The observed branch head is five commits ahead of and zero commits behind grounded `main`.
 
 ### What remains unfinished
 
-- allocate the draft PR;
-- reconcile reviews, threads, and checks after allocation;
 - run dependency-backed Vitest/lint/build/full certification when a full checkout is available;
-- obtain explicit user authorization before any merge.
+- obtain owner review and explicit user authorization before any merge.
 
 ### What has been proven
 
@@ -76,14 +74,14 @@ EXACT_NEXT_ACTION: open a draft PR, reconcile its remote diff/reviews/checks, an
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:17:10+04:00
+verified_at: 2026-08-24T22:19:37+04:00
 default_branch: main
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 working_branch: agent/nw-rank-hybrid-001-snapshot-singleflight
-branch_head: 4dd0442bc7825ed5482b78b4bd22cc90f91e867e
-pr: not yet allocated
+branch_head_observed: 4e2360c9ca2ac333ed0dfe10b2f022a590ec88f6
+pr: 483 (open, draft, mergeable)
 merge_base: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
-ahead_by: 4
+ahead_by: 5
 behind_by: 0
 open_prs_checked: 396, 386, 387
 workflow_files: absent from current main per audit
@@ -237,8 +235,8 @@ Status: PASS
 Observation: CONNECTOR_COMPARE
 Oracle: INDEPENDENT
 Base: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
-Head: 4dd0442bc7825ed5482b78b4bd22cc90f91e867e
-Result: ahead 4, behind 0; exactly four intended files; all three source/test contents match local validation byte-for-byte
+Head: 4e2360c9ca2ac333ed0dfe10b2f022a590ec88f6
+Result: ahead 5, behind 0; exactly four intended files; all three source/test contents match local validation byte-for-byte
 ```
 
 ## 10. Changed-File Ledger
@@ -256,7 +254,7 @@ Unexplained files: 0.
 
 ## 11. Review / CI State
 
-No PR is allocated yet. No review threads exist. Dependency-backed checks are NOT_RUN, not passed. Workflow restoration is outside this batch.
+PR #483 is open, draft, and mergeable. It has four intended changed files, no reviews, no comments, no review threads, and no reported commit statuses. Dependency-backed checks are NOT_RUN, not passed. Workflow restoration is outside this batch.
 
 ## 12. Repository Coordination / Overlap
 
@@ -274,12 +272,12 @@ COORDINATION_STATE: SAFE
 ## 13. Continuation State
 
 ```text
-Start here: create a draft PR from agent/nw-rank-hybrid-001-snapshot-singleflight to main
+Start here: PR #483 and this report
 Do not redo: implementation or standalone validation unless branch source changes
 Do not change: fallback, ranking, UI, workflows, generated data
 Validation still required: repository Vitest/lint/build/full certification when available
 Highest-risk remaining item: dependency-backed integration validation
-Exact next action: create draft PR, then reconcile remote PR metadata/reviews/threads/checks
+Exact next action: run repository Vitest/lint/build/full certification when an authenticated checkout with dependencies is available
 Merge authority: NOT_GRANTED
 ```
 
@@ -308,12 +306,28 @@ checks_verified: no PR; repository checks NOT_RUN
 claims_verified: no overlapping file claims in open PRs checked
 ```
 
+### GE-003
+
+```text
+verified_at: 2026-08-24T22:19:37+04:00
+PR: 483 (open, draft, mergeable)
+PR_HEAD_OBSERVED: 4e2360c9ca2ac333ed0dfe10b2f022a590ec88f6
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+changed_files_verified: 4 intended, 0 unexplained
+reviews_verified: 0
+threads_verified: 0
+comments_verified: 0
+checks_verified: 0 reported statuses; dependency-backed suite NOT_RUN
+result: handover-ready draft; merge authority not granted
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-002
+Qualification basis: GE-003
 Generated from: ISS-001, RISK-001, RISK-002, VAL-004
-Next intended stage: PR_CREATE / RECONCILE
+Next intended stage: DEPENDENCY_BACKED_VALIDATE / OWNER_REVIEW
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -332,3 +346,4 @@ APPENDIX_A_STATUS: CURRENT
 - 2026-08-24T22:14:00+04:00 — four deterministic lifecycle cert cases added.
 - 2026-08-24T22:16:00+04:00 — syntax and standalone behavior validation passed.
 - 2026-08-24T22:17:10+04:00 — GE-002 remote reconciliation passed; PR creation next.
+- 2026-08-24T22:19:37+04:00 — Draft PR #483 allocated and reconciled; GE-003 handover state recorded.
