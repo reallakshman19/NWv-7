@@ -93,14 +93,14 @@ PASS: scheduled foundation returns SOURCE_ADAPTERS_NOT_AUTHORIZED and snapshotWr
 PASS: scripts/test_daily_digest_foundation_static.mjs in a reconstructed git workspace
 ```
 
-Environment limitation encountered while attempting a full checkout:
+Environment limitation encountered while attempting the required full checkout:
 
 ```text
 git clone https://github.com/reallaksh19/NWv-7.git
 -> Could not resolve host: github.com
 ```
 
-The execution sandbox has Node and npm but no installed Vitest/Wrangler package and no outbound package/GitHub access, so the following complete-checkout/runtime validations remain unavailable here:
+The execution sandbox has Node/npm but no cached Vitest, Wrangler, ESLint, or Vite binaries and no outbound package/GitHub access. Therefore the following complete-checkout/runtime validations remain unavailable here:
 
 ```text
 NOT_RUN: focused Vitest certification files
@@ -112,7 +112,7 @@ NOT_RUN: npm run build
 NOT_RUN: npm run test:certify
 ```
 
-These must be executed in an environment with the repository dependencies before the PR is marked merge-ready.
+The PR must remain draft / not merge-ready until those dependency-backed checks are run in an environment with the repository dependencies. No GitHub Actions workflow was added, changed, or manually dispatched to work around this limitation.
 
 ## Explicit non-goals preserved
 
