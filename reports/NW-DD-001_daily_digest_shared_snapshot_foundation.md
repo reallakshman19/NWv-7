@@ -119,7 +119,6 @@ The PR must remain draft / not merge-ready until those dependency-backed checks 
 ```text
 PR: #475
 State: DRAFT
-Head: see PR head metadata; this report is updated on the same branch
 Merge authorization: NOT REQUESTED
 Next mission: BLOCKED until DD-001 dependency-backed validation is closed and this PR is merged or explicitly waived by the user
 ```
