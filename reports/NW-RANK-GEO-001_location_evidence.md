@@ -5,32 +5,32 @@
 ## 1. Recovery Header
 
 ```text
-HANDOVER_READINESS: DEGRADED
+HANDOVER_READINESS: READY
 PR_RECOVERY_STATE: RECOVERABLE
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 
 REPOSITORY: reallaksh19/NWv-7
 SOURCE_TASK: User-approved Top Stories/Live/Hybrid repair plan; auto mode Batch 2
-PR_OR_WIP: WIP-NW-RANK-GEO-001
+PR_OR_WIP: PR#484
 BRANCH: agent/nw-rank-geo-001-evidence-provenance
 
-PR_HEAD_OBSERVED: e779c49540885ef5c6c5db79aa1849980b4b9e92
+PR_HEAD_OBSERVED: e62e09def4de2f0280d3ef7860facc5a805399e6
 REPORT_BASIS_HEAD: e779c49540885ef5c6c5db79aa1849980b4b9e92
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-002
+GROUNDING_EPOCH: GE-003
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PR_CREATE
-LAST_COMPLETED_STAGE: VALIDATE
+CURRENT_STAGE: HANDOVER_READY
+LAST_COMPLETED_STAGE: PR_RECONCILIATION
 CURRENT_BLOCKER: none
 HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:25:43+04:00
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:27:24+04:00
 
-EXACT_NEXT_ACTION: open a draft PR, reconcile its remote diff/reviews/checks, and update this report with the PR number
+EXACT_NEXT_ACTION: run dependency-backed repository checks when a full checkout is available; keep PR #484 draft and unmerged meanwhile
 ```
 
 ## 2. Handover in 60 Seconds
@@ -49,7 +49,7 @@ The implementation and focused certification are complete; draft PR allocation a
 
 ### What remains unfinished
 
-Draft PR creation/reconciliation and dependency-backed repository checks.
+Dependency-backed repository checks, owner review, and explicit user authorization before any merge.
 
 ### What must not be assumed
 
@@ -61,14 +61,14 @@ Draft PR creation/reconciliation and dependency-backed repository checks.
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:25:43+04:00
+verified_at: 2026-08-24T22:27:24+04:00
 default_branch: main
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 working_branch: agent/nw-rank-geo-001-evidence-provenance
-pr: not yet allocated
+pr: 484 (open, draft, mergeable)
 merge_base: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
-branch_head: e779c49540885ef5c6c5db79aa1849980b4b9e92
-ahead_by: 4
+branch_head_observed: e62e09def4de2f0280d3ef7860facc5a805399e6
+ahead_by: 5
 behind_by: 0
 open_prs_checked: 386, 387, 396, 483
 coordination_state: SAFE
@@ -218,7 +218,7 @@ Unexplained files: 0.
 
 ## 11. Review / CI State
 
-No PR allocated. No review threads. Dependency-backed checks are NOT_RUN. No workflow changes are authorized.
+PR #484 is open, draft, and mergeable. It has four intended changed files, no reviews, comments, review threads, or reported commit statuses. Dependency-backed checks are NOT_RUN, not passed. No workflow changes are authorized.
 
 ## 12. Repository Coordination / Overlap
 
@@ -236,11 +236,11 @@ COORDINATION_STATE: SAFE
 ## 13. Continuation State
 
 ```text
-Start here: create a draft PR from agent/nw-rank-geo-001-evidence-provenance to main
+Start here: PR #484 and this report
 Do not redo: live-main/open-PR grounding at GE-001 unless main moves
 Do not change: weights, thresholds, materiality, corroboration, source tiers, UI, workflows
 Validation still required: repository Vitest/lint/build/full certification when available
-Exact next action: create draft PR and reconcile metadata/reviews/threads/checks
+Exact next action: run repository Vitest/lint/build/full certification when an authenticated checkout with dependencies is available
 Merge authority: NOT_GRANTED
 ```
 
@@ -272,12 +272,28 @@ checks_verified: no PR; dependency-backed suite NOT_RUN
 claims_verified: no overlapping file claims in open PRs checked
 ```
 
+### GE-003
+
+```text
+verified_at: 2026-08-24T22:27:24+04:00
+PR: 484 (open, draft, mergeable)
+PR_HEAD_OBSERVED: e62e09def4de2f0280d3ef7860facc5a805399e6
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+MERGE_BASE: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+changed_files_verified: 4 intended, 0 unexplained
+reviews_verified: 0
+threads_verified: 0
+comments_verified: 0
+checks_verified: 0 reported statuses; dependency-backed suite NOT_RUN
+result: handover-ready draft; merge authority not granted
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-002
+Qualification basis: GE-003
 Generated from: ISS-001, RISK-001
-Next intended stage: PR_CREATE / RECONCILE
+Next intended stage: DEPENDENCY_BACKED_VALIDATE / OWNER_REVIEW
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -293,3 +309,4 @@ APPENDIX_A_STATUS: CURRENT
 
 - 2026-08-24T22:22:14+04:00 — GE-001 established; Batch 2 scope classified SAFE; implementation not started.
 - 2026-08-24T22:25:43+04:00 — implementation, syntax, standalone behavior, and GE-002 remote reconciliation completed.
+- 2026-08-24T22:27:24+04:00 — Draft PR #484 allocated and reconciled; GE-003 handover state recorded.
