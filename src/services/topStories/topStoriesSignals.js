@@ -1,6 +1,9 @@
 import { isBreakingStory } from '../breakingNewsService.js';
 import { HOURS_MS, clampScore } from './topStoriesPolicy.js';
 import { buildTopFeedSnapshotSignalMap, getTopFeedIdentity } from './topStoriesTopFeedSignals.js';
+import { getLocationRelevanceScore } from './topStoriesLocationSignals.js';
+
+export { getLocationRelevanceScore };
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
 const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback']);
@@ -116,13 +119,6 @@ export function getSourceQualityScore(story = {}) {
   if (/\b(reuters|ap|bbc|the hindu|business_line|times_of_oman|muscat_daily)\b/i.test(source)) return 1;
   if (/\b(ndtv|hindustan|economic_times|moneycontrol|google_news)\b/i.test(source)) return 0.72;
   return 0.48;
-}
-
-export function getLocationRelevanceScore(story = {}) {
-  const text = textValue(`${story.section || ''} ${story.sourceSection || ''} ${story.region || ''} ${story.title || ''}`);
-  if (/\b(oman|muscat|chennai|trichy|tamil nadu|india)\b/.test(text)) return 0.82;
-  if (/\b(world|global|international|gaza|ukraine|russia|israel)\b/.test(text)) return 0.66;
-  return 0.42;
 }
 
 export function getFreshnessScore(ageHours, policy) {
