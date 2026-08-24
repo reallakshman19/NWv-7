@@ -13,7 +13,7 @@ function calendar(publicationDays, start, end, graceMinutes, qualification) {
   };
 }
 
-export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.3';
+export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.4';
 
 export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
@@ -43,7 +43,11 @@ export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
     publisherFamily: 'FINANCIAL_TIMES', product: 'FIRSTFT', edition: 'ASIA',
     role: 'GLOBAL_BUSINESS_AND_WORLD', publisherClass: 'PRIVATE_PUBLISHER',
-    qualificationState: 'HOLD', holdReason: 'EDITION_RESOLVER_NOT_QUALIFIED', precedence: 40,
+    qualificationState: 'HOLD', holdReason: 'CURRENT_EDITION_DISCOVERY_NOT_QUALIFIED', precedence: 40,
+    productCatalogUrl: 'https://www.ft.com/newsletters',
+    editionResolverKey: 'FINANCIAL_TIMES_FIRSTFT_ASIA', editionResolverQualification: 'QUALIFIED',
+    acquisitionQualification: 'HOLD',
+    ...calendar(['MON', 'TUE', 'WED', 'THU', 'FRI'], '01:30', '05:00', 30, 'PILOT'),
   }),
   entry({
     publisherFamily: 'MONEYCONTROL', product: 'MORNING_SCAN', edition: 'DEFAULT',
