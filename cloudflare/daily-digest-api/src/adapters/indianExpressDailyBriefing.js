@@ -1,5 +1,6 @@
 import { ACCESSIBILITY_STATES, ACQUISITION_STATES, EDITION_STATES, QUALIFICATION_STATES, buildCanonicalId } from '../contracts.js';
 import { resolvePublicationState } from '../publicationCalendar.js';
+import { extractIndianExpressDigestQualityEvidence } from './digestQualityEvidence.js';
 import { canonicalizePublisherUrl, extractAnchors, extractJsonLdObjects, htmlToText } from './html.js';
 
 export const INDIAN_EXPRESS_DAILY_BRIEFING = Object.freeze({
@@ -75,13 +76,20 @@ async function findCurrentEdition(links, digestDate, fetchImpl, observedAt) {
     try {
       const response = await fetchImpl(url, { headers: { Accept: 'text/html' } });
       if (!response?.ok) continue;
-      const candidate = parseIndianExpressDailyBriefing(await response.text(), url, digestDate, observedAt);
+      const html = await response.text();
+      const candidate = parseIndianExpressDailyBriefing(html, url, digestDate, observedAt);
       if (!candidate) continue;
       if (!latestObserved) latestObserved = candidate;
-      if (candidate.editionState === EDITION_STATES.CURRENT) return { candidate, latestObserved };
+      if (candidate.editionState === EDITION_STATES.CURRENT) {
+        return {
+          candidate,
+          latestObserved,
+          qualityEvidence: extractIndianExpressDigestQualityEvidence(html, url),
+        };
+      }
     } catch {}
   }
-  return { candidate: null, latestObserved };
+  return { candidate: null, latestObserved, qualityEvidence: null };
 }
 
 export async function discoverIndianExpressDailyBriefing({ digestDate, fetchImpl = fetch, now = new Date() }) {
@@ -97,7 +105,14 @@ export async function discoverIndianExpressDailyBriefing({ digestDate, fetchImpl
     const found = await findCurrentEdition(links, digestDate, fetchImpl, now.toISOString());
     if (!found.candidate) return absentResult(publication, 'CURRENT_EDITION_NOT_FOUND', found.latestObserved);
     found.candidate.scheduleState = publication.scheduleState;
-    return { status: 'FOUND', candidate: found.candidate, latestObserved: found.latestObserved, scheduleState: publication.scheduleState, acquisitionState: ACQUISITION_STATES.OK };
+    return {
+      status: 'FOUND',
+      candidate: found.candidate,
+      latestObserved: found.latestObserved,
+      qualityEvidence: found.qualityEvidence,
+      scheduleState: publication.scheduleState,
+      acquisitionState: ACQUISITION_STATES.OK,
+    };
   } catch {
     return absentResult(publication, 'FETCH_ERROR');
   }
