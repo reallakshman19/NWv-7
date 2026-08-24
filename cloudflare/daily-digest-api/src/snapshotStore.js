@@ -18,8 +18,11 @@ function candidateStatements(db, snapshot) {
       qualification_state, schedule_state, acquisition_state, edition_state,
       accessibility_state, role_fit_class, significance_class, breadth_class,
       diversity_class, provenance_class, decision, decision_reason,
-      publisher_published_at, observed_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      publisher_published_at, observed_at, quality_evidence_version,
+      quality_evidence_state, quality_integrity_class, quality_item_count,
+      quality_topic_count, quality_core_topic_count,
+      quality_dominant_topic_share_bps, quality_topic_counts_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
     snapshot.snapshotId, candidate.canonicalId, candidate.publisherFamily, candidate.product,
     candidate.edition, candidate.role, candidate.qualificationState, candidate.scheduleState,
@@ -27,6 +30,10 @@ function candidateStatements(db, snapshot) {
     candidate.roleFitClass, candidate.significanceClass, candidate.breadthClass,
     candidate.diversityClass, candidate.provenanceClass, candidate.decision,
     candidate.decisionReason, candidate.publisherPublishedAt || null, candidate.observedAt,
+    candidate.qualityEvidenceVersion || null, candidate.qualityEvidenceState || null,
+    candidate.qualityIntegrityClass || null, candidate.qualityItemCount ?? null,
+    candidate.qualityTopicCount ?? null, candidate.qualityCoreTopicCount ?? null,
+    candidate.qualityDominantTopicShareBps ?? null, candidate.qualityTopicCountsJson || null,
   ]));
 }
 
