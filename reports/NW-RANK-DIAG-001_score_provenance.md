@@ -5,33 +5,33 @@
 ## 1. Recovery Header
 
 ```text
-HANDOVER_READINESS: DEGRADED
+HANDOVER_READINESS: READY
 PR_RECOVERY_STATE: RECOVERABLE
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 
 REPOSITORY: reallaksh19/NWv-7
 SOURCE_TASK: User-approved Top Stories/Live/Hybrid repair plan; auto mode Batch 4
-PR_OR_WIP: WIP-NW-RANK-DIAG-001
+PR_OR_WIP: PR#486
 BRANCH: agent/nw-rank-diag-001-score-provenance
 STACK_BASE: agent/nw-rank-corr-001-mature-evidence / PR#485
 
-PR_HEAD_OBSERVED: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
+PR_HEAD_OBSERVED: 38fb362f647c997f430242487b252b0e3a8a9bac
 REPORT_BASIS_HEAD: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
 MAIN_HEAD_LAST_CHECKED: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 MERGE_BASE_WITH_STACK: 2170616cd06c4967b872864b3393e28ef9198eb9
 REPORT_SYNC: CURRENT
 
 APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-002
+GROUNDING_EPOCH: GE-003
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PR_CREATE
-LAST_COMPLETED_STAGE: VALIDATE
+CURRENT_STAGE: HANDOVER_READY
+LAST_COMPLETED_STAGE: PR_RECONCILIATION
 CURRENT_BLOCKER: none
 HIGHEST_RISK: dependency-backed repository checks are unavailable in the connector-only checkout
-LAST_DURABLE_CHECKPOINT: 2026-08-24T22:42:45+04:00
+LAST_DURABLE_CHECKPOINT: 2026-08-24T22:44:11+04:00
 
-EXACT_NEXT_ACTION: open a draft stacked PR against the PR #485 branch and reconcile its remote state
+EXACT_NEXT_ACTION: keep PR #486 stacked on #485, run dependency-backed checks when available, and do not merge without explicit authorization
 ```
 
 ## 2. Handover in 60 Seconds
@@ -50,7 +50,7 @@ Implementation and focused certification are complete; stacked draft PR allocati
 
 ### What remains unfinished
 
-Draft PR creation/reconciliation and dependency-backed repository checks.
+Dependency-backed repository checks, dependency PRs #484/#485 completion, owner review, and explicit user authorization before any merge.
 
 ### What must not be assumed
 
@@ -61,14 +61,14 @@ Draft PR creation/reconciliation and dependency-backed repository checks.
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-24T22:42:45+04:00
+verified_at: 2026-08-24T22:44:11+04:00
 main_head: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
 stack_base_pr: 485
 stack_base_head: 2170616cd06c4967b872864b3393e28ef9198eb9
 working_branch: agent/nw-rank-diag-001-score-provenance
-pr: not yet allocated
-branch_head: 5f4e2a3ec9efd48540bbba8686546a88ba55d1ac
-stack_relative_ahead_by: 5
+pr: 486 (open, draft, mergeable; base is PR #485 branch)
+branch_head_observed: 38fb362f647c997f430242487b252b0e3a8a9bac
+stack_relative_ahead_by: 6
 stack_relative_behind_by: 0
 coordination_state: SAFE_STACKED
 ```
@@ -218,7 +218,7 @@ Unexplained files: 0.
 
 ## 11. Review / CI State
 
-No PR allocated. No review threads. Dependency-backed checks are NOT_RUN. Merge authority is not granted.
+PR #486 is open, draft, mergeable, and stacked on PR #485. Its stack-relative diff has five intended files, with no reviews, comments, review threads, or reported statuses. Dependency-backed checks are NOT_RUN, not passed. Merge authority is not granted.
 
 ## 12. Repository Coordination / Overlap
 
@@ -236,10 +236,10 @@ COORDINATION_STATE: SAFE_STACKED
 ## 13. Continuation State
 
 ```text
-Start here: create a draft PR from agent/nw-rank-diag-001-score-provenance to agent/nw-rank-corr-001-mature-evidence
+Start here: PR #486, then dependency PRs #485 and #484
 Do not change: policy values, admission logic, comparator, selection, browser processing, UI
 Validation still required: repository Vitest/lint/build/full certification when available
-Exact next action: create stacked draft PR and reconcile metadata/reviews/threads/checks
+Exact next action: run repository Vitest/lint/build/full certification when an authenticated checkout with dependencies is available
 Merge authority: NOT_GRANTED
 ```
 
@@ -270,12 +270,29 @@ checks_verified: no PR; dependency-backed suite NOT_RUN
 stack_base_pr_verified: PR #485 open, draft, mergeable, unchanged head
 ```
 
+### GE-003
+
+```text
+verified_at: 2026-08-24T22:44:11+04:00
+PR: 486 (open, draft, mergeable)
+PR_HEAD_OBSERVED: 38fb362f647c997f430242487b252b0e3a8a9bac
+STACK_BASE_PR: 485 (open, draft, mergeable)
+STACK_BASE_HEAD: 2170616cd06c4967b872864b3393e28ef9198eb9
+MAIN_HEAD: 900daeac937bfd1b21a7fe63495cbe2388f50ecd
+stack_relative_changed_files_verified: 5 intended, 0 unexplained
+reviews_verified: 0
+threads_verified: 0
+comments_verified: 0
+checks_verified: 0 reported statuses; dependency-backed suite NOT_RUN
+result: handover-ready stacked draft; merge authority not granted
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-002
+Qualification basis: GE-003
 Generated from: ISS-001, ISS-002, RISK-001
-Next intended stage: PR_CREATE / RECONCILE
+Next intended stage: DEPENDENCY_BACKED_VALIDATE / OWNER_REVIEW
 APPENDIX_A_STATUS: CURRENT
 ```
 
@@ -291,3 +308,4 @@ APPENDIX_A_STATUS: CURRENT
 
 - 2026-08-24T22:38:22+04:00 — GE-001 established on PR #485 stack base; implementation not started.
 - 2026-08-24T22:42:45+04:00 — implementation, syntax, standalone arithmetic, and GE-002 stack reconciliation completed.
+- 2026-08-24T22:44:11+04:00 — Draft stacked PR #486 allocated and reconciled; GE-003 handover state recorded.
