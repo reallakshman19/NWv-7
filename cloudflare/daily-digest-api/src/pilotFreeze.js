@@ -10,7 +10,7 @@ import { readSnapshot, writeSnapshot } from './snapshotStore.js';
 
 export const PILOT_FREEZE_TIME = '10:15';
 export const PILOT_TIMEZONE = 'Asia/Kolkata';
-export const PILOT_POLICY_VERSION = 'daily-digest-policy/v0.2';
+export const PILOT_POLICY_VERSION = 'daily-digest-policy/v0.3';
 
 const INDIA_DISCOVERERS = Object.freeze([
   Object.freeze({ publisherFamily: 'AKASHVANI', discover: discoverAkashvaniMorningNews }),
@@ -64,12 +64,27 @@ async function discoverOne(source, options) {
   }
 }
 
+function sourceDecision(item) {
+  const result = item.result || {};
+  return {
+    publisherFamily: item.publisherFamily,
+    status: result.status || 'UNKNOWN',
+    scheduleState: result.scheduleState || null,
+    acquisitionState: result.acquisitionState || null,
+    editionState: result.candidate?.editionState || null,
+    qualityEvidenceState: result.qualityEvidence?.state || 'UNAVAILABLE',
+  };
+}
+
 async function discoverIndia({ digestDate, fetchImpl, now }) {
   const options = { digestDate, fetchImpl, now };
   const results = await Promise.all(INDIA_DISCOVERERS.map(source => discoverOne(source, options)));
   return {
-    results,
-    candidates: results.map(item => item.result?.candidate).filter(Boolean),
+    sourceDecisions: results.map(sourceDecision),
+    entries: results.filter(item => item.result?.candidate).map(item => ({
+      candidate: item.result.candidate,
+      qualityEvidence: item.result.qualityEvidence || null,
+    })),
   };
 }
 
@@ -77,11 +92,11 @@ function qualityOverridesFor(candidate, overrides) {
   return overrides?.[candidate.publisherFamily] || {};
 }
 
-function evaluateCandidates(candidates, qualityOverrides) {
-  return candidates.map(candidate => evaluatePilotCandidate(
-    candidate,
-    qualityOverridesFor(candidate, qualityOverrides),
-  ));
+function evaluateCandidates(entries, qualityOverrides) {
+  return entries.map(entry => evaluatePilotCandidate(entry.candidate, {
+    qualityEvidence: entry.qualityEvidence,
+    overrides: qualityOverridesFor(entry.candidate, qualityOverrides),
+  }));
 }
 
 function selectionRows(selection) {
@@ -144,17 +159,20 @@ export async function freezeDailyDigestPilot(options) {
 
   const collectionStartedAt = now.toISOString();
   const discovery = await discoverIndia({ digestDate: options.digestDate, fetchImpl: options.fetchImpl, now });
-  const candidates = evaluateCandidates(discovery.candidates, options.qualityOverrides);
+  const candidates = evaluateCandidates(discovery.entries, options.qualityOverrides);
   const selected = selectDailyDigest(candidates);
   if (!Object.keys(selected.selection).length) {
-    return { status: 'NO_ELIGIBLE_CANDIDATES', snapshotWritten: false, sourceDecisions: discovery.results, globalDecision };
+    return {
+      status: 'NO_ELIGIBLE_CANDIDATES', snapshotWritten: false,
+      sourceDecisions: discovery.sourceDecisions, globalDecision,
+    };
   }
 
   const snapshot = buildSnapshot({
     digestDate: options.digestDate, now, collectionStartedAt, selected, candidates,
     policyVersion: options.policyVersion || PILOT_POLICY_VERSION,
   });
-  const context = { snapshot, sourceDecisions: discovery.results, globalDecision };
+  const context = { snapshot, sourceDecisions: discovery.sourceDecisions, globalDecision };
   if (!options.writeEnabled) return { status: 'DRY_RUN_READY', snapshotWritten: false, ...context };
   if (!options.db) return { status: 'STORE_UNAVAILABLE', snapshotWritten: false, ...context };
   return { ...context, ...(await persistOnce(store, options.db, snapshot)) };
