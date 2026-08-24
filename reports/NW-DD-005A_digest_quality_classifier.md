@@ -83,9 +83,26 @@ PASS: sports-only fixture -> LOW / NARROW / CONCENTRATED
 PASS: unavailable evidence -> neutral ADEQUATE / ADEQUATE / MODERATE
 PASS: Akashvani evidence extractor excludes full bulletin after THE NEWS
 PASS: Indian Express extractor rejects external/utility links
+PASS: reconstructed DD-005A static scope guard
+PASS: migration 0002 applied with Python sqlite3; eight derived audit columns created
+PASS: GitHub compare shows exactly 16 changed files, all inside the authorized DD-005A scope
 ```
 
-Repository dependency-backed Vitest/lint/build/certification, Wrangler migration/runtime execution and live deployed publisher acquisition remain `NOT_RUN` unless separately executed. GitHub Actions were not created or dispatched as a substitute.
+Self-review correction before PR: a Wrangler comment initially contained the literal trigger-section token and was correctly rejected by the static safety guard; the comment was rewritten without changing runtime configuration.
+
+## NOT_RUN
+
+```text
+NOT_RUN: repository dependency-backed Vitest
+NOT_RUN: npm run lint
+NOT_RUN: npm run build
+NOT_RUN: npm run test:certify
+NOT_RUN: Wrangler local D1 migration/runtime proof
+NOT_RUN: Wrangler scheduled-handler proof
+NOT_RUN: live deployed publisher acquisition
+```
+
+GitHub Actions were not created, modified, or dispatched as a substitute.
 
 ## Explicit non-goals
 
