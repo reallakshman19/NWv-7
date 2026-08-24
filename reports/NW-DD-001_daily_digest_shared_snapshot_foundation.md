@@ -49,6 +49,8 @@ Selection is lexicographic across discrete quality classes; it has no compensati
 
 `daily-digest-snapshot/v1` retains both initial and effective selection identity. Same-slot health failover updates only `effective_canonical_id`, increments `snapshot_revision`, and appends an immutable selection event.
 
+The failover revision update is guarded by the continued existence of the requested slot so an invalid slot cannot advance `snapshot_revision` without an actual selection row.
+
 ## Scheduled handler
 
 A Worker `scheduled()` handler exists only to prove the server-side execution boundary. NW-DD-001 deliberately returns:
@@ -69,23 +71,35 @@ No production Cron Trigger is configured. The current pilot candidate `10:15 IST
 - no second global slot compensates for India shortfall
 - tie-break-only changes do not trigger hysteresis
 - persistence uses prepared bound statements
+- read reconstruction preserves initial and effective identities independently
 - same-slot replacement preserves initial identity
+- invalid slot cannot advance snapshot revision
 - replacement increments revision and appends evidence
 - public Worker exposes GET/OPTIONS only
 - static guard blocks workflow/UI/generated-data/Up Ahead Worker changes
 
 ## Validation run
 
-Connector-side source review: PASS.
+Connector-side changed-file/source review: **PASS**.
 
-The following commands require a local checkout/runtime and were not executed by the connector during authoring:
+Isolated local checks executed against the authored source logic:
 
 ```text
-NOT_RUN: focused Vitest certification
+PASS: node --check on authored Worker/source modules
+PASS: deterministic contract/selector assertions
+PASS: SQLite migration structural application; 4 daily_digest_* tables created
+PASS: Worker route checks for 404 / 405 / invalid-date 400 / OPTIONS 204 / missing-store 503
+PASS: scheduled foundation returns SOURCE_ADAPTERS_NOT_AUTHORIZED and snapshotWritten=false
+```
+
+The following repository/runtime validations require a complete checkout and/or Wrangler runtime and were not executed during connector authoring:
+
+```text
+NOT_RUN: focused Vitest certification files
 NOT_RUN: node scripts/test_daily_digest_foundation_static.mjs
-NOT_RUN: local D1 migration application
-NOT_RUN: local Worker GET/CORS proof
-NOT_RUN: local scheduled-handler no-write proof
+NOT_RUN: Wrangler local D1 migration application
+NOT_RUN: Wrangler local Worker GET/CORS proof
+NOT_RUN: Wrangler --test-scheduled proof
 NOT_RUN: npm run lint
 NOT_RUN: npm run build
 NOT_RUN: npm run test:certify
