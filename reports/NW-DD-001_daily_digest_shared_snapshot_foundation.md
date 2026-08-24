@@ -114,6 +114,16 @@ NOT_RUN: npm run test:certify
 
 The PR must remain draft / not merge-ready until those dependency-backed checks are run in an environment with the repository dependencies. No GitHub Actions workflow was added, changed, or manually dispatched to work around this limitation.
 
+## Status
+
+```text
+PR: #475
+State: DRAFT
+Head: 60367d89c03af77d72f67e58ff8239f4870fbd13
+Merge authorization: NOT REQUESTED
+Next mission: BLOCKED until DD-001 dependency-backed validation is closed and this PR is merged or explicitly waived by the user
+```
+
 ## Explicit non-goals preserved
 
 - no `.github/workflows/*` changes
