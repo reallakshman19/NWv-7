@@ -109,7 +109,11 @@ export async function replaceSelectionSameSlot(db, change) {
       UPDATE daily_digest_snapshots
       SET snapshot_revision = snapshot_revision + 1, updated_at = ?
       WHERE snapshot_id = ?
-    `, [occurredAt, change.snapshotId]),
+        AND EXISTS (
+          SELECT 1 FROM daily_digest_selections
+          WHERE snapshot_id = ? AND slot = ?
+        )
+    `, [occurredAt, change.snapshotId, change.snapshotId, change.slot]),
   ];
   return db.batch(statements);
 }
