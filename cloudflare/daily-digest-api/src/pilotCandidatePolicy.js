@@ -1,3 +1,4 @@
+import { classifyDigestQuality } from './qualityClassifier.js';
 import { findRegistryEntry } from './registry.js';
 
 const QUALITY_VALUES = Object.freeze({
@@ -22,16 +23,24 @@ function registryEntryFor(candidate) {
   return findRegistryEntry(candidate.publisherFamily, candidate.product, candidate.edition);
 }
 
-export function evaluatePilotCandidate(candidate, overrides = {}) {
+function resolvedClasses(derived, overrides) {
+  return {
+    significanceClass: qualityValue('significanceClass', overrides?.significanceClass, derived.significanceClass),
+    breadthClass: qualityValue('breadthClass', overrides?.breadthClass, derived.breadthClass),
+    diversityClass: qualityValue('diversityClass', overrides?.diversityClass, derived.diversityClass),
+  };
+}
+
+export function evaluatePilotCandidate(candidate, options = {}) {
   const registryEntry = registryEntryFor(candidate);
   if (!registryEntry) throw new Error('candidate_not_registered');
+  const derived = classifyDigestQuality(options.qualityEvidence);
   return {
     ...candidate,
+    ...derived,
+    ...resolvedClasses(derived, options.overrides),
     registryPrecedence: registryEntry.precedence,
     roleFitClass: 'EXACT',
-    significanceClass: qualityValue('significanceClass', overrides.significanceClass, 'ADEQUATE'),
-    breadthClass: qualityValue('breadthClass', overrides.breadthClass, 'ADEQUATE'),
-    diversityClass: qualityValue('diversityClass', overrides.diversityClass, 'MODERATE'),
     provenanceClass: candidate.provenanceClass || 'ORIGINAL_EDITORIAL',
     accessibilityClass: ACCESSIBILITY_CLASS[candidate.accessibilityState] || 'UNKNOWN',
     decision: 'PENDING',

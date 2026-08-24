@@ -26,8 +26,8 @@ function fakeDb() {
 function fakeReadDb() {
   const snapshotRow = {
     snapshot_id: 'daily-digest:2026-08-24:v1', digest_date: '2026-08-24',
-    schema_version: 'daily-digest-snapshot/v1', policy_version: 'daily-digest-policy/v0.2',
-    registry_version: 'daily-digest-registry/v0.1', decision_timezone: 'Asia/Kolkata',
+    schema_version: 'daily-digest-snapshot/v1', policy_version: 'daily-digest-policy/v0.3',
+    registry_version: 'daily-digest-registry/v0.5', decision_timezone: 'Asia/Kolkata',
     frozen_at: '2026-08-24T04:45:00Z', snapshot_revision: 2,
     composition_state: 'DEGRADED_GLOBAL_UNAVAILABLE',
   };
@@ -48,16 +48,32 @@ function fakeReadDb() {
   };
 }
 
-function snapshot() {
+function snapshot(candidates = []) {
   return {
     snapshotId: 'daily-digest:2026-08-24:v1', digestDate: '2026-08-24',
-    schemaVersion: 'daily-digest-snapshot/v1', policyVersion: 'daily-digest-policy/v0.2',
-    registryVersion: 'daily-digest-registry/v0.1', decisionTimezone: 'Asia/Kolkata',
+    schemaVersion: 'daily-digest-snapshot/v1', policyVersion: 'daily-digest-policy/v0.3',
+    registryVersion: 'daily-digest-registry/v0.5', decisionTimezone: 'Asia/Kolkata',
     collectionStartedAt: '2026-08-24T04:15:00Z', frozenAt: '2026-08-24T04:45:00Z',
     snapshotRevision: 1, compositionState: 'DEGRADED_GLOBAL_UNAVAILABLE',
     createdAt: '2026-08-24T04:45:00Z', updatedAt: '2026-08-24T04:45:00Z',
     selections: { I1: { canonicalId: 'a', selectionReason: 'best_qualified_india_general' } },
-    candidates: [],
+    candidates,
+  };
+}
+
+function qualityCandidate() {
+  return {
+    canonicalId: 'a', publisherFamily: 'AKASHVANI', product: 'MORNING_NEWS',
+    edition: 'ENGLISH_NATIONAL', role: 'INDIA_GENERAL', qualificationState: 'QUALIFIED',
+    scheduleState: 'EXPECTED', acquisitionState: 'OK', editionState: 'CURRENT',
+    accessibilityState: 'UNKNOWN', roleFitClass: 'EXACT', significanceClass: 'HIGH',
+    breadthClass: 'BROAD', diversityClass: 'DIVERSE', provenanceClass: 'PUBLIC_BROADCAST',
+    decision: 'SELECTED', decisionReason: 'SELECTED_I1',
+    publisherPublishedAt: '2026-08-24T02:45:00Z', observedAt: '2026-08-24T04:45:00Z',
+    qualityEvidenceVersion: 'daily-digest-quality/v0.1', qualityEvidenceState: 'OBSERVED',
+    qualityIntegrityClass: 'SUFFICIENT', qualityItemCount: 6, qualityTopicCount: 6,
+    qualityCoreTopicCount: 6, qualityDominantTopicShareBps: 1667,
+    qualityTopicCountsJson: '{"COURTS":1,"ECONOMY":1}',
   };
 }
 
@@ -70,6 +86,16 @@ describe('daily digest D1 store', () => {
       expect(statement.sql).toContain('?');
       expect(statement.values.length).toBeGreaterThan(0);
     });
+  });
+
+  it('persists derived quality audit fields without raw headline/body columns', () => {
+    const db = fakeDb();
+    const statements = buildSnapshotStatements(db, snapshot([qualityCandidate()]));
+    const candidateInsert = statements.at(-1);
+    expect(candidateInsert.sql).toContain('quality_evidence_version');
+    expect(candidateInsert.sql).toContain('quality_topic_counts_json');
+    expect(candidateInsert.sql).not.toMatch(/headline|article_body|raw_content/i);
+    expect(candidateInsert.values).toContain('daily-digest-quality/v0.1');
   });
 
   it('reconstructs initial and effective identities independently', async () => {

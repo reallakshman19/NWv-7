@@ -3,6 +3,7 @@ import {
   QUALIFICATION_STATES, buildCanonicalId,
 } from '../contracts.js';
 import { resolvePublicationState } from '../publicationCalendar.js';
+import { unavailableQualityEvidence } from '../qualityClassifier.js';
 import { parseRssItems } from './rss.js';
 
 export const THE_HINDU_MORNING_DIGEST = Object.freeze({
@@ -120,7 +121,13 @@ export async function discoverTheHinduMorningDigest({ digestDate, fetchImpl = fe
     if (!candidate) return absentResult(publication, 'PRODUCT_CONTRACT_MISSING');
     candidate.scheduleState = publication.scheduleState;
     const status = candidate.editionState === EDITION_STATES.CURRENT ? 'FOUND' : candidate.editionState;
-    return { status, candidate, scheduleState: publication.scheduleState, acquisitionState: candidate.acquisitionState };
+    return {
+      status,
+      candidate,
+      qualityEvidence: unavailableQualityEvidence('THE_HINDU_ARTICLE_BODY_NOT_QUALIFIED'),
+      scheduleState: publication.scheduleState,
+      acquisitionState: candidate.acquisitionState,
+    };
   } catch {
     return absentResult(publication, 'FETCH_ERROR');
   }

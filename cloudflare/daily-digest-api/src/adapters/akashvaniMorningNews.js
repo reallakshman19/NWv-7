@@ -1,5 +1,6 @@
 import { ACCESSIBILITY_STATES, ACQUISITION_STATES, EDITION_STATES, QUALIFICATION_STATES, buildCanonicalId } from '../contracts.js';
 import { resolvePublicationState } from '../publicationCalendar.js';
+import { extractAkashvaniDigestQualityEvidence } from './digestQualityEvidence.js';
 import { htmlToText } from './html.js';
 
 export const AKASHVANI_MORNING_NEWS = Object.freeze({
@@ -53,10 +54,17 @@ export async function discoverAkashvaniMorningNews({ digestDate, fetchImpl = fet
   try {
     const response = await fetchImpl(AKASHVANI_MORNING_NEWS.discoveryUrl, { headers: { Accept: 'text/html' } });
     if (!response?.ok) return absentResult(publication, 'FETCH_NON_OK');
-    const candidate = parseAkashvaniMorningNews(await response.text(), digestDate, now.toISOString());
+    const html = await response.text();
+    const candidate = parseAkashvaniMorningNews(html, digestDate, now.toISOString());
     if (!candidate) return absentResult(publication, 'PRODUCT_CONTRACT_MISSING');
     candidate.scheduleState = publication.scheduleState;
-    return { status: candidate.editionState === EDITION_STATES.CURRENT ? 'FOUND' : 'STALE', candidate, scheduleState: publication.scheduleState, acquisitionState: candidate.acquisitionState };
+    return {
+      status: candidate.editionState === EDITION_STATES.CURRENT ? 'FOUND' : 'STALE',
+      candidate,
+      qualityEvidence: extractAkashvaniDigestQualityEvidence(html),
+      scheduleState: publication.scheduleState,
+      acquisitionState: candidate.acquisitionState,
+    };
   } catch {
     return absentResult(publication, 'FETCH_ERROR');
   }
