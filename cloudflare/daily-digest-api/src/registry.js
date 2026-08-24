@@ -13,7 +13,7 @@ function calendar(publicationDays, start, end, graceMinutes, qualification) {
   };
 }
 
-export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.2';
+export const DAILY_DIGEST_REGISTRY_VERSION = 'daily-digest-registry/v0.3';
 
 export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
@@ -35,7 +35,10 @@ export const DAILY_DIGEST_REGISTRY = Object.freeze([
   entry({
     publisherFamily: 'THE_HINDU', product: 'MORNING_DIGEST', edition: 'DEFAULT',
     role: 'INDIA_GENERAL', publisherClass: 'PRIVATE_PUBLISHER',
-    qualificationState: 'HOLD', holdReason: 'ACQUISITION_ADAPTER_NOT_QUALIFIED', precedence: 30,
+    qualificationState: 'QUALIFIED', precedence: 30,
+    discoveryUrl: 'https://www.thehindu.com/news/national/feeder/default.rss',
+    adapterKey: 'THE_HINDU_MORNING_DIGEST', acquisitionQualification: 'PILOT',
+    ...calendar(['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], '06:00', '09:15', 30, 'PILOT'),
   }),
   entry({
     publisherFamily: 'FINANCIAL_TIMES', product: 'FIRSTFT', edition: 'ASIA',
