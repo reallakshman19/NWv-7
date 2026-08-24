@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildSnapshotStatements,
+  readSnapshot,
   replaceSelectionSameSlot,
 } from './snapshotStore.js';
 
@@ -18,6 +19,31 @@ function fakeDb() {
     async batch(statements) {
       batches.push(statements);
       return statements.map(() => ({ success: true }));
+    },
+  };
+}
+
+function fakeReadDb() {
+  const snapshotRow = {
+    snapshot_id: 'daily-digest:2026-08-24:v1', digest_date: '2026-08-24',
+    schema_version: 'daily-digest-snapshot/v1', policy_version: 'daily-digest-policy/v0.2',
+    registry_version: 'daily-digest-registry/v0.1', decision_timezone: 'Asia/Kolkata',
+    frozen_at: '2026-08-24T04:45:00Z', snapshot_revision: 2,
+    composition_state: 'DEGRADED_GLOBAL_UNAVAILABLE',
+  };
+  const rows = [{ slot: 'I1', initial_canonical_id: 'a', effective_canonical_id: 'b' }];
+  function statement(sql) {
+    return {
+      async first() { return snapshotRow; },
+      async all() { return { results: sql.includes('daily_digest_selections') ? rows : [] }; },
+    };
+  }
+  return {
+    prepare(sql) {
+      return {
+        ...statement(sql),
+        bind() { return statement(sql); },
+      };
     },
   };
 }
@@ -46,6 +72,13 @@ describe('daily digest D1 store', () => {
     });
   });
 
+  it('reconstructs initial and effective identities independently', async () => {
+    const result = await readSnapshot(fakeReadDb(), '2026-08-24');
+    expect(result.initialSelection).toEqual({ I1: 'a' });
+    expect(result.effectiveSelection).toEqual({ I1: 'b' });
+    expect(result.snapshotRevision).toBe(2);
+  });
+
   it('same-slot replacement preserves initial identity and appends evidence', async () => {
     const db = fakeDb();
     await replaceSelectionSameSlot(db, {
@@ -58,5 +91,6 @@ describe('daily digest D1 store', () => {
     expect(statements[1].sql).toContain('SET effective_canonical_id = ?');
     expect(statements[1].sql).not.toContain('initial_canonical_id =');
     expect(statements[2].sql).toContain('snapshot_revision = snapshot_revision + 1');
+    expect(statements[2].sql).toContain('EXISTS');
   });
 });
