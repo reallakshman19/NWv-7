@@ -5,8 +5,8 @@
 ## 1. Recovery Header
 
 ```text
-HANDOVER_READINESS: DEGRADED
-PR_RECOVERY_STATE: RECOVERABLE
+HANDOVER_READINESS: READY
+PR_RECOVERY_STATE: HEALTHY
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 
 REPOSITORY: reallaksh19/NWv-7
@@ -14,23 +14,23 @@ SOURCE_TASK: Repair Pages publishing configuration before further ranking/source
 PR_OR_WIP: PR#491
 BRANCH: agent/nw-pages-001-pages-publishing-recovery
 
-PR_HEAD_OBSERVED: 54185f8cabc5bc0e0511f3ff9a9b83fdb81c9ee7
+PR_HEAD_OBSERVED: 63eef0135e6a2863d4cdc179fe411dffbfbe13c4
 REPORT_BASIS_HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e
 MAIN_HEAD_LAST_CHECKED: a3641d6a0de0208cc31b1ff823e1d2178796faf3
 MERGE_BASE: a3641d6a0de0208cc31b1ff823e1d2178796faf3
-REPORT_SYNC: CURRENT
+REPORT_SYNC: CURRENT; commits after REPORT_BASIS_HEAD are recovery-report-only
 
-APPENDIX_A_STATUS: CURRENT
+APPENDIX_A_STATUS: NOT_REQUIRED
 GROUNDING_EPOCH: GE-001
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: RECONCILE
-LAST_COMPLETED_STAGE: PR_INITIALIZATION
-CURRENT_BLOCKER: Pages repository setting is observed indirectly through the dynamic branch/Jekyll run and is not writable through the connected GitHub API
+CURRENT_STAGE: HANDOVER
+LAST_COMPLETED_STAGE: CLOSURE_RECONCILIATION
+CURRENT_BLOCKER: explicit owner merge authorization, followed by the repository Pages source-mode setting change
 HIGHEST_RISK: suppressing Jekyll without publishing the Vite dist would produce a green but unusable site
 LAST_DURABLE_CHECKPOINT: 2026-08-25T11:15:00Z
 
-EXACT_NEXT_ACTION: reconcile PR #491 changed files, base drift, reviews, and no-run workflow evidence; then await explicit owner merge authorization
+EXACT_NEXT_ACTION: owner authorizes squash merge; then change Settings → Pages → Source to GitHub Actions and verify the first artifact deployment
 ```
 
 ## 2. Handover in 60 Seconds
@@ -49,7 +49,7 @@ Implementation and local validation are complete. The qualified workflow is rest
 
 ### What remains unfinished
 
-Final PR reconciliation, remote execution evidence, owner merge authorization, and the repository Pages source setting change from branch/Jekyll to GitHub Actions.
+Owner merge authorization, the repository Pages source setting change from branch/Jekyll to GitHub Actions, and the first post-merge artifact deployment verification.
 
 ### What has been proven
 
@@ -245,6 +245,20 @@ Actual: not run
 Origin: UNKNOWN_ORIGIN
 ```
 
+### VAL-007 — PR CI observation
+
+```text
+Status: NOT_RUN
+Observation: REMOTE_EXECUTION
+Oracle: NONE
+Tested HEAD: 63eef0135e6a2863d4cdc179fe411dffbfbe13c4
+Evidence: run #32843709190; job #97788605107
+Expected: CI runner executes the smoke profile
+Actual: infrastructure no-start; runner_id=0, empty runner name, zero steps
+Limitations: no product command executed, so this is neither product PASS nor product FAIL
+Origin: PREEXISTING
+```
+
 ## 10. Changed-File Ledger
 
 | File | Intended? | First stage | Latest stage | Purpose | Sensitive? | Validation |
@@ -253,11 +267,11 @@ Origin: UNKNOWN_ORIGIN
 | `scripts/test_pages_data_publish_static.mjs` | yes | validation | validation | keep deploy mandatory; inspect optional producers when present | no | focused PASS + lint PASS |
 | `reports/NW-PAGES-001_pages_publishing_recovery.md` | yes | baseline | reconciliation | durable recovery evidence | no | source inspection |
 
-Expected file count: 3. Unexplained files: 0.
+Actual GitHub file count: 3. Ledger count: 3. Unexplained files: 0. Reconciled at PR head `63eef013…`.
 
 ## 11. Review / CI State
 
-Draft PR #491 is open with three intended files. Reviews, comments, base drift, mergeability, and current workflow evidence require one final live reconciliation. Remote deployment is `NOT_RUN`.
+Draft PR #491 is open, mergeable, five commits ahead and zero behind `main`. It has exactly three intended files, zero reviews, zero comments, and zero review threads. CI run #32843709190 is an infrastructure `NOT_RUN` with runner ID `0` and zero steps. Remote Pages deployment is `NOT_RUN` because the deploy workflow has no pull-request trigger.
 
 ## 12. Repository Coordination / Overlap
 
@@ -278,14 +292,14 @@ COORDINATION_STATE: SAFE
 Start here: .github/workflows/deploy.yml
 Do not redo: Jekyll failure isolation and open-PR overlap check
 Do not change: ranking/source/runtime/generated data/dependencies
-Validation still required: focused workflow tests, lint, unit, build, remote execution
+Validation still required: first post-merge official Pages artifact deployment
 Highest-risk remaining item: repository Pages source-mode setting
-Exact next action: restore and validate the qualified workflow
+Exact next action: explicit owner merge authorization, source-mode change, and deployed artifact verification
 ```
 
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
-APPENDIX_A_STATUS is `CURRENT`. A takeover must trace the dynamic Jekyll failure, prove why root `.nojekyll` is insufficient, identify the official artifact boundary, reproduce the focused checks, and propose the exact next minimal commit without expanding into data-refresh workflow restoration.
+APPENDIX_A_STATUS is `NOT_REQUIRED`: no further technical implementation authority is needed before the explicit owner merge decision. If the first post-merge artifact deployment fails after a runner starts, generate a fresh repository-specific qualification from that new failure.
 
 # HISTORICAL RECORD — NOT CURRENT AUTHORITY
 
