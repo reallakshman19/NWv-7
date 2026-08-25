@@ -56,4 +56,4 @@ source was changed in this batch.
 
 ## Pull request
 
-Pending.
+Draft PR: [#492](https://github.com/reallaksh19/NWv-7/pull/492)
