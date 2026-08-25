@@ -14,6 +14,21 @@ function storyIdentity(story = {}) {
   ).trim().toLowerCase();
 }
 
+function finiteOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function jsonSafe(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function normalizeDisplayDepth(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 10;
+  return Math.max(0, Math.floor(number));
+}
+
 function selectedPositionMap(items = []) {
   return new Map(items.map((item, index) => [storyIdentity(item), index + 1]));
 }
@@ -36,16 +51,16 @@ function buildScoreEvidence(story, selectedPositions, displayedPositions) {
     sourceCount: Number(rank.sourceCount || 0),
     corroboratingSourceCount: Number(rank.corroboratingSourceCount || 0),
     independentEvidenceCount: Number(rank.independentEvidenceCount || 0),
-    ageHours: Number(rank.ageHours),
+    ageHours: finiteOrNull(rank.ageHours),
     ageBand: rank.ageBand || null,
     slotBand: rank.slotBand || null,
     admissionReason: rank.admissionReason || null,
-    admissionThreshold: rank.admissionThreshold ?? null,
-    thresholdMargin: rank.thresholdMargin ?? null,
+    admissionThreshold: finiteOrNull(rank.admissionThreshold),
+    thresholdMargin: finiteOrNull(rank.thresholdMargin),
     penalties: Number(rank.penalties || 0),
     rawScore: Number(rank.scoreBreakdown?.rawScore || 0),
     normalizedScore: Number(rank.normalizedScore || 0),
-    scoreBreakdown: rank.scoreBreakdown || null,
+    scoreBreakdown: jsonSafe(rank.scoreBreakdown || null),
     authoritativeRank: Number(rank.authoritativeRank || 0),
     selectedPosition: selectedPositions.get(identity) || null,
     displayedPosition: displayedPositions.get(identity) || null,
@@ -82,7 +97,7 @@ export function evaluateFrozenSectionsEpoch(epoch, options = {}) {
   const frozenEpoch = validateSectionsShadowInputEpoch(epoch, {
     expectedRegistryAuthority: options.expectedRegistryAuthority,
   });
-  const displayDepth = Math.max(0, Math.floor(Number(options.displayDepth ?? 10)));
+  const displayDepth = normalizeDisplayDepth(options.displayDepth ?? 10);
   const evaluation = evaluateTopStories({
     sectionItems: frozenEpoch.sectionItems,
     topFeedItems: frozenEpoch.topFeedItems,
@@ -104,11 +119,11 @@ export function evaluateFrozenSectionsEpoch(epoch, options = {}) {
     rankerPolicyDigest: digestCanonicalJson(evaluation.policySnapshot),
     rawInputCount: evaluation.rawInputCount,
     candidateCount: evaluation.candidates.length,
-    candidateBuildTrace: evaluation.candidateBuildTrace,
+    candidateBuildTrace: jsonSafe(evaluation.candidateBuildTrace),
     candidateEvidence,
     selectedIds: evaluation.selected.map(storyIdentity),
     displayedIds: evaluation.displayed.map(storyIdentity),
-    selectionTrace: evaluation.selectionTrace,
+    selectionTrace: jsonSafe(evaluation.selectionTrace),
   };
   return Object.freeze({
     ...evidence,
