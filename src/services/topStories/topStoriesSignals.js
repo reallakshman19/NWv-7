@@ -5,18 +5,35 @@ import {
   getLocationRelevanceScore,
   getLocationRelevanceSignal,
 } from './topStoriesLocationSignals.js';
+import {
+  getStorySourceFamilies,
+  getStorySourceFamily,
+  isAggregatorSourceFamily,
+} from './topStoriesSourceIdentity.js';
 
 export { getLocationRelevanceScore, getLocationRelevanceSignal };
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
 const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback']);
+const TOP_TIER_SOURCE_FAMILIES = new Set([
+  'reuters',
+  'associated_press',
+  'bbc',
+  'the_hindu',
+  'business_line',
+  'times_of_oman',
+  'muscat_daily',
+]);
+const STANDARD_SOURCE_FAMILIES = new Set([
+  'ndtv',
+  'hindustan_times',
+  'economic_times',
+  'moneycontrol',
+  'google_news',
+]);
 
 function textValue(value) {
   return String(value || '').trim().toLowerCase();
-}
-
-function sourceKey(value) {
-  return textValue(value).replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 }
 
 function toTimestamp(value) {
@@ -26,13 +43,7 @@ function toTimestamp(value) {
 }
 
 function uniqueSources(story = {}) {
-  const explicit = Array.isArray(story.allSources)
-    ? story.allSources.map(sourceKey).filter(Boolean)
-    : [];
-  if (explicit.length > 0) return [...new Set(explicit)];
-
-  const primary = sourceKey(story.sourceGroup || story.source);
-  return primary ? [primary] : [];
+  return getStorySourceFamilies(story);
 }
 
 function declaredSourceCount(story = {}) {
@@ -40,7 +51,7 @@ function declaredSourceCount(story = {}) {
 }
 
 function isAggregatorSource(story = {}) {
-  return /\bgoogle[ _-]?news\b/i.test(`${story.source || ''} ${story.sourceGroup || ''}`);
+  return isAggregatorSourceFamily(getStorySourceFamily(story));
 }
 
 function getTopFeedSignal(story = {}, context = {}) {
@@ -118,9 +129,9 @@ export function getClusterKey(story = {}) {
 }
 
 export function getSourceQualityScore(story = {}) {
-  const source = textValue(`${story.source || ''} ${story.sourceGroup || ''}`);
-  if (/\b(reuters|ap|bbc|the hindu|business_line|times_of_oman|muscat_daily)\b/i.test(source)) return 1;
-  if (/\b(ndtv|hindustan|economic_times|moneycontrol|google_news)\b/i.test(source)) return 0.72;
+  const family = getStorySourceFamily(story);
+  if (TOP_TIER_SOURCE_FAMILIES.has(family)) return 1;
+  if (STANDARD_SOURCE_FAMILIES.has(family)) return 0.72;
   return 0.48;
 }
 
@@ -130,7 +141,11 @@ export function getFreshnessScore(ageHours, policy) {
 }
 
 function getSourceCount(story = {}) {
-  return Math.max(uniqueSources(story).length, declaredSourceCount(story), 1);
+  const canonicalCount = uniqueSources(story).length;
+  if (Array.isArray(story.allSources) && story.allSources.length > 0) {
+    return Math.max(canonicalCount, 1);
+  }
+  return Math.max(canonicalCount, declaredSourceCount(story), 1);
 }
 
 function getCorroborationParts(story = {}, context = {}, policy) {

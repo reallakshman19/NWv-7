@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation in progress from verified `main` commit
+Implemented from verified `main` commit
 `2adf656cbd8f676a349d6af4b43c19a76e908282`.
 
 ## Production finding
@@ -40,7 +40,19 @@ That creates three ranking defects:
 
 ## Validation
 
-Pending.
+All validation was run locally. GitHub Actions was intentionally not used.
+
+- Focused Top Stories regression: 4 files, 58 tests passed.
+- Golden-audit and timezone-baseline regression: 4 files, 42 tests passed.
+- Full unit suite with deterministic `TZ=UTC`: 227 files passed;
+  1,327 tests passed and 8 skipped.
+- ESLint: passed.
+- Vite production build: passed; 372 modules transformed.
+
+The first unqualified full-suite run exposed a pre-existing host-timezone-sensitive
+Up Ahead assertion (`2026-05-28` displayed as May 27 outside UTC). The same test
+passes under the repository's deterministic UTC baseline; no unrelated Up Ahead
+source was changed in this batch.
 
 ## Pull request
 
