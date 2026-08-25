@@ -1,9 +1,10 @@
 import { getTopStoryDedupeKey } from './topStoriesCandidates.js';
 import { explainTopStoryRank } from './topStoriesExplanation.js';
 import { buildTopStorySelectionTrace } from './topStoriesTrace.js';
+import { getStorySourceFamily } from './topStoriesSourceIdentity.js';
 
 function getSourceKey(story = {}) {
-  return String(story.sourceGroup || story.source || 'unknown').toLowerCase();
+  return getStorySourceFamily(story);
 }
 
 function getGeoKey(story = {}) {

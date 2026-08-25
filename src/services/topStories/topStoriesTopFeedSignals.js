@@ -61,7 +61,9 @@ function clampScore(value) {
 }
 
 function sourceKey(row = {}) {
-  return normalizeText(row.sourceGroup || row.source || row.topFeedSource || 'unknown');
+  const storyFamily = getStorySourceFamily(row);
+  if (storyFamily && storyFamily !== 'unknown') return storyFamily;
+  return getSourceFamily(row.topFeedSource) || 'unknown';
 }
 
 function feedSourceKey(row = {}) {
@@ -222,3 +224,7 @@ export function explainTopFeedSignal(signal = {}) {
     `sources=${Number(signal.topFeedSourceCount || 0)}`,
   ].join('; ');
 }
+import {
+  getSourceFamily,
+  getStorySourceFamily,
+} from './topStoriesSourceIdentity.js';
