@@ -114,8 +114,9 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     );
   });
 
-  it('rejects missing clock, registry drift, and circular benchmark metadata', () => {
+  it('rejects invalid clocks, registry drift, and circular benchmark metadata', () => {
     expectErrorCode(() => buildEpoch({ nowMs: null }), 'input_epoch_clock_invalid');
+    expectErrorCode(() => buildEpoch({ nowMs: String(benchmark.nowMs) }), 'input_epoch_clock_invalid');
     expectErrorCode(
       () => buildEpoch({ sourceRegistryDigest: '0'.repeat(64) }),
       'input_epoch_registry_digest_mismatch',
@@ -140,11 +141,28 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     expect(frozen.nowMs).toBe(0);
   });
 
-  it('removes an acquisition wrapper from independent publisher evidence', () => {
+  it('removes acquisition wrappers from independent publisher evidence', () => {
     const story = caseDStory();
     expect(getStorySourceFamilies(story)).toEqual(
       benchmark.expected.caseDSourceFamilies,
     );
+
+    const wrapperPrimary = {
+      ...story,
+      source: 'Google News Oman',
+      sourceGroup: 'google_news_oman',
+    };
+    expect(getStorySourceFamilies(wrapperPrimary)).toEqual(
+      benchmark.expected.caseDSourceFamilies,
+    );
+
+    const aggregatorOnly = {
+      source: 'Google News Oman',
+      sourceGroup: 'google_news_oman',
+      allSources: ['Google News', 'google_news_alt'],
+    };
+    expect(getStorySourceFamilies(aggregatorOnly)).toEqual(['google_news']);
+
     const signals = extractTopStorySignals(story, {
       policy: getTopStoriesPolicy(),
       nowMs: benchmark.nowMs,
