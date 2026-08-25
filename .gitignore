@@ -19,6 +19,10 @@ archive/
 .env.production
 .env.development
 
+# Local Cloudflare deployment configs (contain account-specific binding IDs)
+cloudflare/daily-digest-api/wrangler.toml
+cloudflare/daily-digest-api/wrangler.production.toml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
