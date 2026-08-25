@@ -10,25 +10,25 @@ REPOSITORY: reallaksh19/NWv-7
 SOURCE_TASK: Owner continuation after PR #489; repair lint and stale unit baseline locally
 PR_OR_WIP: WIP-NW-CI-SMOKE-001
 BRANCH: codex/nw-ci-smoke-baseline-001
-PR_HEAD_OBSERVED: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
-REPORT_BASIS_HEAD: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
+PR_HEAD_OBSERVED: 21e39fb72a22f80f423bfa319646d32b15b89f93
+REPORT_BASIS_HEAD: 21e39fb72a22f80f423bfa319646d32b15b89f93
 MAIN_HEAD_LAST_CHECKED: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
 MERGE_BASE: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
 REPORT_SYNC: CURRENT
-APPENDIX_A_STATUS: CURRENT
+APPENDIX_A_STATUS: NOT_REQUIRED
 GROUNDING_EPOCH: GE-001
-CURRENT_STAGE: PLAN
+CURRENT_STAGE: RECONCILE
 CURRENT_BLOCKER: none
-HIGHEST_RISK: changing ranking expectations without preserving the merged geography/evidence policy
-LAST_DURABLE_CHECKPOINT: branch created from current main
-EXACT_NEXT_ACTION: apply the bounded lint and stale-contract repairs, then rerun focused tests
+HIGHEST_RISK: GitHub Actions remains unable to allocate a runner
+LAST_DURABLE_CHECKPOINT: implementation commit 21e39fb7 validated locally
+EXACT_NEXT_ACTION: create a draft PR, reconcile its exact diff/review state, and hand over for owner merge decision
 ```
 
 ## Handover in 60 Seconds
 
-Current `main` is `ed903649...`, the squash merge of Daily Digest PR #488 on top of CI restoration PR #489. The exact 17 target files were verified byte-for-byte against current `main`. Local baseline is 4 lint errors plus 1 warning and 20 failed unit tests. GitHub Actions starts no runner (`runner_id: 0`, no steps), so validation is local.
+Current `main` is `ed903649...`, the squash merge of Daily Digest PR #488 on top of CI restoration PR #489. Implementation head `21e39fb7...` is two commits ahead: one recovery report checkpoint and one bounded repair commit. The exact 18-file branch diff is reconciled and contains no workflow, dependency, or production-ranking-policy modification.
 
-This batch must not recreate or edit operational workflow files, change Top Stories production policy, change ranking weights/thresholds, or touch `NewsContext.jsx`. It may repair lint, mark missing optional workflow contracts explicitly skipped, and rebase test fixtures onto merged geography PR #484 and evidence PR #485.
+Lint is clean. All 226 Vitest files pass with 1,316 tests passed and 12 unavailable-workflow assertions explicitly skipped. The hotfix guard and 371-module production build pass. The smoke wrapper itself was blocked before launch by the execution environment; every command in its smoke manifest was executed individually.
 
 ## Mission / Scope / Acceptance
 
@@ -43,10 +43,10 @@ This batch must not recreate or edit operational workflow files, change Top Stor
 
 | ID | Type | Status | Summary |
 |---|---|---|---|
-| ISS-001 | lint | OPEN | Three empty catches and one React callback dependency mismatch |
-| ISS-002 | test | OPEN | Eleven workflow-source assertions target files deleted from current main |
-| ISS-003 | test | OPEN | MainPage migration assertion predates composite Main + Daily Digest refresh |
-| ISS-004 | test | OPEN | Top Stories fixtures predate explicit geography and mature-event evidence gates |
+| ISS-001 | lint | RESOLVED | Intentional catches are documented; composite refresh dependencies are explicit |
+| ISS-002 | test | RESOLVED | Twelve absent-workflow assertions are conditionally skipped while local CLI/algorithm coverage remains active |
+| ISS-003 | test | RESOLVED | MainPage certification now asserts composite Main + Daily Digest refresh |
+| ISS-004 | test | RESOLVED | Fixtures now carry explicit geography/evidence and analytically reconciled golden scores |
 | RISK-001 | overlap | CONTROLLED | PRs #386/#387 are non-mergeable and stale; no exact-file overlap, but ranking validation authority overlaps |
 | DEC-001 | scope | ACTIVE | Preserve missing workflow contracts with conditional skips; do not claim them PASS |
 
@@ -61,10 +61,13 @@ This batch must not recreate or edit operational workflow files, change Top Stor
 | ID | Status | Observation | Oracle | Command / actual | Origin |
 |---|---|---|---|---|---|
 | VAL-001 | PASS | SOURCE_INSPECTION | INDEPENDENT_REPRODUCTION | 17 local target blobs match `main` Git blob SHAs | PREEXISTING |
-| VAL-002 | FAIL | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `npm run lint`: 4 errors, 1 warning | PREEXISTING |
-| VAL-003 | FAIL | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `npm run test:unit`: 20 failed, 1305 passed in 226 files | PREEXISTING |
-| VAL-004 | PASS | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | prior `npm run build`: passed | PREEXISTING |
-| VAL-005 | PASS | LOCAL_EXECUTION | NONE | prior `npm ci`: 299 packages installed | PREEXISTING |
+| VAL-002 | PASS | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `npm run lint`: 0 findings | RESOLVED_BY_PR |
+| VAL-003 | PASS | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `npm run test:unit`: 226 files passed; 1,316 passed, 12 skipped | RESOLVED_BY_PR |
+| VAL-004 | PASS | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `./node_modules/.bin/vite build`: 371 modules, build complete | RESOLVED_BY_PR |
+| VAL-005 | PASS | LOCAL_EXECUTION | NONE | `npm ci`: 299 packages installed | PREEXISTING |
+| VAL-006 | PASS | LOCAL_EXECUTION | IMPLEMENTATION_COUPLED | `node scripts/test_lint_hotfix_static.mjs` | RESOLVED_BY_PR |
+| VAL-007 | PASS | LOCAL_EXECUTION | INDEPENDENT_REPRODUCTION | Frozen audit fixture math matches merged geography/evidence policy | RESOLVED_BY_PR |
+| VAL-008 | NOT_RUN | NOT_OBSERVED | NONE | `test:certify:smoke` wrapper blocked before launch by tool approval transport; all four delegated components passed separately | UNKNOWN_ORIGIN |
 
 ## Authority / Invariants
 
@@ -77,12 +80,34 @@ This batch must not recreate or edit operational workflow files, change Top Stor
 
 Open PRs checked: #396, #387, #386. PRs #386/#387 overlap the ranking-validation domain but are non-mergeable, last updated 2026-07-08, and change different exact files. This batch does not modify their claimed `NewsContext.jsx`, ViewModel, or report files. Coordination state: `COORDINATION_REQUIRED_RESOLVED_BY_BOUNDED_SUCCESSOR_SCOPE`.
 
-## Planned Changed Files
+## Changed-File Ledger
 
-- Lint: two Daily Digest adapters and `src/pages/MainPage.jsx`.
-- Stale migration/workflow contracts: nine certification files plus the MainPage migration certification.
-- Ranking fixture rebase: regression fixture, golden snapshot, evaluator certification, and ranker certification.
-- This report.
+| File | Purpose |
+|---|---|
+| `cloudflare/daily-digest-api/src/adapters/html.js` | Document intentional malformed-input catches |
+| `cloudflare/daily-digest-api/src/adapters/indianExpressDailyBriefing.js` | Document candidate-edition fallthrough |
+| `src/pages/MainPage.jsx` | Preserve composite refresh with compiler-safe dependencies |
+| `src/pages/MainPage.release6A.cert.test.jsx` | Certify the current composite refresh contract |
+| `src/services/travelNewsWorkflow.cert.test.js` | Skip only absent travel-workflow contract |
+| `src/services/topStories/topStoriesPilotAuthorityExclusivity.cert.test.js` | Skip only two absent pilot-workflow assertions |
+| `src/services/topStories/topStoriesPilotWorkflow.cert.test.js` | Skip absent workflow assertion; retain downloader test |
+| `src/services/topStories/topStoriesShadowAggregationWorkflow.cert.test.js` | Skip absent workflow assertion; retain CLI tests |
+| `src/services/topStories/topStoriesShadowWorkflowCli.cert.test.js` | Skip absent workflow assertion; retain repository-shadow tests |
+| `src/services/topStories/topStoriesOperationalValidationWorkflow.cert.test.js` | Skip absent workflow assertion; retain validation CLI tests |
+| `src/services/topStories/topStoriesPagesDeploymentProvenance.cert.test.js` | Skip two absent workflow assertions; retain provenance tests |
+| `src/insight/src/quality/auditRemediation.cert.test.ts` | Skip absent deploy-workflow assertion only |
+| `src/services/worldHealthDeploymentSmoke.cert.test.js` | Skip two deploy-workflow assertions; retain smoke-source contract |
+| `src/services/topStories/fixtures/topStoriesRegressionFixtures.js` | Declare strong world geography independently of feed section |
+| `src/services/topStories/fixtures/topStoriesGoldenReviewSnapshot.js` | Reconcile three geo-dependent scores analytically |
+| `src/services/topStories/topStoriesEvaluator.cert.test.js` | Keep fallback-aggregator gate reachable with a non-critical event |
+| `src/services/topStories/topStoriesRanker.cert.test.js` | Supply mature-event evidence to secondary/LIVE fixtures |
+| `reports/NW-CI-SMOKE-001_validation_baseline.md` | Recovery, scope, validation, and closure evidence |
+
+Actual branch diff: 18 files; ledger: 18; unexplained: 0. Reconciled at `21e39fb7...` against `ed903649...`.
+
+## Review / CI State
+
+No PR existed at this checkpoint. GitHub Actions infrastructure remains a no-run condition; local results above are authoritative for this batch. No review threads or requested changes exist yet.
 
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
