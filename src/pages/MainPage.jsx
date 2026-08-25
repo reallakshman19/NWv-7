@@ -47,14 +47,15 @@ const MainPage = () => {
         shellRuntimeProps,
     } = useMainTabViewModel();
     const dailyDigest = useDailyDigestSectionViewModel();
+    const { refresh: refreshDailyDigest } = dailyDigest;
 
     const { isWebView } = useMediaQuery();
     const refreshPage = useCallback(async () => {
-        const results = await Promise.allSettled([refreshAll(), dailyDigest.refresh()]);
+        const results = await Promise.allSettled([refreshAll(), refreshDailyDigest()]);
         const mainResult = results[0];
         if (mainResult.status === 'fulfilled') return mainResult.value;
         return { ok: false, error: mainResult.reason?.message || String(mainResult.reason) };
-    }, [dailyDigest.refresh, refreshAll]);
+    }, [refreshAll, refreshDailyDigest]);
     const { pullDistance } = usePullToRefresh(refreshPage);
 
     const [showBackToTop, setShowBackToTop] = useState(false);

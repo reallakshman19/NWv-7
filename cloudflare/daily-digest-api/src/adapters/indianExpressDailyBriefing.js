@@ -87,7 +87,7 @@ async function findCurrentEdition(links, digestDate, fetchImpl, observedAt) {
           qualityEvidence: extractIndianExpressDigestQualityEvidence(html, url),
         };
       }
-    } catch {}
+    } catch { /* Try the next candidate edition. */ }
   }
   return { candidate: null, latestObserved, qualityEvidence: null };
 }

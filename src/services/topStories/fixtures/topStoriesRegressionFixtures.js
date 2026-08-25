@@ -27,6 +27,7 @@ export const TOP_STORIES_REGRESSION_STORIES = Object.freeze([
     id: 'fallback-hard-news',
     title: 'Government warning remains active after overnight storm',
     section: 'world',
+    region: 'world',
     source: 'BBC',
     sourceGroup: 'bbc',
     publishedAt: publishedHoursAgo(10),

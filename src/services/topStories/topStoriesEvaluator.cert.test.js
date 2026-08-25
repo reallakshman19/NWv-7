@@ -150,6 +150,7 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
       },
       {
         candidate: story('fallback-aggregator', {
+          title: 'Court verdict announced in public case',
           source: 'Google News',
           sourceGroup: 'google_news',
           publishedAt: NOW - (9 * HOUR),

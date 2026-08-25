@@ -79,6 +79,7 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     const secondary = Array.from({ length: 15 }, (_, i) => story(`s${i}`, 6, {
       title: `Flood evacuation alert ${i}`,
       section: `secondary-${i}`,
+      sourceCount: 2,
     }));
     const ranked = rank([...primary, ...secondary]);
     expect(ranked).toHaveLength(25);
@@ -121,8 +122,8 @@ describe('NW-RANK-001 Top Stories ranker', () => {
 
   it('boosts LIVE only with fresh update evidence or consensus', () => {
     const ranked = rank([
-      story('live-fresh', 5, { title: 'LIVE cyclone warning updates', updatedAt: NOW - hour }),
-      story('live-old', 5, { title: 'LIVE cyclone warning old blog' }),
+      story('live-fresh', 5, { title: 'LIVE cyclone warning updates', updatedAt: NOW - hour, sourceCount: 2 }),
+      story('live-old', 5, { title: 'LIVE cyclone warning old blog', sourceCount: 2 }),
     ]);
     expect(ranked[0].id).toBe('live-fresh');
   });
