@@ -10,6 +10,10 @@ import {
 } from './topStoriesSignals.js';
 import { getSlotDecision } from './topStoriesEvidenceAdmission.js';
 import {
+  buildTopStoryScoreBreakdown,
+  getThresholdMargin,
+} from './topStoriesScoreBreakdown.js';
+import {
   buildTopStoryCandidates as buildCandidates,
   buildTopStoryCandidatesWithTrace,
 } from './topStoriesCandidates.js';
@@ -57,20 +61,6 @@ function getBreakingLiveScore(signals, policy) {
   return 0;
 }
 
-function getMaxWeightedScore(policy) {
-  return Object.values(policy.weights || {}).reduce(
-    (sum, value) => sum + Number(value || 0),
-    0,
-  ) || 1;
-}
-
-function getNormalizedScore(score, policy) {
-  return Math.max(
-    0,
-    Math.min(1, Number(score || 0) / getMaxWeightedScore(policy)),
-  );
-}
-
 function isColdStartCritical(signals, event, publicInterestScore) {
   return signals.ageMinutes <= 15 &&
     signals.timestampConfidence === 'high' &&
@@ -100,14 +90,15 @@ export function scoreTopStoryCandidate(story, context = {}) {
   const publicInterestScore = getPublicInterestScore(event.eventType);
   const breakingLiveScore = getBreakingLiveScore(signals, policy);
   const penalties = getPenalty(signals, event.eventType, policy);
-  const rawScore = (signals.freshnessScore * policy.weights.freshness) +
-    (publicInterestScore * policy.weights.publicInterest) +
-    (signals.consensusScore * policy.weights.consensus) +
-    (breakingLiveScore * policy.weights.breakingLive) +
-    (signals.sourceQualityScore * policy.weights.sourceQuality) +
-    (signals.locationRelevanceScore * policy.weights.locationRelevance) -
-    penalties;
-  const normalizedScore = getNormalizedScore(rawScore, policy);
+  const scoreBreakdown = buildTopStoryScoreBreakdown({
+    ...signals,
+    publicInterestScore,
+    breakingLiveScore,
+    penalties,
+    policy,
+  });
+  const rawScore = scoreBreakdown.rawScore;
+  const normalizedScore = scoreBreakdown.normalizedScore;
   const slotDecision = getSlotDecision(
     signals,
     event,
@@ -126,11 +117,18 @@ export function scoreTopStoryCandidate(story, context = {}) {
     _topStoryRank: {
       score: rawScore,
       normalizedScore,
+      maxWeightedScore: scoreBreakdown.maxWeightedScore,
+      scoreBreakdown,
+      weightedContributions: scoreBreakdown.contributions,
       priorityBucket,
       priorityBucketLabel: getPriorityBucketLabel(priorityBucket),
       coldStartCritical,
       ageBand: slotDecision.ageBand,
       admissionThreshold: slotDecision.admissionThreshold,
+      thresholdMargin: getThresholdMargin(
+        normalizedScore,
+        slotDecision.admissionThreshold,
+      ),
       slotBand: slotDecision.slotBand,
       admissionReason: slotDecision.admissionReason,
       eventType: event.eventType,
@@ -145,6 +143,10 @@ export function scoreTopStoryCandidate(story, context = {}) {
       ageHours: signals.ageHours,
       ageMinutes: signals.ageMinutes,
       sourceQualityScore: signals.sourceQualityScore,
+      locationRelevanceScore: signals.locationRelevanceScore,
+      locationRelevanceTarget: signals.locationRelevanceTarget,
+      locationRelevanceConfidence: signals.locationRelevanceConfidence,
+      locationRelevanceEvidence: signals.locationRelevanceEvidence,
       sourceCount: signals.sourceCount,
       corroboratingSourceCount: signals.corroboratingSourceCount,
       independentEvidenceCount: signals.independentEvidenceCount,
@@ -154,6 +156,16 @@ export function scoreTopStoryCandidate(story, context = {}) {
       topFeedHits: signals.topFeedHits || 0,
       topFeedCorroborationHits: signals.topFeedCorroborationHits || 0,
       clusterKey: signals.clusterKey,
+    },
+  };
+}
+
+function withAuthoritativeRank(story, index) {
+  return {
+    ...story,
+    _topStoryRank: {
+      ...story._topStoryRank,
+      authoritativeRank: index + 1,
     },
   };
 }
@@ -176,7 +188,8 @@ export function evaluateTopStories(input = {}, options = {}) {
   });
   const scoredCandidates = candidateResult.candidates
     .map(story => scoreTopStoryCandidate(story, context))
-    .sort(compareRankedTopStories);
+    .sort(compareRankedTopStories)
+    .map(withAuthoritativeRank);
   const displayDepth = resolveTopStoriesDisplayDepth(input, options);
   const selection = selectTopStorySlotsWithTrace(
     scoredCandidates,

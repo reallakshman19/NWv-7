@@ -1,9 +1,12 @@
 import { isBreakingStory } from '../breakingNewsService.js';
 import { HOURS_MS, clampScore } from './topStoriesPolicy.js';
 import { buildTopFeedSnapshotSignalMap, getTopFeedIdentity } from './topStoriesTopFeedSignals.js';
-import { getLocationRelevanceScore } from './topStoriesLocationSignals.js';
+import {
+  getLocationRelevanceScore,
+  getLocationRelevanceSignal,
+} from './topStoriesLocationSignals.js';
 
-export { getLocationRelevanceScore };
+export { getLocationRelevanceScore, getLocationRelevanceSignal };
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
 const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback']);
@@ -163,6 +166,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
   const corroboration = getCorroborationParts(story, context, policy);
+  const locationRelevance = getLocationRelevanceSignal(story);
   return {
     timestampMs: toTimestamp(story.publishedAt || story.updatedAt),
     ageHours,
@@ -181,7 +185,10 @@ export function extractTopStorySignals(story = {}, context = {}) {
     allSources: uniqueSources(story),
     ...topFeed,
     sourceQualityScore: getSourceQualityScore(story),
-    locationRelevanceScore: getLocationRelevanceScore(story),
+    locationRelevanceScore: locationRelevance.score,
+    locationRelevanceTarget: locationRelevance.target,
+    locationRelevanceConfidence: locationRelevance.confidence,
+    locationRelevanceEvidence: locationRelevance.evidence,
     freshnessScore: getFreshnessScore(ageHours, policy),
     consensusScore: getConsensusScore(story, context, policy),
     clusterKey: getClusterKey(story),
