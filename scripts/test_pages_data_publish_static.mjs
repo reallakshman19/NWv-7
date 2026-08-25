@@ -9,10 +9,16 @@ function read(path) {
   return fs.readFileSync(path, 'utf8');
 }
 
+function readOptional(path) {
+  return fs.existsSync(path) ? fs.readFileSync(path, 'utf8') : null;
+}
+
 const manifestWriter = read('scripts/write_pages_data_manifest.mjs');
 const deployWorkflow = read('.github/workflows/deploy.yml');
-const prefetchWorkflow = read('.github/workflows/news_prefetch.yml');
-const marketWorkflow = read('.github/workflows/market_refresh.yml');
+const producerWorkflows = [
+  ['news_prefetch.yml', readOptional('.github/workflows/news_prefetch.yml')],
+  ['market_refresh.yml', readOptional('.github/workflows/market_refresh.yml')],
+];
 const packageJson = read('package.json');
 const certGate = read('scripts/run_certification_gate.mjs');
 
@@ -50,14 +56,13 @@ assert(
 
 // Data workflows must NOT run their own gh-pages publish (single deploy path).
 for (const forbidden of ['npx gh-pages', 'Publish updated Pages site']) {
-  assert(
-    !prefetchWorkflow.includes(forbidden),
-    `news_prefetch.yml must not contain "${forbidden}" — deploy.yml is the single deploy path`
-  );
-  assert(
-    !marketWorkflow.includes(forbidden),
-    `market_refresh.yml must not contain "${forbidden}" — deploy.yml is the single deploy path`
-  );
+  for (const [name, workflow] of producerWorkflows) {
+    if (workflow === null) continue;
+    assert(
+      !workflow.includes(forbidden),
+      `${name} must not contain "${forbidden}" — deploy.yml is the single deploy path`
+    );
+  }
 }
 
 assert(
