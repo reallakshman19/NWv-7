@@ -1,8 +1,9 @@
 import {
-  buildRankingInputDigestValue,
   canonicalizeJson,
   digestCanonicalJson,
+  VOLATILE_INPUT_KEYS,
 } from './canonicalJson.mjs';
+import { sanitizeObservationEvidence } from './inputContract.mjs';
 
 export const SECTIONS_SHADOW_INPUT_EPOCH_SCHEMA =
   'nw-sections-shadow-input-epoch/v1';
@@ -43,15 +44,58 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-export function buildSectionsShadowInputEvidenceValue(epoch = {}) {
-  const rankingInput = buildRankingInputDigestValue({
+function replayPayload(epoch = {}) {
+  return {
     sectionItems: epoch.sectionItems || {},
     topFeedItems: epoch.topFeedItems || [],
+    settings: epoch.settings || {},
+    sourceHealth: epoch.sourceHealth || {},
+  };
+}
+
+function canonicalizeRow(row) {
+  return canonicalizeJson(row, {
+    omitKeys: VOLATILE_INPUT_KEYS,
+    sortArrays: true,
   });
+}
+
+function buildOrderedSectionEvidence(sectionItems = {}) {
+  return Object.entries(sectionItems).map(([section, rows]) => ({
+    section,
+    rows: (Array.isArray(rows) ? rows : []).map(canonicalizeRow),
+  }));
+}
+
+function buildOrderedTopFeedEvidence(topFeedItems = []) {
+  return (Array.isArray(topFeedItems) ? topFeedItems : []).map(canonicalizeRow);
+}
+
+function assertSanitizedEvidence(epoch) {
+  const raw = replayPayload(epoch);
+  const sanitized = sanitizeObservationEvidence(raw);
+  if (digestCanonicalJson(raw) !== digestCanonicalJson(sanitized)) {
+    throw new SectionsShadowInputError(
+      'input_epoch_sensitive_evidence',
+      'Frozen input epoch contains evidence fields excluded by replay sanitization',
+    );
+  }
+  return sanitized;
+}
+
+export function buildSectionsShadowInputEvidenceValue(epoch = {}) {
+  const sanitized = sanitizeObservationEvidence(replayPayload(epoch));
   return {
-    ...rankingInput,
-    settings: canonicalizeJson(epoch.settings || {}, { omitVolatile: true }),
-    sourceHealth: canonicalizeJson(epoch.sourceHealth || {}, { omitVolatile: true }),
+    sectionSequence: buildOrderedSectionEvidence(sanitized.sectionItems),
+    topFeedSequence: buildOrderedTopFeedEvidence(sanitized.topFeedItems),
+    settings: canonicalizeJson(sanitized.settings, {
+      omitKeys: VOLATILE_INPUT_KEYS,
+      sortArrays: true,
+    }),
+    sourceHealth: canonicalizeJson(sanitized.sourceHealth, {
+      omitKeys: VOLATILE_INPUT_KEYS,
+      sortArrays: true,
+    }),
   };
 }
 
@@ -133,6 +177,7 @@ function validateShape(epoch) {
       'Frozen input epoch must prove benchmark anti-circularity',
     );
   }
+  assertSanitizedEvidence(epoch);
   assertDigest(epoch.inputEvidenceDigest, 'inputEvidenceDigest');
 }
 
@@ -171,6 +216,7 @@ export function createSectionsShadowInputEpoch(input = {}, options = {}) {
     ...cloneJson(input),
     schemaVersion: SECTIONS_SHADOW_INPUT_EPOCH_SCHEMA,
   };
+  assertSanitizedEvidence(epoch);
   epoch.inputEvidenceDigest = getSectionsShadowInputEvidenceDigest(epoch);
   return validateSectionsShadowInputEpoch(epoch, options);
 }
