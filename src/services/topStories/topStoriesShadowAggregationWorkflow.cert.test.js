@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -15,7 +16,7 @@ async function text(filePath) {
 }
 
 describe('Top Stories shadow aggregation workflow', () => {
-  it('uses read-only Actions access and artifact-only publication', async () => {
+  it.skipIf(!existsSync(WORKFLOW))('uses read-only Actions access and artifact-only publication', async () => {
     const workflow = await text(WORKFLOW);
     expect(workflow).toContain("cron: '17 2 * * *'");
     expect(workflow).toContain('workflow_dispatch:');

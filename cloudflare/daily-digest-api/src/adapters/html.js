@@ -25,7 +25,7 @@ export function extractAnchors(html, baseUrl) {
   for (const match of String(html || '').matchAll(pattern)) {
     try {
       anchors.push({ url: new URL(decodeHtml(match[1]), baseUrl).toString(), text: htmlToText(match[2]) });
-    } catch {}
+    } catch { /* Ignore malformed publisher links. */ }
   }
   return anchors;
 }
@@ -50,7 +50,7 @@ export function extractJsonLdObjects(html) {
   const output = [];
   const pattern = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   for (const match of String(html || '').matchAll(pattern)) {
-    try { flattenJsonLd(JSON.parse(match[1].trim()), output); } catch {}
+    try { flattenJsonLd(JSON.parse(match[1].trim()), output); } catch { /* Ignore malformed JSON-LD. */ }
   }
   return output;
 }

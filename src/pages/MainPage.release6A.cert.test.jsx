@@ -60,8 +60,9 @@ describe('MainPage Release 6A migration', () => {
     expect(src).toContain('right-col');
   });
 
-  it('routes pull-to-refresh through ViewModel refreshAll', () => {
-    expect(src).toContain('usePullToRefresh(refreshAll)');
+  it('routes pull-to-refresh through the composite refresh callback', () => {
+    expect(src).toContain('Promise.allSettled([refreshAll(), refreshDailyDigest()])');
+    expect(src).toContain('usePullToRefresh(refreshPage)');
   });
 
   it('uses projected fallback topline instead of direct getTopline call', () => {

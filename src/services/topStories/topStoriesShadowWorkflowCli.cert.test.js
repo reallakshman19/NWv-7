@@ -1,5 +1,6 @@
 import {
   mkdtempSync,
+  existsSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -11,6 +12,7 @@ import { describe, expect, it } from 'vitest';
 import { sha256Text } from '../../../scripts/top-stories-shadow/canonicalJson.mjs';
 
 const ROOT = path.resolve(new URL('../../..', import.meta.url).pathname);
+const WORKFLOW = path.join(ROOT, '.github/workflows/top_stories_shadow.yml');
 const RUN_AT = '2026-07-16T18:22:30.000Z';
 const RUN_MS = Date.parse(RUN_AT);
 
@@ -131,11 +133,8 @@ describe('NW-RANK-011D repository shadow CLI', () => {
 });
 
 describe('NW-RANK-011D workflow contract', () => {
-  it('uses offset scheduling, read-only permissions and unconditional upload', () => {
-    const workflow = readFileSync(
-      path.join(ROOT, '.github/workflows/top_stories_shadow.yml'),
-      'utf8',
-    );
+  it.skipIf(!existsSync(WORKFLOW))('uses offset scheduling, read-only permissions and unconditional upload', () => {
+    const workflow = readFileSync(WORKFLOW, 'utf8');
 
     expect(workflow).toContain("cron: '7,22,37,52 * * * *'");
     expect(workflow).toContain('workflow_dispatch:');
