@@ -18,6 +18,11 @@ function shouldForce(argv = process.argv.slice(2)) {
   return argv.includes('--force');
 }
 
+function isMainModule(metaUrl = import.meta.url, argv1 = process.argv[1]) {
+  if (!argv1) return false;
+  return fileURLToPath(metaUrl) === path.resolve(argv1);
+}
+
 export function prepareProductionConfig({ databaseId, force = false } = {}) {
   const id = String(databaseId || '').trim();
   if (!UUID_PATTERN.test(id)) return { ok: false, error: 'A UUID-shaped D1 database ID is required.' };
@@ -46,8 +51,8 @@ export function runPrepare({ argv = process.argv.slice(2), env = process.env } =
   return 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule()) {
   process.exitCode = runPrepare();
 }
 
-export { TARGET_PATH, TEMPLATE_PATH, readDatabaseId, shouldForce };
+export { TARGET_PATH, TEMPLATE_PATH, isMainModule, readDatabaseId, shouldForce };

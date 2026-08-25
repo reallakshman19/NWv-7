@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { verifyDailyDigestBaseUrl } from './verify_daily_digest_activation_config.mjs';
 
 function todayInIndia(now = new Date()) {
@@ -11,6 +13,11 @@ function todayInIndia(now = new Date()) {
 function cardShapeValid(card) {
   return Boolean(card?.slot && card?.canonicalId && card?.publisherFamily && card?.product
     && card?.edition && card?.title && /^https:\/\//.test(String(card?.canonicalUrl || '')));
+}
+
+function isMainModule(metaUrl = import.meta.url, argv1 = process.argv[1]) {
+  if (!argv1) return false;
+  return fileURLToPath(metaUrl) === path.resolve(argv1);
 }
 
 export async function runDailyDigestSmoke({ baseUrl, digestDate = todayInIndia(), fetchImpl = fetch } = {}) {
@@ -35,7 +42,7 @@ export async function runDailyDigestSmoke({ baseUrl, digestDate = todayInIndia()
   };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule()) {
   const baseUrl = process.argv[2] || process.env.DAILY_DIGEST_API_BASE_URL || process.env.VITE_API_BASE_URL || '';
   runDailyDigestSmoke({ baseUrl }).then(result => {
     console.log(JSON.stringify(result, null, 2));
@@ -46,4 +53,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { todayInIndia, cardShapeValid };
+export { todayInIndia, cardShapeValid, isMainModule };

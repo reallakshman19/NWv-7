@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ENDPOINT_PATH = '/api/datasets/dailyDigest';
 const REQUIRED_CRON = '45 4 * * *';
@@ -13,8 +15,8 @@ export function verifyDailyDigestBaseUrl(input) {
   if (parsed.protocol !== 'https:') return { ok: false, error: 'Production URL must use https.' };
   if (parsed.search || parsed.hash) return { ok: false, error: 'Base URL must not include query or hash.' };
   if (parsed.pathname.includes(ENDPOINT_PATH)) return { ok: false, error: `Base URL must not include ${ENDPOINT_PATH}.` };
-  const path = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '');
-  const baseUrl = `${parsed.origin}${path}`;
+  const urlPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '');
+  const baseUrl = `${parsed.origin}${urlPath}`;
   return { ok: true, baseUrl, endpointUrl: `${baseUrl}${ENDPOINT_PATH}` };
 }
 
@@ -36,10 +38,10 @@ export function verifyProductionWranglerText(text) {
 }
 
 export function verifyProductionWranglerFile(configPath) {
-  const path = String(configPath || '').trim();
-  if (!path) return { ok: false, errors: ['config_path_required'] };
+  const config = String(configPath || '').trim();
+  if (!config) return { ok: false, errors: ['config_path_required'] };
   try {
-    return verifyProductionWranglerText(fs.readFileSync(path, 'utf8'));
+    return verifyProductionWranglerText(fs.readFileSync(config, 'utf8'));
   } catch {
     return { ok: false, errors: ['config_unreadable'] };
   }
@@ -67,6 +69,11 @@ function print(label, result) {
   return 0;
 }
 
+function isMainModule(metaUrl = import.meta.url, argv1 = process.argv[1]) {
+  if (!argv1) return false;
+  return fileURLToPath(metaUrl) === path.resolve(argv1);
+}
+
 export function runActivationVerifier({ argv = process.argv.slice(2), env = process.env } = {}) {
   const options = parseArgs(argv);
   const configPath = options.configPath || env.DAILY_DIGEST_WRANGLER_CONFIG || '';
@@ -82,8 +89,8 @@ export function runActivationVerifier({ argv = process.argv.slice(2), env = proc
   return code ? 1 : 0;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isMainModule()) {
   process.exitCode = runActivationVerifier();
 }
 
-export { ENDPOINT_PATH, REQUIRED_CRON, parseArgs };
+export { ENDPOINT_PATH, REQUIRED_CRON, isMainModule, parseArgs };
