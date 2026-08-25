@@ -87,8 +87,9 @@ export function getStorySourceFamily(story = {}) {
   return groupFamily || sourceFamily || 'unknown';
 }
 
-function removeAggregatorWrapperWhenPublisherKnown(families, primary) {
-  if (primary && primary !== 'google_news') families.delete('google_news');
+function removeAggregatorWrapperWhenPublisherKnown(families) {
+  const hasKnownPublisher = [...families].some(family => family !== 'google_news');
+  if (hasKnownPublisher) families.delete('google_news');
   return families;
 }
 
@@ -100,7 +101,7 @@ export function getStorySourceFamilies(story = {}) {
   );
   const primary = getStorySourceFamily(story);
   if (isUsefulFamily(primary)) families.add(primary);
-  removeAggregatorWrapperWhenPublisherKnown(families, primary);
+  removeAggregatorWrapperWhenPublisherKnown(families);
   return [...families];
 }
 
