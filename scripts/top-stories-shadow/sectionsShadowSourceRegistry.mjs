@@ -16,6 +16,8 @@ export const REQUIRED_SECTION_KEYS = Object.freeze([
   'entertainment',
 ]);
 
+const VALID_TIERS = new Set(['A', 'B', 'C']);
+
 export class SectionsSourceRegistryError extends Error {
   constructor(code, message) {
     super(message);
@@ -46,6 +48,13 @@ function normalizeFeed(feed, sectionKey, index) {
       `Invalid feed at ${sectionKey}[${index}]`,
     );
   }
+  const tier = requiredText(feed.tier, `${sectionKey}[${index}].tier`).toUpperCase();
+  if (!VALID_TIERS.has(tier)) {
+    throw new SectionsSourceRegistryError(
+      'source_registry_tier_invalid',
+      `Unsupported tier at ${sectionKey}[${index}]`,
+    );
+  }
   return Object.freeze({
     ...feed,
     url: requiredText(feed.url, `${sectionKey}[${index}].url`),
@@ -54,7 +63,8 @@ function normalizeFeed(feed, sectionKey, index) {
       feed.sourceGroup,
       `${sectionKey}[${index}].sourceGroup`,
     ),
-    tier: requiredText(feed.tier, `${sectionKey}[${index}].tier`),
+    tier,
+    topic: requiredText(feed.topic, `${sectionKey}[${index}].topic`),
   });
 }
 
@@ -92,10 +102,10 @@ function normalizeCoverage(value = {}) {
   if (!isRecord(value)) return Object.freeze({});
   const entries = Object.entries(value).map(([key, raw]) => {
     const number = Number(raw);
-    if (!Number.isFinite(number)) {
+    if (!Number.isInteger(number) || number < 0) {
       throw new SectionsSourceRegistryError(
         'source_registry_coverage_invalid',
-        `Source registry requiredCoverage.${key} must be numeric`,
+        `Source registry requiredCoverage.${key} must be a non-negative integer`,
       );
     }
     return [key, number];
@@ -105,6 +115,39 @@ function normalizeCoverage(value = {}) {
 
 function countLanes(sections) {
   return Object.values(sections).reduce((sum, feeds) => sum + feeds.length, 0);
+}
+
+function buildCoverageMetrics(sections) {
+  const feeds = Object.values(sections).flat();
+  const feedCounts = Object.fromEntries(
+    REQUIRED_SECTION_KEYS.map(section => [section, sections[section].length]),
+  );
+  return Object.freeze({
+    sectionCount: Object.keys(sections).length,
+    laneCount: feeds.length,
+    minFeedsInSection: Math.min(...Object.values(feedCounts)),
+    sourceGroupCount: new Set(feeds.map(feed => feed.sourceGroup)).size,
+    tierACount: feeds.filter(feed => feed.tier === 'A').length,
+    feedCounts: Object.freeze(feedCounts),
+  });
+}
+
+function assertRequiredCoverage(metrics, requiredCoverage) {
+  const failures = [];
+  const minSections = Number(requiredCoverage.minSections || 0);
+  const minFeedsPerSection = Number(requiredCoverage.minFeedsPerSection || 0);
+  const minSourceGroups = Number(requiredCoverage.minSourceGroups || 0);
+  const minTierAFeeds = Number(requiredCoverage.minTierAFeeds || 0);
+  if (metrics.sectionCount < minSections) failures.push('minSections');
+  if (metrics.minFeedsInSection < minFeedsPerSection) failures.push('minFeedsPerSection');
+  if (metrics.sourceGroupCount < minSourceGroups) failures.push('minSourceGroups');
+  if (metrics.tierACount < minTierAFeeds) failures.push('minTierAFeeds');
+  if (failures.length > 0) {
+    throw new SectionsSourceRegistryError(
+      'source_registry_coverage_failed',
+      `Source registry fails required coverage: ${failures.join(', ')}`,
+    );
+  }
 }
 
 export function buildSectionsSourceRegistryAuthority(registry = {}) {
@@ -124,20 +167,19 @@ export function buildSectionsSourceRegistryAuthority(registry = {}) {
   const policyVersion = requiredText(registry.policyVersion, 'policyVersion');
   const sections = normalizeSections(registry.sections);
   const requiredCoverage = normalizeCoverage(registry.requiredCoverage);
+  const metrics = buildCoverageMetrics(sections);
+  assertRequiredCoverage(metrics, requiredCoverage);
   const canonicalRegistry = Object.freeze({
     schemaVersion,
     policyVersion,
     sections,
     requiredCoverage,
   });
-  const sectionCount = Object.keys(sections).length;
-  const laneCount = countLanes(sections);
   return Object.freeze({
     schemaVersion: SECTIONS_SOURCE_REGISTRY_AUTHORITY_SCHEMA,
     sourceRegistryVersion: policyVersion,
     sourceRegistryDigest: digestCanonicalJson(canonicalRegistry),
-    sectionCount,
-    laneCount,
+    ...metrics,
     canonicalRegistry,
   });
 }
