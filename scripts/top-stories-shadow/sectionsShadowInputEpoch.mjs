@@ -22,11 +22,11 @@ function isRecord(value) {
 }
 
 function requiredText(value, field) {
-  const text = String(value || '').trim();
+  const text = typeof value === 'string' ? value.trim() : '';
   if (!text) {
     throw new SectionsShadowInputError(
       'input_epoch_field_missing',
-      `Frozen input epoch requires ${field}`,
+      `Frozen input epoch requires string ${field}`,
     );
   }
   return text;
@@ -60,16 +60,16 @@ export function getSectionsShadowInputEvidenceDigest(epoch = {}) {
 }
 
 function assertTimestamp(value, field) {
-  if (!Number.isFinite(Date.parse(value))) {
+  if (typeof value !== 'string' || !Number.isFinite(Date.parse(value))) {
     throw new SectionsShadowInputError(
       'input_epoch_timestamp_invalid',
-      `Frozen input epoch requires valid ${field}`,
+      `Frozen input epoch requires valid string ${field}`,
     );
   }
 }
 
 function assertDigest(value, field) {
-  if (!SHA256_PATTERN.test(String(value || ''))) {
+  if (typeof value !== 'string' || !SHA256_PATTERN.test(value)) {
     throw new SectionsShadowInputError(
       'input_epoch_digest_invalid',
       `Frozen input epoch requires SHA-256 ${field}`,
@@ -90,10 +90,12 @@ function validateShape(epoch) {
       `Unsupported frozen input schema ${epoch.schemaVersion}`,
     );
   }
-  if (!Number.isFinite(Number(epoch.nowMs)) || Number(epoch.nowMs) < 0) {
+  if (typeof epoch.nowMs !== 'number' ||
+      !Number.isFinite(epoch.nowMs) ||
+      epoch.nowMs < 0) {
     throw new SectionsShadowInputError(
       'input_epoch_clock_invalid',
-      'Frozen input epoch requires finite non-negative nowMs',
+      'Frozen input epoch requires finite non-negative numeric nowMs',
     );
   }
   assertTimestamp(epoch.capturedAt, 'capturedAt');
@@ -142,7 +144,8 @@ function assertRegistryBoundary(epoch, expectedRegistry) {
       'Frozen input source registry version does not match expected authority',
     );
   }
-  if (epoch.sourceRegistryDigest !== expectedRegistry.sourceRegistryDigest) {
+  if (epoch.sourceRegistryDigest.toLowerCase() !==
+      expectedRegistry.sourceRegistryDigest.toLowerCase()) {
     throw new SectionsShadowInputError(
       'input_epoch_registry_digest_mismatch',
       'Frozen input source registry digest does not match expected authority',
@@ -153,7 +156,7 @@ function assertRegistryBoundary(epoch, expectedRegistry) {
 export function validateSectionsShadowInputEpoch(epoch, options = {}) {
   validateShape(epoch);
   const actualDigest = getSectionsShadowInputEvidenceDigest(epoch);
-  if (actualDigest !== String(epoch.inputEvidenceDigest).toLowerCase()) {
+  if (actualDigest !== epoch.inputEvidenceDigest.toLowerCase()) {
     throw new SectionsShadowInputError(
       'input_epoch_evidence_digest_mismatch',
       'Frozen input evidence digest does not match canonical evidence',
