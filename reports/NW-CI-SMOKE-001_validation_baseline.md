@@ -8,20 +8,20 @@ PR_RECOVERY_STATE: HEALTHY
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 REPOSITORY: reallaksh19/NWv-7
 SOURCE_TASK: Owner continuation after PR #489; repair lint and stale unit baseline locally
-PR_OR_WIP: WIP-NW-CI-SMOKE-001
+PR_OR_WIP: PR #490
 BRANCH: codex/nw-ci-smoke-baseline-001
-PR_HEAD_OBSERVED: 21e39fb72a22f80f423bfa319646d32b15b89f93
+PR_HEAD_OBSERVED: e5d35bcdaa3b3e35a3e6004c6f1ac8ee691c7d91
 REPORT_BASIS_HEAD: 21e39fb72a22f80f423bfa319646d32b15b89f93
 MAIN_HEAD_LAST_CHECKED: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
 MERGE_BASE: ed9036494ffbc6d6964af9e2f4a75b56bc34c2d1
 REPORT_SYNC: CURRENT
 APPENDIX_A_STATUS: NOT_REQUIRED
-GROUNDING_EPOCH: GE-001
-CURRENT_STAGE: RECONCILE
-CURRENT_BLOCKER: none
+GROUNDING_EPOCH: GE-002
+CURRENT_STAGE: HANDOVER
+CURRENT_BLOCKER: remote validation unavailable (`runner_id: 0`, zero steps); local validation complete
 HIGHEST_RISK: GitHub Actions remains unable to allocate a runner
-LAST_DURABLE_CHECKPOINT: implementation commit 21e39fb7 validated locally
-EXACT_NEXT_ACTION: create a draft PR, reconcile its exact diff/review state, and hand over for owner merge decision
+LAST_DURABLE_CHECKPOINT: draft PR #490 opened and reconciled at e5d35bcd
+EXACT_NEXT_ACTION: owner reviews PR #490 and explicitly authorizes or declines merge
 ```
 
 ## Handover in 60 Seconds
@@ -107,7 +107,7 @@ Actual branch diff: 18 files; ledger: 18; unexplained: 0. Reconciled at `21e39fb
 
 ## Review / CI State
 
-No PR existed at this checkpoint. GitHub Actions infrastructure remains a no-run condition; local results above are authoritative for this batch. No review threads or requested changes exist yet.
+PR #490 is open, draft, and mergeable with 18 changed files and 3 commits at grounding epoch GE-002. Reviews: 0. Review threads: 0. Comments: 0. CI run `32834826337` ended `failure` before execution: job `97761251338`, `runner_id: 0`, empty runner name, zero steps. This is infrastructure `NOT_RUN`, not product failure or PASS.
 
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
