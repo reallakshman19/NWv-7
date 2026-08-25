@@ -16,6 +16,12 @@ export const REQUIRED_SECTION_KEYS = Object.freeze([
   'entertainment',
 ]);
 
+const REQUIRED_COVERAGE_KEYS = Object.freeze([
+  'minSections',
+  'minFeedsPerSection',
+  'minSourceGroups',
+  'minTierAFeeds',
+]);
 const VALID_TIERS = new Set(['A', 'B', 'C']);
 
 export class SectionsSourceRegistryError extends Error {
@@ -98,8 +104,20 @@ function normalizeSections(sections) {
   })));
 }
 
-function normalizeCoverage(value = {}) {
-  if (!isRecord(value)) return Object.freeze({});
+function normalizeCoverage(value) {
+  if (!isRecord(value)) {
+    throw new SectionsSourceRegistryError(
+      'source_registry_coverage_missing',
+      'Source registry requiredCoverage object is required',
+    );
+  }
+  const missing = REQUIRED_COVERAGE_KEYS.filter(key => !Object.hasOwn(value, key));
+  if (missing.length > 0) {
+    throw new SectionsSourceRegistryError(
+      'source_registry_coverage_missing',
+      `Source registry requiredCoverage missing: ${missing.join(', ')}`,
+    );
+  }
   const entries = Object.entries(value).map(([key, raw]) => {
     const number = Number(raw);
     if (!Number.isInteger(number) || number < 0) {
@@ -111,10 +129,6 @@ function normalizeCoverage(value = {}) {
     return [key, number];
   });
   return Object.freeze(Object.fromEntries(entries));
-}
-
-function countLanes(sections) {
-  return Object.values(sections).reduce((sum, feeds) => sum + feeds.length, 0);
 }
 
 function buildCoverageMetrics(sections) {
@@ -134,14 +148,14 @@ function buildCoverageMetrics(sections) {
 
 function assertRequiredCoverage(metrics, requiredCoverage) {
   const failures = [];
-  const minSections = Number(requiredCoverage.minSections || 0);
-  const minFeedsPerSection = Number(requiredCoverage.minFeedsPerSection || 0);
-  const minSourceGroups = Number(requiredCoverage.minSourceGroups || 0);
-  const minTierAFeeds = Number(requiredCoverage.minTierAFeeds || 0);
-  if (metrics.sectionCount < minSections) failures.push('minSections');
-  if (metrics.minFeedsInSection < minFeedsPerSection) failures.push('minFeedsPerSection');
-  if (metrics.sourceGroupCount < minSourceGroups) failures.push('minSourceGroups');
-  if (metrics.tierACount < minTierAFeeds) failures.push('minTierAFeeds');
+  if (metrics.sectionCount < requiredCoverage.minSections) failures.push('minSections');
+  if (metrics.minFeedsInSection < requiredCoverage.minFeedsPerSection) {
+    failures.push('minFeedsPerSection');
+  }
+  if (metrics.sourceGroupCount < requiredCoverage.minSourceGroups) {
+    failures.push('minSourceGroups');
+  }
+  if (metrics.tierACount < requiredCoverage.minTierAFeeds) failures.push('minTierAFeeds');
   if (failures.length > 0) {
     throw new SectionsSourceRegistryError(
       'source_registry_coverage_failed',
