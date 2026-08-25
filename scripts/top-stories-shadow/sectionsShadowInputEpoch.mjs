@@ -60,10 +60,15 @@ function canonicalizeRow(row) {
   });
 }
 
-function buildOrderedSectionEvidence(sectionItems = {}) {
-  return Object.entries(sectionItems).map(([section, rows]) => ({
+function buildOrderedSectionEvidence(
+  sectionItems = {},
+  sanitizedSectionItems = {},
+) {
+  return Object.keys(sectionItems).map(section => ({
     section,
-    rows: (Array.isArray(rows) ? rows : []).map(canonicalizeRow),
+    rows: (Array.isArray(sanitizedSectionItems[section])
+      ? sanitizedSectionItems[section]
+      : []).map(canonicalizeRow),
   }));
 }
 
@@ -84,9 +89,13 @@ function assertSanitizedEvidence(epoch) {
 }
 
 export function buildSectionsShadowInputEvidenceValue(epoch = {}) {
-  const sanitized = sanitizeObservationEvidence(replayPayload(epoch));
+  const raw = replayPayload(epoch);
+  const sanitized = sanitizeObservationEvidence(raw);
   return {
-    sectionSequence: buildOrderedSectionEvidence(sanitized.sectionItems),
+    sectionSequence: buildOrderedSectionEvidence(
+      raw.sectionItems,
+      sanitized.sectionItems,
+    ),
     topFeedSequence: buildOrderedTopFeedEvidence(sanitized.topFeedItems),
     settings: canonicalizeJson(sanitized.settings, {
       omitKeys: VOLATILE_INPUT_KEYS,
