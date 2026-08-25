@@ -1,12 +1,24 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { evaluateTopStories } from './topStoriesRanker.js';
+import {
+  evaluateTopStories,
+  TOP_STORIES_RANKER_VERSION,
+} from './topStoriesRanker.js';
+import {
+  TOP_STORIES_EVENT_CLASSIFIER_VERSION,
+} from './topStoriesEventClassifier.js';
 import { getTopStoriesPolicy } from './topStoriesPolicy.js';
 import {
   buildTopFeedSignalMap,
   extractTopStorySignals,
 } from './topStoriesSignals.js';
-import { getStorySourceFamilies } from './topStoriesSourceIdentity.js';
+import {
+  getStorySourceFamilies,
+  TOP_STORIES_SOURCE_IDENTITY_VERSION,
+} from './topStoriesSourceIdentity.js';
+import {
+  SECTIONS_SHADOW_EXECUTABLE_VERSIONS,
+} from '../../../scripts/top-stories-shadow/sectionsShadowAuthorityVersions.mjs';
 import {
   buildSectionsSourceRegistryAuthority,
 } from '../../../scripts/top-stories-shadow/sectionsShadowSourceRegistry.mjs';
@@ -97,6 +109,15 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     );
   });
 
+  it('binds shadow provenance versions to the executable modules', () => {
+    expect(SECTIONS_SHADOW_EXECUTABLE_VERSIONS.rankerVersion)
+      .toBe(TOP_STORIES_RANKER_VERSION);
+    expect(SECTIONS_SHADOW_EXECUTABLE_VERSIONS.eventClassifierVersion)
+      .toBe(TOP_STORIES_EVENT_CLASSIFIER_VERSION);
+    expect(SECTIONS_SHADOW_EXECUTABLE_VERSIONS.sourceIdentityVersion)
+      .toBe(TOP_STORIES_SOURCE_IDENTITY_VERSION);
+  });
+
   it('builds an immutable, digest-verified epoch with one explicit clock', () => {
     const epoch = buildEpoch();
     expect(Object.isFrozen(epoch)).toBe(true);
@@ -114,9 +135,22 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     );
   });
 
-  it('rejects invalid clocks, registry drift, and circular benchmark metadata', () => {
+  it('makes evidence digest sensitive to source-row sequence', () => {
+    const epoch = buildEpoch();
+    const reversedSections = Object.fromEntries(
+      Object.entries(benchmark.epochTemplate.sectionItems).reverse(),
+    );
+    const reordered = buildEpoch({ sectionItems: reversedSections });
+    expect(reordered.inputEvidenceDigest).not.toBe(epoch.inputEvidenceDigest);
+  });
+
+  it('rejects invalid clocks, sensitive evidence, registry drift, and circular benchmark metadata', () => {
     expectErrorCode(() => buildEpoch({ nowMs: null }), 'input_epoch_clock_invalid');
     expectErrorCode(() => buildEpoch({ nowMs: String(benchmark.nowMs) }), 'input_epoch_clock_invalid');
+    expectErrorCode(
+      () => buildEpoch({ settings: { authorization: 'Bearer secret' } }),
+      'input_epoch_sensitive_evidence',
+    );
     expectErrorCode(
       () => buildEpoch({ sourceRegistryDigest: '0'.repeat(64) }),
       'input_epoch_registry_digest_mismatch',
