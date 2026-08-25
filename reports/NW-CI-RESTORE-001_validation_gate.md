@@ -5,8 +5,8 @@
 ## 1. Recovery Header
 
 ```text
-HANDOVER_READINESS: DEGRADED
-PR_RECOVERY_STATE: RECOVERABLE
+HANDOVER_READINESS: READY
+PR_RECOVERY_STATE: HEALTHY
 TAKEOVER_AUTHORITY: WRITE_ALLOWED
 
 REPOSITORY: reallaksh19/NWv-7
@@ -14,23 +14,23 @@ SOURCE_TASK: Continue the approved Top Stories/Live/Hybrid remediation plan; res
 PR_OR_WIP: PR#489
 BRANCH: agent/nw-ci-restore-001-validation-gate
 
-PR_HEAD_OBSERVED: fae5105c07d8c91bb5745463e50d17d2950879fe
-REPORT_BASIS_HEAD: fae5105c07d8c91bb5745463e50d17d2950879fe
+PR_HEAD_OBSERVED: 127bae7b83842b0477ed195707686b45881eaaef
+REPORT_BASIS_HEAD: 127bae7b83842b0477ed195707686b45881eaaef
 MAIN_HEAD_LAST_CHECKED: a498f256c309e8a3f40f5afd9065c369c8e5f38f
 MERGE_BASE: a498f256c309e8a3f40f5afd9065c369c8e5f38f
-REPORT_SYNC: CURRENT_AS_OF_PARENT; this report-only checkpoint changes no workflow or product code
+REPORT_SYNC: CURRENT
 
-APPENDIX_A_STATUS: CURRENT
-GROUNDING_EPOCH: GE-003
+APPENDIX_A_STATUS: NOT_REQUIRED
+GROUNDING_EPOCH: GE-004
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: PR_RECONCILIATION
-LAST_COMPLETED_STAGE: REMOTE_EXECUTION_ATTEMPT
-CURRENT_BLOCKER: Actions run #32805217206 failed before runner assignment; GitHub exposes one annotation but its text is unavailable through the connected read surfaces
-HIGHEST_RISK: merging while the smoke profile is still NOT_RUN, or weakening the gate to conceal an account/repository Actions no-start
-LAST_DURABLE_CHECKPOINT: 2026-08-25T07:32:51+04:00
+CURRENT_STAGE: CLOSURE
+LAST_COMPLETED_STAGE: LOCAL_VALIDATION
+CURRENT_BLOCKER: none for the explicitly authorized merge; repository baseline lint/unit failures are recorded as successor work
+HIGHEST_RISK: treating the merged validation gate as green despite the known pre-existing lint and unit failures
+LAST_DURABLE_CHECKPOINT: 2026-08-25T12:53:26+04:00
 
-EXACT_NEXT_ACTION: repository owner reads the run annotation and checks Actions availability/policy/billing; once the no-start is resolved, rerun unchanged and classify the smoke result
+EXACT_NEXT_ACTION: persist this report-only closure checkpoint, re-reconcile the expected head, and squash-merge PR #489 as explicitly authorized
 ```
 
 ## 2. Handover in 60 Seconds
@@ -43,31 +43,36 @@ EXACT_NEXT_ACTION: repository owner reads the run annotation and checks Actions 
 - The historical CI ran lint, build, a benchmark, Up Ahead smoke, and a market snapshot test, but did not run the current unit suite.
 - The current manifest-driven smoke profile runs lint, the lint guard, `test:unit`, and build.
 - The user explicitly authorized the previously flagged workflow-restoration prerequisite by replying “ok continue”.
+- The user subsequently instructed “merge” and explicitly substituted local validation because GitHub Actions is unavailable.
 - Draft PR #489 exists with exactly the workflow and this report.
-- Pull-request run #32805217206 failed before a runner or workflow step started.
+- Pull-request runs #32805217206 and #32805755305 both failed before a runner or workflow step started.
+- Local validation was executed against PR head `127bae7b83842b0477ed195707686b45881eaaef`.
 
 ### What is currently being worked on
 
-The bounded workflow is implemented and statically validated. Remote execution is blocked before runner assignment, and the failure is being preserved without weakening the gate.
+The bounded workflow and local validation record are complete. The PR is in closure under explicit owner merge authorization.
 
 ### What remains unfinished
 
-The exact GitHub no-start cause, a real smoke-profile execution, final PR reconciliation, and owner merge authorization.
+Only the report-only closure commit, expected-head reconciliation, squash merge, and post-merge main verification remain.
 
 ### What has been proven
 
 - No active PR changes `.github/workflows/ci.yml` or this report.
 - PR #488 changes three Daily Digest scripts plus its report; PR #396 is report-only; PRs #386/#387 change ranking/view-model files and reports.
 - `scripts/certification_manifest.json` defines `smoke` as lint, unit, and build, with the additional lint guard.
-- At the observed head, the PR diff is exactly the 63-line workflow plus this report, ahead 3 and behind 0.
+- At the observed head, the PR diff is exactly the 63-line workflow plus this report, ahead 4 and behind 0.
 - Independent local assertions parsed the YAML and rejected forbidden write/deploy/secret/schedule capabilities.
 - The remote workflow content exactly matches the locally validated content.
 - GitHub parsed the workflow, registered `CI Validation Gate`, and created job `Lint, unit tests, and build`.
-- Job #97673908934 completed as failure with `runner_id: 0`, no runner name, and no step records; its log and artifact collections are empty.
+- Jobs #97673908934 and #97675421019 completed as failure with `runner_id: 0`, no runner name, and no step records; their log and artifact collections are empty.
+- The exact tracked path set was materialized locally: 1,434 expected and 1,434 present. The text-only transfer preserved 1,231 blobs byte-for-byte, normalized line endings/final newlines in 202 files, and decoded one non-executable UTF-16 `.bak` file.
+- `npm ci` passed and installed 299 lockfile-resolved packages.
+- The lint-hotfix guard and production build passed; Vite transformed 371 modules and completed the build in 3.09 seconds.
 
 ### What has NOT been proven / NOT_RUN
 
-- The smoke profile has not run on this branch; lint, unit tests, and build remain `NOT_RUN`.
+- The overall smoke profile is not green: lint failed with 4 errors and 1 warning, and the unit suite failed 20 of 1,325 tests across 15 of 226 test files; 1,305 tests and 211 test files passed.
 - The exact text of GitHub's single check annotation and therefore the exact repository/account no-start cause are not observable through the connected API.
 - Branch protection could not be read (`403 Resource not accessible by integration`).
 
@@ -75,34 +80,35 @@ The exact GitHub no-start cause, a real smoke-profile execution, final PR reconc
 
 - This work does not restore deployment, data generation, scheduled refresh, Pages publication, or snapshot workflows.
 - This work does not switch Live/Hybrid runtime behavior.
-- A failed run with no runner and no steps is not a product-test failure.
-- Rerunning or changing the workflow before the no-start cause is known would not constitute remediation evidence.
+- The local lint/unit failures are not introduced by PR #489: none of their source/test paths is in the two-file PR diff.
+- This merge does not assert a green product baseline; it installs the truthful validation control plane and preserves the failures for successor remediation.
 
 ### Highest-risk remaining item
 
-The PR currently has no executable smoke evidence. Treating the infrastructure no-start as either a product failure or a mergeable exception would both be incorrect.
+The successor must repair the known baseline instead of weakening the manifest, excluding failing tests, or relabeling the local failures as PASS.
 
 ### Exact next action
 
-Open run #32805217206 as a repository owner, read its annotation, and verify repository/account Actions availability, policy, and billing. After resolving that external blocker, rerun the unchanged workflow.
+Persist this closure record, verify the PR still has exactly two files and no base drift, then squash-merge with expected head protection.
 
 ## 3. Repository Ground Truth
 
 ```text
-verified_at: 2026-08-25T07:32:51+04:00
+verified_at: 2026-08-25T12:53:26+04:00
 default_branch: main
 main_head: a498f256c309e8a3f40f5afd9065c369c8e5f38f
 working_branch: agent/nw-ci-restore-001-validation-gate
-branch_head: fae5105c07d8c91bb5745463e50d17d2950879fe
+branch_head: 127bae7b83842b0477ed195707686b45881eaaef
 pr: #489, open draft, mergeable=true at last observation
-current_workflows: none; `.github` is absent
+current_workflows: none on main; PR adds only `.github/workflows/ci.yml`
 main_status_contexts: 0
 main_pull_request_workflow_runs: 0
 open_prs_checked: 488, 396, 387, 386
 coordination_state: SAFE
-compare_to_main: ahead 3, behind 0, two intended files
-workflow_run: #32805217206 completed/failure
-workflow_job: #97673908934 completed/failure, runner_id=0, steps=null
+compare_to_main: ahead 4, behind 0, two intended files
+workflow_runs: #32805217206 and #32805755305 completed/failure before runner assignment
+local_validation: npm ci PASS; lint FAIL; lint-hotfix PASS; unit FAIL; build PASS
+owner_decision: merge explicitly authorized with local validation substituted for unavailable Actions
 ```
 
 ## 4. Mission / Scope / Acceptance
@@ -141,29 +147,31 @@ Restore a trustworthy, non-deploying pull-request/main validation gate before ad
 
 | Work item | Implementation | Integration | Validation | Location | Remaining |
 |---|---|---|---|---|---|
-| Validation workflow | COMPLETE | branch content exact | static PASS; remote start FAIL; product commands NOT_RUN | `.github/workflows/ci.yml` | resolve Actions no-start, then rerun unchanged |
-| Living report | CURRENT | PR #489 checkpoint | source review + diff reconciliation PASS | this file | preserve blocker evidence and reconcile after rerun |
+| Validation workflow | COMPLETE | branch content exact | static PASS; local gate truthfully exposes baseline FAIL | `.github/workflows/ci.yml` | merge, then repair baseline in successor work |
+| Living report | CURRENT | PR #489 closure checkpoint | source review + local validation + reconciliation complete | this file | report-only sync and merge |
 
 ## 6. Active Engineering Item Register
 
 | ID | Type | Severity | Priority | Status | Summary | Evidence | Current PR? |
 |---|---|---|---|---|---|---|---|
-| ISS-001 | defect | high | P0 | MITIGATING | repository main has no executable CI gate; branch now restores one | `.github` 404 on main; branch workflow exact | yes |
-| ISS-002 | blocker | high | P0 | BLOCKED | GitHub creates the validation job but fails before runner assignment or steps | run #32805217206; job #97673908934; runner 0; steps null | yes |
-| RISK-001 | risk | high | P0 | ACTIVE | current product suite may expose accumulated failures | all recent PRs recorded dependency checks as NOT_RUN | yes |
+| ISS-001 | defect | high | P0 | RESOLVED_BY_PR | repository main has no executable CI gate; branch restores one | `.github` absent on main; branch workflow exact | yes |
+| ISS-002 | blocker | high | P0 | DISPOSITIONED | GitHub creates validation jobs but fails before runner assignment | two reproduced no-start runs; owner substituted local validation | yes |
+| ISS-003 | defect | high | P0 | OPEN_SUCCESSOR | current baseline fails lint and unit validation | local smoke at `127bae7b…`; 4 lint errors; 20 unit failures | no |
+| RISK-001 | risk | high | P0 | REALIZED | current product suite exposes accumulated failures | local smoke results | no |
 | RISK-002 | risk | high | P0 | MITIGATING | workflow restoration could accidentally restore deployment authority | bounded read-only workflow scope | yes |
 | DEC-001 | decision | medium | P0 | ACCEPTED | use current manifest smoke profile instead of stale 2026-07 command list | package scripts + certification manifest | yes |
+| DEC-002 | decision | high | P0 | ACCEPTED | merge after local validation despite known pre-existing red baseline | explicit owner instruction: “merge”; local validation substitute explicitly requested | yes |
 
 ## 7. Current Technical Diagnosis
 
 ```text
-Observed symptom: run #32805217206 and job #97673908934 fail in about two seconds with no runner assignment, no steps, no logs, and no artifacts.
-Current hypothesis: the remaining blocker is in the repository/account Actions execution plane (availability, policy, billing, or an equivalent pre-run control), not in a product command.
-Supporting evidence: GitHub registered the workflow and job, but `runner_id` is 0 and the step collection is empty.
-Alternative hypotheses: YAML rejection, dependency installation failure, lint/unit/build failure, or an action-version/runtime defect.
-Already ruled out: command/install/product failures cannot have occurred because no step started; a total YAML parse rejection is inconsistent with the named run and job records.
-Falsifier: a rerun assigns a runner and begins steps, which would move diagnosis to the first failing step.
-Next isolating experiment: read GitHub's inaccessible check annotation or inspect repository/account Actions settings as an owner; then rerun the unchanged gate.
+Observed symptom: GitHub Actions cannot assign a runner, while exact-head local execution exposes 4 lint errors and 20 unit-test failures; build still passes.
+Current hypothesis: the remote no-start and the product baseline failures are independent pre-existing conditions; PR #489 correctly exposes rather than causes them.
+Supporting evidence: two remote jobs have runner_id 0/steps null; the PR diff contains only the workflow and report; local failures occur in unchanged product/test/workflow-expectation paths.
+Alternative hypotheses: PR workflow content causes the lint/unit failures, or local source transport removed executable content.
+Already ruled out: failing paths are outside the PR diff; all 1,434 tracked paths are present locally; 1,231 blobs are byte-exact and remaining executable files differ only by line-ending/final-newline normalization.
+Falsifier: a clean current-main run without PR files passes these same lint/unit cases, which would require reclassifying origin.
+Next isolating experiment: successor baseline-remediation PR reproduces failures from merged main, repairs the first failing boundary without weakening the gate, and reruns the unchanged smoke profile.
 ```
 
 ## 8. Authority and Invariants
@@ -207,6 +215,7 @@ Evidence: package.json, scripts/run_certification_gate.mjs, scripts/certificatio
 Expected: smoke profile includes lint, unit, and build through manifest execution
 Actual: lint, lint-hotfix, unit, build entries require smoke; runner filters and executes them
 Limitations: commands not yet executed
+Execution disposition: see VAL-007 and VAL-008
 Origin: PREEXISTING
 ```
 
@@ -230,10 +239,10 @@ Origin: RESOLVED_BY_PR
 Status: PASS
 Observation: SOURCE_INSPECTION
 Oracle: INDEPENDENT_REPRODUCTION
-Tested HEAD: fae5105c07d8c91bb5745463e50d17d2950879fe
+Tested HEAD: 127bae7b83842b0477ed195707686b45881eaaef
 Evidence: exact local/remote content comparison and GitHub compare
 Expected: workflow content exact; two intended files; behind 0
-Actual: exact match; ahead 3, behind 0; workflow + report only
+Actual: exact match; ahead 4, behind 0; workflow + report only
 Limitations: report-only checkpoint commit follows this observed head
 Origin: RESOLVED_BY_PR
 ```
@@ -243,28 +252,70 @@ Origin: RESOLVED_BY_PR
 ```text
 Status: FAIL
 Observation: REMOTE_EXECUTION
-Oracle: GITHUB_ACTIONS_CONTROL_PLANE
-Tested HEAD: fae5105c07d8c91bb5745463e50d17d2950879fe
-Evidence: run #32805217206 and job #97673908934
+Oracle: NONE
+Tested HEADs: fae5105c07d8c91bb5745463e50d17d2950879fe and 127bae7b83842b0477ed195707686b45881eaaef
+Evidence: runs #32805217206/#32805755305 and jobs #97673908934/#97675421019
 Expected: an Ubuntu runner is assigned and the checkout, install, and smoke steps execute
 Actual: completed/failure before runner assignment; runner_id 0; runner name empty; steps null; no logs or artifacts
 Limitations: one check annotation exists but its text is inaccessible through the connector; exact account/repository cause remains unclassified
-Product result: lint, lint-hotfix, unit, and build are all NOT_RUN
+Product result: NOT_RUN remotely; executed locally in VAL-008
 Origin: UNCLASSIFIED_PRE_RUN_CONTROL
+```
+
+### VAL-006 — Exact-head local source materialization
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: INDEPENDENT_REPRODUCTION
+Tested HEAD: 127bae7b83842b0477ed195707686b45881eaaef
+Command/evidence: recursive Git tree plus local tracked-path and git hash-object reconciliation
+Expected: all 1,434 tracked paths present with no extra source paths
+Actual: 1,434 expected, 1,434 present, 0 missing, 0 extra; 1,231 byte-exact; 202 text files transport-normalized only; one non-executable UTF-16 `.bak` decoded
+Limitations: connector/apply-patch text transport normalizes CRLF/final newlines and cannot preserve the UTF-16 backup byte-for-byte
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-007 — Deterministic dependency installation
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: IMPLEMENTATION_COUPLED
+Tested HEAD: 127bae7b83842b0477ed195707686b45881eaaef
+Command/evidence: npm --cache /tmp/nwv7-npm-cache ci
+Expected: package-lock resolves and installs without mutation
+Actual: exit 0; 299 packages installed in 10 seconds
+Limitations: two upstream deprecation warnings; no dependency or lockfile change in PR
+Origin: PREEXISTING
+```
+
+### VAL-008 — Local smoke certification
+
+```text
+Status: FAIL
+Observation: LOCAL_EXECUTION
+Oracle: IMPLEMENTATION_COUPLED
+Tested HEAD: 127bae7b83842b0477ed195707686b45881eaaef
+Command/evidence: npm run test:certify:smoke, followed by independent execution of the remaining manifest commands after fail-fast lint
+Expected: lint, lint-hotfix, unit, and build all exit 0
+Actual: lint FAIL (4 errors, 1 warning); lint-hotfix PASS; unit FAIL (15/226 files, 20/1325 tests; 211 files and 1305 tests PASS); build PASS (371 modules, 3.09 seconds)
+Limitations: smoke is knowingly red; remote runner remains unavailable
+Origin: PREEXISTING relative to PR #489 because no failing product/test path is changed by the two-file PR
 ```
 
 ## 10. Changed-File Ledger
 
 | File | Intended? | First stage | Latest stage | Purpose | Sensitive? | Validation |
 |---|---:|---|---|---|---:|---|
-| `.github/workflows/ci.yml` | yes | IMPLEMENT | PR_RECONCILIATION | read-only validation control plane | yes | static/security PASS; remote start FAIL; product commands NOT_RUN |
-| `reports/NW-CI-RESTORE-001_validation_gate.md` | yes | BASELINE | PR_RECONCILIATION | continuous recovery authority | no | source review + reconciliation PASS |
+| `.github/workflows/ci.yml` | yes | IMPLEMENT | CLOSURE | read-only validation control plane | yes | static/security PASS; local execution exposes pre-existing baseline FAIL |
+| `reports/NW-CI-RESTORE-001_validation_gate.md` | yes | BASELINE | CLOSURE | continuous recovery authority | no | source review + local validation + reconciliation complete |
 
-Current branch file count: 2. Ledger count: 2. Unexplained files: 0. Reconciled at `fae5105c07d8c91bb5745463e50d17d2950879fe` before this report-only checkpoint.
+Current branch file count: 2. Ledger count: 2. Unexplained files: 0. Reconciled at `127bae7b83842b0477ed195707686b45881eaaef` before this report-only closure checkpoint.
 
 ## 11. Review / CI State
 
-PR #489 is an open draft with no reviews, review threads, or comments at the last observation. `CI Validation Gate` reports failure, but its job never received a runner and has no step result. The legacy combined-status endpoint reports no status contexts because Actions reports this result as a check run. Branch protection remains unobserved because the endpoint is inaccessible to the connector.
+PR #489 is an open draft and mergeable with no reviews, review threads, or comments at the last observation. Two `CI Validation Gate` runs fail before runner assignment. Local validation is fully dispositioned: install/build/lint-hotfix PASS; lint/unit FAIL with pre-existing origin. The owner explicitly authorized merge after requesting local validation in place of unavailable Actions.
 
 ## 12. Repository Coordination / Overlap
 
@@ -272,7 +323,7 @@ PR #489 is an open draft with no reviews, review threads, or comments at the las
 MASTER_INDEX_CHECKED: not present
 STATUS_RECORD: this report
 CLAIM_RECORD: report scope declaration
-LAST_OVERLAP_CHECK: 2026-08-25T07:32:51+04:00
+LAST_OVERLAP_CHECK: 2026-08-25T12:53:26+04:00
 FILE_OVERLAP: none with open PRs #488/#396/#387/#386
 AUTHORITY_OVERLAP: none; this work validates but does not alter their domains
 DEPENDENCY_OVERLAP: soft dependency on current package/manifest commands
@@ -282,14 +333,14 @@ COORDINATION_STATE: SAFE
 ## 13. Continuation State
 
 ```text
-Start here: draft PR #489, branch agent/nw-ci-restore-001-validation-gate, observed head fae5105c07d8c91bb5745463e50d17d2950879fe
+Start here: draft PR #489, branch agent/nw-ci-restore-001-validation-gate, observed head 127bae7b83842b0477ed195707686b45881eaaef
 Exact file: `.github/workflows/ci.yml`
-Current value/path under investigation: GitHub Actions pre-run control for the restored workflow
+Current value/path under investigation: closure/merge of the restored validation control plane
 Do not redo: workflow deletion history or manifest trace unless main/package scripts move
 Do not change: production code, dependencies, deploy/data workflows, runtime, secrets
-Validation still required: successful runner start and complete smoke-profile execution
-Highest-risk remaining item: merge pressure despite all product commands remaining NOT_RUN
-Exact next action: owner reads the run annotation/checks Actions settings, resolves the pre-run control, then reruns unchanged
+Validation still required: none for PR #489 closure; baseline lint/unit repair remains successor work
+Highest-risk remaining item: forgetting that the merged gate is expected to report a red baseline until successor remediation
+Exact next action: expected-head guarded squash merge, then verify main and PR terminal state
 ```
 
 ## 14. Takeover / Custody Chain
@@ -336,17 +387,31 @@ claims_verified: workflow static contract PASS; product lint/unit/build NOT_RUN
 result: RECOVERABLE but BLOCKED on an unclassified GitHub Actions pre-run control; do not merge or weaken gate
 ```
 
+### GE-004
+
+```text
+verified_at: 2026-08-25T12:53:26+04:00
+PR_HEAD: 127bae7b83842b0477ed195707686b45881eaaef
+MAIN_HEAD: a498f256c309e8a3f40f5afd9065c369c8e5f38f
+MERGE_BASE: a498f256c309e8a3f40f5afd9065c369c8e5f38f
+changed_files_verified: 2 intended, 0 unexplained, ahead 4, behind 0
+reviews_verified: 0 reviews, 0 threads, 0 comments
+checks_verified: two remote pre-run failures; local install/build/lint-hotfix PASS; lint/unit FAIL with pre-existing origin
+claims_verified: workflow static/security contract PASS; owner explicitly authorized merge with local validation substitute
+result: READY for expected-head guarded squash merge; known red baseline preserved as ISS-003 successor work
+```
+
 # APPENDIX A — IMPLEMENTATION TAKEOVER QUALIFICATION
 
 ```text
-Qualification basis: GE-003
-PR_HEAD: fae5105c07d8c91bb5745463e50d17d2950879fe
+Qualification basis: GE-004
+PR_HEAD: 127bae7b83842b0477ed195707686b45881eaaef
 MAIN_HEAD: a498f256c309e8a3f40f5afd9065c369c8e5f38f
-Generated from: ISS-001, ISS-002, RISK-001, RISK-002
+Generated from: no open technical implementation in PR #489; ISS-003 is successor scope
 PARTIAL implementation: none; workflow content complete
-NOT_RUN validation: every command in the current smoke profile
-Next intended stage: EXTERNAL_BLOCKER_RESOLUTION, then PR_RECONCILIATION
-APPENDIX_A_STATUS: CURRENT
+NOT_RUN validation: none locally; remote execution unavailable and explicitly substituted by owner
+Next intended stage: CLOSURE / MERGE
+APPENDIX_A_STATUS: NOT_REQUIRED
 ```
 
 1. **A1 Production Trace (20):** Trace a pull-request commit through checkout, lockfile install, manifest profile selection, lint, unit tests, build, job conclusion, and GitHub check presentation.
@@ -362,3 +427,4 @@ APPENDIX_A_STATUS: CURRENT
 - 2026-08-25T07:23:17+04:00 — GE-001 established; no workflows present; historical CI and current smoke-manifest authority traced; scope classified SAFE.
 - 2026-08-25T07:26:20+04:00 — branch created; baseline report and read-only workflow persisted; local static/security contract and exact remote reconciliation passed at GE-002.
 - 2026-08-25T07:32:51+04:00 — draft PR #489 and run #32805217206 observed; job failed before runner/steps; exact annotation inaccessible; product commands classified NOT_RUN at GE-003.
+- 2026-08-25T12:53:26+04:00 — exact-head local tree materialized; npm ci and build/lint-hotfix passed; lint and unit baseline failures recorded without weakening; owner merge authorization reconciled at GE-004.
