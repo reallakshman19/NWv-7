@@ -8,6 +8,7 @@ import {
   buildTopFeedSignalMap,
   extractTopStorySignals,
 } from './topStoriesSignals.js';
+import { getSlotDecision } from './topStoriesEvidenceAdmission.js';
 import {
   buildTopStoryCandidates as buildCandidates,
   buildTopStoryCandidatesWithTrace,
@@ -56,14 +57,6 @@ function getBreakingLiveScore(signals, policy) {
   return 0;
 }
 
-function getAgeBand(signals, policy) {
-  if (signals.timestampConfidence === 'low') return 'rejected';
-  if (signals.ageHours <= policy.primaryWindowHours) return 'primary';
-  if (signals.ageHours <= policy.secondaryWindowHours) return 'secondary';
-  if (signals.ageHours <= policy.fallbackWindowHours) return 'fallback';
-  return 'expired';
-}
-
 function getMaxWeightedScore(policy) {
   return Object.values(policy.weights || {}).reduce(
     (sum, value) => sum + Number(value || 0),
@@ -76,74 +69,6 @@ function getNormalizedScore(score, policy) {
     0,
     Math.min(1, Number(score || 0) / getMaxWeightedScore(policy)),
   );
-}
-
-function hasIndependentEvidence(signals = {}) {
-  return Boolean(
-    signals.hasIndependentEvidence ||
-    Number(signals.sourceCount || 0) >= 2 ||
-    Number(signals.topFeedCorroborationHits || 0) >= 1,
-  );
-}
-
-function getSlotDecision(signals, event, policy, normalizedScore) {
-  const ageBand = getAgeBand(signals, policy);
-  if (ageBand === 'rejected') {
-    return {
-      ageBand,
-      admissionThreshold: null,
-      slotBand: 'rejected',
-      admissionReason: 'low_confidence_timestamp',
-    };
-  }
-  if (ageBand === 'expired') {
-    return {
-      ageBand,
-      admissionThreshold: null,
-      slotBand: 'expired',
-      admissionReason: 'outside_fallback_window',
-    };
-  }
-
-  const admissionThreshold = Number(policy.thresholds?.[ageBand] || 0);
-  const independentEvidence = hasIndependentEvidence(signals);
-  if (event.qualified === false && !independentEvidence) {
-    return {
-      ageBand,
-      admissionThreshold,
-      slotBand: 'rejected',
-      admissionReason: 'unqualified_without_independent_evidence',
-    };
-  }
-
-  if (normalizedScore < admissionThreshold) {
-    return {
-      ageBand,
-      admissionThreshold,
-      slotBand: 'rejected',
-      admissionReason: `below_${ageBand}_threshold`,
-    };
-  }
-
-  if (
-    ageBand === 'fallback' &&
-    signals.isAggregatorSource &&
-    !independentEvidence
-  ) {
-    return {
-      ageBand,
-      admissionThreshold,
-      slotBand: 'rejected',
-      admissionReason: 'fallback_aggregator_without_corroboration',
-    };
-  }
-
-  return {
-    ageBand,
-    admissionThreshold,
-    slotBand: ageBand,
-    admissionReason: 'admitted',
-  };
 }
 
 function isColdStartCritical(signals, event, publicInterestScore) {
