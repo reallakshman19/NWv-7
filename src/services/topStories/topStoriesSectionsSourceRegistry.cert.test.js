@@ -4,11 +4,18 @@ import {
   buildSectionsSourceRegistryAuthority,
 } from '../../../scripts/top-stories-shadow/sectionsShadowSourceRegistry.mjs';
 
+function readJson(path) {
+  return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
+}
+
 function readRegistry() {
-  return JSON.parse(readFileSync(new URL(
-    '../../../config/section_sources.json',
-    import.meta.url,
-  ), 'utf8'));
+  return readJson('../../../config/section_sources.json');
+}
+
+function readFrozenAuthority() {
+  return readJson(
+    '../../../scripts/top-stories-shadow/fixtures/nw-cf-hybrid-001a-source-registry-authority.json',
+  );
 }
 
 function expectErrorCode(action, code) {
@@ -23,11 +30,23 @@ function expectErrorCode(action, code) {
 }
 
 describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
+  it('matches the pre-shadow frozen registry authority exactly', () => {
+    const authority = buildSectionsSourceRegistryAuthority(readRegistry());
+    const frozen = readFrozenAuthority();
+    expect(frozen.frozenBeforeShadowObservation).toBe(true);
+    expect(frozen.shadowOutputUsedToChooseExpected).toBe(false);
+    expect(authority.sourceRegistryVersion).toBe(frozen.sourceRegistryVersion);
+    expect(authority.sourceRegistryDigest).toBe(frozen.sourceRegistryDigest);
+    expect(authority.sectionCount).toBe(frozen.sectionCount);
+    expect(authority.laneCount).toBe(frozen.laneCount);
+    expect(authority.minFeedsInSection).toBe(frozen.minFeedsInSection);
+    expect(authority.sourceGroupCount).toBe(frozen.sourceGroupCount);
+    expect(authority.tierACount).toBe(frozen.tierACount);
+  });
+
   it('meets the registry-declared coverage without narrowing acquisition lanes', () => {
     const registry = readRegistry();
     const authority = buildSectionsSourceRegistryAuthority(registry);
-    expect(authority.sectionCount).toBe(10);
-    expect(authority.laneCount).toBe(41);
     expect(authority.minFeedsInSection)
       .toBeGreaterThanOrEqual(registry.requiredCoverage.minFeedsPerSection);
     expect(authority.sourceGroupCount)
@@ -45,7 +64,14 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
     );
   });
 
-  it('fails closed on invalid tier or missing topic semantics', () => {
+  it('fails closed on missing coverage, invalid tier, or missing topic semantics', () => {
+    const missingCoverage = readRegistry();
+    delete missingCoverage.requiredCoverage.minTierAFeeds;
+    expectErrorCode(
+      () => buildSectionsSourceRegistryAuthority(missingCoverage),
+      'source_registry_coverage_missing',
+    );
+
     const badTier = readRegistry();
     badTier.sections.topStories[0].tier = 'Z';
     expectErrorCode(
