@@ -1,0 +1,63 @@
+name: CI Validation Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Lint, unit tests, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Block rejected patch artifacts
+        shell: bash
+        run: |
+          set -o pipefail
+          artifacts="$(find . -type f \( -name '*.rej' -o -name '*.orig' \) -print)"
+          if [ -n "$artifacts" ]; then
+            echo "Rejected patch or backup artifacts were found:"
+            printf '%s\n' "$artifacts"
+            exit 1
+          fi
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run smoke certification
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p reports
+          npm run test:certify:smoke 2>&1 | tee reports/ci_validation.log
+
+      - name: Upload failure log
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: ci-validation-failure-log
+          path: reports/ci_validation.log
+          if-no-files-found: ignore
+
