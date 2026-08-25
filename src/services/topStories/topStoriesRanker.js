@@ -172,7 +172,7 @@ function withAuthoritativeRank(story, index) {
 
 export function evaluateTopStories(input = {}, options = {}) {
   const policy = getTopStoriesPolicy(options.policy || {});
-  const nowMs = input.nowMs || options.nowMs || Date.now();
+  const nowMs = input.nowMs ?? options.nowMs ?? Date.now();
   const topFeedSignalMap = buildTopFeedSignalMap(
     input.topFeedItems || [],
   );
