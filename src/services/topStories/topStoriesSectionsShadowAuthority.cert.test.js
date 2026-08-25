@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { evaluateTopStories } from './topStoriesRanker.js';
 import { getTopStoriesPolicy } from './topStoriesPolicy.js';
 import {
   buildTopFeedSignalMap,
@@ -19,6 +20,17 @@ import {
 
 function readJson(path) {
   return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
+}
+
+function expectErrorCode(action, code) {
+  let error = null;
+  try {
+    action();
+  } catch (caught) {
+    error = caught;
+  }
+  expect(error).toBeTruthy();
+  expect(error?.code).toBe(code);
 }
 
 const registry = readJson('../../../config/section_sources.json');
@@ -69,13 +81,20 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     };
     expect(buildSectionsSourceRegistryAuthority(reordered).sourceRegistryDigest)
       .toBe(registryAuthority.sourceRegistryDigest);
+
+    const topicChanged = JSON.parse(JSON.stringify(registry));
+    topicChanged.sections.topStories[0].topic = 'changed-topic';
+    expect(buildSectionsSourceRegistryAuthority(topicChanged).sourceRegistryDigest)
+      .not.toBe(registryAuthority.sourceRegistryDigest);
   });
 
   it('fails closed when the qualified registry section set is incomplete', () => {
     const broken = JSON.parse(JSON.stringify(registry));
     delete broken.sections.muscat;
-    expect(() => buildSectionsSourceRegistryAuthority(broken))
-      .toThrowError(expect.objectContaining({ code: 'source_registry_section_set_mismatch' }));
+    expectErrorCode(
+      () => buildSectionsSourceRegistryAuthority(broken),
+      'source_registry_section_set_mismatch',
+    );
   });
 
   it('builds an immutable, digest-verified epoch with one explicit clock', () => {
@@ -87,24 +106,38 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
 
     const tampered = JSON.parse(JSON.stringify(epoch));
     tampered.sectionItems.world[0].title = 'mutated after digest';
-    expect(() => validateSectionsShadowInputEpoch(tampered, {
-      expectedRegistryAuthority: registryAuthority,
-    })).toThrowError(expect.objectContaining({
-      code: 'input_epoch_evidence_digest_mismatch',
-    }));
+    expectErrorCode(
+      () => validateSectionsShadowInputEpoch(tampered, {
+        expectedRegistryAuthority: registryAuthority,
+      }),
+      'input_epoch_evidence_digest_mismatch',
+    );
   });
 
   it('rejects missing clock, registry drift, and circular benchmark metadata', () => {
-    expect(() => buildEpoch({ nowMs: null }))
-      .toThrowError(expect.objectContaining({ code: 'input_epoch_clock_invalid' }));
-    expect(() => buildEpoch({ sourceRegistryDigest: '0'.repeat(64) }))
-      .toThrowError(expect.objectContaining({
-        code: 'input_epoch_registry_digest_mismatch',
-      }));
-    expect(() => buildEpoch({ shadowOutputUsedToChooseExpected: true }))
-      .toThrowError(expect.objectContaining({
-        code: 'input_epoch_anti_circularity_invalid',
-      }));
+    expectErrorCode(() => buildEpoch({ nowMs: null }), 'input_epoch_clock_invalid');
+    expectErrorCode(
+      () => buildEpoch({ sourceRegistryDigest: '0'.repeat(64) }),
+      'input_epoch_registry_digest_mismatch',
+    );
+    expectErrorCode(
+      () => buildEpoch({ shadowOutputUsedToChooseExpected: true }),
+      'input_epoch_anti_circularity_invalid',
+    );
+  });
+
+  it('honors an explicit zero clock instead of falling back to wall time', () => {
+    const evaluation = evaluateTopStories({
+      sectionItems: {},
+      topFeedItems: [],
+      nowMs: 0,
+    }, { nowMs: 0 });
+    expect(evaluation.nowMs).toBe(0);
+
+    const frozen = evaluateFrozenSectionsEpoch(buildEpoch({ nowMs: 0 }), {
+      expectedRegistryAuthority: registryAuthority,
+    });
+    expect(frozen.nowMs).toBe(0);
   });
 
   it('removes an acquisition wrapper from independent publisher evidence', () => {
@@ -124,7 +157,7 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
       .toBeCloseTo(benchmark.expected.caseDConsensusWithoutTopFeed, 12);
   });
 
-  it('computes the Appendix-A Top Feed corroboration without alias inflation', () => {
+  it('computes Appendix-A Top Feed corroboration without alias inflation', () => {
     const story = caseDStory();
     const topFeedSignalMap = buildTopFeedSignalMap([
       {
@@ -188,7 +221,7 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     }));
   });
 
-  it('preserves the frozen boundary and classification/admission expectations', () => {
+  it('preserves frozen boundary and classification/admission expectations', () => {
     const evidence = evaluateFrozenSectionsEpoch(buildEpoch(), {
       expectedRegistryAuthority: registryAuthority,
     });
