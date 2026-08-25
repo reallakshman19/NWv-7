@@ -14,8 +14,8 @@ SOURCE_TASK: Repair Pages publishing configuration before further ranking/source
 PR_OR_WIP: WIP-NW-PAGES-001
 BRANCH: agent/nw-pages-001-pages-publishing-recovery
 
-PR_HEAD_OBSERVED: NOT_CREATED
-REPORT_BASIS_HEAD: a3641d6a0de0208cc31b1ff823e1d2178796faf3
+PR_HEAD_OBSERVED: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e
+REPORT_BASIS_HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e
 MAIN_HEAD_LAST_CHECKED: a3641d6a0de0208cc31b1ff823e1d2178796faf3
 MERGE_BASE: a3641d6a0de0208cc31b1ff823e1d2178796faf3
 REPORT_SYNC: CURRENT
@@ -24,13 +24,13 @@ APPENDIX_A_STATUS: CURRENT
 GROUNDING_EPOCH: GE-001
 CURRENT_TAKEOVER: NOT_APPLICABLE
 
-CURRENT_STAGE: BASELINE
-LAST_COMPLETED_STAGE: COORDINATION_CHECK
+CURRENT_STAGE: PR_INITIALIZATION
+LAST_COMPLETED_STAGE: LOCAL_VALIDATION
 CURRENT_BLOCKER: Pages repository setting is observed indirectly through the dynamic branch/Jekyll run and is not writable through the connected GitHub API
 HIGHEST_RISK: suppressing Jekyll without publishing the Vite dist would produce a green but unusable site
 LAST_DURABLE_CHECKPOINT: 2026-08-25T11:15:00Z
 
-EXACT_NEXT_ACTION: restore the last qualified dist-based deploy workflow and validate its source, build, manifest, artifact, and deployment contract locally
+EXACT_NEXT_ACTION: publish this validation checkpoint, open a draft PR, and reconcile its exact live diff/review/check state
 ```
 
 ## 2. Handover in 60 Seconds
@@ -45,17 +45,20 @@ EXACT_NEXT_ACTION: restore the last qualified dist-based deploy workflow and val
 
 ### What is currently being worked on
 
-Restore only the last qualified official Pages deploy path from commit `f6cecb059a9dac5103469ef819bcd52eb945f1c6`.
+Implementation and local validation are complete. The qualified workflow is restored, and the Pages guard requires that deploy path while conditionally inspecting optional producer workflows only when they exist.
 
 ### What remains unfinished
 
-Workflow restoration, local validation, PR allocation/reconciliation, owner merge authorization, and the repository Pages source setting change from branch/Jekyll to GitHub Actions.
+PR allocation/reconciliation, remote execution evidence, owner merge authorization, and the repository Pages source setting change from branch/Jekyll to GitHub Actions.
 
 ### What has been proven
 
 - The Jekyll job received a runner and failed while parsing repository Markdown, not application source.
 - The CI validation job is a separate infrastructure no-start: runner ID `0`, zero steps.
 - Open PRs #396, #387, and #386 do not touch the deploy workflow or this report.
+- Lint, production build, workflow authority assertions, and the focused deployment suite pass.
+- The full unit suite passes: 226/226 files, 1,320 tests passed, eight skipped.
+- Manifest publication simulation passes with all tracked bytes matched.
 
 ### What has NOT been proven / NOT_RUN
 
@@ -125,14 +128,16 @@ Restore an official Vite-build-to-Pages artifact path so repository Markdown is 
 
 | Work item | Implementation | Integration | Validation | Location | Remaining |
 |---|---|---|---|---|---|
-| Deploy workflow | NOT_STARTED | NOT_STARTED | NOT_RUN | `.github/workflows/deploy.yml` | restore qualified content |
+| Deploy workflow | COMPLETE | branch checkpoint | local PASS | `.github/workflows/deploy.yml` | PR reconciliation and remote execution |
+| Pages static guard | COMPLETE | branch checkpoint | local PASS | `scripts/test_pages_data_publish_static.mjs` | PR reconciliation |
 | Recovery report | CURRENT | WIP | SOURCE_INSPECTION | this file | update after every stage |
 
 ## 6. Active Item Register
 
 | ID | Type | Severity | Priority | Status | Summary | Evidence | Current PR? |
 |---|---|---:|---:|---|---|---|---:|
-| ISS-001 | defect | high | P0 | ACTIVE | branch/Jekyll Pages source parses repository Markdown and fails | run #32839261877 | yes |
+| ISS-001 | defect | high | P0 | MITIGATED_IN_BRANCH | branch/Jekyll Pages source parses repository Markdown and fails | run #32839261877; restored artifact workflow | yes |
+| ISS-002 | defect | medium | P0 | RESOLVED_IN_BRANCH | Pages guard required deleted optional producer workflows before it could inspect deploy authority | baseline fail; focused PASS | yes |
 | RISK-001 | risk | high | P0 | ACTIVE | source-mode setting remains external to the code diff | dynamic Pages run path | yes |
 | DEC-001 | decision | medium | P0 | ACCEPTED | restore the last qualified official dist workflow instead of adding root `.nojekyll` | source and history inspection | yes |
 
@@ -161,16 +166,94 @@ Negative assurance: only deployment orchestration changes; application, ranking,
 
 ## 9. Current Validation
 
-All implementation checks are currently `NOT_RUN`. The baseline diagnosis is `PASS / SOURCE_INSPECTION / INDEPENDENT_REPRODUCTION` against `main` `a3641d6a…`.
+### VAL-001 — Workflow authority and structure
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: INDEPENDENT_REPRODUCTION
+Tested HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e content
+Evidence: PyYAML BaseLoader assertions and forbidden-capability scan
+Expected: push/manual/workflow-run triggers; official dist artifact; required read/pages/id-token/status permissions; no PR trigger or git push
+Actual: all assertions passed
+Limitations: does not emulate the GitHub Pages service or source-mode setting
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-002 — Focused deployment certification
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: IMPLEMENTATION_COUPLED
+Tested HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e content
+Evidence: vitest deployment-provenance, World-health smoke, and audit-remediation files
+Expected: restored workflow satisfies source-freeze, artifact, provenance, and verification contracts
+Actual: 3 files passed; 14 tests passed; 1 unrelated shadow-workflow test skipped
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-003 — Full unit suite
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: IMPLEMENTATION_COUPLED
+Tested HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e content
+Evidence: npm run test:unit
+Expected: no product regression and deploy assertions unskip cleanly
+Actual: 226/226 files passed; 1,320 tests passed; 8 skipped
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-004 — Lint and production build
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: IMPLEMENTATION_COUPLED
+Tested HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e content
+Evidence: npm run lint; vite build
+Expected: zero lint findings and complete Vite output
+Actual: zero lint findings; 371 modules transformed; production build completed
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-005 — Pages manifest simulation
+
+```text
+Status: PASS
+Observation: LOCAL_EXECUTION
+Oracle: INDEPENDENT_REPRODUCTION
+Tested HEAD: c6d0333c30b8d77ef32450cee3251f76f3b7ab9e content
+Evidence: write_pages_data_manifest.mjs with complete push provenance environment
+Expected: manifest records exact source SHA and all tracked source/dist bytes match
+Actual: status PASS; source mode push-event-sha; allTrackedFilesMatched=true
+Origin: RESOLVED_BY_PR
+```
+
+### VAL-006 — Remote deployment
+
+```text
+Status: NOT_RUN
+Observation: NOT_OBSERVED
+Oracle: NONE
+Tested HEAD: NOT_APPLICABLE
+Evidence: branch push does not trigger the main-only deploy workflow
+Expected: after authorized merge and Pages source-mode change, official artifact deployment executes
+Actual: not run
+Origin: UNKNOWN_ORIGIN
+```
 
 ## 10. Changed-File Ledger
 
 | File | Intended? | First stage | Latest stage | Purpose | Sensitive? | Validation |
 |---|---:|---|---|---|---:|---|
-| `.github/workflows/deploy.yml` | yes | implementation | pending | official Vite Pages deployment | yes | NOT_RUN |
-| `reports/NW-PAGES-001_pages_publishing_recovery.md` | yes | baseline | baseline | durable recovery evidence | no | source inspection |
+| `.github/workflows/deploy.yml` | yes | implementation | validation | official Vite Pages deployment | yes | focused + build PASS; remote NOT_RUN |
+| `scripts/test_pages_data_publish_static.mjs` | yes | validation | validation | keep deploy mandatory; inspect optional producers when present | no | focused PASS + lint PASS |
+| `reports/NW-PAGES-001_pages_publishing_recovery.md` | yes | baseline | reconciliation | durable recovery evidence | no | source inspection |
 
-Expected file count: 2. Unexplained files: 0.
+Expected file count: 3. Unexplained files: 0.
 
 ## 11. Review / CI State
 
