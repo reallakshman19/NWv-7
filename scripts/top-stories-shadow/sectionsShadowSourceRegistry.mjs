@@ -47,6 +47,7 @@ function normalizeFeed(feed, sectionKey, index) {
     );
   }
   return Object.freeze({
+    ...feed,
     url: requiredText(feed.url, `${sectionKey}[${index}].url`),
     source: requiredText(feed.source, `${sectionKey}[${index}].source`),
     sourceGroup: requiredText(
@@ -89,9 +90,17 @@ function normalizeSections(sections) {
 
 function normalizeCoverage(value = {}) {
   if (!isRecord(value)) return Object.freeze({});
-  return Object.freeze(Object.fromEntries(
-    Object.entries(value).map(([key, raw]) => [key, Number(raw)]),
-  ));
+  const entries = Object.entries(value).map(([key, raw]) => {
+    const number = Number(raw);
+    if (!Number.isFinite(number)) {
+      throw new SectionsSourceRegistryError(
+        'source_registry_coverage_invalid',
+        `Source registry requiredCoverage.${key} must be numeric`,
+      );
+    }
+    return [key, number];
+  });
+  return Object.freeze(Object.fromEntries(entries));
 }
 
 function countLanes(sections) {
