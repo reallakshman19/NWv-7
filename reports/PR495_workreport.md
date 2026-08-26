@@ -91,7 +91,7 @@ review threads                    = none
 | COMMITTED promotion + pointer move transactionally coupled | COMPLETE | final `D1.batch([promote, movePointer])` |
 | Exact run/cardinality/provenance/digest gates fail closed | COMPLETE | store SQL + migration triggers + certs |
 | Same-logical-epoch retry is idempotent and conflict-safe | COMPLETE | deterministic PKs + migration 0004 |
-| Read-only shadow endpoints | COMPLETE | latest, named section, parity latest; GET/OPTIONS only |
+| Read-only shadow endpoints | COMPLETE | latest and named section; parity endpoint may return no-record until PR-C |
 | Shared deterministic replay authority | COMPLETE | imports merged PR-A evaluator/registry/production ranker |
 | Public write API | NONE | non-GET rejected |
 | Live 41-lane acquisition | DEFERRED_TO_PR_C | scheduled foundation returns disabled status only |
