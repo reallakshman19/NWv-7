@@ -2,6 +2,7 @@ import { digestCanonicalJson } from '../../../scripts/top-stories-shadow/canonic
 import {
   normalizeSnapshot,
   normalizeSnapshotItem,
+  normalizeSnapshotPartition,
   normalizeSourceRun,
   resultChanges,
   SECTIONS_SHADOW_POINTER_NAME,
@@ -9,6 +10,29 @@ import {
   SOURCE_RUN_STATES,
   SectionsShadowStoreError,
 } from './contracts.js';
+
+const COMPLETE_PARTITION_PREDICATE = `
+  AND s.expected_section_count = (
+    SELECT COUNT(*)
+    FROM section_snapshot_partitions p
+    WHERE p.snapshot_id = s.snapshot_id
+  )
+  AND s.expected_item_count = (
+    SELECT COUNT(*)
+    FROM section_snapshot_items i
+    WHERE i.snapshot_id = s.snapshot_id
+  )
+  AND NOT EXISTS (
+    SELECT 1
+    FROM section_snapshot_partitions p
+    WHERE p.snapshot_id = s.snapshot_id
+      AND p.expected_item_count <> (
+        SELECT COUNT(*)
+        FROM section_snapshot_items i
+        WHERE i.snapshot_id = s.snapshot_id
+          AND i.section_key = p.section_key
+      )
+  )`;
 
 const CURRENT_SNAPSHOT_SQL = `
 SELECT s.*
@@ -18,16 +42,7 @@ JOIN source_runs r ON r.run_id = s.run_id
 WHERE p.pointer_name = ?
   AND s.state = 'COMMITTED'
   AND r.state = 'COMPLETE'
-  AND s.expected_section_count = (
-    SELECT COUNT(DISTINCT i.section_key)
-    FROM section_snapshot_items i
-    WHERE i.snapshot_id = s.snapshot_id
-  )
-  AND s.expected_item_count = (
-    SELECT COUNT(*)
-    FROM section_snapshot_items i
-    WHERE i.snapshot_id = s.snapshot_id
-  )
+  ${COMPLETE_PARTITION_PREDICATE}
 LIMIT 1`;
 
 function assertDb(db) {
@@ -59,6 +74,27 @@ function sameAuthority(existing, expected, fields, code) {
       );
     }
   }
+}
+
+export function canonicalSnapshotPartitionsForDigest(partitions = []) {
+  return [...partitions]
+    .map(partition => ({
+      sectionKey: partition.sectionKey,
+      expectedItemCount: Number(partition.expectedItemCount),
+    }))
+    .sort((a, b) => a.sectionKey.localeCompare(b.sectionKey));
+}
+
+export function canonicalSnapshotItemsForDigest(items = []) {
+  return [...items]
+    .map(item => ({
+      sectionKey: item.sectionKey,
+      position: Number(item.position),
+      storyId: item.storyId,
+      sourceFamily: item.sourceFamily,
+      storyJson: item.storyJson,
+    }))
+    .sort((a, b) => a.sectionKey.localeCompare(b.sectionKey) || a.position - b.position);
 }
 
 export async function createSourceRun(db, input) {
@@ -101,8 +137,15 @@ export async function recordSourceFetchEvidence(db, input = {}) {
   const runId = String(input.runId || '').trim();
   const sectionKey = String(input.sectionKey || '').trim();
   const laneKey = String(input.laneKey || '').trim();
-  if (!runId || !sectionKey || !laneKey) {
-    throw new SectionsShadowStoreError('source_evidence_identity_missing', 'runId/sectionKey/laneKey are required');
+  const sourceGroup = String(input.sourceGroup || '').trim();
+  const sourceFamily = String(input.sourceFamily || '').trim();
+  const startedAt = String(input.startedAt || '').trim();
+  const state = String(input.state || '').trim();
+  if (!runId || !sectionKey || !laneKey || !sourceGroup || !sourceFamily || !startedAt || !state) {
+    throw new SectionsShadowStoreError(
+      'source_evidence_field_missing',
+      'runId/sectionKey/laneKey/sourceGroup/sourceFamily/startedAt/state are required',
+    );
   }
   await db.prepare(`
     INSERT INTO source_fetch_evidence (
@@ -127,15 +170,15 @@ export async function recordSourceFetchEvidence(db, input = {}) {
     runId,
     sectionKey,
     laneKey,
-    String(input.sourceGroup || '').trim(),
-    String(input.sourceFamily || '').trim(),
+    sourceGroup,
+    sourceFamily,
     input.feedUrl || null,
     input.httpStatus ?? null,
     Number(input.itemCount || 0),
     input.payloadSha256 || null,
-    String(input.startedAt || '').trim(),
+    startedAt,
     input.completedAt || null,
-    String(input.state || '').trim(),
+    state,
   ).run();
 }
 
@@ -173,8 +216,8 @@ export async function stageSnapshot(db, input) {
       normalization_version, normalization_digest, event_classifier_version,
       ranker_version, ranker_policy_digest, input_evidence_digest,
       decision_output_digest, expected_section_count, expected_item_count,
-      expected_item_rows_digest, state, failure_reason
-    ) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      expected_partition_digest, expected_item_rows_digest, state, failure_reason
+    ) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(snapshot_id) DO NOTHING
   `).bind(
     snapshot.snapshotId,
@@ -193,6 +236,7 @@ export async function stageSnapshot(db, input) {
     snapshot.decisionOutputDigest,
     snapshot.expectedSectionCount,
     snapshot.expectedItemCount,
+    snapshot.expectedPartitionDigest,
     snapshot.expectedItemRowsDigest,
     snapshot.state,
     snapshot.failureReason,
@@ -210,9 +254,47 @@ export async function stageSnapshot(db, input) {
     ['decision_output_digest', 'decisionOutputDigest'],
     ['expected_section_count', 'expectedSectionCount'],
     ['expected_item_count', 'expectedItemCount'],
+    ['expected_partition_digest', 'expectedPartitionDigest'],
     ['expected_item_rows_digest', 'expectedItemRowsDigest'],
   ], 'snapshot_identity_conflict');
   return existing;
+}
+
+export async function stageSnapshotPartitions(db, snapshotId, partitions = []) {
+  assertDb(db);
+  const normalized = partitions.map(partition => normalizeSnapshotPartition(snapshotId, partition));
+  const statement = db.prepare(`
+    INSERT INTO section_snapshot_partitions (
+      snapshot_id, section_key, expected_item_count
+    ) VALUES (?, ?, ?)
+    ON CONFLICT(snapshot_id, section_key) DO NOTHING
+  `);
+  if (normalized.length > 0) {
+    await db.batch(normalized.map(partition => statement.bind(
+      partition.snapshotId,
+      partition.sectionKey,
+      partition.expectedItemCount,
+    )));
+  }
+  const result = await db.prepare(`
+    SELECT section_key, expected_item_count
+    FROM section_snapshot_partitions
+    WHERE snapshot_id = ?
+    ORDER BY section_key ASC
+  `).bind(snapshotId).all();
+  const existing = (result?.results || []).map(row => ({
+    sectionKey: row.section_key,
+    expectedItemCount: Number(row.expected_item_count),
+  }));
+  const expected = canonicalSnapshotPartitionsForDigest(normalized);
+  const actual = canonicalSnapshotPartitionsForDigest(existing);
+  if (digestCanonicalJson(actual) !== digestCanonicalJson(expected)) {
+    throw new SectionsShadowStoreError(
+      'snapshot_partition_identity_conflict',
+      'Persisted snapshot partitions disagree with the requested partition authority',
+    );
+  }
+  return actual;
 }
 
 export async function writeSnapshotItems(db, snapshotId, items = [], options = {}) {
@@ -250,15 +332,38 @@ export async function inspectSnapshot(db, snapshotId) {
   `).bind(snapshotId).first();
   if (!snapshot) return null;
   const counts = await db.prepare(`
-    SELECT COUNT(*) AS item_count, COUNT(DISTINCT section_key) AS section_count
-    FROM section_snapshot_items
-    WHERE snapshot_id = ?
-  `).bind(snapshotId).first();
+    SELECT
+      (SELECT COUNT(*) FROM section_snapshot_partitions p WHERE p.snapshot_id = ?) AS section_count,
+      (SELECT COUNT(*) FROM section_snapshot_items i WHERE i.snapshot_id = ?) AS item_count,
+      (
+        SELECT COUNT(*)
+        FROM section_snapshot_partitions p
+        WHERE p.snapshot_id = ?
+          AND p.expected_item_count <> (
+            SELECT COUNT(*) FROM section_snapshot_items i
+            WHERE i.snapshot_id = p.snapshot_id AND i.section_key = p.section_key
+          )
+      ) AS partition_mismatch_count
+  `).bind(snapshotId, snapshotId, snapshotId).first();
   return {
     snapshot,
-    observedItemCount: Number(counts?.item_count || 0),
     observedSectionCount: Number(counts?.section_count || 0),
+    observedItemCount: Number(counts?.item_count || 0),
+    partitionMismatchCount: Number(counts?.partition_mismatch_count || 0),
   };
+}
+
+async function readSnapshotPartitionsForDigest(db, snapshotId) {
+  const result = await db.prepare(`
+    SELECT section_key, expected_item_count
+    FROM section_snapshot_partitions
+    WHERE snapshot_id = ?
+    ORDER BY section_key ASC
+  `).bind(snapshotId).all();
+  return canonicalSnapshotPartitionsForDigest((result?.results || []).map(row => ({
+    sectionKey: row.section_key,
+    expectedItemCount: Number(row.expected_item_count),
+  })));
 }
 
 async function readSnapshotRowsForDigest(db, snapshotId) {
@@ -268,13 +373,13 @@ async function readSnapshotRowsForDigest(db, snapshotId) {
     WHERE snapshot_id = ?
     ORDER BY section_key ASC, position ASC
   `).bind(snapshotId).all();
-  return (result?.results || []).map(row => ({
+  return canonicalSnapshotItemsForDigest((result?.results || []).map(row => ({
     sectionKey: row.section_key,
     position: Number(row.position),
     storyId: row.story_id,
     sourceFamily: row.source_family,
     storyJson: row.story_json,
-  }));
+  })));
 }
 
 export async function finalizeSnapshot(db, snapshotId, committedAt) {
@@ -304,62 +409,69 @@ export async function finalizeSnapshot(db, snapshotId, committedAt) {
     throw new SectionsShadowStoreError('source_run_incomplete', 'Snapshot source run is not COMPLETE');
   }
   if (preflight.observedSectionCount !== Number(snapshot.expected_section_count) ||
-      preflight.observedItemCount !== Number(snapshot.expected_item_count)) {
+      preflight.observedItemCount !== Number(snapshot.expected_item_count) ||
+      preflight.partitionMismatchCount !== 0) {
     throw new SectionsShadowStoreError(
       'snapshot_cardinality_mismatch',
-      'Snapshot observed cardinality does not match expected cardinality',
+      'Snapshot observed partitions/items do not match staged cardinality',
       {
         expectedSectionCount: Number(snapshot.expected_section_count),
         observedSectionCount: preflight.observedSectionCount,
         expectedItemCount: Number(snapshot.expected_item_count),
         observedItemCount: preflight.observedItemCount,
+        partitionMismatchCount: preflight.partitionMismatchCount,
       },
     );
   }
 
+  const persistedPartitions = await readSnapshotPartitionsForDigest(db, snapshotId);
+  const persistedPartitionDigest = digestCanonicalJson(persistedPartitions);
+  if (persistedPartitionDigest !== snapshot.expected_partition_digest) {
+    throw new SectionsShadowStoreError(
+      'snapshot_partition_digest_mismatch',
+      'Persisted partitions do not match staged partition authority',
+      { expected: snapshot.expected_partition_digest, observed: persistedPartitionDigest },
+    );
+  }
+
   const persistedRows = await readSnapshotRowsForDigest(db, snapshotId);
-  const persistedDigest = digestCanonicalJson(persistedRows);
-  if (persistedDigest !== snapshot.expected_item_rows_digest) {
+  const persistedRowsDigest = digestCanonicalJson(persistedRows);
+  if (persistedRowsDigest !== snapshot.expected_item_rows_digest) {
     throw new SectionsShadowStoreError(
       'snapshot_item_digest_mismatch',
-      'Persisted snapshot rows do not match the staged row digest',
-      { expected: snapshot.expected_item_rows_digest, observed: persistedDigest },
+      'Persisted snapshot rows do not match staged row authority',
+      { expected: snapshot.expected_item_rows_digest, observed: persistedRowsDigest },
     );
   }
 
   const promote = db.prepare(`
-    UPDATE section_snapshots
+    UPDATE section_snapshots AS s
     SET state = 'COMMITTED', committed_at = ?, failure_reason = NULL
-    WHERE snapshot_id = ?
-      AND state = 'STAGED'
-      AND expected_item_rows_digest = ?
-      AND expected_section_count = (
-        SELECT COUNT(DISTINCT section_key)
-        FROM section_snapshot_items
-        WHERE snapshot_id = ?
-      )
-      AND expected_item_count = (
-        SELECT COUNT(*)
-        FROM section_snapshot_items
-        WHERE snapshot_id = ?
-      )
+    WHERE s.snapshot_id = ?
+      AND s.state = 'STAGED'
+      AND s.expected_partition_digest = ?
+      AND s.expected_item_rows_digest = ?
+      ${COMPLETE_PARTITION_PREDICATE}
       AND EXISTS (
         SELECT 1 FROM source_runs r
-        WHERE r.run_id = section_snapshots.run_id AND r.state = 'COMPLETE'
+        WHERE r.run_id = s.run_id AND r.state = 'COMPLETE'
       )
   `).bind(
     committedAt,
     snapshotId,
-    persistedDigest,
-    snapshotId,
-    snapshotId,
+    persistedPartitionDigest,
+    persistedRowsDigest,
   );
 
   const movePointer = db.prepare(`
     INSERT INTO current_snapshot_pointer (pointer_name, snapshot_id, updated_at)
-    SELECT ?, snapshot_id, ?
-    FROM section_snapshots
-    WHERE snapshot_id = ? AND state = 'COMMITTED'
+    SELECT ?, s.snapshot_id, ?
+    FROM section_snapshots s
+    JOIN source_runs r ON r.run_id = s.run_id
+    WHERE s.snapshot_id = ?
+      AND s.state = 'COMMITTED'
+      AND r.state = 'COMPLETE'
+      ${COMPLETE_PARTITION_PREDICATE}
     ON CONFLICT(pointer_name) DO UPDATE SET
       snapshot_id = excluded.snapshot_id,
       updated_at = excluded.updated_at
@@ -386,18 +498,35 @@ export async function readCurrentSnapshotMetadata(db) {
     .first();
 }
 
+async function readCurrentPartitions(db, snapshotId) {
+  const result = await db.prepare(`
+    SELECT section_key
+    FROM section_snapshot_partitions
+    WHERE snapshot_id = ?
+    ORDER BY section_key ASC
+  `).bind(snapshotId).all();
+  return (result?.results || []).map(row => row.section_key);
+}
+
 export async function readCurrentSnapshot(db) {
   const snapshot = await readCurrentSnapshotMetadata(db);
   if (!snapshot) return null;
+  const partitionKeys = await readCurrentPartitions(db, snapshot.snapshot_id);
+  const sections = Object.fromEntries(partitionKeys.map(sectionKey => [sectionKey, []]));
   const result = await db.prepare(`
     SELECT section_key, position, story_id, source_family, story_json
     FROM section_snapshot_items
     WHERE snapshot_id = ?
     ORDER BY section_key ASC, position ASC
   `).bind(snapshot.snapshot_id).all();
-  const sections = {};
   for (const row of result?.results || []) {
-    if (!sections[row.section_key]) sections[row.section_key] = [];
+    if (!Object.hasOwn(sections, row.section_key)) {
+      throw new SectionsShadowStoreError(
+        'committed_partition_missing',
+        'Committed item references a missing section partition',
+        { sectionKey: row.section_key },
+      );
+    }
     sections[row.section_key].push(asJson(row.story_json));
   }
   return {
@@ -423,6 +552,13 @@ export async function readCurrentSnapshot(db) {
 export async function readCurrentSection(db, sectionKey) {
   const snapshot = await readCurrentSnapshotMetadata(db);
   if (!snapshot) return null;
+  const partition = await db.prepare(`
+    SELECT section_key
+    FROM section_snapshot_partitions
+    WHERE snapshot_id = ? AND section_key = ?
+    LIMIT 1
+  `).bind(snapshot.snapshot_id, sectionKey).first();
+  if (!partition) return null;
   const result = await db.prepare(`
     SELECT story_json
     FROM section_snapshot_items

@@ -127,9 +127,21 @@ export function normalizeSnapshot(input = {}) {
     decisionOutputDigest: requireSha256(input.decisionOutputDigest, 'decisionOutputDigest'),
     expectedSectionCount: requirePositiveInteger(input.expectedSectionCount, 'expectedSectionCount'),
     expectedItemCount: requireNonNegativeInteger(input.expectedItemCount, 'expectedItemCount'),
+    expectedPartitionDigest: requireSha256(input.expectedPartitionDigest, 'expectedPartitionDigest'),
     expectedItemRowsDigest: requireSha256(input.expectedItemRowsDigest, 'expectedItemRowsDigest'),
     state,
     failureReason: input.failureReason || null,
+  });
+}
+
+export function normalizeSnapshotPartition(snapshotId, partition = {}) {
+  return Object.freeze({
+    snapshotId: requireText(snapshotId, 'snapshotId'),
+    sectionKey: requireText(partition.sectionKey, 'sectionKey'),
+    expectedItemCount: requireNonNegativeInteger(
+      partition.expectedItemCount,
+      'partition.expectedItemCount',
+    ),
   });
 }
 

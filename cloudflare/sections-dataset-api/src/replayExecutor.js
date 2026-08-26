@@ -6,13 +6,20 @@ import { buildSectionsSourceRegistryAuthority } from '../../../scripts/top-stori
 import { evaluateTopStories } from '../../../src/services/topStories/topStoriesRanker.js';
 import { getStorySourceFamily } from '../../../src/services/topStories/topStoriesSourceIdentity.js';
 import {
-  createSourceRun,
+  canonicalSnapshotItemsForDigest,
+  canonicalSnapshotPartitionsForDigest,
   completeSourceRun,
+  createSourceRun,
   finalizeSnapshot,
   stageSnapshot,
+  stageSnapshotPartitions,
   writeSnapshotItems,
 } from './epochStore.js';
-import { SECTIONS_SHADOW_SNAPSHOT_SCHEMA } from './contracts.js';
+import {
+  requireText,
+  SECTIONS_SHADOW_SNAPSHOT_SCHEMA,
+  SectionsShadowStoreError,
+} from './contracts.js';
 
 export const SECTIONS_SHADOW_REGISTRY_AUTHORITY =
   buildSectionsSourceRegistryAuthority(sectionSourcePolicy);
@@ -24,13 +31,25 @@ function storyIdentity(story = {}, fallback) {
 }
 
 function buildStoredSections(epoch, evaluation) {
-  const sections = {};
-  for (const [section, rows] of Object.entries(epoch.sectionItems || {})) {
-    sections[section] = section === 'topStories'
-      ? evaluation.selected
-      : (Array.isArray(rows) ? rows : []);
+  const sectionKeys = Object.keys(
+    SECTIONS_SHADOW_REGISTRY_AUTHORITY.canonicalRegistry.sections,
+  );
+  const missing = sectionKeys.filter(section => !Object.hasOwn(epoch.sectionItems || {}, section));
+  if (missing.length > 0) {
+    throw new SectionsShadowStoreError(
+      'replay_section_set_incomplete',
+      `Frozen replay is missing qualified sections: ${missing.join(', ')}`,
+    );
   }
-  return sections;
+  return Object.fromEntries(sectionKeys.map(section => {
+    const rows = epoch.sectionItems[section];
+    return [
+      section,
+      section === 'topStories'
+        ? evaluation.selected
+        : (Array.isArray(rows) ? rows : []),
+    ];
+  }));
 }
 
 export function buildStoredSnapshotItems(epoch, evaluation) {
@@ -43,6 +62,14 @@ export function buildStoredSnapshotItems(epoch, evaluation) {
       sourceFamily: getStorySourceFamily(story),
       storyJson: JSON.stringify(story),
     })));
+}
+
+function buildStoredSnapshotPartitions(epoch, evaluation) {
+  const sections = buildStoredSections(epoch, evaluation);
+  return Object.entries(sections).map(([sectionKey, rows]) => ({
+    sectionKey,
+    expectedItemCount: rows.length,
+  }));
 }
 
 export function buildReplaySnapshotPlan(epoch, options = {}) {
@@ -62,13 +89,27 @@ export function buildReplaySnapshotPlan(epoch, options = {}) {
     nowMs: frozen.nowMs,
     displayDepth: options.displayDepth ?? 10,
   });
+  const partitions = buildStoredSnapshotPartitions(frozen, evaluation);
   const items = buildStoredSnapshotItems(frozen, evaluation);
-  const expectedSectionCount = new Set(items.map(item => item.sectionKey)).size;
-  const expectedItemRowsDigest = digestCanonicalJson(items);
+  const canonicalPartitions = canonicalSnapshotPartitionsForDigest(partitions);
+  const canonicalItems = canonicalSnapshotItemsForDigest(items);
+  const expectedPartitionDigest = digestCanonicalJson(canonicalPartitions);
+  const expectedItemRowsDigest = digestCanonicalJson(canonicalItems);
   const runId = options.runId || `replay:${frozen.inputEvidenceDigest}`;
   const snapshotId = options.snapshotId || `shadow:${decisionEvidence.decisionOutputDigest}`;
   const createdAt = options.createdAt || frozen.capturedAt;
-  const codeCommitSha = options.codeCommitSha || 'UNSPECIFIED_REFERENCE_COMMIT';
+  const codeCommitSha = requireText(options.codeCommitSha, 'codeCommitSha');
+
+  if (partitions.length !== SECTIONS_SHADOW_REGISTRY_AUTHORITY.sectionCount) {
+    throw new SectionsShadowStoreError(
+      'replay_partition_count_invalid',
+      'Frozen replay partition count does not match source registry authority',
+      {
+        expected: SECTIONS_SHADOW_REGISTRY_AUTHORITY.sectionCount,
+        observed: partitions.length,
+      },
+    );
+  }
 
   return Object.freeze({
     run: {
@@ -97,11 +138,13 @@ export function buildReplaySnapshotPlan(epoch, options = {}) {
       rankerPolicyDigest: decisionEvidence.rankerPolicyDigest,
       inputEvidenceDigest: decisionEvidence.inputEvidenceDigest,
       decisionOutputDigest: decisionEvidence.decisionOutputDigest,
-      expectedSectionCount,
+      expectedSectionCount: SECTIONS_SHADOW_REGISTRY_AUTHORITY.sectionCount,
       expectedItemCount: items.length,
+      expectedPartitionDigest,
       expectedItemRowsDigest,
       state: 'STAGED',
     },
+    partitions,
     items,
     decisionEvidence,
   });
@@ -115,6 +158,7 @@ export async function persistReplaySnapshot(db, epoch, options = {}) {
     inputEvidenceDigest: plan.run.inputEvidenceDigest,
   });
   await stageSnapshot(db, plan.snapshot);
+  await stageSnapshotPartitions(db, plan.snapshot.snapshotId, plan.partitions);
   await writeSnapshotItems(db, plan.snapshot.snapshotId, plan.items, options);
   const finalized = await finalizeSnapshot(
     db,
