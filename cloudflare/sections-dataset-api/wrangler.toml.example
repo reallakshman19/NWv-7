@@ -1,0 +1,19 @@
+name = "sections-dataset-shadow-api"
+main = "src/index.js"
+compatibility_date = "2026-08-26"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nw-sections-shadow"
+database_id = "00000000-0000-0000-0000-000000000000"
+preview_database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[vars]
+SECTIONS_SHADOW_MODE = "SHADOW_ONLY"
+SECTIONS_LIVE_ACQUISITION_ENABLED = "false"
+
+# No routes or production browser variables belong in PR-B.
+# No Cron trigger is configured here; live acquisition is PR-C scope.
+# compatibility_date >= 2026-08-04 provides current Workers Node.js compatibility,
+# including node:crypto used by the shared replay digest authority.
