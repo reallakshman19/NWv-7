@@ -1,20 +1,30 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 
-const MIGRATION_URL = new URL('../migrations/0001_sections_shadow.sql', import.meta.url);
+const MIGRATIONS_URL = new URL('../migrations/', import.meta.url);
 const DIGEST = 'a'.repeat(64);
 const POINTER = 'sections-shadow-current';
 
-function insertRun(db, runId) {
+function applyMigrations(db) {
+  const files = readdirSync(MIGRATIONS_URL)
+    .filter(name => /^\d+.*\.sql$/.test(name))
+    .sort();
+  for (const file of files) {
+    db.exec(readFileSync(new URL(file, MIGRATIONS_URL), 'utf8'));
+  }
+  return files;
+}
+
+function insertRun(db, runId, state = 'COMPLETE') {
   db.prepare(`
     INSERT INTO source_runs (
       run_id, scheduled_at, acquisition_started_at, acquisition_completed_at,
       code_commit_sha, source_registry_version, source_registry_digest,
       input_evidence_digest, state, failure_reason
-    ) VALUES (?, 't', 't', 't', 'sha', 'v', ?, ?, 'COMPLETE', NULL)
-  `).run(runId, DIGEST, DIGEST);
+    ) VALUES (?, 't', 't', 't', 'sha', 'v', ?, ?, ?, NULL)
+  `).run(runId, DIGEST, DIGEST, state);
 }
 
 function insertSnapshot(db, snapshotId, runId, expectedSections, expectedItems) {
@@ -125,7 +135,7 @@ function stagePartitionSet(db, snapshotId, counts, start = 0) {
 
 export function runAtomicityCertification() {
   const db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(MIGRATION_URL, 'utf8'));
+  const migrations = applyMigrations(db);
 
   insertRun(db, 'R100');
   insertSnapshot(db, 'S100', 'R100', 10, 284);
@@ -163,6 +173,12 @@ export function runAtomicityCertification() {
     () => insertItems(db, 'S101', 's0', 29, { ignore: true }),
     /writable only while STAGED/,
   );
+  assert.throws(
+    () => db.prepare(`
+      UPDATE section_snapshots SET expected_item_count = 285 WHERE snapshot_id = 'S101'
+    `).run(),
+    /snapshot authority is immutable/,
+  );
   commitSnapshotAndPointer(db, 'S101');
   assert.equal(snapshotState(db, 'S101'), 'COMMITTED');
   assert.equal(currentPointer(db), 'S101');
@@ -190,11 +206,32 @@ export function runAtomicityCertification() {
     /writable only while STAGED/,
   );
   assert.throws(
-    () => db.prepare(`UPDATE section_snapshots SET state = 'FAILED' WHERE snapshot_id = 'S102'`).run(),
-    /immutable/,
+    () => db.prepare(`UPDATE section_snapshots SET committed_at = 'changed' WHERE snapshot_id = 'S102'`).run(),
+    /COMMITTED snapshot record is immutable/,
+  );
+
+  insertRun(db, 'R103', 'RUNNING');
+  db.prepare(`
+    INSERT INTO source_fetch_evidence (
+      run_id, section_key, lane_key, source_group, source_family,
+      item_count, started_at, state
+    ) VALUES ('R103', 'world', 'lane', 'bbc', 'bbc', 1, 't', 'OK')
+  `).run();
+  db.prepare(`
+    UPDATE source_runs SET state = 'COMPLETE', acquisition_completed_at = 'done'
+    WHERE run_id = 'R103'
+  `).run();
+  assert.throws(
+    () => db.prepare(`UPDATE source_fetch_evidence SET item_count = 2 WHERE run_id = 'R103'`).run(),
+    /writable only while run is RUNNING/,
+  );
+  assert.throws(
+    () => db.prepare(`UPDATE source_runs SET failure_reason = 'changed' WHERE run_id = 'R103'`).run(),
+    /terminal source run is immutable/,
   );
 
   const result = Object.freeze({
+    migrations: Object.freeze(migrations),
     s101Partial: Object.freeze({
       partitions: 7,
       rows: 201,
@@ -205,6 +242,7 @@ export function runAtomicityCertification() {
       state: 'SEALED',
       pointer: 'S100',
       rowsMutable: false,
+      metadataMutable: false,
     }),
     s101Final: Object.freeze({
       partitions: 10,
@@ -213,7 +251,8 @@ export function runAtomicityCertification() {
       pointer: 'S101',
     }),
     emptyPartitionPreserved: true,
-    committedRowsImmutable: true,
+    committedSnapshotImmutable: true,
+    completedRunEvidenceImmutable: true,
   });
   db.close();
   return result;
