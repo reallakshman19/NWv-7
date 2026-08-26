@@ -6,6 +6,10 @@
   "homepage": "https://lakshman81-ai.github.io/News-Weather-App",
   "scripts": {
     "test:quick-weather-pro": "node scripts/test_quick_weather_static.mjs",
+    "sections:reference:live": "node scripts/sections-live/referenceSectionsAcquisition.mjs",
+    "sections:parity:live": "node scripts/sections-live/classifySectionsLiveParity.mjs",
+    "sections:parity:remote": "node scripts/sections-live/compareRemoteSectionsShadow.mjs",
+    "sections:qualification": "node scripts/sections-live/qualifySectionsShadow.mjs",
     "test:bottom-nav": "node scripts/test_bottom_nav_static.mjs",
     "test:market-trust": "node scripts/test_market_trust_static.mjs",
     "test:weather-trust": "node scripts/test_weather_trust_static.mjs",

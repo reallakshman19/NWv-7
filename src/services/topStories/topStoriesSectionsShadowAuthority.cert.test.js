@@ -295,7 +295,7 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
       .toBe(benchmark.expected.caseOEntertainmentEventType);
   });
 
-  it('keeps Phase A tied to shared ranking authority and static browser serving', () => {
+  it('keeps shared ranking authority with GitHub-default, opt-in Preview serving', () => {
     const evaluatorSource = readFileSync(new URL(
       '../../../scripts/top-stories-shadow/sectionsShadowEvaluator.mjs',
       import.meta.url,
@@ -308,6 +308,8 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     expect(evaluatorSource).not.toContain('freshness: 42');
     expect(evaluatorSource).not.toContain('primary: 0.5');
     expect(loaderSource).toContain("'/newsdata/sections_latest.json'");
-    expect(loaderSource).not.toContain('VITE_CF');
+    expect(loaderSource).toContain('SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW');
+    expect(loaderSource).toContain('getCloudflareSectionsPreviewUrl');
+    expect(loaderSource).toContain('fallbackReason');
   });
 });

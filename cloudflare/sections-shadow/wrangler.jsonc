@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nw-sections-shadow",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-26",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "SHADOW_MODE": "S1_GITHUB_PRIMARY_CF_SHADOW",
+    "SHADOW_SCHEDULE_ENABLED": "true",
+    "SHADOW_FROZEN_REPLAY_TRIGGER_ENABLED": "false",
+    "SHADOW_LIVE_ACQUISITION_ENABLED": "true",
+    "SHADOW_BROWSER_FALLBACK_ENABLED": "true",
+    "SHADOW_PREVIEW_READ_ENABLED": "true",
+    "SHADOW_MAX_EPOCHS_PER_DAY": "48",
+    "SHADOW_MAX_QUEUE_OPERATIONS_PER_DAY": "8000",
+    "SHADOW_MAX_D1_READS_PER_DAY": "4000000",
+    "SHADOW_MAX_D1_WRITES_PER_DAY": "80000",
+    "SHADOW_MAX_D1_EVIDENCE_BYTES": "350000000",
+    "SHADOW_MAX_WORKER_INVOCATIONS_PER_DAY": "80000",
+    "SHADOW_MAX_BROWSER_MS_PER_DAY": "480000",
+    "SHADOW_BROWSER_MS_RESERVATION_PER_EPOCH": "20000"
+  },
+  "browser": {
+    "binding": "SHADOW_BROWSER"
+  },
+  "d1_databases": [
+    {
+      "binding": "SHADOW_DB",
+      "database_name": "nw-sections-shadow",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "SHADOW_QUEUE",
+        "queue": "nw-sections-shadow"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "nw-sections-shadow",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+        "max_concurrency": 4,
+        "max_retries": 3,
+        "dead_letter_queue": "nw-sections-shadow-dlq",
+        "retry_delay": 60
+      }
+    ]
+  }
+}

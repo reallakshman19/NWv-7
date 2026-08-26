@@ -3,6 +3,10 @@ import {
   clearSectionsSnapshotLoadCache,
   loadSectionsSnapshot,
 } from './sectionsSnapshotLoader.js';
+import {
+  SECTIONS_DATA_SOURCES,
+  setSectionsDataSource,
+} from '../utils/sectionsDataSource.js';
 
 function deferred() {
   let resolve;
@@ -34,6 +38,7 @@ function snapshot(id) {
 afterEach(() => {
   clearSectionsSnapshotLoadCache();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 describe('sections snapshot shared load certification', () => {
@@ -116,5 +121,59 @@ describe('sections snapshot shared load certification', () => {
     expect(cached.contentHash).toBe('new');
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
-});
 
+  it('loads the independently acquired Cloudflare snapshot when Preview is selected', async () => {
+    const values = new Map();
+    vi.stubGlobal('localStorage', {
+      getItem: key => values.get(key) || null,
+      setItem: (key, value) => values.set(key, value),
+    });
+    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
+    setSectionsDataSource(SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW);
+    const fetchMock = vi.fn().mockResolvedValue(response(snapshot('cloudflare')));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const loaded = await loadSectionsSnapshot({ budgetMs: 5000 });
+
+    expect(loaded.contentHash).toBe('cloudflare');
+    expect(loaded.runtimeDataSource).toEqual({
+      requested: 'cloudflare_preview',
+      effective: 'cloudflare_preview',
+      fallback: false,
+      fallbackReason: null,
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://preview.example/preview/sections/latest',
+      expect.objectContaining({ cache: 'default' }),
+    );
+  });
+
+  it('falls back to GitHub when the selected Preview snapshot is stale', async () => {
+    const values = new Map();
+    vi.stubGlobal('localStorage', {
+      getItem: key => values.get(key) || null,
+      setItem: (key, value) => values.set(key, value),
+    });
+    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
+    setSectionsDataSource(SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW);
+    const stalePreview = {
+      ...snapshot('stale-cloudflare'),
+      fetchedAt: Date.now() - 13 * 60 * 60 * 1000,
+    };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(stalePreview))
+      .mockResolvedValueOnce(response(snapshot('github-fallback')));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const loaded = await loadSectionsSnapshot({ budgetMs: 5000 });
+
+    expect(loaded.contentHash).toBe('github-fallback');
+    expect(loaded.runtimeDataSource).toMatchObject({
+      requested: 'cloudflare_preview',
+      effective: 'github_static',
+      fallback: true,
+      fallbackReason: 'preview_snapshot_unusable',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

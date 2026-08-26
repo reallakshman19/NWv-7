@@ -164,6 +164,15 @@ export function getSectionsSnapshotRuntimeSummary(snapshot) {
     totalStories: Object.values(sections).reduce((sum, items) => sum + safeArray(items).length, 0),
     hasSectionQuality: Boolean(snapshot?.sectionQuality),
     sectionQuality: snapshot?.sectionQuality || null,
+    dataSource: snapshot?.runtimeDataSource || {
+      requested: 'github_static',
+      effective: snapshot?.preview?.dataSource === 'cloudflare_d1'
+        ? 'cloudflare_preview'
+        : 'github_static',
+      fallback: false,
+      fallbackReason: null,
+    },
+    preview: snapshot?.preview || null,
   };
 }
 
@@ -259,4 +268,3 @@ export const __sectionsSnapshotInternalsForTest = {
 };
 
 export default fetchPrefetchedSectionNews;
-
