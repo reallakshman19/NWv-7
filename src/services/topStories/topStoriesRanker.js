@@ -25,6 +25,9 @@ import {
   resolveTopStoriesDisplayDepth,
 } from './topStoriesEvaluationSupport.js';
 
+export const TOP_STORIES_RANKER_VERSION =
+  'nw-top-stories-ranker-observed-v1';
+
 const COLD_START_CRITICAL_EVENTS = new Set([
   TOP_STORY_EVENT_TYPES.PUBLIC_SAFETY,
   TOP_STORY_EVENT_TYPES.DISASTER,
@@ -172,7 +175,7 @@ function withAuthoritativeRank(story, index) {
 
 export function evaluateTopStories(input = {}, options = {}) {
   const policy = getTopStoriesPolicy(options.policy || {});
-  const nowMs = input.nowMs || options.nowMs || Date.now();
+  const nowMs = input.nowMs ?? options.nowMs ?? Date.now();
   const topFeedSignalMap = buildTopFeedSignalMap(
     input.topFeedItems || [],
   );

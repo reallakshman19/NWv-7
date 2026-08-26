@@ -1,3 +1,6 @@
+export const TOP_STORIES_EVENT_CLASSIFIER_VERSION =
+  'nw-top-stories-event-classifier-v1';
+
 export const TOP_STORY_EVENT_TYPES = Object.freeze({
   WAR_CONFLICT: 'war_conflict',
   PUBLIC_SAFETY: 'public_safety',

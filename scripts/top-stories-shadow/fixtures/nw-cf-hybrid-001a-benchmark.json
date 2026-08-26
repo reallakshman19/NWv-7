@@ -1,0 +1,283 @@
+{
+  "schemaVersion": "nw-sections-shadow-benchmark/v1",
+  "benchmarkId": "NW-CF-HYBRID-001A-v1",
+  "frozenBeforeShadowObservation": true,
+  "shadowOutputUsedToChooseExpected": false,
+  "capturedAt": "2026-08-25T12:00:00.000Z",
+  "nowMs": 1787659200000,
+  "inputSource": "frozen-replay-fixture/NW-CF-HYBRID-001A-v1",
+  "caseLedger": {
+    "A": "nominal ten-section epoch",
+    "B": "TOI and Times of India publisher aliases",
+    "C": "Google News lane aliases",
+    "D": "known original publisher behind Google News wrapper",
+    "E": "missing publication timestamp",
+    "F": "malformed publication timestamp",
+    "G": "exact twelve-hour Top Stories boundary",
+    "H": "exact thirty-six-hour retained section-row boundary",
+    "I": "duplicate canonical story across sections",
+    "J": "Trichy row backfilled from TN provenance",
+    "K": "Muscat row backfilled from World provenance",
+    "L": "one Tier-A source failure retained in source health",
+    "M": "multiple source failures retained in source health",
+    "N": "mature non-local public-safety evidence gate",
+    "O": "routine business, sports and entertainment classification"
+  },
+  "epochTemplate": {
+    "sectionItems": {
+      "topStories": [
+        {
+          "id": "case-e-missing-ts",
+          "title": "Public notice road closure affects commuters",
+          "summary": "Police issue a public road closure notice for commuters.",
+          "source": "Reuters",
+          "sourceGroup": "reuters",
+          "section": "topStories"
+        },
+        {
+          "id": "case-f-malformed-ts",
+          "title": "Public warning after station closure",
+          "summary": "Police warn residents after a public station closure.",
+          "source": "Reuters",
+          "sourceGroup": "reuters",
+          "publishedAt": "not-a-timestamp",
+          "section": "topStories"
+        },
+        {
+          "id": "case-g-exact-12h",
+          "title": "Two people injured after Seattle bus crash",
+          "summary": "Police say two people were injured after a bus crash on a public road.",
+          "source": "Reuters",
+          "sourceGroup": "reuters",
+          "publishedAt": 1787616000000,
+          "section": "topStories"
+        },
+        {
+          "id": "case-n-mature-nonlocal",
+          "title": "Two people injured after Seattle bus crash update",
+          "summary": "Police say two people were injured after a bus crash on a public road.",
+          "source": "Seattle Chronicle",
+          "sourceGroup": "seattle_chronicle",
+          "publishedAt": 1787641920000,
+          "section": "topStories"
+        }
+      ],
+      "india": [
+        {
+          "id": "case-b-toi-alias",
+          "title": "City services update from Times of India",
+          "source": "TOI",
+          "sourceGroup": "toi",
+          "allSources": ["TOI", "Times of India"],
+          "sourceCount": 2,
+          "clusteredItems": 2,
+          "publishedAt": 1787641200000,
+          "section": "india"
+        },
+        {
+          "id": "case-a-india",
+          "title": "India public transport service update",
+          "source": "The Hindu",
+          "sourceGroup": "the_hindu",
+          "publishedAt": 1787655600000,
+          "section": "india"
+        }
+      ],
+      "tn": [
+        {
+          "id": "case-a-tn",
+          "title": "Tamil Nadu district public service update",
+          "source": "DT Next",
+          "sourceGroup": "dtnext",
+          "publishedAt": 1787652000000,
+          "section": "tn"
+        }
+      ],
+      "trichy": [
+        {
+          "id": "case-c-google-alias",
+          "title": "Trichy traffic alert for commuters",
+          "source": "Google News Oman",
+          "sourceGroup": "google_news_alt",
+          "allSources": ["Google News", "Google News Oman", "google_news_alt"],
+          "sourceCount": 3,
+          "clusteredItems": 3,
+          "publishedAt": 1787652000000,
+          "section": "trichy"
+        },
+        {
+          "id": "case-j-trichy-backfill",
+          "title": "Trichy municipal traffic notice",
+          "source": "The Hindu",
+          "sourceGroup": "the_hindu",
+          "publishedAt": 1787652000000,
+          "section": "trichy",
+          "sourceSection": "tn",
+          "backfillFrom": "tn"
+        }
+      ],
+      "muscat": [
+        {
+          "id": "case-d-wrapper-original",
+          "title": "Company earnings update reported by Reuters",
+          "summary": "Reuters reports quarterly company earnings and revenue.",
+          "source": "Reuters",
+          "sourceGroup": "google_news_oman",
+          "allSources": ["Reuters", "Google News Oman", "TOI", "Times of India"],
+          "sourceCount": 4,
+          "clusteredItems": 5,
+          "publishedAt": 1787648400000,
+          "section": "muscat"
+        },
+        {
+          "id": "case-k-muscat-backfill",
+          "title": "Muscat public transport notice",
+          "source": "BBC World",
+          "sourceGroup": "bbc",
+          "publishedAt": 1787652000000,
+          "section": "muscat",
+          "sourceSection": "world",
+          "backfillFrom": "world"
+        }
+      ],
+      "world": [
+        {
+          "id": "case-h-exact-36h",
+          "title": "International service report retained at section boundary",
+          "source": "BBC World",
+          "sourceGroup": "bbc",
+          "publishedAt": 1787529600000,
+          "section": "world"
+        },
+        {
+          "id": "case-i-duplicate",
+          "title": "Global markets shared canonical story",
+          "summary": "Global markets report the same canonical item.",
+          "source": "Reuters",
+          "sourceGroup": "reuters",
+          "publishedAt": 1787652000000,
+          "section": "world"
+        },
+        {
+          "id": "case-a-world",
+          "title": "International public service update",
+          "source": "BBC World",
+          "sourceGroup": "bbc",
+          "publishedAt": 1787655600000,
+          "section": "world"
+        }
+      ],
+      "business": [
+        {
+          "id": "case-i-duplicate",
+          "title": "Global markets shared canonical story",
+          "summary": "Global markets report the same canonical item.",
+          "source": "Reuters",
+          "sourceGroup": "reuters",
+          "publishedAt": 1787652000000,
+          "section": "business"
+        },
+        {
+          "id": "case-o-business",
+          "title": "Company quarterly earnings results lift revenue",
+          "summary": "The company reports quarterly business profit and revenue.",
+          "source": "Economic Times",
+          "sourceGroup": "economic_times",
+          "publishedAt": 1787655600000,
+          "section": "business"
+        }
+      ],
+      "technology": [
+        {
+          "id": "case-a-technology",
+          "title": "Technology service platform update",
+          "source": "Gadgets360",
+          "sourceGroup": "gadgets360",
+          "publishedAt": 1787655600000,
+          "section": "technology"
+        }
+      ],
+      "sports": [
+        {
+          "id": "case-o-sports",
+          "title": "Cricket team wins tournament final match",
+          "summary": "The team won the cricket final in the tournament.",
+          "source": "NDTV",
+          "sourceGroup": "ndtv",
+          "publishedAt": 1787655600000,
+          "section": "sports"
+        }
+      ],
+      "entertainment": [
+        {
+          "id": "case-o-entertainment",
+          "title": "Movie trailer teaser released for new season premiere",
+          "summary": "The entertainment trailer promotes an upcoming movie release.",
+          "source": "Hindustan Times",
+          "sourceGroup": "hindustan_times",
+          "publishedAt": 1787655600000,
+          "section": "entertainment"
+        }
+      ]
+    },
+    "topFeedItems": [],
+    "settings": {},
+    "sourceHealth": {
+      "caseL": {
+        "section": "topStories",
+        "laneKey": "the_hindu",
+        "sourceGroup": "the_hindu",
+        "state": "TIMEOUT"
+      },
+      "caseM": [
+        {
+          "section": "world",
+          "laneKey": "bbc-secondary",
+          "sourceGroup": "bbc",
+          "state": "HTTP_ERROR"
+        },
+        {
+          "section": "muscat",
+          "laneKey": "google_news_oman",
+          "sourceGroup": "google_news_oman",
+          "state": "PARSE_ERROR"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "registrySectionCount": 10,
+    "registryLaneCount": 41,
+    "rawInputCount": 19,
+    "candidateCount": 18,
+    "caseDSourceFamilies": ["reuters", "times_of_india"],
+    "caseDSourceCountWithoutTopFeed": 2,
+    "caseDIndependentEvidenceWithoutTopFeed": 1,
+    "caseDConsensusWithoutTopFeed": 0.6437928128919779,
+    "caseATopFeedConsensusWithOneIndependentHit": 0.8270874753469162,
+    "caseATopFeedIndependentEvidenceCount": 2,
+    "caseEAdmissionReason": "low_confidence_timestamp",
+    "caseFAdmissionReason": "low_confidence_timestamp",
+    "caseGAgeBand": "fallback",
+    "caseGAdmissionReason": "admitted",
+    "caseHAgeBand": "expired",
+    "caseNAdmissionReason": "mature_nonlocal_critical_without_evidence",
+    "caseOBusinessEventType": "routine_business",
+    "caseOSportsEventType": "sports",
+    "caseOEntertainmentEventType": "entertainment_promo",
+    "inputEvidenceDigest": "e5b047ca97a412411a927d091add3c274129b7949a1f178a14eeedbbc1f01e6a",
+    "normalizationDigest": "050b7201b09b427d7f0e5174802e79899dedc7c9380596124d37f3229f89a4fc",
+    "rankerPolicyDigest": "eafcebdabc60c4b4b6340311d323c0088470e3d5466d9f6765ba8fe9a2b5346a",
+    "decisionOutputDigest": "74a012724be58b1c834c88f699d0627eb3e82a2d24721a279ca70e6eff429fe2",
+    "selectedIds": [
+      "case-j-trichy-backfill",
+      "case-c-google-alias",
+      "case-g-exact-12h"
+    ],
+    "displayedIds": [
+      "case-j-trichy-backfill",
+      "case-c-google-alias",
+      "case-g-exact-12h"
+    ]
+  }
+}

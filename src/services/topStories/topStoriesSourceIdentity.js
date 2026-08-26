@@ -1,3 +1,6 @@
+export const TOP_STORIES_SOURCE_IDENTITY_VERSION =
+  'nw-top-stories-source-identity-v1';
+
 function textValue(value) {
   return String(value || '').trim().toLowerCase();
 }
@@ -84,6 +87,12 @@ export function getStorySourceFamily(story = {}) {
   return groupFamily || sourceFamily || 'unknown';
 }
 
+function removeAggregatorWrapperWhenPublisherKnown(families) {
+  const hasKnownPublisher = [...families].some(family => family !== 'google_news');
+  if (hasKnownPublisher) families.delete('google_news');
+  return families;
+}
+
 export function getStorySourceFamilies(story = {}) {
   const families = new Set(
     (Array.isArray(story.allSources) ? story.allSources : [])
@@ -92,6 +101,7 @@ export function getStorySourceFamilies(story = {}) {
   );
   const primary = getStorySourceFamily(story);
   if (isUsefulFamily(primary)) families.add(primary);
+  removeAggregatorWrapperWhenPublisherKnown(families);
   return [...families];
 }
 
@@ -101,4 +111,5 @@ export function isAggregatorSourceFamily(value) {
 
 export const __topStoriesSourceIdentityInternalsForTest = {
   sourceToken,
+  removeAggregatorWrapperWhenPublisherKnown,
 };

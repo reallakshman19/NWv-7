@@ -110,7 +110,7 @@ export function getAgeHours(story = {}, nowMs = Date.now()) {
 }
 
 export function hasFreshLiveEvidence(story = {}, context = {}) {
-  const nowMs = context.nowMs || Date.now();
+  const nowMs = context.nowMs ?? Date.now();
   const updateMs = toTimestamp(story.updatedAt || story.lastUpdatedAt || story.liveUpdatedAt);
   const topFeed = getTopFeedSignal(story, context);
   if (Number(topFeed.topFeedConsensusScore || 0) > 0) return true;
@@ -175,7 +175,7 @@ export function getConsensusScore(story = {}, context = {}, policy) {
 
 export function extractTopStorySignals(story = {}, context = {}) {
   const policy = context.policy;
-  const nowMs = context.nowMs || Date.now();
+  const nowMs = context.nowMs ?? Date.now();
   const ageHours = getAgeHours(story, nowMs);
   const timestampConfidence = getTimestampConfidence(story);
   const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
