@@ -18,6 +18,7 @@ import {
 import {
   requireText,
   SECTIONS_SHADOW_SNAPSHOT_SCHEMA,
+  SNAPSHOT_STATES,
   SectionsShadowStoreError,
 } from './contracts.js';
 
@@ -142,7 +143,7 @@ export function buildReplaySnapshotPlan(epoch, options = {}) {
       expectedItemCount: items.length,
       expectedPartitionDigest,
       expectedItemRowsDigest,
-      state: 'STAGED',
+      state: SNAPSHOT_STATES.STAGED,
     },
     partitions,
     items,
@@ -157,9 +158,11 @@ export async function persistReplaySnapshot(db, epoch, options = {}) {
     acquisitionCompletedAt: plan.run.acquisitionCompletedAt,
     inputEvidenceDigest: plan.run.inputEvidenceDigest,
   });
-  await stageSnapshot(db, plan.snapshot);
-  await stageSnapshotPartitions(db, plan.snapshot.snapshotId, plan.partitions);
-  await writeSnapshotItems(db, plan.snapshot.snapshotId, plan.items, options);
+  const storedSnapshot = await stageSnapshot(db, plan.snapshot);
+  if (storedSnapshot.state === SNAPSHOT_STATES.STAGED) {
+    await stageSnapshotPartitions(db, plan.snapshot.snapshotId, plan.partitions);
+    await writeSnapshotItems(db, plan.snapshot.snapshotId, plan.items, options);
+  }
   const finalized = await finalizeSnapshot(
     db,
     plan.snapshot.snapshotId,

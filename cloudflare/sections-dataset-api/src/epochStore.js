@@ -211,13 +211,13 @@ export async function stageSnapshot(db, input) {
   const snapshot = normalizeSnapshot(input);
   await db.prepare(`
     INSERT INTO section_snapshots (
-      snapshot_id, run_id, snapshot_schema_version, created_at, committed_at,
+      snapshot_id, run_id, snapshot_schema_version, created_at, sealed_at, committed_at,
       source_registry_version, source_registry_digest, source_identity_version,
       normalization_version, normalization_digest, event_classifier_version,
       ranker_version, ranker_policy_digest, input_evidence_digest,
       decision_output_digest, expected_section_count, expected_item_count,
       expected_partition_digest, expected_item_rows_digest, state, failure_reason
-    ) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(snapshot_id) DO NOTHING
   `).bind(
     snapshot.snapshotId,
@@ -382,29 +382,8 @@ async function readSnapshotRowsForDigest(db, snapshotId) {
   })));
 }
 
-export async function finalizeSnapshot(db, snapshotId, committedAt) {
-  assertDb(db);
-  const preflight = await inspectSnapshot(db, snapshotId);
-  if (!preflight) throw new SectionsShadowStoreError('snapshot_not_found', 'Snapshot does not exist');
+function assertPreflightComplete(preflight) {
   const { snapshot } = preflight;
-
-  if (snapshot.state === SNAPSHOT_STATES.COMMITTED) {
-    const pointer = await db.prepare(
-      'SELECT snapshot_id FROM current_snapshot_pointer WHERE pointer_name = ? LIMIT 1',
-    ).bind(SECTIONS_SHADOW_POINTER_NAME).first();
-    if (pointer?.snapshot_id === snapshotId) {
-      return { snapshotId, state: SNAPSHOT_STATES.COMMITTED, idempotent: true };
-    }
-    throw new SectionsShadowStoreError(
-      'committed_pointer_mismatch',
-      'Committed snapshot exists without matching current pointer',
-      { snapshotId, pointerSnapshotId: pointer?.snapshot_id || null },
-    );
-  }
-
-  if (snapshot.state !== SNAPSHOT_STATES.STAGED) {
-    throw new SectionsShadowStoreError('snapshot_not_staged', `Snapshot state is ${snapshot.state}`);
-  }
   if (snapshot.run_state !== SOURCE_RUN_STATES.COMPLETE) {
     throw new SectionsShadowStoreError('source_run_incomplete', 'Snapshot source run is not COMPLETE');
   }
@@ -423,24 +402,95 @@ export async function finalizeSnapshot(db, snapshotId, committedAt) {
       },
     );
   }
+}
+
+async function readCurrentPointer(db) {
+  return db.prepare(
+    'SELECT snapshot_id FROM current_snapshot_pointer WHERE pointer_name = ? LIMIT 1',
+  ).bind(SECTIONS_SHADOW_POINTER_NAME).first();
+}
+
+async function ensureSnapshotSealed(db, snapshotId, sealedAt) {
+  let preflight = await inspectSnapshot(db, snapshotId);
+  if (!preflight) throw new SectionsShadowStoreError('snapshot_not_found', 'Snapshot does not exist');
+  if (preflight.snapshot.state === SNAPSHOT_STATES.SEALED ||
+      preflight.snapshot.state === SNAPSHOT_STATES.COMMITTED) {
+    return preflight;
+  }
+  if (preflight.snapshot.state !== SNAPSHOT_STATES.STAGED) {
+    throw new SectionsShadowStoreError(
+      'snapshot_not_staged',
+      `Snapshot state is ${preflight.snapshot.state}`,
+    );
+  }
+  assertPreflightComplete(preflight);
+
+  const sealResult = await db.prepare(`
+    UPDATE section_snapshots AS s
+    SET state = 'SEALED', sealed_at = ?, failure_reason = NULL
+    WHERE s.snapshot_id = ?
+      AND s.state = 'STAGED'
+      ${COMPLETE_PARTITION_PREDICATE}
+      AND EXISTS (
+        SELECT 1 FROM source_runs r
+        WHERE r.run_id = s.run_id AND r.state = 'COMPLETE'
+      )
+  `).bind(sealedAt, snapshotId).run();
+
+  preflight = await inspectSnapshot(db, snapshotId);
+  if (resultChanges(sealResult) === 1 && preflight?.snapshot?.state === SNAPSHOT_STATES.SEALED) {
+    return preflight;
+  }
+  if ([SNAPSHOT_STATES.SEALED, SNAPSHOT_STATES.COMMITTED]
+    .includes(preflight?.snapshot?.state)) {
+    return preflight;
+  }
+  throw new SectionsShadowStoreError(
+    'snapshot_seal_failed',
+    'Snapshot could not be sealed under complete cardinality authority',
+  );
+}
+
+export async function finalizeSnapshot(db, snapshotId, committedAt) {
+  assertDb(db);
+  let preflight = await ensureSnapshotSealed(db, snapshotId, committedAt);
+
+  if (preflight.snapshot.state === SNAPSHOT_STATES.COMMITTED) {
+    const pointer = await readCurrentPointer(db);
+    if (pointer?.snapshot_id === snapshotId) {
+      return { snapshotId, state: SNAPSHOT_STATES.COMMITTED, idempotent: true };
+    }
+    throw new SectionsShadowStoreError(
+      'committed_pointer_mismatch',
+      'Committed snapshot exists without matching current pointer',
+      { snapshotId, pointerSnapshotId: pointer?.snapshot_id || null },
+    );
+  }
+  if (preflight.snapshot.state !== SNAPSHOT_STATES.SEALED) {
+    throw new SectionsShadowStoreError(
+      'snapshot_not_sealed',
+      `Snapshot state is ${preflight.snapshot.state}`,
+    );
+  }
+  assertPreflightComplete(preflight);
 
   const persistedPartitions = await readSnapshotPartitionsForDigest(db, snapshotId);
   const persistedPartitionDigest = digestCanonicalJson(persistedPartitions);
-  if (persistedPartitionDigest !== snapshot.expected_partition_digest) {
+  if (persistedPartitionDigest !== preflight.snapshot.expected_partition_digest) {
     throw new SectionsShadowStoreError(
       'snapshot_partition_digest_mismatch',
-      'Persisted partitions do not match staged partition authority',
-      { expected: snapshot.expected_partition_digest, observed: persistedPartitionDigest },
+      'Persisted partitions do not match sealed partition authority',
+      { expected: preflight.snapshot.expected_partition_digest, observed: persistedPartitionDigest },
     );
   }
 
   const persistedRows = await readSnapshotRowsForDigest(db, snapshotId);
   const persistedRowsDigest = digestCanonicalJson(persistedRows);
-  if (persistedRowsDigest !== snapshot.expected_item_rows_digest) {
+  if (persistedRowsDigest !== preflight.snapshot.expected_item_rows_digest) {
     throw new SectionsShadowStoreError(
       'snapshot_item_digest_mismatch',
-      'Persisted snapshot rows do not match staged row authority',
-      { expected: snapshot.expected_item_rows_digest, observed: persistedRowsDigest },
+      'Persisted snapshot rows do not match sealed row authority',
+      { expected: preflight.snapshot.expected_item_rows_digest, observed: persistedRowsDigest },
     );
   }
 
@@ -448,7 +498,7 @@ export async function finalizeSnapshot(db, snapshotId, committedAt) {
     UPDATE section_snapshots AS s
     SET state = 'COMMITTED', committed_at = ?, failure_reason = NULL
     WHERE s.snapshot_id = ?
-      AND s.state = 'STAGED'
+      AND s.state = 'SEALED'
       AND s.expected_partition_digest = ?
       AND s.expected_item_rows_digest = ?
       ${COMPLETE_PARTITION_PREDICATE}
@@ -478,17 +528,26 @@ export async function finalizeSnapshot(db, snapshotId, committedAt) {
   `).bind(SECTIONS_SHADOW_POINTER_NAME, committedAt, snapshotId);
 
   const [promoteResult, pointerResult] = await db.batch([promote, movePointer]);
-  if (resultChanges(promoteResult) !== 1 || resultChanges(pointerResult) !== 1) {
-    throw new SectionsShadowStoreError(
-      'snapshot_finalize_noop',
-      'Atomic snapshot finalization did not change both guarded rows',
-      {
-        promoteChanges: resultChanges(promoteResult),
-        pointerChanges: resultChanges(pointerResult),
-      },
-    );
+  if (resultChanges(promoteResult) === 1 && resultChanges(pointerResult) === 1) {
+    return { snapshotId, state: SNAPSHOT_STATES.COMMITTED, idempotent: false };
   }
-  return { snapshotId, state: SNAPSHOT_STATES.COMMITTED, idempotent: false };
+
+  preflight = await inspectSnapshot(db, snapshotId);
+  const pointer = await readCurrentPointer(db);
+  if (preflight?.snapshot?.state === SNAPSHOT_STATES.COMMITTED &&
+      pointer?.snapshot_id === snapshotId) {
+    return { snapshotId, state: SNAPSHOT_STATES.COMMITTED, idempotent: true };
+  }
+  throw new SectionsShadowStoreError(
+    'snapshot_finalize_noop',
+    'Atomic snapshot finalization did not produce a committed current snapshot',
+    {
+      promoteChanges: resultChanges(promoteResult),
+      pointerChanges: resultChanges(pointerResult),
+      state: preflight?.snapshot?.state || null,
+      pointerSnapshotId: pointer?.snapshot_id || null,
+    },
+  );
 }
 
 export async function readCurrentSnapshotMetadata(db) {
@@ -534,6 +593,7 @@ export async function readCurrentSnapshot(db) {
     runId: snapshot.run_id,
     schemaVersion: snapshot.snapshot_schema_version,
     createdAt: snapshot.created_at,
+    sealedAt: snapshot.sealed_at,
     committedAt: snapshot.committed_at,
     sourceRegistryVersion: snapshot.source_registry_version,
     sourceRegistryDigest: snapshot.source_registry_digest,

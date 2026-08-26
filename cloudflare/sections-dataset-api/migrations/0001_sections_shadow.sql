@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS section_snapshots (
   run_id TEXT NOT NULL UNIQUE,
   snapshot_schema_version TEXT NOT NULL,
   created_at TEXT NOT NULL,
+  sealed_at TEXT,
   committed_at TEXT,
   source_registry_version TEXT NOT NULL,
   source_registry_digest TEXT NOT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS section_snapshots (
   expected_item_count INTEGER NOT NULL CHECK (expected_item_count >= 0),
   expected_partition_digest TEXT NOT NULL,
   expected_item_rows_digest TEXT NOT NULL,
-  state TEXT NOT NULL CHECK (state IN ('STAGED', 'COMMITTED', 'FAILED')),
+  state TEXT NOT NULL CHECK (state IN ('STAGED', 'SEALED', 'COMMITTED', 'FAILED')),
   failure_reason TEXT,
   FOREIGN KEY (run_id) REFERENCES source_runs(run_id) ON DELETE RESTRICT
 );
@@ -125,10 +126,10 @@ BEGIN
   SELECT RAISE(ABORT, 'current pointer requires COMMITTED snapshot');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_snapshot_commit_requires_complete_cardinality
+CREATE TRIGGER IF NOT EXISTS trg_snapshot_seal_or_commit_requires_complete_cardinality
 BEFORE UPDATE OF state ON section_snapshots
 FOR EACH ROW
-WHEN NEW.state = 'COMMITTED' AND OLD.state <> 'COMMITTED' AND (
+WHEN NEW.state IN ('SEALED', 'COMMITTED') AND OLD.state <> NEW.state AND (
   NOT EXISTS (
     SELECT 1 FROM source_runs r
     WHERE r.run_id = NEW.run_id AND r.state = 'COMPLETE'
@@ -152,7 +153,15 @@ WHEN NEW.state = 'COMMITTED' AND OLD.state <> 'COMMITTED' AND (
   )
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot requires complete cardinality');
+  SELECT RAISE(ABORT, 'snapshot seal/commit requires complete cardinality');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_snapshot_commit_requires_sealed
+BEFORE UPDATE OF state ON section_snapshots
+FOR EACH ROW
+WHEN NEW.state = 'COMMITTED' AND OLD.state <> 'SEALED'
+BEGIN
+  SELECT RAISE(ABORT, 'COMMITTED snapshot must transition from SEALED');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_committed_snapshot_no_revert
@@ -163,68 +172,68 @@ BEGIN
   SELECT RAISE(ABORT, 'COMMITTED snapshot state is immutable');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_partitions_no_insert
+CREATE TRIGGER IF NOT EXISTS trg_partitions_write_requires_staged_insert
 BEFORE INSERT ON section_snapshot_partitions
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = NEW.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = NEW.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot partitions are immutable');
+  SELECT RAISE(ABORT, 'snapshot partitions are writable only while STAGED');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_partitions_no_update
+CREATE TRIGGER IF NOT EXISTS trg_partitions_write_requires_staged_update
 BEFORE UPDATE ON section_snapshot_partitions
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = OLD.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = OLD.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot partitions are immutable');
+  SELECT RAISE(ABORT, 'snapshot partitions are writable only while STAGED');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_partitions_no_delete
+CREATE TRIGGER IF NOT EXISTS trg_partitions_write_requires_staged_delete
 BEFORE DELETE ON section_snapshot_partitions
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = OLD.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = OLD.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot partitions are immutable');
+  SELECT RAISE(ABORT, 'snapshot partitions are writable only while STAGED');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_items_no_insert
+CREATE TRIGGER IF NOT EXISTS trg_items_write_requires_staged_insert
 BEFORE INSERT ON section_snapshot_items
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = NEW.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = NEW.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot items are immutable');
+  SELECT RAISE(ABORT, 'snapshot items are writable only while STAGED');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_items_no_update
+CREATE TRIGGER IF NOT EXISTS trg_items_write_requires_staged_update
 BEFORE UPDATE ON section_snapshot_items
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = OLD.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = OLD.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot items are immutable');
+  SELECT RAISE(ABORT, 'snapshot items are writable only while STAGED');
 END;
 
-CREATE TRIGGER IF NOT EXISTS trg_committed_items_no_delete
+CREATE TRIGGER IF NOT EXISTS trg_items_write_requires_staged_delete
 BEFORE DELETE ON section_snapshot_items
 FOR EACH ROW
-WHEN EXISTS (
+WHEN NOT EXISTS (
   SELECT 1 FROM section_snapshots
-  WHERE snapshot_id = OLD.snapshot_id AND state = 'COMMITTED'
+  WHERE snapshot_id = OLD.snapshot_id AND state = 'STAGED'
 )
 BEGIN
-  SELECT RAISE(ABORT, 'COMMITTED snapshot items are immutable');
+  SELECT RAISE(ABORT, 'snapshot items are writable only while STAGED');
 END;

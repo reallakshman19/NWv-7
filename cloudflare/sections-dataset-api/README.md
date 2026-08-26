@@ -25,26 +25,25 @@ OPTIONS ...
 
 ## Atomic publication invariant
 
-A source epoch can leave partial evidence and STAGED rows for RCA. Those rows are never current. Publication requires:
+A source epoch can leave partial evidence and STAGED rows for RCA. Those rows are never current. Empty qualified sections are represented explicitly by `section_snapshot_partitions`; section cardinality is never inferred from the presence of item rows.
+
+Publication uses a two-step fail-closed state machine:
 
 ```text
-run state = COMPLETE
-snapshot state = STAGED
-observed distinct sections = expected_section_count
-observed item rows = expected_item_count
-persisted row digest = expected_item_rows_digest
+STAGED  -- exact run/partition/item cardinality -->  SEALED
+SEALED  -- immutable digest verification --> COMMITTED + pointer (one D1 batch)
 ```
 
-The final D1 transaction performs both guarded operations together:
+Only STAGED partitions/items are writable. SEALED rows are invisible to current reads and immutable, eliminating the digest TOCTOU window. After sealing, the Worker recomputes the persisted partition and item-row digests. Only exact matches can enter the final transactional D1 batch that performs both:
 
 ```text
-STAGED snapshot -> COMMITTED
+SEALED snapshot -> COMMITTED
 current_snapshot_pointer -> that COMMITTED snapshot
 ```
 
-The migration also installs database triggers that reject any pointer insert/update to a non-COMMITTED snapshot and make COMMITTED item rows immutable.
+Database triggers independently reject direct STAGED→COMMITTED transitions, reject pointer writes to non-COMMITTED snapshots, require complete run/partition/item cardinality for seal/commit, and reject partition/item mutation once a snapshot leaves STAGED.
 
-Therefore an interrupted S101 at 7/10 sections and 201/284 rows remains RCA evidence only; if S100 was current, reads continue to return S100.
+Therefore an interrupted S101 at 7/10 partitions and 201/284 rows remains STAGED RCA evidence; if S100 was current, reads continue to return S100. A crash after sealing leaves an immutable/invisible SEALED S101 that the same logical retry can safely resume through digest verification and final commit.
 
 ## Shared ranking authority
 

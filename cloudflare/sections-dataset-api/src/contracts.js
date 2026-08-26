@@ -9,6 +9,7 @@ export const SOURCE_RUN_STATES = Object.freeze({
 
 export const SNAPSHOT_STATES = Object.freeze({
   STAGED: 'STAGED',
+  SEALED: 'SEALED',
   COMMITTED: 'COMMITTED',
   FAILED: 'FAILED',
 });
