@@ -58,7 +58,7 @@ WHEN NOT EXISTS (
     )
 )
 BEGIN
-  SELECT RAISE(ABORT, 'current pointer requires complete COMMITTED snapshot');
+  SELECT RAISE(ABORT, 'current pointer requires COMMITTED complete snapshot');
 END;
 
 CREATE TRIGGER IF NOT EXISTS trg_pointer_requires_complete_committed_update
@@ -94,5 +94,5 @@ WHEN NOT EXISTS (
     )
 )
 BEGIN
-  SELECT RAISE(ABORT, 'current pointer requires complete COMMITTED snapshot');
+  SELECT RAISE(ABORT, 'current pointer requires COMMITTED complete snapshot');
 END;
