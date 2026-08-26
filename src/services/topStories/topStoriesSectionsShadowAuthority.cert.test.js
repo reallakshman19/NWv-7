@@ -122,7 +122,7 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     const epoch = buildEpoch();
     expect(Object.isFrozen(epoch)).toBe(true);
     expect(Object.isFrozen(epoch.sectionItems)).toBe(true);
-    expect(epoch.inputEvidenceDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(epoch.inputEvidenceDigest).toBe(benchmark.expected.inputEvidenceDigest);
     expect(epoch.nowMs).toBe(benchmark.nowMs);
 
     const tampered = JSON.parse(JSON.stringify(epoch));
@@ -256,13 +256,11 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     expect(second).toEqual(first);
     expect(first.rawInputCount).toBe(benchmark.expected.rawInputCount);
     expect(first.candidateCount).toBe(benchmark.expected.candidateCount);
-    expect(first.normalizationDigest).toMatch(/^[0-9a-f]{64}$/);
-    expect(first.rankerPolicyDigest).toMatch(/^[0-9a-f]{64}$/);
-    expect(first.decisionOutputDigest).toMatch(/^[0-9a-f]{64}$/);
-
-    if (benchmark.expected.decisionOutputDigest) {
-      expect(first.decisionOutputDigest).toBe(benchmark.expected.decisionOutputDigest);
-    }
+    expect(first.normalizationDigest).toBe(benchmark.expected.normalizationDigest);
+    expect(first.rankerPolicyDigest).toBe(benchmark.expected.rankerPolicyDigest);
+    expect(first.decisionOutputDigest).toBe(benchmark.expected.decisionOutputDigest);
+    expect(first.selectedIds).toEqual(benchmark.expected.selectedIds);
+    expect(first.displayedIds).toEqual(benchmark.expected.displayedIds);
 
     console.info('NW_CF_HYBRID_001A_REFERENCE_DIGESTS', JSON.stringify({
       sourceRegistryDigest: registryAuthority.sourceRegistryDigest,
