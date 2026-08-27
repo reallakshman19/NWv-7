@@ -17,6 +17,7 @@ import TravelLocationBanner from '../components/travel/TravelLocationBanner.jsx'
 import TravelLocalStories from '../components/travel/TravelLocalStories.jsx';
 import { useMainTabViewModel } from '../viewModels/useMainTabViewModel.js';
 import { useDailyDigestSectionViewModel } from '../viewModels/useDailyDigestSectionViewModel.js';
+import SectionsDataSourceToggle from '../components/SectionsDataSourceToggle.jsx';
 
 const MainPage = () => {
     const {
@@ -147,6 +148,8 @@ const MainPage = () => {
                     shellRuntimeProps={shellRuntimeProps}
                 />
             )}
+
+            <SectionsDataSourceToggle />
 
             <main className={`main-content ${isWebView ? 'main-content--desktop' : ''}`}>
                 <DataStateBoundary

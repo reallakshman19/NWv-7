@@ -425,6 +425,95 @@ body {
   color: #e2e8f0;
 }
 
+.sections-source-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px var(--spacing-sm) 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-secondary) 92%, transparent);
+}
+
+.sections-source-control__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.sections-source-control__label small {
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  font-weight: 500;
+}
+
+.sections-source-control__toggle {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--bg-primary);
+}
+
+.sections-source-control__button {
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sections-source-control__button span {
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
+.sections-source-control__button--active {
+  background: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+.sections-source-control__button--preview {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 20%, transparent);
+}
+
+.sections-source-control__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.sections-source-control__button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .sections-source-control {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .sections-source-control__toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .header__dev-toggle {
   width: 1.9rem;
   height: 1.9rem;
@@ -3256,4 +3345,3 @@ body { background-color: #0A0D11; }
   font-size: 0.68rem !important;
   font-family: 'JetBrains Mono', monospace !important;
 }
-

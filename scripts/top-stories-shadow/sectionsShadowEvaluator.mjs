@@ -93,27 +93,36 @@ function buildDecisionDigestValue(evidence) {
   };
 }
 
-export function evaluateFrozenSectionsEpoch(epoch, options = {}) {
-  const frozenEpoch = validateSectionsShadowInputEpoch(epoch, {
-    expectedRegistryAuthority: options.expectedRegistryAuthority,
-  });
+export function evaluateSectionsDecisionEvidence(input, options = {}) {
+  const nowMs = Number(input?.nowMs);
+  if (!Number.isFinite(nowMs) || nowMs < 0) {
+    throw new TypeError('Sections decision evidence requires a finite non-negative nowMs');
+  }
+  const inputEvidenceDigest = String(input?.inputEvidenceDigest || '').toLowerCase();
+  const sourceRegistryVersion = String(input?.sourceRegistryVersion || '').trim();
+  const sourceRegistryDigest = String(input?.sourceRegistryDigest || '').toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(inputEvidenceDigest) ||
+      !sourceRegistryVersion ||
+      !/^[0-9a-f]{64}$/.test(sourceRegistryDigest)) {
+    throw new TypeError('Sections decision evidence requires registry and input evidence authority');
+  }
   const displayDepth = normalizeDisplayDepth(options.displayDepth ?? 10);
   const evaluation = evaluateTopStories({
-    sectionItems: frozenEpoch.sectionItems,
-    topFeedItems: frozenEpoch.topFeedItems,
-    settings: frozenEpoch.settings,
-    nowMs: frozenEpoch.nowMs,
+    sectionItems: input.sectionItems || {},
+    topFeedItems: input.topFeedItems || [],
+    settings: input.settings || {},
+    nowMs,
   }, {
-    nowMs: frozenEpoch.nowMs,
+    nowMs,
     displayDepth,
   });
   const candidateEvidence = buildCandidateEvidence(evaluation);
   const evidence = {
     schemaVersion: SECTIONS_SHADOW_DECISION_EVIDENCE_SCHEMA,
-    inputEvidenceDigest: frozenEpoch.inputEvidenceDigest,
-    sourceRegistryVersion: frozenEpoch.sourceRegistryVersion,
-    sourceRegistryDigest: frozenEpoch.sourceRegistryDigest,
-    nowMs: frozenEpoch.nowMs,
+    inputEvidenceDigest,
+    sourceRegistryVersion,
+    sourceRegistryDigest,
+    nowMs,
     executableVersions: SECTIONS_SHADOW_EXECUTABLE_VERSIONS,
     normalizationDigest: getTopStoriesNormalizationDigest(evaluation),
     rankerPolicyDigest: digestCanonicalJson(evaluation.policySnapshot),
@@ -129,4 +138,11 @@ export function evaluateFrozenSectionsEpoch(epoch, options = {}) {
     ...evidence,
     decisionOutputDigest: digestCanonicalJson(buildDecisionDigestValue(evidence)),
   });
+}
+
+export function evaluateFrozenSectionsEpoch(epoch, options = {}) {
+  const frozenEpoch = validateSectionsShadowInputEpoch(epoch, {
+    expectedRegistryAuthority: options.expectedRegistryAuthority,
+  });
+  return evaluateSectionsDecisionEvidence(frozenEpoch, options);
 }

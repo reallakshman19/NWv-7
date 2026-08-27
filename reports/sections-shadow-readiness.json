@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "nw-sections-shadow-qualification/v1",
+  "generatedAtMs": 1787787207826,
+  "timeZone": "Asia/Kolkata",
+  "status": "NOT_QUALIFIED",
+  "thresholds": {
+    "minimumCalendarDays": 7,
+    "minimumComparableEpochs": 200,
+    "minimumCanonicalReferenceCoverage": 0.95,
+    "minimumShadowPrecision": 0.95,
+    "minimumTop10OverlapRate": 0.9,
+    "requiredLaneCount": 41,
+    "maximumStaleAdmissions": 0,
+    "maximumPolicyViolations": 0,
+    "maximumFalsePublisherCorroborations": 0,
+    "maximumUnknownCriticalDrifts": 0,
+    "minimumEvidenceVerificationRate": 1
+  },
+  "metrics": {
+    "observedReportCount": 7,
+    "comparableEpochCount": 7,
+    "calendarDayCount": 2,
+    "weekendObserved": false,
+    "observedDayparts": [
+      "overnight",
+      "evening"
+    ],
+    "canonicalReferenceCoverage": 0.8095238095238095,
+    "shadowPrecision": 0.8095238095238095,
+    "top10OverlapRate": 0.8095238095238095,
+    "evidenceVerificationRate": 1,
+    "staleAdmissionCount": 0,
+    "policyViolationCount": 0,
+    "falsePublisherCorroborationCount": 0,
+    "unknownCriticalDriftCount": 0
+  },
+  "gates": [
+    {
+      "name": "calendar_window",
+      "passed": false,
+      "actual": 2,
+      "required": 7
+    },
+    {
+      "name": "comparable_epochs",
+      "passed": false,
+      "actual": 7,
+      "required": 200
+    },
+    {
+      "name": "weekend_coverage",
+      "passed": false,
+      "actual": false,
+      "required": true
+    },
+    {
+      "name": "daypart_coverage",
+      "passed": false,
+      "actual": [
+        "overnight",
+        "evening"
+      ],
+      "required": [
+        "overnight",
+        "morning",
+        "afternoon",
+        "evening"
+      ]
+    },
+    {
+      "name": "canonical_reference_coverage",
+      "passed": false,
+      "actual": 0.8095238095238095,
+      "required": 0.95
+    },
+    {
+      "name": "shadow_precision",
+      "passed": false,
+      "actual": 0.8095238095238095,
+      "required": 0.95
+    },
+    {
+      "name": "top10_overlap",
+      "passed": false,
+      "actual": 0.8095238095238095,
+      "required": 0.9
+    },
+    {
+      "name": "stale_admissions",
+      "passed": true,
+      "actual": 0,
+      "required": 0
+    },
+    {
+      "name": "policy_violations",
+      "passed": true,
+      "actual": 0,
+      "required": 0
+    },
+    {
+      "name": "false_publisher_corroboration",
+      "passed": true,
+      "actual": 0,
+      "required": 0
+    },
+    {
+      "name": "unknown_critical_drift",
+      "passed": true,
+      "actual": 0,
+      "required": 0
+    },
+    {
+      "name": "evidence_verification",
+      "passed": true,
+      "actual": 1,
+      "required": 1
+    }
+  ],
+  "firstComparableEpochMs": 1787749831363,
+  "lastComparableEpochMs": 1787785200000
+}
