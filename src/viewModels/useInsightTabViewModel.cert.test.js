@@ -190,6 +190,7 @@ describe('Insight ViewModel internals', () => {
   });
 
   it('labels insight sources', () => {
+    expect(getInsightSourceLabel('cloudflare-sections')).toBe('Cloudflare Sections');
     expect(getInsightSourceLabel('stale-snapshot')).toBe('Stale snapshot');
     expect(getInsightSourceLabel('snapshot')).toBe('Snapshot');
     expect(getInsightSourceLabel('cached')).toBe('Cached');
