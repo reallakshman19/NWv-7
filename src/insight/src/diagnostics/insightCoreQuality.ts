@@ -30,6 +30,7 @@ function asFiniteNumber(value: unknown, fallback = 0): number {
 }
 
 function getInsightSourceLabel(source: string): string {
+  if (source === "cloudflare-sections") return "Cloudflare Sections";
   if (source === "stale-snapshot") return "Stale snapshot";
   if (source === "snapshot") return "Snapshot";
   if (source === "cached") return "Cached";
