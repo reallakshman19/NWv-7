@@ -90,9 +90,11 @@ describe('NW-MAIN-007 NewsSection runtime health boundary', () => {
       .toBe('critical');
   });
 
-  it('keeps Unknown when neither diagnostics nor stories exist', () => {
+  it('marks an empty served section Critical even when source diagnostics are unavailable', () => {
     renderWorld({ news: [] });
-    expect(screen.getByRole('button', { name: /section health diagnostics unavailable/i }).getAttribute('data-status'))
-      .toBe('unknown');
+    const badge = screen.getByRole('button', { name: /section health: critical for world/i });
+    expect(badge.getAttribute('data-status')).toBe('critical');
+    expect(badge.getAttribute('aria-label')).toContain('served_section_empty');
+    expect(badge.getAttribute('aria-label')).toContain('source_health_unavailable');
   });
 });
