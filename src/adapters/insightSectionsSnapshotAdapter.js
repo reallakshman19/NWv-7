@@ -19,10 +19,17 @@ function isUsableStory(story) {
   );
 }
 
+function orderedSectionKeys(snapshot) {
+  const keys = Object.keys(safeSections(snapshot)).sort();
+  return keys.includes('topStories')
+    ? ['topStories', ...keys.filter(key => key !== 'topStories')]
+    : keys;
+}
+
 export function flattenSectionsForInsight(snapshot) {
   const seen = new Set();
   const stories = [];
-  for (const sectionKey of Object.keys(safeSections(snapshot)).sort()) {
+  for (const sectionKey of orderedSectionKeys(snapshot)) {
     const sectionStories = Array.isArray(snapshot.sections[sectionKey])
       ? snapshot.sections[sectionKey]
       : [];
