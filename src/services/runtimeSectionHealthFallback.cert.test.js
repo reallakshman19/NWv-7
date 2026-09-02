@@ -38,12 +38,48 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
     expect(summary.lastCheckedAt).toBe('2026-07-14T14:41:00.000Z');
   });
 
-  it('never fabricates health when there are no visible stories', () => {
-    expect(buildRuntimeSectionHealthSummary({ sectionId: 'world-news', stories: [] })).toBeNull();
-    expect(resolveSectionHealthSummary({ healthSummary: null, sectionId: 'world-news', stories: [] })).toBeNull();
+  it('fails closed when the served section has no visible stories', () => {
+    const summary = buildRuntimeSectionHealthSummary({ sectionId: 'world-news', stories: [] });
+    expect(summary).toMatchObject({
+      sectionId: 'world',
+      status: 'critical',
+      storyCount: 0,
+      evidenceSource: 'served-stories',
+    });
+    expect(summary.reasons).toEqual([
+      'served_section_empty',
+      'source_health_unavailable',
+    ]);
   });
 
-  it('preserves authoritative summaries instead of replacing them', () => {
+  it('downgrades stored OK health when served data is empty', () => {
+    const stored = {
+      sectionId: 'india',
+      status: 'ok',
+      storyCount: 30,
+      sourceGroupCount: 3,
+      reasons: ['stored_snapshot_healthy'],
+    };
+    const summary = resolveSectionHealthSummary({
+      healthSummary: stored,
+      sectionId: 'india-news',
+      stories: [],
+    });
+    expect(summary).toMatchObject({
+      sectionId: 'india',
+      status: 'critical',
+      storyCount: 0,
+      sourceGroupCount: 3,
+      evidenceSource: 'served-stories+stored-health',
+    });
+    expect(summary.reasons).toEqual([
+      'stored_snapshot_healthy',
+      'served_section_empty',
+      'stored_health_disagrees_with_served_data',
+    ]);
+  });
+
+  it('preserves authoritative summaries when served stories exist', () => {
     const authoritative = { sectionId: 'world', status: 'critical', storyCount: 4 };
     expect(resolveSectionHealthSummary({
       healthSummary: authoritative,
@@ -53,7 +89,7 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
     expect(hasConcreteSectionHealth(authoritative)).toBe(true);
   });
 
-  it('replaces non-concrete unknown summaries only when story evidence exists', () => {
+  it('replaces non-concrete unknown summaries when story evidence exists', () => {
     const summary = resolveSectionHealthSummary({
       healthSummary: { sectionId: 'world', status: 'unknown' },
       sectionId: 'world-news',
