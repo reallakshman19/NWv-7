@@ -13,6 +13,7 @@ import {
 // Expensive dataset. Do not call from mainDataset unless includeInsight=true.
 
 function getSource(source) {
+  if (source === 'cloudflare-sections') return 'cloudflare-sections';
   if (source === 'snapshot' || source === 'stale-snapshot') return ENVELOPE_SOURCES.SNAPSHOT;
   if (source === 'unavailable') return ENVELOPE_SOURCES.FAILED;
   return ENVELOPE_SOURCES.LIVE;
@@ -29,6 +30,9 @@ function formatInsightAge(timestamp) {
 }
 
 function getStaleLabel(source, timestamp) {
+  if (source === 'cloudflare-sections' && timestamp) {
+    return `Cloudflare · ${formatInsightAge(timestamp)}`;
+  }
   if ((source === 'snapshot' || source === 'stale-snapshot') && timestamp) {
     return `Pre-generated · ${formatInsightAge(timestamp)}`;
   }
@@ -75,6 +79,8 @@ export async function load() {
         source: fetcherInfo.source,
         snapshotTs: fetcherInfo.snapshotTs,
         contentHash: fetcherInfo.contentHash,
+        sourceAuthority: fetcherInfo.sourceAuthority || null,
+        runtimeInputFallbackReason: fetcherInfo.runtimeInputFallbackReason || null,
       },
     });
 
@@ -118,6 +124,7 @@ export async function load() {
         warnings: [
           fetcherInfo.source === 'stale-snapshot' ? 'insight_stale_snapshot' : null,
           fetcherInfo.source === 'unavailable' ? 'insight_snapshot_unavailable' : null,
+          fetcherInfo.runtimeInputFallbackReason ? 'insight_cloudflare_input_fallback' : null,
         ].filter(Boolean),
       },
       diagnostics,
@@ -166,6 +173,7 @@ export async function load() {
 }
 
 export const __insightDatasetInternalsForTest = {
+  getSource,
   formatInsightAge,
   getStaleLabel,
   summarizeInsight,
