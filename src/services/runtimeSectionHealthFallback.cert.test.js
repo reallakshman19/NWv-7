@@ -79,13 +79,30 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
     ]);
   });
 
-  it('preserves a critical empty section rather than weakening it', () => {
-    const authoritative = { sectionId: 'local', status: 'critical', storyCount: 0 };
-    expect(resolveSectionHealthSummary({
+  it('preserves critical severity while reconciling an empty rendered section', () => {
+    const authoritative = {
+      sectionId: 'local',
+      status: 'critical',
+      storyCount: 4,
+      reasons: ['all_known_sources_failed'],
+    };
+    const resolved = resolveSectionHealthSummary({
       healthSummary: authoritative,
       sectionId: 'muscat-news',
       stories: [],
-    })).toBe(authoritative);
+    });
+
+    expect(resolved).toMatchObject({
+      sectionId: 'local',
+      status: 'critical',
+      storyCount: 0,
+      evidenceSource: 'health-summary+rendered-stories',
+    });
+    expect(resolved.reasons).toEqual([
+      'all_known_sources_failed',
+      'rendered_section_empty',
+      'health_story_count_mismatch',
+    ]);
   });
 
   it('replaces non-concrete unknown summaries only when story evidence exists', () => {
