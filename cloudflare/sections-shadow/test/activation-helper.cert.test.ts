@@ -7,6 +7,7 @@ const PACKAGE = JSON.parse(readFileSync(new URL('../package.json', import.meta.u
 describe('NW-CF-ACT-001 production activation helper', () => {
   it('fails closed against accidental Cloudflare resource creation', () => {
     expect(SCRIPT).toContain("const NO_AUTO_CREATE = '--experimental-auto-create=false'");
+    expect(SCRIPT).toContain("const NO_PROVISION = '--experimental-provision=false'");
     expect(SCRIPT).not.toMatch(/wrangler\(\[['\"](?:d1|queues)['\"],\s*['\"]create['\"]/);
     expect(SCRIPT).not.toContain('migrations apply');
   });
@@ -18,7 +19,7 @@ describe('NW-CF-ACT-001 production activation helper', () => {
     expect(SCRIPT).toContain('UUID intentionally not printed');
   });
 
-  it('pins the S1 authority and P0 runtime flags before deployment', () => {
+  it('pins S1 runtime and infrastructure identities before deployment', () => {
     for (const token of [
       "SHADOW_MODE === 'S1_GITHUB_PRIMARY_CF_SHADOW'",
       "SHADOW_SCHEDULE_ENABLED === 'true'",
@@ -26,6 +27,10 @@ describe('NW-CF-ACT-001 production activation helper', () => {
       "SHADOW_BROWSER_FALLBACK_ENABLED === 'false'",
       "SHADOW_PREVIEW_READ_ENABLED === 'true'",
       "cron === '0 * * * *'",
+      "config?.browser?.binding === 'SHADOW_BROWSER'",
+      "database?.binding === 'SHADOW_DB'",
+      "producer?.binding === 'SHADOW_QUEUE'",
+      "consumer?.dead_letter_queue === 'nw-sections-shadow-dlq'",
     ]) {
       expect(SCRIPT).toContain(token);
     }
@@ -43,5 +48,6 @@ describe('NW-CF-ACT-001 production activation helper', () => {
     expect(PACKAGE.scripts['activate:production']).toContain('activate-production.mjs');
     expect(PACKAGE.scripts['smoke:production']).toContain('--smoke-only');
     expect(PACKAGE.scripts['deploy:check']).toContain('--experimental-auto-create=false');
+    expect(PACKAGE.scripts['deploy:check']).toContain('--experimental-provision=false');
   });
 });
