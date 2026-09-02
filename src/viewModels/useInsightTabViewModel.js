@@ -213,6 +213,7 @@ function getInsightEmptyStateMessage(result, source) {
 }
 
 function getInsightSourceLabel(source) {
+  if (source === 'cloudflare-sections') return 'Cloudflare Sections';
   if (source === 'stale-snapshot') return 'Stale snapshot';
   if (source === 'snapshot') return 'Snapshot';
   if (source === 'cached') return 'Cached';
