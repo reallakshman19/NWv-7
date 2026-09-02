@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -45,12 +45,20 @@ describe('Top Stories shadow aggregation workflow', () => {
     const input = path.join(root, 'input');
     const outputA = path.join(root, 'output-a');
     const outputB = path.join(root, 'output-b');
+    const testConfig = path.join(root, 'study-config.json');
     await mkdir(input, { recursive: true });
+
+    // The production study intentionally expired. This certification is a deterministic
+    // historical replay, so isolate it from the current wall clock without extending the
+    // real study authority or weakening production expiry validation.
+    const studyConfig = JSON.parse(await text(STUDY_CONFIG));
+    studyConfig.expiryAt = '2099-12-31T23:59:59.000Z';
+    await writeFile(testConfig, `${JSON.stringify(studyConfig, null, 2)}\n`, 'utf8');
 
     const args = [
       AGGREGATOR,
       '--input', input,
-      '--config', STUDY_CONFIG,
+      '--config', testConfig,
       '--date', '2026-07-16',
     ];
     execFileSync(process.execPath, [...args, '--output', outputA], { cwd: ROOT });
