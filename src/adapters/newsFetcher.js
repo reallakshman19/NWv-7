@@ -59,6 +59,9 @@ export async function fetchStoriesForSlot(slot) {
       publishedAtSource: schema?.datePublished
         ? 'schema_org'
         : (article.publishedAtSource || (publishedAt ? 'publisher_timestamp' : 'missing')),
+      timestampConfidence: schema?.datePublished
+        ? 'high'
+        : (article.timestampConfidence || (publishedAt ? 'medium' : 'low')),
       author     : schema?.author   || article.author  || null,
       image      : schema?.image    || article.image   || null,
       keywords   : schema?.keywords || [],
