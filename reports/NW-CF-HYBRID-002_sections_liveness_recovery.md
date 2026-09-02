@@ -46,7 +46,7 @@ The direct collector already has deterministic terminal failure dispositions for
 
 ## Fix 1 — decouple hourly liveness from Browser Run
 
-Change only the deployed shadow variable:
+Change the tracked shadow deployment variable:
 
 ```text
 SHADOW_BROWSER_FALLBACK_ENABLED=false
@@ -63,7 +63,23 @@ cron=0 * * * *
 
 The Browser binding and Browser acquisition implementation remain in the package for controlled qualification. This change only removes Browser Run from the ordinary hourly liveness path.
 
-A focused Worker-runtime configuration test asserts this contract so a future configuration edit cannot silently reintroduce Browser Run as an hourly dependency.
+A focused Worker-runtime configuration test asserts this contract so a future tracked configuration edit cannot silently reintroduce Browser Run as an hourly dependency.
+
+### Operator-config custody warning
+
+Production deployment uses the gitignored local configuration:
+
+```text
+cloudflare/sections-shadow/wrangler.local.jsonc
+```
+
+The tracked `wrangler.jsonc` change does not automatically rewrite that local file. Before the recovery deployment, the operator must verify that the local production config also contains exactly:
+
+```text
+"SHADOW_BROWSER_FALLBACK_ENABLED": "false"
+```
+
+Do not deploy if the local ignored config still says `true`.
 
 ## RCA 2 — authoritative health could contradict rendered data
 
@@ -87,21 +103,22 @@ Rules:
 
 ```text
 concrete critical + empty rendered section
-  -> preserve critical
+  -> preserve critical severity
+  -> storyCount = 0
+  -> reason: rendered_section_empty
+  -> add health_story_count_mismatch when the summary claimed >0 stories
 
 concrete ok/warning + empty rendered section
   -> warning
   -> storyCount = 0
   -> reason: rendered_section_empty
-
-health summary claimed storyCount > 0 while rendered section is empty
-  -> add reason: health_story_count_mismatch
+  -> add health_story_count_mismatch when the summary claimed >0 stories
 
 no health evidence + no rendered stories
   -> remain unknown/null; do not fabricate source failure evidence
 ```
 
-The repair intentionally does not label an empty section `critical` unless existing authoritative evidence already proves critical failure.
+The repair intentionally does not manufacture `critical` from emptiness alone; only existing authoritative critical evidence retains critical severity.
 
 ## Files changed
 
@@ -122,7 +139,7 @@ No `.github/workflows/**` file changes.
 ```text
 base       = df6809e375828ebbac384ca11fad9fb578a7c3c3
 behind     = 0
-product changes before report = 4 files
+changed paths = 5
 ranking files changed          = 0
 source registry changed        = 0
 GitHub workflows changed       = 0
@@ -130,7 +147,7 @@ GitHub workflows changed       = 0
 
 ### PASS — targeted runtime-health oracle
 
-A dependency-free Node execution of the exact new reconciliation logic proved:
+A dependency-free Node 22 execution of the exact final reconciliation logic proved:
 
 ```text
 ok + storyCount 8 + rendered []
@@ -139,11 +156,14 @@ ok + storyCount 8 + rendered []
   -> rendered_section_empty
   -> health_story_count_mismatch
 
-critical + rendered []
-  -> same authoritative critical object
+critical + storyCount 4 + rendered []
+  -> critical
+  -> storyCount 0
+  -> rendered_section_empty
+  -> health_story_count_mismatch
 ```
 
-JavaScript syntax check passed under Node 22.
+The exact module logic also passes `node --check` syntax validation.
 
 ### PASS — static deployment contract
 
