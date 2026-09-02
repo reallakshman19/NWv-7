@@ -14,6 +14,10 @@ function normalizeKey(value) {
   return text(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
 
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
 export function normalizeRuntimeSectionId(sectionId) {
   const normalized = normalizeKey(sectionId);
   if (['topstories', 'frontpage'].includes(normalized)) return 'topStories';
@@ -87,7 +91,31 @@ export function buildRuntimeSectionHealthSummary({ sectionId, stories } = {}) {
   };
 }
 
+function reconcileConcreteHealthWithRenderedStories(healthSummary, sectionId, stories) {
+  const rows = asArray(stories).filter(Boolean);
+  if (rows.length > 0) return healthSummary;
+
+  const status = String(healthSummary?.status || '').toLowerCase();
+  if (!hasConcreteSectionHealth(healthSummary) || status === 'critical') return healthSummary;
+
+  const reportedStoryCount = Number(healthSummary?.storyCount || 0);
+  return {
+    ...healthSummary,
+    sectionId: healthSummary?.sectionId || normalizeRuntimeSectionId(sectionId),
+    status: 'warning',
+    storyCount: 0,
+    reasons: unique([
+      ...asArray(healthSummary?.reasons),
+      'rendered_section_empty',
+      ...(reportedStoryCount > 0 ? ['health_story_count_mismatch'] : []),
+    ]),
+    evidenceSource: 'health-summary+rendered-stories',
+  };
+}
+
 export function resolveSectionHealthSummary({ healthSummary, sectionId, stories } = {}) {
-  if (hasConcreteSectionHealth(healthSummary)) return healthSummary;
+  if (hasConcreteSectionHealth(healthSummary)) {
+    return reconcileConcreteHealthWithRenderedStories(healthSummary, sectionId, stories);
+  }
   return buildRuntimeSectionHealthSummary({ sectionId, stories });
 }
