@@ -4,13 +4,8 @@ import { getEmbeddings } from './embeddingsAdapter.js';
 import { extractEntities, extractVerbs, extractNumbers, extractKeywords } from './nlpAdapter.js';
 import { loadInsightSnapshot, createSnapshotRawFetcher } from './insightSnapshotFetcher.js';
 import { getInsightSnapshotSignals } from './insightSnapshotSignalAdapter.js';
-import { loadSectionsSnapshot } from './sectionsSnapshotLoader.js';
-import { buildInsightSnapshotFromSectionsSnapshot } from './insightSectionsSnapshotAdapter.js';
+import { loadCloudflareInsightCandidate } from './insightCloudflareInput.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
-import {
-  getSectionsDataSource,
-  SECTIONS_DATA_SOURCES,
-} from '../utils/sectionsDataSource.js';
 
 async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, referenceTime = undefined) {
   if (!Array.isArray(rawStories) || rawStories.length === 0) return [];
@@ -155,31 +150,6 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
     }
     return dedupeStoriesById([...(primaryStories || []), ...(fallbackStories || [])]);
   };
-}
-
-export async function loadCloudflareInsightCandidate() {
-  if (getSectionsDataSource() !== SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
-    return { attempted: false, snapshot: null, fallbackReason: null };
-  }
-
-  try {
-    const sectionsSnapshot = await loadSectionsSnapshot();
-    const snapshot = buildInsightSnapshotFromSectionsSnapshot(sectionsSnapshot);
-    if (snapshot) return { attempted: true, snapshot, fallbackReason: null };
-
-    return {
-      attempted: true,
-      snapshot: null,
-      fallbackReason:
-        sectionsSnapshot?.runtimeDataSource?.fallbackReason || 'cloudflare_sections_unusable',
-    };
-  } catch (error) {
-    return {
-      attempted: true,
-      snapshot: null,
-      fallbackReason: error?.code || error?.message || 'cloudflare_sections_unavailable',
-    };
-  }
 }
 
 /**
