@@ -52,13 +52,44 @@ function buildTopSources(stories) {
     .slice(0, 8);
 }
 
+function uniqueReasons(reasons = []) {
+  return [...new Set(asArray(reasons).map(text).filter(Boolean))];
+}
+
 export function hasConcreteSectionHealth(summary) {
   return ['ok', 'warning', 'critical'].includes(String(summary?.status || '').toLowerCase());
 }
 
+export function buildEmptySectionHealthSummary({ sectionId, healthSummary } = {}) {
+  const base = healthSummary && typeof healthSummary === 'object' ? healthSummary : {};
+  return {
+    ...base,
+    sectionId: normalizeRuntimeSectionId(sectionId || base.sectionId),
+    status: 'critical',
+    storyCount: 0,
+    sourceGroupCount: Number(base.sourceGroupCount || 0),
+    topSources: asArray(base.topSources),
+    warningFeeds: asArray(base.warningFeeds),
+    deadFeeds: asArray(base.deadFeeds),
+    staleFeeds: asArray(base.staleFeeds),
+    zeroItemFeeds: asArray(base.zeroItemFeeds),
+    lastCheckedAt: base.lastCheckedAt || null,
+    lastNonZeroSuccess: base.lastNonZeroSuccess || null,
+    lastError: text(base.lastError),
+    reasons: uniqueReasons([
+      ...asArray(base.reasons),
+      'served_section_empty',
+      ...(hasConcreteSectionHealth(base) ? ['stored_health_disagrees_with_served_data'] : ['source_health_unavailable']),
+    ]),
+    evidenceSource: hasConcreteSectionHealth(base)
+      ? 'served-stories+stored-health'
+      : 'served-stories',
+  };
+}
+
 export function buildRuntimeSectionHealthSummary({ sectionId, stories } = {}) {
   const rows = asArray(stories).filter(Boolean);
-  if (rows.length === 0) return null;
+  if (rows.length === 0) return buildEmptySectionHealthSummary({ sectionId });
 
   const sourceGroups = new Set(rows.map(getSourceGroupKey).filter(Boolean));
   const sourceGroupCount = sourceGroups.size;
@@ -88,6 +119,8 @@ export function buildRuntimeSectionHealthSummary({ sectionId, stories } = {}) {
 }
 
 export function resolveSectionHealthSummary({ healthSummary, sectionId, stories } = {}) {
+  const rows = asArray(stories).filter(Boolean);
+  if (rows.length === 0) return buildEmptySectionHealthSummary({ sectionId, healthSummary });
   if (hasConcreteSectionHealth(healthSummary)) return healthSummary;
-  return buildRuntimeSectionHealthSummary({ sectionId, stories });
+  return buildRuntimeSectionHealthSummary({ sectionId, stories: rows });
 }

@@ -11,10 +11,22 @@ import {
   setSectionsDataSource,
 } from '../utils/sectionsDataSource.js';
 
+function readableFallbackReason(value) {
+  const reason = String(value || '').trim();
+  if (!reason) return 'unknown reason';
+  if (reason === 'preview_snapshot_unusable') return 'preview snapshot stale/incomplete';
+  if (reason === 'snapshot-budget-exceeded') return 'preview request timed out';
+  if (reason === 'preview_not_configured') return 'preview not configured';
+  if (/HTTP\s+503/i.test(reason)) return 'preview service unavailable';
+  return reason.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 function statusCopy(source, runtimeStatus, previewConfigured) {
   if (source === SECTIONS_DATA_SOURCES.GITHUB) return 'Current production source';
   if (!previewConfigured) return 'Preview endpoint is not configured';
-  if (runtimeStatus?.fallback) return 'Cloudflare unavailable · showing GitHub';
+  if (runtimeStatus?.fallback) {
+    return `Cloudflare fallback · ${readableFallbackReason(runtimeStatus.fallbackReason)} · showing GitHub`;
+  }
   if (runtimeStatus?.effective === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
     return 'Cloudflare Preview active · committed data only';
   }
