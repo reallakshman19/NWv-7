@@ -41,6 +41,8 @@ function previewSnapshot() {
           sourceGroup: 'publisher_a',
           url: 'https://example.com/india-1',
           publishedAt: Date.parse('2026-09-02T05:00:00Z'),
+          topFeedRank: 1,
+          topFeedSource: 'topStories:01',
         },
         {
           id: 'bad-time',
@@ -54,11 +56,12 @@ function previewSnapshot() {
 }
 
 describe('NW-INSIGHT-CF-001 Sections preview adapter', () => {
-  it('deduplicates publisher stories and rejects unproven timestamps', () => {
+  it('deduplicates publisher stories, retains Top Stories signals, and rejects unproven timestamps', () => {
     const stories = flattenSectionsForInsight(previewSnapshot());
     expect(stories).toHaveLength(1);
     expect(stories[0].url).toBe('https://example.com/india-1');
-    expect(stories[0].category).toBe('india');
+    expect(stories[0].category).toBe('topStories');
+    expect(stories[0].topFeedRank).toBe(1);
   });
 
   it('projects only verified Cloudflare Preview authority', () => {
