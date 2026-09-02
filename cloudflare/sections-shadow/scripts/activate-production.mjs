@@ -15,6 +15,7 @@ const D1_PLACEHOLDER = 'REPLACE_WITH_D1_DATABASE_ID';
 const MAX_PREVIEW_AGE_MS = 150 * 60 * 1000;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const NO_AUTO_CREATE = '--experimental-auto-create=false';
+const NO_PROVISION = '--experimental-provision=false';
 
 function bin(name) {
   return process.platform === 'win32' ? `${name}.cmd` : name;
@@ -47,7 +48,7 @@ function wrangler(args, options = {}) {
   if (!existsSync(executable)) {
     throw new Error('Wrangler is not installed. Run npm ci in cloudflare/sections-shadow first.');
   }
-  return runCommand(executable, [...args, NO_AUTO_CREATE], options);
+  return runCommand(executable, [...args, NO_AUTO_CREATE, NO_PROVISION], options);
 }
 
 function parseJsonOutput(text) {
@@ -74,6 +75,8 @@ export function selectExistingDatabase(rows, databaseName = DB_NAME) {
 export function verifyTrackedAuthority(config) {
   const vars = config?.vars || {};
   const database = config?.d1_databases?.[0];
+  const producer = config?.queues?.producers?.[0];
+  const consumer = config?.queues?.consumers?.[0];
   const cron = config?.triggers?.crons?.[0];
   const assertions = [
     [config?.name === 'nw-sections-shadow', 'unexpected Worker name'],
@@ -83,8 +86,14 @@ export function verifyTrackedAuthority(config) {
     [vars.SHADOW_LIVE_ACQUISITION_ENABLED === 'true', 'live acquisition must be enabled'],
     [vars.SHADOW_BROWSER_FALLBACK_ENABLED === 'false', 'Browser fallback must remain disabled'],
     [vars.SHADOW_PREVIEW_READ_ENABLED === 'true', 'Preview reads must be enabled'],
+    [config?.browser?.binding === 'SHADOW_BROWSER', 'unexpected Browser binding'],
+    [database?.binding === 'SHADOW_DB', 'unexpected D1 binding'],
     [database?.database_name === DB_NAME, 'unexpected D1 database name'],
     [database?.database_id === D1_PLACEHOLDER, 'tracked D1 placeholder changed'],
+    [producer?.binding === 'SHADOW_QUEUE', 'unexpected Queue producer binding'],
+    [producer?.queue === 'nw-sections-shadow', 'unexpected Queue producer name'],
+    [consumer?.queue === 'nw-sections-shadow', 'unexpected Queue consumer name'],
+    [consumer?.dead_letter_queue === 'nw-sections-shadow-dlq', 'unexpected dead-letter Queue'],
   ];
   const failed = assertions.find(([passed]) => !passed);
   if (failed) throw new Error(`Tracked authority check failed: ${failed[1]}`);
@@ -100,7 +109,7 @@ async function prepareLocalConfig(force = false) {
 
   const scratch = await mkdtemp(path.join(os.tmpdir(), 'nw-sections-shadow-'));
   try {
-    wrangler(['whoami'], { cwd: scratch });
+    wrangler(['whoami', '--cwd', scratch], { cwd: scratch });
     const rows = parseJsonOutput(wrangler(['d1', 'list', '--json', '--cwd', scratch], { cwd: scratch }));
     const databaseId = selectExistingDatabase(rows);
     const localText = trackedText.replace(D1_PLACEHOLDER, databaseId);
@@ -111,8 +120,7 @@ async function prepareLocalConfig(force = false) {
     await rm(scratch, { recursive: true, force: true });
   }
 
-  const ignored = runCommand('git', ['check-ignore', '--quiet', LOCAL_CONFIG], { cwd: ROOT });
-  void ignored;
+  runCommand('git', ['check-ignore', '--quiet', 'wrangler.local.jsonc']);
   console.log('Activation config: PASS (existing D1 bound; UUID intentionally not printed)');
 }
 
