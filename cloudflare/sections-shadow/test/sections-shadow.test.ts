@@ -683,7 +683,7 @@ describe('S1 authority boundary', () => {
       previewReadEnabled: true,
       shadowScheduleEnabled: true,
       liveAcquisitionEnabled: true,
-      browserFallbackEnabled: true,
+      browserFallbackEnabled: false,
       evidenceStore: 'd1',
       sourceLaneCount: 41,
       writeSurface: 'queue_only',
