@@ -22,6 +22,22 @@ export function makeStableSlotStoryId(slot, article) {
   return `${slot}-${fnv1aHex(seed)}`;
 }
 
+export function resolveArticlePublishedAt(article, schema = null) {
+  const candidates = [
+    schema?.datePublished,
+    article?.publishedAt,
+    article?.pubDate,
+    article?.datePublished,
+  ];
+  for (const value of candidates) {
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) return value;
+    if (!value) continue;
+    const parsed = Date.parse(String(value));
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return 0;
+}
+
 export async function fetchStoriesForSlot(slot) {
   const query = SLOT_QUERIES[slot] || `${slot} news today`;
   const news = await fetchNews(query, { newsApiKey: '' });
@@ -30,19 +46,7 @@ export async function fetchStoriesForSlot(slot) {
   return news.map((article) => {
     // Try Schema.org enrichment if raw HTML is available
     const schema = article.rawHtml ? extractSchemaOrg(article.rawHtml) : null;
-
-    // Timestamp — must be a NUMBER (epoch ms), not ISO string
-    let publishedAt;
-    if (schema?.datePublished) {
-      publishedAt = Date.parse(schema.datePublished);
-    } else if (typeof article.publishedAt === 'number') {
-      publishedAt = article.publishedAt;
-    } else if (article.publishedAt) {
-      publishedAt = Date.parse(article.publishedAt);
-    } else {
-      publishedAt = Date.now();
-    }
-    if (isNaN(publishedAt)) publishedAt = Date.now();
+    const publishedAt = resolveArticlePublishedAt(article, schema);
 
     return {
       // Slot-prefixed ID prevents cross-slot collisions in storiesById Map
@@ -52,11 +56,14 @@ export async function fetchStoriesForSlot(slot) {
       content    : schema?.description || article.description || article.summary || '',
       url        : article.url || article.link || '',
       publishedAt,
+      publishedAtSource: schema?.datePublished
+        ? 'schema_org'
+        : (article.publishedAtSource || (publishedAt ? 'publisher_timestamp' : 'missing')),
       author     : schema?.author   || article.author  || null,
       image      : schema?.image    || article.image   || null,
       keywords   : schema?.keywords || [],
       source     : article.source   || 'Unknown',
       sourceGroup: (article.source  || 'unknown').toLowerCase().replace(/[^a-z]/g, '_'),
     };
-  });
+  }).filter((story) => story.title && story.url && story.publishedAt > 0);
 }
