@@ -4,7 +4,13 @@ import { getEmbeddings } from './embeddingsAdapter.js';
 import { extractEntities, extractVerbs, extractNumbers, extractKeywords } from './nlpAdapter.js';
 import { loadInsightSnapshot, createSnapshotRawFetcher } from './insightSnapshotFetcher.js';
 import { getInsightSnapshotSignals } from './insightSnapshotSignalAdapter.js';
+import { loadSectionsSnapshot } from './sectionsSnapshotLoader.js';
+import { buildInsightSnapshotFromSectionsSnapshot } from './insightSectionsSnapshotAdapter.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
+import {
+  getSectionsDataSource,
+  SECTIONS_DATA_SOURCES,
+} from '../utils/sectionsDataSource.js';
 
 async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, referenceTime = undefined) {
   if (!Array.isArray(rawStories) || rawStories.length === 0) return [];
@@ -151,13 +157,39 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
   };
 }
 
+export async function loadCloudflareInsightCandidate() {
+  if (getSectionsDataSource() !== SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
+    return { attempted: false, snapshot: null, fallbackReason: null };
+  }
+
+  try {
+    const sectionsSnapshot = await loadSectionsSnapshot();
+    const snapshot = buildInsightSnapshotFromSectionsSnapshot(sectionsSnapshot);
+    if (snapshot) return { attempted: true, snapshot, fallbackReason: null };
+
+    return {
+      attempted: true,
+      snapshot: null,
+      fallbackReason:
+        sectionsSnapshot?.runtimeDataSource?.fallbackReason || 'cloudflare_sections_unusable',
+    };
+  } catch (error) {
+    return {
+      attempted: true,
+      snapshot: null,
+      fallbackReason: error?.code || error?.message || 'cloudflare_sections_unavailable',
+    };
+  }
+}
+
 /**
  * createInsightFetcher — returns the appropriate SlotFetcher depending on runtime.
  *
- * Host-based decision (unchanged): preferSnapshots → snapshot-first; else live-first.
- * Hardened so neither mode dead-ends to a blank page.
+ * When Cloudflare Preview is explicitly selected, a verified committed Sections epoch
+ * is the first Insight input authority. If that cannot be proven, the existing host-based
+ * Insight chain remains intact and the Cloudflare failure reason is surfaced in fetcher info.
  *
- * On github.io (preferSnapshots = true):
+ * On github.io (preferSnapshots = true) after Cloudflare is unavailable/not selected:
  *   1. Fresh snapshot  (file age ≤ 8 h)
  *   2. Stale snapshot  (age ≤ 48 h, with a 2-angle/2-source floor + reduced-quality label)
  *   3. Best-effort live (only when NO snapshot exists — last resort via proxies)
@@ -170,7 +202,21 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
  * @returns {Promise<{ fetcher: Function, source: string, snapshotTs: number, contentHash: string }>}
  */
 export async function createInsightFetcher() {
+  const cloudflareCandidate = await loadCloudflareInsightCandidate();
+  if (cloudflareCandidate.snapshot) {
+    const snapshot = cloudflareCandidate.snapshot;
+    return {
+      fetcher: createNormalizedSnapshotFetcher(snapshot, DEFAULT_CONFIG),
+      source: 'cloudflare-sections',
+      snapshotTs: snapshot.fetchedAt,
+      contentHash: snapshot.contentHash,
+      sourceAuthority: snapshot.sourceAuthority,
+      runtimeInputFallbackReason: null,
+    };
+  }
+
   const { preferSnapshots } = getRuntimeCapabilities();
+  const runtimeInputFallbackReason = cloudflareCandidate.fallbackReason;
 
   if (preferSnapshots) {
     const fresh = await loadInsightSnapshot({ allowStale: false });
@@ -181,6 +227,7 @@ export async function createInsightFetcher() {
         snapshotTs:  fresh.fetchedAt,
         contentHash: fresh.contentHash,
         snapshotRuntimeSummary: fresh.runtimeSummary,
+        runtimeInputFallbackReason,
       };
     }
 
@@ -196,6 +243,7 @@ export async function createInsightFetcher() {
         contentHash: stale.contentHash,
         snapshotRuntimeSummary: stale.runtimeSummary,
         pipelineConfigOverrides: { ...STALE_PIPELINE_OVERRIDES },
+        runtimeInputFallbackReason,
       };
     }
 
@@ -210,6 +258,7 @@ export async function createInsightFetcher() {
       source:      'live',
       snapshotTs:  Date.now(),
       contentHash: '',
+      runtimeInputFallbackReason,
     };
   }
 
@@ -230,6 +279,7 @@ export async function createInsightFetcher() {
     source:      'live',
     snapshotTs:  Date.now(),
     contentHash: '',
+    runtimeInputFallbackReason,
   };
 }
 
