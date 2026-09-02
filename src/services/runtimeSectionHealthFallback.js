@@ -93,16 +93,14 @@ export function buildRuntimeSectionHealthSummary({ sectionId, stories } = {}) {
 
 function reconcileConcreteHealthWithRenderedStories(healthSummary, sectionId, stories) {
   const rows = asArray(stories).filter(Boolean);
-  if (rows.length > 0) return healthSummary;
+  if (rows.length > 0 || !hasConcreteSectionHealth(healthSummary)) return healthSummary;
 
   const status = String(healthSummary?.status || '').toLowerCase();
-  if (!hasConcreteSectionHealth(healthSummary) || status === 'critical') return healthSummary;
-
   const reportedStoryCount = Number(healthSummary?.storyCount || 0);
   return {
     ...healthSummary,
     sectionId: healthSummary?.sectionId || normalizeRuntimeSectionId(sectionId),
-    status: 'warning',
+    status: status === 'critical' ? 'critical' : 'warning',
     storyCount: 0,
     reasons: unique([
       ...asArray(healthSummary?.reasons),
