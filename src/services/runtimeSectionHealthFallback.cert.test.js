@@ -38,12 +38,12 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
     expect(summary.lastCheckedAt).toBe('2026-07-14T14:41:00.000Z');
   });
 
-  it('never fabricates health when there are no visible stories', () => {
+  it('never fabricates health when there are no visible stories and no health evidence', () => {
     expect(buildRuntimeSectionHealthSummary({ sectionId: 'world-news', stories: [] })).toBeNull();
     expect(resolveSectionHealthSummary({ healthSummary: null, sectionId: 'world-news', stories: [] })).toBeNull();
   });
 
-  it('preserves authoritative summaries instead of replacing them', () => {
+  it('preserves authoritative summaries when rendered stories agree', () => {
     const authoritative = { sectionId: 'world', status: 'critical', storyCount: 4 };
     expect(resolveSectionHealthSummary({
       healthSummary: authoritative,
@@ -51,6 +51,41 @@ describe('NW-MAIN-007 runtime section health fallback', () => {
       stories,
     })).toBe(authoritative);
     expect(hasConcreteSectionHealth(authoritative)).toBe(true);
+  });
+
+  it('never leaves an empty rendered section green', () => {
+    const authoritative = {
+      sectionId: 'india',
+      status: 'ok',
+      storyCount: 8,
+      reasons: ['source_health_ok'],
+    };
+    const resolved = resolveSectionHealthSummary({
+      healthSummary: authoritative,
+      sectionId: 'india-news',
+      stories: [],
+    });
+
+    expect(resolved).toMatchObject({
+      sectionId: 'india',
+      status: 'warning',
+      storyCount: 0,
+      evidenceSource: 'health-summary+rendered-stories',
+    });
+    expect(resolved.reasons).toEqual([
+      'source_health_ok',
+      'rendered_section_empty',
+      'health_story_count_mismatch',
+    ]);
+  });
+
+  it('preserves a critical empty section rather than weakening it', () => {
+    const authoritative = { sectionId: 'local', status: 'critical', storyCount: 0 };
+    expect(resolveSectionHealthSummary({
+      healthSummary: authoritative,
+      sectionId: 'muscat-news',
+      stories: [],
+    })).toBe(authoritative);
   });
 
   it('replaces non-concrete unknown summaries only when story evidence exists', () => {
