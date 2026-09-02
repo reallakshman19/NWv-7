@@ -35,6 +35,20 @@ export function makeStableNewsId(prefix, article) {
     return `${prefix}-${fnv1aHex(seed)}`;
 }
 
+export function parseNewsPublishedAt(value) {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value > 0 ? value : 0;
+    }
+    const parsed = Date.parse(String(value || ''));
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+}
+
+function formatPublishedTime(publishedAt) {
+    return publishedAt
+        ? new Date(publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : '';
+}
+
 export async function fetchNews(query, keys = {}) {
     // Handle both old signature (query, apiKeyString) and new (query, keyObject)
     let apiKey = '';
@@ -71,16 +85,21 @@ export async function fetchNews(query, keys = {}) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.status === 'success' && data.results?.length > 0) {
-                    return (data.results || []).map(item => ({
-                        id: item.article_id,
-                        headline: item.title,
-                        summary: item.description ? item.description.substring(0, 150) + '...' : 'No summary available.',
-                        source: item.source_id,
-                        url: item.link,
-                        time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        confidence: 'HIGH',
-                        sourceCount: 1
-                    }));
+                    return (data.results || []).map(item => {
+                        const publishedAt = parseNewsPublishedAt(item.pubDate);
+                        return {
+                            id: item.article_id,
+                            headline: item.title,
+                            summary: item.description ? item.description.substring(0, 150) + '...' : 'No summary available.',
+                            source: item.source_id,
+                            url: item.link,
+                            publishedAt,
+                            publishedAtSource: publishedAt ? 'publisher_timestamp' : 'missing',
+                            time: formatPublishedTime(publishedAt),
+                            confidence: 'HIGH',
+                            sourceCount: 1
+                        };
+                    });
                 }
             }
         } catch (error) {
@@ -108,6 +127,7 @@ async function fetchRSSNews(query, settings = null) {
             if (source === 'Google News' || !source) {
                 source = extractSourceFromTitle(item.title) || 'Unknown Source';
             }
+            const publishedAt = parseNewsPublishedAt(item.pubDate);
 
             return {
                 id: makeStableNewsId('rss', item),
@@ -115,7 +135,9 @@ async function fetchRSSNews(query, settings = null) {
                 summary: sanitizeHtmlText(item.description || item.content || 'Latest coverage from Google News', { maxLength: 150 }),
                 source: source,
                 url: item.link,
-                time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                publishedAt,
+                publishedAtSource: publishedAt ? 'publisher_timestamp' : 'missing',
+                time: formatPublishedTime(publishedAt),
                 confidence: 'MEDIUM',
                 sourceCount: 1,
                 originalTitle: item.title
@@ -155,16 +177,21 @@ async function fetchDDGNews(query) {
         const rssUrl = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss`;
         const data = await proxyManager.fetchViaProxy(rssUrl);
 
-        return (data.items || []).map((item) => ({
-            id: makeStableNewsId('ddg', item),
-            headline: item.title,
-            summary: item.description || 'Web Result',
-            source: item.author || 'DuckDuckGo/Bing',
-            url: item.link,
-            time: new Date(item.pubDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            confidence: 'MEDIUM',
-            sourceCount: 1
-        }));
+        return (data.items || []).map((item) => {
+            const publishedAt = parseNewsPublishedAt(item.pubDate);
+            return {
+                id: makeStableNewsId('ddg', item),
+                headline: item.title,
+                summary: item.description || 'Web Result',
+                source: item.author || 'DuckDuckGo/Bing',
+                url: item.link,
+                publishedAt,
+                publishedAtSource: publishedAt ? 'publisher_timestamp' : 'missing',
+                time: formatPublishedTime(publishedAt),
+                confidence: 'MEDIUM',
+                sourceCount: 1
+            };
+        });
     } catch (error) {
         void error;
         throw new Error('DDG Fetch Failed');
