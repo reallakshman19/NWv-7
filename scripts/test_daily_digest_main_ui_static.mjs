@@ -21,9 +21,14 @@ if (!dataset.includes('ALLOWED_HOSTS')) fail('publisher URL allowlist missing');
 if (!mainPage.includes('DailyDigestSection')) fail('Daily Digest component not wired to Main');
 if ((mainPage.match(/\{dailyDigestSection\}/g) || []).length !== 2) fail('Daily Digest must render in desktop and mobile flows');
 if (!mainPage.includes("id: 'daily-digest'")) fail('Daily Digest section navigation entry missing');
+if (!mainPage.includes('showDailyDigestSection')) fail('Daily Digest visibility must account for availability states');
+if (!mainPage.includes('availability={dailyDigest.availability}')) fail('Daily Digest availability state not passed to component');
 if (!component.includes('Publisher-curated')) fail('publisher-curated UI marker missing');
+if (component.includes('if (!cards.length) return null')) fail('Daily Digest must not disappear when cards are not frozen yet');
+if (!component.includes('NOT_FROZEN') || !component.includes('Publishes at 10:15 IST')) fail('pre-freeze visible state missing');
+if (!component.includes('BACKEND_NOT_CONFIGURED')) fail('backend configuration failure must remain distinguishable from pre-freeze');
 if (!store.includes('canonical_url') || !store.includes('title')) fail('selected card metadata persistence missing');
 if (/article_body|raw_content/i.test(store)) fail('raw publisher content persistence forbidden');
 if (!migration.includes('ADD COLUMN title TEXT') || !migration.includes('ADD COLUMN canonical_url TEXT')) fail('card metadata migration incomplete');
 
-if (!process.exitCode) console.log('PASS: NW-DD-006 Daily Digest Main UI static guard');
+if (!process.exitCode) console.log('PASS: NW-DD-006/NW-DD-008 Daily Digest Main UI static guard');
