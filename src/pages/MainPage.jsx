@@ -70,7 +70,11 @@ const MainPage = () => {
 
     const chennaiSectionNews = prioritizedNewsData.chennai || newsData.chennai;
     const localSectionNews = prioritizedNewsData.local || newsData.local;
-    const pageNavSections = dailyDigest.hasCards
+    const showDailyDigestSection = dailyDigest.hasCards
+        || dailyDigest.loading
+        || dailyDigest.availability !== 'UNKNOWN'
+        || Boolean(dailyDigest.error);
+    const pageNavSections = showDailyDigestSection
         ? [navSections[0], { id: 'daily-digest', icon: '🗞️', label: 'Digest' }, ...navSections.slice(1)].filter(Boolean)
         : navSections;
 
@@ -95,12 +99,15 @@ const MainPage = () => {
         </div>
     );
 
-    const dailyDigestSection = dailyDigest.hasCards ? (
+    const dailyDigestSection = showDailyDigestSection ? (
         <DailyDigestSection
             cards={dailyDigest.cards}
             digestDate={dailyDigest.digestDate}
             frozenAt={dailyDigest.frozenAt}
             compositionState={dailyDigest.compositionState}
+            availability={dailyDigest.availability}
+            loading={dailyDigest.loading}
+            error={dailyDigest.error}
         />
     ) : null;
 
