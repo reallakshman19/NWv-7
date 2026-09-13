@@ -31,12 +31,29 @@ describe('Daily Digest dataset', () => {
     expect(fetchImpl.mock.calls[0][0]).toContain('date=2026-08-24');
   });
 
-  it('treats a not-yet-frozen daily snapshot as expected empty state', async () => {
+  it('treats a same-day missing snapshot before 10:15 IST as expected scheduled state', async () => {
     const fetchImpl = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) }));
-    const envelope = await load({ asOfDate: '2026-08-24', fetchImpl });
+    const envelope = await load({
+      asOfDate: '2026-08-24',
+      now: new Date('2026-08-24T04:30:00.000Z'),
+      fetchImpl,
+    });
     expect(envelope.ok).toBe(true);
     expect(envelope.data.availability).toBe('NOT_FROZEN');
     expect(envelope.data.cards).toEqual([]);
+  });
+
+  it('fails closed when the scheduled snapshot is still missing after 10:15 IST', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) }));
+    const envelope = await load({
+      asOfDate: '2026-08-24',
+      now: new Date('2026-08-24T05:00:00.000Z'),
+      fetchImpl,
+    });
+    expect(envelope.ok).toBe(false);
+    expect(envelope.data.availability).toBe('MISSED_FREEZE');
+    expect(envelope.data.cards).toEqual([]);
+    expect(envelope.validation.errors).toContain('daily_digest_missed_freeze');
   });
 
   it('rejects a card URL that does not belong to the registered publisher family', () => {
