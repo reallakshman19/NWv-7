@@ -137,7 +137,6 @@ export function DailyDigestSection({
         >
           <div className="mnc-header">
             <span className="mnc-source">Publisher-curated edition</span>
-            <span className="mnc-badge">{status.badge}</span>
           </div>
           <h3 className="mnc-headline">{status.title}</h3>
           <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', lineHeight: 1.45 }}>
