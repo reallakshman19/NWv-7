@@ -13,6 +13,11 @@ const EMPTY_STATE_COPY = Object.freeze({
     title: 'Today’s Daily Digest is scheduled',
     message: 'Publishes at 10:15 IST after the publisher snapshot freezes.',
   }),
+  MISSED_FREEZE: Object.freeze({
+    badge: 'Delayed',
+    title: 'Today’s Daily Digest is delayed',
+    message: 'No publisher snapshot was available after the scheduled 10:15 IST freeze. Try refreshing shortly.',
+  }),
   BACKEND_NOT_CONFIGURED: Object.freeze({
     badge: 'Unavailable',
     title: 'Daily Digest service unavailable',
