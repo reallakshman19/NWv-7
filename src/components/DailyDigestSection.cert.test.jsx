@@ -24,6 +24,21 @@ describe('DailyDigestSection availability states', () => {
     expect(screen.getByRole('status')).toBeTruthy();
   });
 
+  it('shows a delayed state instead of scheduled after a missed freeze', () => {
+    render(
+      <DailyDigestSection
+        cards={[]}
+        digestDate="2026-09-13"
+        availability="MISSED_FREEZE"
+      />
+    );
+
+    expect(screen.getByText('Delayed')).toBeTruthy();
+    expect(screen.getByText('Today’s Daily Digest is delayed')).toBeTruthy();
+    expect(screen.getByText(/after the scheduled 10:15 IST freeze/i)).toBeTruthy();
+    expect(screen.queryByText('Today’s Daily Digest is scheduled')).toBeNull();
+  });
+
   it('does not mislabel an unconfigured backend as a pre-freeze state', () => {
     render(
       <DailyDigestSection
