@@ -8,6 +8,7 @@ import { fetchDailyDigestDatasetApi } from './dailyDigestDatasetApiClient.js';
 
 const IST_TIMEZONE = 'Asia/Kolkata';
 const SNAPSHOT_SCHEMA = 'daily-digest-snapshot/v1';
+const FREEZE_MINUTE_IST = (10 * 60) + 15;
 const ALLOWED_HOSTS = Object.freeze({
   AKASHVANI: Object.freeze(['newsonair.gov.in']),
   INDIAN_EXPRESS: Object.freeze(['indianexpress.com', 'www.indianexpress.com']),
@@ -15,12 +16,32 @@ const ALLOWED_HOSTS = Object.freeze({
   FINANCIAL_TIMES: Object.freeze(['ft.com', 'www.ft.com', 'ep.ft.com']),
 });
 
-function dateInTimeZone(now, timeZone = IST_TIMEZONE) {
+function clockInTimeZone(now, timeZone = IST_TIMEZONE) {
   const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone, year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
   });
   const parts = Object.fromEntries(formatter.formatToParts(now).map(part => [part.type, part.value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    minute: (Number(parts.hour) * 60) + Number(parts.minute),
+  };
+}
+
+function dateInTimeZone(now, timeZone = IST_TIMEZONE) {
+  return clockInTimeZone(now, timeZone).date;
+}
+
+function missingSnapshotAvailability(digestDate, now) {
+  const clock = clockInTimeZone(now);
+  if (digestDate > clock.date) return 'NOT_FROZEN';
+  if (digestDate === clock.date && clock.minute < FREEZE_MINUTE_IST) return 'NOT_FROZEN';
+  return 'MISSED_FREEZE';
 }
 
 function validDigestDate(value) {
@@ -102,9 +123,10 @@ function failureEnvelope(digestDate, status) {
 
 export async function load(options = {}) {
   const runtime = getRuntimeCapabilities();
+  const now = options.now || new Date();
   const digestDate = validDigestDate(options.asOfDate)
     ? options.asOfDate
-    : dateInTimeZone(options.now || new Date());
+    : dateInTimeZone(now);
   const response = await fetchDailyDigestDatasetApi({
     baseUrl: runtime.configuredBackendUrl,
     digestDate,
@@ -112,8 +134,14 @@ export async function load(options = {}) {
     signal: options.signal,
   });
 
-  if (['BACKEND_NOT_CONFIGURED', 'NOT_FROZEN'].includes(response.status)) {
+  if (response.status === 'BACKEND_NOT_CONFIGURED') {
     return expectedEmptyEnvelope(digestDate, response.status);
+  }
+  if (response.status === 'NOT_FROZEN') {
+    const availability = missingSnapshotAvailability(digestDate, now);
+    return availability === 'NOT_FROZEN'
+      ? expectedEmptyEnvelope(digestDate, availability)
+      : failureEnvelope(digestDate, availability);
   }
   if (response.status !== 'READY') return failureEnvelope(digestDate, response.status);
 
@@ -135,7 +163,9 @@ export async function load(options = {}) {
 }
 
 export const __dailyDigestDatasetInternalsForTest = {
+  clockInTimeZone,
   dateInTimeZone,
+  missingSnapshotAvailability,
   normalizeCard,
   normalizeSnapshot,
 };
