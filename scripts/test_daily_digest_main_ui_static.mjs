@@ -17,6 +17,7 @@ if (/method:\s*['"](?:POST|PUT|PATCH|DELETE)/i.test(client)) fail('browser write
 if (!client.includes('?date=')) fail('explicit same-day digest date query missing');
 if (!dataset.includes('runtime.configuredBackendUrl')) fail('shared backend authority not consumed');
 if (!dataset.includes("'NOT_FROZEN'")) fail('expected pre-freeze empty state missing');
+if (!dataset.includes("'MISSED_FREEZE'")) fail('post-freeze missing snapshot must fail closed');
 if (!dataset.includes('ALLOWED_HOSTS')) fail('publisher URL allowlist missing');
 if (!mainPage.includes('DailyDigestSection')) fail('Daily Digest component not wired to Main');
 if ((mainPage.match(/\{dailyDigestSection\}/g) || []).length !== 2) fail('Daily Digest must render in desktop and mobile flows');
@@ -26,6 +27,7 @@ if (!mainPage.includes('availability={dailyDigest.availability}')) fail('Daily D
 if (!component.includes('Publisher-curated')) fail('publisher-curated UI marker missing');
 if (component.includes('if (!cards.length) return null')) fail('Daily Digest must not disappear when cards are not frozen yet');
 if (!component.includes('NOT_FROZEN') || !component.includes('Publishes at 10:15 IST')) fail('pre-freeze visible state missing');
+if (!component.includes('MISSED_FREEZE') || !component.includes('Daily Digest is delayed')) fail('missed-freeze visible state missing');
 if (!component.includes('BACKEND_NOT_CONFIGURED')) fail('backend configuration failure must remain distinguishable from pre-freeze');
 if (!store.includes('canonical_url') || !store.includes('title')) fail('selected card metadata persistence missing');
 if (/article_body|raw_content/i.test(store)) fail('raw publisher content persistence forbidden');
