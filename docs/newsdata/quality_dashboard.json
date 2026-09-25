@@ -1,0 +1,280 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": 1784657769792,
+  "windowDays": 7,
+  "latest": {
+    "insightGrade": "C",
+    "insightScore": 0,
+    "totalStories": 793,
+    "usableStories36h": 767,
+    "sourceGroups": 10,
+    "angleHintCoverage": 1,
+    "sectionsTotalStories": 0,
+    "sectionsCount": 10,
+    "rankingOverallScore": 0.309,
+    "rankingOverallStatus": "FAIL"
+  },
+  "rankingAudit": {
+    "status": "FAIL",
+    "overallScore": 0.309,
+    "overallGrade": "F",
+    "rankingVersion": "tab-specific-quality-ranking-v1",
+    "generatedAt": 1784657769031,
+    "destinationScores": {
+      "buzz": 0,
+      "insight": 0.3986,
+      "localTravel": 0,
+      "upAhead": 0.8372
+    },
+    "destinationStatuses": {
+      "buzz": "FAIL",
+      "insight": "WARN",
+      "localTravel": "FAIL",
+      "upAhead": "WARN"
+    },
+    "rankingProfiles": {
+      "buzz": "buzz-v2-trend-local-travel",
+      "insight": "insight-v2-event-angle-tree",
+      "localTravel": "localTravel-v1-location-utility-disruption",
+      "upAhead": "upAhead-v2-lifecycle-location-category"
+    },
+    "weakDestinations": [
+      {
+        "destination": "buzz",
+        "status": "FAIL",
+        "score": 0,
+        "profile": "buzz-v2-trend-local-travel"
+      },
+      {
+        "destination": "insight",
+        "status": "WARN",
+        "score": 0.3986,
+        "profile": "insight-v2-event-angle-tree"
+      },
+      {
+        "destination": "localTravel",
+        "status": "FAIL",
+        "score": 0,
+        "profile": "localTravel-v1-location-utility-disruption"
+      },
+      {
+        "destination": "upAhead",
+        "status": "WARN",
+        "score": 0.8372,
+        "profile": "upAhead-v2-lifecycle-location-category"
+      }
+    ],
+    "compactGateSummary": {
+      "buzz": {
+        "rankedItemCount": 0,
+        "suppressedItemCount": 0,
+        "buzzTrendCount": 0,
+        "localBuzzCount": 0,
+        "travelBuzzCount": 0,
+        "oneSourceCappedCount": 0
+      },
+      "insight": {
+        "parentClusters": 12,
+        "strongParents": 12,
+        "weakParentsDemoted": 0,
+        "avgAnglesPerParent": 0,
+        "baseReportHeavyParents": 3,
+        "duplicateChildrenSuppressed": 0
+      },
+      "localTravel": {
+        "rankedItemCount": 0,
+        "suppressedItemCount": 0,
+        "travelItemCount": 0,
+        "utilityItemCount": 0,
+        "disruptionItemCount": 0,
+        "familyRelevantItemCount": 0,
+        "locationsCovered": []
+      },
+      "upAhead": {
+        "rankedItemCount": 12,
+        "suppressedItemCount": 22,
+        "events": 0,
+        "onlineOffers": 1,
+        "offlineOffers": 1,
+        "alerts": 10,
+        "festivals": 0,
+        "locationsCovered": [
+          "chennai",
+          "online",
+          "trichy"
+        ]
+      }
+    },
+    "topFindings": [
+      "Prime Day Is Over, But 62 of Our Favorite Deals Are Still Available - WIRED: location failed — offline/local item lacks configured location match",
+      "Youth beats mother to death in Perungudi, arrested: futureValidity failed — expired display window",
+      "Youth beats mother to death in Perungudi, arrested: alertUrgency failed — alert expired",
+      "Near Khader Nawaz Khan Road, Chennai Metro Rail starts work on tunnel to link Sterling Road for Phase II project: futureValidity failed — expired display window",
+      "Near Khader Nawaz Khan Road, Chennai Metro Rail starts work on tunnel to link Sterling Road for Phase II project: alertUrgency failed — alert expired",
+      "Centre reiterates that release of Samagra Shiksha funds for T.N. tied to NEP’s implementation: futureValidity failed — expired display window",
+      "Centre reiterates that release of Samagra Shiksha funds for T.N. tied to NEP’s implementation: alertUrgency failed — alert expired",
+      "Cauvery Water Management Authority is meeting on Wednesday amid a growing deficit in water realisation by Tamil Nadu: futureValidity failed — expired display window",
+      "Cauvery Water Management Authority is meeting on Wednesday amid a growing deficit in water realisation by Tamil Nadu: alertUrgency failed — alert expired",
+      "Tamil Nadu Law Minister R. Nirmalkumar justifies the arrest of DMK Vilathikulam MLA G.V. Markandayan: futureValidity failed — expired display window",
+      "Tamil Nadu Law Minister R. Nirmalkumar justifies the arrest of DMK Vilathikulam MLA G.V. Markandayan: alertUrgency failed — alert expired",
+      "Chief Minister Vijay inspects Bio-CNG plant in Chetpet: futureValidity failed — expired display window"
+    ],
+    "actionRequired": [
+      "22 invalid/expired/duplicate Up Ahead item(s) suppressed",
+      "no ranked Up Ahead item for muscat",
+      "no local Buzz item in ranked set",
+      "no travel Buzz item in ranked set",
+      "no active local/travel disruption item",
+      "no family-relevant local/travel item",
+      "no ranked local/travel item for muscat",
+      "no ranked local/travel item for chennai",
+      "no ranked local/travel item for trichy",
+      "3 base-report-heavy Insight parent(s) demoted",
+      "buzz: no local Buzz item in ranked set",
+      "buzz: no travel Buzz item in ranked set"
+    ]
+  },
+  "sourceHealth": {
+    "insight": {
+      "activeFeeds": 0,
+      "suppressedFeeds": 0,
+      "weakFeeds": 0
+    },
+    "sections": {
+      "activeFeeds": 0,
+      "weakFeeds": 0
+    }
+  },
+  "trends": {
+    "avgInsightScore7d": 0,
+    "sourceUptimePercent7d": 0,
+    "angleDiversity7d": 0,
+    "avgRankingScore7d": 0.31,
+    "avgRankingWeakDestinations7d": 4
+  },
+  "history": [
+    {
+      "date": "2026-07-15",
+      "generatedAt": 1784159888458,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 660,
+      "usableStories36h": 654,
+      "sourceGroups": 9,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3084,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-16",
+      "generatedAt": 1784246268672,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 727,
+      "usableStories36h": 710,
+      "sourceGroups": 9,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3043,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-17",
+      "generatedAt": 1784332310077,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 752,
+      "usableStories36h": 727,
+      "sourceGroups": 9,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3005,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-18",
+      "generatedAt": 1784418725166,
+      "insightGrade": "C",
+      "insightScore": 0,
+      "totalStories": 546,
+      "usableStories36h": 500,
+      "sourceGroups": 10,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3094,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-19",
+      "generatedAt": 1784505283998,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 477,
+      "usableStories36h": 429,
+      "sourceGroups": 9,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3101,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-20",
+      "generatedAt": 1784591773212,
+      "insightGrade": "D",
+      "insightScore": 0,
+      "totalStories": 637,
+      "usableStories36h": 624,
+      "sourceGroups": 9,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.3139,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    },
+    {
+      "date": "2026-07-21",
+      "generatedAt": 1784657769792,
+      "insightGrade": "C",
+      "insightScore": 0,
+      "totalStories": 793,
+      "usableStories36h": 767,
+      "sourceGroups": 10,
+      "angleHintCoverage": 1,
+      "sectionsTotalStories": 0,
+      "sectionsCount": 10,
+      "rankingOverallScore": 0.309,
+      "rankingOverallStatus": "FAIL",
+      "sourceUptimePercent": 0,
+      "angleDiversityScore": 0,
+      "rankingWeakDestinationCount": 4
+    }
+  ],
+  "notes": [
+    "This dashboard reflects the best available insight quality report and guards against false-zero output.",
+    "rankingAudit is compact; full per-tab ranking details remain in quality_rankings.json."
+  ]
+}
