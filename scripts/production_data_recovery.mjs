@@ -190,22 +190,35 @@ function restoreTarget(targetPath, original) {
   writeFileAtomic(targetPath, original);
 }
 
-export function publishDomainOutputs({ stagePublicRoot, repoRoot, domain }) {
-  const contract = PRODUCTION_DATA_DOMAINS[domain];
-  assert(contract, `unknown production data domain: ${domain}`);
-
+function publicationOperations({ stagePublicRoot, repoRoot, domains }) {
   const operations = [];
-  for (const relativePath of contract.outputs) {
-    const sourcePath = path.join(stagePublicRoot, relativePath);
-    assert(fs.existsSync(sourcePath), `${domain}: staged source missing ${relativePath}`);
-    const bytes = fs.readFileSync(sourcePath);
-    const publicTarget = path.join(repoRoot, 'public', relativePath);
-    const docsTarget = path.join(repoRoot, 'docs', relativePath);
-    operations.push({ relativePath, bytes, publicTarget, docsTarget });
+  const targetOwners = new Map();
+  for (const domain of domains) {
+    const contract = PRODUCTION_DATA_DOMAINS[domain];
+    assert(contract, `unknown production data domain: ${domain}`);
+    for (const relativePath of contract.outputs) {
+      const sourcePath = path.join(stagePublicRoot, relativePath);
+      assert(fs.existsSync(sourcePath), `${domain}: staged source missing ${relativePath}`);
+      const bytes = fs.readFileSync(sourcePath);
+      const publicTarget = path.join(repoRoot, 'public', relativePath);
+      const docsTarget = path.join(repoRoot, 'docs', relativePath);
+      for (const targetPath of [publicTarget, docsTarget]) {
+        const priorOwner = targetOwners.get(targetPath);
+        assert(!priorOwner, `publication target collision: ${targetPath} owned by ${priorOwner} and ${domain}`);
+        targetOwners.set(targetPath, domain);
+      }
+      operations.push({ domain, relativePath, bytes, publicTarget, docsTarget });
+    }
   }
+  return operations;
+}
 
+export function publishSelectedDomains({ stagePublicRoot, repoRoot, domains }) {
+  assert(Array.isArray(domains) && domains.length > 0, 'publication requires at least one domain');
+  const operations = publicationOperations({ stagePublicRoot, repoRoot, domains });
   const originals = new Map();
   const touched = [];
+
   try {
     for (const op of operations) {
       for (const targetPath of [op.publicTarget, op.docsTarget]) {
@@ -214,8 +227,8 @@ export function publishDomainOutputs({ stagePublicRoot, repoRoot, domain }) {
         touched.push(targetPath);
       }
       const sourceHash = sha256Buffer(op.bytes);
-      assert(sha256File(op.publicTarget) === sourceHash, `${domain}: public hash mismatch for ${op.relativePath}`);
-      assert(sha256File(op.docsTarget) === sourceHash, `${domain}: docs hash mismatch for ${op.relativePath}`);
+      assert(sha256File(op.publicTarget) === sourceHash, `${op.domain}: public hash mismatch for ${op.relativePath}`);
+      assert(sha256File(op.docsTarget) === sourceHash, `${op.domain}: docs hash mismatch for ${op.relativePath}`);
     }
   } catch (error) {
     for (const targetPath of touched.reverse()) {
@@ -225,10 +238,16 @@ export function publishDomainOutputs({ stagePublicRoot, repoRoot, domain }) {
   }
 
   return operations.map(op => ({
+    domain: op.domain,
     path: op.relativePath,
     sha256: sha256Buffer(op.bytes),
     bytes: op.bytes.length,
   }));
+}
+
+export function publishDomainOutputs({ stagePublicRoot, repoRoot, domain }) {
+  return publishSelectedDomains({ stagePublicRoot, repoRoot, domains: [domain] })
+    .map(({ domain: _domain, ...file }) => file);
 }
 
 export function verifyPublishedParity({ repoRoot, domains, enforceFreshness = false, nowMs = Date.now() }) {
