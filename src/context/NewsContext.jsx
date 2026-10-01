@@ -180,7 +180,9 @@ export function NewsProvider({ children }) {
     useEffect(() => {
         if (prevVersion.current !== settingsVersion) {
             prevVersion.current = settingsVersion;
-            refreshNews(null, { force: true, reason: 'settings-change' }).catch(() => {});
+            queueMicrotask(() => {
+                refreshNews(null, { force: true, reason: 'settings-change' }).catch(() => {});
+            });
         }
     }, [settingsVersion, refreshNews]);
 
@@ -209,7 +211,9 @@ export function NewsProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        refreshNews(null, { force: true, reason: 'boot' }).catch(() => {});
+        queueMicrotask(() => {
+            refreshNews(null, { force: true, reason: 'boot' }).catch(() => {});
+        });
 
         const { isStaticHost } = getRuntimeCapabilities();
         const refreshIntervalMs = isStaticHost ? 15 * 60 * 1000 : 5 * 60 * 1000;
