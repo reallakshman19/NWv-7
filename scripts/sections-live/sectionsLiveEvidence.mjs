@@ -106,9 +106,23 @@ export function buildSectionsLiveEvidence({
   };
 }
 
-export function compactSectionsLiveEvidence(evidence) {
-  const sectionItemsText = JSON.stringify(evidence.sectionItems || {});
-  const previewSectionItemsIncluded = new TextEncoder().encode(sectionItemsText).byteLength <= 600_000;
+export const COMPACT_LIVE_EVIDENCE_TARGET_BYTES = 900_000;
+
+function utf8Bytes(value) {
+  return new TextEncoder().encode(value).byteLength;
+}
+
+function compactAcquisitionRows(acquisition = []) {
+  return acquisition.map(row => ({
+    laneId: row.laneId,
+    disposition: row.disposition,
+    itemCount: row.itemCount,
+    httpStatus: row.httpStatus,
+    errorCode: row.errorCode,
+  }));
+}
+
+function buildCompactLiveEvidence(evidence, { includeSectionItems }) {
   return {
     schemaVersion: evidence.schemaVersion,
     acquisitionMode: evidence.acquisitionMode,
@@ -116,14 +130,33 @@ export function compactSectionsLiveEvidence(evidence) {
     sourceRegistryVersion: evidence.sourceRegistryVersion,
     sourceRegistryDigest: evidence.sourceRegistryDigest,
     inputEvidenceDigest: evidence.inputEvidenceDigest,
-    acquisition: evidence.acquisition,
+    acquisition: compactAcquisitionRows(evidence.acquisition),
     parityStages: evidence.parityStages,
     safety: evidence.safety,
     candidateCount: evidence.candidateCount,
-    previewSectionItemsIncluded,
-    ...(previewSectionItemsIncluded ? { sectionItems: evidence.sectionItems } : {}),
+    previewSectionItemsIncluded: includeSectionItems,
+    ...(includeSectionItems ? { sectionItems: evidence.sectionItems } : {}),
     selectedIds: evidence.decisionEvidence.selectedIds,
     displayedIds: evidence.decisionEvidence.displayedIds,
     decisionOutputDigest: evidence.decisionOutputDigest,
   };
+}
+
+export function compactSectionsLiveEvidence(
+  evidence,
+  { maxBytes = COMPACT_LIVE_EVIDENCE_TARGET_BYTES } = {},
+) {
+  const withSections = buildCompactLiveEvidence(evidence, { includeSectionItems: true });
+  if (utf8Bytes(JSON.stringify(withSections)) <= maxBytes) {
+    return withSections;
+  }
+
+  const withoutSections = buildCompactLiveEvidence(evidence, { includeSectionItems: false });
+  const compactBytes = utf8Bytes(JSON.stringify(withoutSections));
+  if (compactBytes > maxBytes) {
+    throw new Error(
+      `Compact Sections live evidence exceeds ${maxBytes} bytes without preview section items (${compactBytes} bytes)`,
+    );
+  }
+  return withoutSections;
 }
