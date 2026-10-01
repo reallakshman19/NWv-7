@@ -8,23 +8,50 @@ export const SECTIONS_DATA_SOURCE_STATUS_EVENT = 'nw:sections-data-source-status
 const STORAGE_KEY = 'nw_sections_data_source';
 let lastRuntimeStatus = null;
 
-function normalizeSource(value) {
-  return value === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW
-    ? SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW
-    : SECTIONS_DATA_SOURCES.GITHUB;
+function normalizeSource(value, fallback = SECTIONS_DATA_SOURCES.GITHUB) {
+  if (value === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
+    return SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW;
+  }
+  if (value === SECTIONS_DATA_SOURCES.GITHUB) {
+    return SECTIONS_DATA_SOURCES.GITHUB;
+  }
+  return fallback;
+}
+
+export function getCloudflareSectionsPreviewUrl() {
+  return String(import.meta.env.VITE_SECTIONS_AUTHORITY_URL || import.meta.env.VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL || '').trim();
+}
+
+export function isCloudflareSectionsPreviewConfigured() {
+  return /^https:\/\//i.test(getCloudflareSectionsPreviewUrl());
+}
+
+export function getConfiguredSectionsAuthority() {
+  const configured = String(import.meta.env.VITE_SECTIONS_AUTHORITY || '').trim().toLowerCase();
+  if (configured === 'cloudflare' && isCloudflareSectionsPreviewConfigured()) {
+    return SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW;
+  }
+  return SECTIONS_DATA_SOURCES.GITHUB;
+}
+
+export function isSectionsSourceOverrideEnabled() {
+  return String(import.meta.env.VITE_SECTIONS_ALLOW_SOURCE_OVERRIDE || '').trim().toLowerCase() === 'true';
 }
 
 export function getSectionsDataSource() {
-  if (typeof localStorage === 'undefined') return SECTIONS_DATA_SOURCES.GITHUB;
+  const authority = getConfiguredSectionsAuthority();
+  if (!isSectionsSourceOverrideEnabled() || typeof localStorage === 'undefined') return authority;
   try {
-    return normalizeSource(localStorage.getItem(STORAGE_KEY));
+    return normalizeSource(localStorage.getItem(STORAGE_KEY), authority);
   } catch {
-    return SECTIONS_DATA_SOURCES.GITHUB;
+    return authority;
   }
 }
 
 export function setSectionsDataSource(value) {
-  const source = normalizeSource(value);
+  const authority = getConfiguredSectionsAuthority();
+  if (!isSectionsSourceOverrideEnabled()) return authority;
+  const source = normalizeSource(value, authority);
   if (typeof localStorage === 'undefined') return source;
   try {
     localStorage.setItem(STORAGE_KEY, source);
@@ -34,14 +61,6 @@ export function setSectionsDataSource(value) {
     });
   }
   return source;
-}
-
-export function getCloudflareSectionsPreviewUrl() {
-  return String(import.meta.env.VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL || '').trim();
-}
-
-export function isCloudflareSectionsPreviewConfigured() {
-  return /^https:\/\//i.test(getCloudflareSectionsPreviewUrl());
 }
 
 export function publishSectionsDataSourceStatus(status) {
