@@ -1,223 +1,189 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { fetchSectionNews, clearNewsCache } from '../services/rssAggregator';
-import { rankTopStories } from '../services/topStories/topStoriesRanker';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { load as loadSectionsDataset } from '../data/datasets/sectionsDataset.js';
 import { getSettings, incrementViewCount } from '../utils/storage';
 import { useSettings } from './SettingsContext';
 import { runFullAudit } from '../utils/newsAudit';
-import { deduplicateAndCluster } from '../utils/similarity';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities';
 import { loadFreshBreakingItems } from '../adapters/breakingSnapshotFetcher';
 import { mergeBreakingNews } from '../services/breakingNewsService';
 
 const NewsContext = createContext();
 
-const PRIORITY_SECTIONS = ['world', 'india', 'chennai', 'trichy', 'local'];
+const SECTION_IDS = [
+    'world',
+    'india',
+    'chennai',
+    'trichy',
+    'local',
+    'social',
+    'entertainment',
+    'business',
+    'technology',
+];
+
+const RESUME_SYNC_MIN_AGE_MS = 60 * 1000;
+
+function asArray(value) {
+    return Array.isArray(value) ? value : [];
+}
+
+function asRecord(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function projectSectionsEnvelope(envelope) {
+    const data = asRecord(envelope?.data);
+    const sections = asRecord(data.sections);
+    return {
+        ...sections,
+        frontPage: asArray(data.frontPage),
+    };
+}
+
+function hasRenderableNews(value) {
+    const newsData = asRecord(value);
+    if (asArray(newsData.frontPage).length > 0) return true;
+    return SECTION_IDS.some(section => asArray(newsData[section]).length > 0);
+}
+
+function envelopeErrors(envelope) {
+    const failures = asArray(envelope?.data?.failedSections);
+    return Object.fromEntries(
+        failures
+            .filter(item => item?.section)
+            .map(item => [item.section, item.error || 'section unavailable'])
+    );
+}
+
+function deriveClientBreaking(newsData) {
+    return asArray(newsData?.frontPage)
+        .filter(item => item?.isBreaking || Number(item?.breakingScore || 0) > 1.5)
+        .sort((a, b) => Number(b?.breakingScore || 0) - Number(a?.breakingScore || 0))
+        .slice(0, 3);
+}
 
 export function NewsProvider({ children }) {
     const { settingsVersion } = useSettings();
     const prevVersion = useRef(settingsVersion);
+    const newsDataRef = useRef({});
+    const lastFetchRef = useRef(0);
+    const inFlightRef = useRef(null);
+
+    const [envelope, setEnvelope] = useState(null);
     const [newsData, setNewsData] = useState({});
-    const [breakingNews, setBreakingNews] = useState([]);
-    // Workflow-computed breaking snapshot (server-side flags), polled separately.
     const [snapshotBreaking, setSnapshotBreaking] = useState([]);
     const [loading, setLoading] = useState(true);
     const [loadedSections, setLoadedSections] = useState([]);
     const [errors, setErrors] = useState({});
     const [lastFetch, setLastFetch] = useState(0);
+    const [lastSyncReason, setLastSyncReason] = useState(null);
     const [auditResults, setAuditResults] = useState({});
 
+    useEffect(() => {
+        newsDataRef.current = newsData;
+    }, [newsData]);
 
-    const loadSection = useCallback(async (section) => {
-        // Prevent duplicate loads if already loaded or in loadedSections
-        // Note: Ideally we should track "loadingSections" to prevent double-fetch while in flight,
-        // but for now checking loadedSections prevents re-fetch after success.
-        if (loadedSections.includes(section)) return;
+    useEffect(() => {
+        lastFetchRef.current = lastFetch;
+    }, [lastFetch]);
 
-        console.log(`[NewsContext] Lazy loading section: ${section}`);
+    const applyEnvelope = useCallback((nextEnvelope, reason) => {
+        const projected = projectSectionsEnvelope(nextEnvelope);
+        const hasNext = hasRenderableNews(projected);
+        const hasPrevious = hasRenderableNews(newsDataRef.current);
+        const nextErrors = envelopeErrors(nextEnvelope);
 
-        try {
-            const settings = getSettings();
-            // Respect settings enablement
-            if (settings.sections[section] && !settings.sections[section].enabled) {
-                console.log(`[NewsContext] Skipping lazy load for disabled section: ${section}`);
-                return;
-            }
-
-            const count = settings.sections[section]?.count || 10;
-            const articles = await fetchSectionNews(section, count + 5, settings.newsSources);
-
-            setNewsData(prev => ({ ...prev, [section]: articles || [] }));
-
-        } catch (err) {
-            console.error(`[NewsContext] Failed to load section ${section}:`, err);
-            setErrors(prev => ({ ...prev, [section]: err.message }));
-        } finally {
-            // Mark as loaded regardless of success/failure so UI can show content or error
-            setLoadedSections(prev => [...new Set([...prev, section])]);
+        if (!hasNext && hasPrevious) {
+            const retainedError = nextEnvelope?.error || 'sections_refresh_empty';
+            setErrors(prev => ({
+                ...prev,
+                ...nextErrors,
+                authority: retainedError,
+            }));
+            setLastSyncReason(reason);
+            return {
+                ...nextEnvelope,
+                ok: false,
+                retainedLastKnownGood: true,
+                error: retainedError,
+            };
         }
-    }, [loadedSections]);
 
-    const refreshNews = useCallback(async (specificSections = null) => {
-        setLoading(true);
-        const fetchStartTime = Date.now();
+        setEnvelope(nextEnvelope);
+        setNewsData(projected);
+        newsDataRef.current = projected;
+        setErrors(nextErrors);
+        setLoadedSections(SECTION_IDS.filter(section => Object.prototype.hasOwnProperty.call(projected, section)));
 
-        try {
-            const settings = getSettings();
-            if (!settings) {
-                console.error('[NewsContext] Settings not available');
-                return;
-            }
+        const frontPageIds = asArray(projected.frontPage).map(item => item?.id).filter(Boolean);
+        if (frontPageIds.length > 0) incrementViewCount(frontPageIds);
 
-            const allSections = ['world', 'india', 'chennai', 'trichy', 'local', 'social', 'entertainment', 'business', 'technology'];
-            const sectionsToFetch = Array.isArray(specificSections) && specificSections.length > 0
-                ? specificSections.filter(s => typeof s === 'string')
-                : allSections;
-
-            // Prioritize Sections: Main Page (High) -> Others (Low)
-            const highPriority = sectionsToFetch.filter(s => PRIORITY_SECTIONS.includes(s));
-            const lowPriority = sectionsToFetch.filter(s => !PRIORITY_SECTIONS.includes(s));
-
-            const batches = [highPriority, lowPriority].filter(b => b.length > 0);
-
-            let allCollectedResults = {};
-
-            for (const batch of batches) {
-                const batchResults = {};
-                const batchErrors = {};
-
-                console.log(`[NewsContext] Fetching batch: ${batch.join(', ')}`);
-
-                await Promise.all(batch.map(async (key) => {
-                    if (settings.sections[key]?.enabled !== false) {
-                        try {
-                            const count = settings.sections[key]?.count || 10;
-                            const articles = await fetchSectionNews(key, count + 5, settings.newsSources);
-
-                            if (articles && Array.isArray(articles)) {
-                                batchResults[key] = articles;
-                            } else {
-                                batchResults[key] = [];
-                            }
-                        } catch (err) {
-                            console.error(`[NewsContext] Error ${key}:`, err);
-                            batchErrors[key] = err.message;
-                            batchResults[key] = [];
-                        }
-                    }
-                }));
-
-                // Incremental Update Logic
-                // We need to redistribute the *accumulated* results to ensure classification moves items correctly
-                // across sections that might be in different batches.
-                // However, doing full redistribution on partial data is fine.
-
-                Object.assign(allCollectedResults, batchResults);
-
-                // --- REDISTRIBUTION PASS ---
-                const allFetched = Object.values(allCollectedResults).flat();
-                const deduplicatedArticles = deduplicateAndCluster(
-                    allFetched,
-                    settings.storyDeduplication
-                );
-                const redistributed = {};
-
-                // Initialize buckets for all fetched keys to ensure clearing
-                Object.keys(allCollectedResults).forEach(key => redistributed[key] = []);
-
-                deduplicatedArticles.forEach(item => {
-                    const section = item.section || 'uncategorized';
-                    if (!redistributed[section]) redistributed[section] = [];
-                    redistributed[section].push(item);
-                });
-
-                Object.keys(redistributed).forEach(key => {
-                    redistributed[key].sort((a, b) => (b.impactScore || 0) - (a.impactScore || 0));
-                });
-
-                const frontPage = rankTopStories({
-                    sectionItems: redistributed,
-                    settings,
-                    nowMs: Date.now()
-                }, {
-                    limit: 25
-                });
-
-                // Track views for potential "Latest Stories" filtering (3 manual refreshes rule)
-                if (frontPage && frontPage.length > 0) {
-                    const frontPageIds = frontPage.map(a => a.id);
-                    incrementViewCount(frontPageIds);
-                }
-
-                setNewsData(prev => ({
-                    ...prev,
-                    ...redistributed,
-                    frontPage
-                }));
-                setErrors(prev => ({ ...prev, ...batchErrors }));
-
-                // Update loaded sections
-                setLoadedSections(prev => [...new Set([...prev, ...Object.keys(batchResults)])]);
-
-                // Breaking News Update (Incremental)
-                const breaking = deduplicatedArticles
-                    .filter(item => item.isBreaking || (item.breakingScore && item.breakingScore > 1.5))
-                    .sort((a, b) => (b.breakingScore || 0) - (a.breakingScore || 0))
-                    .slice(0, 3);
-                setBreakingNews(breaking);
-            }
-
-            setLastFetch(Date.now());
-
-            const fetchDuration = Date.now() - fetchStartTime;
-            console.log(`[NewsContext] ✅ Refresh complete in ${fetchDuration}ms`);
-
-        } catch (error) {
-            console.error("[NewsContext] ❌ Fatal refresh error:", {
-                errorMessage: error.message,
-                errorStack: error.stack,
-                timestamp: new Date().toISOString()
-            });
-        } finally {
-            setLoading(false);
-        }
+        const completedAt = Date.now();
+        setLastFetch(completedAt);
+        lastFetchRef.current = completedAt;
+        setLastSyncReason(reason);
+        return nextEnvelope;
     }, []);
 
-    // Audit Logic: Runs after fetch completes (idle time)
-    useEffect(() => {
-        if (lastFetch === 0) return;
+    const refreshNews = useCallback((specificSections = null, options = {}) => {
+        const force = options?.force !== false;
+        const reason = options?.reason || (Array.isArray(specificSections) && specificSections.length > 0
+            ? 'manual-section-refresh'
+            : 'manual-refresh');
 
-        console.log('[NewsContext] Scheduling audit...');
+        if (inFlightRef.current) return inFlightRef.current;
+
+        setLoading(true);
+        const request = loadSectionsDataset({
+            sections: SECTION_IDS,
+            maxSections: SECTION_IDS.length,
+            frontPageLimit: 25,
+            forceRefresh: force,
+        })
+            .then(nextEnvelope => applyEnvelope(nextEnvelope, reason))
+            .catch(error => {
+                const message = error?.message || String(error);
+                setErrors(prev => ({ ...prev, authority: message }));
+                throw error;
+            })
+            .finally(() => {
+                if (inFlightRef.current === request) inFlightRef.current = null;
+                setLoading(false);
+            });
+
+        inFlightRef.current = request;
+        return request;
+    }, [applyEnvelope]);
+
+    const loadSection = useCallback(async (section) => {
+        if (asArray(newsDataRef.current?.[section]).length > 0) return envelope;
+        return refreshNews(null, { force: true, reason: `load-section:${section}` });
+    }, [envelope, refreshNews]);
+
+    useEffect(() => {
+        if (lastFetch === 0) return undefined;
+
         const timer = setTimeout(async () => {
             try {
                 const settings = getSettings();
-                // Pass current newsData snapshot
-                const results = await runFullAudit(newsData, settings);
+                const results = await runFullAudit(newsDataRef.current, settings);
                 setAuditResults(prev => ({ ...prev, ...results }));
             } catch (err) {
                 console.error('[NewsContext] Audit failed:', err);
             }
-        }, 3000); // 3 seconds delay for "pop-in" effect
+        }, 3000);
 
         return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastFetch]); // Only run when a fetch cycle completes
+    }, [lastFetch]);
 
-    // Refresh when settings are saved (settingsVersion bumps)
     useEffect(() => {
         if (prevVersion.current !== settingsVersion) {
-            console.log('[NewsContext] Settings changed (v' + settingsVersion + ') - refreshing');
-            clearNewsCache();
             prevVersion.current = settingsVersion;
-            refreshNews();
+            refreshNews(null, { force: true, reason: 'settings-change' }).catch(() => {});
         }
     }, [settingsVersion, refreshNews]);
 
-    // Breaking snapshot poll (L2): in hybrid mode the in-session detector almost
-    // never fires (it needs < 60-min, multi-source data), so genuine breaking
-    // news gets left behind. Here we trust the workflow-computed breaking
-    // snapshot and poll it on a short cadence to cover the gap between full
-    // section refreshes. An absent file is a valid "nothing breaking" state.
     useEffect(() => {
         let cancelled = false;
         const BREAKING_POLL_MS = 4 * 60 * 1000;
@@ -243,46 +209,79 @@ export function NewsProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        console.log('[NewsContext] Mounting - Initial fetch (Priority Only)');
-        // Initial Fetch: Only Priority Sections
-        // Defer fetch slightly to allow UI shell to paint first (improves perceived load time)
-        const initTimer = setTimeout(() => {
-            refreshNews(PRIORITY_SECTIONS);
-        }, 500);
+        refreshNews(null, { force: true, reason: 'boot' }).catch(() => {});
 
         const { isStaticHost } = getRuntimeCapabilities();
         const refreshIntervalMs = isStaticHost ? 15 * 60 * 1000 : 5 * 60 * 1000;
-
         const interval = setInterval(() => {
-            console.log(`[NewsContext] Auto-refresh (${isStaticHost ? '15min' : '5min'} cycle)`);
-            // Auto refresh: Update what we have loaded, or just priority?
-            // Safer to refresh priority + currently loaded
-            refreshNews(PRIORITY_SECTIONS);
+            refreshNews(null, { force: true, reason: 'interval' }).catch(() => {});
         }, refreshIntervalMs);
 
+        return () => clearInterval(interval);
+    }, [refreshNews]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+        const syncIfStale = (reason, force = false) => {
+            if (document.visibilityState === 'hidden') return;
+            const ageMs = Date.now() - Number(lastFetchRef.current || 0);
+            if (!force && lastFetchRef.current > 0 && ageMs < RESUME_SYNC_MIN_AGE_MS) return;
+            refreshNews(null, { force: true, reason }).catch(() => {});
+        };
+
+        const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible') syncIfStale('visibility-resume');
+        };
+        const onPageShow = event => syncIfStale(event?.persisted ? 'pageshow-bfcache' : 'pageshow');
+        const onOnline = () => syncIfStale('network-online', true);
+
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('pageshow', onPageShow);
+        window.addEventListener('online', onOnline);
+
         return () => {
-            clearTimeout(initTimer);
-            clearInterval(interval);
-            console.log('[NewsContext] Unmounting');
+            document.removeEventListener('visibilitychange', onVisibilityChange);
+            window.removeEventListener('pageshow', onPageShow);
+            window.removeEventListener('online', onOnline);
         };
     }, [refreshNews]);
 
-    // Merge client-detected breaking with the authoritative workflow snapshot
-    // (snapshot wins on conflicts) so consumers see a single ranked list.
-    const mergedBreakingNews = mergeBreakingNews(breakingNews, snapshotBreaking);
+    const breakingNews = useMemo(
+        () => mergeBreakingNews(deriveClientBreaking(newsData), snapshotBreaking),
+        [newsData, snapshotBreaking]
+    );
+
+    const value = useMemo(() => ({
+        envelope,
+        authority: envelope?.data?.authority || null,
+        freshness: envelope?.freshness || null,
+        newsData,
+        loading,
+        errors,
+        refreshNews,
+        breakingNews,
+        lastFetch,
+        lastSyncReason,
+        loadSection,
+        loadedSections,
+        auditResults,
+    }), [
+        envelope,
+        newsData,
+        loading,
+        errors,
+        refreshNews,
+        breakingNews,
+        lastFetch,
+        lastSyncReason,
+        loadSection,
+        loadedSections,
+        auditResults,
+    ]);
 
     return (
-        <NewsContext.Provider value={{
-            newsData,
-            loading,
-            errors,
-            refreshNews,
-            breakingNews: mergedBreakingNews,
-            lastFetch,
-            loadSection,
-            loadedSections,
-            auditResults
-        }}>
+        <NewsContext.Provider value={value}>
             {children}
         </NewsContext.Provider>
     );
@@ -291,3 +290,12 @@ export function NewsProvider({ children }) {
 export function useNews() {
     return useContext(NewsContext);
 }
+
+export const __newsContextInternalsForTest = {
+    SECTION_IDS,
+    RESUME_SYNC_MIN_AGE_MS,
+    projectSectionsEnvelope,
+    hasRenderableNews,
+    envelopeErrors,
+    deriveClientBreaking,
+};
