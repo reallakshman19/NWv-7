@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDataset } from '../data/orchestrator/useDataset.js';
 import { useWeather } from '../context/WeatherContext';
 import { useNews } from '../context/NewsContext';
 import { useSettings } from '../context/SettingsContext';
@@ -345,13 +344,6 @@ function getFirstNewsError(newsErrors) {
 }
 
 export function useMainTabViewModel() {
-  const {
-    envelope: datasetEnvelope,
-    loading: datasetLoading,
-    error: datasetError,
-    reload: reloadDataset,
-  } = useDataset('main');
-
   const { settings, updateSettings } = useSettings();
   const { currentSegment } = useSegment();
 
@@ -363,6 +355,7 @@ export function useMainTabViewModel() {
   } = useWeather();
 
   const {
+    envelope: datasetEnvelope,
     newsData,
     loading: newsLoading,
     errors: newsErrors,
@@ -464,31 +457,28 @@ export function useMainTabViewModel() {
 
   const isLoading = Boolean(
     (weatherLoading && !projectedWeatherData) ||
-    (newsLoading && Object.keys(projectedNewsData).length === 0) ||
-    (datasetLoading && Object.keys(projectedNewsData).length === 0 && !projectedWeatherData)
+    (newsLoading && Object.keys(projectedNewsData).length === 0)
   );
 
   const loadingPhase = isLoading ? 1 : 3;
 
   const refreshAll = useCallback(async () => {
     const results = await Promise.allSettled([
-      reloadDataset(true),
       refreshWeather(true),
-      refreshNews(),
+      refreshNews(null, { force: true, reason: 'main-manual-refresh' }),
     ]);
 
     return getRefreshOutcome(results);
-  }, [refreshNews, refreshWeather, reloadDataset]);
+  }, [refreshNews, refreshWeather]);
 
   const refreshForSegment = useCallback(async () => {
     const results = await Promise.allSettled([
-      reloadDataset(true),
       refreshWeather(),
-      refreshNews(),
+      refreshNews(null, { force: true, reason: 'segment-change' }),
     ]);
 
     return getRefreshOutcome(results);
-  }, [refreshNews, refreshWeather, reloadDataset]);
+  }, [refreshNews, refreshWeather]);
 
   useEffect(() => {
     if (typeof ensureWeatherBoot === 'function') {
@@ -628,7 +618,7 @@ export function useMainTabViewModel() {
   const getMarketTickerDataState = null;
 
   const newsError = getFirstNewsError(newsErrors);
-  const error = datasetError || newsError || null;
+  const error = datasetEnvelope?.error || newsError || null;
 
   const boundaryEnvelope = useMemo(() => makeMainBoundaryEnvelope({
     envelope: datasetEnvelope,
