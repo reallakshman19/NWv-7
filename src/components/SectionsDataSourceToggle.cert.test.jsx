@@ -14,22 +14,27 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('Cloudflare Preview UI toggle', () => {
-  it('shows GitHub as the default production source and labels Cloudflare as Preview', () => {
-    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
+describe('Sections authority UI', () => {
+  it('shows production authority as status-only when source overrides are disabled', () => {
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
+    render(<SectionsDataSourceToggle />);
+
+    expect(screen.getByText('Sections authority')).toBeTruthy();
+    expect(screen.getByText('Cloudflare authority selected · GitHub fallback stays on')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'GitHub' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Cloudflare.*Preview/i })).toBeNull();
+  });
+
+  it('exposes source buttons only in an explicitly enabled developer override build', () => {
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
+    vi.stubEnv('VITE_SECTIONS_ALLOW_SOURCE_OVERRIDE', 'true');
+    setSectionsDataSource(SECTIONS_DATA_SOURCES.GITHUB);
     render(<SectionsDataSourceToggle />);
 
     expect(screen.getByRole('button', { name: 'GitHub' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: /Cloudflare.*Preview/i }).getAttribute('aria-pressed')).toBe('false');
-    expect(screen.getByText('Current production source')).toBeTruthy();
-  });
-
-  it('makes the preview choice explicit and keeps the fallback visible', () => {
-    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
-    setSectionsDataSource(SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW);
-    render(<SectionsDataSourceToggle />);
-
-    expect(screen.getByRole('button', { name: /Cloudflare.*Preview/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Preview selected · GitHub fallback stays on')).toBeTruthy();
+    expect(screen.getByText('GitHub static authority')).toBeTruthy();
   });
 });
