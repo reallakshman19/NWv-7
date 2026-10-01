@@ -14,9 +14,14 @@ export function registerSW() {
 
     window.addEventListener('load', () => {
         const swPath = './sw.js';
-        navigator.serviceWorker.register(swPath)
-            .then((registration) => {
+        navigator.serviceWorker.register(swPath, { updateViaCache: 'none' })
+            .then(async (registration) => {
                 console.log('SW registered: ', registration);
+                try {
+                    await registration.update();
+                } catch (updateError) {
+                    console.warn('SW update check failed: ', updateError);
+                }
             })
             .catch((registrationError) => {
                 console.log('SW registration failed: ', registrationError);
