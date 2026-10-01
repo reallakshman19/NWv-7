@@ -6,6 +6,7 @@ import {
   getSectionsDataSource,
   getSectionsDataSourceRuntimeStatus,
   isCloudflareSectionsPreviewConfigured,
+  isSectionsSourceOverrideEnabled,
   SECTIONS_DATA_SOURCES,
   SECTIONS_DATA_SOURCE_STATUS_EVENT,
   setSectionsDataSource,
@@ -22,21 +23,22 @@ function readableFallbackReason(value) {
 }
 
 function statusCopy(source, runtimeStatus, previewConfigured) {
-  if (source === SECTIONS_DATA_SOURCES.GITHUB) return 'Current production source';
+  if (source === SECTIONS_DATA_SOURCES.GITHUB) return 'GitHub static authority';
   if (!previewConfigured) return 'Preview endpoint is not configured';
   if (runtimeStatus?.fallback) {
-    return `Cloudflare fallback · ${readableFallbackReason(runtimeStatus.fallbackReason)} · showing GitHub`;
+    return `Cloudflare authority fallback · ${readableFallbackReason(runtimeStatus.fallbackReason)} · showing GitHub`;
   }
   if (runtimeStatus?.effective === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
-    return 'Cloudflare Preview active · committed data only';
+    return 'Cloudflare authority active · committed epoch';
   }
-  return 'Preview selected · GitHub fallback stays on';
+  return 'Cloudflare authority selected · GitHub fallback stays on';
 }
 
 export default function SectionsDataSourceToggle() {
   const [source, setSource] = useState(getSectionsDataSource);
   const [runtimeStatus, setRuntimeStatus] = useState(getSectionsDataSourceRuntimeStatus);
   const previewConfigured = isCloudflareSectionsPreviewConfigured();
+  const overrideEnabled = isSectionsSourceOverrideEnabled();
 
   useEffect(() => {
     const handleStatus = event => setRuntimeStatus(event.detail || null);
@@ -56,6 +58,17 @@ export default function SectionsDataSourceToggle() {
   }, [previewConfigured, source]);
 
   const cloudflareSelected = source === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW;
+
+  if (!overrideEnabled) {
+    return (
+      <section className="sections-source-control" aria-label="Sections data authority">
+        <div className="sections-source-control__label">
+          <span>Sections authority</span>
+          <small aria-live="polite">{statusCopy(source, runtimeStatus, previewConfigured)}</small>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="sections-source-control" aria-label="Sections data source">

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -45,12 +45,16 @@ describe('Top Stories shadow aggregation workflow', () => {
     const input = path.join(root, 'input');
     const outputA = path.join(root, 'output-a');
     const outputB = path.join(root, 'output-b');
+    const replayConfigPath = path.join(root, 'study-config.json');
     await mkdir(input, { recursive: true });
+    const replayConfig = JSON.parse(await text(STUDY_CONFIG));
+    replayConfig.expiryAt = '2999-12-31T23:59:59.000Z';
+    await writeFile(replayConfigPath, JSON.stringify(replayConfig));
 
     const args = [
       AGGREGATOR,
       '--input', input,
-      '--config', STUDY_CONFIG,
+      '--config', replayConfigPath,
       '--date', '2026-07-16',
     ];
     execFileSync(process.execPath, [...args, '--output', outputA], { cwd: ROOT });

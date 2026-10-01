@@ -132,7 +132,7 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
     const previewUrl = getCloudflareSectionsPreviewUrl();
     if (previewUrl) {
       try {
-        const previewSnapshot = await requestSnapshotUrl(previewUrl, budgetMs, { bypassCache: false });
+        const previewSnapshot = await requestSnapshotUrl(previewUrl, budgetMs, { bypassCache: true });
         if (!isUsablePreviewSnapshot(previewSnapshot)) {
           const error = new Error('Cloudflare Preview snapshot is stale or incomplete');
           error.code = 'preview_snapshot_unusable';

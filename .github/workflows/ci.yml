@@ -53,6 +53,15 @@ jobs:
           mkdir -p reports
           npm run test:certify:smoke 2>&1 | tee reports/ci_validation.log
 
+      - name: Upload verified Vite build
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: verified-vite-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload failure log
         uses: actions/upload-artifact@v4
         if: failure()

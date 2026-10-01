@@ -1,5 +1,6 @@
 /* Service Worker for News & Weather App */
-const CACHE_NAME = 'news-weather-app-v2';
+const CACHE_PREFIX = 'news-weather-app-';
+const CACHE_NAME = 'news-weather-app-v3-sections-authority';
 const BASE_PATH = './';
 
 const PRECACHE_URLS = [
@@ -9,54 +10,61 @@ const PRECACHE_URLS = [
     `${BASE_PATH}manifest.json`
 ];
 
+function isRuntimeDataRequest(url) {
+    return url.pathname.includes('/newsdata/') ||
+        url.pathname.includes('/api/datasets/') ||
+        url.pathname.includes('/preview/sections/') ||
+        url.pathname.includes('/v1/sections/');
+}
+
 self.addEventListener('install', (event) => {
     self.skipWaiting();
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
-    );
+    event.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+        await Promise.all(PRECACHE_URLS.map(async (url) => {
+            const response = await fetch(url, { cache: 'reload' });
+            if (response.ok) await cache.put(url, response.clone());
+        }));
+    })());
 });
 
 self.addEventListener('activate', (event) => {
-    event.waitUntil(Promise.all([
-        clients.claim(),
-        caches.keys().then((cacheNames) => Promise.all(
-            cacheNames.map((cacheName) => {
-                if (cacheName !== CACHE_NAME) {
-                    return caches.delete(cacheName);
-                }
-                return Promise.resolve();
-            })
-        ))
-    ]));
+    event.waitUntil((async () => {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map((cacheName) => {
+            if (cacheName.startsWith(CACHE_PREFIX) && cacheName !== CACHE_NAME) {
+                return caches.delete(cacheName);
+            }
+            return Promise.resolve();
+        }));
+        await self.clients.claim();
+    })());
 });
 
 self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Do not hijack third-party requests. Let the browser handle them directly.
-    if (url.origin !== self.location.origin) {
-        return;
-    }
+    if (request.method !== 'GET') return;
 
-    if (request.method !== 'GET') {
-        return;
-    }
+    // Dataset freshness belongs to the dataset authority, never the app-shell cache.
+    if (isRuntimeDataRequest(url)) return;
+
+    // Do not proxy or cache third-party requests.
+    if (url.origin !== self.location.origin) return;
 
     event.respondWith((async () => {
         const cache = await caches.open(CACHE_NAME);
 
         try {
-            const response = await fetch(request);
+            const response = await fetch(request, { cache: 'no-store' });
             if (response && response.ok) {
-                cache.put(request, response.clone());
+                await cache.put(request, response.clone());
             }
             return response;
         } catch {
             const cached = await cache.match(request);
-            if (cached) {
-                return cached;
-            }
+            if (cached) return cached;
 
             if (request.mode === 'navigate') {
                 const fallback = await cache.match(`${BASE_PATH}index.html`);
@@ -75,7 +83,7 @@ self.addEventListener('notificationclick', (event) => {
     event.notification.close();
 
     event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
                 if (client.url.startsWith(self.registration.scope) && 'focus' in client) {
@@ -83,8 +91,8 @@ self.addEventListener('notificationclick', (event) => {
                     return client.focus();
                 }
             }
-            if (clients.openWindow) {
-                return clients.openWindow(BASE_PATH);
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(BASE_PATH);
             }
             return null;
         })
