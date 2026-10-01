@@ -1,3 +1,5 @@
+import { PRODUCTION_RUNTIME_ENDPOINTS } from '../config/runtimeEndpoints.js';
+
 export const SECTIONS_DATA_SOURCES = Object.freeze({
   GITHUB: 'github_static',
   CLOUDFLARE_PREVIEW: 'cloudflare_preview',
@@ -19,7 +21,13 @@ function normalizeSource(value, fallback = SECTIONS_DATA_SOURCES.GITHUB) {
 }
 
 export function getCloudflareSectionsPreviewUrl() {
-  return String(import.meta.env.VITE_SECTIONS_AUTHORITY_URL || import.meta.env.VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL || '').trim();
+  const configured = String(
+    import.meta.env.VITE_SECTIONS_AUTHORITY_URL ||
+    import.meta.env.VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL ||
+    ''
+  ).trim();
+  if (configured) return configured;
+  return import.meta.env.PROD ? PRODUCTION_RUNTIME_ENDPOINTS.sectionsAuthorityUrl : '';
 }
 
 export function isCloudflareSectionsPreviewConfigured() {
@@ -27,7 +35,10 @@ export function isCloudflareSectionsPreviewConfigured() {
 }
 
 export function getConfiguredSectionsAuthority() {
-  const configured = String(import.meta.env.VITE_SECTIONS_AUTHORITY || '').trim().toLowerCase();
+  const configured = String(
+    import.meta.env.VITE_SECTIONS_AUTHORITY ||
+    (import.meta.env.PROD ? PRODUCTION_RUNTIME_ENDPOINTS.sectionsAuthority : '')
+  ).trim().toLowerCase();
   if (configured === 'cloudflare' && isCloudflareSectionsPreviewConfigured()) {
     return SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW;
   }
