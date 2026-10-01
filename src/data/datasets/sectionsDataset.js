@@ -219,6 +219,38 @@ function getPerformanceSummary(summaries) {
   };
 }
 
+
+function getAuthoritySummary(summaries) {
+  const snapshotSummary = summaries
+    .map(summary => summary.snapshotRuntimeSummary)
+    .find(Boolean) || null;
+  if (!snapshotSummary) {
+    return {
+      effective: 'live_rss',
+      requested: 'live_rss',
+      fallback: false,
+      fallbackReason: null,
+      epochId: null,
+      contentHash: null,
+      fetchedAt: null,
+      ageMs: null,
+      stale: false,
+    };
+  }
+  const dataSource = snapshotSummary.dataSource || {};
+  return {
+    effective: dataSource.effective || 'github_static',
+    requested: dataSource.requested || dataSource.effective || 'github_static',
+    fallback: Boolean(dataSource.fallback),
+    fallbackReason: dataSource.fallbackReason || null,
+    epochId: snapshotSummary.preview?.epochId || null,
+    contentHash: snapshotSummary.contentHash || null,
+    fetchedAt: snapshotSummary.fetchedAt || null,
+    ageMs: snapshotSummary.ageMs ?? null,
+    stale: Boolean(snapshotSummary.stale),
+  };
+}
+
 function getValidationWarnings(summaries) {
   return summaries
     .filter(summary => summary.staleReason || summary.isSingleSource || summary.fetchDiagnostics?.snapshotBudgetExceeded)
@@ -237,7 +269,9 @@ export async function load(options = {}) {
   const settled = await Promise.allSettled(sections.map(async section => {
     const limit = getSectionLimit(settings, section);
     const startedAt = Date.now();
-    const result = await fetchSectionNews(section, limit, settings.newsSources);
+    const result = await fetchSectionNews(section, limit, settings.newsSources, {
+      force: Boolean(options.forceRefresh),
+    });
     const durationMs = Date.now() - startedAt;
     const withBudgetDiagnostics = attachBudgetExitDiagnostics(section, result);
     return summarizeSection(section, ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs));
@@ -262,6 +296,7 @@ export async function load(options = {}) {
       frontPage,
       summaries,
       performanceSummary: getPerformanceSummary(summaries),
+      authority: getAuthoritySummary(summaries),
       loadedSections: sections,
       failedSections: failed.map(summary => ({ section: summary.section, error: summary.error })),
       duplicateHints: getDuplicateHints(dedupedItems),
