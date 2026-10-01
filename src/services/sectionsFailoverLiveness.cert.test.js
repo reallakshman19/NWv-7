@@ -16,9 +16,10 @@ describe('NW-CF-HYBRID-002 failover liveness contract', () => {
     expect(config.vars.SHADOW_MODE).toBe('S1_GITHUB_PRIMARY_CF_SHADOW');
   });
 
-  it('keeps Cloudflare Preview opt-in and surfaces the concrete fallback reason', () => {
+  it('keeps the Cloudflare authority observable and surfaces the concrete fallback reason', () => {
     const source = read('src/components/SectionsDataSourceToggle.jsx');
-    expect(source).toContain('Cloudflare <span>(Preview)</span>');
+    expect(source).toContain('Sections authority');
+    expect(source).toContain('Cloudflare authority active · committed epoch');
     expect(source).toContain('runtimeStatus.fallbackReason');
     expect(source).toContain('preview snapshot stale/incomplete');
     expect(source).toContain('preview request timed out');
