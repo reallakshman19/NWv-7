@@ -1,0 +1,2 @@
+import{b as e}from"./vendor-react-CtQ_ThZC.js";import{l as o}from"./index-DfhNR4Cl.js";function s(t){return{showStaticHostBadge:!!t?.isStaticHost,staticHostBadgeTitle:"Static-host mode: snapshot/cache-first behavior is active.",staticHostBadgeLabel:"Static-host mode",staticHostBadgeIcon:"📦"}}function r(){const t=e.useMemo(()=>o(),[]);return e.useMemo(()=>s(t),[t])}export{r as u};
+//# sourceMappingURL=useShellRuntimeProps-BxQVNPn8.js.map
