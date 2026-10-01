@@ -3,10 +3,6 @@ import {
   clearSectionsSnapshotLoadCache,
   loadSectionsSnapshot,
 } from './sectionsSnapshotLoader.js';
-import {
-  SECTIONS_DATA_SOURCES,
-  setSectionsDataSource,
-} from '../utils/sectionsDataSource.js';
 
 function deferred() {
   let resolve;
@@ -123,13 +119,8 @@ describe('sections snapshot shared load certification', () => {
   });
 
   it('loads the independently acquired Cloudflare snapshot when Preview is selected', async () => {
-    const values = new Map();
-    vi.stubGlobal('localStorage', {
-      getItem: key => values.get(key) || null,
-      setItem: (key, value) => values.set(key, value),
-    });
-    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
-    setSectionsDataSource(SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW);
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
     const fetchMock = vi.fn().mockResolvedValue(response(snapshot('cloudflare')));
     vi.stubGlobal('fetch', fetchMock);
 
@@ -144,18 +135,13 @@ describe('sections snapshot shared load certification', () => {
     });
     expect(fetchMock).toHaveBeenCalledWith(
       'https://preview.example/preview/sections/latest',
-      expect.objectContaining({ cache: 'default' }),
+      expect.objectContaining({ cache: 'no-store' }),
     );
   });
 
   it('falls back to GitHub when the selected Preview snapshot is stale', async () => {
-    const values = new Map();
-    vi.stubGlobal('localStorage', {
-      getItem: key => values.get(key) || null,
-      setItem: (key, value) => values.set(key, value),
-    });
-    vi.stubEnv('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL', 'https://preview.example/preview/sections/latest');
-    setSectionsDataSource(SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW);
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
     const stalePreview = {
       ...snapshot('stale-cloudflare'),
       fetchedAt: Date.now() - 13 * 60 * 60 * 1000,
