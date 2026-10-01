@@ -517,12 +517,13 @@ function isSourceAllowed(sourceName, allowedSources) {
 /**
  * Fetches news for a given section.
  */
-export async function fetchSectionNews(section, limit = 10, allowedSources = null) {
+export async function fetchSectionNews(section, limit = 10, allowedSources = null, options = {}) {
     const _t0 = Date.now();
     // Optimization: If limit is 0, don't fetch anything
     if (limit === 0) return [];
 
     const cacheKey = section;
+    const force = options?.force === true;
     let items = [];
 
     // Check if cache is enabled in settings (Phase 6)
@@ -530,7 +531,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     const cacheEnabled = settings.enableCache !== false; // Default to true
 
     // Check cache first if enabled
-    if (cacheEnabled && !isLiveMode()) {
+    if (!force && cacheEnabled && !isLiveMode()) {
         const cached = memoryCache.get(cacheKey);
         if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
             const ageSeconds = Math.round((Date.now() - cached.timestamp) / 1000);
@@ -538,6 +539,8 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
             return rankAndFilter(cached.data, section, limit, allowedSources);
         }
         console.log(`[RSS] ⚠️ Cache MISS for ${section} - Fetching fresh data`);
+    } else if (force) {
+        console.log(`[RSS] 🔄 Forced sync - bypassing memory cache for ${section}`);
     } else if (isLiveMode()) {
         console.log(`[RSS] ⚡ Live mode active - bypassing memory cache for ${section}`);
     } else {
@@ -572,7 +575,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     // This avoids browser RSS/proxy failures and uses workflow-produced quality data.
     if (!isLiveMode() && settings.usePrefetchedSections !== false) {
         try {
-            const prefetched = await fetchPrefetchedSectionNews(section, Math.max(limit * 3, limit));
+            const prefetched = await fetchPrefetchedSectionNews(section, Math.max(limit * 3, limit), { force });
             const runtime = getRuntimeCapabilities();
 
             if (prefetched.stale) {
