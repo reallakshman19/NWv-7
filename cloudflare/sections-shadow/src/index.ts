@@ -119,6 +119,32 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   return json({ error: 'not_found' }, 404);
 }
 
+async function findLatestRecoverableLiveEpoch(
+  env: Env,
+  beforeLogicalSlot: number,
+): Promise<{ epochId: string; logicalSlot: number; attempt: number } | null> {
+  const row = await env.SHADOW_DB.prepare(`
+    SELECT epoch_id, logical_slot, attempt
+    FROM sections_shadow_epochs
+    WHERE state = 'STAGED'
+      AND acquisition_mode = 'INDEPENDENT_LIVE'
+      AND terminal_lane_count = expected_lane_count
+      AND logical_slot < ?
+    ORDER BY logical_slot DESC
+    LIMIT 1
+  `).bind(beforeLogicalSlot).first<{
+    epoch_id: string;
+    logical_slot: number;
+    attempt: number;
+  }>();
+  if (!row) return null;
+  return {
+    epochId: row.epoch_id,
+    logicalSlot: Number(row.logical_slot),
+    attempt: Number(row.attempt),
+  };
+}
+
 export function scheduledStatus(env: Env): {
   status: 'SHADOW_SCHEDULE_DISABLED' | 'LIVE_ACQUISITION_DISABLED' | 'LIVE_ACQUISITION_READY';
   enqueued: false;
@@ -156,6 +182,15 @@ export async function runScheduledDispatch(
     return { status: 'LIVE_ACQUISITION_DISABLED', enqueued: false };
   }
   const logicalSlot = Math.floor(controller.scheduledTime / HOUR_MS) * HOUR_MS;
+  const recoverable = await findLatestRecoverableLiveEpoch(env, logicalSlot);
+  if (recoverable) {
+    await env.SHADOW_QUEUE.send({
+      type: 'FINALIZE_LIVE_EPOCH',
+      epochId: recoverable.epochId,
+      logicalSlot: recoverable.logicalSlot,
+      attempt: recoverable.attempt,
+    });
+  }
   await env.SHADOW_QUEUE.send({
     type: 'START_LIVE_EPOCH',
     epochId: `live-${logicalSlot}`,

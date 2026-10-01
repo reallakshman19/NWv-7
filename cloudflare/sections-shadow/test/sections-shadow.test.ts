@@ -39,6 +39,10 @@ import {
   buildBoundedBrowserFeedXml,
   parseLiveFeedText,
 } from '../../../scripts/sections-live/sectionsLiveAuthority.mjs';
+import {
+  COMPACT_LIVE_EVIDENCE_TARGET_BYTES,
+  compactSectionsLiveEvidence,
+} from '../../../scripts/sections-live/sectionsLiveEvidence.mjs';
 import { classifySectionsLiveParity } from '../../../scripts/sections-live/sectionsLiveParity.mjs';
 import { qualifySectionsShadow } from '../../../scripts/sections-live/sectionsShadowQualification.mjs';
 
@@ -211,6 +215,69 @@ describe('Sections shadow deterministic authority', () => {
 });
 
 describe('Sections independent live acquisition', () => {
+  it('keeps committed live evidence below the D1 object limit and reconstructs oversized preview sections', () => {
+    const oversizedSectionItems = {
+      topStories: [{
+        id: 'oversized-preview',
+        title: 'Oversized preview fixture',
+        summary: 'x'.repeat(COMPACT_LIVE_EVIDENCE_TARGET_BYTES),
+      }],
+    };
+    const compact = compactSectionsLiveEvidence({
+      schemaVersion: 'nw-sections-live-evidence/v1',
+      acquisitionMode: 'INDEPENDENT_LIVE',
+      nowMs: NOW_MS,
+      sourceRegistryVersion: sectionsRegistryAuthority.sourceRegistryVersion,
+      sourceRegistryDigest: sectionsRegistryAuthority.sourceRegistryDigest,
+      inputEvidenceDigest: DIGEST,
+      acquisition: [{
+        laneId: 'lane-1',
+        sectionKey: 'topStories',
+        sourceGroup: 'fixture',
+        feedUrlDigest: DIGEST,
+        disposition: 'OK',
+        itemCount: 1,
+        normalizedItemsDigest: DIGEST,
+        httpStatus: 200,
+        errorCode: null,
+        diagnostics: { oversized: 'y'.repeat(250_000) },
+      }],
+      parityStages: {
+        identityDigest: DIGEST,
+        normalizationDigest: DIGEST,
+        classificationDigest: DIGEST,
+        admissionDigest: DIGEST,
+        rankingDigest: DIGEST,
+        sourceHealthDigest: DIGEST,
+      },
+      safety: {
+        displayedDecisionCount: 1,
+        staleAdmissionCount: 0,
+        policyViolationCount: 0,
+        falsePublisherCorroborationCount: 0,
+      },
+      candidateCount: 1,
+      sectionItems: oversizedSectionItems,
+      decisionEvidence: {
+        selectedIds: ['oversized-preview'],
+        displayedIds: ['oversized-preview'],
+      },
+      decisionOutputDigest: DIGEST,
+    });
+
+    expect(compact.previewSectionItemsIncluded).toBe(false);
+    expect(compact).not.toHaveProperty('sectionItems');
+    expect(compact.acquisition).toEqual([{
+      laneId: 'lane-1',
+      disposition: 'OK',
+      itemCount: 1,
+      httpStatus: 200,
+      errorCode: null,
+    }]);
+    expect(new TextEncoder().encode(JSON.stringify(compact)).byteLength)
+      .toBeLessThanOrEqual(COMPACT_LIVE_EVIDENCE_TARGET_BYTES);
+  });
+
   it('parses bounded RSS evidence and rejects oversized feed bodies', async () => {
     const [lane] = await buildShadowLaneDefinitions();
     const parsed = parseLiveFeedText(await rssResponse('parser').text(), lane, NOW_MS);
@@ -710,6 +777,56 @@ describe('S1 authority boundary', () => {
     await expect(runScheduledDispatch(controller, target)).resolves.toEqual({
       status: 'LIVE_EPOCH_ENQUEUED',
       enqueued: true,
+    });
+    expect(queue.sent).toContainEqual({
+      type: 'START_LIVE_EPOCH',
+      epochId: `live-${NOW_MS}`,
+      logicalSlot: NOW_MS,
+      attempt: 1,
+    });
+  });
+
+  it('re-enqueues finalization for the newest fully staged live epoch before starting the next slot', async () => {
+    const queue = new RecordingQueue();
+    const target = {
+      ...liveEnv(queue),
+      SHADOW_SCHEDULE_ENABLED: 'true',
+      SHADOW_LIVE_ACQUISITION_ENABLED: 'true',
+      SHADOW_FROZEN_REPLAY_TRIGGER_ENABLED: 'false',
+    } as Env;
+    const recoverableSlot = NOW_MS - 60 * 60 * 1_000;
+    await startLive(target, `live-${recoverableSlot}`, recoverableSlot);
+    const epoch = await readEpoch(target.SHADOW_DB, `live-${recoverableSlot}`);
+    expect(epoch).not.toBeNull();
+    const lanes = await buildShadowLaneDefinitions();
+    for (const lane of lanes) {
+      await stageLiveLaneResult(target, epoch!, {
+        lane,
+        disposition: 'EMPTY',
+        items: [],
+        httpStatus: 200,
+        durationMs: 1,
+        errorCode: null,
+        diagnostics: {},
+        observedAtMs: recoverableSlot,
+        attemptCount: 1,
+      });
+    }
+    expect((await readEpoch(target.SHADOW_DB, `live-${recoverableSlot}`))?.terminal_lane_count)
+      .toBe(EXPECTED_SECTIONS_LANE_COUNT);
+
+    const controller = {
+      scheduledTime: NOW_MS + 12_000,
+      cron: '0 * * * *',
+      noRetry: () => undefined,
+    } as unknown as ScheduledController;
+    await runScheduledDispatch(controller, target);
+
+    expect(queue.sent).toContainEqual({
+      type: 'FINALIZE_LIVE_EPOCH',
+      epochId: `live-${recoverableSlot}`,
+      logicalSlot: recoverableSlot,
+      attempt: 1,
     });
     expect(queue.sent).toContainEqual({
       type: 'START_LIVE_EPOCH',
