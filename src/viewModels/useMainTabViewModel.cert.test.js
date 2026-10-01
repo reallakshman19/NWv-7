@@ -30,8 +30,9 @@ const {
 describe('useMainTabViewModel static checks', () => {
   const src = fs.readFileSync('src/viewModels/useMainTabViewModel.js', 'utf8');
 
-  it('uses main dataset and owns context orchestration', () => {
-    expect(src).toContain("useDataset('main')");
+  it('uses NewsContext as the single Sections authority and owns context orchestration', () => {
+    expect(src).not.toContain("useDataset('main')");
+    expect(src).toContain('envelope: datasetEnvelope');
     expect(src).toContain('useWeather');
     expect(src).toContain('useNews');
     expect(src).toContain('useSettings');
@@ -56,11 +57,11 @@ describe('useMainTabViewModel static checks', () => {
     expect(src).toContain('data.raw?.newsData');
   });
 
-  it('uses safe refresh fan-out and never passes boolean to refreshNews', () => {
+  it('routes manual refresh through the canonical Sections sync primitive', () => {
     expect(src).toContain('Promise.allSettled');
     expect(src).toContain('refreshWeather(true)');
-    expect(src).toContain('refreshNews()');
-    expect(src).not.toContain('refreshNews' + '(true)');
+    expect(src).toContain("refreshNews(null, { force: true, reason: 'main-manual-refresh' })");
+    expect(src).not.toContain('reloadDataset(true)');
   });
 
   it('guards Notification access', () => {
