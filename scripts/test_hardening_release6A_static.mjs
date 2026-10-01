@@ -52,7 +52,8 @@ pass(
   'mainDataset must emit datasetId main'
 );
 
-pass(vm.includes("useDataset('main')"), 'Main ViewModel must use main dataset');
+pass(!vm.includes("useDataset('main')"), 'Main ViewModel must not own a parallel mainDataset Sections authority');
+pass(vm.includes('envelope: datasetEnvelope'), 'Main ViewModel must consume the canonical NewsContext envelope');
 pass(vm.includes('useWeather'), 'Main ViewModel must own WeatherContext access');
 pass(vm.includes('useNews'), 'Main ViewModel must own NewsContext access');
 pass(vm.includes('useSettings'), 'Main ViewModel must own SettingsContext access');
@@ -82,8 +83,8 @@ pass(vm.includes("typeof Notification === 'undefined'"), 'Main ViewModel must gu
 
 pass(vm.includes('Promise.allSettled'), 'Main ViewModel must use Promise.allSettled for refresh fan-out');
 pass(vm.includes('refreshWeather(true)'), 'Main ViewModel must force refresh weather on manual refresh');
-pass(vm.includes('refreshNews()'), 'Main ViewModel must call refreshNews() without boolean argument');
-pass(!vm.includes('refreshNews(true)'), 'Main ViewModel must not call refreshNews(true)');
+pass(vm.includes("refreshNews(null, { force: true, reason: 'main-manual-refresh' })"), 'Main ViewModel must route manual news refresh through the canonical forced sync');
+pass(!vm.includes('reloadDataset(true)'), 'Main ViewModel must not run a parallel mainDataset refresh');
 pass(vm.includes('getRefreshOutcome'), 'Main ViewModel must own refresh outcome policy');
 pass(vm.includes('degraded: true'), 'Main ViewModel must support degraded refresh success');
 pass(vm.includes('main_loading_without_renderable_projection'), 'Main ViewModel must not mark loading-only empty data as OK');
@@ -92,7 +93,8 @@ pass(vm.includes('main.view_model.projected_data'), 'Main ViewModel must add pro
 
 pass(page.includes('useMainTabViewModel'), 'MainPage must use Main ViewModel');
 pass(page.includes('DataStateBoundary'), 'MainPage must use DataStateBoundary');
-pass(page.includes('usePullToRefresh(refreshAll)'), 'MainPage pull-to-refresh must use ViewModel refreshAll');
+pass(page.includes('Promise.allSettled([refreshAll(), refreshDailyDigest()])'), 'MainPage pull-to-refresh must compose Main and Daily Digest refresh');
+pass(page.includes('usePullToRefresh(refreshPage)'), 'MainPage pull-to-refresh must use the composite refresh callback');
 
 [
   "from '../context/WeatherContext'",
