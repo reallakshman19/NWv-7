@@ -31,6 +31,46 @@ function normalizeRawFeedItem(item, sourceMeta = {}) {
   };
 }
 
+function makeCategoryAcquisitionSummary() {
+  return {
+    attemptedSources: 0,
+    successfulSources: 0,
+    failedSources: 0,
+    returnedItems: 0,
+    unseenItems: 0,
+  };
+}
+
+function makeAcquisitionSummary(fetchPlan = []) {
+  const byCategory = {};
+  let attemptedSources = 0;
+
+  for (const planEntry of fetchPlan || []) {
+    for (const source of planEntry?.sources || []) {
+      attemptedSources += 1;
+      const category = String(source?.category || planEntry?.category || 'unknown');
+      byCategory[category] ||= makeCategoryAcquisitionSummary();
+      byCategory[category].attemptedSources += 1;
+    }
+  }
+
+  return {
+    status: attemptedSources > 0 ? 'running' : 'no-sources',
+    attemptedSources,
+    successfulSources: 0,
+    failedSources: 0,
+    returnedItems: 0,
+    unseenItems: 0,
+    byCategory,
+  };
+}
+
+function categorySummary(acquisition, source, planEntry) {
+  const category = String(source?.category || planEntry?.category || 'unknown');
+  acquisition.byCategory[category] ||= makeCategoryAcquisitionSummary();
+  return acquisition.byCategory[category];
+}
+
 export async function fetchIntelligentUpAheadData(options = {}) {
   const categories = options.categories || ['movies', 'events', 'festivals', 'alerts', 'weather_alerts', 'shopping', 'airlines'];
   const locations = options.locations || ['Chennai', 'Muscat', 'Trichy'];
@@ -40,18 +80,34 @@ export async function fetchIntelligentUpAheadData(options = {}) {
   pruneIngestionLedger(options.ledgerMaxAgeDays || 30);
   let fetchPlan = buildFeedFetchPlan({ categories, locations, registry: options.registry, isStaticHost: isStaticHostRuntime() });
 
+  const acquisitionSummary = makeAcquisitionSummary(fetchPlan);
   const rawCollected = [];
   for (const planEntry of fetchPlan) {
     for (const source of planEntry.sources || []) {
+      const category = categorySummary(acquisitionSummary, source, planEntry);
+
       try {
         const response = await proxyManager.fetchViaProxy(source.url);
-        const unseen = filterUnseenFeedItems(source.url, response?.items || []);
-        recordFeedResult(source.url, unseen.length > 0);
+        const returnedItems = Array.isArray(response?.items) ? response.items : [];
+        const unseen = filterUnseenFeedItems(source.url, returnedItems);
+
+        acquisitionSummary.successfulSources += 1;
+        acquisitionSummary.returnedItems += returnedItems.length;
+        acquisitionSummary.unseenItems += unseen.length;
+        category.successfulSources += 1;
+        category.returnedItems += returnedItems.length;
+        category.unseenItems += unseen.length;
+
+        recordFeedResult(source.url, returnedItems.length > 0);
+
         if (unseen.length > 0) {
           rawCollected.push(...unseen.map(item => normalizeRawFeedItem(item, source)));
           markSeenFeedItems(source.url, unseen);
         }
       } catch (error) {
+        acquisitionSummary.failedSources += 1;
+        category.failedSources += 1;
+
         recordFeedResult(source.url, false);
         rawCollected.push({
           title: '', description: '', link: '', pubDate: null, category: source.category, source: source.url, rawSource: source.url,
@@ -60,6 +116,14 @@ export async function fetchIntelligentUpAheadData(options = {}) {
       }
     }
   }
+
+  acquisitionSummary.status = acquisitionSummary.attemptedSources === 0
+    ? 'no-sources'
+    : acquisitionSummary.successfulSources === 0
+      ? 'failed'
+      : acquisitionSummary.failedSources > 0
+        ? 'partial'
+        : 'success';
 
   const canonicalItems = buildCanonicalItems(rawCollected, {
     asOfDate,
@@ -80,6 +144,7 @@ export async function fetchIntelligentUpAheadData(options = {}) {
     rankedItems: ranked,
     auditSummary: summarizeDecisionRecords(deduped),
     dropReport: buildDropReport(deduped),
+    acquisitionSummary,
     fetchPlan
   };
 }
