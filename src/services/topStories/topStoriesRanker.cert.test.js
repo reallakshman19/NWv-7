@@ -15,6 +15,7 @@ function story(id, ageHours, extra = {}) {
     section: extra.section || 'world',
     source: extra.source || `Source ${id}`,
     sourceGroup: extra.sourceGroup || `source-${id}`,
+    sourceTier: extra.sourceTier === undefined ? 'A' : extra.sourceTier,
     publishedAt: ageHours == null ? undefined : NOW - ageHours * hour,
     timestampConfidence: extra.timestampConfidence || 'high',
     ...extra,
@@ -440,6 +441,7 @@ describe('NW-RANK-001 Top Stories ranker', () => {
         title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
         source: 'Times of India',
         sourceGroup: 'toi',
+        sourceTier: null,
         sourceCount: 1,
       }),
       story('corroborated-court', 2, {
@@ -457,6 +459,7 @@ describe('NW-RANK-001 Top Stories ranker', () => {
       title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
       source: 'Times of India',
       sourceGroup: 'toi',
+      sourceTier: null,
       sourceCount: 1,
     }));
     expect(scored._topStoryRank.ageBand).toBe('primary');
