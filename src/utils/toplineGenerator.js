@@ -86,7 +86,7 @@ function getTrending(newsData) {
     };
 }
 
-function getWeatherInsight(weatherData) {
+export function getWeatherInsight(weatherData) {
     if (!weatherData || Object.keys(weatherData).length === 0) return null;
 
     // Pick first available city
@@ -96,18 +96,53 @@ function getWeatherInsight(weatherData) {
     if (!data || !data.current) return null;
 
     const temp = data.current.temp;
-    const cond = data.current.condition.toLowerCase();
+    const cond = String(data.current.condition || 'conditions').toLowerCase();
+    const nextHours = Array.isArray(data.next8Hours)
+        ? data.next8Hours
+        : (Array.isArray(data.hourly24) ? data.hourly24.slice(0, 8) : []);
+    const nextPeakProb = nextHours.reduce(
+        (max, slot) => Math.max(max, Number(slot?.prob || 0)),
+        0
+    );
+    const nextRainMm = Number(nextHours.reduce(
+        (sum, slot) => sum + Number(slot?.precip || 0),
+        0
+    ).toFixed(1));
+    const today = Array.isArray(data.weeklyForecast) ? data.weeklyForecast[0] : null;
+    const dailyPeakProb = Number(
+        data?.dailyRain?.peakProbability ??
+        today?.precipProb ??
+        today?.rainProb ??
+        0
+    ) || 0;
+    const dailyRainMm = Number(
+        data?.dailyRain?.forecastTotalMm ??
+        today?.precipSum ??
+        today?.rainMm ??
+        0
+    ) || 0;
 
     let text = "";
-    if (temp > 35) text = `It's a scorcher today at ${temp}°C. Stay hydrated!`;
-    else if (temp < 20) text = `Cooler vibes today at ${temp}°C.`;
-    else if (cond.includes('rain')) text = "Rainy skies today. Don't forget your umbrella.";
-    else text = `Currently ${temp}°C and ${cond}. A pleasant day ahead?`;
+    if (temp > 35) {
+        text = `It's a scorcher today at ${temp}°C. Stay hydrated!`;
+    } else if (temp < 20) {
+        text = `Cooler vibes today at ${temp}°C.`;
+    } else if (cond.includes('rain') || cond.includes('drizzle') || cond.includes('shower')) {
+        text = "Rainy skies now. Keep an umbrella handy.";
+    } else if (nextPeakProb >= 60 || nextRainMm >= 2) {
+        text = `Currently ${temp}°C and ${cond}. Rain is likely in the next several hours.`;
+    } else if (nextPeakProb >= 30 || nextRainMm >= 0.5) {
+        text = `Currently ${temp}°C and ${cond}. Showers are possible later.`;
+    } else if (dailyPeakProb >= 70 && dailyRainMm >= 5) {
+        text = `Currently ${temp}°C and ${cond}. Today's forecast remains rain-prone.`;
+    } else {
+        text = `Currently ${temp}°C and ${cond}. Conditions look relatively stable.`;
+    }
 
     return {
         type: 'WEATHER INSIGHT',
         icon: '🌤️',
-        text: text
+        text
     };
 }
 
