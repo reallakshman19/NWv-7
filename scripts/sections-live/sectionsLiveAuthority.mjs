@@ -126,18 +126,18 @@ function parseTimestamp(value) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-export function getSectionGeography(sectionKey) {
+export function getSectionAcquisitionGeography(sectionKey) {
   switch (String(sectionKey || '').trim()) {
     case 'muscat':
-      return { region: 'oman', countryCode: 'om' };
+      return { acquisitionRegion: 'oman', acquisitionCountryCode: 'om' };
     case 'india':
     case 'tn':
     case 'trichy':
-      return { region: 'india', countryCode: 'in' };
+      return { acquisitionRegion: 'india', acquisitionCountryCode: 'in' };
     case 'world':
-      return { region: 'world', countryCode: null };
+      return { acquisitionRegion: 'world', acquisitionCountryCode: null };
     default:
-      return { region: null, countryCode: null };
+      return { acquisitionRegion: null, acquisitionCountryCode: null };
   }
 }
 
@@ -237,7 +237,7 @@ export function parseLiveFeedText(xmlText, lane, nowMs, options = {}) {
       publishedAtSource: 'feed_timestamp',
       timestampConfidence: 'high',
       category: lane.sectionKey,
-      ...getSectionGeography(lane.sectionKey),
+      ...getSectionAcquisitionGeography(lane.sectionKey),
       language: 'en',
       feedPosition: index + 1,
       feedLength: blocks.length,
