@@ -35,7 +35,7 @@ function isEvidenceGatedNonLocalCritical({ ageBand, eventType, signals }) {
 
 function isTrustedColdStart({ ageBand, signals }) {
   return ageBand === 'primary' &&
-    Number(signals.ageMinutes || Infinity) <= COLD_START_MAX_MINUTES &&
+    Number(signals.ageMinutes ?? Infinity) <= COLD_START_MAX_MINUTES &&
     Number(signals.sourceQualityScore || 0) >= COLD_START_SOURCE_QUALITY_MIN;
 }
 
