@@ -303,6 +303,17 @@ function getValidationWarnings(summaries) {
     }));
 }
 
+export function getTopStoriesEvidenceWarning(summary) {
+  if (summary?.ok && summary.count > 0 && !summary.staleReason) return null;
+  return {
+    section: 'topStories',
+    reason: !summary?.ok
+      ? 'top_stories_evidence_fetch_failed'
+      : summary.staleReason || 'top_stories_evidence_empty',
+    severity: 'warn',
+  };
+}
+
 export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
@@ -331,13 +342,9 @@ export async function load(options = {}) {
   });
   const summaries = getVisibleSectionSummaries(allSummaries, sections);
   const topStoriesEvidenceSummary = allSummaries.find(summary => summary.section === 'topStories');
+  const topStoriesEvidenceWarning = getTopStoriesEvidenceWarning(topStoriesEvidenceSummary);
 
-  if (
-    topStoriesEvidenceSummary &&
-    (!topStoriesEvidenceSummary.ok ||
-      topStoriesEvidenceSummary.count === 0 ||
-      topStoriesEvidenceSummary.staleReason)
-  ) {
+  if (topStoriesEvidenceWarning) {
     diagnostics.push({
       event: 'sectionsDataset.top_stories_evidence_degraded',
       severity: 'warn',
@@ -393,7 +400,10 @@ export async function load(options = {}) {
     diagnostics,
     validation: {
       passed: failed.length === 0,
-      warnings: getValidationWarnings(summaries),
+      warnings: [
+        ...getValidationWarnings(summaries),
+        ...(topStoriesEvidenceWarning ? [topStoriesEvidenceWarning] : []),
+      ],
       errors: failed.map(summary => summary.error),
     },
   });
