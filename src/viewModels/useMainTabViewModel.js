@@ -204,31 +204,43 @@ function makeMainBoundaryEnvelope({
   const hasRenderableMain = hasNews || hasWeather || hasBreaking;
 
   if (envelope) {
-    const existingValidation = envelope.validation || {};
+    const sourceValidation = envelope.validation || {};
+    const sourceErrors = Array.isArray(sourceValidation.errors) ? sourceValidation.errors : [];
+    const sourceWarnings = Array.isArray(sourceValidation.warnings) ? sourceValidation.warnings : [];
+    const sourceDegraded = envelope.ok === false || Boolean(error);
+    const sourceFallbackUsed = Boolean(envelope.fallbackUsed || sourceDegraded);
 
     return {
-      ...envelope,
-      ok: Boolean(envelope.ok !== false && hasRenderableMain),
-      freshness: hasRenderableMain ? (envelope.freshness || 'fresh') : 'empty',
-      error: hasRenderableMain ? (envelope.error || null) : (envelope.error || error || null),
+      ok: hasRenderableMain,
+      datasetId: 'main',
       data: {
-        ...(envelope.data || {}),
         newsData,
         weatherData,
         breakingNews,
         projectedHasRenderableMain: hasRenderableMain,
+        raw: {
+          sourceEnvelope: envelope,
+        },
       },
+      source: envelope.source || 'context',
+      freshness: hasRenderableMain
+        ? (envelope.freshness === 'stale' ? 'stale' : 'fresh')
+        : 'empty',
+      fallbackUsed: sourceFallbackUsed,
+      fetchedAt: envelope.fetchedAt || null,
+      generatedAt: envelope.generatedAt || null,
+      error: hasRenderableMain ? null : (envelope.error || error || null),
       validation: {
-        ...existingValidation,
-        passed: Boolean(existingValidation.passed !== false && hasRenderableMain),
+        passed: hasRenderableMain,
         errors: hasRenderableMain
-          ? (Array.isArray(existingValidation.errors) ? existingValidation.errors : [])
+          ? []
           : [
-              ...(Array.isArray(existingValidation.errors) ? existingValidation.errors : []),
-              ...(error ? ['main_projection_error'] : []),
+              ...sourceErrors,
+              ...(error && !sourceErrors.includes(error) ? [error] : []),
             ],
         warnings: [
-          ...(Array.isArray(existingValidation.warnings) ? existingValidation.warnings : []),
+          ...sourceWarnings,
+          ...(sourceDegraded ? ['main_source_degraded'] : []),
           ...(!hasRenderableMain && isLoading ? ['main_loading_without_renderable_projection'] : []),
           ...(!hasRenderableMain && !isLoading ? ['main_no_renderable_data'] : []),
         ],
@@ -237,10 +249,20 @@ function makeMainBoundaryEnvelope({
         ...(Array.isArray(envelope.diagnostics) ? envelope.diagnostics : []),
         {
           event: 'main.view_model.projected_data',
-          severity: hasRenderableMain ? 'info' : 'warn',
+          severity: hasRenderableMain ? (sourceDegraded ? 'warn' : 'info') : 'warn',
           message: hasRenderableMain
-            ? 'Main ViewModel projected render-ready home data.'
+            ? (sourceDegraded
+                ? 'Main ViewModel retained renderable modules while its news source was degraded.'
+                : 'Main ViewModel projected render-ready home data.')
             : 'Main ViewModel has no renderable home data yet.',
+          details: {
+            sourceDatasetId: envelope.datasetId || null,
+            sourceOk: envelope.ok !== false,
+            sourceSloId: envelope.slo?.id || null,
+            sourceSloScore: Number.isFinite(Number(envelope.slo?.score))
+              ? Number(envelope.slo.score)
+              : null,
+          },
         },
       ],
     };
@@ -275,6 +297,11 @@ function makeMainBoundaryEnvelope({
       },
     ],
   };
+}
+
+function getMainBoundaryError(boundaryEnvelope, sourceError) {
+  if (boundaryEnvelope?.ok !== false) return null;
+  return boundaryEnvelope?.error || sourceError || null;
 }
 
 function getRefreshOutcome(results) {
@@ -618,7 +645,7 @@ export function useMainTabViewModel() {
   const getMarketTickerDataState = null;
 
   const newsError = getFirstNewsError(newsErrors);
-  const error = datasetEnvelope?.error || newsError || null;
+  const sourceError = datasetEnvelope?.error || newsError || null;
 
   const boundaryEnvelope = useMemo(() => makeMainBoundaryEnvelope({
     envelope: datasetEnvelope,
@@ -626,15 +653,16 @@ export function useMainTabViewModel() {
     weatherData: projectedWeatherData,
     breakingNews: projectedBreakingNews,
     isLoading,
-    error,
+    error: sourceError,
   }), [
     datasetEnvelope,
     projectedNewsData,
     projectedWeatherData,
     projectedBreakingNews,
     isLoading,
-    error,
+    sourceError,
   ]);
+  const error = getMainBoundaryError(boundaryEnvelope, sourceError);
 
   return {
     envelope: boundaryEnvelope,
@@ -701,6 +729,7 @@ export const __mainViewModelInternalsForTest = {
   getProjectedMainData,
   buildMainSectionHealthSummaryMap,
   makeMainBoundaryEnvelope,
+  getMainBoundaryError,
   getRefreshOutcome,
   getFirstNewsError,
 };
