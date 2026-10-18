@@ -6,9 +6,12 @@ import {
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
 import { fetchSectionNews } from '../../services/rssAggregator.js';
 import { getSettings } from '../../utils/storage.js';
-import { deduplicateAndCluster } from '../../utils/similarity.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
+import {
+  buildTopStoriesClusterPopulation,
+  buildTopStoriesRankingSections as makeTopStoriesRankingSections,
+} from '../../services/topStories/topStoriesPopulation.js';
 import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
 import {
   SERVED_FROM,
@@ -101,10 +104,8 @@ export function getTopFeedSnapshotRows(options = {}, summaries = []) {
   return normalizeTopFeedSnapshotRows(authorityRows);
 }
 
-export function buildTopStoriesRankingSections(dedupedItems = []) {
-  return {
-    __all: Array.isArray(dedupedItems) ? dedupedItems : [],
-  };
+export function buildTopStoriesRankingSections(items = [], dedupeOptions = 0.75) {
+  return makeTopStoriesRankingSections(items, dedupeOptions);
 }
 
 function countSources(items = []) {
@@ -357,11 +358,14 @@ export async function load(options = {}) {
   const allItems = allSummaries.flatMap(summary => (
     Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
   ));
-  const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
+  const dedupedItems = buildTopStoriesClusterPopulation(
+    allItems,
+    settings.storyDeduplication || 0.75,
+  );
   // Top Stories ranks the cross-section cluster representatives only. Feeding both
   // raw section rows and representatives lets one event re-enter under multiple
   // source-specific ids and defeats max-per-cluster selection.
-  const rankedSections = buildTopStoriesRankingSections(dedupedItems);
+  const rankedSections = { __all: dedupedItems };
   const frontPage = rankTopStories(
     {
       sectionItems: rankedSections,
