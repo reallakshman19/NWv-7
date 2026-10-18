@@ -1,4 +1,6 @@
-const MATURE_AGE_BANDS = new Set(['secondary', 'fallback']);
+const EVIDENCE_GATED_AGE_BANDS = new Set(['primary', 'secondary', 'fallback']);
+const COLD_START_MAX_MINUTES = 15;
+const COLD_START_SOURCE_QUALITY_MIN = 0.75;
 const CRITICAL_EVENT_TYPES = new Set([
   'war_conflict',
   'public_safety',
@@ -25,18 +27,24 @@ export function getAgeBand(signals = {}, policy = {}) {
   return 'expired';
 }
 
-function isMatureNonLocalCritical({ ageBand, eventType, signals }) {
-  return MATURE_AGE_BANDS.has(ageBand) &&
+function isEvidenceGatedNonLocalCritical({ ageBand, eventType, signals }) {
+  return EVIDENCE_GATED_AGE_BANDS.has(ageBand) &&
     CRITICAL_EVENT_TYPES.has(eventType) &&
     Number(signals.locationRelevanceScore || 0) < LOCAL_RELEVANCE_SCORE;
 }
 
-export function getMatureEvidenceDecision({
+function isTrustedColdStart({ ageBand, signals }) {
+  return ageBand === 'primary' &&
+    Number(signals.ageMinutes || Infinity) <= COLD_START_MAX_MINUTES &&
+    Number(signals.sourceQualityScore || 0) >= COLD_START_SOURCE_QUALITY_MIN;
+}
+
+export function getCriticalEvidenceDecision({
   ageBand,
   eventType,
   signals = {},
 } = {}) {
-  if (!isMatureNonLocalCritical({ ageBand, eventType, signals })) {
+  if (!isEvidenceGatedNonLocalCritical({ ageBand, eventType, signals })) {
     return { allowed: true, applies: false, evidenceClass: 'not_required' };
   }
   if (hasIndependentEvidence(signals)) {
@@ -45,12 +53,21 @@ export function getMatureEvidenceDecision({
   if (Number(signals.sourceQualityScore || 0) >= AUTHORITATIVE_SOURCE_QUALITY_MIN) {
     return { allowed: true, applies: true, evidenceClass: 'authoritative' };
   }
+  if (isTrustedColdStart({ ageBand, signals })) {
+    return { allowed: true, applies: true, evidenceClass: 'cold_start' };
+  }
   return {
     allowed: false,
     applies: true,
     evidenceClass: 'missing',
-    reason: 'mature_nonlocal_critical_without_evidence',
+    reason: ageBand === 'primary'
+      ? 'nonlocal_critical_without_evidence'
+      : 'mature_nonlocal_critical_without_evidence',
   };
+}
+
+export function getMatureEvidenceDecision(input = {}) {
+  return getCriticalEvidenceDecision(input);
 }
 
 function reject(ageBand, admissionThreshold, admissionReason, slotBand = 'rejected') {
@@ -76,13 +93,13 @@ export function getSlotDecision(signals, event, policy, normalizedScore) {
   if (event.qualified === false && !independentEvidence) {
     return reject(ageBand, admissionThreshold, 'unqualified_without_independent_evidence');
   }
-  const matureEvidence = getMatureEvidenceDecision({
+  const criticalEvidence = getCriticalEvidenceDecision({
     ageBand,
     eventType: event.eventType,
     signals,
   });
-  if (!matureEvidence.allowed) {
-    return reject(ageBand, admissionThreshold, matureEvidence.reason);
+  if (!criticalEvidence.allowed) {
+    return reject(ageBand, admissionThreshold, criticalEvidence.reason);
   }
   if (normalizedScore < admissionThreshold) {
     return reject(ageBand, admissionThreshold, `below_${ageBand}_threshold`);
