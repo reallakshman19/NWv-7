@@ -215,6 +215,8 @@ export function parseLiveFeedText(xmlText, lane, nowMs, options = {}) {
       summary,
       source: lane.sourceName,
       sourceGroup: lane.sourceGroup,
+      sourceTier: lane.tier,
+      sourceTopic: lane.topic,
       url,
       publishedAt,
       publishedAtSource: 'feed_timestamp',
