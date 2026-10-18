@@ -70,7 +70,19 @@ Fix:
 - pass it as `topFeedSignalItems`;
 - do not inject those evidence rows as extra ranking candidates.
 
-### 4. Weak single-source non-local critical stories could still dominate inside 0–4h
+### 4. Premature Top Feed normalization could erase independent-source evidence
+
+`getTopFeedSnapshotRows()` originally normalized the authority publisher rows, while the
+ranker's `buildTopFeedSignalMap()` normalized the supplied rows again. The second pass sees one
+aggregate row per identity and can reduce its measured independent publisher count to one,
+silently discarding previously established `topFeedCorroborationHits`.
+
+Fix: `getTopFeedSnapshotRows()` now returns raw publisher rows. The ranker remains the
+single normalization authority. A regression test passes two distinct publisher rows with a
+shared event identity through the dataset handoff and verifies the ranker retains one independent
+corroborating source.
+
+### 5. Weak single-source non-local critical stories could still dominate inside 0–4h
 
 The prior mature-evidence gate applied only in secondary/fallback age bands. A weak single-source
 non-local public-safety story at ~3h could exceed the primary 0.50 score threshold using freshness
@@ -83,7 +95,7 @@ Fix: non-local critical events now require either:
 
 Local critical events remain exempt from the non-local corroboration rule.
 
-### 5. The visible Top 10 allowed excessive publisher concentration
+### 6. The visible Top 10 allowed excessive publisher concentration
 
 The global source cap was four. That permits one publisher family, including the normalized
 `google_news` family, to occupy 40% of the first 10 stories.
@@ -95,7 +107,7 @@ Fix: the visible rail has stricter caps:
 
 The wider 25-story selected set retains the existing broader caps.
 
-### 6. Registry source tier did not reach the ranker
+### 7. Registry source tier did not reach the ranker
 
 The Sections source registry already classifies feeds as tier A/B, but story rows dropped that
 metadata. Top Stories source quality therefore depended on a separate hard-coded family list.
@@ -103,7 +115,7 @@ metadata. Top Stories source quality therefore depended on a separate hard-coded
 Fix: live authority story rows now carry `sourceTier` and `sourceTopic`. Source quality uses
 registry tier first (A=1.00, B=0.72, C=0.55), with publisher-family fallback for legacy snapshots.
 
-### 7. Acquisition geography was stored as story geography
+### 8. Acquisition geography was stored as story geography
 
 The live Sections assembler stamped every non-Muscat lane with `region: in`. That included World,
 Business, Technology, Sports and Top Stories. Selection then used `story.region` as a geography
@@ -116,7 +128,7 @@ Fix:
   fallback for generic stories;
 - legacy `region: in` snapshot metadata therefore no longer collapses the visible rail.
 
-### 8. Main personalization could re-break visible source diversity
+### 9. Main personalization could re-break visible source diversity
 
 The Main ViewModel can demote already-read/heavily-viewed stories after the authoritative ranker returns
 its 25-story rail. Without another guard, that personalization step can pull rank 11+ rows into the
@@ -127,7 +139,7 @@ ranker's visible diversity projection after personalization. It does not re-scor
 diverse first 10 cannot be formed from the personalized rail, the display under-fills rather than
 violating the publisher/section/geography contract.
 
-### 9. Trace evidence did not identify critical-evidence rejection precisely
+### 10. Trace evidence did not identify critical-evidence rejection precisely
 
 A qualified critical event rejected for missing corroboration appeared as evidence
 `not_required` until the terminal admission stage.
@@ -163,7 +175,8 @@ Coverage now certifies:
 
 1. wider candidate acquisition while section displays remain bounded;
 2. cluster representatives are the only ordinary ranking population;
-3. dedicated Top Stories authority rows become signal-only evidence;
+3. raw Top Feed publisher evidence is normalized exactly once, preserving independent corroboration;
+4. dedicated Top Stories authority rows become signal-only evidence;
 4. weak single-source non-local critical news is rejected in the primary window;
 5. authoritative and trusted cold-start exceptions remain eligible;
 6. registry tier metadata controls source quality;
