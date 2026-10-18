@@ -116,7 +116,18 @@ Fix:
   fallback for generic stories;
 - legacy `region: in` snapshot metadata therefore no longer collapses the visible rail.
 
-### 8. Trace evidence did not identify critical-evidence rejection precisely
+### 8. Main personalization could re-break visible source diversity
+
+The Main ViewModel can demote already-read/heavily-viewed stories after the authoritative ranker returns
+its 25-story rail. Without another guard, that personalization step can pull rank 11+ rows into the
+browser's first 10 and reintroduce publisher-family concentration that the ranker had already blocked.
+
+Fix: Main keeps the supplied rank order and read-state demotion behavior, but re-applies only the
+ranker's visible diversity projection after personalization. It does not re-score stories. If a
+diverse first 10 cannot be formed from the personalized rail, the display under-fills rather than
+violating the publisher/section/geography contract.
+
+### 9. Trace evidence did not identify critical-evidence rejection precisely
 
 A qualified critical event rejected for missing corroboration appeared as evidence
 `not_required` until the terminal admission stage.
@@ -175,3 +186,8 @@ trigger disabled.
 Direct non-static browser Live mode can also have a different acquisition population than static
 production authority mode. The ranker is now common, but acquisition parity should remain an
 explicit validation item.
+
+The current live shadow evaluator still starts from its frozen/live epoch section-row population,
+whereas the browser production path now performs neutralized cross-section clustering before final
+ranking. The v2 benchmark/parity follow-up must freeze that population contract explicitly before
+shadow decision output is treated as browser-ranking parity evidence.
