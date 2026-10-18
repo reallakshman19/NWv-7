@@ -171,7 +171,10 @@ function fillSlots({
     });
     if (reasonCode) {
       if (isDisplayOnlyBlock(reasonCode)) {
-        deferredDisplay.push({ item, slotBand, poolName });
+        const itemKey = getTopStoryDedupeKey(item);
+        if (!deferredDisplay.some(entry => getTopStoryDedupeKey(entry.item) === itemKey)) {
+          deferredDisplay.push({ item, slotBand, poolName });
+        }
       }
       continue;
     }
