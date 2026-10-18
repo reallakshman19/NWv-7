@@ -456,12 +456,18 @@ export async function fetchStaticUpAheadData(upAheadSettings = {}) {
       console.warn('[UpAheadService] Ignoring stale static Up Ahead snapshot', {
         fetchedAt: parsed?.fetchedAt || parsed?.lastUpdated,
       });
-      return sanitizeUpAheadData(buildFestivalFallbackData(
-        upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'],
-        new Date()
-      ));
+      return sanitizeUpAheadData({
+        ...buildFestivalFallbackData(
+          upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'],
+          new Date()
+        ),
+        sourceMode: 'snapshot',
+      });
     }
-    return sanitizeUpAheadData(parsed);
+    return sanitizeUpAheadData({
+      ...parsed,
+      sourceMode: parsed?.sourceMode || 'snapshot',
+    });
   } catch {
     return null;
   }
