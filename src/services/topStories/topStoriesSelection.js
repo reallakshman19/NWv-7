@@ -8,12 +8,13 @@ function getSourceKey(story = {}) {
 }
 
 function getGeoKey(story = {}) {
+  const target = String(story?._topStoryRank?.locationRelevanceTarget || '').toLowerCase();
+  if (target === 'local' || target === 'world') return target;
+
   return String(
-    story.region ||
-    story.geo ||
     story.section ||
     story.sourceSection ||
-    'unknown',
+    'generic',
   ).toLowerCase();
 }
 
