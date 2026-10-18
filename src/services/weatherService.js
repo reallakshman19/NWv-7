@@ -637,7 +637,6 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
         ].filter(v => v != null);
 
         const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-        const avgF = arr => arr.length ? parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)) : null;
         const code = weatherCodes.length ? weatherCodes[Math.floor(weatherCodes.length / 2)] : 0;
 
         // Determine day label
