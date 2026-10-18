@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getConditionText,
   getHourInTimezone,
+  getWeatherHeaderSummary,
 } from './DetailedWeatherCard.jsx';
 
 describe('DetailedWeatherCard precipitation semantics', () => {
@@ -44,5 +45,33 @@ describe('DetailedWeatherCard precipitation semantics', () => {
       windSpeed: 12,
       uvIndex: 2,
     })).toContain('Thunderstorms possible.');
+  });
+
+  it('recovers peak period probability from hourly data in legacy snapshots', () => {
+    const text = getConditionText({
+      rainMm: '1.5mm',
+      rainProb: { avg: 30 },
+      cloudCover: 90,
+      hourly: [
+        { prob: 20 },
+        { prob: 35 },
+        { prob: 30 },
+      ],
+    });
+
+    expect(text).toContain('Showers possible.');
+  });
+
+  it('labels daily max probability and total precipitation explicitly', () => {
+    const summary = getWeatherHeaderSummary({
+      summary: 'Rain 97% · 26.6mm',
+      weeklyForecast: [{
+        precipProb: 97,
+        precipSum: 26.6,
+        uvMax: 5,
+      }],
+    });
+
+    expect(summary).toBe('Peak rain chance today 97% · Forecast total 26.6mm · UV 5');
   });
 });
