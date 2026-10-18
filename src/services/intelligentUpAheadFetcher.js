@@ -148,3 +148,9 @@ export async function fetchIntelligentUpAheadData(options = {}) {
     fetchPlan
   };
 }
+
+
+export const __intelligentUpAheadFetcherInternalsForTest = {
+  makeCategoryAcquisitionSummary,
+  makeAcquisitionSummary,
+};
