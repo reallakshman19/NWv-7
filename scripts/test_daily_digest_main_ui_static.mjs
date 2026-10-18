@@ -9,6 +9,7 @@ const client = fs.readFileSync('src/data/datasets/dailyDigestDatasetApiClient.js
 const dataset = fs.readFileSync('src/data/datasets/dailyDigestDataset.js', 'utf8');
 const mainPage = fs.readFileSync('src/pages/MainPage.jsx', 'utf8');
 const component = fs.readFileSync('src/components/DailyDigestSection.jsx', 'utf8');
+const liveFallback = fs.readFileSync('src/data/dailyDigestLiveFallback.js', 'utf8');
 const store = fs.readFileSync('cloudflare/daily-digest-api/src/snapshotStore.js', 'utf8');
 const migration = fs.readFileSync('cloudflare/daily-digest-api/migrations/0003_daily_digest_card_metadata.sql', 'utf8');
 
@@ -19,12 +20,21 @@ if (!dataset.includes('runtime.configuredBackendUrl')) fail('shared backend auth
 if (!dataset.includes("'NOT_FROZEN'")) fail('expected pre-freeze empty state missing');
 if (!dataset.includes("'MISSED_FREEZE'")) fail('post-freeze missing snapshot must fail closed');
 if (!dataset.includes('ALLOWED_HOSTS')) fail('publisher URL allowlist missing');
+if (!dataset.includes('loadDailyDigestLiveFallback')) fail('Live Daily Digest fallback is not wired');
+if (!dataset.includes("deliveryMode: 'LIVE'")) fail('Live Daily Digest delivery mode missing');
+if (!dataset.includes("deliveryMode: 'CURATED'")) fail('curated Daily Digest precedence marker missing');
+if (!liveFallback.includes('loadSectionsSnapshot')) fail('Live Daily Digest must consume the shared Sections authority');
+if (!liveFallback.includes('LIVE_DIGEST_MIN_SOURCE_GROUPS')) fail('Live Daily Digest source-diversity floor missing');
+if (!liveFallback.includes('LIVE_DIGEST_MAX_AGE_MS')) fail('Live Daily Digest freshness bound missing');
 if (!mainPage.includes('DailyDigestSection')) fail('Daily Digest component not wired to Main');
 if ((mainPage.match(/\{dailyDigestSection\}/g) || []).length !== 2) fail('Daily Digest must render in desktop and mobile flows');
 if (!mainPage.includes("id: 'daily-digest'")) fail('Daily Digest section navigation entry missing');
 if (!mainPage.includes('showDailyDigestSection')) fail('Daily Digest visibility must account for availability states');
 if (!mainPage.includes('availability={dailyDigest.availability}')) fail('Daily Digest availability state not passed to component');
+if (!mainPage.includes('deliveryMode={dailyDigest.deliveryMode}')) fail('Daily Digest delivery mode not passed to component');
 if (!component.includes('Publisher-curated')) fail('publisher-curated UI marker missing');
+if (!component.includes('Live · Auto-selected')) fail('Live Digest marker missing');
+if (!component.includes('Live digest · current Sections authority')) fail('Live Digest authority disclosure missing');
 if (component.includes('if (!cards.length) return null')) fail('Daily Digest must not disappear when cards are not frozen yet');
 if (!component.includes('NOT_FROZEN') || !component.includes('Publishes at 10:15 IST')) fail('pre-freeze visible state missing');
 if (!component.includes('MISSED_FREEZE') || !component.includes('Daily Digest is delayed')) fail('missed-freeze visible state missing');
@@ -33,4 +43,4 @@ if (!store.includes('canonical_url') || !store.includes('title')) fail('selected
 if (/article_body|raw_content/i.test(store)) fail('raw publisher content persistence forbidden');
 if (!migration.includes('ADD COLUMN title TEXT') || !migration.includes('ADD COLUMN canonical_url TEXT')) fail('card metadata migration incomplete');
 
-if (!process.exitCode) console.log('PASS: NW-DD-006/NW-DD-008 Daily Digest Main UI static guard');
+if (!process.exitCode) console.log('PASS: Daily Digest Main UI + Live fallback static guard');
