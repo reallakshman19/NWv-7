@@ -177,7 +177,7 @@ export function evaluateTopStories(input = {}, options = {}) {
   const policy = getTopStoriesPolicy(options.policy || {});
   const nowMs = input.nowMs ?? options.nowMs ?? Date.now();
   const topFeedSignalMap = buildTopFeedSignalMap(
-    input.topFeedItems || [],
+    input.topFeedSignalItems || input.topFeedItems || [],
   );
   const context = {
     policy,
