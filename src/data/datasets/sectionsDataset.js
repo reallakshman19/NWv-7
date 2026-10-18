@@ -21,6 +21,7 @@ export const id = 'sections';
 export const description = 'Section news dataset with snapshot-first Hybrid support';
 
 const DEFAULT_SECTIONS = [
+  'topStories',
   'world',
   'india',
   'chennai',
@@ -73,8 +74,19 @@ export function getTopStoriesCandidateLimit(displayLimit) {
   return Math.max(30, limit * 3);
 }
 
-function getTopFeedSnapshotRows(options = {}) {
-  return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
+function getTopFeedSnapshotRows(options = {}, summaries = []) {
+  const explicit = options.topFeedItems || options.topFeedSnapshot || [];
+  if (Array.isArray(explicit) && explicit.length > 0) {
+    return normalizeTopFeedSnapshotRows(explicit);
+  }
+
+  const topStoriesSummary = (summaries || []).find(summary => summary?.section === 'topStories');
+  const authorityRows = Array.isArray(topStoriesSummary?.candidateItems)
+    ? topStoriesSummary.candidateItems
+    : Array.isArray(topStoriesSummary?.items)
+      ? topStoriesSummary.items
+      : [];
+  return normalizeTopFeedSnapshotRows(authorityRows);
 }
 
 export function buildTopStoriesRankingSections(dedupedItems = []) {
@@ -282,7 +294,6 @@ export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
-  const topFeedItems = getTopFeedSnapshotRows(options);
   const settled = await Promise.allSettled(sections.map(async section => {
     const displayLimit = getSectionLimit(settings, section);
     const candidateLimit = getTopStoriesCandidateLimit(displayLimit);
@@ -303,6 +314,7 @@ export async function load(options = {}) {
     return summarizeFailure(sections[index], entry.reason);
   });
   const failed = summaries.filter(summary => !summary.ok);
+  const topFeedItems = getTopFeedSnapshotRows(options, summaries);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
   const allItems = summaries.flatMap(summary => (
     Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
@@ -313,7 +325,12 @@ export async function load(options = {}) {
   // source-specific ids and defeats max-per-cluster selection.
   const rankedSections = buildTopStoriesRankingSections(dedupedItems);
   const frontPage = rankTopStories(
-    { sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() },
+    {
+      sectionItems: rankedSections,
+      topFeedSignalItems: topFeedItems,
+      settings,
+      nowMs: Date.now(),
+    },
     { limit: options.frontPageLimit || 25 },
   );
   const envelope = makeEnvelope({
