@@ -652,7 +652,12 @@ export function useUpAheadPageViewModel() {
       setIsRefreshing(false);
       setLoading(false);
     }
-  }, [runtime.isStaticHost, upAheadSettings]);
+  }, [
+    runtime.allowWideFeedFetch,
+    runtime.browserWideFeedFetchAllowed,
+    runtime.isStaticHost,
+    upAheadSettings,
+  ]);
 
   const { pullDistance } = usePullToRefresh(() => (
     loadData({ forceRefresh: true, liveOnly: true })
