@@ -21,7 +21,6 @@ export const id = 'sections';
 export const description = 'Section news dataset with snapshot-first Hybrid support';
 
 const DEFAULT_SECTIONS = [
-  'topStories',
   'world',
   'india',
   'chennai',
@@ -294,7 +293,12 @@ export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
-  const settled = await Promise.allSettled(sections.map(async section => {
+  const visibleSectionSet = new Set(sections);
+  const acquisitionSections = sections.includes('topStories')
+    ? sections
+    : ['topStories', ...sections];
+
+  const settled = await Promise.allSettled(acquisitionSections.map(async section => {
     const displayLimit = getSectionLimit(settings, section);
     const candidateLimit = getTopStoriesCandidateLimit(displayLimit);
     const startedAt = Date.now();
@@ -309,14 +313,38 @@ export async function load(options = {}) {
       displayLimit,
     );
   }));
-  const summaries = settled.map((entry, index) => {
+
+  const allSummaries = settled.map((entry, index) => {
     if (entry.status === 'fulfilled') return entry.value;
-    return summarizeFailure(sections[index], entry.reason);
+    return summarizeFailure(acquisitionSections[index], entry.reason);
   });
+  const summaries = allSummaries.filter(summary => visibleSectionSet.has(summary.section));
+  const topStoriesEvidenceSummary = allSummaries.find(summary => summary.section === 'topStories');
+
+  if (
+    topStoriesEvidenceSummary &&
+    (!topStoriesEvidenceSummary.ok ||
+      topStoriesEvidenceSummary.count === 0 ||
+      topStoriesEvidenceSummary.staleReason)
+  ) {
+    diagnostics.push({
+      event: 'sectionsDataset.top_stories_evidence_degraded',
+      severity: 'warn',
+      message: 'Top Stories evidence lane is unavailable or degraded; ranking continues from cross-section candidates.',
+      details: {
+        ok: Boolean(topStoriesEvidenceSummary.ok),
+        count: Number(topStoriesEvidenceSummary.count || 0),
+        candidateCount: Number(topStoriesEvidenceSummary.candidateCount || 0),
+        staleReason: topStoriesEvidenceSummary.staleReason || null,
+        error: topStoriesEvidenceSummary.error || null,
+      },
+    });
+  }
+
   const failed = summaries.filter(summary => !summary.ok);
-  const topFeedItems = getTopFeedSnapshotRows(options, summaries);
+  const topFeedItems = getTopFeedSnapshotRows(options, allSummaries);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
-  const allItems = summaries.flatMap(summary => (
+  const allItems = allSummaries.flatMap(summary => (
     Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
   ));
   const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
