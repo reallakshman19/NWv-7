@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildTopStoriesRankingSections,
+  getTopFeedSnapshotRows,
   getTopStoriesCandidateLimit,
   summarizeSection,
 } from './sectionsDataset.js';
@@ -19,6 +20,27 @@ describe('Sections dataset Top Stories candidate pool', () => {
   it('requests a substantially wider ranking pool than the section display slice', () => {
     expect(getTopStoriesCandidateLimit(15)).toBe(45);
     expect(getTopStoriesCandidateLimit(5)).toBe(30);
+  });
+
+  it('uses the dedicated authority Top Stories section as signal evidence by default', () => {
+    const summaries = [{
+      section: 'topStories',
+      candidateItems: [
+        {
+          id: 'top-1',
+          title: 'Court verdict announced',
+          source: 'The Hindu',
+          sourceGroup: 'the_hindu',
+          publishedAt: Date.UTC(2026, 9, 18, 11, 0, 0),
+        },
+      ],
+    }];
+
+    const rows = getTopFeedSnapshotRows({}, summaries);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].topFeedPresent).toBe(true);
+    expect(rows[0].id).toBe('top-1');
   });
 
   it('feeds only cross-section cluster representatives into the final Top Stories ranker', () => {
