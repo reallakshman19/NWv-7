@@ -64,7 +64,8 @@ Result: source availability in ordinary section feeds could disproportionately d
 even while a dedicated top-feed evidence lane existed in the authority snapshot.
 
 Fix:
-- load the `topStories` authority section as a hidden evidence lane;
+- acquire the `topStories` authority section as a hidden ranking/evidence lane;
+- keep that hidden lane out of visible section health/SLO calculations;
 - normalize it into top-feed evidence;
 - pass it as `topFeedSignalItems`;
 - do not inject those evidence rows as extra ranking candidates.
@@ -102,7 +103,20 @@ metadata. Top Stories source quality therefore depended on a separate hard-coded
 Fix: live authority story rows now carry `sourceTier` and `sourceTopic`. Source quality uses
 registry tier first (A=1.00, B=0.72, C=0.55), with publisher-family fallback for legacy snapshots.
 
-### 7. Trace evidence did not identify critical-evidence rejection precisely
+### 7. Acquisition geography was stored as story geography
+
+The live Sections assembler stamped every non-Muscat lane with `region: in`. That included World,
+Business, Technology, Sports and Top Stories. Selection then used `story.region` as a geography
+diversity key, so unrelated global/topical stories could all be treated as one India geography.
+
+Fix:
+- live acquisition now writes `acquisitionRegion` / `acquisitionCountryCode` provenance instead
+  of claiming story-level geography;
+- display diversity derives geography from the ranker's explicit story-location signal, with section
+  fallback for generic stories;
+- legacy `region: in` snapshot metadata therefore no longer collapses the visible rail.
+
+### 8. Trace evidence did not identify critical-evidence rejection precisely
 
 A qualified critical event rejected for missing corroboration appeared as evidence
 `not_required` until the terminal admission stage.
