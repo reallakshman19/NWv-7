@@ -68,6 +68,11 @@ function getSectionLimit(settings, section) {
   return Number(settings?.sections?.[section]?.count || 10) + 5;
 }
 
+export function getTopStoriesCandidateLimit(displayLimit) {
+  const limit = Math.max(1, Number(displayLimit || 1));
+  return Math.max(30, limit * 3);
+}
+
 function getTopFeedSnapshotRows(options = {}) {
   return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
 }
@@ -137,18 +142,24 @@ function attachBudgetExitDiagnostics(section, result) {
   });
 }
 
-function summarizeSection(section, result) {
+function summarizeSection(section, result, displayLimit = null) {
   const items = Array.isArray(result) ? result : [];
-  const sectionItems = items.map(item => ({
+  const candidateItems = items.map(item => ({
     ...item,
     section: item.section || section,
     sourceSection: result?.prefetchSourceSection || item.sourceSection || section,
   }));
+  const boundedDisplayLimit = Number.isFinite(Number(displayLimit))
+    ? Math.max(0, Math.floor(Number(displayLimit)))
+    : candidateItems.length;
+  const sectionItems = candidateItems.slice(0, boundedDisplayLimit);
   return {
     section,
     ok: true,
     items: sectionItems,
+    candidateItems,
     count: sectionItems.length,
+    candidateCount: candidateItems.length,
     sourceCounts: countSources(sectionItems),
     health: result?.health || null,
     isSingleSource: Boolean(result?.isSingleSource),
@@ -267,14 +278,19 @@ export async function load(options = {}) {
   const sections = getRequestedSections(settings, options, diagnostics);
   const topFeedItems = getTopFeedSnapshotRows(options);
   const settled = await Promise.allSettled(sections.map(async section => {
-    const limit = getSectionLimit(settings, section);
+    const displayLimit = getSectionLimit(settings, section);
+    const candidateLimit = getTopStoriesCandidateLimit(displayLimit);
     const startedAt = Date.now();
-    const result = await fetchSectionNews(section, limit, settings.newsSources, {
+    const result = await fetchSectionNews(section, candidateLimit, settings.newsSources, {
       force: Boolean(options.forceRefresh),
     });
     const durationMs = Date.now() - startedAt;
     const withBudgetDiagnostics = attachBudgetExitDiagnostics(section, result);
-    return summarizeSection(section, ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs));
+    return summarizeSection(
+      section,
+      ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs),
+      displayLimit,
+    );
   }));
   const summaries = settled.map((entry, index) => {
     if (entry.status === 'fulfilled') return entry.value;
@@ -282,7 +298,9 @@ export async function load(options = {}) {
   });
   const failed = summaries.filter(summary => !summary.ok);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
-  const allItems = summaries.flatMap(summary => summary.items);
+  const allItems = summaries.flatMap(summary => (
+    Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
+  ));
   const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
   const rankedSections = { ...sectionItems, __all: dedupedItems };
   const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
