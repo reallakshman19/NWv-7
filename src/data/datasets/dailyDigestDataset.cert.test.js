@@ -108,6 +108,7 @@ describe('Daily Digest dataset', () => {
 
     const envelope = await load({
       asOfDate: '2026-08-24',
+      baseUrl: '',
       liveMode: true,
       liveFallbackLoader,
       fetchImpl: vi.fn(),
