@@ -12,6 +12,7 @@ import {
   shouldForceSectionsAuthorityRefresh,
   shouldUseSectionsAuthoritySnapshot,
 } from '../../services/sectionsAuthorityRouting.js';
+import { buildTopFeedSignalMap } from '../../services/topStories/topStoriesSignals.js';
 
 function row(index) {
   return {
@@ -108,8 +109,26 @@ describe('Sections dataset Top Stories candidate pool', () => {
     const rows = getTopFeedSnapshotRows({}, summaries);
 
     expect(rows).toHaveLength(1);
-    expect(rows[0].topFeedPresent).toBe(true);
+    expect(rows[0].topFeedPresent).toBeUndefined();
     expect(rows[0].id).toBe('top-1');
+    expect(buildTopFeedSignalMap(rows).get('top-1').topFeedPresent).toBe(true);
+  });
+
+  it('preserves publisher corroboration across the single Top Feed normalization boundary', () => {
+    const rawRows = [
+      { id: 'shared-event', title: 'Court verdict announced', source: 'BBC', sourceGroup: 'bbc' },
+      { id: 'shared-event', title: 'Court verdict announced', source: 'Reuters', sourceGroup: 'reuters' },
+    ];
+    const rows = getTopFeedSnapshotRows({}, [{
+      section: 'topStories', candidateItems: rawRows,
+    }]);
+
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).not.toHaveProperty('topFeedCorroborationHits');
+
+    const evidence = buildTopFeedSignalMap(rows).get('shared-event');
+    expect(evidence.topFeedCorroborationHits).toBe(1);
+    expect(evidence.topFeedSourceCount).toBe(2);
   });
 
   it('feeds only cross-section cluster representatives into the final Top Stories ranker', () => {
