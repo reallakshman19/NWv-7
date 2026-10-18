@@ -580,7 +580,9 @@ export function mergeUpAheadData(baseData, newData) {
     weekly_plan: generateWeeklyPlan(timeline),
     lastUpdated: incoming.lastUpdated || base.lastUpdated || new Date().toISOString(),
     auditSummary: incoming.auditSummary || base.auditSummary || null,
-    dropReport: incoming.dropReport || base.dropReport || []
+    dropReport: incoming.dropReport || base.dropReport || [],
+    acquisitionSummary: incoming.acquisitionSummary || base.acquisitionSummary || null,
+    sourceMode: incoming.sourceMode || base.sourceMode || null,
   };
 
   return sanitizeUpAheadData(merged);
@@ -608,10 +610,14 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
     // The planner is for MANUAL additions only (user taps "+ Plan"); automatic
     // suggestions belong in the "Suggested" feed. Auto-persisting here was the
     // cause of the planner silently filling with weather/power-cut alerts.
-    const display = buildLegacyDisplayFromRanked(result.rankedItems || [], {
-      auditSummary: result.auditSummary,
-      dropReport: result.dropReport
-    });
+    const display = {
+      ...buildLegacyDisplayFromRanked(result.rankedItems || [], {
+        auditSummary: result.auditSummary,
+        dropReport: result.dropReport
+      }),
+      acquisitionSummary: result.acquisitionSummary || null,
+      sourceMode: 'live',
+    };
 
     if (!hasItems(display.sections?.festivals)) {
       return mergeUpAheadData(
@@ -639,7 +645,18 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
       weekly_plan: generateWeeklyPlan([]),
       lastUpdated: new Date().toISOString(),
       auditSummary: { total: 0, dropped: 0, error: error?.message || 'unknown' },
-      dropReport: []
+      dropReport: [],
+      acquisitionSummary: {
+        status: 'failed',
+        attemptedSources: 0,
+        successfulSources: 0,
+        failedSources: 0,
+        returnedItems: 0,
+        unseenItems: 0,
+        byCategory: {},
+        error: error?.message || 'unknown',
+      },
+      sourceMode: 'failed',
     };
   }
 }
