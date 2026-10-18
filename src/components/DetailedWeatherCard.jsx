@@ -4,6 +4,22 @@ import './DetailedWeatherCard.css';
 import WeatherIcon from './WeatherIcons';
 import { UmbrellaIcon, CloudIcon, HumidityIcon, WindIcon } from './AppIcons';
 
+export function getHourInTimezone(timeZone, now = new Date()) {
+  if (!timeZone || timeZone === 'auto') return now.getHours();
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      hour: 'numeric',
+      hour12: false,
+    }).formatToParts(now);
+    const hour = Number(parts.find(part => part.type === 'hour')?.value);
+    return Number.isFinite(hour) ? hour % 24 : now.getHours();
+  } catch {
+    return now.getHours();
+  }
+}
+
 export default function DetailedWeatherCard({
   weatherData,
   activeCity,
@@ -29,7 +45,7 @@ export default function DetailedWeatherCard({
 
   if (!cityData) return <div className="dw-container">Data unavailable</div>;
 
-  const hour = new Date().getHours();
+  const hour = getHourInTimezone(cityData.timezone, new Date());
   let segments = [];
 
   const getSeg = (day, period, labelOverride = null) => {
@@ -136,8 +152,10 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
   const hourly = Array.isArray(data.hourly) ? data.hourly : [];
   const hasHourly = hourly.length > 0;
 
-  const rainMmVal = parseFloat(data.rainMm === '-' ? 0 : data.rainMm);
-  const rainProbVal = data.rainProb?.avg || 0;
+  const rainMmVal = Number.isFinite(Number(data.rainMmValue))
+    ? Number(data.rainMmValue)
+    : parseFloat(data.rainMm === '-' ? 0 : data.rainMm) || 0;
+  const rainProbVal = Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0;
   const hasSignificantRain = rainMmVal >= 1.0;
   const hasAnyRain = rainMmVal > 0 || rainProbVal > 0;
 
@@ -154,7 +172,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
       rainColor = '#94a3b8';
     }
 
-    rainText = `${rainMmVal > 0 ? `${rainMmVal.toFixed(1)}mm` : 'Trace'} (${rainProbVal}%)`;
+    rainText = `${rainMmVal > 0 ? `${rainMmVal.toFixed(1)}mm` : 'Trace'} · Peak ${rainProbVal}%`;
   }
 
   const description = getConditionText(data);
@@ -235,10 +253,10 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
                 {h.iconId ? <WeatherIcon id={h.iconId} size={28} /> : h.icon}
               </div>
               <strong className="dw-slot-temp">{h.temp}°</strong>
-              {h.precip > 0 && (
+              {((h.precip || 0) > 0 || (h.prob || 0) > 0) && (
                 <span className="dw-slot-precip">
                   {h.precip >= 1 && <span style={{ fontSize: '0.7rem' }}>☂️</span>}
-                  {h.precip}mm
+                  {h.prob || 0}% · {Number(h.precip || 0).toFixed(1)}mm
                 </span>
               )}
             </div>
@@ -249,16 +267,31 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
   );
 }
 
-function getConditionText(data) {
+export function getConditionText(data) {
   const parts = [];
+  const peakRainProb = Number(data?.rainProb?.peak ?? data?.rainProb?.avg ?? 0) || 0;
+  const rainMm = Number.isFinite(Number(data?.rainMmValue))
+    ? Number(data.rainMmValue)
+    : parseFloat(data?.rainMm === '-' ? 0 : data?.rainMm) || 0;
+  const hourly = Array.isArray(data?.hourly) ? data.hourly : [];
+  const stormEvidence = /thunder/i.test(String(data?.condition || ''))
+    || hourly.some(slot => /thunder/i.test(String(slot?.condition || '')));
 
-  if (data.rainProb?.avg > 40) parts.push('Rain expected.');
-  else if (data.cloudCover > 70) parts.push('Cloudy.');
-  else if (data.cloudCover < 20) parts.push('Clear skies.');
+  if (stormEvidence && (peakRainProb >= 30 || rainMm >= 0.5)) {
+    parts.push('Thunderstorms possible.');
+  } else if (rainMm >= 2 || peakRainProb >= 60) {
+    parts.push('Rain likely.');
+  } else if (rainMm >= 0.5 || peakRainProb >= 30) {
+    parts.push('Showers possible.');
+  } else if (data.cloudCover > 70) {
+    parts.push('Cloudy.');
+  } else if (data.cloudCover < 20) {
+    parts.push('Clear skies.');
+  }
 
   if (data.windSpeed > 20) parts.push('Breezy.');
   if (data.uvIndex > 8) parts.push('High UV.');
 
-  if (parts.length === 0) return 'Pleasant conditions.';
+  if (parts.length === 0) return 'Stable conditions.';
   return parts.join(' ');
 }
