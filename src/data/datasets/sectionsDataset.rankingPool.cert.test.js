@@ -7,6 +7,10 @@ import {
   getVisibleSectionSummaries,
   summarizeSection,
 } from './sectionsDataset.js';
+import {
+  shouldForceSectionsAuthorityRefresh,
+  shouldUseSectionsAuthoritySnapshot,
+} from '../../services/sectionsAuthorityRouting.js';
 
 function row(index) {
   return {
@@ -19,6 +23,32 @@ function row(index) {
 }
 
 describe('Sections dataset Top Stories candidate pool', () => {
+  it('keeps static Live and Hybrid on the same Sections authority path while Live force-refreshes it', () => {
+    const staticRuntime = { isStaticHost: true, allowWideFeedFetch: false };
+
+    expect(shouldUseSectionsAuthoritySnapshot({
+      liveMode: true,
+      runtime: staticRuntime,
+      usePrefetchedSections: true,
+    })).toBe(true);
+    expect(shouldForceSectionsAuthorityRefresh({
+      liveMode: true,
+      runtime: staticRuntime,
+      force: false,
+    })).toBe(true);
+
+    expect(shouldUseSectionsAuthoritySnapshot({
+      liveMode: false,
+      runtime: staticRuntime,
+      usePrefetchedSections: true,
+    })).toBe(true);
+    expect(shouldForceSectionsAuthorityRefresh({
+      liveMode: false,
+      runtime: staticRuntime,
+      force: false,
+    })).toBe(false);
+  });
+
   it('requests a substantially wider ranking pool than the section display slice', () => {
     expect(getTopStoriesCandidateLimit(15)).toBe(45);
     expect(getTopStoriesCandidateLimit(5)).toBe(30);
