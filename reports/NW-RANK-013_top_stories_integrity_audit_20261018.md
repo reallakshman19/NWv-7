@@ -166,6 +166,12 @@ This patch improves ranking integrity but does not manufacture source availabili
 feed is down, the authority still has fewer publisher families to work with. Cloudflare production
 deployment and current-epoch verification remain separate operational gates.
 
+The bundled Cloudflare frozen benchmark is explicitly historical v1 evidence. Because the executable
+ranker is now v2, bundled frozen replay fails closed on the version mismatch rather than silently
+comparing v2 output with a v1 golden digest. A new independently frozen v2 benchmark must be captured
+before the frozen-replay trigger is enabled again. The production tracked configuration keeps that
+trigger disabled.
+
 Direct non-static browser Live mode can also have a different acquisition population than static
 production authority mode. The ranker is now common, but acquisition parity should remain an
 explicit validation item.
