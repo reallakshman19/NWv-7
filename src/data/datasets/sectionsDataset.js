@@ -142,7 +142,7 @@ function attachBudgetExitDiagnostics(section, result) {
   });
 }
 
-function summarizeSection(section, result, displayLimit = null) {
+export function summarizeSection(section, result, displayLimit = null) {
   const items = Array.isArray(result) ? result : [];
   const candidateItems = items.map(item => ({
     ...item,
