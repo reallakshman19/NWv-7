@@ -1405,6 +1405,21 @@
       ]
     },
     {
+      "id": "top-stories-ranking-integrity",
+      "cmd": "npm",
+      "args": [
+        "run",
+        "test:top-stories-ranking-integrity"
+      ],
+      "tags": [
+        "editorial"
+      ],
+      "requiredFor": [
+        "editorial",
+        "full"
+      ]
+    },
+    {
       "id": "editorial-source-dominance",
       "cmd": "npm",
       "args": [
