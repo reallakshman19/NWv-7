@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildTopStoriesRankingSections,
   getTopStoriesCandidateLimit,
   summarizeSection,
 } from './sectionsDataset.js';
@@ -18,6 +19,14 @@ describe('Sections dataset Top Stories candidate pool', () => {
   it('requests a substantially wider ranking pool than the section display slice', () => {
     expect(getTopStoriesCandidateLimit(15)).toBe(45);
     expect(getTopStoriesCandidateLimit(5)).toBe(30);
+  });
+
+  it('feeds only cross-section cluster representatives into the final Top Stories ranker', () => {
+    const clustered = [row(1), row(2)];
+    const rankingSections = buildTopStoriesRankingSections(clustered);
+
+    expect(Object.keys(rankingSections)).toEqual(['__all']);
+    expect(rankingSections.__all).toEqual(clustered);
   });
 
   it('keeps the section display bounded while preserving the wider candidate population', () => {
