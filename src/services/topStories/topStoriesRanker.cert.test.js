@@ -490,7 +490,10 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     }));
 
     expect(scored._topStoryRank.sourceQualityScore).toBe(1);
-    expect(scored._topStoryRank.sourceCount).toBe(2);
+    // The Google News wrapper is not an independent publisher once
+    // the underlying Reuters origin has been identified.
+    expect(scored._topStoryRank.sourceCount).toBe(1);
+    expect(scored._topStoryRank.consensusScore).toBe(0);
   });
 
   it('uses source tier metadata from the Sections registry when the publisher family is otherwise unknown', () => {
