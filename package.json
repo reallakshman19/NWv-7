@@ -192,7 +192,12 @@
     "test:hardening:release6S": "node scripts/test_hardening_release6S_static.mjs",
     "test:myplanner-binding": "vitest run --config vitest.config.js src/pages/MyPlannerPage.release6S.cert.test.jsx",
     "test:hardening:release6T": "node scripts/test_hardening_release6T_static.mjs",
-    "test:page-orchestration-closeout": "vitest run --config vitest.config.js src/pages/PageOrchestration.release6T.cert.test.jsx"
+    "test:page-orchestration-closeout": "vitest run --config vitest.config.js src/pages/PageOrchestration.release6T.cert.test.jsx",
+    "production:data:plan": "node scripts/refresh_production_data.mjs --plan",
+    "production:data:refresh": "node scripts/refresh_production_data.mjs",
+    "production:data:publish": "node scripts/refresh_production_data.mjs --publish",
+    "production:data:verify": "node scripts/verify_production_data_publication.mjs",
+    "test:production-data-recovery": "node scripts/test_production_data_recovery_static.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -60,7 +60,7 @@ async function fetchWithRetry(url, attempts = 2, delaysMs = [3000, 8000]) {
 
 function parseRssItems(xml) {
   const items = [];
-  const itemRegex = /<item>([sS]*?)<\/item>/g;
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   let match;
 
   while ((match = itemRegex.exec(xml)) !== null) {
