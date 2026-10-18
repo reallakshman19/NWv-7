@@ -94,12 +94,14 @@ function getSelectionBlockReason(item, chosen, policy, displayDepth = 0) {
   }
 
   const clusterKey = item._topStoryRank?.clusterKey;
-  const clusterCount = countMatches(
-    chosen,
-    existing => existing._topStoryRank?.clusterKey === clusterKey,
-  );
-  if (clusterCount >= policy.diversity.maxPerCluster) {
-    return 'max_per_cluster';
+  if (clusterKey != null && String(clusterKey).trim()) {
+    const clusterCount = countMatches(
+      chosen,
+      existing => existing._topStoryRank?.clusterKey === clusterKey,
+    );
+    if (clusterCount >= policy.diversity.maxPerCluster) {
+      return 'max_per_cluster';
+    }
   }
 
   return null;
