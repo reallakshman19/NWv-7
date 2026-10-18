@@ -494,6 +494,30 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(tierB._topStoryRank.sourceQualityScore).toBe(0.72);
   });
 
+  it('reconsiders display-capped publisher stories below the visible top 10 under the broader rail cap', () => {
+    const dominant = Array.from({ length: 4 }, (_, i) => story(`reuters-deferred-${i}`, 0.2 + i * 0.01, {
+      title: `Court verdict announced in public case deferred ${i}`,
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      section: `dominant-deferred-${i}`,
+    }));
+    const alternatives = Array.from({ length: 12 }, (_, i) => story(`alt-deferred-${i}`, 0.5 + i * 0.02, {
+      title: `Court verdict announced in public case alternative deferred ${i}`,
+      source: `Alternative Deferred ${i}`,
+      sourceGroup: `alternative-deferred-${i}`,
+      section: `alternative-deferred-section-${i}`,
+      sourceTier: 'A',
+    }));
+
+    const ranked = rank([...dominant, ...alternatives]);
+    const displayed = ranked.slice(0, 10);
+    const allReuters = ranked.filter(item => item.source === 'Reuters');
+
+    expect(displayed.filter(item => item.source === 'Reuters')).toHaveLength(2);
+    expect(allReuters).toHaveLength(4);
+    expect(ranked.findIndex(item => item.id === 'reuters-deferred-2')).toBeGreaterThanOrEqual(10);
+  });
+
   it('caps a single publisher family at two stories in the displayed top 10', () => {
     const dominant = Array.from({ length: 6 }, (_, i) => story(`reuters-${i}`, 0.5 + i * 0.05, {
       title: `Court verdict announced in public case ${i}`,
