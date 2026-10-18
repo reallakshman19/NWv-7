@@ -13,6 +13,10 @@ import {
   SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
   selectPrefetchedSectionItems,
 } from '../adapters/sectionsSnapshotFetcher.js';
+import {
+  shouldForceSectionsAuthorityRefresh,
+  shouldUseSectionsAuthoritySnapshot,
+} from './sectionsAuthorityRouting.js';
 
 const THIS_CERT = path.normalize('src/services/rssAggregator.lifecycle.cert.test.mjs');
 
@@ -179,9 +183,45 @@ function testAggregatePerformanceSummaryExists() {
   assert.match(dataset, /sectionFetchDurationMs/);
 }
 
-function testLiveModeStillBypassesSnapshot() {
-  const src = readRepoFile('src/services/rssAggregator.js');
-  assert.match(src, /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/);
+function testStaticLiveModeUsesSelectedAuthority() {
+  const staticRuntime = { isStaticHost: true, allowWideFeedFetch: false };
+  const browserRuntime = { isStaticHost: false, allowWideFeedFetch: true };
+
+  assert.equal(
+    shouldUseSectionsAuthoritySnapshot({
+      liveMode: true,
+      runtime: staticRuntime,
+      usePrefetchedSections: false,
+    }),
+    true,
+    'static Live mode must use the configured Sections authority'
+  );
+  assert.equal(
+    shouldForceSectionsAuthorityRefresh({
+      liveMode: true,
+      force: false,
+      runtime: staticRuntime,
+    }),
+    true,
+    'static Live mode must force-refresh the configured authority'
+  );
+  assert.equal(
+    shouldUseSectionsAuthoritySnapshot({
+      liveMode: true,
+      runtime: browserRuntime,
+      usePrefetchedSections: true,
+    }),
+    false,
+    'full browser runtime may retain direct Live RSS acquisition'
+  );
+
+  const aggregator = readRepoFile('src/services/rssAggregator.js');
+  assert.match(aggregator, /if \(useAuthoritySnapshot\)/);
+  assert.match(aggregator, /force: forceAuthorityRefresh/);
+  assert.doesNotMatch(
+    aggregator,
+    /if \(!isLiveMode\(\) && settings\.usePrefetchedSections !== false\)/
+  );
 }
 
 function testNoGeneratedSnapshotFilesChanged() {
@@ -202,7 +242,7 @@ testLiveRssProxyBudgetIsBounded();
 testCanonicalHelperAddsRequiredPhases();
 testBudgetExitDiagnosticsAreSurfaced();
 testAggregatePerformanceSummaryExists();
-testLiveModeStillBypassesSnapshot();
+testStaticLiveModeUsesSelectedAuthority();
 testNoGeneratedSnapshotFilesChanged();
 
 console.log('PASS: RSS Hybrid fetch lifecycle guardrails');
