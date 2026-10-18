@@ -41,11 +41,12 @@ function storyTimestampMs(story) {
 
 function canonicalStoryKey(story) {
   return normalizeText(
-    story?.id ||
-    story?.canonicalId ||
+    story?.canonicalUrl ||
     story?.url ||
     story?.link ||
     story?.guid ||
+    story?.id ||
+    story?.canonicalId ||
     story?.title
   ).toLowerCase();
 }
