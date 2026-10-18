@@ -12,7 +12,6 @@ import {
   buildTopStoriesClusterPopulation,
   buildTopStoriesRankingSections as makeTopStoriesRankingSections,
 } from '../../services/topStories/topStoriesPopulation.js';
-import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -90,9 +89,13 @@ export function getVisibleSectionSummaries(allSummaries = [], sections = []) {
 }
 
 export function getTopFeedSnapshotRows(options = {}, summaries = []) {
+  // Keep publisher-level source rows intact here. buildTopFeedSignalMap()
+  // normalizes exactly once inside the ranker. Premature normalization would
+  // collapse the original publisher rows into a single aggregate and erase
+  // independent-source corroboration on the second normalization pass.
   const explicit = options.topFeedItems || options.topFeedSnapshot || [];
   if (Array.isArray(explicit) && explicit.length > 0) {
-    return normalizeTopFeedSnapshotRows(explicit);
+    return [...explicit];
   }
 
   const topStoriesSummary = (summaries || []).find(summary => summary?.section === 'topStories');
@@ -101,7 +104,7 @@ export function getTopFeedSnapshotRows(options = {}, summaries = []) {
     : Array.isArray(topStoriesSummary?.items)
       ? topStoriesSummary.items
       : [];
-  return normalizeTopFeedSnapshotRows(authorityRows);
+  return [...authorityRows];
 }
 
 export function buildTopStoriesRankingSections(items = [], dedupeOptions = 0.75) {
