@@ -50,7 +50,7 @@ function timestampMs(item) {
 function normalizeHttpUrl(value) {
   try {
     const url = new URL(String(value || '').trim());
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+    if (url.protocol !== 'https:') return '';
     [
       'utm_source',
       'utm_medium',
