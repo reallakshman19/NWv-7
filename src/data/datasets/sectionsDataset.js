@@ -179,7 +179,7 @@ export function summarizeSection(section, result, displayLimit = null) {
     section: item.section || section,
     sourceSection: result?.prefetchSourceSection || item.sourceSection || section,
   }));
-  const boundedDisplayLimit = Number.isFinite(Number(displayLimit))
+  const boundedDisplayLimit = displayLimit != null && Number.isFinite(Number(displayLimit))
     ? Math.max(0, Math.floor(Number(displayLimit)))
     : candidateItems.length;
   const sectionItems = candidateItems.slice(0, boundedDisplayLimit);
