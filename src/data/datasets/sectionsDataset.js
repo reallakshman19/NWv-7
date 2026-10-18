@@ -74,7 +74,7 @@ export function getTopStoriesCandidateLimit(displayLimit) {
   return Math.max(30, limit * 3);
 }
 
-function getTopFeedSnapshotRows(options = {}, summaries = []) {
+export function getTopFeedSnapshotRows(options = {}, summaries = []) {
   const explicit = options.topFeedItems || options.topFeedSnapshot || [];
   if (Array.isArray(explicit) && explicit.length > 0) {
     return normalizeTopFeedSnapshotRows(explicit);
