@@ -4,7 +4,6 @@
  * then snapshot/stale cache as fallback.
  */
 import {
-    calculateRainfallConsensus,
     averageTemperature,
     averageApparentTemperature,
     getMostCommonWeatherCode,
@@ -599,16 +598,18 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
             modelData.gfs?.daily?.temperature_2m_min?.[d],
             modelData.icon?.daily?.temperature_2m_min?.[d],
         ].filter(v => v != null);
-        const precipProb = [
-            modelData.ecmwf?.daily?.precipitation_probability_max?.[d],
-            modelData.gfs?.daily?.precipitation_probability_max?.[d],
-            modelData.icon?.daily?.precipitation_probability_max?.[d],
-        ].filter(v => v != null);
-        const precipSum = [
-            modelData.ecmwf?.daily?.precipitation_sum?.[d],
-            modelData.gfs?.daily?.precipitation_sum?.[d],
-            modelData.icon?.daily?.precipitation_sum?.[d],
-        ].filter(v => v != null);
+        const precipProbValue = weightedDailyMetric(
+            modelData,
+            'precipitation_probability_max',
+            d,
+            { round: true }
+        );
+        const precipSumValue = weightedDailyMetric(
+            modelData,
+            'precipitation_sum',
+            d,
+            { digits: 1 }
+        );
         const uvMax = [
             modelData.ecmwf?.daily?.uv_index_max?.[d],
             modelData.gfs?.daily?.uv_index_max?.[d],
@@ -652,12 +653,13 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
             tempMin: avg(tempMin),
             high: avg(tempMax),
             low: avg(tempMin),
-            precipProb: avg(precipProb),
-            rainProb: avg(precipProb),
-            rainfallProbability: avg(precipProb),
-            precipSum: avgF(precipSum),
-            rainMm: avgF(precipSum),
-            rainfallMm: avgF(precipSum),
+            precipProb: precipProbValue,
+            rainProb: precipProbValue,
+            rainfallProbability: precipProbValue,
+            precipitationProbabilitySemantics: 'daily_max_hourly_probability_consensus',
+            precipSum: precipSumValue,
+            rainMm: precipSumValue,
+            rainfallMm: precipSumValue,
             realFeelDay: avg(apparentMax),
             feelsLikeDay: avg(apparentMax),
             humidityDay: avg(humidityMean),
