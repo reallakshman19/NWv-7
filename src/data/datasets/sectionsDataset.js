@@ -73,6 +73,19 @@ export function getTopStoriesCandidateLimit(displayLimit) {
   return Math.max(30, limit * 3);
 }
 
+export function getTopStoriesAcquisitionSections(sections = []) {
+  const visible = Array.isArray(sections) ? sections.filter(Boolean) : [];
+  return visible.includes('topStories')
+    ? [...visible]
+    : ['topStories', ...visible];
+}
+
+export function getVisibleSectionSummaries(allSummaries = [], sections = []) {
+  const visible = new Set(Array.isArray(sections) ? sections : []);
+  return (Array.isArray(allSummaries) ? allSummaries : [])
+    .filter(summary => visible.has(summary?.section));
+}
+
 export function getTopFeedSnapshotRows(options = {}, summaries = []) {
   const explicit = options.topFeedItems || options.topFeedSnapshot || [];
   if (Array.isArray(explicit) && explicit.length > 0) {
@@ -293,10 +306,7 @@ export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
-  const visibleSectionSet = new Set(sections);
-  const acquisitionSections = sections.includes('topStories')
-    ? sections
-    : ['topStories', ...sections];
+  const acquisitionSections = getTopStoriesAcquisitionSections(sections);
 
   const settled = await Promise.allSettled(acquisitionSections.map(async section => {
     const displayLimit = getSectionLimit(settings, section);
@@ -318,7 +328,7 @@ export async function load(options = {}) {
     if (entry.status === 'fulfilled') return entry.value;
     return summarizeFailure(acquisitionSections[index], entry.reason);
   });
-  const summaries = allSummaries.filter(summary => visibleSectionSet.has(summary.section));
+  const summaries = getVisibleSectionSummaries(allSummaries, sections);
   const topStoriesEvidenceSummary = allSummaries.find(summary => summary.section === 'topStories');
 
   if (
