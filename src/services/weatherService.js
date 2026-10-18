@@ -9,6 +9,8 @@ import {
     averageApparentTemperature,
     getMostCommonWeatherCode,
     averagePrecipitation,
+    averagePrecipitationProbability,
+    weightedAverageMetric,
     getSuccessfulModels,
     formatModelNames
 } from '../utils/multiModelUtils.js';
@@ -264,8 +266,81 @@ export async function fetchWeather(locationKey) {
     }
 }
 
+function getDailyMetricRows(modelData, field, dayIndex) {
+    return ['ecmwf', 'gfs', 'icon']
+        .map(modelName => ({
+            modelName,
+            value: modelData?.[modelName]?.daily?.[field]?.[dayIndex],
+        }))
+        .filter(row => row.value != null && Number.isFinite(Number(row.value)));
+}
+
+function weightedDailyMetric(modelData, field, dayIndex, options = {}) {
+    return weightedAverageMetric(getDailyMetricRows(modelData, field, dayIndex), 'value', options);
+}
+
+export function summarizePeriodRain(hourlySlots = []) {
+    const valid = (Array.isArray(hourlySlots) ? hourlySlots : []).filter(Boolean);
+    const probabilities = valid.map(slot => Number(slot?.prob)).filter(Number.isFinite);
+    const precipitation = valid.map(slot => Number(slot?.precip)).filter(Number.isFinite);
+
+    const peak = probabilities.length ? Math.max(...probabilities) : 0;
+    const mean = probabilities.length
+        ? Math.round(probabilities.reduce((sum, value) => sum + value, 0) / probabilities.length)
+        : 0;
+    const min = probabilities.length ? Math.min(...probabilities) : 0;
+    const totalMm = Number(precipitation.reduce((sum, value) => sum + value, 0).toFixed(1));
+
+    return {
+        peak,
+        mean,
+        min,
+        max: peak,
+        totalMm,
+        displayString: `${peak}% peak`,
+        semantics: 'period_peak_hourly_consensus',
+    };
+}
+
+export function buildPrecipitationReconciliation(dailyForecastMm, hourlyConsensusMm) {
+    const daily = Number(dailyForecastMm);
+    const hourly = Number(hourlyConsensusMm);
+    if (!Number.isFinite(daily) || !Number.isFinite(hourly)) return null;
+
+    const deltaMm = Number(Math.abs(daily - hourly).toFixed(1));
+    const toleranceMm = Number(Math.max(0.5, daily * 0.15).toFixed(1));
+
+    return {
+        dailyForecastMm: Number(daily.toFixed(1)),
+        hourlyConsensusMm: Number(hourly.toFixed(1)),
+        deltaMm,
+        toleranceMm,
+        withinTolerance: deltaMm <= toleranceMm,
+    };
+}
+
+function selectPeriodWeatherCode(hourlySlots, fallbackCode = 0) {
+    const rain = summarizePeriodRain(hourlySlots);
+    if (rain.peak < 30 && rain.totalMm < 0.5) return fallbackCode;
+
+    const riskiest = [...(hourlySlots || [])]
+        .filter(Boolean)
+        .sort((a, b) => (
+            (Number(b?.prob || 0) + Number(b?.precip || 0) * 15) -
+            (Number(a?.prob || 0) + Number(a?.precip || 0) * 15)
+        ))[0];
+
+    return Number.isFinite(Number(riskiest?.weatherCode))
+        ? Number(riskiest.weatherCode)
+        : fallbackCode;
+}
+
 function processMultiModelData(modelData, locationName) {
-    const currentData = [modelData.ecmwf?.current, modelData.gfs?.current, modelData.icon?.current].filter(Boolean);
+    const currentData = ['ecmwf', 'gfs', 'icon']
+        .map(modelName => modelData?.[modelName]?.current
+            ? { ...modelData[modelName].current, modelName }
+            : null)
+        .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
     const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
     const getIcon = (code) => { if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
@@ -305,13 +380,15 @@ function processMultiModelData(modelData, locationName) {
         return conditionMap[normalizedCode] || conditionMap[Math.round(normalizedCode)] || 'Forecast';
     };
 
-    const allModelHourlyData = [];
-    if (modelData.ecmwf?.hourly) allModelHourlyData.push(modelData.ecmwf.hourly);
-    if (modelData.gfs?.hourly) allModelHourlyData.push(modelData.gfs.hourly);
-    if (modelData.icon?.hourly) allModelHourlyData.push(modelData.icon.hourly);
+    const allModelHourlyData = ['ecmwf', 'gfs', 'icon']
+        .map(modelName => modelData?.[modelName]?.hourly
+            ? { modelName, hourly: modelData[modelName].hourly }
+            : null)
+        .filter(Boolean);
 
     const getHourConsensus = (hourIdx) => {
-        const pts = allModelHourlyData.map(h => ({
+        const pts = allModelHourlyData.map(({ modelName, hourly: h }) => ({
+            modelName,
             temperature_2m: h.temperature_2m?.[hourIdx],
             apparent_temperature: h.apparent_temperature?.[hourIdx],
             precipitation: h.precipitation?.[hourIdx],
