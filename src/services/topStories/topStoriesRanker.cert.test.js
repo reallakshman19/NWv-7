@@ -479,6 +479,20 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(scored._topStoryRank.slotBand).toBe('primary');
   });
 
+  it('uses the strongest independent publisher quality from a clustered event, not only the representative source', () => {
+    const scored = score(story('cluster-source-quality', 2, {
+      title: 'Court verdict announced in public case',
+      source: 'Google News Top',
+      sourceGroup: 'google_news',
+      sourceTier: 'B',
+      allSources: ['Google News Top', 'Reuters'],
+      sourceCount: 2,
+    }));
+
+    expect(scored._topStoryRank.sourceQualityScore).toBe(1);
+    expect(scored._topStoryRank.sourceCount).toBe(2);
+  });
+
   it('uses source tier metadata from the Sections registry when the publisher family is otherwise unknown', () => {
     const tierA = score(story('tier-a-regional', 1, {
       title: 'Court verdict announced in public case',
