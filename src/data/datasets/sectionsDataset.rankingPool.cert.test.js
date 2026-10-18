@@ -97,7 +97,11 @@ describe('Sections dataset Top Stories candidate pool', () => {
     const rankingSections = buildTopStoriesRankingSections(clustered);
 
     expect(Object.keys(rankingSections)).toEqual(['__all']);
-    expect(rankingSections.__all).toEqual(clustered);
+    expect(rankingSections.__all).toHaveLength(2);
+    expect(rankingSections.__all.map(item => item.id)).toEqual(['story-1', 'story-2']);
+    expect(rankingSections.__all.every(item => item.clusterRepresentative)).toBe(true);
+    expect(rankingSections.__all.every(item => item.impactScore === 0)).toBe(true);
+    expect(clustered.every(item => item.impactScore === undefined)).toBe(true);
   });
 
   it('keeps the section display bounded while preserving the wider candidate population', () => {
