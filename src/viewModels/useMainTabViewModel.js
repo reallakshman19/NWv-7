@@ -17,6 +17,8 @@ import {
 } from '../services/travelNewsIngestion.js';
 import { auditMainTabQuality } from '../services/pageAuditGrading.js';
 import { buildSectionHealthSummaries } from '../services/sectionHealthSummary.js';
+import { getTopStoriesPolicy } from '../services/topStories/topStoriesPolicy.js';
+import { projectTopStoryDisplayDiversity } from '../services/topStories/topStoriesSelection.js';
 
 const MIN_CUSTOM_TOP_STORIES = 10;
 const MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES = 3;
@@ -52,11 +54,17 @@ function filterLatestStories(frontPage = [], customSortTopStories = false) {
     }
   }
 
-  if (preferred.length >= MIN_CUSTOM_TOP_STORIES) return preferred;
-  return [
-    ...preferred,
-    ...viewed.slice(0, Math.max(0, MIN_CUSTOM_TOP_STORIES - preferred.length)),
-  ];
+  const personalizedOrder = preferred.length >= MIN_CUSTOM_TOP_STORIES
+    ? preferred
+    : [
+        ...preferred,
+        ...viewed.slice(0, Math.max(0, MIN_CUSTOM_TOP_STORIES - preferred.length)),
+      ];
+
+  return projectTopStoryDisplayDiversity(personalizedOrder, {
+    displayDepth: MIN_CUSTOM_TOP_STORIES,
+    policy: getTopStoriesPolicy(),
+  });
 }
 
 
