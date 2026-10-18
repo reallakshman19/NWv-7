@@ -1,5 +1,6 @@
 {
   "schemaVersion": "nw-sections-shadow-benchmark/v1",
+  "rankerVersion": "nw-top-stories-ranker-observed-v1",
   "benchmarkId": "NW-CF-HYBRID-001A-v1",
   "frozenBeforeShadowObservation": true,
   "shadowOutputUsedToChooseExpected": false,
@@ -68,7 +69,10 @@
           "title": "City services update from Times of India",
           "source": "TOI",
           "sourceGroup": "toi",
-          "allSources": ["TOI", "Times of India"],
+          "allSources": [
+            "TOI",
+            "Times of India"
+          ],
           "sourceCount": 2,
           "clusteredItems": 2,
           "publishedAt": 1787641200000,
@@ -99,7 +103,11 @@
           "title": "Trichy traffic alert for commuters",
           "source": "Google News Oman",
           "sourceGroup": "google_news_alt",
-          "allSources": ["Google News", "Google News Oman", "google_news_alt"],
+          "allSources": [
+            "Google News",
+            "Google News Oman",
+            "google_news_alt"
+          ],
           "sourceCount": 3,
           "clusteredItems": 3,
           "publishedAt": 1787652000000,
@@ -123,7 +131,12 @@
           "summary": "Reuters reports quarterly company earnings and revenue.",
           "source": "Reuters",
           "sourceGroup": "google_news_oman",
-          "allSources": ["Reuters", "Google News Oman", "TOI", "Times of India"],
+          "allSources": [
+            "Reuters",
+            "Google News Oman",
+            "TOI",
+            "Times of India"
+          ],
           "sourceCount": 4,
           "clusteredItems": 5,
           "publishedAt": 1787648400000,
@@ -250,7 +263,10 @@
     "registryLaneCount": 41,
     "rawInputCount": 19,
     "candidateCount": 18,
-    "caseDSourceFamilies": ["reuters", "times_of_india"],
+    "caseDSourceFamilies": [
+      "reuters",
+      "times_of_india"
+    ],
     "caseDSourceCountWithoutTopFeed": 2,
     "caseDIndependentEvidenceWithoutTopFeed": 1,
     "caseDConsensusWithoutTopFeed": 0.6437928128919779,
