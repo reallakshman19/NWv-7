@@ -129,6 +129,11 @@ export function getClusterKey(story = {}) {
 }
 
 export function getSourceQualityScore(story = {}) {
+  const tier = textValue(story.sourceTier || story.tier).toUpperCase();
+  if (tier === 'A') return 1;
+  if (tier === 'B') return 0.72;
+  if (tier === 'C') return 0.55;
+
   const family = getStorySourceFamily(story);
   if (TOP_TIER_SOURCE_FAMILIES.has(family)) return 1;
   if (STANDARD_SOURCE_FAMILIES.has(family)) return 0.72;
