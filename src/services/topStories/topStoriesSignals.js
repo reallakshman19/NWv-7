@@ -133,16 +133,27 @@ export function getClusterKey(story = {}) {
   return textValue(story.title || story.headline).replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-export function getSourceQualityScore(story = {}) {
-  const tier = textValue(story.sourceTier || story.tier).toUpperCase();
-  if (tier === 'A') return 1;
-  if (tier === 'B') return 0.72;
-  if (tier === 'C') return 0.55;
-
-  const family = getStorySourceFamily(story);
+function getSourceFamilyQuality(family) {
   if (TOP_TIER_SOURCE_FAMILIES.has(family)) return 1;
   if (STANDARD_SOURCE_FAMILIES.has(family)) return 0.72;
   return 0.48;
+}
+
+export function getSourceQualityScore(story = {}) {
+  const tier = textValue(story.sourceTier || story.tier).toUpperCase();
+  const tierScore = tier === 'A'
+    ? 1
+    : tier === 'B'
+      ? 0.72
+      : tier === 'C'
+        ? 0.55
+        : 0;
+
+  const familyScores = getStorySourceFamilies(story)
+    .map(getSourceFamilyQuality);
+  const familyScore = familyScores.length ? Math.max(...familyScores) : 0.48;
+
+  return Math.max(tierScore, familyScore);
 }
 
 export function getFreshnessScore(ageHours, policy) {
