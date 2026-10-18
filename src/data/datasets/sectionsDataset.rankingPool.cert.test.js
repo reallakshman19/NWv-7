@@ -4,6 +4,7 @@ import {
   getTopFeedSnapshotRows,
   getTopStoriesAcquisitionSections,
   getTopStoriesCandidateLimit,
+  getTopStoriesEvidenceWarning,
   getVisibleSectionSummaries,
   summarizeSection,
 } from './sectionsDataset.js';
@@ -69,6 +70,25 @@ describe('Sections dataset Top Stories candidate pool', () => {
 
     expect(visibleSummaries.map(summary => summary.section))
       .toEqual(['world', 'india', 'chennai']);
+  });
+
+  it('reports degraded hidden evidence without changing the visible section population', () => {
+    expect(getTopStoriesEvidenceWarning({ section: 'topStories', ok: true, count: 8 }))
+      .toBeNull();
+    expect(getTopStoriesEvidenceWarning({ section: 'topStories', ok: true, count: 0 }))
+      .toEqual({
+        section: 'topStories',
+        reason: 'top_stories_evidence_empty',
+        severity: 'warn',
+      });
+    expect(getTopStoriesEvidenceWarning({ section: 'topStories', ok: false, count: 0 }))
+      .toMatchObject({ reason: 'top_stories_evidence_fetch_failed' });
+    expect(getTopStoriesEvidenceWarning({
+      section: 'topStories',
+      ok: true,
+      count: 8,
+      staleReason: 'section_items_stale',
+    })).toMatchObject({ reason: 'section_items_stale' });
   });
 
   it('uses the dedicated authority Top Stories section as signal evidence by default', () => {
