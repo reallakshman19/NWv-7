@@ -110,6 +110,141 @@ function getSourceModeState({ data, runtime }) {
   };
 }
 
+function categoryAcquisitionTotals(acquisitionSummary, categories = []) {
+  const byCategory = acquisitionSummary?.byCategory || {};
+
+  return categories.reduce((totals, category) => {
+    const row = byCategory?.[category] || {};
+    totals.attemptedSources += Number(row.attemptedSources || 0);
+    totals.successfulSources += Number(row.successfulSources || 0);
+    totals.failedSources += Number(row.failedSources || 0);
+    totals.returnedItems += Number(row.returnedItems || 0);
+    return totals;
+  }, {
+    attemptedSources: 0,
+    successfulSources: 0,
+    failedSources: 0,
+    returnedItems: 0,
+  });
+}
+
+function deriveOfferCapability({
+  offers = [],
+  acquisitionSummary = null,
+  enabled = true,
+  categories = [],
+  sourceMode = null,
+} = {}) {
+  if (asArray(offers).length > 0) {
+    return {
+      status: 'ready',
+      verified: true,
+      reason: 'results',
+      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
+    };
+  }
+
+  if (!enabled) {
+    return {
+      status: 'disabled',
+      verified: true,
+      reason: 'category_disabled',
+      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
+    };
+  }
+
+  if (acquisitionSummary?.status === 'blocked') {
+    return {
+      status: 'unavailable',
+      verified: false,
+      reason: acquisitionSummary.reason || 'browser_live_blocked',
+      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
+    };
+  }
+
+  const counts = categoryAcquisitionTotals(acquisitionSummary, categories);
+
+  if (acquisitionSummary && counts.attemptedSources > 0) {
+    if (counts.successfulSources === 0 && counts.failedSources > 0) {
+      return {
+        status: 'unavailable',
+        verified: false,
+        reason: 'all_offer_sources_failed',
+        counts,
+      };
+    }
+
+    if (counts.successfulSources > 0 && counts.failedSources > 0) {
+      return {
+        status: 'partial',
+        verified: false,
+        reason: 'offer_sources_partial',
+        counts,
+      };
+    }
+
+    if (counts.successfulSources > 0) {
+      return {
+        status: 'verified_zero',
+        verified: true,
+        reason: 'successful_offer_sources_zero_matches',
+        counts,
+      };
+    }
+
+    return {
+      status: 'unavailable',
+      verified: false,
+      reason: 'offer_sources_not_usable',
+      counts,
+    };
+  }
+
+  if (sourceMode === 'snapshot' || sourceMode === 'static' || sourceMode === 'cache') {
+    return {
+      status: 'snapshot_unknown',
+      verified: false,
+      reason: 'snapshot_has_no_offer_acquisition_evidence',
+      counts,
+    };
+  }
+
+  return {
+    status: 'unavailable',
+    verified: false,
+    reason: acquisitionSummary?.status || 'offer_acquisition_unknown',
+    counts,
+  };
+}
+
+function getOfferCapabilityMessage(capability, kind, locationLabel = '') {
+  const online = kind === 'online';
+
+  switch (capability?.status) {
+    case 'verified_zero':
+      return online
+        ? 'No matching online offers found right now.'
+        : `No matching local offers for ${locationLabel || 'your locations'} right now.`;
+    case 'partial':
+      return online
+        ? 'Online offer sources are limited right now; no verified offers were found.'
+        : `Local offer sources are limited for ${locationLabel || 'your locations'} right now.`;
+    case 'disabled':
+      return online
+        ? 'Online offers are disabled in Up Ahead settings.'
+        : 'Local shopping offers are disabled in Up Ahead settings.';
+    case 'snapshot_unknown':
+      return online
+        ? 'Online offer availability cannot be verified from the current snapshot.'
+        : `Local offer availability for ${locationLabel || 'your locations'} cannot be verified from the current snapshot.`;
+    case 'unavailable':
+    default:
+      return online
+        ? 'Online offers are temporarily unavailable.'
+        : `Local offers for ${locationLabel || 'your locations'} are temporarily unavailable.`;
+  }
+}
+
 function buildCardArticle(item) {
   return {
     ...item,
@@ -403,6 +538,7 @@ export function useUpAheadPageViewModel() {
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [view, setView] = useState('plan');
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [liveAcquisition, setLiveAcquisition] = useState(null);
   const [, setBlacklist] = useState(plannerStorage.getBlacklist ? plannerStorage.getBlacklist() : new Set());
 
   const runtime = useMemo(() => (
@@ -462,8 +598,37 @@ export function useUpAheadPageViewModel() {
 
     setIsRefreshing(true);
 
+    const browserLiveAllowed = Boolean(
+      runtime.allowWideFeedFetch ??
+      runtime.browserWideFeedFetchAllowed ??
+      !runtime.isStaticHost
+    );
+
+    if (!browserLiveAllowed) {
+      setLiveAcquisition({
+        status: 'blocked',
+        reason: 'static_runtime_blocks_browser_live',
+        attemptedSources: 0,
+        successfulSources: 0,
+        failedSources: 0,
+        returnedItems: 0,
+        byCategory: {},
+      });
+      setIsRefreshing(false);
+      setLoading(false);
+      return;
+    }
+
     try {
       const liveData = await fetchLiveUpAheadData(upAheadSettings);
+      setLiveAcquisition(liveData?.acquisitionSummary || {
+        status: 'unknown',
+        attemptedSources: 0,
+        successfulSources: 0,
+        failedSources: 0,
+        returnedItems: 0,
+        byCategory: {},
+      });
 
       setData(prev => {
         const merged = mergeUpAheadData(prev, liveData, upAheadSettings);
@@ -474,11 +639,25 @@ export function useUpAheadPageViewModel() {
       setLoadingPhase(3);
     } catch (error) {
       console.error('Failed to load Live Up Ahead data', error);
+      setLiveAcquisition({
+        status: 'failed',
+        reason: error?.message || 'live_fetch_failed',
+        attemptedSources: 0,
+        successfulSources: 0,
+        failedSources: 0,
+        returnedItems: 0,
+        byCategory: {},
+      });
     } finally {
       setIsRefreshing(false);
       setLoading(false);
     }
-  }, [runtime.isStaticHost, upAheadSettings]);
+  }, [
+    runtime.allowWideFeedFetch,
+    runtime.browserWideFeedFetchAllowed,
+    runtime.isStaticHost,
+    upAheadSettings,
+  ]);
 
   const { pullDistance } = usePullToRefresh(() => (
     loadData({ forceRefresh: true, liveOnly: true })
@@ -599,6 +778,39 @@ export function useUpAheadPageViewModel() {
     upAheadSettings.locations?.join(', ') || 'All Locations'
   ), [upAheadSettings.locations]);
 
+  const effectiveAcquisition = liveAcquisition || data?.acquisitionSummary || null;
+  const onlineCategoriesEnabled = Boolean(
+    upAheadSettings?.categories?.shopping !== false ||
+    upAheadSettings?.categories?.airlines !== false
+  );
+  const offlineCategoryEnabled = upAheadSettings?.categories?.shopping !== false;
+
+  const onlineOffersCapability = useMemo(() => deriveOfferCapability({
+    offers: visibleProjection.onlineOffers,
+    acquisitionSummary: effectiveAcquisition,
+    enabled: onlineCategoriesEnabled,
+    categories: ['shopping', 'airlines'],
+    sourceMode: data?.sourceMode || null,
+  }), [
+    visibleProjection.onlineOffers,
+    effectiveAcquisition,
+    onlineCategoriesEnabled,
+    data?.sourceMode,
+  ]);
+
+  const offlineOffersCapability = useMemo(() => deriveOfferCapability({
+    offers: visibleProjection.offlineOffers,
+    acquisitionSummary: effectiveAcquisition,
+    enabled: offlineCategoryEnabled,
+    categories: ['shopping'],
+    sourceMode: data?.sourceMode || null,
+  }), [
+    visibleProjection.offlineOffers,
+    effectiveAcquisition,
+    offlineCategoryEnabled,
+    data?.sourceMode,
+  ]);
+
   return {
     data,
     loading,
@@ -616,6 +828,11 @@ export function useUpAheadPageViewModel() {
     hasVisibleContent: hasVisibleUpAheadContent(data),
     modeStr: sourceModeState.modeStr,
     modeLabel: sourceModeState.modeLabel,
+    liveAcquisition: effectiveAcquisition,
+    onlineOffersCapability,
+    offlineOffersCapability,
+    onlineOffersEmptyMessage: getOfferCapabilityMessage(onlineOffersCapability, 'online', locationLabel),
+    offlineOffersEmptyMessage: getOfferCapabilityMessage(offlineOffersCapability, 'offline', locationLabel),
 
     ...visibleProjection,
 
@@ -641,6 +858,9 @@ export const __upAheadPageViewModelInternalsForTest = {
   asSections,
   hasVisibleUpAheadContent,
   getSourceModeState,
+  categoryAcquisitionTotals,
+  deriveOfferCapability,
+  getOfferCapabilityMessage,
   buildCardArticle,
   formatConciseDate,
   getEventDateMs,

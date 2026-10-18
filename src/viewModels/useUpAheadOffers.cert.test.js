@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { __upAheadPageViewModelInternalsForTest } from './useUpAheadPageViewModel.js';
 
-const { getVisibleUpAheadProjection } = __upAheadPageViewModelInternalsForTest;
+const {
+  getVisibleUpAheadProjection,
+  deriveOfferCapability,
+  getOfferCapabilityMessage,
+} = __upAheadPageViewModelInternalsForTest;
 
 const NOW = Date.now();
 
@@ -55,5 +59,77 @@ describe('UpAhead online offers — de-duplicate & group (Prime Day)', () => {
     // A lone offer is not grouped, so it is never marked as multi-source.
     expect(result.onlineOffers[0].sourceCount || 1).toBe(1);
     expect(result.onlineOffers[0].groupedCount).toBeUndefined();
+  });
+
+  it('distinguishes a verified zero from all offer sources failing', () => {
+    const verifiedZero = deriveOfferCapability({
+      offers: [],
+      enabled: true,
+      categories: ['shopping', 'airlines'],
+      acquisitionSummary: {
+        status: 'success',
+        byCategory: {
+          shopping: { attemptedSources: 2, successfulSources: 2, failedSources: 0, returnedItems: 0 },
+          airlines: { attemptedSources: 1, successfulSources: 1, failedSources: 0, returnedItems: 0 },
+        },
+      },
+      sourceMode: 'live',
+    });
+
+    const failed = deriveOfferCapability({
+      offers: [],
+      enabled: true,
+      categories: ['shopping', 'airlines'],
+      acquisitionSummary: {
+        status: 'failed',
+        byCategory: {
+          shopping: { attemptedSources: 2, successfulSources: 0, failedSources: 2, returnedItems: 0 },
+          airlines: { attemptedSources: 1, successfulSources: 0, failedSources: 1, returnedItems: 0 },
+        },
+      },
+      sourceMode: 'live',
+    });
+
+    expect(verifiedZero.status).toBe('verified_zero');
+    expect(verifiedZero.verified).toBe(true);
+    expect(getOfferCapabilityMessage(verifiedZero, 'online')).toBe('No matching online offers found right now.');
+
+    expect(failed.status).toBe('unavailable');
+    expect(failed.verified).toBe(false);
+    expect(getOfferCapabilityMessage(failed, 'online')).toBe('Online offers are temporarily unavailable.');
+  });
+
+  it('marks partial source coverage separately from verified zero', () => {
+    const partial = deriveOfferCapability({
+      offers: [],
+      enabled: true,
+      categories: ['shopping', 'airlines'],
+      acquisitionSummary: {
+        status: 'partial',
+        byCategory: {
+          shopping: { attemptedSources: 2, successfulSources: 1, failedSources: 1, returnedItems: 0 },
+          airlines: { attemptedSources: 1, successfulSources: 0, failedSources: 1, returnedItems: 0 },
+        },
+      },
+      sourceMode: 'live',
+    });
+
+    expect(partial.status).toBe('partial');
+    expect(partial.verified).toBe(false);
+    expect(getOfferCapabilityMessage(partial, 'online')).toMatch(/sources are limited/i);
+  });
+
+  it('does not call snapshot zero a verified no-offers result', () => {
+    const snapshotUnknown = deriveOfferCapability({
+      offers: [],
+      enabled: true,
+      categories: ['shopping', 'airlines'],
+      acquisitionSummary: null,
+      sourceMode: 'snapshot',
+    });
+
+    expect(snapshotUnknown.status).toBe('snapshot_unknown');
+    expect(snapshotUnknown.verified).toBe(false);
+    expect(getOfferCapabilityMessage(snapshotUnknown, 'online')).toMatch(/cannot be verified/i);
   });
 });

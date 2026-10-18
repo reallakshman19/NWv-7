@@ -416,6 +416,10 @@ function UpAheadPage() {
     combinedAlerts,
     onlineOffers,
     offlineOffers,
+    onlineOffersCapability,
+    offlineOffersCapability,
+    onlineOffersEmptyMessage,
+    offlineOffersEmptyMessage,
     movieCards,
     festivalCards,
     eventItems,
@@ -638,9 +642,19 @@ function UpAheadPage() {
                 📍 Offline{offlineOffers.length > 0 && <span className="ua-tab-count">{offlineOffers.length}</span>}
               </button>
             </div>
+            {offerMode === 'online' && onlineOffers.length === 0 && (
+              <div className="ua-capability-note" data-offer-capability={onlineOffersCapability?.status || 'unknown'} style={{ padding: '0 8px 10px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                Source status: {String(onlineOffersCapability?.status || 'unknown').replaceAll('_', ' ')}
+              </div>
+            )}
+            {offerMode === 'offline' && offlineOffers.length === 0 && (
+              <div className="ua-capability-note" data-offer-capability={offlineOffersCapability?.status || 'unknown'} style={{ padding: '0 8px 10px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                Source status: {String(offlineOffersCapability?.status || 'unknown').replaceAll('_', ' ')}
+              </div>
+            )}
             {offerMode === 'online'
-              ? <GridSection items={onlineOffers} colorClass="type-shopping" emptyMessage="No online offers right now." isOffer={true} onAddToPlan={handleAddToPlan} />
-              : <GridSection items={offlineOffers} colorClass="type-shopping" emptyMessage={`No local offers for ${locationLabel} right now.`} isOffer={true} onAddToPlan={handleAddToPlan} />}
+              ? <GridSection items={onlineOffers} colorClass="type-shopping" emptyMessage={onlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />
+              : <GridSection items={offlineOffers} colorClass="type-shopping" emptyMessage={offlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />}
           </div>
         )}
         {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={eventItems} colorClass="type-event" emptyMessage="No upcoming events found." onAddToPlan={handleAddToPlan} /></div>}
