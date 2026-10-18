@@ -40,6 +40,32 @@ function productLabel(card) {
   return `${publisherLabel(card?.publisherFamily)} · ${product.replace(/\b\w/g, char => char.toUpperCase())}`;
 }
 
+function sectionLabel(value) {
+  const labels = {
+    topStories: 'Top Stories',
+    india: 'India',
+    world: 'World',
+    business: 'Business',
+    technology: 'Technology',
+    tn: 'Tamil Nadu',
+    muscat: 'Muscat',
+    sports: 'Sports',
+    entertainment: 'Entertainment',
+  };
+  return labels[value] || String(value || '').replaceAll('_', ' ');
+}
+
+function isLiveCard(card, deliveryMode) {
+  return deliveryMode === 'LIVE' || card?.deliveryMode === 'LIVE';
+}
+
+function cardSourceLabel(card, deliveryMode) {
+  if (!isLiveCard(card, deliveryMode)) return productLabel(card);
+  const source = String(card?.source || card?.sourceGroup || 'Sections authority').trim();
+  const section = sectionLabel(card?.section);
+  return section ? `${source} · ${section}` : source;
+}
+
 function freezeLabel(value) {
   if (!value) return '';
   const date = new Date(value);
@@ -49,7 +75,10 @@ function freezeLabel(value) {
   }).format(date);
 }
 
-function compositionLabel(value) {
+function compositionLabel(value, deliveryMode) {
+  if (deliveryMode === 'LIVE' || value === 'LIVE_SECTIONS_AUTHORITY') {
+    return 'Live digest · current Sections authority';
+  }
   if (value === 'DEGRADED_GLOBAL_UNAVAILABLE') return 'India edition · global slot unavailable';
   if (value === 'DEGRADED_INDIA_AND_GLOBAL_SHORTFALL') return 'Reduced edition';
   if (value === 'NORMAL') return 'India + global edition';
@@ -84,6 +113,7 @@ export function DailyDigestSection({
   digestDate,
   frozenAt,
   compositionState,
+  deliveryMode = null,
   availability = 'UNKNOWN',
   loading = false,
   error = null,
@@ -99,9 +129,14 @@ export function DailyDigestSection({
           <span className="news-text">Daily Digest</span>
         </div>
         <div className="news-title-right">
-          {cards.length > 0
-            ? <span className="news-count">({cards.length})</span>
-            : <span className="mnc-badge">{status.badge}</span>}
+          {cards.length > 0 ? (
+            <>
+              {deliveryMode === 'LIVE' && <span className="mnc-badge">LIVE</span>}
+              <span className="news-count">({cards.length})</span>
+            </>
+          ) : (
+            <span className="mnc-badge">{status.badge}</span>
+          )}
         </div>
       </h2>
 
@@ -117,12 +152,16 @@ export function DailyDigestSection({
               style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
             >
               <div className="mnc-header">
-                <span className="mnc-source">{productLabel(card)}</span>
-                <span className="mnc-badge">{card.slot}</span>
+                <span className="mnc-source">{cardSourceLabel(card, deliveryMode)}</span>
+                <span className="mnc-badge">
+                  {isLiveCard(card, deliveryMode) ? sectionLabel(card.section) : card.slot}
+                </span>
               </div>
               <h3 className="mnc-headline">{card.title}</h3>
               <div className="mnc-badges">
-                <span className="mnc-badge">Publisher-curated</span>
+                {isLiveCard(card, deliveryMode)
+                  ? <span className="mnc-badge">Live · Auto-selected</span>
+                  : <span className="mnc-badge">Publisher-curated</span>}
                 {card.replacementReason && <span className="mnc-badge">Health failover</span>}
               </div>
             </a>
@@ -149,7 +188,7 @@ export function DailyDigestSection({
         marginTop: '8px', fontSize: '0.72rem', color: 'var(--text-muted)',
         display: 'flex', gap: '8px', flexWrap: 'wrap',
       }}>
-        {cards.length > 0 && <span>{compositionLabel(compositionState)}</span>}
+        {cards.length > 0 && <span>{compositionLabel(compositionState, deliveryMode)}</span>}
         {digestDate && <span>{cards.length > 0 ? '• ' : ''}{digestDate}</span>}
         {frozen && <span>• Frozen {frozen} IST</span>}
       </div>
