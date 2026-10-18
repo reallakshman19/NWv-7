@@ -38,7 +38,7 @@ function countMatches(chosen, predicate) {
   );
 }
 
-function getSelectionBlockReason(item, chosen, policy) {
+function getSelectionBlockReason(item, chosen, policy, displayDepth = 0) {
   const key = getTopStoryDedupeKey(item);
   if (chosen.some(existing => getTopStoryDedupeKey(existing) === key)) {
     return 'duplicate_identity';
@@ -48,22 +48,41 @@ function getSelectionBlockReason(item, chosen, policy) {
     chosen,
     existing => getSourceKey(existing) === getSourceKey(item),
   );
-  if (sourceCount >= policy.diversity.maxPerSource) {
-    return 'max_per_source';
-  }
-
   const sectionCount = countMatches(
     chosen,
     existing => existing.section === item.section,
   );
-  if (sectionCount >= policy.diversity.maxPerSection) {
-    return 'max_per_section';
-  }
-
   const geoCount = countMatches(
     chosen,
     existing => getGeoKey(existing) === getGeoKey(item),
   );
+  const insideDisplayWindow = displayDepth > 0 && chosen.length < displayDepth;
+
+  if (
+    insideDisplayWindow &&
+    sourceCount >= Number(policy.diversity.displayMaxPerSource || policy.diversity.maxPerSource)
+  ) {
+    return 'display_max_per_source';
+  }
+  if (
+    insideDisplayWindow &&
+    sectionCount >= Number(policy.diversity.displayMaxPerSection || policy.diversity.maxPerSection)
+  ) {
+    return 'display_max_per_section';
+  }
+  if (
+    insideDisplayWindow &&
+    geoCount >= Number(policy.diversity.displayMaxPerGeo || policy.diversity.maxPerGeo)
+  ) {
+    return 'display_max_per_geo';
+  }
+
+  if (sourceCount >= policy.diversity.maxPerSource) {
+    return 'max_per_source';
+  }
+  if (sectionCount >= policy.diversity.maxPerSection) {
+    return 'max_per_section';
+  }
   if (geoCount >= policy.diversity.maxPerGeo) {
     return 'max_per_geo';
   }
@@ -94,10 +113,11 @@ function fillSlots({
   slotBand,
   attempts,
   poolName,
+  displayDepth,
 }) {
   for (const item of pool) {
     if (chosen.length >= limit) break;
-    const reasonCode = getSelectionBlockReason(item, chosen, policy);
+    const reasonCode = getSelectionBlockReason(item, chosen, policy, displayDepth);
     getAttemptList(attempts, item).push({
       pool: poolName,
       status: reasonCode ? 'blocked' : 'selected',
@@ -147,6 +167,7 @@ export function selectTopStorySlotsWithTrace(
     slotBand: 'primary',
     attempts,
     poolName: 'primary',
+    displayDepth,
   });
   fillSlots({
     chosen,
@@ -155,6 +176,7 @@ export function selectTopStorySlotsWithTrace(
     policy,
     attempts,
     poolName: 'current',
+    displayDepth,
   });
   fillSlots({
     chosen,
@@ -164,6 +186,7 @@ export function selectTopStorySlotsWithTrace(
     slotBand: 'fallback',
     attempts,
     poolName: 'fallback',
+    displayDepth,
   });
 
   const selected = chosen.slice(0, limit);
