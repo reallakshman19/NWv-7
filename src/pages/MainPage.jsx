@@ -105,6 +105,7 @@ const MainPage = () => {
             digestDate={dailyDigest.digestDate}
             frozenAt={dailyDigest.frozenAt}
             compositionState={dailyDigest.compositionState}
+            deliveryMode={dailyDigest.deliveryMode}
             availability={dailyDigest.availability}
             loading={dailyDigest.loading}
             error={dailyDigest.error}
