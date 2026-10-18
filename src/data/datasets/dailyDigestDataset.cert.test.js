@@ -62,4 +62,103 @@ describe('Daily Digest dataset', () => {
     });
     expect(card).toBeNull();
   });
+
+  it('uses fresh Sections authority cards in Live mode when the curated backend is not configured', async () => {
+    const liveFallbackLoader = vi.fn(async () => ({
+      status: 'READY',
+      generatedAt: Date.parse('2026-08-24T06:00:00Z'),
+      cards: [
+        {
+          slot: 'L1',
+          canonicalId: 'live-1',
+          title: 'Live story one',
+          canonicalUrl: 'https://example.com/live-1',
+          source: 'Example One',
+          sourceGroup: 'example_one',
+          section: 'india',
+          publishedAt: Date.parse('2026-08-24T05:30:00Z'),
+          deliveryMode: 'LIVE',
+        },
+        {
+          slot: 'L2',
+          canonicalId: 'live-2',
+          title: 'Live story two',
+          canonicalUrl: 'https://example.org/live-2',
+          source: 'Example Two',
+          sourceGroup: 'example_two',
+          section: 'world',
+          publishedAt: Date.parse('2026-08-24T05:20:00Z'),
+          deliveryMode: 'LIVE',
+        },
+        {
+          slot: 'L3',
+          canonicalId: 'live-3',
+          title: 'Live story three',
+          canonicalUrl: 'https://example.net/live-3',
+          source: 'Example Three',
+          sourceGroup: 'example_three',
+          section: 'business',
+          publishedAt: Date.parse('2026-08-24T05:10:00Z'),
+          deliveryMode: 'LIVE',
+        },
+      ],
+      summary: { dataSource: { effective: 'cloudflare_preview' } },
+      selection: { sourceGroupCount: 3 },
+    }));
+
+    const envelope = await load({
+      asOfDate: '2026-08-24',
+      baseUrl: '',
+      liveMode: true,
+      liveFallbackLoader,
+      fetchImpl: vi.fn(),
+    });
+
+    expect(envelope.ok).toBe(true);
+    expect(envelope.source).toBe('live');
+    expect(envelope.data.deliveryMode).toBe('LIVE');
+    expect(envelope.data.availability).toBe('READY');
+    expect(envelope.data.cards).toHaveLength(3);
+    expect(envelope.data.liveFallbackReason).toBe('BACKEND_NOT_CONFIGURED');
+    expect(envelope.validation.warnings).toContain('daily_digest_live_fallback');
+  });
+
+  it('keeps curated snapshot precedence in Live mode when a valid frozen edition exists', async () => {
+    const liveFallbackLoader = vi.fn(async () => {
+      throw new Error('live fallback should not run');
+    });
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => SNAPSHOT,
+    }));
+
+    const envelope = await load({
+      asOfDate: '2026-08-24',
+      liveMode: true,
+      liveFallbackLoader,
+      fetchImpl,
+    });
+
+    expect(envelope.ok).toBe(true);
+    expect(envelope.data.deliveryMode).toBe('CURATED');
+    expect(envelope.data.cards).toHaveLength(1);
+    expect(liveFallbackLoader).not.toHaveBeenCalled();
+  });
+
+  it('preserves the scheduled pre-freeze state in Hybrid mode', async () => {
+    const liveFallbackLoader = vi.fn(async () => ({ status: 'READY', cards: [{ title: 'Should not be used' }] }));
+    const fetchImpl = vi.fn(async () => ({ ok: false, status: 404, json: async () => ({}) }));
+
+    const envelope = await load({
+      asOfDate: '2026-08-24',
+      now: new Date('2026-08-24T04:30:00.000Z'),
+      liveMode: false,
+      liveFallbackLoader,
+      fetchImpl,
+    });
+
+    expect(envelope.data.availability).toBe('NOT_FROZEN');
+    expect(liveFallbackLoader).not.toHaveBeenCalled();
+  });
 });

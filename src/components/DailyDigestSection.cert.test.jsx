@@ -76,4 +76,31 @@ describe('DailyDigestSection availability states', () => {
     expect(screen.getByText('(1)')).toBeTruthy();
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it('labels live fallback cards as auto-selected rather than publisher-curated', () => {
+    render(
+      <DailyDigestSection
+        cards={[{
+          slot: 'L1',
+          canonicalId: 'live-1',
+          source: 'BBC',
+          sourceGroup: 'bbc',
+          section: 'world',
+          title: 'Live world headline',
+          canonicalUrl: 'https://example.com/live-world',
+          deliveryMode: 'LIVE',
+        }]}
+        digestDate="2026-10-18"
+        compositionState="LIVE_SECTIONS_AUTHORITY"
+        deliveryMode="LIVE"
+        availability="READY"
+      />
+    );
+
+    expect(screen.getByText('LIVE')).toBeTruthy();
+    expect(screen.getByText('Live · Auto-selected')).toBeTruthy();
+    expect(screen.getByText('BBC · World')).toBeTruthy();
+    expect(screen.getByText('Live digest · current Sections authority')).toBeTruthy();
+    expect(screen.queryByText('Publisher-curated')).toBeNull();
+  });
 });
