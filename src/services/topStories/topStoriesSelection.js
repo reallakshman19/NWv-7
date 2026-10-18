@@ -105,6 +105,41 @@ function getAttemptList(attempts, item) {
   return attempts.get(key);
 }
 
+function isDisplayOnlyBlock(reasonCode) {
+  return String(reasonCode || '').startsWith('display_');
+}
+
+function drainDeferredDisplay({
+  chosen,
+  deferredDisplay,
+  limit,
+  policy,
+  attempts,
+}) {
+  if (!Array.isArray(deferredDisplay) || deferredDisplay.length === 0) return;
+
+  const pending = deferredDisplay.splice(0, deferredDisplay.length);
+  for (const entry of pending) {
+    if (chosen.length >= limit) {
+      deferredDisplay.push(entry);
+      continue;
+    }
+
+    const reasonCode = getSelectionBlockReason(entry.item, chosen, policy, 0);
+    getAttemptList(attempts, entry.item).push({
+      pool: `${entry.poolName}:deferred`,
+      status: reasonCode ? 'blocked' : 'selected',
+      reasonCodes: reasonCode ? [reasonCode] : [],
+    });
+    if (reasonCode) continue;
+
+    chosen.push(markSlot(
+      entry.item,
+      entry.slotBand || entry.item._topStoryRank.slotBand,
+    ));
+  }
+}
+
 function fillSlots({
   chosen,
   pool,
@@ -114,7 +149,18 @@ function fillSlots({
   attempts,
   poolName,
   displayDepth,
+  deferredDisplay,
 }) {
+  if (chosen.length >= displayDepth) {
+    drainDeferredDisplay({
+      chosen,
+      deferredDisplay,
+      limit,
+      policy,
+      attempts,
+    });
+  }
+
   for (const item of pool) {
     if (chosen.length >= limit) break;
     const reasonCode = getSelectionBlockReason(item, chosen, policy, displayDepth);
@@ -123,11 +169,27 @@ function fillSlots({
       status: reasonCode ? 'blocked' : 'selected',
       reasonCodes: reasonCode ? [reasonCode] : [],
     });
-    if (reasonCode) continue;
+    if (reasonCode) {
+      if (isDisplayOnlyBlock(reasonCode)) {
+        deferredDisplay.push({ item, slotBand, poolName });
+      }
+      continue;
+    }
+
     chosen.push(markSlot(
       item,
       slotBand || item._topStoryRank.slotBand,
     ));
+
+    if (chosen.length >= displayDepth) {
+      drainDeferredDisplay({
+        chosen,
+        deferredDisplay,
+        limit,
+        policy,
+        attempts,
+      });
+    }
   }
 }
 
@@ -149,6 +211,7 @@ export function selectTopStorySlotsWithTrace(
   const displayDepth = normalizeDisplayDepth(options);
   const chosen = [];
   const attempts = new Map();
+  const deferredDisplay = [];
   const primary = ranked.filter(
     item => item._topStoryRank.slotBand === 'primary',
   );
@@ -168,6 +231,7 @@ export function selectTopStorySlotsWithTrace(
     attempts,
     poolName: 'primary',
     displayDepth,
+    deferredDisplay,
   });
   fillSlots({
     chosen,
@@ -177,6 +241,7 @@ export function selectTopStorySlotsWithTrace(
     attempts,
     poolName: 'current',
     displayDepth,
+    deferredDisplay,
   });
   fillSlots({
     chosen,
@@ -187,7 +252,18 @@ export function selectTopStorySlotsWithTrace(
     attempts,
     poolName: 'fallback',
     displayDepth,
+    deferredDisplay,
   });
+
+  if (chosen.length >= displayDepth) {
+    drainDeferredDisplay({
+      chosen,
+      deferredDisplay,
+      limit,
+      policy,
+      attempts,
+    });
+  }
 
   const selected = chosen.slice(0, limit);
   return {
