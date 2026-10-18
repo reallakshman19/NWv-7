@@ -64,6 +64,16 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
     );
   });
 
+  it('propagates registry tier metadata into live section story rows', () => {
+    const liveAuthority = readFileSync(
+      new URL('../../../scripts/sections-live/sectionsLiveAuthority.mjs', import.meta.url),
+      'utf8',
+    );
+
+    expect(liveAuthority).toContain('sourceTier: lane.tier');
+    expect(liveAuthority).toContain('sourceTopic: lane.topic');
+  });
+
   it('fails closed on missing coverage, invalid tier, or missing topic semantics', () => {
     const missingCoverage = readRegistry();
     delete missingCoverage.requiredCoverage.minTierAFeeds;
