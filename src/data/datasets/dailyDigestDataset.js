@@ -196,7 +196,7 @@ export async function load(options = {}) {
   const liveFallbackLoader = options.liveFallbackLoader || loadDailyDigestLiveFallback;
 
   const response = await fetchDailyDigestDatasetApi({
-    baseUrl: runtime.configuredBackendUrl,
+    baseUrl: options.baseUrl !== undefined ? options.baseUrl : runtime.configuredBackendUrl,
     digestDate,
     fetchImpl: options.fetchImpl,
     signal: options.signal,
