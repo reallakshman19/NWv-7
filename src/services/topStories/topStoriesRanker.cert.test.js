@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { classifyTopStoryEvent, TOP_STORY_EVENT_TYPES } from './topStoriesEventClassifier.js';
-import { rankTopStories, scoreTopStoryCandidate } from './topStoriesRanker.js';
+import { evaluateTopStories, rankTopStories, scoreTopStoryCandidate } from './topStoriesRanker.js';
 import { __mainViewModelInternalsForTest } from '../../viewModels/useMainTabViewModel.js';
 
 const NOW = Date.UTC(2026, 6, 8, 8, 0, 0);
@@ -334,6 +334,24 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     }));
     expect(scored._topStoryRank.coldStartCritical).toBe(false);
     expect(scored._topStoryRank.slotBand).toBe('expired');
+  });
+
+  it('uses dedicated top-feed rows as evidence without injecting them as duplicate ranking candidates', () => {
+    const candidate = story('signal-only', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'BBC',
+      sourceGroup: 'bbc',
+    });
+    const evaluation = evaluateTopStories({
+      sectionItems: { world: [candidate] },
+      topFeedSignalItems: topFeedRows('signal-only', 3),
+      nowMs: NOW,
+    });
+
+    expect(evaluation.rawInputCount).toBe(1);
+    expect(evaluation.candidates).toHaveLength(1);
+    expect(evaluation.scoredCandidates[0]._topStoryRank.topFeedCorroborationHits)
+      .toBeGreaterThan(0);
   });
 
   it('uses strong top-feed corroboration as a bounded boost for equivalent hard news', () => {
