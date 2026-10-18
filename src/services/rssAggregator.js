@@ -29,6 +29,10 @@ import { isLiveMode } from '../utils/fetchMode.js';
 import { severityHits, matchesEntertainmentGuard, DEFAULT_RANKING_POLICY } from '../config/rankingPolicy.js';
 import { temporalScore } from './temporalScorer.js';
 import { withInFlightCleanup } from './fetchLifecycleDiagnostics.js';
+import {
+    shouldForceSectionsAuthorityRefresh,
+    shouldUseSectionsAuthoritySnapshot
+} from './sectionsAuthorityRouting.js';
 
 /**
  * @typedef {Object} NewsItem
@@ -529,9 +533,21 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     // Check if cache is enabled in settings (Phase 6)
     const settings = getSettings();
     const cacheEnabled = settings.enableCache !== false; // Default to true
+    const liveMode = isLiveMode();
+    const runtime = getRuntimeCapabilities();
+    const useAuthoritySnapshot = shouldUseSectionsAuthoritySnapshot({
+        liveMode,
+        runtime,
+        usePrefetchedSections: settings.usePrefetchedSections,
+    });
+    const forceAuthorityRefresh = shouldForceSectionsAuthorityRefresh({
+        liveMode,
+        force,
+        runtime,
+    });
 
     // Check cache first if enabled
-    if (!force && cacheEnabled && !isLiveMode()) {
+    if (!force && cacheEnabled && !liveMode) {
         const cached = memoryCache.get(cacheKey);
         if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
             const ageSeconds = Math.round((Date.now() - cached.timestamp) / 1000);
@@ -541,7 +557,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
         console.log(`[RSS] ⚠️ Cache MISS for ${section} - Fetching fresh data`);
     } else if (force) {
         console.log(`[RSS] 🔄 Forced sync - bypassing memory cache for ${section}`);
-    } else if (isLiveMode()) {
+    } else if (liveMode) {
         console.log(`[RSS] ⚡ Live mode active - bypassing memory cache for ${section}`);
     } else {
         console.log(`[RSS] ℹ️ Cache DISABLED by user settings for ${section}`);
@@ -571,12 +587,16 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
 
     return withInFlightCleanup(inFlightFetches, cacheKey, resolveInFlight, async () => {
 
-    // Static-host / GitHub Pages path: prefer pre-generated section JSON.
-    // This avoids browser RSS/proxy failures and uses workflow-produced quality data.
-    if (!isLiveMode() && settings.usePrefetchedSections !== false) {
+    // Static production hosts must stay on the configured Sections authority.
+    // In Live mode this means force-refreshing Cloudflare/GitHub authority data,
+    // not bypassing it for fragile browser-wide RSS/CORS proxy acquisition.
+    if (useAuthoritySnapshot) {
         try {
-            const prefetched = await fetchPrefetchedSectionNews(section, Math.max(limit * 3, limit), { force });
-            const runtime = getRuntimeCapabilities();
+            const prefetched = await fetchPrefetchedSectionNews(
+                section,
+                Math.max(limit * 3, limit),
+                { force: forceAuthorityRefresh }
+            );
 
             if (prefetched.stale) {
                 if (prefetched.items.length > 0) {
@@ -649,7 +669,6 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
 
             console.warn(`[RSS] Prefetched sections EMPTY for ${section}; falling back to live RSS`);
         } catch (error) {
-            const runtime = getRuntimeCapabilities();
             if (!runtime.allowWideFeedFetch) {
                 console.warn(`[RSS] Prefetched sections unavailable for ${section}; live RSS disabled for static host:`, error.message);
                 const emptyPrefetched = [];
