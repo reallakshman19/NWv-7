@@ -143,6 +143,17 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
         terminalStage: TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
       },
       {
+        candidate: story('critical-no-evidence', {
+          title: 'Seattle shooting leaves residents injured',
+          source: 'Times of India',
+          sourceGroup: 'toi',
+          publishedAt: NOW - (2 * HOUR),
+        }),
+        options: {},
+        reason: 'nonlocal_critical_without_evidence',
+        terminalStage: TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
+      },
+      {
         candidate: story('below-threshold'),
         options: { policy: { thresholds: { primary: 2 } } },
         reason: 'below_primary_threshold',
@@ -263,7 +274,7 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
     ).length).toBeGreaterThan(0);
   });
 
-  it('reports max-per-source when diversity blocks capacity', () => {
+  it('reports display-max-per-source when the visible rail would otherwise be source-dominated', () => {
     const dominant = Array.from(
       { length: 6 },
       (_, index) => story(`same-${index}`, {
@@ -276,10 +287,10 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
       { limit: 10, displayDepth: 10 },
     );
 
-    expect(evaluation.selected).toHaveLength(4);
+    expect(evaluation.selected).toHaveLength(2);
     expect(evaluation.selectionTrace.filter(
-      trace => trace.finalReasonCode === 'max_per_source',
-    )).toHaveLength(2);
+      trace => trace.finalReasonCode === 'display_max_per_source',
+    )).toHaveLength(4);
   });
 
   it('uses the supplied frozen clock throughout evaluation', () => {
