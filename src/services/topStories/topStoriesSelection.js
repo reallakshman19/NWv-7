@@ -203,6 +203,37 @@ function normalizeDisplayDepth(options = {}) {
   return Math.max(0, Math.floor(value));
 }
 
+export function projectTopStoryDisplayDiversity(items = [], options = {}) {
+  const policy = options.policy;
+  if (!policy) throw new TypeError('projectTopStoryDisplayDiversity requires policy');
+
+  const displayDepth = normalizeDisplayDepth(options);
+  const ordered = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (displayDepth === 0) return ordered;
+
+  const displayed = [];
+  for (const item of ordered) {
+    if (displayed.length >= displayDepth) break;
+    const reasonCode = getSelectionBlockReason(
+      item,
+      displayed,
+      policy,
+      displayDepth,
+    );
+    if (!reasonCode) displayed.push(item);
+  }
+
+  // If the visible rail cannot meet its diversity contract, fail soft by
+  // under-filling rather than pushing blocked rows back into the first N.
+  if (displayed.length < displayDepth) return displayed;
+
+  const displayedKeys = new Set(displayed.map(getTopStoryDedupeKey));
+  return [
+    ...displayed,
+    ...ordered.filter(item => !displayedKeys.has(getTopStoryDedupeKey(item))),
+  ];
+}
+
 export function selectTopStorySlotsWithTrace(
   ranked = [],
   options = {},
