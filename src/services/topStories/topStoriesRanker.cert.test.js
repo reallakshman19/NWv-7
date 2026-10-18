@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { classifyTopStoryEvent, TOP_STORY_EVENT_TYPES } from './topStoriesEventClassifier.js';
-import { evaluateTopStories, rankTopStories, scoreTopStoryCandidate } from './topStoriesRanker.js';
+import { evaluateTopStories, rankTopStories, scoreTopStoryCandidate, TOP_STORIES_RANKER_VERSION } from './topStoriesRanker.js';
 import { __mainViewModelInternalsForTest } from '../../viewModels/useMainTabViewModel.js';
 
 const NOW = Date.UTC(2026, 6, 8, 8, 0, 0);
@@ -61,6 +61,10 @@ function topFeedRows(id, count = 3, extra = {}) {
 }
 
 describe('NW-RANK-001 Top Stories ranker', () => {
+  it('versions the current ranking semantics independently from the historical v1 pilot', () => {
+    expect(TOP_STORIES_RANKER_VERSION).toBe('nw-top-stories-ranker-observed-v2');
+  });
+
   it('keeps top 10 in the 0-4h band when diverse primary stories are available', () => {
     const items = Array.from({ length: 14 }, (_, i) => story(`p${i}`, 1, {
       title: `Cyclone warning ${i}`,
