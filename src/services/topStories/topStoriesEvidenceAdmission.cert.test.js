@@ -40,7 +40,7 @@ function seattleStory(overrides = {}) {
   };
 }
 
-describe('mature non-local critical-event evidence policy', () => {
+describe('non-local critical-event evidence policy', () => {
   it('rejects a weak single-source mature non-local critical event', () => {
     expect(decision()).toEqual({
       allowed: false,
@@ -58,7 +58,6 @@ describe('mature non-local critical-event evidence policy', () => {
   });
 
   it.each([
-    { label: 'primary band', overrides: { ageBand: 'primary' } },
     {
       label: 'local event',
       overrides: { signals: signals({ locationRelevanceScore: 0.82 }) },
@@ -69,6 +68,32 @@ describe('mature non-local critical-event evidence policy', () => {
       allowed: true,
       applies: false,
       evidenceClass: 'not_required',
+    });
+  });
+
+  it('rejects a weak single-source non-local critical event inside the primary window', () => {
+    expect(decision({
+      ageBand: 'primary',
+      signals: signals({ ageMinutes: 90 }),
+    })).toEqual({
+      allowed: false,
+      applies: true,
+      evidenceClass: 'missing',
+      reason: 'nonlocal_critical_without_evidence',
+    });
+  });
+
+  it('keeps a trusted <=15 minute cold-start critical report eligible', () => {
+    expect(decision({
+      ageBand: 'primary',
+      signals: signals({
+        ageMinutes: 10,
+        sourceQualityScore: 0.8,
+      }),
+    })).toEqual({
+      allowed: true,
+      applies: true,
+      evidenceClass: 'cold_start',
     });
   });
 
