@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildTopStoriesRankingSections,
   getTopFeedSnapshotRows,
+  getTopStoriesAcquisitionSections,
   getTopStoriesCandidateLimit,
+  getVisibleSectionSummaries,
   summarizeSection,
 } from './sectionsDataset.js';
 
@@ -20,6 +22,23 @@ describe('Sections dataset Top Stories candidate pool', () => {
   it('requests a substantially wider ranking pool than the section display slice', () => {
     expect(getTopStoriesCandidateLimit(15)).toBe(45);
     expect(getTopStoriesCandidateLimit(5)).toBe(30);
+  });
+
+  it('acquires Top Stories as a hidden ranking lane without adding it to visible section summaries', () => {
+    const visibleSections = ['world', 'india', 'chennai'];
+    const acquisitionSections = getTopStoriesAcquisitionSections(visibleSections);
+
+    expect(acquisitionSections).toEqual(['topStories', 'world', 'india', 'chennai']);
+
+    const visibleSummaries = getVisibleSectionSummaries([
+      { section: 'topStories', count: 0, staleReason: 'evidence_stale' },
+      { section: 'world', count: 10 },
+      { section: 'india', count: 10 },
+      { section: 'chennai', count: 8 },
+    ], visibleSections);
+
+    expect(visibleSummaries.map(summary => summary.section))
+      .toEqual(['world', 'india', 'chennai']);
   });
 
   it('uses the dedicated authority Top Stories section as signal evidence by default', () => {
