@@ -412,6 +412,89 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(ids(filterLatestStories(rows, false))).toEqual(['first', 'second', 'third']);
   });
 
+  it('rejects weak single-source non-local critical news even inside the 0-4h primary window', () => {
+    const ranked = rank([
+      story('weak-seattle', 3, {
+        title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
+        source: 'Times of India',
+        sourceGroup: 'toi',
+        sourceCount: 1,
+      }),
+      story('corroborated-court', 2, {
+        title: 'Court verdict announced in public case',
+        source: 'BBC',
+        sourceGroup: 'bbc',
+        sourceCount: 2,
+        allSources: ['BBC', 'Reuters'],
+      }),
+    ]);
+
+    expect(ranked.some(item => item.id === 'weak-seattle')).toBe(false);
+
+    const scored = score(story('weak-seattle-score', 3, {
+      title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
+      source: 'Times of India',
+      sourceGroup: 'toi',
+      sourceCount: 1,
+    }));
+    expect(scored._topStoryRank.ageBand).toBe('primary');
+    expect(scored._topStoryRank.slotBand).toBe('rejected');
+    expect(scored._topStoryRank.admissionReason).toBe('nonlocal_critical_without_evidence');
+  });
+
+  it('keeps authoritative single-source non-local critical news eligible in the primary window', () => {
+    const scored = score(story('reuters-critical', 3, {
+      title: 'Seattle shooting leaves residents injured',
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      sourceCount: 1,
+    }));
+
+    expect(scored._topStoryRank.sourceQualityScore).toBe(1);
+    expect(scored._topStoryRank.slotBand).toBe('primary');
+  });
+
+  it('uses source tier metadata from the Sections registry when the publisher family is otherwise unknown', () => {
+    const tierA = score(story('tier-a-regional', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'Regional Authority Wire',
+      sourceGroup: 'regional_authority_wire',
+      sourceTier: 'A',
+    }));
+    const tierB = score(story('tier-b-regional', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'Regional Daily',
+      sourceGroup: 'regional_daily',
+      sourceTier: 'B',
+    }));
+
+    expect(tierA._topStoryRank.sourceQualityScore).toBe(1);
+    expect(tierB._topStoryRank.sourceQualityScore).toBe(0.72);
+  });
+
+  it('caps a single publisher family at two stories in the displayed top 10', () => {
+    const dominant = Array.from({ length: 6 }, (_, i) => story(`reuters-${i}`, 0.5 + i * 0.05, {
+      title: `Court verdict announced in public case ${i}`,
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      section: `dominant-${i}`,
+    }));
+    const alternatives = Array.from({ length: 10 }, (_, i) => story(`alt-${i}`, 1 + i * 0.02, {
+      title: `Court verdict announced in public case alternative ${i}`,
+      source: `Alternative Source ${i}`,
+      sourceGroup: `alternative-${i}`,
+      section: `alternative-section-${i}`,
+      sourceTier: 'A',
+    }));
+
+    const ranked = rank([...dominant, ...alternatives]);
+    const displayed = ranked.slice(0, 10);
+    const reutersCount = displayed.filter(item => item.source === 'Reuters').length;
+
+    expect(displayed).toHaveLength(10);
+    expect(reutersCount).toBeLessThanOrEqual(2);
+  });
+
   it('keeps topStories modules local and non-mutating', () => {
     const frozen = Object.freeze(story('frozen', 1, { title: 'Flood warning' }));
     expect(() => rank([frozen])).not.toThrow();
