@@ -52,6 +52,7 @@ describe('NewsContext single Sections authority', () => {
   });
 
   it('preserves the complete canonical section set and a bounded resume threshold', () => {
+    expect(SECTION_IDS).toContain('topStories');
     expect(SECTION_IDS).toContain('world');
     expect(SECTION_IDS).toContain('india');
     expect(SECTION_IDS).toContain('technology');
