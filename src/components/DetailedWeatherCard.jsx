@@ -20,6 +20,35 @@ export function getHourInTimezone(timeZone, now = new Date()) {
   }
 }
 
+function hourlyPeakProbability(data) {
+  const hourly = Array.isArray(data?.hourly) ? data.hourly : [];
+  return hourly.reduce(
+    (peak, slot) => Math.max(peak, Number(slot?.prob || 0)),
+    0
+  );
+}
+
+export function getWeatherHeaderSummary(cityData) {
+  const today = Array.isArray(cityData?.weeklyForecast) ? cityData.weeklyForecast[0] : null;
+  const peakProbability = Number(
+    cityData?.dailyRain?.peakProbability ??
+    today?.precipProb ??
+    today?.rainProb
+  );
+  const forecastTotalMm = Number(
+    cityData?.dailyRain?.forecastTotalMm ??
+    today?.precipSum ??
+    today?.rainMm
+  );
+  const uv = today?.uvMax ?? today?.uvIndex ?? null;
+
+  if (Number.isFinite(peakProbability) && Number.isFinite(forecastTotalMm) && forecastTotalMm > 0) {
+    return `Peak rain chance today ${Math.round(peakProbability)}% · Forecast total ${forecastTotalMm.toFixed(1)}mm${uv != null ? ` · UV ${uv}` : ''}`;
+  }
+
+  return cityData?.summary || '';
+}
+
 export default function DetailedWeatherCard({
   weatherData,
   activeCity,
@@ -118,7 +147,7 @@ export default function DetailedWeatherCard({
           </div>
 
           <div className="dw-header-sub">
-            {cityData.summary}
+            {getWeatherHeaderSummary(cityData)}
           </div>
         </div>
 
@@ -155,7 +184,10 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
   const rainMmVal = Number.isFinite(Number(data.rainMmValue))
     ? Number(data.rainMmValue)
     : parseFloat(data.rainMm === '-' ? 0 : data.rainMm) || 0;
-  const rainProbVal = Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0;
+  const rainProbVal = Math.max(
+    Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0,
+    hourlyPeakProbability(data)
+  );
   const hasSignificantRain = rainMmVal >= 1.0;
   const hasAnyRain = rainMmVal > 0 || rainProbVal > 0;
 
@@ -269,7 +301,10 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
 
 export function getConditionText(data) {
   const parts = [];
-  const peakRainProb = Number(data?.rainProb?.peak ?? data?.rainProb?.avg ?? 0) || 0;
+  const peakRainProb = Math.max(
+    Number(data?.rainProb?.peak ?? data?.rainProb?.avg ?? 0) || 0,
+    hourlyPeakProbability(data)
+  );
   const rainMm = Number.isFinite(Number(data?.rainMmValue))
     ? Number(data.rainMmValue)
     : parseFloat(data?.rainMm === '-' ? 0 : data?.rainMm) || 0;
