@@ -4,6 +4,37 @@
  * Handles averaging and consensus calculations from multiple weather models
  */
 
+const MODEL_WEIGHTS = Object.freeze({
+    ecmwf: 1.2,
+    icon: 1.0,
+    gfs: 0.8,
+});
+
+export function getWeatherModelWeight(modelName) {
+    return MODEL_WEIGHTS[String(modelName || '').toLowerCase()] || 1.0;
+}
+
+export function weightedAverageMetric(modelData, field, { round = false, digits = null } = {}) {
+    const valid = (modelData || []).filter(m => m?.[field] != null && Number.isFinite(Number(m[field])));
+    if (valid.length === 0) return null;
+
+    let totalWeight = 0;
+    let weightedSum = 0;
+
+    valid.forEach(m => {
+        const weight = getWeatherModelWeight(m.modelName);
+        weightedSum += Number(m[field]) * weight;
+        totalWeight += weight;
+    });
+
+    if (totalWeight <= 0) return null;
+
+    const value = weightedSum / totalWeight;
+    if (round) return Math.round(value);
+    if (Number.isInteger(digits) && digits >= 0) return Number(value.toFixed(digits));
+    return value;
+}
+
 /**
  * Calculate rainfall consensus from multiple models
  * @param {Array} modelData - Array of model precipitation probability data
@@ -14,8 +45,8 @@ export function calculateRainfallConsensus(modelData) {
 
     if (validProbs.length === 0) return null;
 
-    const values = validProbs.map(m => m.precipitation_probability);
-    const avg = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    const values = validProbs.map(m => Number(m.precipitation_probability));
+    const avg = weightedAverageMetric(validProbs, 'precipitation_probability', { round: true });
     const min = Math.min(...values);
     const max = Math.max(...values);
     const range = max - min;
@@ -40,24 +71,7 @@ export function calculateRainfallConsensus(modelData) {
  * @returns {number|null} Averaged temperature
  */
 export function averageTemperature(modelData) {
-    const validTemps = modelData.filter(m => m?.temperature_2m != null);
-    if (validTemps.length === 0) return null;
-
-    let totalWeight = 0;
-    let weightedSum = 0;
-
-    const weights = { ecmwf: 1.2, icon: 1.0, gfs: 0.8 };
-
-    validTemps.forEach(m => {
-        // Default to 1.0 if model name unknown or missing
-        const w = weights[m.modelName] || 1.0;
-        weightedSum += m.temperature_2m * w;
-        totalWeight += w;
-    });
-
-    if (totalWeight === 0) return Math.round(validTemps.reduce((a, b) => a + b.temperature_2m, 0) / validTemps.length);
-
-    return Math.round(weightedSum / totalWeight);
+    return weightedAverageMetric(modelData, 'temperature_2m', { round: true });
 }
 
 /**
@@ -66,12 +80,7 @@ export function averageTemperature(modelData) {
  * @returns {number|null} Averaged apparent temperature
  */
 export function averageApparentTemperature(modelData) {
-    const validTemps = modelData.filter(m => m?.apparent_temperature != null);
-
-    if (validTemps.length === 0) return null;
-
-    const values = validTemps.map(m => m.apparent_temperature);
-    return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    return weightedAverageMetric(modelData, 'apparent_temperature', { round: true });
 }
 
 /**
@@ -112,22 +121,11 @@ export function getMostCommonWeatherCode(modelData) {
  * @returns {number} Averaged precipitation in mm
  */
 export function averagePrecipitation(modelData) {
-    const validPrecip = modelData.filter(m => m?.precipitation != null);
-    if (validPrecip.length === 0) return 0;
+    return weightedAverageMetric(modelData, 'precipitation', { digits: 1 }) ?? 0;
+}
 
-    let totalWeight = 0;
-    let weightedSum = 0;
-    const weights = { ecmwf: 1.2, icon: 1.0, gfs: 0.8 };
-
-    validPrecip.forEach(m => {
-        const w = weights[m.modelName] || 1.0;
-        weightedSum += m.precipitation * w;
-        totalWeight += w;
-    });
-
-    if (totalWeight === 0) return 0;
-
-    return parseFloat((weightedSum / totalWeight).toFixed(1));
+export function averagePrecipitationProbability(modelData) {
+    return weightedAverageMetric(modelData, 'precipitation_probability', { round: true }) ?? 0;
 }
 
 /**

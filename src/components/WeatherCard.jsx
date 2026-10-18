@@ -67,10 +67,12 @@ function WeatherCard({ weatherData, isDesktop }) {
 
     const renderWeatherCell = (city, block, data) => {
         const rainMm = parseFloat(data.rainMm || 0);
-        const rainProbAvg = data.rainProb?.avg || 0;
-        const rainProbRange = (data.rainProb?.min !== undefined && data.rainProb?.max !== undefined && (data.rainProb.max - data.rainProb.min > 10))
-            ? `${data.rainProb.min}-${data.rainProb.max}%`
-            : `${rainProbAvg}%`;
+        const rainProbAvg = Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0;
+        const rainProbRange = data.rainProb?.semantics === 'period_peak_hourly_consensus'
+            ? `Peak ${rainProbAvg}%`
+            : (data.rainProb?.min !== undefined && data.rainProb?.max !== undefined && (data.rainProb.max - data.rainProb.min > 10))
+                ? `${data.rainProb.min}-${data.rainProb.max}%`
+                : `${rainProbAvg}%`;
 
         const showRainButton = rainMm >= 5;
 

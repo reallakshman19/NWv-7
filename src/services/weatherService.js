@@ -4,11 +4,12 @@
  * then snapshot/stale cache as fallback.
  */
 import {
-    calculateRainfallConsensus,
     averageTemperature,
     averageApparentTemperature,
     getMostCommonWeatherCode,
     averagePrecipitation,
+    averagePrecipitationProbability,
+    weightedAverageMetric,
     getSuccessfulModels,
     formatModelNames
 } from '../utils/multiModelUtils.js';
@@ -264,8 +265,81 @@ export async function fetchWeather(locationKey) {
     }
 }
 
+function getDailyMetricRows(modelData, field, dayIndex) {
+    return ['ecmwf', 'gfs', 'icon']
+        .map(modelName => ({
+            modelName,
+            value: modelData?.[modelName]?.daily?.[field]?.[dayIndex],
+        }))
+        .filter(row => row.value != null && Number.isFinite(Number(row.value)));
+}
+
+function weightedDailyMetric(modelData, field, dayIndex, options = {}) {
+    return weightedAverageMetric(getDailyMetricRows(modelData, field, dayIndex), 'value', options);
+}
+
+export function summarizePeriodRain(hourlySlots = []) {
+    const valid = (Array.isArray(hourlySlots) ? hourlySlots : []).filter(Boolean);
+    const probabilities = valid.map(slot => Number(slot?.prob)).filter(Number.isFinite);
+    const precipitation = valid.map(slot => Number(slot?.precip)).filter(Number.isFinite);
+
+    const peak = probabilities.length ? Math.max(...probabilities) : 0;
+    const mean = probabilities.length
+        ? Math.round(probabilities.reduce((sum, value) => sum + value, 0) / probabilities.length)
+        : 0;
+    const min = probabilities.length ? Math.min(...probabilities) : 0;
+    const totalMm = Number(precipitation.reduce((sum, value) => sum + value, 0).toFixed(1));
+
+    return {
+        peak,
+        mean,
+        min,
+        max: peak,
+        totalMm,
+        displayString: `${peak}% peak`,
+        semantics: 'period_peak_hourly_consensus',
+    };
+}
+
+export function buildPrecipitationReconciliation(dailyForecastMm, hourlyConsensusMm) {
+    const daily = Number(dailyForecastMm);
+    const hourly = Number(hourlyConsensusMm);
+    if (!Number.isFinite(daily) || !Number.isFinite(hourly)) return null;
+
+    const deltaMm = Number(Math.abs(daily - hourly).toFixed(1));
+    const toleranceMm = Number(Math.max(0.5, daily * 0.15).toFixed(1));
+
+    return {
+        dailyForecastMm: Number(daily.toFixed(1)),
+        hourlyConsensusMm: Number(hourly.toFixed(1)),
+        deltaMm,
+        toleranceMm,
+        withinTolerance: deltaMm <= toleranceMm,
+    };
+}
+
+function selectPeriodWeatherCode(hourlySlots, fallbackCode = 0) {
+    const rain = summarizePeriodRain(hourlySlots);
+    if (rain.peak < 30 && rain.totalMm < 0.5) return fallbackCode;
+
+    const riskiest = [...(hourlySlots || [])]
+        .filter(Boolean)
+        .sort((a, b) => (
+            (Number(b?.prob || 0) + Number(b?.precip || 0) * 15) -
+            (Number(a?.prob || 0) + Number(a?.precip || 0) * 15)
+        ))[0];
+
+    return Number.isFinite(Number(riskiest?.weatherCode))
+        ? Number(riskiest.weatherCode)
+        : fallbackCode;
+}
+
 function processMultiModelData(modelData, locationName) {
-    const currentData = [modelData.ecmwf?.current, modelData.gfs?.current, modelData.icon?.current].filter(Boolean);
+    const currentData = ['ecmwf', 'gfs', 'icon']
+        .map(modelName => modelData?.[modelName]?.current
+            ? { ...modelData[modelName].current, modelName }
+            : null)
+        .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
     const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
     const getIcon = (code) => { if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
@@ -305,13 +379,15 @@ function processMultiModelData(modelData, locationName) {
         return conditionMap[normalizedCode] || conditionMap[Math.round(normalizedCode)] || 'Forecast';
     };
 
-    const allModelHourlyData = [];
-    if (modelData.ecmwf?.hourly) allModelHourlyData.push(modelData.ecmwf.hourly);
-    if (modelData.gfs?.hourly) allModelHourlyData.push(modelData.gfs.hourly);
-    if (modelData.icon?.hourly) allModelHourlyData.push(modelData.icon.hourly);
+    const allModelHourlyData = ['ecmwf', 'gfs', 'icon']
+        .map(modelName => modelData?.[modelName]?.hourly
+            ? { modelName, hourly: modelData[modelName].hourly }
+            : null)
+        .filter(Boolean);
 
     const getHourConsensus = (hourIdx) => {
-        const pts = allModelHourlyData.map(h => ({
+        const pts = allModelHourlyData.map(({ modelName, hourly: h }) => ({
+            modelName,
             temperature_2m: h.temperature_2m?.[hourIdx],
             apparent_temperature: h.apparent_temperature?.[hourIdx],
             precipitation: h.precipitation?.[hourIdx],
@@ -336,7 +412,7 @@ function processMultiModelData(modelData, locationName) {
         const indices = [];
         for (let i = startHour; i <= endHour; i++) indices.push(i);
 
-        const segmentTemps = []; const segmentApparent = []; const segmentPrecip = []; const segmentPrecipProb = []; const segmentWeatherCodes = []; const segmentHumidity = []; const segmentWindSpeed = []; const segmentUV = []; const segmentCloud = [];
+        const segmentTemps = []; const segmentApparent = []; const segmentWeatherCodes = []; const segmentHumidity = []; const segmentWindSpeed = []; const segmentUV = []; const segmentCloud = [];
         const hourlySlots = [];
 
         indices.forEach(hourIdx => {
@@ -345,29 +421,27 @@ function processMultiModelData(modelData, locationName) {
             const avgTemp = averageTemperature(hourData);
             const avgApparent = averageApparentTemperature(hourData);
             const avgPrecip = averagePrecipitation(hourData);
+            const avgProb = averagePrecipitationProbability(hourData);
             const weatherCode = getMostCommonWeatherCode(hourData);
             if (avgTemp !== null) segmentTemps.push(avgTemp);
             if (avgApparent !== null) segmentApparent.push(avgApparent);
-            if (avgPrecip !== null) segmentPrecip.push(avgPrecip);
             if (weatherCode !== null) segmentWeatherCodes.push(weatherCode);
             hourData.forEach(d => {
-                if (d.precipitation_probability != null) segmentPrecipProb.push({ precipitation_probability: d.precipitation_probability });
                 if (d.relative_humidity_2m != null) segmentHumidity.push(d.relative_humidity_2m);
                 if (d.wind_speed_10m != null) segmentWindSpeed.push(d.wind_speed_10m);
                 if (d.uv_index != null) segmentUV.push(d.uv_index);
                 if (d.cloud_cover != null) segmentCloud.push(d.cloud_cover);
             });
             if (avgTemp !== null) {
-                const avgPrecipMm = parseFloat((hourData.reduce((s, d) => s + (d.precipitation || 0), 0) / hourData.length).toFixed(1));
-                const avgProb = Math.round(hourData.reduce((s, d) => s + (d.precipitation_probability || 0), 0) / hourData.length);
                 hourlySlots.push({
                     time: formatHourLabel(hourIdx),
                     label: formatHourLabel(hourIdx),
                     temp: avgTemp,
                     iconId: getIconForHour(weatherCode, hourIdx % 24),
                     icon: getIcon(weatherCode),
-                    precip: avgPrecipMm,
+                    precip: avgPrecip,
                     prob: avgProb,
+                    weatherCode,
                     condition: getCondition(weatherCode)
                 });
             }
@@ -375,18 +449,28 @@ function processMultiModelData(modelData, locationName) {
 
         const avgTemp = segmentTemps.length ? Math.round(segmentTemps.reduce((a, b) => a + b, 0) / segmentTemps.length) : null;
         const feelsLike = segmentApparent.length ? Math.round(segmentApparent.reduce((a, b) => a + b, 0) / segmentApparent.length) : avgTemp;
-        const totalRainVal = segmentPrecip.reduce((a, b) => a + b, 0);
-        const rainfallConsensus = calculateRainfallConsensus(segmentPrecipProb);
+        const rainSummary = summarizePeriodRain(hourlySlots);
         const midCode = segmentWeatherCodes.length ? segmentWeatherCodes[Math.floor(segmentWeatherCodes.length / 2)] : 0;
+        const periodCode = selectPeriodWeatherCode(hourlySlots, midCode);
         const midHour = Math.floor((startHour + endHour) / 2) % 24;
 
         return {
             temp: avgTemp,
             feelsLike,
-            icon: getIcon(midCode),
-            iconId: getIconForHour(midCode, midHour),
-            rainMm: totalRainVal < 1.0 ? '-' : `${totalRainVal.toFixed(1)}mm`,
-            rainProb: rainfallConsensus || { avg: 0, min: 0, max: 0, displayString: '~0%', isWideRange: false },
+            icon: getIcon(periodCode),
+            iconId: getIconForHour(periodCode, midHour),
+            condition: getCondition(periodCode),
+            rainMm: `${rainSummary.totalMm.toFixed(1)}mm`,
+            rainMmValue: rainSummary.totalMm,
+            rainProb: {
+                avg: rainSummary.peak,
+                peak: rainSummary.peak,
+                mean: rainSummary.mean,
+                min: rainSummary.min,
+                max: rainSummary.max,
+                displayString: rainSummary.displayString,
+                semantics: rainSummary.semantics,
+            },
             humidity: segmentHumidity.length ? Math.round(segmentHumidity.reduce((a, b) => a + b, 0) / segmentHumidity.length) : null,
             windSpeed: segmentWindSpeed.length ? Math.round(segmentWindSpeed.reduce((a, b) => a + b, 0) / segmentWindSpeed.length) : null,
             uvIndex: segmentUV.length ? Math.max(...segmentUV) : null,
@@ -405,15 +489,13 @@ function processMultiModelData(modelData, locationName) {
     const currentTemp = averageTemperature(currentData);
     const currentFeelsLike = averageApparentTemperature(currentData);
     const currentWeatherCode = getMostCommonWeatherCode(currentData);
-    const currentHumidity = currentData.length && currentData[0].relative_humidity_2m != null ? Math.round(currentData.reduce((sum, d) => sum + (d.relative_humidity_2m || 0), 0) / currentData.length) : null;
-    const currentWindSpeed = currentData.length && currentData[0].wind_speed_10m != null ? Math.round(currentData.reduce((sum, d) => sum + (d.wind_speed_10m || 0), 0) / currentData.length) : null;
-    const currentWindDirection = currentData.length && currentData[0].wind_direction_10m != null ? Math.round(currentData.reduce((sum, d) => sum + (d.wind_direction_10m || 0), 0) / currentData.length) : null;
-    const dailyMaxPrecipProb = [modelData.ecmwf?.daily?.precipitation_probability_max?.[0], modelData.gfs?.daily?.precipitation_probability_max?.[0], modelData.icon?.daily?.precipitation_probability_max?.[0]].filter(v => v != null);
-    const maxPrecipProb = dailyMaxPrecipProb.length ? Math.round(dailyMaxPrecipProb.reduce((a, b) => a + b, 0) / dailyMaxPrecipProb.length) : 0;
-    const dailyPrecipSum = [modelData.ecmwf?.daily?.precipitation_sum?.[0], modelData.gfs?.daily?.precipitation_sum?.[0], modelData.icon?.daily?.precipitation_sum?.[0]].filter(v => v != null);
-    const totalPrecip = dailyPrecipSum.length ? (dailyPrecipSum.reduce((a, b) => a + b, 0) / dailyPrecipSum.length).toFixed(1) : '0.0';
-    const dailyUVMax = [modelData.ecmwf?.daily?.uv_index_max?.[0], modelData.gfs?.daily?.uv_index_max?.[0], modelData.icon?.daily?.uv_index_max?.[0]].filter(v => v != null);
-    const maxUV = dailyUVMax.length ? Math.round(dailyUVMax.reduce((a, b) => a + b, 0) / dailyUVMax.length) : null;
+    const currentHumidity = weightedAverageMetric(currentData, 'relative_humidity_2m', { round: true });
+    const currentWindSpeed = weightedAverageMetric(currentData, 'wind_speed_10m', { round: true });
+    const currentWindDirection = weightedAverageMetric(currentData, 'wind_direction_10m', { round: true });
+    const maxPrecipProb = weightedDailyMetric(modelData, 'precipitation_probability_max', 0, { round: true }) ?? 0;
+    const totalPrecipValue = weightedDailyMetric(modelData, 'precipitation_sum', 0, { digits: 1 }) ?? 0;
+    const totalPrecip = totalPrecipValue.toFixed(1);
+    const maxUV = weightedDailyMetric(modelData, 'uv_index_max', 0, { round: true });
     const successfulModels = getSuccessfulModels(modelData);
 
     const hourly24 = [];
@@ -425,8 +507,8 @@ function processMultiModelData(modelData, locationName) {
         const avgTemp = averageTemperature(hourData);
         if (avgTemp === null) continue;
         const weatherCode = getMostCommonWeatherCode(hourData);
-        const avgPrecip = parseFloat((hourData.reduce((s, d) => s + (d.precipitation || 0), 0) / hourData.length).toFixed(1));
-        const avgProb = Math.round(hourData.reduce((s, d) => s + (d.precipitation_probability || 0), 0) / hourData.length);
+        const avgPrecip = averagePrecipitation(hourData);
+        const avgProb = averagePrecipitationProbability(hourData);
         const labelHour = hourIdx % 24;
         const slot = {
             label: i === 0 ? 'Now' : formatHourLabel(labelHour),
@@ -444,6 +526,25 @@ function processMultiModelData(modelData, locationName) {
 
     // Build 7-day weekly forecast consensus
     const weeklyForecast = buildDailyConsensus(modelData, getIcon, getCondition);
+
+    let todayHourlyConsensusMm = 0;
+    for (let hourIdx = 0; hourIdx < 24; hourIdx += 1) {
+        const hourData = getHourConsensus(hourIdx);
+        if (!hourData) continue;
+        todayHourlyConsensusMm += averagePrecipitation(hourData);
+    }
+    todayHourlyConsensusMm = Number(todayHourlyConsensusMm.toFixed(1));
+    const precipitationReconciliation = buildPrecipitationReconciliation(
+        totalPrecipValue,
+        todayHourlyConsensusMm
+    );
+
+    if (precipitationReconciliation && !precipitationReconciliation.withinTolerance) {
+        console.warn('[WeatherService] Daily/hourly precipitation mismatch', {
+            locationName,
+            ...precipitationReconciliation,
+        });
+    }
 
     const timezone = modelData.ecmwf?.timezone || modelData.gfs?.timezone || modelData.icon?.timezone || 'auto';
 
@@ -472,9 +573,15 @@ function processMultiModelData(modelData, locationName) {
         hourly24,
         next8Hours,
         weeklyForecast,
+        precipitationReconciliation,
+        dailyRain: {
+            peakProbability: maxPrecipProb,
+            forecastTotalMm: totalPrecipValue,
+            probabilitySemantics: 'daily_max_hourly_probability_consensus',
+        },
         summary: parseFloat(totalPrecip) > 0
-            ? `Rain ${maxPrecipProb}% · ${totalPrecip}mm · UV ${maxUV || 'N/A'}`
-            : `Stable · UV ${maxUV || 'N/A'}`
+            ? `Peak rain chance today ${maxPrecipProb}% · Forecast total ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
+            : `Stable · UV ${maxUV ?? 'N/A'}`
     };
 }
 
@@ -491,16 +598,18 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
             modelData.gfs?.daily?.temperature_2m_min?.[d],
             modelData.icon?.daily?.temperature_2m_min?.[d],
         ].filter(v => v != null);
-        const precipProb = [
-            modelData.ecmwf?.daily?.precipitation_probability_max?.[d],
-            modelData.gfs?.daily?.precipitation_probability_max?.[d],
-            modelData.icon?.daily?.precipitation_probability_max?.[d],
-        ].filter(v => v != null);
-        const precipSum = [
-            modelData.ecmwf?.daily?.precipitation_sum?.[d],
-            modelData.gfs?.daily?.precipitation_sum?.[d],
-            modelData.icon?.daily?.precipitation_sum?.[d],
-        ].filter(v => v != null);
+        const precipProbValue = weightedDailyMetric(
+            modelData,
+            'precipitation_probability_max',
+            d,
+            { round: true }
+        );
+        const precipSumValue = weightedDailyMetric(
+            modelData,
+            'precipitation_sum',
+            d,
+            { digits: 1 }
+        );
         const uvMax = [
             modelData.ecmwf?.daily?.uv_index_max?.[d],
             modelData.gfs?.daily?.uv_index_max?.[d],
@@ -528,7 +637,6 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
         ].filter(v => v != null);
 
         const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-        const avgF = arr => arr.length ? parseFloat((arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1)) : null;
         const code = weatherCodes.length ? weatherCodes[Math.floor(weatherCodes.length / 2)] : 0;
 
         // Determine day label
@@ -544,12 +652,13 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
             tempMin: avg(tempMin),
             high: avg(tempMax),
             low: avg(tempMin),
-            precipProb: avg(precipProb),
-            rainProb: avg(precipProb),
-            rainfallProbability: avg(precipProb),
-            precipSum: avgF(precipSum),
-            rainMm: avgF(precipSum),
-            rainfallMm: avgF(precipSum),
+            precipProb: precipProbValue,
+            rainProb: precipProbValue,
+            rainfallProbability: precipProbValue,
+            precipitationProbabilitySemantics: 'daily_max_hourly_probability_consensus',
+            precipSum: precipSumValue,
+            rainMm: precipSumValue,
+            rainfallMm: precipSumValue,
             realFeelDay: avg(apparentMax),
             feelsLikeDay: avg(apparentMax),
             humidityDay: avg(humidityMean),
