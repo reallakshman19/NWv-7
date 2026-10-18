@@ -9,7 +9,6 @@ import { getSettings } from '../../utils/storage.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
 import {
-  buildTopStoriesClusterPopulation,
   buildTopStoriesRankingSections as makeTopStoriesRankingSections,
 } from '../../services/topStories/topStoriesPopulation.js';
 import {
@@ -368,14 +367,14 @@ export async function load(options = {}) {
   const allItems = allSummaries.flatMap(summary => (
     Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
   ));
-  const dedupedItems = buildTopStoriesClusterPopulation(
+  // Top Stories ranks only neutral-impact cross-section cluster representatives.
+  // Mixing raw section rows and representatives lets a duplicated event re-enter
+  // the rail under multiple publisher-specific ids.
+  const rankedSections = buildTopStoriesRankingSections(
     allItems,
     settings.storyDeduplication || 0.75,
   );
-  // Top Stories ranks the cross-section cluster representatives only. Feeding both
-  // raw section rows and representatives lets one event re-enter under multiple
-  // source-specific ids and defeats max-per-cluster selection.
-  const rankedSections = { __all: dedupedItems };
+  const dedupedItems = rankedSections.__all;
   const frontPage = rankTopStories(
     {
       sectionItems: rankedSections,
