@@ -20,6 +20,8 @@ const files = {
   displayPrefs: read('src/services/displayPreferences.js'),
   weatherService: read('src/services/weatherService.js'),
   quickWeather: read('src/components/QuickWeather.jsx'),
+  detailedWeather: read('src/components/DetailedWeatherCard.jsx'),
+  topline: read('src/utils/toplineGenerator.js'),
   quickWeatherCss: read('src/components/QuickWeatherRefined.css'),
   signalStrip: read('src/components/weather/QuickWeatherSignalStrip.jsx'),
   signalStripCss: read('src/components/weather/QuickWeatherSignalStrip.css'),
@@ -84,6 +86,27 @@ requireTokens('weatherService', [
   'weeklyForecast',
   'realFeelDay',
   'humidityDay',
+  'period_peak_hourly_consensus',
+  'Peak rain chance today',
+  'precipitationReconciliation',
+  'modelName',
+]);
+
+requireTokens('detailedWeather', [
+  'getHourInTimezone',
+  'Showers possible.',
+  'Rain likely.',
+  'Peak ',
+]);
+
+assert(
+  !files.topline.includes('A pleasant day ahead?'),
+  'topline must not use generic pleasant-day copy when rain risk exists'
+);
+requireTokens('topline', [
+  'dailyRain',
+  'nextPeakProb',
+  'rain-prone',
 ]);
 
 requireTokens('quickWeather', [
