@@ -4,18 +4,23 @@ import { buildTopStorySelectionTrace } from './topStoriesTrace.js';
 import { getStorySourceFamily } from './topStoriesSourceIdentity.js';
 
 function getSourceKey(story = {}) {
-  return getStorySourceFamily(story);
+  const family = getStorySourceFamily(story);
+  return family && family !== 'unknown'
+    ? family
+    : `unknown:${getTopStoryDedupeKey(story)}`;
+}
+
+function getSectionKey(story = {}) {
+  const section = String(story.section || story.sourceSection || '').trim().toLowerCase();
+  return section || `unknown:${getTopStoryDedupeKey(story)}`;
 }
 
 function getGeoKey(story = {}) {
   const target = String(story?._topStoryRank?.locationRelevanceTarget || '').toLowerCase();
   if (target === 'local' || target === 'world') return target;
 
-  return String(
-    story.section ||
-    story.sourceSection ||
-    'generic',
-  ).toLowerCase();
+  const section = String(story.section || story.sourceSection || '').trim().toLowerCase();
+  return section || `generic:${getTopStoryDedupeKey(story)}`;
 }
 
 function markSlot(story, slotBand) {
@@ -51,7 +56,7 @@ function getSelectionBlockReason(item, chosen, policy, displayDepth = 0) {
   );
   const sectionCount = countMatches(
     chosen,
-    existing => existing.section === item.section,
+    existing => getSectionKey(existing) === getSectionKey(item),
   );
   const geoCount = countMatches(
     chosen,
