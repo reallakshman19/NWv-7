@@ -5,6 +5,11 @@ import { extractEntities, extractVerbs, extractNumbers, extractKeywords } from '
 import { loadInsightSnapshot, createSnapshotRawFetcher } from './insightSnapshotFetcher.js';
 import { getInsightSnapshotSignals } from './insightSnapshotSignalAdapter.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
+import { isLiveMode } from '../utils/fetchMode.js';
+import {
+  createSectionsAuthorityInsightRawFetcher,
+  loadSectionsAuthorityInsightFallback,
+} from './insightSectionsAuthorityFallback.js';
 
 async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, referenceTime = undefined) {
   if (!Array.isArray(rawStories) || rawStories.length === 0) return [];
@@ -92,6 +97,11 @@ function createNormalizedSnapshotFetcher(snapshot, cfg = DEFAULT_CONFIG) {
   return async (slot) => normalizeRawStories(await rawFetcher(slot), slot, cfg, snapshot.fetchedAt);
 }
 
+function createNormalizedSectionsAuthorityFetcher(snapshot, cfg = DEFAULT_CONFIG) {
+  const rawFetcher = createSectionsAuthorityInsightRawFetcher(snapshot);
+  return async (slot) => normalizeRawStories(await rawFetcher(slot), slot, cfg, snapshot.fetchedAt);
+}
+
 export { runInsightPipeline, applyIncrementalUpdate, DEFAULT_CONFIG };
 
 // Reject a "stale" snapshot older than this — beyond the 36h story-retention window a
@@ -158,10 +168,9 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
  * Hardened so neither mode dead-ends to a blank page.
  *
  * On github.io (preferSnapshots = true):
- *   1. Fresh snapshot  (file age ≤ 8 h)
- *   2. Stale snapshot  (age ≤ 48 h, with a 2-angle/2-source floor + reduced-quality label)
- *   3. Best-effort live (only when NO snapshot exists — last resort via proxies)
- *   4. Empty state
+ *   Live mode: fresh selected Sections authority first (Cloudflare/GitHub routing).
+ *   Hybrid mode: fresh Insight snapshot first.
+ *   Then: stale Insight snapshot (≤ 48 h), best-effort browser live, empty state.
  *
  * On full-runtime (local / self-hosted):
  *   Live slotFetcher, blended with a best-effort snapshot fallback so sparse/failed
@@ -171,6 +180,24 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
  */
 export async function createInsightFetcher() {
   const { preferSnapshots } = getRuntimeCapabilities();
+  const liveMode = isLiveMode();
+
+  if (preferSnapshots && liveMode) {
+    const authorityFallback = await loadSectionsAuthorityInsightFallback({ force: true });
+
+    if (authorityFallback) {
+      const { snapshot, runtimeSummary } = authorityFallback;
+      return {
+        fetcher: createNormalizedSectionsAuthorityFetcher(snapshot, DEFAULT_CONFIG),
+        source: 'live-sections',
+        snapshotTs: snapshot.fetchedAt,
+        contentHash: snapshot.contentHash || '',
+        sectionsRuntimeSummary: runtimeSummary,
+      };
+    }
+
+    console.warn('[InsightFetcher] Static Live mode could not load a fresh Sections authority snapshot; falling back to Insight snapshot/live acquisition.');
+  }
 
   if (preferSnapshots) {
     const fresh = await loadInsightSnapshot({ allowStale: false });
