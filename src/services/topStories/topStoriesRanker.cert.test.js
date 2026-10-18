@@ -497,6 +497,20 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(tierB._topStoryRank.sourceQualityScore).toBe(0.72);
   });
 
+  it('does not use legacy acquisition region codes as story-level geo diversity evidence', () => {
+    const items = Array.from({ length: 10 }, (_, i) => story(`legacy-region-${i}`, 1, {
+      title: `Court verdict announced in public case legacy region ${i}`,
+      source: `Legacy Region Source ${i}`,
+      sourceGroup: `legacy-region-source-${i}`,
+      section: `legacy-region-section-${i}`,
+      region: 'in',
+    }));
+
+    const ranked = rank(items, { limit: 10 });
+
+    expect(ranked).toHaveLength(10);
+  });
+
   it('reconsiders display-capped publisher stories below the visible top 10 under the broader rail cap', () => {
     const dominant = Array.from({ length: 4 }, (_, i) => story(`reuters-deferred-${i}`, 0.2 + i * 0.01, {
       title: `Court verdict announced in public case deferred ${i}`,
