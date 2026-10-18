@@ -11,7 +11,6 @@ import { mergeBreakingNews } from '../services/breakingNewsService';
 const NewsContext = createContext();
 
 const SECTION_IDS = [
-    'topStories',
     'world',
     'india',
     'chennai',
