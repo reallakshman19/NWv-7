@@ -77,6 +77,12 @@ function getTopFeedSnapshotRows(options = {}) {
   return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
 }
 
+export function buildTopStoriesRankingSections(dedupedItems = []) {
+  return {
+    __all: Array.isArray(dedupedItems) ? dedupedItems : [],
+  };
+}
+
 function countSources(items = []) {
   const counts = {};
   items.forEach(item => {
@@ -302,8 +308,14 @@ export async function load(options = {}) {
     Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
   ));
   const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
-  const rankedSections = { ...sectionItems, __all: dedupedItems };
-  const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
+  // Top Stories ranks the cross-section cluster representatives only. Feeding both
+  // raw section rows and representatives lets one event re-enter under multiple
+  // source-specific ids and defeats max-per-cluster selection.
+  const rankedSections = buildTopStoriesRankingSections(dedupedItems);
+  const frontPage = rankTopStories(
+    { sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() },
+    { limit: options.frontPageLimit || 25 },
+  );
   const envelope = makeEnvelope({
     datasetId: 'sections',
     ok: summaries.some(summary => summary.ok),
