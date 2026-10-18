@@ -112,6 +112,13 @@ Fix: evaluator trace now records
 `mature_nonlocal_critical_without_evidence`
 at the qualification/evidence stage and exposes source-quality and location-relevance details.
 
+## Provenance
+
+The executable ranker version is advanced from `nw-top-stories-ranker-observed-v1` to
+`nw-top-stories-ranker-observed-v2`. Historical v1 shadow-study configuration and frozen pilot
+fixtures are intentionally unchanged; they describe the earlier executable semantics and must not
+be rewritten retroactively.
+
 ## Explicitly unchanged
 
 - public-interest weights;
