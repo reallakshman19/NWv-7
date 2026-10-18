@@ -47,6 +47,14 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
     });
   });
 
+  it('does not treat blocked static-host browser feeds as a successful empty offer query', () => {
+    expect(vm).toContain('runtime.allowWideFeedFetch');
+    expect(vm).toContain('static_runtime_blocks_browser_live');
+    expect(vm).toContain('deriveOfferCapability');
+    expect(page).toContain('data-offer-capability');
+    expect(page).not.toContain('emptyMessage="No online offers right now."');
+  });
+
   it('UpAheadPage preserves evidence, briefing, data-state and timeline UI', () => {
     expect(page).toContain('<UpAheadEvidencePanel evidence={upAheadEvidence} />');
     expect(page).toContain('<UpAheadBriefingPanel briefing={upAheadBriefing} />');
