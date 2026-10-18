@@ -74,11 +74,13 @@ describe('useMainTabViewModel static checks', () => {
   });
 
   it('is not a second Top Stories ranking authority (NW-RANK-001)', () => {
-    // rankTopStories (services/topStories) owns Top Stories ordering; the
-    // Main ViewModel must consume the supplied frontPage without re-ranking.
+    // rankTopStories (services/topStories) owns Top Stories ordering. Main may
+    // demote already-read rows, but must re-apply only the ranker's display
+    // diversity contract rather than inventing a second scoring authority.
     expect(src).not.toContain('rankTopStoriesByRecency');
     expect(src).not.toContain('topStoriesRecency');
     expect(src).not.toContain('composeBalancedFeed');
+    expect(src).toContain('projectTopStoryDisplayDiversity');
     expect(src).toContain('slice(0, 25)');
   });
 });
@@ -151,6 +153,37 @@ describe('Main ViewModel internals', () => {
       .map(story => story.id)
       .filter(id => id !== 'story-2' && id !== 'story-5');
     expect(result.map(story => story.id)).toEqual(expected);
+  });
+
+  it('keeps publisher-family diversity after read-state demotion promotes lower-ranked rows', () => {
+    const stories = [
+      { id: 'google-0', source: 'Google News Top', sourceGroup: 'google_news', section: 'topStories' },
+      { id: 'google-1', source: 'Google News Oman', sourceGroup: 'google_news_oman', section: 'world' },
+      ...Array.from({ length: 8 }, (_, index) => ({
+        id: `alt-${index}`,
+        source: `Alternative ${index}`,
+        sourceGroup: `alternative-${index}`,
+        section: `section-${index}`,
+      })),
+      { id: 'google-2', source: 'Google News Trichy', sourceGroup: 'google_news_alt', section: 'india' },
+      { id: 'google-3', source: 'Google News Top', sourceGroup: 'google_news', section: 'technology' },
+      { id: 'alt-8', source: 'Alternative 8', sourceGroup: 'alternative-8', section: 'section-8' },
+      { id: 'alt-9', source: 'Alternative 9', sourceGroup: 'alternative-9', section: 'section-9' },
+    ];
+
+    readState.readIds.add('alt-0');
+    readState.readIds.add('alt-1');
+
+    const result = filterLatestStories(stories, true);
+    const firstTen = result.slice(0, 10);
+    const googleCount = firstTen.filter(story => (
+      String(story.sourceGroup || '').startsWith('google_news')
+    )).length;
+
+    expect(firstTen).toHaveLength(10);
+    expect(googleCount).toBe(2);
+    expect(result.findIndex(story => story.id === 'google-2')).toBeGreaterThanOrEqual(10);
+    expect(result.findIndex(story => story.id === 'google-3')).toBeGreaterThanOrEqual(10);
   });
 
   it('custom sort backfills demoted stories in supplied order to keep the minimum of 10', () => {
