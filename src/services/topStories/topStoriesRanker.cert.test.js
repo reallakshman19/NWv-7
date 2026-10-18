@@ -236,20 +236,20 @@ describe('NW-RANK-001 Top Stories ranker', () => {
   });
 
   it('limits one source/section/geography dominance when enough alternatives exist', () => {
-    const sections = ['india', 'business', 'sports', 'technology', 'science', 'health'];
+    const sections = ['india', 'business', 'sports', 'technology', 'science', 'health', 'world', 'civic'];
     const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
-    const alternatives = Array.from({ length: 6 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Public alert ${i}` }));
+    const alternatives = Array.from({ length: 8 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
     expect(ranked).toHaveLength(10);
-    expect(ranked.filter(item => item.sourceGroup === 'same').length).toBeLessThanOrEqual(4);
+    expect(ranked.filter(item => item.sourceGroup === 'same').length).toBeLessThanOrEqual(2);
   });
 
-  it('under-fills rather than bypassing diversity limits when alternatives run out', () => {
+  it('under-fills rather than bypassing visible-rail diversity limits when alternatives run out', () => {
     const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
     const alternatives = Array.from({ length: 5 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: `alternative-${i}`, title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
-    expect(ranked).toHaveLength(9);
-    expect(ranked.filter(item => item.sourceGroup === 'same')).toHaveLength(4);
+    expect(ranked).toHaveLength(7);
+    expect(ranked.filter(item => item.sourceGroup === 'same')).toHaveLength(2);
     expect(ranked.filter(item => item.sourceGroup !== 'same')).toHaveLength(5);
   });
 
