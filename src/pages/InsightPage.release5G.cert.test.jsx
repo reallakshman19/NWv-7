@@ -67,6 +67,12 @@ describe('InsightPage Release 5G migration', () => {
     expect(src).toContain('Running AI pipeline');
   });
 
+  it('does not label an empty Insight result as up to date', () => {
+    expect(src).not.toContain("displayStaleLabel || 'Up to date'");
+    expect(src).toContain('Live · Degraded');
+    expect(src).toContain('Unavailable');
+  });
+
   it('routes refresh through ViewModel refresh', () => {
     expect(src).toContain('handleRefresh');
     expect(src).toContain('refresh(false)');

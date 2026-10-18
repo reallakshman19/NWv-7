@@ -1635,6 +1635,7 @@ export default function InsightPage() {
     acceptPending,
     dismissPending,
     hasResult,
+    degraded,
     rawStoryCount,
     rawResult,
   } = useInsightTabViewModel();
@@ -1669,7 +1670,7 @@ export default function InsightPage() {
       <div className="page-container insight-page">
         <Header
           title="Insight"
-          stateLabel={displayStaleLabel || 'Up to date'}
+          stateLabel={displayStaleLabel || (source === 'failed' || source === 'unavailable' ? 'Unavailable' : 'Live · Degraded')}
           stateType={staleLabel ? 'stale' : 'live'}
           onRefresh={handleRefresh}
           shellRuntimeProps={shellRuntimeProps}
@@ -1714,7 +1715,7 @@ export default function InsightPage() {
     <div className="page-container">
       <Header
         title="Insight"
-        stateLabel={displayStaleLabel || 'Live'}
+        stateLabel={displayStaleLabel || (degraded ? 'Live · Degraded' : 'Live')}
         stateType={staleLabel ? 'stale' : 'live'}
         onRefresh={handleRefresh}
         shellRuntimeProps={shellRuntimeProps}

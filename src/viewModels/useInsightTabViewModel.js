@@ -68,6 +68,7 @@ function extractInsightResultFromEnvelope(envelope) {
 
   if (data.result) return normalizeInsightResult(data.result);
   if (data.insightResult) return normalizeInsightResult(data.insightResult);
+  if (data.insight) return normalizeInsightResult(data.insight);
   if (Array.isArray(data.parents) || data.storiesById) return normalizeInsightResult(data);
 
   return null;
@@ -79,26 +80,7 @@ function getInsightResultParentCount(result) {
 
 function hasRenderableInsightResult(result) {
   const parents = result?.parents;
-  if (!Array.isArray(parents) || parents.length === 0) return false;
-
-  // Gate out thin live-fallback results that would render as grade F / 0 multi-angle.
-  // The runtimeQualityGate.before diagnostics are produced by recoverInsightRuntimeQuality
-  // before any recovery attempt; they reflect raw pipeline output.
-  const gate = result?.runtimeQualityGate;
-  if (gate?.attempted) {
-    const before = gate?.before || {};
-    const multiAngleCount = Number(before.multiAngleCount || 0);
-    const storyCount = Number(before.storyCount || 0);
-    const grade = String(before.grade || 'F');
-    const gradeRank = ['F', 'D', 'C', 'B', 'A'].indexOf(grade);
-    // Suppress: fewer than 3 parents, or grade F/D with no multi-angle clusters,
-    // or storyCount below a meaningful minimum.
-    if (parents.length < 3) return false;
-    if (gradeRank < 2 && multiAngleCount === 0) return false;
-    if (storyCount > 0 && storyCount < 24) return false;
-  }
-
-  return true;
+  return Array.isArray(parents) && parents.length > 0;
 }
 
 function hasQualityAcceptedInsightResult(result) {
@@ -265,67 +247,92 @@ function getInsightStaleLabel({ source, fetcherSnapshotTs, envelope }) {
 
 function makeInsightBoundaryEnvelope({ envelope, result, source, emptyReason }) {
   const renderable = hasRenderableInsightResult(result);
+  const qualityAccepted = hasQualityAcceptedInsightResult(result);
+  const degraded = renderable && !qualityAccepted;
 
   if (envelope) {
     const existingValidation = envelope.validation || {};
+    const existingWarnings = Array.isArray(existingValidation.warnings)
+      ? existingValidation.warnings
+      : [];
 
     return {
       ...envelope,
-      ok: Boolean(envelope.ok && renderable),
+      ok: Boolean(envelope.ok && renderable && qualityAccepted),
       freshness: renderable ? (envelope.freshness || 'fresh') : 'empty',
-      error: renderable ? (envelope.error || null) : (envelope.error || emptyReason || 'No renderable Insight clusters'),
+      error: !renderable
+        ? (envelope.error || emptyReason || 'No renderable Insight clusters')
+        : degraded
+          ? (envelope.error || 'Insight is available with reduced runtime quality.')
+          : (envelope.error || null),
       data: {
         ...(envelope.data || {}),
         result,
         parents: result?.parents || [],
         projectedHasRenderableInsight: renderable,
+        projectedQualityAccepted: qualityAccepted,
       },
       validation: {
         ...existingValidation,
-        passed: Boolean(existingValidation.passed !== false && renderable),
+        passed: Boolean(existingValidation.passed !== false && renderable && qualityAccepted),
         errors: renderable
           ? (Array.isArray(existingValidation.errors) ? existingValidation.errors : [])
           : [
               ...(Array.isArray(existingValidation.errors) ? existingValidation.errors : []),
               'insight_no_renderable_clusters',
             ],
-        warnings: Array.isArray(existingValidation.warnings) ? existingValidation.warnings : [],
+        warnings: [
+          ...existingWarnings,
+          ...(degraded && !existingWarnings.includes('insight_runtime_quality_degraded')
+            ? ['insight_runtime_quality_degraded']
+            : []),
+        ],
       },
       diagnostics: [
         ...(Array.isArray(envelope.diagnostics) ? envelope.diagnostics : []),
         {
           event: 'insight.view_model.projected_result',
-          severity: renderable ? 'info' : 'warn',
-          message: renderable
-            ? 'Insight ViewModel projected render-ready result into the boundary envelope.'
-            : 'Insight ViewModel projected an empty/non-renderable result into the boundary envelope.',
+          severity: !renderable || degraded ? 'warn' : 'info',
+          message: !renderable
+            ? 'Insight ViewModel projected an empty/non-renderable result into the boundary envelope.'
+            : degraded
+              ? 'Insight ViewModel retained a renderable result in degraded mode after runtime quality recovery did not meet the acceptance floor.'
+              : 'Insight ViewModel projected render-ready result into the boundary envelope.',
         },
       ],
     };
   }
 
   return {
-    ok: renderable,
+    ok: Boolean(renderable && qualityAccepted),
     datasetId: 'insight',
     data: {
       result,
       parents: result?.parents || [],
       projectedHasRenderableInsight: renderable,
+      projectedQualityAccepted: qualityAccepted,
     },
     source,
     freshness: renderable ? 'fresh' : 'empty',
+    error: !renderable
+      ? (emptyReason || 'No renderable Insight clusters')
+      : degraded
+        ? 'Insight is available with reduced runtime quality.'
+        : null,
     validation: {
-      passed: renderable,
+      passed: Boolean(renderable && qualityAccepted),
       errors: renderable ? [] : [emptyReason || 'No renderable Insight clusters'],
-      warnings: [],
+      warnings: degraded ? ['insight_runtime_quality_degraded'] : [],
     },
     diagnostics: [
       {
         event: 'insight.view_model.pipeline_fallback',
-        severity: renderable ? 'info' : 'warn',
-        message: renderable
-          ? 'Insight ViewModel used pipeline fallback while dataset envelope was unavailable.'
-          : 'Insight ViewModel has no renderable Insight result.',
+        severity: !renderable || degraded ? 'warn' : 'info',
+        message: !renderable
+          ? 'Insight ViewModel has no renderable Insight result.'
+          : degraded
+            ? 'Insight ViewModel retained degraded pipeline output instead of blanking the page.'
+            : 'Insight ViewModel used pipeline fallback while dataset envelope was unavailable.',
       },
     ],
   };
@@ -637,6 +644,8 @@ export function useInsightTabViewModel() {
   const error = datasetError || pipelineError || boundaryEnvelope?.error || null;
 
   const hasResult = hasRenderableInsightResult(resultToRender);
+  const qualityAccepted = hasQualityAcceptedInsightResult(resultToRender);
+  const degraded = hasResult && !qualityAccepted;
 
   return {
     envelope: boundaryEnvelope,
@@ -654,6 +663,8 @@ export function useInsightTabViewModel() {
     acceptPending,
     dismissPending,
     hasResult,
+    qualityAccepted,
+    degraded,
     // Expose raw pipeline result for partial rendering when clustering fails.
     // Only populated when hasResult is false so callers don't need to guard.
     rawStoryCount: hasResult ? 0 : (result?.storiesById?.size || 0),
