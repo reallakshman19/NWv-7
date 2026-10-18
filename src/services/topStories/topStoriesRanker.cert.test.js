@@ -549,6 +549,31 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(ranked.findIndex(item => item.id === 'reuters-deferred-2')).toBeGreaterThanOrEqual(10);
   });
 
+  it('treats Google News lane aliases as one publisher family in the displayed top 10', () => {
+    const googleRows = Array.from({ length: 6 }, (_, i) => story(`google-family-${i}`, 0.4 + i * 0.03, {
+      title: `Court verdict announced in public case google family ${i}`,
+      source: i % 2 === 0 ? 'Google News Top' : 'Google News Oman IN',
+      sourceGroup: i % 2 === 0 ? 'google_news' : 'google_news_oman',
+      sourceTier: 'B',
+      section: `google-section-${i}`,
+    }));
+    const alternatives = Array.from({ length: 8 }, (_, i) => story(`google-alt-${i}`, 0.8 + i * 0.03, {
+      title: `Court verdict announced in public case diverse family ${i}`,
+      source: `Diverse Publisher ${i}`,
+      sourceGroup: `diverse-publisher-${i}`,
+      sourceTier: 'A',
+      section: `diverse-section-${i}`,
+    }));
+
+    const displayed = rank([...googleRows, ...alternatives]).slice(0, 10);
+    const googleCount = displayed.filter(item => (
+      String(item.sourceGroup || '').startsWith('google_news')
+    )).length;
+
+    expect(displayed).toHaveLength(10);
+    expect(googleCount).toBeLessThanOrEqual(2);
+  });
+
   it('caps a single publisher family at two stories in the displayed top 10', () => {
     const dominant = Array.from({ length: 6 }, (_, i) => story(`reuters-${i}`, 0.5 + i * 0.05, {
       title: `Court verdict announced in public case ${i}`,
