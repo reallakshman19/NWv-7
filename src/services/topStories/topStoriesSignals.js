@@ -21,13 +21,18 @@ const TOP_TIER_SOURCE_FAMILIES = new Set([
   'bbc',
   'the_hindu',
   'business_line',
+  'economic_times',
+  'financial_express',
   'times_of_oman',
   'muscat_daily',
 ]);
 const STANDARD_SOURCE_FAMILIES = new Set([
   'ndtv',
   'hindustan_times',
-  'economic_times',
+  'times_of_india',
+  'dtnext',
+  'oman_observer',
+  'gadgets360',
   'moneycontrol',
   'google_news',
 ]);
