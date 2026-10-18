@@ -9,6 +9,8 @@ import {
   runInsightPipeline,
   DEFAULT_CONFIG,
 } from '../../adapters/insightFetcher.js';
+import { repairInsightResult } from '../../insight/src/diagnostics/insightResultRepair.ts';
+import { recoverInsightRuntimeQuality } from '../../insight/src/diagnostics/insightRuntimeQualityGate.ts';
 
 // Expensive dataset. Do not call from mainDataset unless includeInsight=true.
 
@@ -36,28 +38,43 @@ function getStaleLabel(source, timestamp) {
   return null;
 }
 
-function summarizeInsight(insight) {
-  const stories =
-    insight?.stories ||
-    insight?.parents ||
-    insight?.clusters ||
-    insight?.trees ||
-    [];
+function getInsightStoryRows(insight) {
+  if (insight?.storiesById instanceof Map) {
+    return [...insight.storiesById.values()];
+  }
 
-  const storyCount = Array.isArray(stories) ? stories.length : Number(insight?.storyCount || 0);
+  if (insight?.storiesById && typeof insight.storiesById === 'object') {
+    return Object.values(insight.storiesById);
+  }
+
+  if (Array.isArray(insight?.stories)) return insight.stories;
+
+  return [];
+}
+
+function summarizeInsight(insight) {
+  const stories = getInsightStoryRows(insight);
+  const parents = Array.isArray(insight?.parents) ? insight.parents : [];
   const sourceGroups = new Set();
 
-  if (Array.isArray(stories)) {
-    stories.forEach(story => {
-      const source = story?.sourceGroup || story?.source || story?.primarySource;
-      if (source) sourceGroups.add(source);
-    });
-  }
+  stories.forEach(story => {
+    const source = story?.sourceGroup || story?.source || story?.primarySource;
+    if (source) sourceGroups.add(source);
+  });
+
+  const storyCount = stories.length > 0
+    ? stories.length
+    : Number(insight?.storyCount || 0);
 
   return {
     storyCount,
     sourceGroupCount: Number(insight?.sourceGroupCount || sourceGroups.size || 0),
-    usableParentCount: Number(insight?.usableParentCount || insight?.usableParents || storyCount || 0),
+    usableParentCount: Number(
+      insight?.usableParentCount ||
+      insight?.usableParents ||
+      parents.length ||
+      0
+    ),
   };
 }
 
@@ -82,9 +99,27 @@ export async function load() {
       ? { ...DEFAULT_CONFIG, ...fetcherInfo.pipelineConfigOverrides }
       : DEFAULT_CONFIG;
 
-    const insight = await runInsightPipeline(fetcherInfo.fetcher, cfg);
+    const rawInsight = await runInsightPipeline(fetcherInfo.fetcher, cfg);
+    const runtimeQuality = recoverInsightRuntimeQuality(
+      repairInsightResult(rawInsight),
+      fetcherInfo.source,
+      cfg
+    );
+    const insight = runtimeQuality.result;
     const quality = summarizeInsight(insight);
     const staleLabel = getStaleLabel(fetcherInfo.source, fetcherInfo.snapshotTs);
+
+    diagnostics.push({
+      event: 'insightDataset.runtime_quality_gate',
+      severity: runtimeQuality.gate?.attempted && !runtimeQuality.gate?.recovered ? 'warn' : 'info',
+      message: runtimeQuality.gate?.reason || 'Insight runtime quality evaluated',
+      details: {
+        attempted: Boolean(runtimeQuality.gate?.attempted),
+        recovered: Boolean(runtimeQuality.gate?.recovered),
+        beforeGrade: runtimeQuality.gate?.before?.grade || null,
+        afterGrade: runtimeQuality.gate?.after?.grade || null,
+      },
+    });
 
     const ok = Boolean(insight) && quality.storyCount > 0;
 
@@ -118,6 +153,9 @@ export async function load() {
         warnings: [
           fetcherInfo.source === 'stale-snapshot' ? 'insight_stale_snapshot' : null,
           fetcherInfo.source === 'unavailable' ? 'insight_snapshot_unavailable' : null,
+          runtimeQuality.gate?.attempted && !runtimeQuality.gate?.recovered
+            ? 'insight_runtime_quality_degraded'
+            : null,
         ].filter(Boolean),
       },
       diagnostics,
@@ -168,5 +206,6 @@ export async function load() {
 export const __insightDatasetInternalsForTest = {
   formatInsightAge,
   getStaleLabel,
+  getInsightStoryRows,
   summarizeInsight,
 };
