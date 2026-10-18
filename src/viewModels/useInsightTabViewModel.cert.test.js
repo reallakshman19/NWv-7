@@ -113,6 +113,24 @@ describe('Insight ViewModel internals', () => {
     expect(result.storiesById instanceof Map).toBe(true);
   });
 
+  it('extracts the canonical data.insight payload emitted by insightDataset', () => {
+    const result = extractInsightResultFromEnvelope({
+      data: {
+        insight: {
+          parents: [{ parentId: 'p-dataset' }],
+          storiesById: {
+            s1: { id: 's1', title: 'Dataset story' },
+          },
+        },
+      },
+    });
+
+    expect(result.parents).toHaveLength(1);
+    expect(result.parents[0].parentId).toBe('p-dataset');
+    expect(result.storiesById instanceof Map).toBe(true);
+    expect(result.storiesById.get('s1').title).toBe('Dataset story');
+  });
+
   it('counts result parents safely', () => {
     expect(getInsightResultParentCount({ parents: [1, 2] })).toBe(2);
     expect(getInsightResultParentCount({})).toBe(0);
@@ -126,15 +144,17 @@ describe('Insight ViewModel internals', () => {
     expect(hasRenderableInsightResult({ parents: [{ parentId: 'p1' }] })).toBe(true);
   });
 
-  it('does not cache runtime-quality rejected result', () => {
+  it('renders but does not cache runtime-quality rejected result', () => {
     const weak = {
       parents: [{ parentId: 'p1' }],
       runtimeQualityGate: {
         attempted: true,
         recovered: false,
+        reason: 'relaxed-tree recovery could not produce acceptable output',
       },
     };
 
+    expect(hasRenderableInsightResult(weak)).toBe(true);
     expect(hasQualityAcceptedInsightResult(weak)).toBe(false);
     expect(hasCacheAcceptableInsightResult(weak)).toBe(false);
   });
@@ -226,6 +246,32 @@ describe('Insight ViewModel internals', () => {
     expect(result.ok).toBe(false);
     expect(result.validation.passed).toBe(false);
     expect(result.data.projectedHasRenderableInsight).toBe(false);
+  });
+
+  it('keeps quality-rejected parent output renderable as degraded instead of empty', () => {
+    const result = makeInsightBoundaryEnvelope({
+      envelope: {
+        ok: true,
+        freshness: 'fresh',
+        data: {},
+        validation: { passed: true, errors: [], warnings: [] },
+      },
+      result: {
+        parents: [{ parentId: 'p1' }],
+        runtimeQualityGate: {
+          attempted: true,
+          recovered: false,
+        },
+      },
+      source: 'live',
+      emptyReason: 'No renderable Insight clusters',
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.freshness).toBe('fresh');
+    expect(result.data.projectedHasRenderableInsight).toBe(true);
+    expect(result.data.projectedQualityAccepted).toBe(false);
+    expect(result.validation.warnings).toContain('insight_runtime_quality_degraded');
   });
 
   it('returns successful degraded refresh when pipeline succeeds after dataset failure', () => {
