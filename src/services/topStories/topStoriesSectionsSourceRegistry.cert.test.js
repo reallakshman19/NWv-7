@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSectionsSourceRegistryAuthority,
 } from '../../../scripts/top-stories-shadow/sectionsShadowSourceRegistry.mjs';
+import {
+  getSectionGeography,
+} from '../../../scripts/sections-live/sectionsLiveAuthority.mjs';
 
 function readJson(path) {
   return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -62,6 +65,15 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
       () => buildSectionsSourceRegistryAuthority(registry),
       'source_registry_coverage_failed',
     );
+  });
+
+  it('keeps geographic section metadata truthful instead of stamping every non-Muscat lane as India', () => {
+    expect(getSectionGeography('india')).toEqual({ region: 'india', countryCode: 'in' });
+    expect(getSectionGeography('tn')).toEqual({ region: 'india', countryCode: 'in' });
+    expect(getSectionGeography('muscat')).toEqual({ region: 'oman', countryCode: 'om' });
+    expect(getSectionGeography('world')).toEqual({ region: 'world', countryCode: null });
+    expect(getSectionGeography('technology')).toEqual({ region: null, countryCode: null });
+    expect(getSectionGeography('topStories')).toEqual({ region: null, countryCode: null });
   });
 
   it('propagates registry tier metadata into live section story rows', () => {
