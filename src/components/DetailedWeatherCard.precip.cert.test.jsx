@@ -4,7 +4,7 @@ import {
   getConditionText,
   getHourInTimezone,
   getWeatherHeaderSummary,
-} from './DetailedWeatherCard.jsx';
+} from './detailedWeatherCardUtils.js';
 
 describe('DetailedWeatherCard precipitation semantics', () => {
   it('uses the selected city timezone for daypart selection', () => {
