@@ -2,6 +2,7 @@ import {
   getSectionsSnapshotRuntimeSummary,
   loadSectionsSnapshot,
 } from '../adapters/sectionsSnapshotFetcher.js';
+import { getStorySourceFamily } from '../services/topStories/topStoriesSourceIdentity.js';
 
 const LIVE_DIGEST_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 const LIVE_DIGEST_MAX_CARDS = 6;
@@ -95,6 +96,8 @@ function normalizeCandidate(item, section, rank, nowMs) {
     canonicalUrl,
     source,
     sourceGroup: sourceGroup(item),
+    // Canonical family is a *selection budget*; keep original label for display/provenance.
+    sourceFamily: getStorySourceFamily({ ...item, source: source }),
     section,
     publishedAt,
     rank,
@@ -128,7 +131,7 @@ export function buildLiveDigestCandidatePool(snapshot, { nowMs } = {}) {
 }
 
 function canUseSource(candidate, sourceCounts) {
-  return Number(sourceCounts.get(candidate.sourceGroup) || 0) < MAX_PER_SOURCE_GROUP;
+  return Number(sourceCounts.get(candidate.sourceFamily) || 0) < MAX_PER_SOURCE_GROUP;
 }
 
 function pushCandidate(selected, selectedKeys, sourceCounts, candidate) {
@@ -137,7 +140,7 @@ function pushCandidate(selected, selectedKeys, sourceCounts, candidate) {
 
   selected.push(candidate);
   selectedKeys.add(key);
-  sourceCounts.set(candidate.sourceGroup, Number(sourceCounts.get(candidate.sourceGroup) || 0) + 1);
+  sourceCounts.set(candidate.sourceFamily, Number(sourceCounts.get(candidate.sourceFamily) || 0) + 1);
   return true;
 }
 
@@ -182,7 +185,7 @@ export function selectLiveDigestCards(snapshot, options = {}) {
     pushCandidate(selected, selectedKeys, sourceCounts, candidate);
   }
 
-  const uniqueSources = new Set(selected.map(item => item.sourceGroup));
+  const uniqueSources = new Set(selected.map(item => item.sourceFamily));
 
   if (
     selected.length < LIVE_DIGEST_MIN_CARDS ||
