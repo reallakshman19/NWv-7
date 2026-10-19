@@ -87,6 +87,15 @@ export function getVisibleSectionSummaries(allSummaries = [], sections = []) {
     .filter(summary => visible.has(summary?.section));
 }
 
+/** A hidden Top Stories evidence lane must never expand the ranker candidate pool. */
+export function getTopStoriesRankingCandidateRows(allSummaries = [], sections = []) {
+  return getVisibleSectionSummaries(allSummaries, sections)
+    .filter(summary => summary.section !== 'topStories')
+    .flatMap(summary => (
+      Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items || []
+    ));
+}
+
 export function getTopFeedSnapshotRows(options = {}, summaries = []) {
   // Keep publisher-level source rows intact here. buildTopFeedSignalMap()
   // normalizes exactly once inside the ranker. Premature normalization would
@@ -364,9 +373,7 @@ export async function load(options = {}) {
   const failed = summaries.filter(summary => !summary.ok);
   const topFeedItems = getTopFeedSnapshotRows(options, allSummaries);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
-  const allItems = allSummaries.flatMap(summary => (
-    Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items
-  ));
+  const allItems = getTopStoriesRankingCandidateRows(allSummaries, sections);
   // Top Stories ranks only neutral-impact cross-section cluster representatives.
   // Mixing raw section rows and representatives lets a duplicated event re-enter
   // the rail under multiple publisher-specific ids.
