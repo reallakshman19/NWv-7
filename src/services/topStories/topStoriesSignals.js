@@ -6,6 +6,7 @@ import {
   getLocationRelevanceSignal,
 } from './topStoriesLocationSignals.js';
 import {
+  getSourceFamily,
   getStorySourceFamilies,
   getStorySourceFamily,
   isAggregatorSourceFamily,
@@ -26,13 +27,8 @@ const TOP_TIER_SOURCE_FAMILIES = new Set([
 ]);
 const STANDARD_SOURCE_FAMILIES = new Set([
   'ndtv',
-  'economic_times',
-  'financial_express',
   'hindustan_times',
-  'times_of_india',
-  'dtnext',
-  'oman_observer',
-  'gadgets360',
+  'economic_times',
   'moneycontrol',
   'google_news',
 ]);
@@ -153,7 +149,19 @@ export function getSourceQualityScore(story = {}) {
     .map(getSourceFamilyQuality);
   const familyScore = familyScores.length ? Math.max(...familyScores) : 0.48;
 
-  return tierScore > 0 ? tierScore : familyScore;
+  if (tierScore > 0) {
+    // The registry tier belongs to the selected/acquisition publisher row.
+    // A distinct publisher preserved in cluster evidence can still supply
+    // stronger independent quality (e.g. Reuters behind a Google News lane).
+    const acquisitionFamily = getSourceFamily(story.sourceGroup || story.source);
+    const independentFamilyScores = getStorySourceFamilies(story)
+      .filter(family => family !== acquisitionFamily)
+      .map(getSourceFamilyQuality);
+    return Math.max(tierScore, ...independentFamilyScores);
+  }
+
+  // Legacy rows without registry provenance keep the original family fallback.
+  return familyScore;
 }
 
 export function getFreshnessScore(ageHours, policy) {
