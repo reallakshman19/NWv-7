@@ -112,6 +112,7 @@ jobs:
               ;;
           esac
           echo "checkout_ref=$checkout_ref" >> "$GITHUB_OUTPUT"
+          echo "default_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
           echo "expected_source_sha=$expected_source_sha" >> "$GITHUB_OUTPUT"
           echo "source_resolution_mode=$source_resolution_mode" >> "$GITHUB_OUTPUT"
 
@@ -168,7 +169,7 @@ jobs:
       - name: Reject superseded CI release source
         if: ${{ steps.source.outputs.source_resolution_mode == 'workflow-run-ci-verified-sha' }}
         env:
-          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          DEFAULT_BRANCH: ${{ steps.source.outputs.default_branch }}
           APPROVED_SHA: ${{ steps.checkout.outputs.source_sha }}
         shell: bash
         run: |
