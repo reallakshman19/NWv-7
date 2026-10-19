@@ -77,11 +77,13 @@ export function assessSectionsSnapshot(snapshot, {
     String(row.sourceGroup || row.source || '').trim().toLowerCase()
   ).filter(Boolean));
   if (sourceFamilies.size === 0) failures.push('world_source_provenance_missing');
+  const representableFetchedAt = Number.isFinite(fetchedAt) &&
+    Math.abs(fetchedAt) <= 8_640_000_000_000_000;
   return {
     ok: failures.length === 0,
     failures,
-    fetchedAt: Number.isFinite(fetchedAt) ? new Date(fetchedAt).toISOString() : null,
-    ageMinutes: Number.isFinite(fetchedAt) ? Math.round((nowMs - fetchedAt) / 60000) : null,
+    fetchedAt: representableFetchedAt ? new Date(fetchedAt).toISOString() : null,
+    ageMinutes: representableFetchedAt ? Math.round((nowMs - fetchedAt) / 60000) : null,
     epochId: requireCommittedEvidence
       ? String(snapshot?.preview?.epochId || '').slice(0, 96) || null : null,
     totalWorldRows: worldRows.length,
