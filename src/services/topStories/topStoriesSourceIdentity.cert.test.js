@@ -82,6 +82,9 @@ describe('NW-RANK-SRC-001 canonical publisher-family identity', () => {
     expect(getSourceQualityScore({ source: 'AP News' })).toBe(1);
     expect(getSourceQualityScore({ sourceGroup: 'economic_times' })).toBe(0.72);
     expect(getSourceQualityScore({ source: 'TOI' })).toBe(0.48);
+    // Authoritative registry tier overrides the fallback family label.
+    expect(getSourceQualityScore({ sourceGroup: 'the_hindu', sourceTier: 'B' })).toBe(0.72);
+    expect(getSourceQualityScore({ sourceGroup: 'bbc', sourceTier: 'C' })).toBe(0.55);
   });
 
   it('does not treat Google News lane variants as top-feed corroboration', () => {
@@ -114,7 +117,8 @@ describe('NW-RANK-SRC-001 canonical publisher-family identity', () => {
       limit: 10,
       displayDepth: 10,
     });
-    expect(selected.filter(item => getStorySourceFamily(item) === 'google_news')).toHaveLength(4);
+    // v2 display diversity: only two members of the Google News family may enter the first ten.
+    expect(selected.filter(item => getStorySourceFamily(item) === 'google_news')).toHaveLength(2);
     expect(selected.map(item => item.id)).not.toContain('five');
     expect(selected.map(item => item.id)).toContain('six');
   });
