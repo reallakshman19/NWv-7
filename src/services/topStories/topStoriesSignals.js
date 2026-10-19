@@ -21,13 +21,13 @@ const TOP_TIER_SOURCE_FAMILIES = new Set([
   'bbc',
   'the_hindu',
   'business_line',
-  'economic_times',
-  'financial_express',
   'times_of_oman',
   'muscat_daily',
 ]);
 const STANDARD_SOURCE_FAMILIES = new Set([
   'ndtv',
+  'economic_times',
+  'financial_express',
   'hindustan_times',
   'times_of_india',
   'dtnext',
@@ -153,7 +153,7 @@ export function getSourceQualityScore(story = {}) {
     .map(getSourceFamilyQuality);
   const familyScore = familyScores.length ? Math.max(...familyScores) : 0.48;
 
-  return Math.max(tierScore, familyScore);
+  return tierScore > 0 ? tierScore : familyScore;
 }
 
 export function getFreshnessScore(ageHours, policy) {
