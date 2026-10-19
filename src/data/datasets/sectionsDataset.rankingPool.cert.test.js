@@ -4,6 +4,7 @@ import {
   getTopFeedSnapshotRows,
   getTopStoriesAcquisitionSections,
   getTopStoriesCandidateLimit,
+  getTopStoriesRankingCandidateRows,
   getTopStoriesEvidenceWarning,
   getVisibleSectionSummaries,
   summarizeSection,
@@ -71,6 +72,24 @@ describe('Sections dataset Top Stories candidate pool', () => {
 
     expect(visibleSummaries.map(summary => summary.section))
       .toEqual(['world', 'india', 'chennai']);
+  });
+
+  it('never admits the hidden Top Stories evidence lane into ordinary ranker candidates', () => {
+    const topEvidence = { id: 'hidden-evidence', title: 'Authority corroboration' };
+    const worldCandidate = { id: 'world-candidate', title: 'World news' };
+    const summaries = [
+      { section: 'topStories', items: [topEvidence], candidateItems: [topEvidence] },
+      { section: 'world', items: [worldCandidate], candidateItems: [worldCandidate] },
+    ];
+
+    const candidates = getTopStoriesRankingCandidateRows(summaries, ['world']);
+    const evidence = getTopFeedSnapshotRows({}, summaries);
+
+    expect(candidates.map(item => item.id)).toEqual(['world-candidate']);
+    expect(evidence.map(item => item.id)).toEqual(['hidden-evidence']);
+    // Explicitly listing topStories as visible must still not promote evidence to candidates.
+    expect(getTopStoriesRankingCandidateRows(summaries, ['topStories', 'world']))
+      .toEqual([worldCandidate]);
   });
 
   it('reports degraded hidden evidence without changing the visible section population', () => {
