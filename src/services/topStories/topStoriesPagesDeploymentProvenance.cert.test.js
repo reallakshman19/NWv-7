@@ -251,7 +251,7 @@ describe('Pages deployment provenance authority', () => {
     expect(workflow).toContain('source_resolution_mode="workflow-run-ci-verified-sha"');
     expect(workflow).toContain('Reject superseded CI release source');
     expect(workflow).toContain('CI Validation Gate');
-    expect(workflow).not.toMatch(/^  push:$/m);
+    expect(workflow).not.toMatch(/^ {2}push:$/m);
     expect(workflow).toContain('ref: ${{ steps.source.outputs.checkout_ref }}');
     expect(workflow).toContain('echo "source_sha=$checked_out_sha"');
     expect(workflow).toContain(
