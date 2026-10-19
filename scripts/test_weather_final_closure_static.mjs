@@ -21,6 +21,7 @@ const files = {
   weatherService: read('src/services/weatherService.js'),
   quickWeather: read('src/components/QuickWeather.jsx'),
   detailedWeather: read('src/components/DetailedWeatherCard.jsx'),
+  detailedWeatherUtils: read('src/components/detailedWeatherCardUtils.js'),
   topline: read('src/utils/toplineGenerator.js'),
   quickWeatherCss: read('src/components/QuickWeatherRefined.css'),
   signalStrip: read('src/components/weather/QuickWeatherSignalStrip.jsx'),
@@ -93,6 +94,12 @@ requireTokens('weatherService', [
 ]);
 
 requireTokens('detailedWeather', [
+  'getHourInTimezone',
+  'getConditionText',
+  'getWeatherHeaderSummary',
+]);
+
+requireTokens('detailedWeatherUtils', [
   'getHourInTimezone',
   'Showers possible.',
   'Rain likely.',
