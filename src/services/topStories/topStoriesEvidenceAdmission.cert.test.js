@@ -102,7 +102,8 @@ describe('non-local critical-event evidence policy', () => {
 
     expect(scored._topStoryRank.eventType).toBe('public_safety');
     expect(scored._topStoryRank.ageBand).toBe('secondary');
-    expect(scored._topStoryRank.sourceQualityScore).toBe(0.72);
+    // No registry tier is available: preserve the legacy TOI family score.
+    expect(scored._topStoryRank.sourceQualityScore).toBe(0.48);
     expect(scored._topStoryRank.independentEvidenceCount).toBe(0);
     expect(scored._topStoryRank.slotBand).toBe('rejected');
     expect(scored._topStoryRank.admissionReason)
