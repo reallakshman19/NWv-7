@@ -46,6 +46,7 @@ function story(index, extra = {}) {
     country: `country-${index}`,
     publishedAt: RUN_MS - (30 * 60 * 1000),
     timestampConfidence: 'high',
+    sourceTier: 'A', // Explicit authoritative evidence required by v2 critical-event admission.
     body: `licensed body ${index}`,
     token: `secret-${index}`,
     ...extra,
