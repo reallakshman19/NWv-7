@@ -83,6 +83,49 @@ describe('Daily Digest Live fallback selector', () => {
     expect(wireCards.length).toBeLessThanOrEqual(2);
   });
 
+  it('never relaxes the per-publisher cap to fill the six-card rail', () => {
+    const snapshot = {
+      fetchedAt: NOW,
+      sections: {
+        topStories: [
+          story('wire-1', 1, 'wire-a', 'topStories'),
+          story('wire-2', 1.1, 'wire-a', 'topStories'),
+          story('wire-3', 1.2, 'wire-a', 'topStories'),
+        ],
+        india: [story('independent', 2, 'publisher-b', 'india')],
+        world: [story('wire-4', 2.2, 'wire-a', 'world')],
+        business: [story('wire-5', 2.3, 'wire-a', 'business')],
+      },
+    };
+
+    const result = selectLiveDigestCards(snapshot, { nowMs: NOW });
+    expect(result.cards).toHaveLength(3);
+    expect(result.cards.filter(card => card.sourceGroup === 'wire-a')).toHaveLength(2);
+    expect(result.sourceGroupCount).toBe(2);
+  });
+
+  it('chooses a later eligible section candidate when the first publisher is capped', () => {
+    const snapshot = {
+      fetchedAt: NOW,
+      sections: {
+        topStories: [
+          story('wire-1', 1, 'wire-a', 'topStories'),
+          story('wire-2', 1.1, 'wire-a', 'topStories'),
+        ],
+        india: [
+          story('india-capped', 1.2, 'wire-a', 'india'),
+          story('india-eligible', 1.3, 'publisher-b', 'india'),
+        ],
+        world: [story('world-other', 1.4, 'publisher-c', 'world')],
+      },
+    };
+
+    const result = selectLiveDigestCards(snapshot, { nowMs: NOW, limit: 3 });
+    expect(result.cards.map(card => card.canonicalId)).toEqual([
+      'wire-1', 'wire-2', 'india-eligible',
+    ]);
+  });
+
   it('refuses to fabricate a digest from an insufficient or single-source pool', () => {
     const insufficient = selectLiveDigestCards({
       fetchedAt: NOW,
