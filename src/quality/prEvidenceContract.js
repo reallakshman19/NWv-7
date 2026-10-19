@@ -62,9 +62,17 @@ function fieldValue(lines, name) {
   return line ? line.replace(/^\s*-\s*[^:]+:\s*/, '').trim() : '';
 }
 
-export function validatePrEvidence(body) {
+export function validatePrEvidence(body, options = {}) {
   const failures = [];
   const sections = splitSections(body);
+  const expectedHeadSha = String(options.expectedHeadSha || '').trim().toLowerCase();
+  if (expectedHeadSha) {
+    const verificationLines = sections.get('verification on the exact pr head') || [];
+    const claimedHeadSha = fieldValue(verificationLines, 'PR head SHA').toLowerCase();
+    if (claimedHeadSha !== expectedHeadSha) {
+      failures.push('PR head SHA does not match the GitHub pull request head commit');
+    }
+  }
 
   for (const heading of PR_EVIDENCE_HEADINGS) {
     const lines = sections.get(heading.toLowerCase());
