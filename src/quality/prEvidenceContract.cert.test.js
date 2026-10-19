@@ -55,6 +55,17 @@ describe('pull request evidence contract', () => {
     expect(result.failures.join(' ')).toContain('Build');
   });
 
+  it('rejects verification claims for a stale or incorrect pull request head', () => {
+    const result = validatePrEvidence(VALID, {
+      expectedHeadSha: 'a'.repeat(40),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.failures.join(' ')).toContain('PR head SHA');
+    expect(validatePrEvidence(VALID, {
+      expectedHeadSha: '62ce8835166ed92ff5d6e0361f0f9f3833a89e69',
+    }).ok).toBe(true);
+  });
+
   it('rejects template-only placeholders', () => {
     expect(validatePrEvidence('# Problem and evidence\n- Issue / audit finding:\n- Expected behavior:\n- Observed behavior:').ok).toBe(false);
   });
