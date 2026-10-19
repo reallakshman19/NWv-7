@@ -85,6 +85,7 @@ describe('NW-RANK-SRC-001 canonical publisher-family identity', () => {
     // Authoritative registry tier overrides the fallback family label.
     expect(getSourceQualityScore({ sourceGroup: 'the_hindu', sourceTier: 'B' })).toBe(0.72);
     expect(getSourceQualityScore({ sourceGroup: 'bbc', sourceTier: 'C' })).toBe(0.55);
+    expect(getSourceQualityScore({ sourceGroup: 'google_news', source: 'Reuters', sourceTier: 'B' })).toBe(1);
   });
 
   it('does not treat Google News lane variants as top-feed corroboration', () => {
