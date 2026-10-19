@@ -36,6 +36,30 @@ export function parseField(dialogText, label) {
   return normalized.match(pattern)?.[1]?.trim() || null;
 }
 
+/**
+ * Replay built assets under the real static-host browser origin without
+ * publishing them. Only same-origin Pages assets under the app base path are
+ * mapped to the local preview server; remote authority calls are untouched.
+ */
+export function mapPreflightAssetUrl(requestUrl, baseUrl, previewOrigin) {
+  if (!previewOrigin) return null;
+  const base = new URL(baseUrl);
+  const request = new URL(requestUrl);
+  const preview = new URL(previewOrigin);
+  if (
+    preview.protocol !== 'http:' ||
+    !['127.0.0.1', 'localhost', '[::1]'].includes(preview.hostname)
+  ) {
+    throw new Error('Preflight asset proxy must be a localhost HTTP origin');
+  }
+  const basePath = base.pathname.endsWith('/') ? base.pathname : base.pathname + '/';
+  if (request.origin !== base.origin || !request.pathname.startsWith(basePath)) {
+    return null;
+  }
+  const relativePath = request.pathname.slice(basePath.length);
+  return new URL(relativePath + request.search, preview).toString();
+}
+
 function recordBrowserDiagnostic(list, value) {
   if (list.length >= 50) return;
   list.push(String(value || '').trim());
@@ -100,6 +124,20 @@ async function main() {
       timezoneId: 'UTC',
       serviceWorkers: 'block',
     });
+    const previewOrigin = String(process.env.PREFLIGHT_ASSET_ORIGIN || '').trim();
+    if (previewOrigin) {
+      // Preflight preserves github.io as window.location.hostname so static-host
+      // source authority and browser CORS paths are the actual Pages paths.
+      await context.route('**/*', async route => {
+        const mapped = mapPreflightAssetUrl(
+          route.request().url(), baseUrl, previewOrigin,
+        );
+        if (!mapped) return route.continue();
+        const response = await route.fetch({ url: mapped, timeout: 20_000 });
+        return route.fulfill({ response });
+      });
+      report.assetPreflightOrigin = previewOrigin;
+    }
     const page = await context.newPage();
     page.on('console', message => {
       if (message.type() === 'error') {
