@@ -151,7 +151,10 @@ describe('Sections dataset Top Stories candidate pool', () => {
   });
 
   it('feeds only cross-section cluster representatives into the final Top Stories ranker', () => {
-    const clustered = [row(1), row(2)];
+    const clustered = [
+      { ...row(1), title: 'Court issues verdict on major appeal' },
+      { ...row(2), title: 'Tropical cyclone reaches island coast' },
+    ];
     const rankingSections = buildTopStoriesRankingSections(clustered);
 
     expect(Object.keys(rankingSections)).toEqual(['__all']);
