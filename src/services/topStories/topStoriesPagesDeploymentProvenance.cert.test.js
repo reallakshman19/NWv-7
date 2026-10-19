@@ -126,7 +126,7 @@ describe('Pages deployment provenance authority', () => {
     expect(() => buildPagesDeploymentProvenance({
       ...ciContext,
       sourceSha: EVENT_SHA,
-    })).toThrow(/expected_source_sha_mismatch/);
+    })).toThrow(/sourceSha does not match its event authority/);
     expect(() => buildPagesDeploymentProvenance({
       ...ciContext,
       checkedOutSha: UPSTREAM_SHA,
