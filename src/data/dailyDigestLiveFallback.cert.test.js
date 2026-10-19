@@ -83,6 +83,27 @@ describe('Daily Digest Live fallback selector', () => {
     expect(wireCards.length).toBeLessThanOrEqual(2);
   });
 
+  it('shares the per-source budget across Google News lane aliases', () => {
+    const snapshot = {
+      fetchedAt: NOW,
+      sections: {
+        topStories: [
+          story('google-a', 1, 'google_news', 'topStories'),
+          story('google-b', 1.1, 'Google News Oman', 'topStories'),
+          story('google-c', 1.2, 'google_news_alt', 'topStories'),
+        ],
+        india: [story('independent', 2, 'Reuters', 'india')],
+        world: [story('google-d', 2.2, 'Google News TN', 'world')],
+      },
+    };
+
+    const result = selectLiveDigestCards(snapshot, { nowMs: NOW });
+    expect(result.cards).toHaveLength(3);
+    expect(result.cards.filter(card => card.sourceGroup.toLowerCase().includes('google')))
+      .toHaveLength(2);
+    expect(result.sourceGroupCount).toBe(2);
+  });
+
   it('never relaxes the per-publisher cap to fill the six-card rail', () => {
     const snapshot = {
       fetchedAt: NOW,
