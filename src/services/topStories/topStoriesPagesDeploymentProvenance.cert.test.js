@@ -5,7 +5,9 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   PAGES_DEPLOYMENT_PROVENANCE_SCHEMA,
+  PAGES_CI_VERIFIED_SOURCE_MODE,
   PAGES_SOURCE_RESOLUTION_MODES,
+  buildPagesDeploymentProvenance,
   PAGES_TRACKED_FILE_NAMES,
   resolvePagesDeploymentSource,
   sha256Bytes,
@@ -103,6 +105,41 @@ describe('Pages deployment provenance authority', () => {
       triggerEvent: 'workflow_run',
       workflowRun: { headSha: UPSTREAM_SHA },
     })).toThrow(/checked_out_sha_invalid/);
+  });
+
+  it('uses exact CI-approved upstream SHA and rejects mismatched or failed upstream runs', () => {
+    const ciContext = {
+      ...workflowRunContext(),
+      sourceResolutionMode: PAGES_CI_VERIFIED_SOURCE_MODE,
+      workflowRun: {
+        ...workflowRunContext().workflowRun,
+        workflowName: 'CI Validation Gate',
+        headSha: SOURCE_SHA,
+      },
+    };
+    const provenance = buildPagesDeploymentProvenance(ciContext);
+    expect(resolvePagesDeploymentSource(ciContext)).toBe(SOURCE_SHA);
+    expect(provenance.sourceResolutionMode).toBe(PAGES_CI_VERIFIED_SOURCE_MODE);
+    expect(provenance.sourceSha).toBe(provenance.upstreamHeadSha);
+    expect(provenance.sourceCheckoutMatched).toBe(true);
+
+    expect(() => buildPagesDeploymentProvenance({
+      ...ciContext,
+      sourceSha: EVENT_SHA,
+    })).toThrow(/expected_source_sha_mismatch/);
+    expect(() => buildPagesDeploymentProvenance({
+      ...ciContext,
+      checkedOutSha: UPSTREAM_SHA,
+    })).toThrow(/source_checkout_mismatch/);
+    expect(() => buildPagesDeploymentProvenance({
+      ...ciContext,
+      workflowRun: { ...ciContext.workflowRun, conclusion: 'failure' },
+    })).toThrow(/ci_upstream_not_successful/);
+
+    // Legacy data-refresh runs are not tied to the producer's starting SHA:
+    // producers may commit new data before they finish.
+    expect(resolvePagesDeploymentSource(workflowRunContext())).toBe(SOURCE_SHA);
+    expect(workflowRunContext().workflowRun.headSha).toBe(UPSTREAM_SHA);
   });
 
   it('preserves the v1 manifest and records resolution mode', () => {
@@ -210,6 +247,11 @@ describe('Pages deployment provenance authority', () => {
     expect(build).toBeLessThan(manifest);
     expect(manifest).toBeLessThan(upload);
     expect(workflow).toContain('checkout_ref="$DEFAULT_BRANCH"');
+    expect(workflow).toContain('checkout_ref="$upstream_head_sha"');
+    expect(workflow).toContain('source_resolution_mode="workflow-run-ci-verified-sha"');
+    expect(workflow).toContain('Reject superseded CI release source');
+    expect(workflow).toContain('CI Validation Gate');
+    expect(workflow).not.toMatch(/^  push:$/m);
     expect(workflow).toContain('ref: ${{ steps.source.outputs.checkout_ref }}');
     expect(workflow).toContain('echo "source_sha=$checked_out_sha"');
     expect(workflow).toContain(
