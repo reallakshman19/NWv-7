@@ -63,6 +63,7 @@ describe('NW-OPS-001 public Sections liveness gate', () => {
     for (const broken of [
       snapshot({ fetchedAt: NOW - 13 * HOUR }),
       snapshot({ fetchedAt: NOW + 30 * 60 * 1000 }),
+      snapshot({ fetchedAt: 1e25 }),
       snapshot({ preview: { epochId: 'latest', evidenceVerified: false } }),
       snapshot({ preview: null }),
     ]) {
