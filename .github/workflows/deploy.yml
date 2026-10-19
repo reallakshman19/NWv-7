@@ -181,6 +181,44 @@ jobs:
             exit 1
           fi
 
+      - name: Install Chromium for prepublication World health
+        run: npx playwright install --with-deps chromium
+
+      - name: Check built Pages World health before publication
+        shell: bash
+        env:
+          DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/
+          PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/
+          SMOKE_ARTIFACT_DIR: artifacts/world-health-prepublish
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/vite preview --host 127.0.0.1 --port 4173 --strictPort > /tmp/nwv-pages-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then
+            cat /tmp/nwv-pages-preview.log
+            echo 'Built Pages preview server did not become ready' >&2
+            exit 1
+          fi
+          node scripts/verify_world_health_deployment.mjs
+
+      - name: Upload prepublication World health evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-health-prepublish-${{ github.run_id }}
+          path: artifacts/world-health-prepublish
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Write pages data manifest
         env:
           PAGES_EVENT_SHA: ${{ github.sha }}
