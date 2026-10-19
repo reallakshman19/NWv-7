@@ -1,0 +1,44 @@
+name: Sections Source Liveness Watch
+
+# Observability only; neither refreshes nor deploys news data.
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sections-source-liveness
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify public authority and fallback freshness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout public probe
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+
+      - name: Probe public Worker and GitHub Pages sources
+        run: node scripts/verify_sections_source_liveness.mjs
+        env:
+          SECTIONS_LIVENESS_REPORT: reports/sections-source-liveness.json
+
+      - name: Preserve public liveness evidence even when probe fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sections-source-liveness-${{ github.run_id }}
+          path: reports/sections-source-liveness.json
+          if-no-files-found: warn
+          retention-days: 14
