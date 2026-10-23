@@ -10,9 +10,13 @@ if (!eventPath) {
   if (!event.pull_request) {
     console.error('No pull_request event payload: evidence gate cannot run.');
     process.exitCode = 1;
+  } else if (typeof event.pull_request.head?.sha !== 'string' ||
+             !/^[0-9a-f]{40}$/i.test(event.pull_request.head.sha)) {
+    console.error('GitHub pull_request.head.sha is missing or invalid: fail closed.');
+    process.exitCode = 1;
   } else {
     const result = validatePrEvidence(event.pull_request.body, {
-      expectedHeadSha: event.pull_request.head?.sha,
+      expectedHeadSha: event.pull_request.head.sha,
     });
     if (!result.ok) {
       console.error('PR EVIDENCE CONTRACT FAILED:\n' + result.failures.map(s => '- ' + s).join('\n'));

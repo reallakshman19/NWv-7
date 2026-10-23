@@ -34,6 +34,7 @@ import {
   type CustodyEnv,
 } from './custody';
 import { sha256Text } from './crypto';
+import { logUnexpectedFinalizationStage } from './queueDiagnostics';
 import { putImmutableD1EvidenceObject } from './evidenceStore';
 import { readLiveLaneResults, stageLiveLaneResult, type StoredLiveLaneResult } from './liveStore';
 import { buildShadowLaneDefinitions, sectionsRegistryAuthority } from './registry';
@@ -330,60 +331,75 @@ export async function finalizeLiveEpoch(
     throw new ShadowCustodyError('EPOCH_NOT_SEALABLE', `Epoch ${epoch.epoch_id} is ${epoch.state}`);
   }
 
-  const laneResults = await readLiveLaneResults(env.SHADOW_DB, epoch.epoch_id);
-  if (laneResults.length !== EXPECTED_SECTIONS_LANE_COUNT) {
-    throw new ShadowCustodyError(
-      'INCOMPLETE_LANE_CARDINALITY',
-      `Epoch ${epoch.epoch_id} has ${laneResults.length}/${EXPECTED_SECTIONS_LANE_COUNT} live payloads`,
-    );
-  }
-  const expectedLaneIds = new Set((await buildShadowLaneDefinitions()).map(lane => lane.laneId));
-  if (laneResults.some(result => !expectedLaneIds.delete(result.lane.laneId)) || expectedLaneIds.size > 0) {
-    throw new ShadowCustodyError('LIVE_LANE_SET_MISMATCH', 'Live epoch lane identities do not match the registry');
-  }
-
-  const evidence = buildSectionsLiveEvidence({
-    laneResults,
-    nowMs: epoch.evaluation_now_ms,
-    sourceRegistryVersion: epoch.source_registry_version,
-    sourceRegistryDigest: epoch.source_registry_digest,
-  });
-  await attachLiveInputDigest(env, epoch.epoch_id, evidence.inputEvidenceDigest);
-
-  const decisions: DecisionEvidenceRow[] = [];
-  for (const candidate of evidence.decisionEvidence.candidateEvidence) {
-    const evidenceJson = JSON.stringify(candidate);
-    decisions.push({
-      epochId: epoch.epoch_id,
-      candidateIdentity: candidate.identity,
-      authoritativeRank: candidate.authoritativeRank,
-      selectedPosition: candidate.selectedPosition ?? undefined,
-      displayedPosition: candidate.displayedPosition ?? undefined,
-      evidenceDigest: await sha256Text(evidenceJson),
-      evidenceJson,
+  let phase = 'read_lane_payloads';
+  try {
+    const laneResults = await readLiveLaneResults(env.SHADOW_DB, epoch.epoch_id);
+    if (laneResults.length !== EXPECTED_SECTIONS_LANE_COUNT) {
+      throw new ShadowCustodyError(
+        'INCOMPLETE_LANE_CARDINALITY',
+        `Epoch ${epoch.epoch_id} has ${laneResults.length}/${EXPECTED_SECTIONS_LANE_COUNT} live payloads`,
+      );
+    }
+    const expectedLaneIds = new Set((await buildShadowLaneDefinitions()).map(lane => lane.laneId));
+    if (laneResults.some(result => !expectedLaneIds.delete(result.lane.laneId)) || expectedLaneIds.size > 0) {
+      throw new ShadowCustodyError('LIVE_LANE_SET_MISMATCH', 'Live epoch lane identities do not match the registry');
+    }
+  
+    phase = 'build_decision_evidence';
+    const evidence = buildSectionsLiveEvidence({
+      laneResults,
+      nowMs: epoch.evaluation_now_ms,
+      sourceRegistryVersion: epoch.source_registry_version,
+      sourceRegistryDigest: epoch.source_registry_digest,
     });
+    phase = 'attach_input_digest';
+    await attachLiveInputDigest(env, epoch.epoch_id, evidence.inputEvidenceDigest);
+  
+    phase = 'hash_candidate_evidence';
+    const decisions: DecisionEvidenceRow[] = [];
+    for (const candidate of evidence.decisionEvidence.candidateEvidence) {
+      const evidenceJson = JSON.stringify(candidate);
+      decisions.push({
+        epochId: epoch.epoch_id,
+        candidateIdentity: candidate.identity,
+        authoritativeRank: candidate.authoritativeRank,
+        selectedPosition: candidate.selectedPosition ?? undefined,
+        displayedPosition: candidate.displayedPosition ?? undefined,
+        evidenceDigest: await sha256Text(evidenceJson),
+        evidenceJson,
+      });
+    }
+    phase = 'stage_candidate_decisions';
+    await stageDecisionEvidenceBatch(env, decisions);
+  
+    phase = 'compact_normalized_evidence';
+    const objectText = JSON.stringify(compactSectionsLiveEvidence(evidence));
+    const objectDigest = await sha256Text(objectText);
+    const objectKey = `normalized/live/${epoch.epoch_id}/${objectDigest}.json`;
+    phase = 'store_normalized_evidence';
+    await putImmutableD1EvidenceObject(env, {
+      objectKey,
+      epochId: epoch.epoch_id,
+      body: objectText,
+      schemaVersion: evidence.schemaVersion,
+      decisionOutputDigest: evidence.decisionOutputDigest,
+      createdAtMs: nowMs,
+      expiresAtMs: nowMs + 7 * DAY_MS,
+    });
+    phase = 'attach_decision_object';
+    await attachDecisionObject(env, {
+      epochId: epoch.epoch_id,
+      objectKey,
+      objectDigest,
+      decisionOutputDigest: evidence.decisionOutputDigest,
+      expectedDecisionCount: evidence.candidateCount,
+    });
+    phase = 'seal_epoch';
+    await sealEpoch(env, epoch.epoch_id, nowMs);
+    phase = 'commit_epoch';
+    return commitEpoch(env, epoch.epoch_id, nowMs);
+  } catch (error) {
+    logUnexpectedFinalizationStage(phase, epoch.epoch_id, error);
+    throw error;
   }
-  await stageDecisionEvidenceBatch(env, decisions);
-
-  const objectText = JSON.stringify(compactSectionsLiveEvidence(evidence));
-  const objectDigest = await sha256Text(objectText);
-  const objectKey = `normalized/live/${epoch.epoch_id}/${objectDigest}.json`;
-  await putImmutableD1EvidenceObject(env, {
-    objectKey,
-    epochId: epoch.epoch_id,
-    body: objectText,
-    schemaVersion: evidence.schemaVersion,
-    decisionOutputDigest: evidence.decisionOutputDigest,
-    createdAtMs: nowMs,
-    expiresAtMs: nowMs + 7 * DAY_MS,
-  });
-  await attachDecisionObject(env, {
-    epochId: epoch.epoch_id,
-    objectKey,
-    objectDigest,
-    decisionOutputDigest: evidence.decisionOutputDigest,
-    expectedDecisionCount: evidence.candidateCount,
-  });
-  await sealEpoch(env, epoch.epoch_id, nowMs);
-  return commitEpoch(env, epoch.epoch_id, nowMs);
 }

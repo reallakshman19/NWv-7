@@ -1,3 +1,6 @@
+<!-- Every named "- Field:" below is required by the structural validator. If not applicable,
+     give a specific explanation instead of leaving it blank. The checkboxes at the
+     bottom are reviewer prompts, NOT machine-verified proof of execution. -->
 # Problem and evidence
 <!-- Link issue/audit finding, observed failure, affected users, and repro steps. -->
 - Issue / audit finding:
@@ -42,7 +45,8 @@
 - Real data epoch / timestamp / source authority:
 - Before/after observations:
 - Warnings or degraded behavior remaining:
-- Deployment performed? `yes/no` (include release SHA if yes):
+<!-- State yes/no, and include the release SHA if yes. -->
+- Deployment performed?:
 - Rollback commit or recovery plan:
 
 # Review disposition

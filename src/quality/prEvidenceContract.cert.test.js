@@ -1,13 +1,22 @@
 import { describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { validatePrEvidence } from './prEvidenceContract.js';
 
+const HEAD = '62ce8835166ed92ff5d6e0361f0f9f3833a89e69';
 const VALID = [
   '# Problem and evidence',
   '- Issue / audit finding: NW-AUDIT-20261019 #138',
+  '- Reproduced on commit: 8d8f9c32fc7199472a29f5f127c167972de47877',
   '- Expected behavior: Digest caps sources at two.',
   '- Observed behavior: An uncapped fill permits three.',
+  '- Evidence (logs/screenshots/fixture): Synthetic fixture in this test.',
   '# Root cause',
   '- Root cause: An uncapped final-fill loop bypasses the source limit.',
+  '- Relevant upstream/downstream contracts: The final-fill contract.',
+  '- Alternatives rejected and why: An unchecked fill violates the invariant.',
   '# What changed',
   '| Claimed correction / invariant | Runtime code path | Regression test / fixture |',
   '| --- | --- | --- |',
@@ -15,8 +24,10 @@ const VALID = [
   '# Scope control',
   '- In scope: Live digest selection.',
   '- Explicitly unchanged: Provider queries.',
+  '- Related PRs / branch dependencies: None.',
+  '- Data schema, freshness, source authority, cache, or policy changes (or none): None.',
   '# Verification on the exact PR head',
-  '- PR head SHA: 62ce8835166ed92ff5d6e0361f0f9f3833a89e69',
+  '- PR head SHA: ' + HEAD,
   '- CI run URL: NOT_RUN, pending first CI run',
   '| Gate | Status (PASS / FAIL / NOT_RUN / BLOCKED) | Evidence / reason |',
   '| --- | --- | --- |',
@@ -27,16 +38,37 @@ const VALID = [
   '| Integration / browser smoke | NOT_RUN | Requires staging |',
   '| Staging or production validation | BLOCKED | No deployment authorization |',
   '# Operational acceptance',
-  '- Deployment performed?: no (none authorized)',
+  '- Runtime/environment tested (Static / Live / Hybrid / Worker): CI only.',
+  '- Real data epoch / timestamp / source authority: Not applicable.',
+  '- Before/after observations: Contract rejects structural errors.',
+  '- Warnings or degraded behavior remaining: Does not authenticate CI links.',
+  '- Deployment performed?: no',
   '- Rollback commit or recovery plan: Revert the PR commit if necessary.',
   '# Review disposition',
   '- Reviewer(s): Not yet assigned; independent review required.',
+  '- Unresolved risks and evidence gaps: CI and review still pending.',
+  '- Follow-up issue(s): #138',
   '- Merge decision: DO NOT MERGE without green CI and independent review.',
 ].join('\n');
 
+function runCli(event) {
+  const dir = mkdtempSync(join(tmpdir(), 'nw-pr-evidence-'));
+  try {
+    const file = join(dir, 'event.json');
+    writeFileSync(file, JSON.stringify(event));
+    return spawnSync(process.execPath, ['scripts/validate_pr_evidence.mjs'], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: { ...process.env, GITHUB_EVENT_PATH: file },
+    });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 describe('pull request evidence contract', () => {
   it('allows truthful NOT_RUN and BLOCKED states with specific reasons', () => {
-    expect(validatePrEvidence(VALID)).toEqual({ ok: true, failures: [] });
+    expect(validatePrEvidence(VALID, { expectedHeadSha: HEAD })).toEqual({ ok: true, failures: [] });
   });
 
   it('rejects missing root cause and empty traceability mapping', () => {
@@ -55,18 +87,70 @@ describe('pull request evidence contract', () => {
     expect(result.failures.join(' ')).toContain('Build');
   });
 
-  it('rejects verification claims for a stale or incorrect pull request head', () => {
-    const result = validatePrEvidence(VALID, {
-      expectedHeadSha: 'a'.repeat(40),
-    });
+  it('rejects a mismatched, absent, or malformed authoritative head SHA', () => {
+    expect(validatePrEvidence(VALID, { expectedHeadSha: 'a'.repeat(40) }).ok).toBe(false);
+    expect(validatePrEvidence(VALID, { expectedHeadSha: undefined }).ok).toBe(false);
+    expect(validatePrEvidence(VALID, { expectedHeadSha: 'invalid' }).ok).toBe(false);
+    expect(validatePrEvidence(VALID, { expectedHeadSha: HEAD }).ok).toBe(true);
+    expect(validatePrEvidence(VALID.replace(HEAD, '0'.repeat(40))).ok).toBe(true);
+    expect(validatePrEvidence(VALID.replace(HEAD, '0'.repeat(40)), { expectedHeadSha: HEAD }).ok).toBe(false);
+    expect(validatePrEvidence(VALID.replace(HEAD, 'broken')).ok).toBe(false);
+  });
+
+  it('requires exact mandatory field labels rather than substring aliases', () => {
+    const altered = VALID.replace('- Root cause: An uncapped final-fill loop bypasses the source limit.', '- No actual Root cause: Arbitrary text.');
+    const result = validatePrEvidence(altered);
     expect(result.ok).toBe(false);
-    expect(result.failures.join(' ')).toContain('PR head SHA');
-    expect(validatePrEvidence(VALID, {
-      expectedHeadSha: '62ce8835166ed92ff5d6e0361f0f9f3833a89e69',
-    }).ok).toBe(true);
+    expect(result.failures.join(' ')).toContain('Root cause');
+  });
+
+  it('requires all named fields from the authoring template, including reproduced commit', () => {
+    const mandatory = [
+      'Issue / audit finding', 'Reproduced on commit', 'Expected behavior', 'Observed behavior',
+      'Evidence (logs/screenshots/fixture)', 'Root cause', 'Relevant upstream/downstream contracts',
+      'Alternatives rejected and why', 'In scope', 'Explicitly unchanged',
+      'Related PRs / branch dependencies', 'Data schema, freshness, source authority, cache, or policy changes (or none)',
+      'PR head SHA', 'CI run URL', 'Runtime/environment tested (Static / Live / Hybrid / Worker)',
+      'Real data epoch / timestamp / source authority', 'Before/after observations',
+      'Warnings or degraded behavior remaining', 'Deployment performed?', 'Rollback commit or recovery plan',
+      'Reviewer(s)', 'Unresolved risks and evidence gaps', 'Follow-up issue(s)', 'Merge decision',
+    ];
+    for (const name of mandatory) {
+      const line = VALID.split('\n').find(value => value.startsWith('- ' + name + ':'));
+      expect(line, 'missing fixture line for ' + name).toBeDefined();
+      const result = validatePrEvidence(VALID.replace(line, '- ' + name + ':'));
+      expect(result.ok, 'field should be enforced: ' + name).toBe(false);
+      expect(result.failures.join(' ')).toContain(name);
+    }
   });
 
   it('rejects template-only placeholders', () => {
     expect(validatePrEvidence('# Problem and evidence\n- Issue / audit finding:\n- Expected behavior:\n- Observed behavior:').ok).toBe(false);
+  });
+
+  it('requires each exact gate name and a specific reason', () => {
+    expect(validatePrEvidence(VALID.replace('| Build | NOT_RUN | Awaiting CI trigger |', '| Build someday | NOT_RUN | Awaiting CI trigger |')).ok).toBe(false);
+    expect(validatePrEvidence(VALID.replace('| Build | NOT_RUN | Awaiting CI trigger |', '| Build | NOT_RUN | |')).ok).toBe(false);
+  });
+
+  it('CLI succeeds on an event with an authoritative matching SHA', () => {
+    const run = runCli({ pull_request: { head: { sha: HEAD }, body: VALID } });
+    expect(run.status, run.stderr).toBe(0);
+    expect(run.stdout).toContain('structure only');
+  });
+
+  it('CLI fails closed if event head SHA is absent, malformed, or mismatched', () => {
+    for (const head of [undefined, {}, { sha: 'invalid' }, { sha: '0'.repeat(40) }]) {
+      const run = runCli({ pull_request: { head, body: VALID } });
+      expect(run.status, 'head=' + JSON.stringify(head) + ' ' + run.stdout + run.stderr).not.toBe(0);
+    }
+  });
+
+  it('makes no false authenticity claim about plausible fabricated CI links', () => {
+    const fake = VALID
+      .replace('- CI run URL: NOT_RUN, pending first CI run', '- CI run URL: https://github.com/reallakshman19/NWv-7/actions/runs/9999999999')
+      .replace('| Lint | NOT_RUN | Awaiting CI trigger |', '| Lint | PASS | https://github.com/reallakshman19/NWv-7/actions/runs/9999999999 |');
+    expect(validatePrEvidence(fake).ok).toBe(true);
+    // Only GitHub evidence inspection by a reviewer can verify these claims.
   });
 });
