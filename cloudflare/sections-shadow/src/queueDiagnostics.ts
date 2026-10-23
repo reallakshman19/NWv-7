@@ -1,0 +1,70 @@
+import { ShadowCustodyError, type ShadowQueueMessage } from './contracts';
+
+const KNOWN_MESSAGE_TYPES = new Set([
+  'RUN_FROZEN_REPLAY',
+  'START_LIVE_EPOCH',
+  'ACQUIRE_LIVE_LANE',
+  'ACQUIRE_LIVE_BROWSER_LANES',
+  'FINALIZE_LIVE_EPOCH',
+]);
+
+const KNOWN_ERROR_NAMES = new Set([
+  'Error', 'TypeError', 'RangeError', 'ReferenceError',
+  'SyntaxError', 'DOMException', 'AbortError', 'TimeoutError',
+]);
+
+function safeIdentifier(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  return /^[a-zA-Z0-9_-]{1,96}$/.test(value) ? value : null;
+}
+
+function exceptionType(error: unknown): string {
+  if (!(error instanceof Error)) return 'NON_ERROR_THROW';
+  return KNOWN_ERROR_NAMES.has(error.name) ? error.name : 'OTHER_ERROR';
+}
+
+/**
+ * Diagnostic metadata only: no raw exception message, SQL query, feed URL,
+ * article content, stack trace, tokens, headers or arbitrary message fields.
+ *
+ * Do not use these diagnostics to ACK or alter Queue retries.
+ */
+export function queueFailureFields(
+  body: Partial<ShadowQueueMessage> | null | undefined,
+  error: unknown,
+  deliveryAttempt?: number,
+) {
+  const messageType = KNOWN_MESSAGE_TYPES.has(body?.type ?? '')
+    ? body?.type : 'UNRECOGNIZED';
+  const code = error instanceof ShadowCustodyError &&
+    /^[A-Z][A-Z0-9_]{1,63}$/.test(error.code)
+    ? error.code : 'UNEXPECTED_FAILURE';
+  const laneId = 'laneId' in (body || {}) ? safeIdentifier((body as { laneId?: unknown })?.laneId) : null;
+  return {
+    code,
+    messageType,
+    epochId: safeIdentifier(body?.epochId) ?? 'UNRECOGNIZED',
+    logicalSlot: Number.isSafeInteger(body?.logicalSlot) && Number(body?.logicalSlot) >= 0
+      ? body?.logicalSlot : null,
+    laneId,
+    deliveryAttempt: Number.isSafeInteger(deliveryAttempt) && Number(deliveryAttempt) > 0
+      ? deliveryAttempt : null,
+    exceptionType: exceptionType(error),
+  };
+}
+
+/** A failed finalizer records its last attempted stage and rethrows the original error. */
+export function logUnexpectedFinalizationStage(
+  phase: string,
+  epochId: string,
+  error: unknown,
+): void {
+  if (error instanceof ShadowCustodyError) return;
+  console.error('Sections shadow finalization phase failed', {
+    ...queueFailureFields({
+      type: 'FINALIZE_LIVE_EPOCH',
+      epochId,
+    }, error),
+    phase,
+  });
+}
