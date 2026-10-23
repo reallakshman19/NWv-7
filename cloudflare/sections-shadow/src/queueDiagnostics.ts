@@ -44,8 +44,9 @@ export function queueFailureFields(
     code,
     messageType,
     epochId: safeIdentifier(body?.epochId) ?? 'UNRECOGNIZED',
-    logicalSlot: Number.isSafeInteger(body?.logicalSlot) && Number(body?.logicalSlot) >= 0
-      ? body?.logicalSlot : null,
+    logicalSlot: typeof body?.logicalSlot === 'number' &&
+      Number.isSafeInteger(body.logicalSlot) && body.logicalSlot >= 0
+      ? body.logicalSlot : null,
     laneId,
     deliveryAttempt: Number.isSafeInteger(deliveryAttempt) && Number(deliveryAttempt) > 0
       ? deliveryAttempt : null,
