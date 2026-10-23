@@ -2,6 +2,7 @@ import {
   getSectionsSnapshotRuntimeSummary,
   loadSectionsSnapshot,
 } from '../adapters/sectionsSnapshotFetcher.js';
+import { getStorySourceFamily } from '../services/topStories/topStoriesSourceIdentity.js';
 
 const LIVE_DIGEST_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 const LIVE_DIGEST_MAX_CARDS = 6;
@@ -95,6 +96,8 @@ function normalizeCandidate(item, section, rank, nowMs) {
     canonicalUrl,
     source,
     sourceGroup: sourceGroup(item),
+    // Canonical family is a *selection budget*; keep original label for display/provenance.
+    sourceFamily: getStorySourceFamily({ ...item, source: source }),
     section,
     publishedAt,
     rank,
@@ -127,18 +130,17 @@ export function buildLiveDigestCandidatePool(snapshot, { nowMs } = {}) {
   return pool;
 }
 
-function canUseSource(candidate, sourceCounts, enforceCap = true) {
-  if (!enforceCap) return true;
-  return Number(sourceCounts.get(candidate.sourceGroup) || 0) < MAX_PER_SOURCE_GROUP;
+function canUseSource(candidate, sourceCounts) {
+  return Number(sourceCounts.get(candidate.sourceFamily) || 0) < MAX_PER_SOURCE_GROUP;
 }
 
-function pushCandidate(selected, selectedKeys, sourceCounts, candidate, enforceCap = true) {
+function pushCandidate(selected, selectedKeys, sourceCounts, candidate) {
   const key = candidate.canonicalUrl.toLowerCase();
-  if (selectedKeys.has(key) || !canUseSource(candidate, sourceCounts, enforceCap)) return false;
+  if (selectedKeys.has(key) || !canUseSource(candidate, sourceCounts)) return false;
 
   selected.push(candidate);
   selectedKeys.add(key);
-  sourceCounts.set(candidate.sourceGroup, Number(sourceCounts.get(candidate.sourceGroup) || 0) + 1);
+  sourceCounts.set(candidate.sourceFamily, Number(sourceCounts.get(candidate.sourceFamily) || 0) + 1);
   return true;
 }
 
@@ -155,13 +157,17 @@ export function selectLiveDigestCards(snapshot, options = {}) {
   const topStories = pool.filter(item => item.section === 'topStories');
   for (const candidate of topStories.slice(0, 4)) {
     if (selected.length >= Math.min(2, limit)) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
+    pushCandidate(selected, selectedKeys, sourceCounts, candidate);
   }
 
   for (const section of DIVERSITY_SECTION_ORDER) {
     if (selected.length >= limit) break;
-    const candidate = pool.find(item => item.section === section && !selectedKeys.has(item.canonicalUrl.toLowerCase()));
-    if (candidate) pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
+    const candidate = pool.find(item =>
+      item.section === section &&
+      !selectedKeys.has(item.canonicalUrl.toLowerCase()) &&
+      canUseSource(item, sourceCounts)
+    );
+    if (candidate) pushCandidate(selected, selectedKeys, sourceCounts, candidate);
   }
 
   const rankedRemainder = pool
@@ -176,15 +182,10 @@ export function selectLiveDigestCards(snapshot, options = {}) {
 
   for (const candidate of rankedRemainder) {
     if (selected.length >= limit) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
+    pushCandidate(selected, selectedKeys, sourceCounts, candidate);
   }
 
-  for (const candidate of rankedRemainder) {
-    if (selected.length >= limit) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, false);
-  }
-
-  const uniqueSources = new Set(selected.map(item => item.sourceGroup));
+  const uniqueSources = new Set(selected.map(item => item.sourceFamily));
 
   if (
     selected.length < LIVE_DIGEST_MIN_CARDS ||
@@ -192,7 +193,7 @@ export function selectLiveDigestCards(snapshot, options = {}) {
   ) {
     return {
       cards: [],
-      reason: selected.length < LIVE_DIGEST_MIN_CARDS
+      reason: pool.length < LIVE_DIGEST_MIN_CARDS || uniqueSources.size >= LIVE_DIGEST_MIN_SOURCE_GROUPS
         ? 'live_digest_insufficient_cards'
         : 'live_digest_insufficient_source_diversity',
       candidateCount: pool.length,
