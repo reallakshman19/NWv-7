@@ -132,7 +132,10 @@ export function getWeatherInsight(weatherData) {
     } else if (nextPeakProb >= 60 || nextRainMm >= 2) {
         text = `Currently ${temp}°C and ${cond}. Rain is likely in the next several hours.`;
     } else if (nextPeakProb >= 30 || nextRainMm >= 0.5) {
-        text = `Currently ${temp}°C and ${cond}. Showers are possible later.`;
+        // Surface both moderate near-term showers and material full-day rain risk.
+        const dailyRainRisk = dailyPeakProb >= 70 && dailyRainMm >= 5;
+        text = `Currently ${temp}°C and ${cond}. Showers are possible later.` +
+            (dailyRainRisk ? " Today's forecast remains rain-prone." : '');
     } else if (dailyPeakProb >= 70 && dailyRainMm >= 5) {
         text = `Currently ${temp}°C and ${cond}. Today's forecast remains rain-prone.`;
     } else {
