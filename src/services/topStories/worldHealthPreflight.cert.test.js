@@ -125,3 +125,43 @@ describe('prepublication World committed-epoch negative challenges', () => {
     expect(immutable).toBeLessThan(upload);
   });
 });
+
+
+describe('PR-only nonpublishing Chromium rehearsal contract', () => {
+  const rehearsal = fs.readFileSync('.github/workflows/pages-prepublication-rehearsal.yml', 'utf8');
+  const headExpression = '$' + '{{ github.event.pull_request.head.sha }}';
+
+  it('restricts execution to pull requests and cannot publish Pages', () => {
+    expect(rehearsal).toMatch(/^  pull_request:\s*$/m);
+    expect(rehearsal).toMatch(/^permissions:\n  contents: read\s*$/m);
+    expect(rehearsal).not.toMatch(/^  (?:push|workflow_run|workflow_dispatch):/m);
+    expect(rehearsal).not.toMatch(/(?:pages: write|id-token: write|contents: write)/);
+    expect(rehearsal).not.toMatch(/actions\/(?:deploy-pages|upload-pages-artifact|configure-pages)@/);
+    expect(rehearsal).not.toContain('environment: github-pages');
+    expect(rehearsal).toContain('github.event.pull_request.head.repo.full_name == github.repository');
+    expect(rehearsal).toContain('persist-credentials: false');
+  });
+
+  it('pins the candidate to the exact PR head before running the production-mode build', () => {
+    expect(rehearsal).toContain('ref: ' + headExpression);
+    expect(rehearsal).toContain('EXPECTED_HEAD_SHA: ' + headExpression);
+    expect(rehearsal).toContain('git rev-parse HEAD');
+    expect(rehearsal).toContain('VITE_SECTIONS_AUTHORITY: cloudflare');
+    expect(rehearsal).toContain('VITE_SECTIONS_AUTHORITY_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest');
+    expect(rehearsal).toContain('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest');
+    expect(rehearsal.indexOf('git rev-parse HEAD')).toBeLessThan(rehearsal.indexOf('run: npm run build'));
+  });
+
+  it('fails the hosted job if real preflight refuses and always uploads its diagnostic artifact', () => {
+    expect(rehearsal).toContain('npx playwright install --with-deps chromium');
+    expect(rehearsal).toContain('DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/');
+    expect(rehearsal).toContain('PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/');
+    expect(rehearsal).toContain("PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'");
+    expect(rehearsal).toContain('set -euo pipefail');
+    expect(rehearsal).toContain('node scripts/verify_world_health_deployment.mjs 2>&1 | tee');
+    expect(rehearsal).toMatch(/- name: Upload diagnostic report and screenshot on any outcome\n        if: always\(\)/);
+    expect(rehearsal).toContain('path: artifacts/world-health-prepublish/');
+    expect(rehearsal).toContain('candidateHeadSha');
+    expect(rehearsal).toContain('publishingEnabled');
+  });
+});

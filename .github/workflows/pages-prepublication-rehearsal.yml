@@ -1,0 +1,104 @@
+name: Pages Prepublication Rehearsal (nonpublishing)
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, edited]
+    paths:
+      - '.github/workflows/deploy.yml'
+      - '.github/workflows/pages-prepublication-rehearsal.yml'
+      - 'scripts/pagesDeploymentProvenance.mjs'
+      - 'scripts/verify_world_health_deployment.mjs'
+      - 'src/services/topStories/topStoriesPagesDeploymentProvenance.cert.test.js'
+      - 'src/services/topStories/worldHealthPreflight.cert.test.js'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-prepublication-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  nonpublishing-world-browser:
+    name: Exact-head Pages-origin Chromium rehearsal
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify exact source and record attempt
+        shell: bash
+        env:
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/world-health-prepublish
+          printf '{"candidateHeadSha":"%s","githubRunId":"%s","githubRunAttempt":"%s","sampledAt":"%s","browserStatus":"NOT_RUN until report.json exists","publishingEnabled":false}\n' "$EXPECTED_HEAD_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" > artifacts/world-health-prepublish/rehearsal-metadata.json
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ ! "$EXPECTED_HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$actual_sha" != "$EXPECTED_HEAD_SHA" ]; then
+            echo "PR head checkout mismatch: expected=$EXPECTED_HEAD_SHA observed=$actual_sha" >&2
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build with production Cloudflare authority
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
+          VITE_SECTIONS_AUTHORITY: cloudflare
+          VITE_SECTIONS_AUTHORITY_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
+          VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Rehearse World under real Pages origin with unshipped build
+        shell: bash
+        env:
+          DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/
+          PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/
+          PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'
+          SMOKE_ARTIFACT_DIR: artifacts/world-health-prepublish
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/vite preview --host 127.0.0.1 --port 4173 --strictPort > artifacts/world-health-prepublish/preview-server.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then
+            echo "Candidate preview failed readiness: browser NOT_RUN" >&2
+            cat artifacts/world-health-prepublish/preview-server.log
+            exit 1
+          fi
+          node scripts/verify_world_health_deployment.mjs 2>&1 | tee artifacts/world-health-prepublish/browser-output.log
+
+      - name: Upload diagnostic report and screenshot on any outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: artifacts/world-health-prepublish/
+          if-no-files-found: warn
+          retention-days: 14
