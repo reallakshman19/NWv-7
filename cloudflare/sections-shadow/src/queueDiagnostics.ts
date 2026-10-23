@@ -48,7 +48,8 @@ export function queueFailureFields(
       Number.isSafeInteger(body.logicalSlot) && body.logicalSlot >= 0
       ? body.logicalSlot : null,
     laneId,
-    deliveryAttempt: Number.isSafeInteger(deliveryAttempt) && Number(deliveryAttempt) > 0
+    deliveryAttempt: typeof deliveryAttempt === 'number' &&
+      Number.isSafeInteger(deliveryAttempt) && deliveryAttempt > 0
       ? deliveryAttempt : null,
     exceptionType: exceptionType(error),
   };
