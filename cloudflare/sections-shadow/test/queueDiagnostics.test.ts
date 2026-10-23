@@ -67,7 +67,8 @@ describe('Cloudflare queue failure diagnostic privacy and accuracy', () => {
     try {
       const failure = new RangeError('sensitive SQL and user feeds');
       logUnexpectedFinalizationStage('build_decision_evidence', 'live-1792742400000', failure);
-      expect(spy).toHaveBeenCalledExactlyOnceWith(
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(
         'Sections shadow finalization phase failed',
         expect.objectContaining({
           phase: 'build_decision_evidence',
