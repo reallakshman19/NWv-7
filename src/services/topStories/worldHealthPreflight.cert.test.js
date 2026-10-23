@@ -132,9 +132,9 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
   const headExpression = '$' + '{{ github.event.pull_request.head.sha }}';
 
   it('restricts execution to pull requests and cannot publish Pages', () => {
-    expect(rehearsal).toMatch(/^  pull_request:\s*$/m);
-    expect(rehearsal).toMatch(/^permissions:\n  contents: read\s*$/m);
-    expect(rehearsal).not.toMatch(/^  (?:push|workflow_run|workflow_dispatch):/m);
+    expect(rehearsal).toMatch(/^\s{2}pull_request:\s*$/m);
+    expect(rehearsal).toMatch(/^permissions:\n\s{2}contents: read\s*$/m);
+    expect(rehearsal).not.toMatch(/^\s{2}(?:push|workflow_run|workflow_dispatch):/m);
     expect(rehearsal).not.toMatch(/(?:pages: write|id-token: write|contents: write)/);
     expect(rehearsal).not.toMatch(/actions\/(?:deploy-pages|upload-pages-artifact|configure-pages)@/);
     expect(rehearsal).not.toContain('environment: github-pages');
@@ -159,7 +159,7 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
     expect(rehearsal).toContain("PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'");
     expect(rehearsal).toContain('set -euo pipefail');
     expect(rehearsal).toContain('node scripts/verify_world_health_deployment.mjs 2>&1 | tee');
-    expect(rehearsal).toMatch(/- name: Upload diagnostic report and screenshot on any outcome\n        if: always\(\)/);
+    expect(rehearsal).toMatch(/- name: Upload diagnostic report and screenshot on any outcome\n\s{8}if: always\(\)/);
     expect(rehearsal).toContain('path: artifacts/world-health-prepublish/');
     expect(rehearsal).toContain('candidateHeadSha');
     expect(rehearsal).toContain('publishingEnabled');
