@@ -57,7 +57,54 @@ export function mapPreflightAssetUrl(requestUrl, baseUrl, previewOrigin) {
     return null;
   }
   const relativePath = request.pathname.slice(basePath.length);
-  return new URL(relativePath + request.search, preview).toString();
+  // Reject ambiguous encoded path separators/traversal and URL control chars.
+  if (/%(?:2f|5c|2e|00|0a|0d)/i.test(relativePath) ||
+      /[\\]/.test(relativePath) || relativePath.startsWith('/')) return null;
+  const mapped = new URL(relativePath + request.search, preview);
+  if (mapped.origin !== preview.origin) return null;
+  return mapped.toString();
+}
+
+
+const MAX_WORLD_EPOCH_AGE_MS = 2 * 60 * 60 * 1000;
+const MAX_WORLD_EPOCH_FUTURE_MS = 5 * 60 * 1000;
+const CLOUDFLARE_WORLD_PREVIEW_PATH = '/preview/sections/latest';
+
+/**
+ * Prepublication qualification; deliberately stricter than the post-deploy
+ * diagnostic verifier. A local/static fixture is not live qualification.
+ */
+export function evaluatePrepublicationWorldHealth(report, observed, checkedAt = Date.now()) {
+  const errors = [];
+  if (report?.badgeStatus !== 'ok') errors.push('world_badge_not_ok');
+  if (report?.sectionId !== 'world' || !Number.isFinite(report?.storyCount) || report.storyCount <= 0) {
+    errors.push('world_story_count_invalid');
+  }
+  if (!Number.isFinite(report?.sourceGroupCount) || report.sourceGroupCount <= 0 ||
+      !report?.topSourcesText || /none recorded/i.test(report.topSourcesText)) {
+    errors.push('world_source_evidence_missing');
+  }
+  const seen = Array.isArray(observed) ? observed.filter(x => {
+    try {
+      const url = new URL(x?.url);
+      return url.origin === 'https://nw-sections-shadow.reallaksh19.workers.dev' &&
+        url.pathname === CLOUDFLARE_WORLD_PREVIEW_PATH;
+    } catch { return false; }
+  }) : [];
+  const latest = seen.at(-1);
+  const match = String(latest?.epochId || '').match(/^live-(\d{13})$/);
+  const ageMs = match ? Number(new Date(checkedAt)) - Number(match[1]) : NaN;
+  if (!latest || latest.responseStatus !== 200 || !match) {
+    errors.push('world_committed_live_epoch_missing');
+  } else if (!Number.isFinite(ageMs) || ageMs > MAX_WORLD_EPOCH_AGE_MS ||
+             ageMs < -MAX_WORLD_EPOCH_FUTURE_MS) {
+    errors.push('world_committed_epoch_stale_or_future');
+  }
+  return {
+    ok: errors.length === 0, errors, epochId: latest?.epochId || null,
+    authorityUrl: latest?.url || null, responseStatus: latest?.responseStatus ?? null,
+    epochAgeMs: Number.isFinite(ageMs) ? ageMs : null,
+  };
 }
 
 function recordBrowserDiagnostic(list, value) {
@@ -110,6 +157,7 @@ async function main() {
     consoleErrors: [],
     pageErrors: [],
     error: null,
+    worldAuthority: null,
   };
 
   await fs.mkdir(artifactDir, { recursive: true });
@@ -139,6 +187,17 @@ async function main() {
       report.assetPreflightOrigin = previewOrigin;
     }
     const page = await context.newPage();
+    const observedWorldResponses = [];
+    page.on('response', response => {
+      if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD !== 'true') return;
+      const url = response.url();
+      try {
+        const source = new URL(url);
+        if (source.origin !== 'https://nw-sections-shadow.reallaksh19.workers.dev' ||
+            source.pathname !== CLOUDFLARE_WORLD_PREVIEW_PATH) return;
+      } catch { return; }
+      observedWorldResponses.push(response);
+    });
     page.on('console', message => {
       if (message.type() === 'error') {
         recordBrowserDiagnostic(report.consoleErrors, message.text());
@@ -231,6 +290,19 @@ async function main() {
     }
     if (!report.topSourcesText || /none recorded/i.test(report.topSourcesText)) {
       throw new Error('World diagnostics do not contain top-source evidence');
+    }
+
+    if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD === 'true') {
+      const observed = await Promise.all(observedWorldResponses.map(async response => ({
+        url: response.url(),
+        responseStatus: response.status(),
+        epochId: await response.headerValue('x-nw-epoch-id'),
+      })));
+      const prepublication = evaluatePrepublicationWorldHealth(report, observed, actualCheckedAt);
+      report.worldAuthority = prepublication;
+      if (!prepublication.ok) {
+        throw new Error('Prepublication World health refused: ' + prepublication.errors.join(', '));
+      }
     }
 
     report.ok = true;

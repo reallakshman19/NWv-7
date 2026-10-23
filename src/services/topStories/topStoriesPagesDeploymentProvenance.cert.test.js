@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -301,5 +302,108 @@ describe('Pages deployment provenance authority', () => {
     }
     expect(authority).not.toContain('sourceSha must equal upstreamHeadSha');
     expect(verifier.toLowerCase()).not.toContain('playwright');
+  });
+});
+
+
+describe('release upstream guard — executed Bash adversarial contexts', () => {
+  const workflow = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const section = workflow.split('      - name: Resolve deployment checkout authority\n')[1]
+    ?.split('      - name: Checkout deployment source once\n')[0];
+  const block = section?.split('        run: |\n')[1];
+  const script = block?.split('\n').map(line => line.startsWith('          ') ? line.slice(10) : line).join('\n');
+  const run = (overrides = {}) => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pages-event-'));
+    try {
+      const stdout = path.join(root, 'output');
+      const result = spawnSync('bash', ['-c', script], {
+        encoding: 'utf8',
+        env: {
+          ...process.env, GITHUB_OUTPUT: stdout,
+          TRIGGER_EVENT: 'workflow_run', EVENT_SHA: EVENT_SHA,
+          DEFAULT_BRANCH: 'main', UPSTREAM_HEAD_SHA: SOURCE_SHA,
+          UPSTREAM_HEAD_BRANCH: 'main',
+          UPSTREAM_CONCLUSION: 'success',
+          UPSTREAM_WORKFLOW_NAME: 'CI Validation Gate',
+          UPSTREAM_REPOSITORY: 'reallakshman19/NWv-7',
+          CURRENT_REPOSITORY: 'reallakshman19/NWv-7',
+          ...overrides,
+        },
+      });
+      return { status: result.status, stdout: result.stdout, stderr: result.stderr,
+        outputs: fs.existsSync(stdout) ? fs.readFileSync(stdout, 'utf8') : '' };
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  };
+
+  it('pins successful main-branch CI source to exact upstream sha', () => {
+    expect(script).toBeTruthy();
+    const output = run();
+    expect(output.status, output.stderr).toBe(0);
+    expect(output.outputs).toContain('checkout_ref=' + SOURCE_SHA);
+    expect(output.outputs).toContain('source_resolution_mode=workflow-run-ci-verified-sha');
+  });
+
+  it('rejects PR/fork CI, failed upstream, and untrusted workflow name', () => {
+    for (const edit of [
+      { UPSTREAM_HEAD_BRANCH: 'feature-branch' },
+      { UPSTREAM_REPOSITORY: 'outsider/NWv-7' },
+      { UPSTREAM_CONCLUSION: 'failure' },
+      { UPSTREAM_WORKFLOW_NAME: 'Untrusted workflow' },
+      { UPSTREAM_HEAD_SHA: 'wrong' },
+    ]) {
+      const observed = run(edit);
+      expect(observed.status, JSON.stringify(edit) + observed.stderr).not.toBe(0);
+    }
+  });
+
+  it('retains latest-main data-refresh semantics without claiming producer-start SHA', () => {
+    const observed = run({ UPSTREAM_WORKFLOW_NAME: 'News Prefetch' });
+    expect(observed.status, observed.stderr).toBe(0);
+    expect(observed.outputs).toContain('checkout_ref=main');
+    expect(observed.outputs).toContain('source_resolution_mode=workflow-run-default-branch-checkout');
+    expect(workflow).toContain('Certify data-refresh or operator checkout before publishing');
+  });
+
+  it('rejects direct pushes and preserves explicit operator dispatch only', () => {
+    expect(run({ TRIGGER_EVENT: 'push' }).status).not.toBe(0);
+    // Both the dispatcher and the workflow trigger reject push-driven publishing.
+    expect(workflow).not.toMatch(/^ {2}push:$/m);
+    expect(workflow).toContain('  workflow_dispatch:');
+  });
+});
+
+
+describe('late main SHA comparison — executed shell with a fake read-only git remote', () => {
+  const workflow = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const step = workflow.split('      - name: Reject superseded source before publication for every release trigger\n')[1]
+    ?.split('      - name: Write pages data manifest\n')[0];
+  const script = step?.split('        run: |\n')[1]
+    ?.split('\n').map(line => line.startsWith('          ') ? line.slice(10) : line).join('\n');
+
+  const execute = remoteSha => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'pages-remote-'));
+    try {
+      const gitPath = path.join(root, 'git');
+      fs.writeFileSync(gitPath, '#!/bin/sh\nprintf "%s\\trefs/heads/main\\n" "' + remoteSha + '"\n');
+      fs.chmodSync(gitPath, 0o755);
+      return spawnSync('bash', ['-c', script], {
+        encoding: 'utf8',
+        env: {
+          ...process.env, PATH: root + ':' + process.env.PATH,
+          DEFAULT_BRANCH: 'main', FROZEN_SOURCE_SHA: SOURCE_SHA,
+        },
+      });
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  };
+
+  it('allows only unchanged current main, and refuses a different or missing remote SHA', () => {
+    expect(script).toBeTruthy();
+    expect(execute(SOURCE_SHA).status).toBe(0);
+    expect(execute(UPSTREAM_SHA).status).not.toBe(0);
+    expect(execute('unavailable').status).not.toBe(0);
   });
 });

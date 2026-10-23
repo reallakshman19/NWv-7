@@ -1,0 +1,48 @@
+name: Cloudflare Sections Worker Certification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cloudflare/sections-shadow/**'
+      - 'scripts/sections-live/**'
+      - '.github/workflows/sections_shadow_check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sections-shadow-cert-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worker-certification:
+    name: Worker typecheck, runtime tests, dry-run
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            cloudflare/sections-shadow/package-lock.json
+
+      - name: Install shared repository dependencies
+        run: npm ci
+
+      - name: Install Worker dependencies
+        run: npm ci
+        working-directory: cloudflare/sections-shadow
+
+      - name: Typecheck, test and verify Wrangler deployment dry-run
+        run: npm run check
+        working-directory: cloudflare/sections-shadow

@@ -14,6 +14,7 @@ import {
 } from './liveAcquisition';
 import { readQuotaDay } from './quota';
 import { sectionsRegistryAuthority } from './registry';
+import { queueFailureFields } from './queueDiagnostics';
 import { readCommittedPreviewSnapshot } from './previewSnapshot';
 
 const HOUR_MS = 60 * 60 * 1_000;
@@ -256,9 +257,8 @@ async function consumeMessage(message: Message<ShadowQueueMessage>, env: Env): P
       message.ack();
       return;
     }
-    console.error('Sections shadow replay failed', {
-      code: error instanceof ShadowCustodyError ? error.code : 'UNEXPECTED_FAILURE',
-    });
+    console.error('Sections shadow replay failed',
+      queueFailureFields(body, error, message.attempts));
     message.retry({ delaySeconds: 60 });
   }
 }
