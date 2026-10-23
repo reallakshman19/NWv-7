@@ -29,6 +29,7 @@
 
 # Verification on the exact PR head
 <!-- PASS requires a command actually executed against the HEAD SHA below. Never call a written test PASS. -->
+<!-- Domain certification covers editorial / workflow / data platform checks as applicable; retain the exact canonical gate label below. -->
 - PR head SHA:
 - CI run URL:
 | Gate | Status (PASS / FAIL / NOT_RUN / BLOCKED) | Evidence / reason |
@@ -36,7 +37,7 @@
 | Lint | | |
 | Unit & regression tests | | |
 | Build | | |
-| Domain certification (editorial / workflow / data platform, as applicable) | | |
+| Domain certification | | |
 | Integration / browser smoke | | |
 | Staging or production validation | | |
 

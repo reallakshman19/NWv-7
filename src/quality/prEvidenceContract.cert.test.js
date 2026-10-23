@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { validatePrEvidence } from './prEvidenceContract.js';
@@ -65,6 +65,68 @@ function runCli(event) {
     rmSync(dir, { recursive: true, force: true });
   }
 }
+
+
+const GATE_NAMES = [
+  'Lint',
+  'Unit & regression tests',
+  'Build',
+  'Domain certification',
+  'Integration / browser smoke',
+  'Staging or production validation',
+];
+
+// Exercise the checked-in authoring template, not a separately typed fixture.
+const CHECKED_IN_TEMPLATE = readFileSync(
+  new URL('../../.github/PULL_REQUEST_TEMPLATE.md', import.meta.url),
+  'utf8'
+);
+
+function completeCheckedInTemplate() {
+  let body = CHECKED_IN_TEMPLATE.replace(/^- ([^:\n]+):.*$/gm, (_line, label) => {
+    if (label === 'PR head SHA') return '- ' + label + ': ' + HEAD;
+    if (label === 'CI run URL') return '- ' + label + ': NOT_RUN, synthetic example only';
+    return '- ' + label + ': Synthetic example; no claim of real execution';
+  });
+  body = body.replace(
+    /^\| \| \| \|$/m,
+    '| Synthetic correction | src/quality/prEvidenceContract.js | src/quality/prEvidenceContract.cert.test.js |'
+  );
+  for (const label of GATE_NAMES) {
+    body = body.replace(
+      '| ' + label + ' | | |',
+      '| ' + label + ' | NOT_RUN | Synthetic example; no executed gate claimed |'
+    );
+  }
+  return body;
+}
+
+describe('checked-in PR template compatibility', () => {
+  it('uses exactly six canonical verification gates in the real template', () => {
+    const observedLabels = CHECKED_IN_TEMPLATE.split('\n')
+      .map(line => line.match(/^\|\s*(.*?)\s*\|\s*\|\s*\|$/)?.[1])
+      .filter(Boolean);
+    expect(observedLabels).toEqual(GATE_NAMES);
+  });
+
+  it('accepts a fully completed copy of the actual checked-in PR template', () => {
+    const completed = completeCheckedInTemplate();
+    const result = validatePrEvidence(completed, { expectedHeadSha: HEAD });
+    expect(result).toEqual({ ok: true, failures: [] });
+  });
+
+  it('rejects a noncanonical Domain certification gate in that completed template', () => {
+    const completed = completeCheckedInTemplate();
+    const wrongLabel = completed.replace(
+      '| Domain certification | NOT_RUN |',
+      '| Domain certification (editorial / workflow / data platform, as applicable) | NOT_RUN |'
+    );
+    expect(wrongLabel).not.toBe(completed);
+    const result = validatePrEvidence(wrongLabel, { expectedHeadSha: HEAD });
+    expect(result.ok).toBe(false);
+    expect(result.failures).toContain('Domain certification: status must be PASS, FAIL, NOT_RUN or BLOCKED');
+  });
+});
 
 describe('pull request evidence contract', () => {
   it('allows truthful NOT_RUN and BLOCKED states with specific reasons', () => {
