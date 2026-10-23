@@ -25,6 +25,9 @@ export const TOP_STORIES_POLICY = Object.freeze({
     maxPerSection: 9,
     maxPerGeo: 9,
     maxPerCluster: 1,
+    displayMaxPerSource: 2,
+    displayMaxPerSection: 4,
+    displayMaxPerGeo: 6,
   }),
   consensus: Object.freeze({
     cap: 6,

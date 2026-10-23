@@ -6,10 +6,11 @@ import {
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
 import { fetchSectionNews } from '../../services/rssAggregator.js';
 import { getSettings } from '../../utils/storage.js';
-import { deduplicateAndCluster } from '../../utils/similarity.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
-import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
+import {
+  buildTopStoriesRankingSections as makeTopStoriesRankingSections,
+} from '../../services/topStories/topStoriesPopulation.js';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -68,8 +69,54 @@ function getSectionLimit(settings, section) {
   return Number(settings?.sections?.[section]?.count || 10) + 5;
 }
 
-function getTopFeedSnapshotRows(options = {}) {
-  return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
+export function getTopStoriesCandidateLimit(displayLimit) {
+  const limit = Math.max(1, Number(displayLimit || 1));
+  return Math.max(30, limit * 3);
+}
+
+export function getTopStoriesAcquisitionSections(sections = []) {
+  const visible = Array.isArray(sections) ? sections.filter(Boolean) : [];
+  return visible.includes('topStories')
+    ? [...visible]
+    : ['topStories', ...visible];
+}
+
+export function getVisibleSectionSummaries(allSummaries = [], sections = []) {
+  const visible = new Set(Array.isArray(sections) ? sections : []);
+  return (Array.isArray(allSummaries) ? allSummaries : [])
+    .filter(summary => visible.has(summary?.section));
+}
+
+/** A hidden Top Stories evidence lane must never expand the ranker candidate pool. */
+export function getTopStoriesRankingCandidateRows(allSummaries = [], sections = []) {
+  return getVisibleSectionSummaries(allSummaries, sections)
+    .filter(summary => summary.section !== 'topStories')
+    .flatMap(summary => (
+      Array.isArray(summary.candidateItems) ? summary.candidateItems : summary.items || []
+    ));
+}
+
+export function getTopFeedSnapshotRows(options = {}, summaries = []) {
+  // Keep publisher-level source rows intact here. buildTopFeedSignalMap()
+  // normalizes exactly once inside the ranker. Premature normalization would
+  // collapse the original publisher rows into a single aggregate and erase
+  // independent-source corroboration on the second normalization pass.
+  const explicit = options.topFeedItems || options.topFeedSnapshot || [];
+  if (Array.isArray(explicit) && explicit.length > 0) {
+    return [...explicit];
+  }
+
+  const topStoriesSummary = (summaries || []).find(summary => summary?.section === 'topStories');
+  const authorityRows = Array.isArray(topStoriesSummary?.candidateItems)
+    ? topStoriesSummary.candidateItems
+    : Array.isArray(topStoriesSummary?.items)
+      ? topStoriesSummary.items
+      : [];
+  return [...authorityRows];
+}
+
+export function buildTopStoriesRankingSections(items = [], dedupeOptions = 0.75) {
+  return makeTopStoriesRankingSections(items, dedupeOptions);
 }
 
 function countSources(items = []) {
@@ -137,18 +184,24 @@ function attachBudgetExitDiagnostics(section, result) {
   });
 }
 
-function summarizeSection(section, result) {
+export function summarizeSection(section, result, displayLimit = null) {
   const items = Array.isArray(result) ? result : [];
-  const sectionItems = items.map(item => ({
+  const candidateItems = items.map(item => ({
     ...item,
     section: item.section || section,
     sourceSection: result?.prefetchSourceSection || item.sourceSection || section,
   }));
+  const boundedDisplayLimit = displayLimit != null && Number.isFinite(Number(displayLimit))
+    ? Math.max(0, Math.floor(Number(displayLimit)))
+    : candidateItems.length;
+  const sectionItems = candidateItems.slice(0, boundedDisplayLimit);
   return {
     section,
     ok: true,
     items: sectionItems,
+    candidateItems,
     count: sectionItems.length,
+    candidateCount: candidateItems.length,
     sourceCounts: countSources(sectionItems),
     health: result?.health || null,
     isSingleSource: Boolean(result?.isSingleSource),
@@ -261,31 +314,83 @@ function getValidationWarnings(summaries) {
     }));
 }
 
+export function getTopStoriesEvidenceWarning(summary) {
+  if (summary?.ok && summary.count > 0 && !summary.staleReason) return null;
+  return {
+    section: 'topStories',
+    reason: !summary?.ok
+      ? 'top_stories_evidence_fetch_failed'
+      : summary.staleReason || 'top_stories_evidence_empty',
+    severity: 'warn',
+  };
+}
+
 export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
-  const topFeedItems = getTopFeedSnapshotRows(options);
-  const settled = await Promise.allSettled(sections.map(async section => {
-    const limit = getSectionLimit(settings, section);
+  const acquisitionSections = getTopStoriesAcquisitionSections(sections);
+
+  const settled = await Promise.allSettled(acquisitionSections.map(async section => {
+    const displayLimit = getSectionLimit(settings, section);
+    const candidateLimit = getTopStoriesCandidateLimit(displayLimit);
     const startedAt = Date.now();
-    const result = await fetchSectionNews(section, limit, settings.newsSources, {
+    const result = await fetchSectionNews(section, candidateLimit, settings.newsSources, {
       force: Boolean(options.forceRefresh),
     });
     const durationMs = Date.now() - startedAt;
     const withBudgetDiagnostics = attachBudgetExitDiagnostics(section, result);
-    return summarizeSection(section, ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs));
+    return summarizeSection(
+      section,
+      ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs),
+      displayLimit,
+    );
   }));
-  const summaries = settled.map((entry, index) => {
+
+  const allSummaries = settled.map((entry, index) => {
     if (entry.status === 'fulfilled') return entry.value;
-    return summarizeFailure(sections[index], entry.reason);
+    return summarizeFailure(acquisitionSections[index], entry.reason);
   });
+  const summaries = getVisibleSectionSummaries(allSummaries, sections);
+  const topStoriesEvidenceSummary = allSummaries.find(summary => summary.section === 'topStories');
+  const topStoriesEvidenceWarning = getTopStoriesEvidenceWarning(topStoriesEvidenceSummary);
+
+  if (topStoriesEvidenceWarning) {
+    diagnostics.push({
+      event: 'sectionsDataset.top_stories_evidence_degraded',
+      severity: 'warn',
+      message: 'Top Stories evidence lane is unavailable or degraded; ranking continues from cross-section candidates.',
+      details: {
+        ok: Boolean(topStoriesEvidenceSummary.ok),
+        count: Number(topStoriesEvidenceSummary.count || 0),
+        candidateCount: Number(topStoriesEvidenceSummary.candidateCount || 0),
+        staleReason: topStoriesEvidenceSummary.staleReason || null,
+        error: topStoriesEvidenceSummary.error || null,
+      },
+    });
+  }
+
   const failed = summaries.filter(summary => !summary.ok);
+  const topFeedItems = getTopFeedSnapshotRows(options, allSummaries);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
-  const allItems = summaries.flatMap(summary => summary.items);
-  const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
-  const rankedSections = { ...sectionItems, __all: dedupedItems };
-  const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
+  const allItems = getTopStoriesRankingCandidateRows(allSummaries, sections);
+  // Top Stories ranks only neutral-impact cross-section cluster representatives.
+  // Mixing raw section rows and representatives lets a duplicated event re-enter
+  // the rail under multiple publisher-specific ids.
+  const rankedSections = buildTopStoriesRankingSections(
+    allItems,
+    settings.storyDeduplication || 0.75,
+  );
+  const dedupedItems = rankedSections.__all;
+  const frontPage = rankTopStories(
+    {
+      sectionItems: rankedSections,
+      topFeedSignalItems: topFeedItems,
+      settings,
+      nowMs: Date.now(),
+    },
+    { limit: options.frontPageLimit || 25 },
+  );
   const envelope = makeEnvelope({
     datasetId: 'sections',
     ok: summaries.some(summary => summary.ok),
@@ -304,7 +409,10 @@ export async function load(options = {}) {
     diagnostics,
     validation: {
       passed: failed.length === 0,
-      warnings: getValidationWarnings(summaries),
+      warnings: [
+        ...getValidationWarnings(summaries),
+        ...(topStoriesEvidenceWarning ? [topStoriesEvidenceWarning] : []),
+      ],
       errors: failed.map(summary => summary.error),
     },
   });

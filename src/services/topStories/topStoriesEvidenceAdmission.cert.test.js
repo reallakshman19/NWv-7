@@ -40,7 +40,7 @@ function seattleStory(overrides = {}) {
   };
 }
 
-describe('mature non-local critical-event evidence policy', () => {
+describe('non-local critical-event evidence policy', () => {
   it('rejects a weak single-source mature non-local critical event', () => {
     expect(decision()).toEqual({
       allowed: false,
@@ -58,7 +58,6 @@ describe('mature non-local critical-event evidence policy', () => {
   });
 
   it.each([
-    { label: 'primary band', overrides: { ageBand: 'primary' } },
     {
       label: 'local event',
       overrides: { signals: signals({ locationRelevanceScore: 0.82 }) },
@@ -72,11 +71,38 @@ describe('mature non-local critical-event evidence policy', () => {
     });
   });
 
+  it('rejects a weak single-source non-local critical event inside the primary window', () => {
+    expect(decision({
+      ageBand: 'primary',
+      signals: signals({ ageMinutes: 90 }),
+    })).toEqual({
+      allowed: false,
+      applies: true,
+      evidenceClass: 'missing',
+      reason: 'nonlocal_critical_without_evidence',
+    });
+  });
+
+  it('keeps a trusted <=15 minute cold-start critical report eligible', () => {
+    expect(decision({
+      ageBand: 'primary',
+      signals: signals({
+        ageMinutes: 10,
+        sourceQualityScore: 0.8,
+      }),
+    })).toEqual({
+      allowed: true,
+      applies: true,
+      evidenceClass: 'cold_start',
+    });
+  });
+
   it('rejects the Seattle regression through the production ranker', () => {
     const scored = scoreTopStoryCandidate(seattleStory(), { nowMs: NOW });
 
     expect(scored._topStoryRank.eventType).toBe('public_safety');
     expect(scored._topStoryRank.ageBand).toBe('secondary');
+    // No registry tier is available: preserve the legacy TOI family score.
     expect(scored._topStoryRank.sourceQualityScore).toBe(0.48);
     expect(scored._topStoryRank.independentEvidenceCount).toBe(0);
     expect(scored._topStoryRank.slotBand).toBe('rejected');

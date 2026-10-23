@@ -57,7 +57,7 @@ function classifyReason(reasonCode) {
   if (reason === 'shared_editorial_identity' || reason.startsWith('identity_')) {
     return 'identity';
   }
-  if (reason.startsWith('max_per_')) return 'diversity';
+  if (reason.startsWith('max_per_') || reason.startsWith('display_max_per_')) return 'diversity';
   if (reason.includes('timestamp')) return 'timestamp';
   if (reason.includes('expired') || reason.includes('age_window') || reason.includes('stale')) {
     return 'age';

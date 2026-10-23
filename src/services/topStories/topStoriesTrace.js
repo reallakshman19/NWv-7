@@ -99,6 +99,9 @@ function evidenceDetails(rank) {
     independentEvidenceCount: Number(rank.independentEvidenceCount || 0),
     hasIndependentEvidence: Boolean(rank.hasIndependentEvidence),
     topFeedCorroborationHits: Number(rank.topFeedCorroborationHits || 0),
+    sourceQualityScore: Number(rank.sourceQualityScore || 0),
+    locationRelevanceScore: Number(rank.locationRelevanceScore || 0),
+    locationRelevanceTarget: rank.locationRelevanceTarget || 'unknown',
   };
 }
 
@@ -116,6 +119,20 @@ function getQualificationEvidenceStage(item, priorStages) {
       details,
     );
   }
+  const criticalEvidenceReason = [
+    'nonlocal_critical_without_evidence',
+    'mature_nonlocal_critical_without_evidence',
+  ].includes(rank.admissionReason);
+
+  if (rank.eventQualified !== false && criticalEvidenceReason) {
+    return stage(
+      TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,
+      'rejected',
+      [rank.admissionReason],
+      details,
+    );
+  }
+
   if (rank.eventQualified !== false) {
     return stage(
       TOP_STORY_TRACE_STAGES.QUALIFICATION_EVIDENCE,

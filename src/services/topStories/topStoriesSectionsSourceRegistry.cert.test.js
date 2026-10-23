@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSectionsSourceRegistryAuthority,
 } from '../../../scripts/top-stories-shadow/sectionsShadowSourceRegistry.mjs';
+import {
+  getSectionAcquisitionGeography,
+} from '../../../scripts/sections-live/sectionsLiveAuthority.mjs';
 
 function readJson(path) {
   return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -62,6 +65,31 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
       () => buildSectionsSourceRegistryAuthority(registry),
       'source_registry_coverage_failed',
     );
+  });
+
+  it('keeps geographic section metadata truthful instead of stamping every non-Muscat lane as India', () => {
+    expect(getSectionAcquisitionGeography('india'))
+      .toEqual({ acquisitionRegion: 'india', acquisitionCountryCode: 'in' });
+    expect(getSectionAcquisitionGeography('tn'))
+      .toEqual({ acquisitionRegion: 'india', acquisitionCountryCode: 'in' });
+    expect(getSectionAcquisitionGeography('muscat'))
+      .toEqual({ acquisitionRegion: 'oman', acquisitionCountryCode: 'om' });
+    expect(getSectionAcquisitionGeography('world'))
+      .toEqual({ acquisitionRegion: 'world', acquisitionCountryCode: null });
+    expect(getSectionAcquisitionGeography('technology'))
+      .toEqual({ acquisitionRegion: null, acquisitionCountryCode: null });
+    expect(getSectionAcquisitionGeography('topStories'))
+      .toEqual({ acquisitionRegion: null, acquisitionCountryCode: null });
+  });
+
+  it('propagates registry tier metadata into live section story rows', () => {
+    const liveAuthority = readFileSync(
+      new URL('../../../scripts/sections-live/sectionsLiveAuthority.mjs', import.meta.url),
+      'utf8',
+    );
+
+    expect(liveAuthority).toContain('sourceTier: lane.tier');
+    expect(liveAuthority).toContain('sourceTopic: lane.topic');
   });
 
   it('fails closed on missing coverage, invalid tier, or missing topic semantics', () => {

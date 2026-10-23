@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 2  # retain the parent for exact PR-merge diff checks
 
       - name: Block rejected patch artifacts
         shell: bash
@@ -53,6 +54,19 @@ jobs:
           mkdir -p reports
           npm run test:certify:smoke 2>&1 | tee reports/ci_validation.log
 
+      - name: Run editorial certification for ranking or source-policy changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed_files="$(git diff --name-only HEAD^1 HEAD)"
+          printf 'Files changed in current commit or PR merge:\n%s\n' "$changed_files"
+          if printf '%s\n' "$changed_files" | grep -Eq '^(src/services/topStories/|src/data/datasets/sectionsDataset\.|src/services/rssAggregator\.js$|scripts/sections-live/|scripts/top-stories-shadow/|cloudflare/sections-shadow/)'; then
+            mkdir -p reports
+            npm run test:certify:editorial 2>&1 | tee reports/ci_editorial.log
+          else
+            echo 'No ranking / source-policy files changed; editorial certification not required for this diff.'
+          fi
+
       - name: Upload verified Vite build
         uses: actions/upload-artifact@v4
         if: success()
@@ -67,6 +81,8 @@ jobs:
         if: failure()
         with:
           name: ci-validation-failure-log
-          path: reports/ci_validation.log
+          path: |
+            reports/ci_validation.log
+            reports/ci_editorial.log
           if-no-files-found: ignore
 

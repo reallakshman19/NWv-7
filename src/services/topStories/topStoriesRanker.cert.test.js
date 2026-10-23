@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { classifyTopStoryEvent, TOP_STORY_EVENT_TYPES } from './topStoriesEventClassifier.js';
-import { rankTopStories, scoreTopStoryCandidate } from './topStoriesRanker.js';
+import { evaluateTopStories, rankTopStories, scoreTopStoryCandidate, TOP_STORIES_RANKER_VERSION } from './topStoriesRanker.js';
 import { __mainViewModelInternalsForTest } from '../../viewModels/useMainTabViewModel.js';
 
 const NOW = Date.UTC(2026, 6, 8, 8, 0, 0);
@@ -15,6 +15,7 @@ function story(id, ageHours, extra = {}) {
     section: extra.section || 'world',
     source: extra.source || `Source ${id}`,
     sourceGroup: extra.sourceGroup || `source-${id}`,
+    sourceTier: extra.sourceTier === undefined ? 'A' : extra.sourceTier,
     publishedAt: ageHours == null ? undefined : NOW - ageHours * hour,
     timestampConfidence: extra.timestampConfidence || 'high',
     ...extra,
@@ -61,6 +62,10 @@ function topFeedRows(id, count = 3, extra = {}) {
 }
 
 describe('NW-RANK-001 Top Stories ranker', () => {
+  it('versions the current ranking semantics independently from the historical v1 pilot', () => {
+    expect(TOP_STORIES_RANKER_VERSION).toBe('nw-top-stories-ranker-observed-v2');
+  });
+
   it('keeps top 10 in the 0-4h band when diverse primary stories are available', () => {
     const items = Array.from({ length: 14 }, (_, i) => story(`p${i}`, 1, {
       title: `Cyclone warning ${i}`,
@@ -231,20 +236,20 @@ describe('NW-RANK-001 Top Stories ranker', () => {
   });
 
   it('limits one source/section/geography dominance when enough alternatives exist', () => {
-    const sections = ['india', 'business', 'sports', 'technology', 'science', 'health'];
+    const sections = ['india', 'business', 'sports', 'technology', 'science', 'health', 'world', 'civic'];
     const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
-    const alternatives = Array.from({ length: 6 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Public alert ${i}` }));
+    const alternatives = Array.from({ length: 8 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: sections[i], title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
     expect(ranked).toHaveLength(10);
-    expect(ranked.filter(item => item.sourceGroup === 'same').length).toBeLessThanOrEqual(4);
+    expect(ranked.filter(item => item.sourceGroup === 'same').length).toBeLessThanOrEqual(2);
   });
 
-  it('under-fills rather than bypassing diversity limits when alternatives run out', () => {
+  it('under-fills rather than bypassing visible-rail diversity limits when alternatives run out', () => {
     const dominant = Array.from({ length: 10 }, (_, i) => story(`dom${i}`, 1, { sourceGroup: 'same', title: `Public alert ${i}` }));
     const alternatives = Array.from({ length: 5 }, (_, i) => story(`alt${i}`, 1, { sourceGroup: `alt${i}`, section: `alternative-${i}`, title: `Public alert ${i}` }));
     const ranked = rank([...dominant, ...alternatives], { limit: 10 });
-    expect(ranked).toHaveLength(9);
-    expect(ranked.filter(item => item.sourceGroup === 'same')).toHaveLength(4);
+    expect(ranked).toHaveLength(7);
+    expect(ranked.filter(item => item.sourceGroup === 'same')).toHaveLength(2);
     expect(ranked.filter(item => item.sourceGroup !== 'same')).toHaveLength(5);
   });
 
@@ -336,6 +341,24 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(scored._topStoryRank.slotBand).toBe('expired');
   });
 
+  it('uses dedicated top-feed rows as evidence without injecting them as duplicate ranking candidates', () => {
+    const candidate = story('signal-only', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'BBC',
+      sourceGroup: 'bbc',
+    });
+    const evaluation = evaluateTopStories({
+      sectionItems: { world: [candidate] },
+      topFeedSignalItems: topFeedRows('signal-only', 3),
+      nowMs: NOW,
+    });
+
+    expect(evaluation.rawInputCount).toBe(1);
+    expect(evaluation.candidates).toHaveLength(1);
+    expect(evaluation.scoredCandidates[0]._topStoryRank.topFeedCorroborationHits)
+      .toBeGreaterThan(0);
+  });
+
   it('uses strong top-feed corroboration as a bounded boost for equivalent hard news', () => {
     const ranked = rank([
       story('weak-feed', 1, { title: 'Court verdict announced in public case' }),
@@ -410,6 +433,171 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     const { filterLatestStories } = __mainViewModelInternalsForTest;
     const rows = [story('first', 3), story('second', 1), story('third', 2)];
     expect(ids(filterLatestStories(rows, false))).toEqual(['first', 'second', 'third']);
+  });
+
+  it('rejects weak single-source non-local critical news even inside the 0-4h primary window', () => {
+    const ranked = rank([
+      story('weak-seattle', 3, {
+        title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
+        source: 'Times of India',
+        sourceGroup: 'toi',
+        sourceTier: null,
+        sourceCount: 1,
+      }),
+      story('corroborated-court', 2, {
+        title: 'Court verdict announced in public case',
+        source: 'BBC',
+        sourceGroup: 'bbc',
+        sourceCount: 2,
+        allSources: ['BBC', 'Reuters'],
+      }),
+    ]);
+
+    expect(ranked.some(item => item.id === 'weak-seattle')).toBe(false);
+
+    const scored = score(story('weak-seattle-score', 3, {
+      title: 'Seattle food festival shooting leaves 2 killed and 5 people injured',
+      source: 'Times of India',
+      sourceGroup: 'toi',
+      sourceTier: null,
+      sourceCount: 1,
+    }));
+    expect(scored._topStoryRank.ageBand).toBe('primary');
+    expect(scored._topStoryRank.slotBand).toBe('rejected');
+    expect(scored._topStoryRank.admissionReason).toBe('nonlocal_critical_without_evidence');
+  });
+
+  it('keeps authoritative single-source non-local critical news eligible in the primary window', () => {
+    const scored = score(story('reuters-critical', 3, {
+      title: 'Seattle shooting leaves residents injured',
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      sourceCount: 1,
+    }));
+
+    expect(scored._topStoryRank.sourceQualityScore).toBe(1);
+    expect(scored._topStoryRank.slotBand).toBe('primary');
+  });
+
+  it('uses the strongest independent publisher quality from a clustered event, not only the representative source', () => {
+    const scored = score(story('cluster-source-quality', 2, {
+      title: 'Court verdict announced in public case',
+      source: 'Google News Top',
+      sourceGroup: 'google_news',
+      sourceTier: 'B',
+      allSources: ['Google News Top', 'Reuters'],
+      sourceCount: 2,
+    }));
+
+    expect(scored._topStoryRank.sourceQualityScore).toBe(1);
+    // The Google News wrapper is not an independent publisher once
+    // the underlying Reuters origin has been identified.
+    expect(scored._topStoryRank.sourceCount).toBe(1);
+    expect(scored._topStoryRank.consensusScore).toBe(0);
+  });
+
+  it('uses source tier metadata from the Sections registry when the publisher family is otherwise unknown', () => {
+    const tierA = score(story('tier-a-regional', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'Regional Authority Wire',
+      sourceGroup: 'regional_authority_wire',
+      sourceTier: 'A',
+    }));
+    const tierB = score(story('tier-b-regional', 1, {
+      title: 'Court verdict announced in public case',
+      source: 'Regional Daily',
+      sourceGroup: 'regional_daily',
+      sourceTier: 'B',
+    }));
+
+    expect(tierA._topStoryRank.sourceQualityScore).toBe(1);
+    expect(tierB._topStoryRank.sourceQualityScore).toBe(0.72);
+  });
+
+  it('does not use legacy acquisition region codes as story-level geo diversity evidence', () => {
+    const items = Array.from({ length: 10 }, (_, i) => story(`legacy-region-${i}`, 1, {
+      title: `Court verdict announced in public case legacy region ${i}`,
+      source: `Legacy Region Source ${i}`,
+      sourceGroup: `legacy-region-source-${i}`,
+      section: `legacy-region-section-${i}`,
+      region: 'in',
+    }));
+
+    const ranked = rank(items, { limit: 10 });
+
+    expect(ranked).toHaveLength(10);
+  });
+
+  it('reconsiders display-capped publisher stories below the visible top 10 under the broader rail cap', () => {
+    const dominant = Array.from({ length: 4 }, (_, i) => story(`reuters-deferred-${i}`, 0.2 + i * 0.01, {
+      title: `Court verdict announced in public case deferred ${i}`,
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      section: `dominant-deferred-${i}`,
+    }));
+    const alternatives = Array.from({ length: 12 }, (_, i) => story(`alt-deferred-${i}`, 0.5 + i * 0.02, {
+      title: `Court verdict announced in public case alternative deferred ${i}`,
+      source: `Alternative Deferred ${i}`,
+      sourceGroup: `alternative-deferred-${i}`,
+      section: `alternative-deferred-section-${i}`,
+      sourceTier: 'A',
+    }));
+
+    const ranked = rank([...dominant, ...alternatives]);
+    const displayed = ranked.slice(0, 10);
+    const allReuters = ranked.filter(item => item.source === 'Reuters');
+
+    expect(displayed.filter(item => item.source === 'Reuters')).toHaveLength(2);
+    expect(allReuters).toHaveLength(4);
+    expect(ranked.findIndex(item => item.id === 'reuters-deferred-2')).toBeGreaterThanOrEqual(10);
+  });
+
+  it('treats Google News lane aliases as one publisher family in the displayed top 10', () => {
+    const googleRows = Array.from({ length: 6 }, (_, i) => story(`google-family-${i}`, 0.4 + i * 0.03, {
+      title: `Court verdict announced in public case google family ${i}`,
+      source: i % 2 === 0 ? 'Google News Top' : 'Google News Oman IN',
+      sourceGroup: i % 2 === 0 ? 'google_news' : 'google_news_oman',
+      sourceTier: 'B',
+      section: `google-section-${i}`,
+    }));
+    const alternatives = Array.from({ length: 8 }, (_, i) => story(`google-alt-${i}`, 0.8 + i * 0.03, {
+      title: `Court verdict announced in public case diverse family ${i}`,
+      source: `Diverse Publisher ${i}`,
+      sourceGroup: `diverse-publisher-${i}`,
+      sourceTier: 'A',
+      section: `diverse-section-${i}`,
+    }));
+
+    const displayed = rank([...googleRows, ...alternatives]).slice(0, 10);
+    const googleCount = displayed.filter(item => (
+      String(item.sourceGroup || '').startsWith('google_news')
+    )).length;
+
+    expect(displayed).toHaveLength(10);
+    expect(googleCount).toBeLessThanOrEqual(2);
+  });
+
+  it('caps a single publisher family at two stories in the displayed top 10', () => {
+    const dominant = Array.from({ length: 6 }, (_, i) => story(`reuters-${i}`, 0.5 + i * 0.05, {
+      title: `Court verdict announced in public case ${i}`,
+      source: 'Reuters',
+      sourceGroup: 'Reuters',
+      section: `dominant-${i}`,
+    }));
+    const alternatives = Array.from({ length: 10 }, (_, i) => story(`alt-${i}`, 1 + i * 0.02, {
+      title: `Court verdict announced in public case alternative ${i}`,
+      source: `Alternative Source ${i}`,
+      sourceGroup: `alternative-${i}`,
+      section: `alternative-section-${i}`,
+      sourceTier: 'A',
+    }));
+
+    const ranked = rank([...dominant, ...alternatives]);
+    const displayed = ranked.slice(0, 10);
+    const reutersCount = displayed.filter(item => item.source === 'Reuters').length;
+
+    expect(displayed).toHaveLength(10);
+    expect(reutersCount).toBeLessThanOrEqual(2);
   });
 
   it('keeps topStories modules local and non-mutating', () => {

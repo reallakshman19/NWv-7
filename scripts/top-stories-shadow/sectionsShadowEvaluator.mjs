@@ -109,7 +109,7 @@ export function evaluateSectionsDecisionEvidence(input, options = {}) {
   const displayDepth = normalizeDisplayDepth(options.displayDepth ?? 10);
   const evaluation = evaluateTopStories({
     sectionItems: input.sectionItems || {},
-    topFeedItems: input.topFeedItems || [],
+    topFeedSignalItems: input.topFeedItems || [],
     settings: input.settings || {},
     nowMs,
   }, {

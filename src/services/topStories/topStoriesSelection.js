@@ -4,17 +4,23 @@ import { buildTopStorySelectionTrace } from './topStoriesTrace.js';
 import { getStorySourceFamily } from './topStoriesSourceIdentity.js';
 
 function getSourceKey(story = {}) {
-  return getStorySourceFamily(story);
+  const family = getStorySourceFamily(story);
+  return family && family !== 'unknown'
+    ? family
+    : `unknown:${getTopStoryDedupeKey(story)}`;
+}
+
+function getSectionKey(story = {}) {
+  const section = String(story.section || story.sourceSection || '').trim().toLowerCase();
+  return section || `unknown:${getTopStoryDedupeKey(story)}`;
 }
 
 function getGeoKey(story = {}) {
-  return String(
-    story.region ||
-    story.geo ||
-    story.section ||
-    story.sourceSection ||
-    'unknown',
-  ).toLowerCase();
+  const target = String(story?._topStoryRank?.locationRelevanceTarget || '').toLowerCase();
+  if (target === 'local' || target === 'world') return target;
+
+  const section = String(story.section || story.sourceSection || '').trim().toLowerCase();
+  return section || `generic:${getTopStoryDedupeKey(story)}`;
 }
 
 function markSlot(story, slotBand) {
@@ -38,7 +44,7 @@ function countMatches(chosen, predicate) {
   );
 }
 
-function getSelectionBlockReason(item, chosen, policy) {
+function getSelectionBlockReason(item, chosen, policy, displayDepth = 0) {
   const key = getTopStoryDedupeKey(item);
   if (chosen.some(existing => getTopStoryDedupeKey(existing) === key)) {
     return 'duplicate_identity';
@@ -48,33 +54,54 @@ function getSelectionBlockReason(item, chosen, policy) {
     chosen,
     existing => getSourceKey(existing) === getSourceKey(item),
   );
-  if (sourceCount >= policy.diversity.maxPerSource) {
-    return 'max_per_source';
-  }
-
   const sectionCount = countMatches(
     chosen,
-    existing => existing.section === item.section,
+    existing => getSectionKey(existing) === getSectionKey(item),
   );
-  if (sectionCount >= policy.diversity.maxPerSection) {
-    return 'max_per_section';
-  }
-
   const geoCount = countMatches(
     chosen,
     existing => getGeoKey(existing) === getGeoKey(item),
   );
+  const insideDisplayWindow = displayDepth > 0 && chosen.length < displayDepth;
+
+  if (
+    insideDisplayWindow &&
+    sourceCount >= Number(policy.diversity.displayMaxPerSource || policy.diversity.maxPerSource)
+  ) {
+    return 'display_max_per_source';
+  }
+  if (
+    insideDisplayWindow &&
+    sectionCount >= Number(policy.diversity.displayMaxPerSection || policy.diversity.maxPerSection)
+  ) {
+    return 'display_max_per_section';
+  }
+  if (
+    insideDisplayWindow &&
+    geoCount >= Number(policy.diversity.displayMaxPerGeo || policy.diversity.maxPerGeo)
+  ) {
+    return 'display_max_per_geo';
+  }
+
+  if (sourceCount >= policy.diversity.maxPerSource) {
+    return 'max_per_source';
+  }
+  if (sectionCount >= policy.diversity.maxPerSection) {
+    return 'max_per_section';
+  }
   if (geoCount >= policy.diversity.maxPerGeo) {
     return 'max_per_geo';
   }
 
   const clusterKey = item._topStoryRank?.clusterKey;
-  const clusterCount = countMatches(
-    chosen,
-    existing => existing._topStoryRank?.clusterKey === clusterKey,
-  );
-  if (clusterCount >= policy.diversity.maxPerCluster) {
-    return 'max_per_cluster';
+  if (clusterKey != null && String(clusterKey).trim()) {
+    const clusterCount = countMatches(
+      chosen,
+      existing => existing._topStoryRank?.clusterKey === clusterKey,
+    );
+    if (clusterCount >= policy.diversity.maxPerCluster) {
+      return 'max_per_cluster';
+    }
   }
 
   return null;
@@ -86,6 +113,41 @@ function getAttemptList(attempts, item) {
   return attempts.get(key);
 }
 
+function isDisplayOnlyBlock(reasonCode) {
+  return String(reasonCode || '').startsWith('display_');
+}
+
+function drainDeferredDisplay({
+  chosen,
+  deferredDisplay,
+  limit,
+  policy,
+  attempts,
+}) {
+  if (!Array.isArray(deferredDisplay) || deferredDisplay.length === 0) return;
+
+  const pending = deferredDisplay.splice(0, deferredDisplay.length);
+  for (const entry of pending) {
+    if (chosen.length >= limit) {
+      deferredDisplay.push(entry);
+      continue;
+    }
+
+    const reasonCode = getSelectionBlockReason(entry.item, chosen, policy, 0);
+    getAttemptList(attempts, entry.item).push({
+      pool: `${entry.poolName}:deferred`,
+      status: reasonCode ? 'blocked' : 'selected',
+      reasonCodes: reasonCode ? [reasonCode] : [],
+    });
+    if (reasonCode) continue;
+
+    chosen.push(markSlot(
+      entry.item,
+      entry.slotBand || entry.item._topStoryRank.slotBand,
+    ));
+  }
+}
+
 function fillSlots({
   chosen,
   pool,
@@ -94,20 +156,51 @@ function fillSlots({
   slotBand,
   attempts,
   poolName,
+  displayDepth,
+  deferredDisplay,
 }) {
+  if (chosen.length >= displayDepth) {
+    drainDeferredDisplay({
+      chosen,
+      deferredDisplay,
+      limit,
+      policy,
+      attempts,
+    });
+  }
+
   for (const item of pool) {
     if (chosen.length >= limit) break;
-    const reasonCode = getSelectionBlockReason(item, chosen, policy);
+    const reasonCode = getSelectionBlockReason(item, chosen, policy, displayDepth);
     getAttemptList(attempts, item).push({
       pool: poolName,
       status: reasonCode ? 'blocked' : 'selected',
       reasonCodes: reasonCode ? [reasonCode] : [],
     });
-    if (reasonCode) continue;
+    if (reasonCode) {
+      if (isDisplayOnlyBlock(reasonCode)) {
+        const itemKey = getTopStoryDedupeKey(item);
+        if (!deferredDisplay.some(entry => getTopStoryDedupeKey(entry.item) === itemKey)) {
+          deferredDisplay.push({ item, slotBand, poolName });
+        }
+      }
+      continue;
+    }
+
     chosen.push(markSlot(
       item,
       slotBand || item._topStoryRank.slotBand,
     ));
+
+    if (chosen.length >= displayDepth) {
+      drainDeferredDisplay({
+        chosen,
+        deferredDisplay,
+        limit,
+        policy,
+        attempts,
+      });
+    }
   }
 }
 
@@ -115,6 +208,37 @@ function normalizeDisplayDepth(options = {}) {
   const value = Number(options.displayDepth ?? 10);
   if (!Number.isFinite(value)) return 10;
   return Math.max(0, Math.floor(value));
+}
+
+export function projectTopStoryDisplayDiversity(items = [], options = {}) {
+  const policy = options.policy;
+  if (!policy) throw new TypeError('projectTopStoryDisplayDiversity requires policy');
+
+  const displayDepth = normalizeDisplayDepth(options);
+  const ordered = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (displayDepth === 0) return ordered;
+
+  const displayed = [];
+  for (const item of ordered) {
+    if (displayed.length >= displayDepth) break;
+    const reasonCode = getSelectionBlockReason(
+      item,
+      displayed,
+      policy,
+      displayDepth,
+    );
+    if (!reasonCode) displayed.push(item);
+  }
+
+  // If the visible rail cannot meet its diversity contract, fail soft by
+  // under-filling rather than pushing blocked rows back into the first N.
+  if (displayed.length < displayDepth) return displayed;
+
+  const displayedKeys = new Set(displayed.map(getTopStoryDedupeKey));
+  return [
+    ...displayed,
+    ...ordered.filter(item => !displayedKeys.has(getTopStoryDedupeKey(item))),
+  ];
 }
 
 export function selectTopStorySlotsWithTrace(
@@ -129,6 +253,7 @@ export function selectTopStorySlotsWithTrace(
   const displayDepth = normalizeDisplayDepth(options);
   const chosen = [];
   const attempts = new Map();
+  const deferredDisplay = [];
   const primary = ranked.filter(
     item => item._topStoryRank.slotBand === 'primary',
   );
@@ -147,6 +272,8 @@ export function selectTopStorySlotsWithTrace(
     slotBand: 'primary',
     attempts,
     poolName: 'primary',
+    displayDepth,
+    deferredDisplay,
   });
   fillSlots({
     chosen,
@@ -155,6 +282,8 @@ export function selectTopStorySlotsWithTrace(
     policy,
     attempts,
     poolName: 'current',
+    displayDepth,
+    deferredDisplay,
   });
   fillSlots({
     chosen,
@@ -164,7 +293,19 @@ export function selectTopStorySlotsWithTrace(
     slotBand: 'fallback',
     attempts,
     poolName: 'fallback',
+    displayDepth,
+    deferredDisplay,
   });
+
+  if (chosen.length >= displayDepth) {
+    drainDeferredDisplay({
+      chosen,
+      deferredDisplay,
+      limit,
+      policy,
+      attempts,
+    });
+  }
 
   const selected = chosen.slice(0, limit);
   return {

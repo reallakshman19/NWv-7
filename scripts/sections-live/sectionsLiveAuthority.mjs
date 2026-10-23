@@ -126,6 +126,21 @@ function parseTimestamp(value) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+export function getSectionAcquisitionGeography(sectionKey) {
+  switch (String(sectionKey || '').trim()) {
+    case 'muscat':
+      return { acquisitionRegion: 'oman', acquisitionCountryCode: 'om' };
+    case 'india':
+    case 'tn':
+    case 'trichy':
+      return { acquisitionRegion: 'india', acquisitionCountryCode: 'in' };
+    case 'world':
+      return { acquisitionRegion: 'world', acquisitionCountryCode: null };
+    default:
+      return { acquisitionRegion: null, acquisitionCountryCode: null };
+  }
+}
+
 function isSuppressed(title, summary) {
   const haystack = `${title} ${summary}`;
   return SUPPRESS_PATTERNS.some(pattern => pattern.test(haystack));
@@ -215,12 +230,14 @@ export function parseLiveFeedText(xmlText, lane, nowMs, options = {}) {
       summary,
       source: lane.sourceName,
       sourceGroup: lane.sourceGroup,
+      sourceTier: lane.tier,
+      sourceTopic: lane.topic,
       url,
       publishedAt,
       publishedAtSource: 'feed_timestamp',
       timestampConfidence: 'high',
       category: lane.sectionKey,
-      region: lane.sectionKey === 'muscat' ? 'om' : 'in',
+      ...getSectionAcquisitionGeography(lane.sectionKey),
       language: 'en',
       feedPosition: index + 1,
       feedLength: blocks.length,

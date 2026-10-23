@@ -21,8 +21,10 @@ import {
 import { digestValue, sha256Text } from './crypto';
 import { putImmutableD1EvidenceObject } from './evidenceStore';
 import { buildShadowLaneDefinitions, sectionsRegistryAuthority } from './registry';
+import { SECTIONS_SHADOW_EXECUTABLE_VERSIONS } from '../../../scripts/top-stories-shadow/sectionsShadowAuthorityVersions.mjs';
 
 interface BenchmarkFixture {
+  rankerVersion: string;
   capturedAt: string;
   nowMs: number;
   inputSource: string;
@@ -59,6 +61,14 @@ function buildFrozenEpoch(): Record<string, unknown> {
   }, { expectedRegistryAuthority: sectionsRegistryAuthority }) as Record<string, unknown>;
 }
 
+function assertBenchmarkVersion(): void {
+  if (fixture.rankerVersion !== SECTIONS_SHADOW_EXECUTABLE_VERSIONS.rankerVersion) {
+    throw new Error(
+      `Frozen benchmark ranker version ${fixture.rankerVersion} does not match executable ${SECTIONS_SHADOW_EXECUTABLE_VERSIONS.rankerVersion}`,
+    );
+  }
+}
+
 function assertBenchmarkExpectation(evidence: FrozenDecisionEvidence): void {
   const expectedDigest = fixture.expected?.decisionOutputDigest;
   if (expectedDigest && evidence.decisionOutputDigest !== expectedDigest) {
@@ -69,6 +79,7 @@ function assertBenchmarkExpectation(evidence: FrozenDecisionEvidence): void {
 }
 
 export async function evaluateBundledFrozenReplay(): Promise<FrozenDecisionEvidence> {
+  assertBenchmarkVersion();
   const evidence = evaluateFrozenSectionsEpoch(buildFrozenEpoch(), {
     expectedRegistryAuthority: sectionsRegistryAuthority,
   }) as FrozenDecisionEvidence;

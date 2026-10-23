@@ -161,6 +161,7 @@
     "test:main-migration": "vitest run --config vitest.config.js src/viewModels/useMainTabViewModel.cert.test.js src/pages/MainPage.release6A.cert.test.jsx",
     "test:editorial:source-dominance": "vitest run --config vitest.config.js src/intelligence/sourceDominancePolicy.cert.test.js",
     "test:editorial:stale-story": "vitest run --config vitest.config.js src/intelligence/staleStoryPolicy.cert.test.js",
+    "test:top-stories-ranking-integrity": "vitest run --config vitest.config.js src/data/datasets/sectionsDataset.rankingPool.cert.test.js src/services/topStories/topStoriesRanker.cert.test.js src/services/topStories/topStoriesEvidenceAdmission.cert.test.js src/services/topStories/topStoriesEvaluator.cert.test.js src/services/topStories/topStoriesSectionsSourceRegistry.cert.test.js src/services/topStories/topStoriesLocationSignals.cert.test.js src/services/topStories/topStoriesSectionsShadowAuthority.cert.test.js src/viewModels/useMainTabViewModel.cert.test.js",
     "test:editorial": "vitest run --config vitest.config.js src/intelligence/sourceDominancePolicy.cert.test.js src/intelligence/staleStoryPolicy.cert.test.js",
     "benchmark:editorial": "node scripts/benchmark_editorial_policies.mjs",
     "test:certify:smoke": "node scripts/run_certification_gate.mjs --profile smoke",

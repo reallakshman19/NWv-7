@@ -6,6 +6,7 @@ import {
   getLocationRelevanceSignal,
 } from './topStoriesLocationSignals.js';
 import {
+  getSourceFamily,
   getStorySourceFamilies,
   getStorySourceFamily,
   isAggregatorSourceFamily,
@@ -128,11 +129,39 @@ export function getClusterKey(story = {}) {
   return textValue(story.title || story.headline).replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-export function getSourceQualityScore(story = {}) {
-  const family = getStorySourceFamily(story);
+function getSourceFamilyQuality(family) {
   if (TOP_TIER_SOURCE_FAMILIES.has(family)) return 1;
   if (STANDARD_SOURCE_FAMILIES.has(family)) return 0.72;
   return 0.48;
+}
+
+export function getSourceQualityScore(story = {}) {
+  const tier = textValue(story.sourceTier || story.tier).toUpperCase();
+  const tierScore = tier === 'A'
+    ? 1
+    : tier === 'B'
+      ? 0.72
+      : tier === 'C'
+        ? 0.55
+        : 0;
+
+  const familyScores = getStorySourceFamilies(story)
+    .map(getSourceFamilyQuality);
+  const familyScore = familyScores.length ? Math.max(...familyScores) : 0.48;
+
+  if (tierScore > 0) {
+    // The registry tier belongs to the selected/acquisition publisher row.
+    // A distinct publisher preserved in cluster evidence can still supply
+    // stronger independent quality (e.g. Reuters behind a Google News lane).
+    const acquisitionFamily = getSourceFamily(story.sourceGroup || story.source);
+    const independentFamilyScores = getStorySourceFamilies(story)
+      .filter(family => family !== acquisitionFamily)
+      .map(getSourceFamilyQuality);
+    return Math.max(tierScore, ...independentFamilyScores);
+  }
+
+  // Legacy rows without registry provenance keep the original family fallback.
+  return familyScore;
 }
 
 export function getFreshnessScore(ageHours, policy) {

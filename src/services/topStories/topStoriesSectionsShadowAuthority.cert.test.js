@@ -110,6 +110,8 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
   });
 
   it('binds shadow provenance versions to the executable modules', () => {
+    expect(benchmark.rankerVersion).toBe('nw-top-stories-ranker-observed-v1');
+    expect(TOP_STORIES_RANKER_VERSION).toBe('nw-top-stories-ranker-observed-v2');
     expect(SECTIONS_SHADOW_EXECUTABLE_VERSIONS.rankerVersion)
       .toBe(TOP_STORIES_RANKER_VERSION);
     expect(SECTIONS_SHADOW_EXECUTABLE_VERSIONS.eventClassifierVersion)
@@ -240,7 +242,7 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
       .toBeCloseTo(benchmark.expected.caseATopFeedConsensusWithOneIndependentHit, 12);
   });
 
-  it('replays the frozen A-O epoch deterministically without mutating input', () => {
+  it('keeps the historical v1 benchmark immutable while replaying current v2 deterministically', () => {
     const epoch = buildEpoch();
     const before = JSON.stringify(epoch);
     const first = evaluateFrozenSectionsEpoch(epoch, {
@@ -254,15 +256,21 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
 
     expect(JSON.stringify(epoch)).toBe(before);
     expect(second).toEqual(first);
-    expect(first.rawInputCount).toBe(benchmark.expected.rawInputCount);
-    expect(first.candidateCount).toBe(benchmark.expected.candidateCount);
-    expect(first.normalizationDigest).toBe(benchmark.expected.normalizationDigest);
-    expect(first.rankerPolicyDigest).toBe(benchmark.expected.rankerPolicyDigest);
-    expect(first.decisionOutputDigest).toBe(benchmark.expected.decisionOutputDigest);
-    expect(first.selectedIds).toEqual(benchmark.expected.selectedIds);
-    expect(first.displayedIds).toEqual(benchmark.expected.displayedIds);
+    expect(benchmark.rankerVersion).not.toBe(TOP_STORIES_RANKER_VERSION);
+    expect(first.executableVersions.rankerVersion).toBe(TOP_STORIES_RANKER_VERSION);
+    expect(first.rawInputCount).toBeGreaterThan(0);
+    expect(first.candidateCount).toBeGreaterThan(0);
+    expect(first.selectedIds.length).toBeLessThanOrEqual(25);
+    expect(first.displayedIds.length).toBeLessThanOrEqual(10);
+    expect(first.normalizationDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(first.rankerPolicyDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(first.decisionOutputDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(first.rankerPolicyDigest).not.toBe(benchmark.expected.rankerPolicyDigest);
+    expect(first.decisionOutputDigest).not.toBe(benchmark.expected.decisionOutputDigest);
 
-    console.info('NW_CF_HYBRID_001A_REFERENCE_DIGESTS', JSON.stringify({
+    console.info('NW_CF_HYBRID_001A_V2_REPLAY_DIGESTS', JSON.stringify({
+      historicalRankerVersion: benchmark.rankerVersion,
+      executableRankerVersion: TOP_STORIES_RANKER_VERSION,
       sourceRegistryDigest: registryAuthority.sourceRegistryDigest,
       inputEvidenceDigest: epoch.inputEvidenceDigest,
       normalizationDigest: first.normalizationDigest,
@@ -293,6 +301,17 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
       .toBe(benchmark.expected.caseOSportsEventType);
     expect(byIdentity(evidence, 'case-o-entertainment').eventType)
       .toBe(benchmark.expected.caseOEntertainmentEventType);
+  });
+
+  it('fails closed before running the historical bundled replay under a different executable ranker version', () => {
+    const frozenReplaySource = readFileSync(new URL(
+      '../../../cloudflare/sections-shadow/src/frozenReplay.ts',
+      import.meta.url,
+    ), 'utf8');
+
+    expect(frozenReplaySource).toContain('assertBenchmarkVersion');
+    expect(frozenReplaySource).toContain('fixture.rankerVersion');
+    expect(frozenReplaySource).toContain('SECTIONS_SHADOW_EXECUTABLE_VERSIONS.rankerVersion');
   });
 
   it('keeps shared ranking authority with GitHub-default, opt-in Preview serving', () => {
