@@ -31,12 +31,12 @@ describe('Cloudflare queue failure diagnostic privacy and accuracy', () => {
       epochId: 'live-1792742400000',
       logicalSlot: 1792742400000,
       evaluationNowMs: 1792742400000,
-      laneId: 'world_bbc_1',
+      laneId: 'world:01:012345abcdef',
     }, new ShadowCustodyError('LANE_RETRY_CONFLICT', 'raw provider data'), 2))
       .toMatchObject({
         code: 'LANE_RETRY_CONFLICT',
         messageType: 'ACQUIRE_LIVE_LANE',
-        laneId: 'world_bbc_1',
+        laneId: 'world:01:012345abcdef',
         deliveryAttempt: 2,
         exceptionType: 'OTHER_ERROR',
       });
