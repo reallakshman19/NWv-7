@@ -278,6 +278,20 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Recheck frozen source immediately before Pages publication
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.source_sha }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          latest_sha="$(git ls-remote "https://github.com/$TARGET_REPOSITORY.git" refs/heads/main | cut -f1)"
+          if [[ ! "$latest_sha" =~ ^[0-9a-f]{40}$ ]] || \
+             [ "$latest_sha" != "$EXPECTED_SHA" ]; then
+            echo "Deployment blocked: checked Pages artifact source=$EXPECTED_SHA current main=$latest_sha" >&2
+            exit 1
+          fi
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

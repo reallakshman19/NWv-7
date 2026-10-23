@@ -102,6 +102,16 @@ describe('prepublication World committed-epoch negative challenges', () => {
     expect(mapPreflightAssetUrl(PAGES + '%2f%2fevil.example/', PAGES, PREVIEW)).toBeNull();
   });
 
+  it('rechecks the exact frozen SHA in the deploy job before publication', () => {
+    const yaml = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
+    const late = yaml.indexOf('Recheck frozen source immediately before Pages publication');
+    const deploy = yaml.indexOf('actions/deploy-pages@v4');
+    expect(late).toBeGreaterThan(0);
+    expect(late).toBeLessThan(deploy);
+    expect(yaml).toContain('EXPECTED_SHA: ${{ needs.build.outputs.source_sha }}');
+    expect(yaml.slice(late, deploy)).toContain('git ls-remote');
+  });
+
   it('requires real-source preflight and a second current-main check before Pages upload', () => {
     const yaml = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
     const pre = yaml.indexOf('Check built Pages World health before publication');
