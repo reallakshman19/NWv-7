@@ -13,9 +13,17 @@ const KNOWN_ERROR_NAMES = new Set([
   'SyntaxError', 'DOMException', 'AbortError', 'TimeoutError',
 ]);
 
-function safeIdentifier(value: unknown): string | null {
+function safeEpochId(value: unknown): string | null {
   if (typeof value !== 'string') return null;
-  return /^[a-zA-Z0-9_-]{1,96}$/.test(value) ? value : null;
+  // Match only the two issued epoch forms, never arbitrary queue-supplied text.
+  return /^(?:live-[0-9]{10,16}|frozen-(?:[0-9]{10,16}|[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{1,4}))$/.test(value)
+    ? value : null;
+}
+
+function safeLaneId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  // buildLiveLaneDefinitions: section:index:12hex digest, no feed URL.
+  return /^[a-z][A-Za-z0-9]{1,30}:[0-9]{2}:[a-f0-9]{12}$/.test(value) ? value : null;
 }
 
 function exceptionType(error: unknown): string {
@@ -39,11 +47,11 @@ export function queueFailureFields(
   const code = error instanceof ShadowCustodyError &&
     /^[A-Z][A-Z0-9_]{1,63}$/.test(error.code)
     ? error.code : 'UNEXPECTED_FAILURE';
-  const laneId = 'laneId' in (body || {}) ? safeIdentifier((body as { laneId?: unknown })?.laneId) : null;
+  const laneId = 'laneId' in (body || {}) ? safeLaneId((body as { laneId?: unknown })?.laneId) : null;
   return {
     code,
     messageType,
-    epochId: safeIdentifier(body?.epochId) ?? 'UNRECOGNIZED',
+    epochId: safeEpochId(body?.epochId) ?? 'UNRECOGNIZED',
     logicalSlot: typeof body?.logicalSlot === 'number' &&
       Number.isSafeInteger(body.logicalSlot) && body.logicalSlot >= 0
       ? body.logicalSlot : null,
