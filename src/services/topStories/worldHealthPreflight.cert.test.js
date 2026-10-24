@@ -165,3 +165,61 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
     expect(rehearsal).toContain('publishingEnabled');
   });
 });
+
+
+describe('epoch-bound source falsifier — negative must reject static fallback', () => {
+  const epoch = 'live-' + Date.parse('2026-10-24T04:00:00.000Z');
+  const check = '2026-10-24T04:15:00.000Z';
+  const headlines = ['World fixture one', 'World fixture two'];
+  const report = {
+    badgeStatus: 'ok', sectionId: 'world',
+    storyCount: 10, sourceGroupCount: 4, topSourcesText: 'Four publishers',
+    visibleWorldHeadlines: headlines,
+    selectedSourceEvents: [{
+      requested: 'cloudflare_preview', effective: 'cloudflare_preview', fallback: false,
+    }],
+  };
+  const validBody = {
+    schemaVersion: 2,
+    sections: { world: headlines.map((title, i) => ({
+      title, sourceGroup: i ? 'groupB' : 'groupA',
+    })) },
+    preview: { dataSource: 'cloudflare_d1', mode: 'cloudflare_preview',
+      epochId: epoch, evidenceVerified: true, decisionOutputDigest: 'digest-of-commit' },
+    sectionQuality: { world: { storyCount: 2, sourceGroupCount: 2 } },
+  };
+  const response = {
+    url: 'https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest',
+    responseStatus: 200, epochId: epoch, body: validBody,
+  };
+  const evaluate = (world, worker) => evaluatePrepublicationWorldHealth(world, [worker], check).ok;
+
+  it('RED on old evaluator: fresh HTTP 200 with empty World while UI shows ten static stories', () => {
+    expect(evaluate({ ...report, selectedSourceEvents: [{
+      requested: 'cloudflare_preview', effective: 'github_static', fallback: true,
+    }] }, { ...response, body: { ...validBody, sections: { world: [] },
+      sectionQuality: { world: { storyCount: 0, sourceGroupCount: 0 } } } })).toBe(false);
+  });
+  it('rejects header and body epoch mismatch', () => {
+    expect(evaluate(report, { ...response, body: { ...validBody, preview: {
+      ...validBody.preview, epochId: 'live-' + Date.parse('2026-10-24T03:00:00.000Z'),
+    } } })).toBe(false);
+  });
+  it('rejects healthy static World alongside an unrelated good Worker response', () => {
+    expect(evaluate({ ...report, selectedSourceEvents: [{
+      requested: 'cloudflare_preview', effective: 'github_static', fallback: true,
+    }] }, response)).toBe(false);
+  });
+  it('rejects a Worker story set that does not contain displayed World headlines', () => {
+    expect(evaluate(report, { ...response, body: { ...validBody, sections: {
+      world: [{ title: 'Unrelated item', sourceGroup: 'other' }],
+    }, sectionQuality: { world: { storyCount: 1, sourceGroupCount: 1 } } } })).toBe(false);
+  });
+  it('preserves failure on stale HTTP 200 or critical World UI', () => {
+    expect(evaluate(report, { ...response, epochId: 'live-' + Date.parse('2026-10-23T00:00:00.000Z') })).toBe(false);
+    expect(evaluate({ ...report, badgeStatus: 'critical' }, response)).toBe(false);
+  });
+  it('accepts fresh verified committed Cloudflare World that UI actually selected', () => {
+    expect(evaluate(report, response)).toBe(true);
+  });
+});
