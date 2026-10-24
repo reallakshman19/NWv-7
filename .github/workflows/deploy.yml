@@ -3,10 +3,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [ main, master ]
-    paths-ignore:
-      - 'scripts/.last_content_hash'
+  # Do not publish a code push until its CI Validation Gate completes successfully.
+  # Manual workflow_dispatch is an explicitly operator-triggered recovery path.
   workflow_dispatch:
   # Data-refresh workflows commit as github-actions[bot] via GITHUB_TOKEN, and
   # GITHUB_TOKEN pushes do NOT raise `push` events (GitHub's recursion guard) —
@@ -15,6 +13,7 @@ on:
   # upstream run was triggered, so this is what actually keeps Pages fresh.
   workflow_run:
     workflows:
+      - "CI Validation Gate"
       - "News Prefetch"
       - "Market Refresh"
       - "Weather Refresh"
@@ -38,11 +37,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     outputs:
       source_sha: ${{ steps.checkout.outputs.source_sha }}
-    # For workflow_run, only publish when the upstream data run succeeded; push /
-    # manual dispatch always build.
+    # Publish only after a successful upstream CI or data run; manual dispatch
+    # remains an explicit operator action (tracked by deployment provenance).
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Resolve deployment checkout authority
@@ -53,6 +52,11 @@ jobs:
           EVENT_SHA: ${{ github.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           UPSTREAM_HEAD_SHA: ${{ github.event.workflow_run.head_sha || '' }}
+          UPSTREAM_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || '' }}
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
+          UPSTREAM_WORKFLOW_NAME: ${{ github.event.workflow_run.name || '' }}
+          UPSTREAM_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name || '' }}
+          CURRENT_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           event_sha="${EVENT_SHA,,}"
@@ -67,18 +71,34 @@ jobs:
                 echo "Repository default branch is unavailable" >&2
                 exit 1
               fi
-              checkout_ref="$DEFAULT_BRANCH"
-              expected_source_sha=""
-              source_resolution_mode="workflow-run-default-branch-checkout"
-              ;;
-            push)
-              if [[ ! "$event_sha" =~ ^[0-9a-f]{40}$ ]]; then
-                echo "Invalid push event SHA" >&2
+              if [ "$UPSTREAM_HEAD_BRANCH" != "$DEFAULT_BRANCH" ] || \
+                 [ "$UPSTREAM_REPOSITORY" != "$CURRENT_REPOSITORY" ]; then
+                echo "Refusing release from non-main or external workflow" >&2
                 exit 1
               fi
-              checkout_ref="$event_sha"
-              expected_source_sha="$event_sha"
-              source_resolution_mode="push-event-sha"
+              if [ "$UPSTREAM_CONCLUSION" != "success" ]; then
+                echo "Refusing release from unsuccessful upstream workflow" >&2
+                exit 1
+              fi
+              case "$UPSTREAM_WORKFLOW_NAME" in
+                "CI Validation Gate")
+                  # A CI-approved release must build exactly the tested source.
+                  checkout_ref="$upstream_head_sha"
+                  expected_source_sha="$upstream_head_sha"
+                  source_resolution_mode="workflow-run-ci-verified-sha"
+                  ;;
+                "News Prefetch"|"Market Refresh"|"Weather Refresh"|"UpAhead Refresh"|"Daily News Brief"|"Breaking Refresh"|"Travel local news prefetch")
+                  # Refresh producers can commit new snapshot data during the run.
+                  # Retain latest-main semantics, but certify that checkout below.
+                  checkout_ref="$DEFAULT_BRANCH"
+                  expected_source_sha=""
+                  source_resolution_mode="workflow-run-default-branch-checkout"
+                  ;;
+                *)
+                  echo "Unrecognized upstream release workflow" >&2
+                  exit 1
+                  ;;
+              esac
               ;;
             workflow_dispatch)
               if [[ ! "$event_sha" =~ ^[0-9a-f]{40}$ ]]; then
@@ -95,6 +115,7 @@ jobs:
               ;;
           esac
           echo "checkout_ref=$checkout_ref" >> "$GITHUB_OUTPUT"
+          echo "default_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
           echo "expected_source_sha=$expected_source_sha" >> "$GITHUB_OUTPUT"
           echo "source_resolution_mode=$source_resolution_mode" >> "$GITHUB_OUTPUT"
 
@@ -117,7 +138,7 @@ jobs:
             echo "Invalid checked-out source SHA" >&2
             exit 1
           fi
-          if [ "$TRIGGER_EVENT" != "workflow_run" ] && \
+          if [ -n "$EXPECTED_SOURCE_SHA" ] && \
              [ "$checked_out_sha" != "$EXPECTED_SOURCE_SHA" ]; then
             echo "Checkout mismatch: expected $EXPECTED_SOURCE_SHA, observed $checked_out_sha" >&2
             exit 1
@@ -139,6 +160,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Certify data-refresh or operator checkout before publishing
+        if: ${{ steps.source.outputs.source_resolution_mode != 'workflow-run-ci-verified-sha' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run test:certify:smoke
+
       - name: Build
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
@@ -147,6 +175,74 @@ jobs:
           VITE_SECTIONS_AUTHORITY_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
           VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
         run: npm run build
+
+      - name: Reject superseded CI release source
+        if: ${{ steps.source.outputs.source_resolution_mode == 'workflow-run-ci-verified-sha' }}
+        env:
+          DEFAULT_BRANCH: ${{ steps.source.outputs.default_branch }}
+          APPROVED_SHA: ${{ steps.checkout.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_main_sha="$(git ls-remote origin "refs/heads/$DEFAULT_BRANCH" | cut -f1)"
+          if [[ ! "$current_main_sha" =~ ^[0-9a-f]{40}$ ]] || \
+             [ "$current_main_sha" != "$APPROVED_SHA" ]; then
+            echo "CI-approved SHA is no longer the current main: verified=$APPROVED_SHA current=$current_main_sha" >&2
+            exit 1
+          fi
+
+      - name: Install Chromium for prepublication World health
+        run: npx playwright install --with-deps chromium
+
+      - name: Check built Pages World health before publication
+        shell: bash
+        env:
+          DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/
+          PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/
+          SMOKE_ARTIFACT_DIR: artifacts/world-health-prepublish
+          PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/vite preview --host 127.0.0.1 --port 4173 --strictPort > /tmp/nwv-pages-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ -o /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then
+            cat /tmp/nwv-pages-preview.log
+            echo 'Built Pages preview server did not become ready' >&2
+            exit 1
+          fi
+          node scripts/verify_world_health_deployment.mjs
+
+      - name: Upload prepublication World health evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-health-prepublish-${{ github.run_id }}
+          path: artifacts/world-health-prepublish
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Reject superseded source before publication for every release trigger
+        env:
+          DEFAULT_BRANCH: ${{ steps.source.outputs.default_branch }}
+          FROZEN_SOURCE_SHA: ${{ steps.checkout.outputs.source_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_main_sha="$(git ls-remote origin "refs/heads/$DEFAULT_BRANCH" | cut -f1)"
+          if [[ ! "$current_main_sha" =~ ^[0-9a-f]{40}$ ]] || \
+             [ "$current_main_sha" != "$FROZEN_SOURCE_SHA" ]; then
+            echo "Release source is no longer current main: source=$FROZEN_SOURCE_SHA main=$current_main_sha" >&2
+            exit 1
+          fi
 
       - name: Write pages data manifest
         env:
@@ -182,6 +278,20 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Recheck frozen source immediately before Pages publication
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.source_sha }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          latest_sha="$(git ls-remote "https://github.com/$TARGET_REPOSITORY.git" refs/heads/main | cut -f1)"
+          if [[ ! "$latest_sha" =~ ^[0-9a-f]{40}$ ]] || \
+             [ "$latest_sha" != "$EXPECTED_SHA" ]; then
+            echo "Deployment blocked: checked Pages artifact source=$EXPECTED_SHA current main=$latest_sha" >&2
+            exit 1
+          fi
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
