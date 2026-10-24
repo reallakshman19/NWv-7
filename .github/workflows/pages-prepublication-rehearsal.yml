@@ -92,6 +92,7 @@ jobs:
             cat artifacts/world-health-prepublish/preview-server.log
             exit 1
           fi
+          node scripts/verify_world_epoch_negative_browser.mjs 2>&1 | tee artifacts/world-health-prepublish/negative-browser-output.log
           node scripts/verify_world_health_deployment.mjs 2>&1 | tee artifacts/world-health-prepublish/browser-output.log
 
       - name: Upload diagnostic report and screenshot on any outcome
