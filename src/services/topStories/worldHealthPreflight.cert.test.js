@@ -61,10 +61,22 @@ describe('prepublication World committed-epoch negative challenges', () => {
   const healthy = {
     badgeStatus: 'ok', sectionId: 'world',
     storyCount: 30, sourceGroupCount: 2, topSourcesText: 'Two observed publishers',
+    visibleWorldHeadlines: ['Fixture A'],
+    selectedSourceEvents: [{ requested: 'cloudflare_preview',
+      effective: 'cloudflare_preview', fallback: false }],
   };
   const response = {
     url: 'https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest',
     responseStatus: 200, epochId: 'live-' + Date.parse('2026-10-23T08:00:00.000Z'),
+    body: {
+      schemaVersion: 2,
+      preview: { dataSource: 'cloudflare_d1', mode: 'cloudflare_preview',
+        evidenceVerified: true, decisionOutputDigest: 'fixture-digest',
+        epochId: 'live-' + Date.parse('2026-10-23T08:00:00.000Z') },
+      sections: { world: [{ title: 'Fixture A', sourceGroup: 'group-A' },
+        { title: 'Fixture B', sourceGroup: 'group-B' }] },
+      sectionQuality: { world: { storyCount: 2, sourceGroupCount: 2 } },
+    },
   };
 
   it('accepts only a healthy badge and fresh observed committed Cloudflare epoch', () => {

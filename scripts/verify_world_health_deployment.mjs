@@ -74,6 +74,12 @@ const CLOUDFLARE_WORLD_PREVIEW_PATH = '/preview/sections/latest';
  * Prepublication qualification; deliberately stricter than the post-deploy
  * diagnostic verifier. A local/static fixture is not live qualification.
  */
+function normalizeWorldHeadline(value) {
+  return String(value || '').replace(/<[^>]*>/g, '').replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"').replace(/&#39;/gi, "'")
+    .replace(/\s+/g, ' ').trim().toLocaleLowerCase('en-US');
+}
+
 export function evaluatePrepublicationWorldHealth(report, observed, checkedAt = Date.now()) {
   const errors = [];
   if (report?.badgeStatus !== 'ok') errors.push('world_badge_not_ok');
@@ -100,10 +106,61 @@ export function evaluatePrepublicationWorldHealth(report, observed, checkedAt = 
              ageMs < -MAX_WORLD_EPOCH_FUTURE_MS) {
     errors.push('world_committed_epoch_stale_or_future');
   }
+
+  // The *same* response that emitted the epoch header must contain eligible
+  // committed World data, not just a 200 header unrelated to the rendered UI.
+  const body = latest?.body;
+  const preview = body?.preview;
+  const workerWorld = body?.sections?.world;
+  const workerQuality = body?.sectionQuality?.world;
+  const validBody = body?.schemaVersion === 2 &&
+    preview?.dataSource === 'cloudflare_d1' &&
+    preview?.mode === 'cloudflare_preview' &&
+    preview?.evidenceVerified === true &&
+    Boolean(preview?.decisionOutputDigest) &&
+    preview?.epochId === latest?.epochId;
+  if (!validBody) errors.push('world_committed_preview_body_unverified_or_epoch_mismatch');
+  const sourceGroups = new Set(
+    Array.isArray(workerWorld) ? workerWorld.map(item => item?.sourceGroup).filter(Boolean) : [],
+  );
+  if (!Array.isArray(workerWorld) || workerWorld.length === 0 ||
+      sourceGroups.size < 2 || workerQuality?.storyCount !== workerWorld.length ||
+      workerQuality?.sourceGroupCount !== sourceGroups.size) {
+    errors.push('world_committed_preview_content_unusable');
+  }
+
+  // Capture the loader's *actual* runtime selection event in Chromium before
+  // navigation. The app may display GitHub fallback; this release gate may not.
+  // Also require every rendered card headline to be present in the same Worker
+  // payload to guard against an unrelated source event or detached fetch.
+  const events = Array.isArray(report?.selectedSourceEvents) ? report.selectedSourceEvents : [];
+  const lastSelection = events.at(-1);
+  if (!lastSelection || lastSelection.requested !== 'cloudflare_preview' ||
+      lastSelection.effective !== 'cloudflare_preview' || lastSelection.fallback ||
+      events.some(event => event?.effective === 'github_static' || event?.fallback)) {
+    errors.push('world_rendered_source_not_cloudflare');
+  }
+  const visible = report?.visibleWorldHeadlines;
+  const workerHeadlines = new Set(
+    Array.isArray(workerWorld)
+      ? workerWorld.map(item => normalizeWorldHeadline(item?.title || item?.headline)).filter(Boolean)
+      : [],
+  );
+  if (!Array.isArray(visible) || visible.length === 0 ||
+      visible.some(title => !workerHeadlines.has(normalizeWorldHeadline(title)))) {
+    errors.push('world_rendered_headlines_not_in_committed_preview');
+  }
   return {
     ok: errors.length === 0, errors, epochId: latest?.epochId || null,
     authorityUrl: latest?.url || null, responseStatus: latest?.responseStatus ?? null,
     epochAgeMs: Number.isFinite(ageMs) ? ageMs : null,
+    bodyEpochId: preview?.epochId || null,
+    committedEvidenceVerified: preview?.evidenceVerified === true,
+    workerWorldStoryCount: Array.isArray(workerWorld) ? workerWorld.length : null,
+    workerWorldSourceGroups: sourceGroups.size,
+    selectedSource: lastSelection?.effective || null,
+    selectedFallback: lastSelection?.fallback ?? null,
+    visibleWorldCardCount: Array.isArray(visible) ? visible.length : 0,
   };
 }
 
@@ -158,6 +215,7 @@ async function main() {
     pageErrors: [],
     error: null,
     worldAuthority: null,
+    worldProvenance: null,
   };
 
   await fs.mkdir(artifactDir, { recursive: true });
@@ -186,6 +244,19 @@ async function main() {
       });
       report.assetPreflightOrigin = previewOrigin;
     }
+    // A source event is emitted by the actual snapshot loader, not inferred
+    // from an unrelated Worker response. Capture before any page scripts run.
+    await context.addInitScript(() => {
+      window.__nwPreflightSourceEvents = [];
+      window.addEventListener('nw:sections-data-source-status', event => {
+        const detail = event.detail || {};
+        window.__nwPreflightSourceEvents.push({
+          requested: detail.requested || null,
+          effective: detail.effective || null,
+          fallback: Boolean(detail.fallback),
+        });
+      });
+    });
     const page = await context.newPage();
     const observedWorldResponses = [];
     page.on('response', response => {
@@ -293,12 +364,23 @@ async function main() {
     }
 
     if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD === 'true') {
+      const sourceWitness = await page.evaluate(() => ({
+        selectedSourceEvents: window.__nwPreflightSourceEvents || [],
+        visibleWorldHeadlines: [...document.querySelectorAll(
+          '#world-news article.modern-news-card .mnc-headline',
+        )].map(node => node.textContent?.trim()).filter(Boolean),
+      }));
+      report.worldProvenance = {
+        selectedSourceEvents: sourceWitness.selectedSourceEvents,
+        visibleWorldCardCount: sourceWitness.visibleWorldHeadlines.length,
+      };
       const observed = await Promise.all(observedWorldResponses.map(async response => ({
         url: response.url(),
         responseStatus: response.status(),
         epochId: await response.headerValue('x-nw-epoch-id'),
+        body: await response.json().catch(() => null),
       })));
-      const prepublication = evaluatePrepublicationWorldHealth(report, observed, actualCheckedAt);
+      const prepublication = evaluatePrepublicationWorldHealth({ ...report, ...sourceWitness }, observed, actualCheckedAt);
       report.worldAuthority = prepublication;
       if (!prepublication.ok) {
         throw new Error('Prepublication World health refused: ' + prepublication.errors.join(', '));
