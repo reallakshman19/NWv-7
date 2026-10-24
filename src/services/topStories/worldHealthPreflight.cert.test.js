@@ -235,3 +235,16 @@ describe('epoch-bound source falsifier — negative must reject static fallback'
     expect(evaluate(report, response)).toBe(true);
   });
 });
+
+
+describe('nonpublishing browser negative ordering', () => {
+  it('runs synthetic fallback falsifier before separate unmocked live World preflight', () => {
+    const yaml = fs.readFileSync('.github/workflows/pages-prepublication-rehearsal.yml', 'utf8');
+    const synthetic = yaml.indexOf('node scripts/verify_world_epoch_negative_browser.mjs');
+    const live = yaml.indexOf('node scripts/verify_world_health_deployment.mjs');
+    expect(synthetic).toBeGreaterThan(0);
+    expect(live).toBeGreaterThan(synthetic);
+    expect(yaml).toContain('PREFLIGHT_REQUIRE_FRESH_WORLD:');
+    expect(yaml).not.toContain('actions/deploy-pages@');
+  });
+});
