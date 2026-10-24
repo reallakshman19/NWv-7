@@ -133,6 +133,9 @@ export function evaluatePrepublicationWorldHealth(report, observed, checkedAt = 
   // navigation. The app may display GitHub fallback; this release gate may not.
   // Also require every rendered card headline to be present in the same Worker
   // payload to guard against an unrelated source event or detached fetch.
+  if (Array.isArray(workerWorld) && Number(report?.storyCount) > workerWorld.length) {
+    errors.push('world_rendered_count_exceeds_committed_preview');
+  }
   const events = Array.isArray(report?.selectedSourceEvents) ? report.selectedSourceEvents : [];
   const lastSelection = events.at(-1);
   if (!lastSelection || lastSelection.requested !== 'cloudflare_preview' ||

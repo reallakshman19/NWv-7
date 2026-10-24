@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { execFileSync } from 'node:child_process';
 import {
   evaluatePrepublicationWorldHealth,
   mapPreflightAssetUrl,
@@ -136,7 +137,7 @@ try {
   process.exitCode = 1;
 } finally {
   await fs.writeFile(path.join(outDir, 'negative-browser.json'),
-    JSON.stringify({ synthetic: true, candidateSha: process.env.GITHUB_SHA || null,
+    JSON.stringify({ synthetic: true, candidateSha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
       observedAt: new Date().toISOString(), results }, null, 2) + '\n');
   await browser.close();
   console.log(JSON.stringify({ synthetic: true, results }, null, 2));

@@ -60,7 +60,7 @@ describe('prepublication World committed-epoch negative challenges', () => {
   const checkedAt = '2026-10-23T08:30:00.000Z';
   const healthy = {
     badgeStatus: 'ok', sectionId: 'world',
-    storyCount: 30, sourceGroupCount: 2, topSourcesText: 'Two observed publishers',
+    storyCount: 2, sourceGroupCount: 2, topSourcesText: 'Two observed publishers',
     visibleWorldHeadlines: ['Fixture A'],
     selectedSourceEvents: [{ requested: 'cloudflare_preview',
       effective: 'cloudflare_preview', fallback: false }],
@@ -226,6 +226,10 @@ describe('epoch-bound source falsifier — negative must reject static fallback'
     expect(evaluate(report, { ...response, body: { ...validBody, sections: {
       world: [{ title: 'Unrelated item', sourceGroup: 'other' }],
     }, sectionQuality: { world: { storyCount: 1, sourceGroupCount: 1 } } } })).toBe(false);
+  });
+
+  it('rejects a rendered World count larger than the committed World dataset', () => {
+    expect(evaluate({ ...report, storyCount: 11 }, response)).toBe(false);
   });
   it('preserves failure on stale HTTP 200 or critical World UI', () => {
     expect(evaluate(report, { ...response, epochId: 'live-' + Date.parse('2026-10-23T00:00:00.000Z') })).toBe(false);
