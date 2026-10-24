@@ -236,7 +236,8 @@ describe('epoch-bound source falsifier — negative must reject static fallback'
     expect(evaluate({ ...report, badgeStatus: 'critical' }, response)).toBe(false);
   });
   it('accepts fresh verified committed Cloudflare World that UI actually selected', () => {
-    expect(evaluate(report, response)).toBe(true);
+    // The synthetic Worker contains two World stories, not ten fallback cards.
+    expect(evaluate({ ...report, storyCount: 2, sourceGroupCount: 2 }, response)).toBe(true);
   });
 });
 
