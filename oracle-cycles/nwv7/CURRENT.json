@@ -1,0 +1,138 @@
+{
+  "schema": "oracle-cycle-current/v1",
+  "project": "nwv7",
+  "mode": "standalone",
+  "activation": "ACTIVE",
+  "revision": 1,
+  "last_accepted_receipt_ids": [],
+  "aim": "Make NWv-7 GitHub Pages releases safer by gating publication on verified CI, immutable source provenance, genuinely healthy World content from the actually selected and fresh committed Cloudflare epoch, independent consequential checks and explicit Owner release acceptance; preserve normal GitHub fallback for users.",
+  "aim_source": "OWNER_CHAT_REF:2026-10-25T02:03:04Z; https://github.com/reallakshman19/NWv-7/issues/138",
+  "privacy": "PUBLIC_SAFE_METADATA_ONLY",
+  "roles": {
+    "oracle": {
+      "label": "Oracle",
+      "chat_id8": "6ad58790",
+      "provenance": "OWNER_REPORTED",
+      "responsibility": "Reconcile actual evidence, maintain source-bound next actions, avoid merges/deployments without authorization"
+    },
+    "coder": {
+      "label": "Existing PR #142 contributor",
+      "chat_id8": "6adb6af9",
+      "provenance": "OWNER_REPORTED",
+      "responsibility": "Completed bounded source-to-epoch repair; no repeat dispatch on the returned task"
+    },
+    "reviewer": {
+      "label": "Independent Reviewer chat (role only)",
+      "chat_id8": "6adc1e32",
+      "provenance": "OWNER_REPORTED_NOT_AUTHENTICATED",
+      "responsibility": "Independently examine the exact repaired PR and falsify source/epoch binding; does not imply an independent GitHub approver"
+    },
+    "owner": {
+      "label": "Owner",
+      "chat_id8": null,
+      "provenance": "OWNER_SELF",
+      "responsibility": "Approve Cycle activation PR and decide later on branch protection, consequential release and final acceptance"
+    }
+  },
+  "source_boundary": {
+    "repository": "reallakshman19/NWv-7",
+    "main_sha_at_proposal": "b50812749870ca0fddda7e87c00d450e0e96b46e",
+    "current_pr_url": "https://github.com/reallakshman19/NWv-7/pull/142",
+    "current_pr_head": "701179e15c7efcaa83ca32af0d7395fd8efcb47f",
+    "current_pr_status": "DRAFT_OPEN_UNMERGED",
+    "pr_audit": "https://github.com/reallakshman19/NWv-7/issues/138",
+    "repaired_source_to_epoch_binding": "CONTRIBUTOR_SELF_ASSESSED_TEST_PASS",
+    "synthetic_browser_scope": "MOCKED_PASS_NOT_LIVE_QUALIFICATION",
+    "live_world_scope": "FAILED_TO_HYDRATE_WITHIN_90_SECONDS; NO_VALID_EPOCH_QUALIFICATION",
+    "unmodified_user_fallback": "Normal browser GitHub fallback must remain intact",
+    "release_authority": "OWNER_CONTROLLED; NOT_GRANTED_BY_CYCLE_ACTIVATION",
+    "merge_deploy": "HOLD",
+    "connected_github_account": "reallakshman19",
+    "independent_approval_identity": "UNKNOWN; author account may not count as non-author reviewer"
+  },
+  "receipt_issue_url": "https://github.com/reallakshman19/NWv-7/issues/146",
+  "assignments": [
+    {
+      "id": "NWV7-IR142-R2-01",
+      "generation": 1,
+      "recipient_role": "reviewer",
+      "recipient_chat_id8": "6adc1e32",
+      "dispatch": "READY_NOT_SENT_AFTER_ACTIVATION; REVIEWER_CAPABILITY_AND_INDEPENDENCE_NOT_VERIFIED",
+      "scope": "Bounded code/evidence review of repaired PR #142 at exact SHA, reproduce stale-header/empty-Worker with static fallback negative and same-epoch positive, independently check failure provenance and browser hydration vs runtime/Cloudflare source; report what passes, fails or is NOT_RUN. No release approval while unmocked Chromium fails.",
+      "candidate": "PR #142 @ 701179e15c7efcaa83ca32af0d7395fd8efcb47f",
+      "private_artifact_ref": null,
+      "required_return": "ORACLE-CYCLE-RECEIPT v1 with source SHA, review method, actual negative cases and reported GitHub evidence, precise LIVE_BROWSER_FAIL vs synthetic PASS distinction, unresolved cause, identity/exposure and next safe action",
+      "next_after": "oracle",
+      "accepted_input_status": "CODER_RETURNED_GITHUB_SOURCE_AND_LOGS_VERIFIED; reviewer original separate principal UNVERIFIED",
+      "target_issue_url": "https://github.com/reallakshman19/NWv-7/issues/146"
+    }
+  ],
+  "next": {
+    "recipient_role": "reviewer",
+    "recipient_chat_id8": "6adc1e32",
+    "status": "READY_FOR_OWNER_TRIGGER_ONLY_AFTER_PUBLISHED_ACTIVE_STATE_AND_REVIEWER_ACCESS_CHECK",
+    "instruction": "After activation is merged and verified on main, Owner sends Cycle now with canonical workspace URL to the registered reviewer chat; reviewer first checks current revision/candidate, credentials and distinct-principal limits. If identity or GitHub access does not support an independent review, return BLOCKED/NO ACTION and do not self-approve.",
+    "owner_trigger": "Cycle now: https://github.com/reallakshman19/NWv-7/tree/main/oracle-cycles/nwv7"
+  },
+  "gates": [
+    {
+      "id": "exact-head-ci",
+      "status": "PASS_OBSERVED",
+      "scope": "Code CI including lint, unit, PR evidence validation and Vite build for PR #142 SHA 701179e15c7efcaa83ca32af0d7395fd8efcb47f",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/actions/runs/40063498206",
+      "limits": "Passing code CI does not imply genuine World hydration, fresh Cloudflare source or safe publication"
+    },
+    {
+      "id": "synthetic-source-epoch",
+      "status": "PASS_CONTRIBUTOR_SELF_ASSESSED",
+      "scope": "Synthetic old-versus-new evaluator and injected Pages-origin browser cases: empty Worker/static fallback rejected, matching committed source accepted",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/pull/142#issuecomment-6379998739",
+      "limits": "Test cases mock the Worker/static data; original standalone script bytes not independently hash-verified; not live-source acceptance"
+    },
+    {
+      "id": "unmocked-pages-chromium",
+      "status": "FAIL_OBSERVED",
+      "scope": "Nonpublishing exact-head Chromium with unmocked World authority: positive World story hydration timed out after 90 seconds, before badge/epoch qualification",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/actions/runs/40063498226",
+      "limits": "Observed failure not proven to originate in release code vs unavailable/stale source; report artifact #12548865132 worldAuthority=null"
+    },
+    {
+      "id": "independent-review",
+      "status": "NOT_RUN",
+      "scope": "Distinct authorized principal independently reviews PR #142 exact candidate, runtime source-to-epoch binding and workflow event/provenance gates",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/pull/142#issuecomment-6384157422",
+      "limits": "Review assignment instructions only; zero submitted GitHub review approvals; reviewer chat suffix is no proof of GitHub identity"
+    },
+    {
+      "id": "branch-protection",
+      "status": "BLOCKED",
+      "scope": "Main requires non-author approval and reliable exact-head CI before release",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/issues/138",
+      "limits": "Main protected=false, rulesets=[] at proposal check; enabling rules is a separate Owner administrator action"
+    },
+    {
+      "id": "continuous-cloudflare-producer",
+      "status": "UNKNOWN",
+      "scope": "Cloudflare Queue/D1 fresh committed epoch continuity and source liveness beyond sampled historic successes",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/issues/143",
+      "limits": "Previous successful single epoch cannot prove latest successful World snapshots; no production mutation authorized"
+    },
+    {
+      "id": "production-pages-release",
+      "status": "NOT_RUN",
+      "scope": "Pages publish of PR #142, source provenance check, postpublish World health and Owner acceptance",
+      "evidence_ref": null,
+      "limits": "PR #142 is DRAFT/UNMERGED; no release or production modification authorized by Cycle setup"
+    }
+  ],
+  "progress_projection": {
+    "repository": "reallakshman19/progress-page",
+    "project_key": null,
+    "publication_status": "PROGRESS_UPDATE_PENDING",
+    "published_revision": null,
+    "reason": "Project key and corresponding existing Progress Page aim/fixtures have not been confirmed. Cycle state proposal does not create a Progress project or synchronize page data."
+  },
+  "activation_basis": "OWNER_CHAT_REF:2026-10-25T02:03:04Z",
+  "activation_scope": "Proposed on a GitHub PR, activation=ACTIVE only when exact CURRENT.json bytes are merged into repository main with issue #146. This authorizes a manual read-only reviewer receipt cycle after role/capability verification, NOT GitHub approvals, merge, deployment, Clock/D1/Queue changes or Owner release acceptance.",
+  "activation_preconditions": "Owner reviews and merges this dedicated proposal PR, verifies main CURRENT.json revision 1 and receipt issue #146; reviewer must verify own identity and GitHub/source access before acting; never infer independence from chat suffix."
+}
