@@ -1,0 +1,157 @@
+name: Sections Snapshot Recovery
+
+# A safe GitHub fallback producer. This is deliberately NOT named "News Prefetch":
+# the existing Pages deploy.yml treats that name as an automatic release trigger.
+# A data-only GITHUB_TOKEN commit must not publish Pages or bypass release gates.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/sections_snapshot_recovery.yml'
+      - 'scripts/fetch_sections_stories.py'
+      - 'scripts/validate_sections_prefetch_output.py'
+      - 'scripts/check_sections_recovery_gate.py'
+      - 'scripts/test_check_sections_recovery_gate.py'
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sections-snapshot-recovery-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    name: Verify publisher fail-closed negatives
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exercise fresh, stale and wrong-source counterexamples
+        run: python -m unittest discover -s scripts -p 'test_check_sections_recovery_gate.py' -v
+
+  probe:
+    name: Sample real RSS and qualify Sections (PR only; no write)
+    needs: certify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install collector dependencies
+        run: python -m pip install --disable-pip-version-check requests feedparser
+      - name: Collect publisher-dated RSS for read-only qualification
+        run: python scripts/fetch_sections_stories.py
+      - name: Fail if source is structurally wrong, stale, empty or single-source World
+        run: |
+          python scripts/validate_sections_prefetch_output.py
+          python scripts/check_sections_recovery_gate.py public/newsdata/sections_latest.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - name: Install app dependencies
+        run: npm ci
+      - name: Build the unshipped candidate with freshly collected GitHub fallback
+        env:
+          VITE_SECTIONS_AUTHORITY: github
+        run: npm run build
+      - name: Install Chromium for local nonpublishing fallback check
+        run: npx playwright install --with-deps chromium
+      - name: Check that actual generated World cards hydrate in local browser
+        shell: bash
+        env:
+          DEPLOYED_BASE_URL: http://127.0.0.1:4173/
+          SMOKE_ARTIFACT_DIR: artifacts/sections-recovery-browser
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/sections-recovery-browser
+          ./node_modules/.bin/vite preview --host 127.0.0.1 --port 4173 --strictPort > artifacts/sections-recovery-browser/preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ -o /dev/null; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then echo 'Local candidate preview failed readiness' >&2; exit 1; fi
+          node scripts/verify_world_health_deployment.mjs
+      - name: Preserve collector output for independent inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sections-recovery-probe-${{ github.run_id }}
+          path: |
+            public/newsdata/sections_latest.json
+            public/newsdata/sections_quality_report.json
+            public/newsdata/sections_quality_summary.md
+            public/newsdata/source_health.json
+            public/newsdata/section_source_policy_report.json
+            artifacts/sections-recovery-browser/
+          if-no-files-found: warn
+          retention-days: 7
+
+  refresh:
+    name: Acquire real Sections and update GitHub fallback (no Pages release)
+    needs: certify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout exact main head
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install collector requirements
+        run: python -m pip install --disable-pip-version-check requests feedparser
+      - name: Collect publisher-dated RSS, with no invented publication times
+        run: python scripts/fetch_sections_stories.py
+      - name: Validate structure, then enforce real World freshness
+        run: |
+          python scripts/validate_sections_prefetch_output.py
+          python scripts/check_sections_recovery_gate.py public/newsdata/sections_latest.json
+      - name: Preserve byte-identical GitHub / docs fallback snapshots
+        run: |
+          mkdir -p docs/newsdata
+          cp public/newsdata/sections_latest.json docs/newsdata/sections_latest.json
+          cmp public/newsdata/sections_latest.json docs/newsdata/sections_latest.json
+      - name: Commit only qualified fallback data
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            public/newsdata/sections_latest.json \
+            docs/newsdata/sections_latest.json \
+            public/newsdata/sections_quality_report.json \
+            public/newsdata/sections_quality_summary.md \
+            public/newsdata/source_health.json \
+            public/newsdata/section_source_policy_report.json
+          if git diff --cached --quiet; then
+            echo "No qualifying snapshot changes to publish."
+            exit 0
+          fi
+          git commit -m "data(news): refresh verified Sections fallback [skip ci]"
+          # Fail safely if main moved; never overwrite unrelated commits.
+          git push origin HEAD:main
+          echo "Updated source files only. Pages deployment remains separately gated."
