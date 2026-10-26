@@ -38,6 +38,41 @@ jobs:
       - name: Exercise fresh, stale and wrong-source counterexamples
         run: python -m unittest discover -s scripts -p 'test_check_sections_recovery_gate.py' -v
 
+  probe:
+    name: Sample real RSS and qualify Sections (PR only; no write)
+    needs: certify
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install collector dependencies
+        run: python -m pip install --disable-pip-version-check requests feedparser
+      - name: Collect publisher-dated RSS for read-only qualification
+        run: python scripts/fetch_sections_stories.py
+      - name: Fail if source is structurally wrong, stale, empty or single-source World
+        run: |
+          python scripts/validate_sections_prefetch_output.py
+          python scripts/check_sections_recovery_gate.py public/newsdata/sections_latest.json
+      - name: Preserve collector output for independent inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sections-recovery-probe-${{ github.run_id }}
+          path: |
+            public/newsdata/sections_latest.json
+            public/newsdata/sections_quality_report.json
+            public/newsdata/sections_quality_summary.md
+            public/newsdata/source_health.json
+            public/newsdata/section_source_policy_report.json
+          if-no-files-found: warn
+          retention-days: 7
+
   refresh:
     name: Acquire real Sections and update GitHub fallback (no Pages release)
     needs: certify
