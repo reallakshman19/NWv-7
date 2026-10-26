@@ -3,7 +3,7 @@
   "project": "nwv7",
   "mode": "standalone",
   "activation": "ACTIVE",
-  "revision": 1,
+  "revision": 2,
   "last_accepted_receipt_ids": [],
   "aim": "Make NWv-7 GitHub Pages releases safer by gating publication on verified CI, immutable source provenance, genuinely healthy World content from the actually selected and fresh committed Cloudflare epoch, independent consequential checks and explicit Owner release acceptance; preserve normal GitHub fallback for users.",
   "aim_source": "OWNER_CHAT_REF:2026-10-25T02:03:04Z; https://github.com/reallakshman19/NWv-7/issues/138",
@@ -48,7 +48,12 @@
     "release_authority": "OWNER_CONTROLLED; NOT_GRANTED_BY_CYCLE_ACTIVATION",
     "merge_deploy": "HOLD",
     "connected_github_account": "reallakshman19",
-    "independent_approval_identity": "UNKNOWN; author account may not count as non-author reviewer"
+    "independent_approval_identity": "UNKNOWN; author account may not count as non-author reviewer",
+    "main_sha_at_rev2_proposal": "a34eae68a76edad06958d87d934213fe33d91278",
+    "pr142_behind_main_at_rev2_proposal": 1,
+    "reviewer_technical_receipt": "https://github.com/reallakshman19/NWv-7/issues/146#issuecomment-6393401955",
+    "reviewer_receipt_status": "OBSERVED_SIGNED_GITHUB_COMMENT; role chat_id8 UNVERIFIED; author principal cannot qualify as independent review",
+    "underlying_world_source_cause": "UNKNOWN; unmocked Pages-origin World failed to hydrate in Oct 24 CI, no recheck establishing live recovery"
   },
   "receipt_issue_url": "https://github.com/reallakshman19/NWv-7/issues/146",
   "assignments": [
@@ -57,21 +62,35 @@
       "generation": 1,
       "recipient_role": "reviewer",
       "recipient_chat_id8": "6adc1e32",
-      "dispatch": "READY_NOT_SENT_AFTER_ACTIVATION; REVIEWER_CAPABILITY_AND_INDEPENDENCE_NOT_VERIFIED",
+      "dispatch": "REVIEW_RETURN_REPORTED_UNVERIFIED_PRINCIPAL; receipt observed, not independently accepted or qualifying",
       "scope": "Bounded code/evidence review of repaired PR #142 at exact SHA, reproduce stale-header/empty-Worker with static fallback negative and same-epoch positive, independently check failure provenance and browser hydration vs runtime/Cloudflare source; report what passes, fails or is NOT_RUN. No release approval while unmocked Chromium fails.",
       "candidate": "PR #142 @ 701179e15c7efcaa83ca32af0d7395fd8efcb47f",
       "private_artifact_ref": null,
       "required_return": "ORACLE-CYCLE-RECEIPT v1 with source SHA, review method, actual negative cases and reported GitHub evidence, precise LIVE_BROWSER_FAIL vs synthetic PASS distinction, unresolved cause, identity/exposure and next safe action",
       "next_after": "oracle",
-      "accepted_input_status": "CODER_RETURNED_GITHUB_SOURCE_AND_LOGS_VERIFIED; reviewer original separate principal UNVERIFIED",
+      "accepted_input_status": "TECHNICAL_REPORT_READ_AND_SOURCE_CROSSCHECKED; reviewer identity/authentication NOT VERIFIED",
+      "target_issue_url": "https://github.com/reallakshman19/NWv-7/issues/146"
+    },
+    {
+      "id": "NWV7-CODE142-R3-01",
+      "generation": 1,
+      "recipient_role": "coder",
+      "recipient_chat_id8": "6adb6af9",
+      "dispatch": "READY_NOT_SENT; requires current-state read and Owner one-line trigger after revision 2 is actually merged",
+      "scope": "Bounded repair on existing DRAFT PR #142: challenge and close source-to-epoch story-identity gaps surfaced by receipt 6393401955. Preflight should verify displayed World article identity with stable URL/id plus headline, including multiplicity/duplicate-headline and cropped/hidden card edge cases, and actual consumed source/epoch; preserve ranking/collapse and normal user-facing fallback. Add synthetic negative/positive browser and evaluator controls; add scripts/verify_world_epoch_negative_browser.mjs to the rehearsal paths filter. Independently diagnose Oct 24 genuine unmocked World hydration failure (stale GitHub fallback + possibly unhealthy Cloudflare); distinguish data-source outage versus code defect, keep fail-closed. Update branch for canonical main's metadata-only Cycle commit without unrelated changes. No release or Cloudflare mutation.",
+      "candidate": "PR #142 @ 701179e15c7efcaa83ca32af0d7395fd8efcb47f (current code head; main advanced by metadata-only commit)",
+      "private_artifact_ref": null,
+      "required_return": "ORACLE-CYCLE-RECEIPT v1 at issue #146 for the **new** PR head: exact SHA, changed files, prior wrong-case prediction and before/after outputs; injected Chromium cases with artifact, real unmocked Pages-origin Chromium report/screenshot and its actual PASS/FAIL; source epoch, selected authority and all limits; new exact-head lint/tests/build evidence. Preserve NOT_RUN; no merge/deploy.",
+      "next_after": "oracle",
+      "accepted_input_status": "SOURCE_VERIFIED_REQUIREMENT; technical reviewer comment self-reported and unverified as distinct principal; source Set-matching defect independently confirmed",
       "target_issue_url": "https://github.com/reallakshman19/NWv-7/issues/146"
     }
   ],
   "next": {
-    "recipient_role": "reviewer",
-    "recipient_chat_id8": "6adc1e32",
-    "status": "READY_FOR_OWNER_TRIGGER_ONLY_AFTER_PUBLISHED_ACTIVE_STATE_AND_REVIEWER_ACCESS_CHECK",
-    "instruction": "After activation is merged and verified on main, Owner sends Cycle now with canonical workspace URL to the registered reviewer chat; reviewer first checks current revision/candidate, credentials and distinct-principal limits. If identity or GitHub access does not support an independent review, return BLOCKED/NO ACTION and do not self-approve.",
+    "recipient_role": "coder",
+    "recipient_chat_id8": "6adb6af9",
+    "status": "PROPOSED_ONLY_UNTIL_REVISION_2_MERGED; READY_NOT_SENT",
+    "instruction": "Owner may prompt the existing coder with the canonical one-line Cycle URL ONLY AFTER this revision 2 proposal is merged and CURRENT.json rev2 verified on main. Coder must re-read exact current SHA and assignment, diagnose real World failures without bypass and return issue #146 receipt.",
     "owner_trigger": "Cycle now: https://github.com/reallakshman19/NWv-7/tree/main/oracle-cycles/nwv7"
   },
   "gates": [
@@ -94,14 +113,14 @@
       "status": "FAIL_OBSERVED",
       "scope": "Nonpublishing exact-head Chromium with unmocked World authority: positive World story hydration timed out after 90 seconds, before badge/epoch qualification",
       "evidence_ref": "https://github.com/reallakshman19/NWv-7/actions/runs/40063498226",
-      "limits": "Observed failure not proven to originate in release code vs unavailable/stale source; report artifact #12548865132 worldAuthority=null"
+      "limits": "Oct 24 hosted unmocked run 40063498226 observed 90s World hydration timeout and worldAuthority=null, screenshot reported World Critical/no news and Cloudflare fallback; root cause UNKNOWN, no subsequent authentic live pass. Release FAIL remains applicable."
     },
     {
       "id": "independent-review",
       "status": "NOT_RUN",
       "scope": "Distinct authorized principal independently reviews PR #142 exact candidate, runtime source-to-epoch binding and workflow event/provenance gates",
-      "evidence_ref": "https://github.com/reallakshman19/NWv-7/pull/142#issuecomment-6384157422",
-      "limits": "Review assignment instructions only; zero submitted GitHub review approvals; reviewer chat suffix is no proof of GitHub identity"
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/issues/146#issuecomment-6393401955",
+      "limits": "Technical reviewer receipt 6393401955 includes independently executed isolated V8 tests, but posted under PR-author GitHub principal and declares chat_id8 UNVERIFIED; it is NOT a distinct-principal GitHub review or approval. No qualifying review submission."
     },
     {
       "id": "branch-protection",
@@ -123,6 +142,13 @@
       "scope": "Pages publish of PR #142, source provenance check, postpublish World health and Owner acceptance",
       "evidence_ref": null,
       "limits": "PR #142 is DRAFT/UNMERGED; no release or production modification authorized by Cycle setup"
+    },
+    {
+      "id": "world-story-source-identity",
+      "status": "FAIL_SOURCE_INSPECTED",
+      "scope": "Prepublication release evaluator must reject wrong/missing/duplicate visible World story IDs/URLs and bind actual UI-consumed stories to the same verified Worker epoch, accounting for collapsed/ranked view vs loaded list",
+      "evidence_ref": "https://github.com/reallakshman19/NWv-7/issues/146#issuecomment-6393401955",
+      "limits": "Observed exact-source verifier at SHA 701179e1 only compares Set membership of normalized visible titles against Worker titles and storyCount <= Worker count. Technically reported V8 counterexamples (omitted story, unrelated IDs/URLs, repeated headline) are NOT real-browser incidents and reviewer identity unverified."
     }
   ],
   "progress_projection": {
@@ -130,7 +156,7 @@
     "project_key": null,
     "publication_status": "PROGRESS_UPDATE_PENDING",
     "published_revision": null,
-    "reason": "Project key and corresponding existing Progress Page aim/fixtures have not been confirmed. Cycle state proposal does not create a Progress project or synchronize page data."
+    "reason": "Current standalone Cycle rev2 is a branch proposal pending Owner-authorized merge. Project key on Progress Page unconfirmed and native pp_cli.py/published source readback NOT_RUN."
   },
   "activation_basis": "OWNER_CHAT_REF:2026-10-25T02:03:04Z",
   "activation_scope": "Proposed on a GitHub PR, activation=ACTIVE only when exact CURRENT.json bytes are merged into repository main with issue #146. This authorizes a manual read-only reviewer receipt cycle after role/capability verification, NOT GitHub approvals, merge, deployment, Clock/D1/Queue changes or Owner release acceptance.",
