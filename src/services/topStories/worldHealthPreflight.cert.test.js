@@ -56,7 +56,7 @@ describe('Pages-origin World health prepublication asset proxy', () => {
 });
 
 
-describe('prepublication World committed-epoch negative challenges', () => {
+describe('shadow-only World committed-epoch diagnostic (NOT S1 release gate)', () => {
   const checkedAt = '2026-10-23T08:30:00.000Z';
   const healthy = {
     badgeStatus: 'ok', sectionId: 'world',
@@ -129,7 +129,7 @@ describe('prepublication World committed-epoch negative challenges', () => {
     const pre = yaml.indexOf('Check built Pages World health before publication');
     const immutable = yaml.indexOf('Reject superseded source before publication for every release trigger');
     const upload = yaml.indexOf('actions/upload-pages-artifact@v3');
-    expect(yaml).toContain("PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'");
+    expect(yaml).toContain("PREFLIGHT_REQUIRE_S1_STATIC: 'true'");
     expect(yaml).toContain('Certify data-refresh or operator checkout before publishing');
     expect(yaml).not.toMatch(/^ {2}push:$/m);
     expect(pre).toBeGreaterThan(0);
@@ -158,7 +158,7 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
     expect(rehearsal).toContain('ref: ' + headExpression);
     expect(rehearsal).toContain('EXPECTED_HEAD_SHA: ' + headExpression);
     expect(rehearsal).toContain('git rev-parse HEAD');
-    expect(rehearsal).toContain('VITE_SECTIONS_AUTHORITY: cloudflare');
+    expect(rehearsal).toContain('VITE_SECTIONS_AUTHORITY: github');
     expect(rehearsal).toContain('VITE_SECTIONS_AUTHORITY_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest');
     expect(rehearsal).toContain('VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest');
     expect(rehearsal.indexOf('git rev-parse HEAD')).toBeLessThan(rehearsal.indexOf('run: npm run build'));
@@ -168,7 +168,7 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
     expect(rehearsal).toContain('npx playwright install --with-deps chromium');
     expect(rehearsal).toContain('DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/');
     expect(rehearsal).toContain('PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/');
-    expect(rehearsal).toContain("PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'");
+    expect(rehearsal).toContain("PREFLIGHT_REQUIRE_S1_STATIC: 'true'");
     expect(rehearsal).toContain('set -euo pipefail');
     expect(rehearsal).toContain('node scripts/verify_world_health_deployment.mjs 2>&1 | tee');
     expect(rehearsal).toMatch(/- name: Upload diagnostic report and screenshot on any outcome\n\s{8}if: always\(\)/);
@@ -179,7 +179,7 @@ describe('PR-only nonpublishing Chromium rehearsal contract', () => {
 });
 
 
-describe('epoch-bound source falsifier — negative must reject static fallback', () => {
+describe('shadow-only epoch negative checks — NOT S1 publication qualification', () => {
   const epoch = 'live-' + Date.parse('2026-10-24T04:00:00.000Z');
   const check = '2026-10-24T04:15:00.000Z';
   const headlines = ['World fixture one', 'World fixture two'];
