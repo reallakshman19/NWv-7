@@ -131,7 +131,7 @@ async function run(caseName, workerBody, expectAccepted) {
 }
 try {
   await run('static-fallback-empty-worker', brokenWorkerBody, false);
-  await run('same-epoch-committed-worker', committedBody, true);
+  await run('shadow-worker-alone-not-release-proof', committedBody, false);
 } catch (err) {
   results.push({ error: err.message });
   process.exitCode = 1;
