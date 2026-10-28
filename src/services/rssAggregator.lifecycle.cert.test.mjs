@@ -51,7 +51,7 @@ async function testCleanupOnFailure() {
   assert.equal(map.has('india'), false);
 }
 
-function testStaleFallbackKeepsRows() {
+function testStaleSnapshotFailsClosed() {
   const old = Date.now() - 72 * 60 * 60 * 1000;
   const snapshot = {
     schemaVersion: 2,
@@ -62,7 +62,9 @@ function testStaleFallbackKeepsRows() {
     sectionQuality: { india: { status: 'stale' } },
   };
   const result = selectPrefetchedSectionItems(snapshot, 'india', 5);
-  assert.equal(result.items.length, 1);
+  assert.equal(result.items.length, 0);
+  assert.equal(result.blockedBySnapshotStaleness, true);
+  assert.equal(result.staleFallback, false);
   assert.equal(result.stale, true);
   assert.equal(result.staleReason, 'sections_snapshot_stale');
 }
@@ -231,7 +233,7 @@ function testNoGeneratedSnapshotFilesChanged() {
 
 await testCleanupOnReturn();
 await testCleanupOnFailure();
-testStaleFallbackKeepsRows();
+testStaleSnapshotFailsClosed();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
