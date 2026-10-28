@@ -93,22 +93,12 @@ function isLowConfidenceTimestamp(item) {
   return itemTimestampMs(item) <= 0;
 }
 
-function isLiveLikeStory(item) {
-  const text = `${item?.title || item?.headline || ''} ${item?.summary || item?.description || ''}`;
-  return Boolean(
-    item?.isBreaking ||
-    Number(item?.breakingScore || 0) > 0 ||
-    /^live\b/i.test(text) ||
-    /\b(live\s+blog|live\s+updates?|live\s+coverage|developing|ongoing)\b/i.test(text) ||
-    String(item?.url || item?.link || '').includes('/live/')
-  );
-}
-
-function maxAgeForSection(sourceSection, item) {
-  if (sourceSection === 'topStories') {
-    return isLiveLikeStory(item) ? SECTION_ITEM_MAX_AGE_MS : TOP_STORIES_ITEM_MAX_AGE_MS;
-  }
-  return SECTION_ITEM_MAX_AGE_MS;
+// Live-looking headlines do not grant an item-age waiver. The ranker contract
+// admits at most 12h; event-specific exceptions need separate verified evidence.
+function maxAgeForSection(sourceSection) {
+  return sourceSection === 'topStories'
+    ? TOP_STORIES_ITEM_MAX_AGE_MS
+    : SECTION_ITEM_MAX_AGE_MS;
 }
 
 function isFreshSectionItem(item, sourceSection = '', now = Date.now()) {
@@ -117,7 +107,7 @@ function isFreshSectionItem(item, sourceSection = '', now = Date.now()) {
   // Missing/low-confidence and future publisher times are unqualified in EVERY section.
   if (isLowConfidenceTimestamp(item)) return false;
   const ageMs = now - publishedAt;
-  return ageMs >= 0 && ageMs <= maxAgeForSection(sourceSection, item);
+  return ageMs >= 0 && ageMs <= maxAgeForSection(sourceSection);
 }
 
 function recordSnapshotBudgetExit(section, error) {
