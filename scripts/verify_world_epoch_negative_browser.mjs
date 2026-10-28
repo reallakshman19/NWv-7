@@ -1,14 +1,12 @@
 // Synthetic, nonpublishing browser falsifier. This never mutates Cloudflare.
 // Run only against a locally built candidate, with browser URL under Pages origin.
 import fs from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { execFileSync } from 'node:child_process';
-import {
-  evaluatePrepublicationWorldHealth,
-  mapPreflightAssetUrl,
-  parseField,
-} from './verify_world_health_deployment.mjs';
+import { mapPreflightAssetUrl, parseField } from './verify_world_health_deployment.mjs';
+import { evaluateS1PrepublicationWorldHealth } from './evaluate_s1_prepublication.mjs';
 
 const PAGES = 'https://reallakshman19.github.io/NWv-7/';
 const LOCAL = 'http://127.0.0.1:4173/';
@@ -77,12 +75,15 @@ async function run(caseName, workerBody, expectAccepted) {
   const page = await context.newPage();
   const responses = [];
   page.on('response', r => {
-    if (r.url().split('?')[0] === WORKER) responses.push(r);
+    if (r.url().split('?')[0] === WORKER ||
+        r.url().split('?')[0] === PAGES + 'newsdata/sections_latest.json') {
+      responses.push(r);
+    }
   });
   const report = {
     badgeStatus: null, sectionId: 'world', storyCount: null,
     sourceGroupCount: null, topSourcesText: null,
-    visibleWorldHeadlines: [], selectedSourceEvents: [],
+    visibleWorldCards: [], selectedSourceEvents: [],
   };
   try {
     await page.goto(PAGES + '?synthetic-epoch-negative=' + caseName,
@@ -100,14 +101,22 @@ async function run(caseName, workerBody, expectAccepted) {
     report.storyCount = Number(parseField(txt, 'storyCount'));
     report.sourceGroupCount = Number(parseField(txt, 'sourceGroupCount'));
     report.topSourcesText = parseField(txt, 'topSources');
-    report.visibleWorldHeadlines = await page.locator('#world-news article.modern-news-card .mnc-headline').allTextContents();
+    report.visibleWorldCards = await page.locator('#world-news article.modern-news-card')
+      .evaluateAll(cards => cards.map(card => ({
+        id: card.getAttribute('data-story-id') || '',
+        url: card.getAttribute('data-story-url') || '',
+      })));
     report.selectedSourceEvents = await page.evaluate(() => window.__nwPreflightSourceEvents || []);
     const observed = await Promise.all(responses.map(async r => ({
       url: r.url(), responseStatus: r.status(),
-      epochId: await r.headerValue('x-nw-epoch-id'),
+      bytesSha256: createHash('sha256').update(await r.body()).digest('hex'),
       body: await r.json().catch(() => null),
     })));
-    const outcome = evaluatePrepublicationWorldHealth(report, observed, new Date().toISOString());
+    const frozenBytes = await fs.readFile('dist/newsdata/sections_latest.json');
+    const outcome = evaluateS1PrepublicationWorldHealth({
+      report, observed, checkedAt: new Date().toISOString(),
+      expectedByteSha256: createHash('sha256').update(frozenBytes).digest('hex'),
+    });
     results.push({
       caseName, synthetic: true, fixtureStoryCount: stories.length,
       expectedAcceptance: expectAccepted,
@@ -116,11 +125,11 @@ async function run(caseName, workerBody, expectAccepted) {
       sourceGroupCount: report.sourceGroupCount,
       selectedSources: report.selectedSourceEvents,
       epochId: outcome.epochId, workerStatus: outcome.responseStatus,
-      visibleCardCount: report.visibleWorldHeadlines.length,
+      visibleCardCount: report.visibleWorldCards.length,
     });
     if (outcome.ok !== expectAccepted || report.badgeStatus !== 'ok' ||
         report.storyCount <= 0 || report.sourceGroupCount <= 0 ||
-        report.visibleWorldHeadlines.length === 0) {
+        report.visibleWorldCards.length === 0) {
       throw new Error('Synthetic browser falsifier failed: ' + caseName);
     }
   } finally {
