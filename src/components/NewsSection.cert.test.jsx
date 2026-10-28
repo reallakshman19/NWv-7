@@ -80,6 +80,21 @@ describe('S1 browser-visible card provenance', () => {
       .toBe('https://publisher.example/world/123?edition=1');
   });
 
+  it('uses the same sourceUrl fallback as the real card click target', () => {
+    renderStory({
+      id: 'world-source-fallback-1',
+      title: 'Publisher story with sourceUrl only',
+      source: 'Example publisher',
+      sourceUrl: 'https://publisher.example/latest/one',
+      publishedAt: Date.now() - 60_000,
+    });
+    const card = screen.getByText('Publisher story with sourceUrl only')
+      .closest('article.modern-news-card');
+    expect(card.getAttribute('data-story-id')).toBe('world-source-fallback-1');
+    expect(card.getAttribute('data-story-url'))
+      .toBe('https://publisher.example/latest/one');
+  });
+
   it('does not fabricate a canonical URL or identity for a missing publisher field', () => {
     renderStory({
       title: 'Unidentified story',
