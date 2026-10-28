@@ -8,6 +8,11 @@ on:
       - '.github/workflows/pages-prepublication-rehearsal.yml'
       - 'scripts/pagesDeploymentProvenance.mjs'
       - 'scripts/verify_world_health_deployment.mjs'
+      - 'scripts/evaluate_s1_prepublication.mjs'
+      - 'scripts/verify_s1_preupload_seal.mjs'
+      - 'scripts/verify_world_epoch_negative_browser.mjs'
+      - 'src/components/NewsSection.jsx'
+      - 'src/adapters/sectionsSnapshotFetcher.js'
       - 'src/services/topStories/topStoriesPagesDeploymentProvenance.cert.test.js'
       - 'src/services/topStories/worldHealthPreflight.cert.test.js'
 
@@ -55,7 +60,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build with production Cloudflare authority
+      - name: Build with production GitHub/static S1 authority
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
@@ -94,6 +99,9 @@ jobs:
           fi
           node scripts/verify_world_epoch_negative_browser.mjs 2>&1 | tee artifacts/world-health-prepublish/negative-browser-output.log
           node scripts/verify_world_health_deployment.mjs 2>&1 | tee artifacts/world-health-prepublish/browser-output.log
+
+      - name: Challenge candidate preupload integrity seal
+        run: node scripts/verify_s1_preupload_seal.mjs
 
       - name: Upload diagnostic report and screenshot on any outcome
         if: always()
