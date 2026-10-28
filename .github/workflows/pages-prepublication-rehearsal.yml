@@ -59,7 +59,7 @@ jobs:
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_BACKEND_URL: ${{ vars.VITE_BACKEND_URL }}
-          VITE_SECTIONS_AUTHORITY: cloudflare
+          VITE_SECTIONS_AUTHORITY: github
           VITE_SECTIONS_AUTHORITY_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
           VITE_SECTIONS_CLOUDFLARE_PREVIEW_URL: https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest
         run: npm run build
@@ -72,7 +72,7 @@ jobs:
         env:
           DEPLOYED_BASE_URL: https://reallakshman19.github.io/NWv-7/
           PREFLIGHT_ASSET_ORIGIN: http://127.0.0.1:4173/
-          PREFLIGHT_REQUIRE_FRESH_WORLD: 'true'
+          PREFLIGHT_REQUIRE_S1_STATIC: 'true'
           SMOKE_ARTIFACT_DIR: artifacts/world-health-prepublish
         run: |
           set -euo pipefail
