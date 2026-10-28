@@ -71,18 +71,19 @@ export function evaluateS1PrepublicationWorldHealth({
 
   const matches = Array.isArray(observed) ? observed.filter(isStaticSnapshotResponse) : [];
   const selected = matches.at(-1);
-  if (!selected || selected.responseStatus !== 200 ||
-      matches.length === 0 || !selected.body ||
-      selected.body.schemaVersion !== 2) {
+  if (!selected || matches.length === 0 ||
+      matches.some(response => response.responseStatus !== 200 ||
+        !response.body || response.body.schemaVersion !== 2)) {
     errors.push('s1_static_snapshot_missing_or_invalid');
   }
 
-  // Bind exactly the bytes requested by Chromium to the locally frozen build
-  // file; a truncated producer contentHash does not prove byte integrity.
-  if (!SHA256_RE.test(String(expectedByteSha256 || '')) ||
-      !SHA256_RE.test(String(selected?.bytesSha256 || '')) ||
-      String(expectedByteSha256).toLowerCase() !==
-        String(selected?.bytesSha256 || '').toLowerCase()) {
+  // All observed same-name responses must match the frozen candidate, not
+  // merely the last response. Otherwise a later good refresh can conceal an
+  // earlier stale/forged response that the browser may already have consumed.
+  const expectedHash = String(expectedByteSha256 || '').toLowerCase();
+  if (!SHA256_RE.test(expectedHash) || matches.length === 0 ||
+      matches.some(response => !SHA256_RE.test(String(response.bytesSha256 || '')) ||
+        String(response.bytesSha256).toLowerCase() !== expectedHash)) {
     errors.push('selected_public_named_bytes_do_not_match_candidate');
   }
 
