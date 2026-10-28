@@ -249,7 +249,7 @@ describe('nonpublishing browser negative ordering', () => {
     const live = yaml.indexOf('node scripts/verify_world_health_deployment.mjs');
     expect(synthetic).toBeGreaterThan(0);
     expect(live).toBeGreaterThan(synthetic);
-    expect(yaml).toContain('PREFLIGHT_REQUIRE_FRESH_WORLD:');
+    expect(yaml).toContain('PREFLIGHT_REQUIRE_S1_STATIC:');
     expect(yaml).not.toContain('actions/deploy-pages@');
   });
 });
