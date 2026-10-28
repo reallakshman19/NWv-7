@@ -547,7 +547,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     });
 
     // Check cache first if enabled
-    if (!force && cacheEnabled && !liveMode) {
+    if (!force && cacheEnabled && !liveMode && !useAuthoritySnapshot) {
         const cached = memoryCache.get(cacheKey);
         if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
             const ageSeconds = Math.round((Date.now() - cached.timestamp) / 1000);
@@ -569,7 +569,12 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     if (inFlightFetches.has(cacheKey)) {
         console.log(`[RSS] ⏳ In-flight fetch already running for ${section} — waiting`);
         try {
-            await inFlightFetches.get(cacheKey);
+            const sharedResult = await inFlightFetches.get(cacheKey);
+            if (useAuthoritySnapshot) {
+                // Never resurrect a detached cached snapshot. Share only the
+                // result that passed the authority's current admission gate.
+                return Array.isArray(sharedResult) ? sharedResult : [];
+            }
         } catch {
             // ignore — we'll use the cache or return empty below
         }
