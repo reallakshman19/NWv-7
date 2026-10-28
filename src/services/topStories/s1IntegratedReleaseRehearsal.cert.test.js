@@ -41,7 +41,7 @@ describe('S1 static-primary integrated nonpublishing release rehearsal', () => {
     expect(artifact).toBeGreaterThan(browserStep);
     expect(publish).toBeGreaterThan(artifact);
     expect(deploy).toContain("PREFLIGHT_REQUIRE_S1_STATIC: 'true'");
-    expect(deploy).not.toMatch(/^  push:/m);
+    expect(deploy).not.toMatch(/^ {2}push:/m);
   });
 
   it('keeps PR Chromium rehearsal entirely nonpublishing', () => {
