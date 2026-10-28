@@ -59,6 +59,13 @@ describe('S1 static-primary Pages candidate source-to-DOM prepublication contrac
       .toContain('selected_public_named_bytes_do_not_match_candidate');
   });
 
+  it('denies missing or malformed candidate SHA-256 even when static HTTP is healthy', () => {
+    expect(check(REPORT, [RESPONSE], { expectedByteSha256: null }).errors)
+      .toContain('selected_public_named_bytes_do_not_match_candidate');
+    expect(check(REPORT, [RESPONSE], { expectedByteSha256: 'short-hash' }).errors)
+      .toContain('selected_public_named_bytes_do_not_match_candidate');
+  });
+
   it('denies stale or future-dated acquisition timestamps', () => {
     for (const timestamp of [CHECKED - 13 * 60 * 60_000, CHECKED + 60_000, 0]) {
       expect(check(REPORT, [{ ...RESPONSE, body: {
