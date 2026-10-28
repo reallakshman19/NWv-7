@@ -191,7 +191,12 @@ async function waitForConcreteBadge(page) {
 
 async function main() {
   const actualCheckedAt = new Date().toISOString();
-  const verificationClock = resolveWorldHealthVerificationClock(actualCheckedAt);
+  // S1 release admission must use the runner's real UTC observation instant.
+  // The old UI demo/non-urgent 06:30/19:30 clock clamp can create future items
+  // or make a stale snapshot appear eligible; never use it for qualification.
+  const verificationClock = process.env.PREFLIGHT_REQUIRE_S1_STATIC === 'true'
+    ? new Date(actualCheckedAt)
+    : resolveWorldHealthVerificationClock(actualCheckedAt);
   const baseUrl = String(process.env.DEPLOYED_BASE_URL || '').trim();
   const artifactDir = path.resolve(
     process.env.SMOKE_ARTIFACT_DIR || DEFAULT_ARTIFACT_DIR,
