@@ -261,6 +261,10 @@ jobs:
           PAGES_UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
         run: node scripts/write_pages_data_manifest.mjs
 
+      - name: Recheck browser-qualified S1 bytes after manifest and before Pages artifact
+        shell: bash
+        run: node scripts/verify_s1_preupload_seal.mjs
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
