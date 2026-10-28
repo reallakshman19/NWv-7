@@ -141,7 +141,9 @@ function testNoLifecycleFetcherReferencesRemain() {
 function testForegroundSnapshotBudgetIsBounded() {
   assert.equal(SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS, 1500);
   assert.ok(SECTION_SNAPSHOT_RETRY_BACKOFF_MS.reduce((sum, ms) => sum + ms, 0) < SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS);
-  const src = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  // The loader owns the actual network budget and AbortController; the
+  // fetcher adapter only consumes and exposes the budget diagnostics.
+  const src = readRepoFile('src/adapters/sectionsSnapshotLoader.js');
   assert.match(src, /budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS/);
   assert.match(src, /AbortController/);
   assert.match(src, /snapshot-budget-exceeded/);
