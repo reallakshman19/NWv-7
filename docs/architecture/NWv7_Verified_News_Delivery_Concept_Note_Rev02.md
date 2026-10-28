@@ -1,7 +1,7 @@
 # NWv-7 — Verified News Delivery Concept Note
 
 **Document:** NW-ARCH-CN-01  
-**Revision:** 0.2.1 — R152-01/R152-02 policy reconciliation submitted for re-review  
+**Revision:** 0.2.2 — detailed M1 contract clarification for R152-07–R152-12; for independent re-review  
 **Date:** 2026-10-28  
 **Authority:** [Architecture program #150](https://github.com/reallakshman19/NWv-7/issues/150)  
 **Technical baseline:** [October 26 ADR](NWv7_End_to_End_News_Reliability_ADR_20261026.md), status PROPOSED  
@@ -17,7 +17,7 @@ Producer success, committed source data, public publication, browser admission, 
 
 **Proposed Option C:** retain existing collectors, qualify immutable versioned snapshots, verify the exact anonymous public bytes before promoting an approved pointer on a separately operated data endpoint, and enforce source/age/event validity in the browser. Operate Cloudflare as shadow in the existing S1 state until a separate #121 qualification and Owner authorization. Treat Daily Digest as a separate domain service.
 
-This is a refinement of the existing ADR and program, not a competing implementation track. The independent review conditionally supported Option C but required ten corrections (A01–A10). They are specified below as design controls, not claimed to have been implemented.
+This is a refinement of the existing ADR and program, not a competing implementation track. Independent advisory reviews conditionally support Option C, accept R152-01/R152-02 as PASS_DESIGN_ONLY, and identify R152-07–R152-12 as remaining contract/acceptance clarifications. The provisions below are **proposed design controls**, not implemented, ratified or independently approved.
 
 ## 2. Four separately authorized boundaries (A01)
 
@@ -85,13 +85,30 @@ No unknown/missing/fetch-time-substituted publication timestamp may count as ver
 - **FULL_CORE_ELIGIBLE** means all required section envelopes are structurally intact and each of World, India, Tamil Nadu and Muscat contains at least one genuinely current, publisher-attributed, renderable story; World also meets >=5 qualified rows and >=2 independent canonical publisher families, with Top Stories policy intact. These thresholds are *proposed* in the ADR and must be ratified; until then, do not weaken executable qualification gates.
 - **DEGRADED_CANDIDATE** means bytes and policy evidence are intact but one or more required core-section admission gates fail. Under the current stricter ADR: **do not promote**. A future `DEGRADED_PUBLICATION_ALLOWED` profile could allow section-isolated publication **only** after an explicit Owner+independent/editorial policy change specifying mandatory minimum World/Top coverage, missing-section rationale, per-section validity and rollback. It is **not** approved by this concept.
 
-**B. Serving an already authorized, previously promoted generation:** Its complete-object integrity and origin authorization remain mandatory, but an individual section may become unavailable without suppressing still-valid stories in other sections. Each section independently filters expired, undated or superseded stories before rendering. Section statuses: `READY` (meets its approved coverage and age rules), `DEGRADED` (some valid cards remain below its coverage target), `UNAVAILABLE` (no valid current cards). The aggregate is `READY` only when all four core sections and World/Top critical rules qualify; `DEGRADED` if at least one core section retains eligible current cards while another fails; `UNAVAILABLE` if none has eligible current cards. Record a separate `criticalPolicyFailure` / incident alarm when World/Top mandatory rules fail, even if other sections remain renderable. Aggregate state never overrides section-specific WARN/CRITICAL diagnostics.
+**B. Serving an already authorized, previously promoted generation:** Its complete-object integrity and origin authorization remain mandatory, but an individual section may become unavailable without suppressing still-valid stories in other sections. Each section independently filters expired, undated or superseded stories before rendering. Section statuses: `READY` (meets its approved coverage and age rules), `DEGRADED` (some valid cards remain below its coverage target), `UNAVAILABLE` (no valid current cards). The aggregate shall be a **total function** of trusted generation status, core-section card availability and critical World/Top policy, as specified in §4.1; the independent `criticalPolicyFailure` alarm and per-domain states are not inferred from the aggregate label.
 
 **C. Absolute limits remain in force:** an existing generation older than the approved snapshot-admission ceiling is not current, regardless of partial section health, and no expired article becomes current by fallback. Independently authorized historical display must remain clearly separate from current news.
 
 **Reviewer decision required:** Ratify (i) the new-publication minimum, (ii) whether any degraded publication mode should ever exist, and (iii) the core-section/World/Top thresholds. Until then the stricter no-missing-mandatory-section gate governs new publication.
 
 **Editorial quality:** Normalize canonical publisher identity (do not count several Google News wrappers as independent publishers); compare exact displayed article ID, canonical URL, source/epoch and **multiset occurrence counts** against the verified chosen generation. Measure diversity and near-duplicate event clustering on rendered first cards, not only the collector's 30 stored articles. Proposed World baseline: >=5 publisher-timed qualified items from >=2 independent canonical families; not yet an approved production SLO.
+
+### 4.1. R152-07 — exhaustive status precedence (proposed Owner/editorial decision)
+
+Evaluate a generation's **source authority, immutable-byte integrity, authenticated publication identity and absolute acquisition-age admission first**, then article/event expiry for each domain. If the whole generation is invalid, all current-news domains are \`UNAVAILABLE\`; a stale cached blob can appear only in a separately labelled historical view.
+
+For an *eligible* whole generation, compute each core section's state from **currently valid renderable cards**, independently: \`READY\` if its approved article/coverage/diversity policy passes; \`DEGRADED\` if it retains >=1 valid card but falls below a coverage target; \`UNAVAILABLE\` if no valid cards remain. Compute Top Stories as a **distinct domain** with its own admission, identity, source and event rules. It can be \`READY\`, \`DEGRADED\`, or \`UNAVAILABLE\` even when the core aggregate is unavailable.
+
+Deterministic ordered aggregate (first match wins):
+
+1. Unauthorized, untrusted, corrupted, or expired whole generation -> **\`UNAVAILABLE\`**.
+2. Otherwise, **zero valid cards across all four core sections** -> **\`UNAVAILABLE\`**, *even if* separately qualified Top Stories still has valid cards.
+3. Otherwise, **all four core sections \`READY\` and mandatory World + Top Stories critical policies passing** -> **\`READY\`**.
+4. Otherwise -> **\`DEGRADED\`**.
+
+Compute \`criticalPolicyFailure\` **separately**, as a set of failed mandatory World and Top policy conditions, never hidden by \`DEGRADED\` or \`UNAVAILABLE\`. For example, four core \`READY\` plus Top \`UNAVAILABLE\` => **aggregate \`DEGRADED\`, critical Top alarm**; all core \`UNAVAILABLE\` plus Top \`READY\` => **core aggregate \`UNAVAILABLE\`**, Top view may *independently* render its valid cards with explicit scope and a prominent core unavailability status. No aggregate READY is inferred from Top-only success. Preserve visible per-section statuses and cause codes.
+
+**Scope isolation:** this serving-status algebra does not relax the stricter §4A **new-candidate promotion** gate. A candidate missing mandatory core coverage remains nonpromotable. Exact thresholds, Top-only UX and alarm severity require Owner/editorial ratification; test all combinations of four core statuses plus Top and whole-generation validity before M4.
 
 ## 5. Browser timing and cache semantics (A08)
 
@@ -102,6 +119,20 @@ The existing loader's 1,500 ms snapshot budget is **per requestSnapshotUrl invoc
 A source is selectable only when its publication pointer, immutable blob, policy evidence and displayed articles are valid. Cache design must specify pointer TTL/revalidation, immutable content cache, browser memory TTL, service-worker generations, CDN 404 caching, edge convergence and bad-cache recovery. A stale cached pointer may not be reclassified as current because its HTTP request succeeds.
 
 During S1, excluded Cloudflare preview receives no production fallback traffic under any timeout or cache condition.
+
+### 5.1. R152-08/R152-09 — mounted-content validity and trustworthy observation time
+
+**Absolute continuous-serving invariant:** A currently displayed card remains current only while *all* predicates hold: source authorized; full immutable generation valid; trusted observation time is available; generation age <= the ratified hard limit (proposed 6 h); publisher article age <= the effective view limit; event effective/expiry/supersession requirements qualify; and browser-to-public-source identity still binds. The card's validity deadline is the **earliest** of the applicable generation, item, event and any required trust/verification-lease expiry. A warning badge cannot grant an extension.
+
+**Clock authority (proposal):** Anchor each browser session to a fresh, independently validated **UTC time assertion from an approved TLS origin**, obtained via an uncached authenticated/protected-origin response or security-reviewed signed time evidence. A cross-origin HTTP \`Date\` header alone is **not automatically trusted**: evaluate TLS origin authorization, CORS header exposure, cache \`Age\`/intermediary behavior, clock offset, round-trip uncertainty and replay protection. \`manifest.publishedAt\` and the device's \`Date.now()\` are **not** the time authority. M1 security/host review must establish the exact time endpoint/assertion, trust root and accepted uncertainty envelope; these capabilities have NOT been demonstrated.
+
+After a trusted anchor \`serverUTC@monotonicT0\`, advance observation time using elapsed monotonic time rather than user-adjustable wall time. Use conservative uncertainty: if it is not provably below the age/expiry boundary, do not continue presenting current content. Reject implausibly future-dated \`snapshot.fetchedAt\`, inconsistent acquisition/creation lineage, negative ages beyond approved skew, missing time proof or stale/replayed time evidence. The clock lease is finite and cannot be silently renewed from an offline cache. Example **provisional** reanchor/lease interval <=5 minutes while visible; time-skew/RTT limits need host and security qualification.
+
+**Mounted UI lifecycle:** Validate before first current-news paint; schedule invalidation at the earliest known deadline and an additional foreground heartbeat no less frequent than once per 60 seconds. Revalidate **before restoring a 'current' state** on \`visibilitychange\`, \`focus\`, \`pageshow\`/back-forward-cache restore, connectivity restoration and any source/authority/cache change. Mobile sleep or browser timer throttling may prevent background callbacks; therefore background or uncertain suspended sessions must return through \`VERIFYING\`/blocked-current state until trusted UTC is reanchored and every mounted item requalified. A missed timer can never authorize stale display. On expiry or failed trusted-time refresh, immediately remove current designation and active advisory styling; optionally reselect only an authorized, verified, still-qualified generation. If unavailable, show \`UNAVAILABLE\`/explicit historical view, never retain expired items as current.
+
+Event supersession is checked on every required qualified refresh and when its approved event-verification lease lapses; an offline app must not continue presenting an active cyclone advisory solely because its nominal 36h age has not elapsed. Event leases and offline historical presentation remain editorial/security decisions.
+
+**Mandatory negative acceptance scenarios (NOT_RUN):** selection at 5h59m then crossing +6h without navigation; individual story at +36h while generation remains valid; event expiry/supersession, no network; hidden tab through expiration then foreground; BFCache/back-navigation and sleep; device wall clock -24h/+24h and changed mid-session; wrong public \`Date\`, cached \`Date\`/\`Age\`, revoked/expired time lease, missing CORS exposure, future \`fetchedAt\` and fabricated publish timestamp. Each must demonstrate no expired article remains labelled current, not merely a pending refresh request.
 
 ## 6. Measured operational contract (A06, A09)
 
@@ -126,6 +157,30 @@ The service definition must define expected observation regions, independent bro
 
 **Accountabilities remain UNASSIGNED until Owner names persons/roles:** product authority; producer operator; data publisher; hosting/account owner; Cloudflare shadow operator; Daily Digest API operator; browser authority maintainer; incident on-call; qualified non-author reviewer; security and release approvers. Do not invent names or treat ChatGPT as an accountable 24/7 operator.
 
+### 6.1. R152-10 — separate public data and actual-browser delivery indicators
+
+The source-publishing service and user-visible correctness have **independent denominators and acceptance gates**. A fresh, correctly hashed static endpoint is necessary but never sufficient when the production application chooses another source.
+
+| Indicator | Exact observation and failure rule | Proposed collection (not yet deployed) |
+| --- | --- | --- |
+| **DATA_DELIVERY_SLI** | From anonymous public HTTPS GET: approved primary pointer/source, protected promotion identity, complete byte-exact SHA-256, attested acquisition age <=6h, authorized publication generation, permitted CORS/cache and qualification evidence. A missing/invalid/too-old pointer is **FAIL**. | Every 15 min UTC, at least two independent observation networks/regions, 30-day denominator; per-source and per-region results |
+| **BROWSER_DELIVERY_FIDELITY_SLI** | In a real browser loaded from **the actual production app origin**, capture requested and **effective** authority/URL, fallback reason, pointer+snapshot ID/SHA/epoch, acquisition/time evidence, all current visible card IDs/canonical URLs and occurrence multiset, mounted deadlines, section/Top statuses and diagnostics; compare to the **exact network response bytes that browser consumed**. Unauthorized shadow selection, stale card, mismatched/missing/hidden/duplicate card, untrusted time, unresolved authority or untruthful status is **FAIL**, even if DATA_DELIVERY_SLI passes. | Proposed 15-min synthetic Chromium checks, multiple network/device/visibility cohorts; report distinct numerator/denominator, not merged with data SLI |
+| **BROWSER_CONTENT_READINESS_SLI** | Separately measure whether World, India, TN, Muscat and Top meet ratified current coverage/diversity and advisory-validity targets. A **truthfully degraded UI** may pass fidelity but **fails content readiness** where mandatory coverage is absent. | At same production-origin Chromium sampling times; section/domain readiness breakdown plus end-user operational alerting |
+
+Every 15-minute target and 30-day window is **proposed** pending measured costs/hosting and Owner approval. A probe with missing or inconclusive telemetry counts as a failed observation, **not excluded**. Capture probe deployment SHA, selected authority and region, browser cache/service-worker state, network response ID/hash, DOM evidence and status explanation. Real-user experience telemetry may supplement but cannot be assumed available or override actual browser probes.
+
+**Independent service gates:** data freshness SLO, browser fidelity SLO and content readiness SLO are **separately reviewed**. A passing DATA_DELIVERY_SLI never masks a failing BROWSER_DELIVERY_FIDELITY_SLI; an accurate degradation notice does not satisfy a news-readiness objective. Pilot numeric browser targets and sampling costs require M1 ratification. Existing World-only deploy check or one-time screenshot is not a passing multi-core sustained SLI.
+
+### 6.2. R152-11 — Top Stories stage policy and expiry precedence
+
+The source code currently exposes **different limits at different stages** (do not treat them as equivalent):
+- **Ranking/admission**: \`src/services/topStories/topStoriesPolicy.js\` declares **primary <=4h, secondary <=8h, fallback <=12h**. \`topStoriesEvidenceAdmission.js\` rejects \`expired\` ages beyond 12h and low-confidence timestamps; diversity, event qualification and evidence also apply.
+- **Live scoring**: the same ranking policy sets \`liveMaxHours=24\`, used by \`getBreakingLiveScore\` in \`topStoriesRanker.js\`. This is a scoring feature **not an independent age-admission override** of the 12h ranker slot decision.
+- **Prefetched snapshot consumption**: \`sectionsSnapshotFetcher.js\` currently applies **<=12h** to ordinary Top items, **<=36h** to heuristic live-like Top items and a **<=12h** snapshot-age check. The broader 36h consumption limit does not prove a card passed the ranking authority; it is a source-level policy divergence requiring future reconciliation.
+- **Proposed publication/browser**: strict valid generation <=6h from attested acquisition, and display-time item admission under **the intersection of** (a) the provenance-proven producer/ranker admission contract for that item, (b) the view's effective item-age and identity rules, and (c) event supersession/expiry and any stricter approved bulletin policy. No scoring bonus or consumer fallback silently widens a missing producer/ranker authorization.
+
+**M1 decision needed:** identify each Top Stories producer path, ranker policy digest/version and whether separately authorized truly live updates may use a longer item-age exception, with *publisher-backed fresh live-event evidence* and a short event-validity lease. Until approved and proven, do **not** assert a 24h/36h Top display exception merely from textual “live” heuristics. Define one effective stage-by-stage signed/verified policy manifest and negative tests for 4h/8h/12h/24h/36h boundaries, low-confidence times, false live tags and superseded emergency reports. All of this is design-only; existing runtime remains unchanged.
+
 ## 7. Gates that actually prevent exposure (A05)
 
 **Application release:** exact-code-SHA candidate -> build/test -> genuine nonpublishing Pages-equivalent browser with actual approved serving generation -> independent non-author review -> Owner exact-SHA release authorization -> production deploy -> public-origin canary -> continuous monitoring. A negative test must show a failed **real** prepublication browser check cannot reach the deploy action. A test that fails only after Pages deploy does not qualify.
@@ -133,6 +188,25 @@ The service definition must define expected observation regions, independent bro
 **Data publication:** exact qualification and immutable candidate -> staged public GET/hash -> protected publication decision -> externally verified pointer promotion -> served-byte and browser follow-up. Separate identities and approval/rollback rights from app deployment. A permitted data publication is not an app release.
 
 **Incident containment:** a narrowly scoped, separately approved emergency content-integrity intervention may be considered without implying host selection, shadow promotion or normal UI deployment authorization. This concept alone does not authorize it.
+
+### 7.1. R152-12 — trigger-complete fail-before-publish matrix
+
+The release gate must be proven at **every deployment-capable entrypoint**: \`push\` to main/master; \`workflow_dispatch\`; each allowed \`workflow_run\` source; workflow/job rerun; and administrator/environment bypass or direct Pages publication paths. On each, the production \`deploy-pages\` action must be **unreachable** unless the exact candidate artifact/code SHA and actual selected approved data generation have passed a genuine **nonpublishing browser rehearsal** and the independent authorization for that candidate is still valid.
+
+**Minimum proposed control:** all deployment entrypoints resolve a single immutable authorization envelope bound to repository, workflow and revision, run/attempt, artifact digest, exact code SHA, approved source/epoch/digest, qualifying browser result, nonauthor approval and Owner decision. Enforce \`deploy.needs\` on the prepublication browser/certification gate and verify protected branch/environment rules prevent rewriting or skipping the qualifying job. A successful previous run is not reusable after a code, artifact, authority, source expiry or approval-context change. Retry/rerun must revalidate current time/freshness. Privileged break-glass is a **separate audited emergency process**, not an unconditional skip or default success path.
+
+**M5 negative proof matrix (all NOT_RUN, no live deployment during test):**
+
+| Entry or bypass | Deliberate challenge | Required observable result |
+| --- | --- | --- |
+| \`push\` to main/master | Visible World/core browser challenge fails | Qualifying gate FAIL; \`deploy-pages\` NOT_RUN; no public Pages version created |
+| \`workflow_dispatch\` | Selected source unauthorized or expired | Gate DENY before deployment; no public Pages version |
+| Every configured \`workflow_run\` upstream | Upstream SUCCESS but candidate browser/epoch mismatches | Gate DENY; upstream green cannot bypass |
+| Workflow or job rerun | Reuse old approval/expired data under new run attempt | Revalidation required; old certification rejected; no publish |
+| Admin/environment bypass/direct Pages API | Review gate skipped, actor unapproved or approval token forged | Protected workflow/environment blocks or audited emergency path with separately authorized approval; no silent public release |
+| App artifact/source change between rehearsal and deploy | Candidate digest/code SHA no longer matches | Gate DENY, even if earlier Chromium check PASS |
+
+Test the complete configured set of workflow-run names and every privileged entrypoint under an explicitly approved **nonproduction** rehearsal environment. The proof must contain skipped-deploy job graph, failed real browser screenshot/DOM and exact source identities, approval denials and external check that no new public release occurred. Merely failing a postdeployment verification job does **not** qualify. Current \`deploy.yml\` executes \`deploy\` before its browser check and \`main\` is unprotected; these protections are not yet implemented or authorized here.
 
 ## 8. M0–M5 controlling program map (A10)
 
@@ -166,6 +240,6 @@ The present ADR's merge to main does not ratify it. The owner has not selected A
 
 This revision addresses A01 (S1 authority), A02 (actual-host proof), A03 (three validity dimensions), A04 (trust/schema), A05 (prepublication blocking), A06 (quantitative SLOs), A07 (canonical editorial/rendered quality), A08 (absolute source latency and cache), A09 (responsible monitoring), and A10 (one #150 program). **Addressed in concept only** does not mean tested, approved or implemented.
 
-**Requested disposition:** The advisory review of Rev 0.2 reported PARTIAL ACCEPTANCE and findings R152-01 through R152-06. Rev 0.2.1 resolves R152-01/R152-02 **at proposal level** and records outstanding R152-03–R152-06 gates; a separately authenticated non-author GitHub reviewer must reassess the **new exact PR head**. The Owner authorizes/ratifies discrete M1 decisions only after that review. No merge while main push still automatically publishes the application without a genuine prepublication block.
+**Requested disposition:** The full independent *advisory* source/design report [#153](https://github.com/reallakshman19/NWv-7/issues/153#issuecomment-6461269598) accepted R152-01/R152-02 PASS_DESIGN_ONLY and required R152-07–R152-12. This Rev 0.2.2 clarifies those six findings **at design level**, not as implemented protections or formal non-author approval. A separately authenticated non-author reviewer must assess the **new exact PR head**, the Owner/editorial and security authorities must ratify M1 policy and trust decisions, and operator RACI must be assigned. No merge while main push still automatically publishes Pages without the real prepublication gate.
 
-**Review state:** Rev 0.1 advisory review = conditional direction support; Rev 0.2 advisory review = PARTIAL acceptance; Rev 0.2.1 formal independent GitHub review = PENDING. The connected GitHub principal is the PR author, not an eligible independent reviewer. M0 named operators = UNKNOWN; Owner ratification = PENDING; Security review = PENDING; H01–H12 hosting = DEFERRED/NOT_RUN; Production = HOLD.
+**Review state:** Rev 0.1 direction conditionally supported; Rev 0.2 advisory PARTIAL; Rev 0.2.1 advisory [#153](https://github.com/reallakshman19/NWv-7/issues/153#issuecomment-6461269598) R152-01/R152-02 PASS_DESIGN_ONLY, six further clarifications; Rev 0.2.2 independent non-author GitHub review = PENDING. Connected GitHub principal == PR author; independence NOT ESTABLISHED. R152-03 operational owners = UNKNOWN; R152-04 H01–H12 = DEFERRED/NOT_RUN; R152-06 Common relay custody = NOT VERIFIED. Owner ratification / Security review = PENDING; M2–M5 and production = HOLD.
