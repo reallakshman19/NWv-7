@@ -270,4 +270,22 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.staleFallback).toBe(false);
   });
 
+  it('does not let a live-looking Top Stories headline bypass the 12-hour item limit', () => {
+    const now = Date.now();
+    const top = {
+      schemaVersion: 2,
+      fetchedAt: now,
+      sections: { topStories: [
+        { id: 'live-old', title: 'LIVE: Older updates', isBreaking: true,
+          publishedAt: now - 20 * 60 * 60 * 1000,
+          url: 'https://example.com/live/news', sourceGroup: 'example' },
+      ] },
+    };
+    const result = selectPrefetchedSectionItems(top, 'topStories', 10);
+
+    expect(result.items).toEqual([]);
+    expect(result.stale).toBe(true);
+    expect(result.staleReason).toBe('section_items_stale');
+  });
+
 });
