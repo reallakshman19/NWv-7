@@ -1,11 +1,11 @@
 # NWv-7 — Verified News Delivery Concept Note
 
 **Document:** NW-ARCH-CN-01  
-**Revision:** 0.2 — independent-review response; submitted for re-review  
+**Revision:** 0.2.1 — R152-01/R152-02 policy reconciliation submitted for re-review  
 **Date:** 2026-10-28  
 **Authority:** [Architecture program #150](https://github.com/reallakshman19/NWv-7/issues/150)  
 **Technical baseline:** [October 26 ADR](NWv7_End_to_End_News_Reliability_ADR_20261026.md), status PROPOSED  
-**Decision:** Option C *conditionally supported as preferred direction*; NOT selected for implementation or hosting  
+**Decision:** Option C *conditionally supported as preferred direction*; Rev 0.2 received PARTIAL independent advisory acceptance, not a qualifying GitHub approval. NOT selected for implementation or hosting  
 **Scope authorized for this submission:** M0 read-only discovery and M1 detailed design only  
 **Hard hold:** No new production host, application release, data promotion, Cloudflare authority change, Cloudflare queue replay, Oracle cutover, or M2–M5 implementation.
 
@@ -62,6 +62,8 @@ A short contentHash is insufficient for publication attestation. Re-fetch staged
 
 The #150 **H01–H12 live-host test protocol** is mandatory before either host is eligible: real public GET/hash, previous-object retention, overwrite rejection, promote-after-verify, dual-writer conflict, anti-replay generation, interruption/edge behavior, cache/TTL, browser CORS and identity, fresh rollback, unauthorized writes, and two scheduled cycles including failure injection. Passing 13/13 offline model tests and 7/7 local probe tests does not close ANY H01–H12 trial.
 
+**R152-06 — reproducible protocol custody (design-only, no trial reauthorization):** Before the deferred hosting experiment is resumed, preserve a versioned, independently retrievable protocol/test-harness bundle via the *approved Common artifact relay* and record: artifact reference, immutable full SHA-256, producer/code commit, fixture and test versions, expected-negative outcomes, invocation/runtime version, reviewer-readable logs and retention/expiry policy in #150. Existing Issue #150 records a locally executed 13/13 model checkpoint and 7/7 harness tests, and conversation-only ZIP/script hashes, but their bytes are **not established as present in the approved relay or this repository**. Do not claim an executable artifact is retained or that live-host H01–H12 were run. Relay custodian, approved URI and access policy = UNKNOWN until assigned.
+
 **Owner decision already recorded:** live hosting bake-off is DEFERRED_BY_OWNER. Thus H01–H12 = NOT_RUN, no approved sandbox IDs, no selected hosting provider, no grant of billable AWS resources, and no M2 authorization. M0/M1 analysis may proceed without silently reversing that deferment.
 
 ## 4. Absolute content admission and partial availability (A03, A07)
@@ -70,13 +72,24 @@ The #150 **H01–H12 live-host test protocol** is mandatory before either host i
 
 | Test | Concept-stage policy |
 | --- | --- |
-| Publication freshness | Selected approved public generation must satisfy a ratified generation-age admission threshold; proposed upper bound 6 h |
+| Publication freshness | Proposed **hard browser admission**: an approved generation is current only while its verified collection age is <=6 h; each observation beyond 6 h counts as an SLO failure even though expired data is never admitted as current. Pending Owner ratification. |
 | Article freshness | For ordinary current-content Sections, verified publisher-published age <=36 h; Top Stories keeps its separately specified tighter rules |
 | Event validity | Time-sensitive forecast, cyclone, emergency, election/live event requires valid effective/expiry/supersession evidence; 36 h alone is insufficient |
 
 No unknown/missing/fetch-time-substituted publication timestamp may count as verified current content. When zero fresh ordinary articles remain, the current code's fallback from freshSectionItems to sectionItems **must not** re-admit those expired items as current. Historical content may only appear clearly segregated as historical, never as a current advisory. Where event supersession cannot be established, do not label an earlier advisory as current.
 
-**Partial failure policy:** Reject the entire promotion for corruption, invalid bytes/schema/identity, unverifiable qualification, or broken snapshot consistency. Do **not** make unrelated healthy sections unavailable simply because one section has no fresh eligible article: per-section readiness must be independently represented. Core section readiness is assessed separately for World, India, Tamil Nadu and Muscat; aggregate status truthfully records gaps.
+**R152-01 — precise distinction between new candidate promotion and existing served-generation availability. This is a proposed reconciliation with the October 26 ADR, not a silent replacement of that ADR.**
+
+**A. New candidate promotion (the stricter existing ADR gate remains authoritative until independently ratified otherwise):**
+- **REJECT** any candidate whose bytes, schema, identity/digest, source ledger, ranking integrity, completeness or publisher evidence are invalid; also reject a candidate lacking the existing ADR's mandatory core-section coverage/World-quality gate. A candidate may not be promoted based on some healthy rows while its required new-publication obligations remain unmet.
+- **FULL_CORE_ELIGIBLE** means all required section envelopes are structurally intact and each of World, India, Tamil Nadu and Muscat contains at least one genuinely current, publisher-attributed, renderable story; World also meets >=5 qualified rows and >=2 independent canonical publisher families, with Top Stories policy intact. These thresholds are *proposed* in the ADR and must be ratified; until then, do not weaken executable qualification gates.
+- **DEGRADED_CANDIDATE** means bytes and policy evidence are intact but one or more required core-section admission gates fail. Under the current stricter ADR: **do not promote**. A future `DEGRADED_PUBLICATION_ALLOWED` profile could allow section-isolated publication **only** after an explicit Owner+independent/editorial policy change specifying mandatory minimum World/Top coverage, missing-section rationale, per-section validity and rollback. It is **not** approved by this concept.
+
+**B. Serving an already authorized, previously promoted generation:** Its complete-object integrity and origin authorization remain mandatory, but an individual section may become unavailable without suppressing still-valid stories in other sections. Each section independently filters expired, undated or superseded stories before rendering. Section statuses: `READY` (meets its approved coverage and age rules), `DEGRADED` (some valid cards remain below its coverage target), `UNAVAILABLE` (no valid current cards). The aggregate is `READY` only when all four core sections and World/Top critical rules qualify; `DEGRADED` if at least one core section retains eligible current cards while another fails; `UNAVAILABLE` if none has eligible current cards. Record a separate `criticalPolicyFailure` / incident alarm when World/Top mandatory rules fail, even if other sections remain renderable. Aggregate state never overrides section-specific WARN/CRITICAL diagnostics.
+
+**C. Absolute limits remain in force:** an existing generation older than the approved snapshot-admission ceiling is not current, regardless of partial section health, and no expired article becomes current by fallback. Independently authorized historical display must remain clearly separate from current news.
+
+**Reviewer decision required:** Ratify (i) the new-publication minimum, (ii) whether any degraded publication mode should ever exist, and (iii) the core-section/World/Top thresholds. Until then the stricter no-missing-mandatory-section gate governs new publication.
 
 **Editorial quality:** Normalize canonical publisher identity (do not count several Google News wrappers as independent publishers); compare exact displayed article ID, canonical URL, source/epoch and **multiset occurrence counts** against the verified chosen generation. Measure diversity and near-duplicate event clustering on rendered first cards, not only the collector's 30 stored articles. Proposed World baseline: >=5 publisher-timed qualified items from >=2 independent canonical families; not yet an approved production SLO.
 
@@ -97,13 +110,17 @@ Metrics are measured against **anonymous publicly served bytes and actual browse
 | Measurement | Initial proposal; not ratified |
 | --- | --- |
 | Acquisition cadence | Every 3 h; record planned vs actual start, qualification, commit and failure |
-| Public generation age | >=99% of 15-minute samples within <=6 h over rolling 30 days; explicitly fail on missing or invalid response |
+| Public generation age — admission | **Proposed hard 6-hour maximum** measured from verified snapshot `fetchedAt` (source acquisition completion), at the time of each public observation/browser selection; beyond 6 h = ineligible as current, including during SLO breach. `manifest.publishedAt` / promotion time cannot reset the clock. |
+| Public generation age — SLO | >=99% of scheduled 15-minute anonymous public-source samples over a rolling 30-day UTC window must observe an **authorized, digest-verified, selectable generation age <=6 h**; missing/invalid/too-old responses count as failures, not exclusions. Sample report includes denominator, failures and per-region breakdown. |
+| Time provenance / clock skew | `snapshot.fetchedAt` must be attested by qualification logs/source ledger and causally consistent with `generatedAt` and publication time; future-dated or unverified timestamps fail admission outside an M1-ratified clock-skew tolerance. Per-story `item.publishedAt` remains a **different publisher-reported timestamp** and obeys article/event validity limits. |
 | Accepted-candidate-to-public latency | Provisional p95 <=30 min; measured from qualified candidate freeze to publicly verified pointer, per 30-day window |
 | Publication integrity | 100% matching trusted pointer identity, full public SHA-256, immutable blob and validation evidence |
 | Core section readiness | World, India, TN, Muscat individually reported and alerted; do not hide failures under global pass |
 | Browser fidelity | Source/epoch, IDs, canonical URLs and occurrence counts exact against rendered current cards |
 | Recovery | One missed 3h scheduled slot creates warning; repeated slots or breached public freshness escalates to named on-call |
 | Daily Digest | Separately configured /api/datasets/dailyDigest?date=... with edition/date validity and own alert ownership |
+
+**R152-02 — explicit SLO/admission interpretation:** The proposed 6-hour rule is *both* a binary serving gate and the boundary for a statistical SLO. An SLO allowing up to 1% observed failures is an error-budget policy, **not permission to serve old data during those failures**. On breach, the resolver may use only a separately authorized, qualifying source; otherwise it renders current-news unavailable and raises diagnostics. A fresh `manifest.publishedAt` is not evidence of recent collection. The existing 12-hour snapshot-rule in `sectionsSnapshotFetcher.js` and 12-hour Cloudflare preview threshold remain *current code facts*, not proof this 6-hour proposed design is already implemented. This concept does not widen existing tighter product limits.
 
 The service definition must define expected observation regions, independent browser cohorts, provider-clock skew, maintenance/error budgets, cost ceiling, runbook routing and evidence retention. Proposed retention for review: raw operational proofs 30 days; summarized immutable promotion/audit ledger 90 days, subject to security approval.
 
@@ -139,7 +156,8 @@ The present ADR's merge to main does not ratify it. The owner has not selected A
 | S1 authority | GitHub/static primary and Cloudflare shadow; reconcile live Cloudflare-default discrepancy through gate | Owner + independent reviewer signoff PENDING |
 | Provider A vs B | Run comparable H01–H12 after resource and cost authorization | DEFERRED_BY_OWNER; neither selected |
 | Manifest/trust | nwv7-sections-delivery/v1 with full public SHA-256 and protected publisher decision | Security review PENDING |
-| Freshness and events | 6 h generation goal, 36 h ordinary article cap, explicit event supersession, section-specific availability | Editorial/Owner review PENDING |
+| Freshness and events | Proposed 6 h hard admission **and** >=99% 30-day SLO, measured from attested `snapshot.fetchedAt`; 36 h ordinary story ceiling; separate event supersession | Editorial/Owner ratification PENDING |
+| Partial-section promotion | Strict ADR core gate for new candidates; section-isolated serving of already promoted valid generations; future degraded-candidate promotion explicitly unapproved | Reviewer/Owner policy approval PENDING |
 | Latency/cache | Absolute deadline with bounded fallback and verified edge/browser semantics | Measured M1 review PENDING |
 | M2–M5 implementation | Separate approval after M1/host gates | HOLD |
 | Oracle/canonical release | Existing rev1 unchanged | NO CHANGE |
@@ -148,6 +166,6 @@ The present ADR's merge to main does not ratify it. The owner has not selected A
 
 This revision addresses A01 (S1 authority), A02 (actual-host proof), A03 (three validity dimensions), A04 (trust/schema), A05 (prepublication blocking), A06 (quantitative SLOs), A07 (canonical editorial/rendered quality), A08 (absolute source latency and cache), A09 (responsible monitoring), and A10 (one #150 program). **Addressed in concept only** does not mean tested, approved or implemented.
 
-**Requested disposition:** independent reviewer validates Rev 0.2 concepts and M0 evidence, returns remaining defects; Owner authorizes/ratifies discrete M1 decisions. No merge while main push still automatically publishes the application without a genuine prepublication block.
+**Requested disposition:** The advisory review of Rev 0.2 reported PARTIAL ACCEPTANCE and findings R152-01 through R152-06. Rev 0.2.1 resolves R152-01/R152-02 **at proposal level** and records outstanding R152-03–R152-06 gates; a separately authenticated non-author GitHub reviewer must reassess the **new exact PR head**. The Owner authorizes/ratifies discrete M1 decisions only after that review. No merge while main push still automatically publishes the application without a genuine prepublication block.
 
-**Review state:** Independent reviewer of Rev 0.1 = conditional direction approval; Rev 0.2 = NOT YET REVIEWED; Owner ratification = PENDING; Security review = PENDING; Hosting = DEFERRED; Production = HOLD.
+**Review state:** Rev 0.1 advisory review = conditional direction support; Rev 0.2 advisory review = PARTIAL acceptance; Rev 0.2.1 formal independent GitHub review = PENDING. The connected GitHub principal is the PR author, not an eligible independent reviewer. M0 named operators = UNKNOWN; Owner ratification = PENDING; Security review = PENDING; H01–H12 hosting = DEFERRED/NOT_RUN; Production = HOLD.
