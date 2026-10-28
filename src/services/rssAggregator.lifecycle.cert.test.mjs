@@ -40,6 +40,18 @@ async function testCleanupOnReturn() {
   assert.equal(map.has('india'), false);
 }
 
+async function testCoalescedResultIsReturnedToAllWaiters() {
+  const inFlight = new Map();
+  let resolveShared;
+  const shared = new Promise(resolve => { resolveShared = resolve; });
+  inFlight.set('world', shared);
+
+  const result = await withInFlightCleanup(inFlight, 'world', resolveShared, async () => ['qualified']);
+  assert.deepEqual(result, ['qualified']);
+  assert.deepEqual(await shared, ['qualified']);
+  assert.equal(inFlight.has('world'), false);
+}
+
 async function testCleanupOnFailure() {
   const map = new Map([['india', Promise.resolve()]]);
   let failed = false;
@@ -219,6 +231,8 @@ function testStaticLiveModeUsesSelectedAuthority() {
 
   const aggregator = readRepoFile('src/services/rssAggregator.js');
   assert.match(aggregator, /if \(useAuthoritySnapshot\)/);
+  assert.match(aggregator, /!useAuthoritySnapshot/);
+  assert.match(aggregator, /return Array\.isArray\(sharedResult\) \? sharedResult : \[\]/);
   assert.match(aggregator, /force: forceAuthorityRefresh/);
   assert.doesNotMatch(
     aggregator,
@@ -233,6 +247,7 @@ function testNoGeneratedSnapshotFilesChanged() {
 
 await testCleanupOnReturn();
 await testCleanupOnFailure();
+await testCoalescedResultIsReturnedToAllWaiters();
 testStaleSnapshotFailsClosed();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
