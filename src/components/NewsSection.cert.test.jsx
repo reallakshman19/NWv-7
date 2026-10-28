@@ -62,6 +62,37 @@ function topStoryRank(overrides = {}) {
   };
 }
 
+describe('S1 browser-visible card provenance', () => {
+  it('exposes the exact story ID and clickable publisher URL on the rendered card', () => {
+    renderStory({
+      id: 'world-immutable-123',
+      title: 'Verified publisher headline',
+      source: 'Example publisher',
+      url: 'https://publisher.example/world/123?edition=1',
+      publishedAt: Date.now() - 60_000,
+    });
+    const headline = screen.getByText('Verified publisher headline');
+    const card = headline.closest('article.modern-news-card');
+
+    expect(card).not.toBeNull();
+    expect(card.getAttribute('data-story-id')).toBe('world-immutable-123');
+    expect(card.getAttribute('data-story-url'))
+      .toBe('https://publisher.example/world/123?edition=1');
+  });
+
+  it('does not fabricate a canonical URL or identity for a missing publisher field', () => {
+    renderStory({
+      title: 'Unidentified story',
+      source: 'Unknown',
+      publishedAt: Date.now() - 60_000,
+    });
+    const card = screen.getByText('Unidentified story').closest('article.modern-news-card');
+
+    expect(card.getAttribute('data-story-id')).toBe('');
+    expect(card.getAttribute('data-story-url')).toBe('');
+  });
+});
+
 describe('NewsSection area relevance story info', () => {
   it('renders area relevance label, score, evidence, and human-readable reasons', async () => {
     renderStory({
