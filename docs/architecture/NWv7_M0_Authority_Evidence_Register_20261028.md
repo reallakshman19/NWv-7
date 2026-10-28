@@ -4,7 +4,7 @@
 **Checkpoint:** 2026-10-28, user-authorized M0/M1 review preparation  
 **Reference main HEAD:** 3bfbe27127b3a2932ed89139387c4c55b1283395  
 **Checkpoint class:** READ-ONLY evidence inventory; this document is submitted on a separate review branch and is **not** a production release.  
-**Acceptance:** M0 PARTIAL / NOT SIGNED OFF. UNKNOWN means not evidenced, not presumed healthy.
+**Acceptance:** M0 PARTIAL / NOT SIGNED OFF. Independent Rev 0.2 advisory review = PARTIAL ACCEPTANCE. Rev 0.2.1 formal independent GitHub review = PENDING. UNKNOWN means not evidenced, not presumed healthy.
 
 ## 1. Current topology and public observables
 
@@ -76,3 +76,22 @@ The October 28 public HTTP probe independently measured anonymous Worker and Pag
 **Next exact M1 action:** the Owner and separate qualifying reviewer should ratify the *S1 authority and serving-route decision record*, including whether/how to correct the current Cloudflare-default build after the production prepublication gate is enforced. Hosting evaluation remains deferred. The security reviewer should decide the protected publication authority model; the operational owner should define UTC-based SLOs/alerts and supply nonsecret contact responsibilities.
 
 **No action in this register changes production state.** Neither writing nor reviewing it authorizes Pages publication, new hosting, Cloudflare mutation, a second authority, live headline age relaxation, Daily Digest substitution or Oracle control change.
+
+## 6. PR #152 independent-review reconciliation checkpoint — 2026-10-28
+
+**Scope:** Recording the Owner-supplied independent *advisory* assessment of PR #152 at **original exact head** `e32d9ba8b3a972801c0154a76f830143ac0ddf2a`. The advisory reviewer inspected exactly two Markdown files, confirmed main was `3bfbe27127b3a2932ed89139387c4c55b1283395`, and returned `M0/M1 PARTIAL ACCEPTANCE`. This was **not** a formal GitHub non-author review. Subsequent documentation revisions change the PR head; the prior review cannot be presented as exact-head approval of the revised commit.
+
+| Finding | Design response / evidence | Remaining gate |
+| --- | --- | --- |
+| R152-01 P1 — ADR core-section publication conflict | [Concept Rev 0.2.1](NWv7_Verified_News_Delivery_Concept_Note_Rev02.md) §4 explicitly preserves existing strict new-publication eligibility: FULL_CORE_ELIGIBLE requires intact mandatory core fields, >=1 current qualified item in each of World/India/TN/Muscat, >=5 current World rows from >=2 canonical publisher families and intact Top Stories policy. DEGRADED_CANDIDATE remains **unpromotable** unless the Owner and independent/editorial reviewer separately ratify an alternative. For **already approved** generations, still-valid sections may continue independently; per-section READY/DEGRADED/UNAVAILABLE and aggregate/critical alarm are specified. | Owner + reviewer must ratify minimum gate/profile; no current qualification code changes. Existing ADR not silently superseded. |
+| R152-02 P1 — six-hour admission versus SLO | Concept §4/§6 sets proposed **hard** age admission from attested source-acquisition `snapshot.fetchedAt`, not manifest release date; **separate** >=99% of 15-minute public samples within <=6 h over rolling 30 days measures SLO. Out-of-age samples count as breaches and are **never** served current. | Owner ratification; verified source-ledger time, skew tolerance, sampling regions and actual instrumentation remain design/test work. |
+| R152-03 P1 — operators | M0 RACI table still records hosting/Cloudflare/Digest/incident/reviewer/credential owners UNKNOWN. | Owner appoints accountable independent principals and escalation roles. M0 PARTIAL. |
+| R152-04 — host trials | H01–H12 remain NOT_RUN in A and B, previously DEFERRED_BY_OWNER. | Separate resource/operator/spend authorization and live anonymous/public tests needed; no host selected. |
+| R152-05 — independent review | Reviewer states connected GitHub identity is the PR author `reallakshman19`; a review submitted under that identity would not satisfy formal independence. Current comment/review here is not such a vote. | A separately authenticated, qualifying non-author GitHub reviewer must record a new review **at the new exact PR head**; absence blocks ratification. |
+| R152-06 P2 — executable protocol custody | #150 stores text H01–H12 protocol and records 13/13 model, 7/7 local harness, plus hashes for conversation artifacts; approved Common artifact relay does not yet contain independently verified bytes under an established current-session reference. Concept §3 specifies versioned manifest, SHA-256, runtime/fixture, negative cases, logs and retention record. | Assign relay custodian and access policy; materialize and hash-verify actual executable bytes when available. **Do not claim artifact delivery or restart hosting tests.** |
+
+**Changed-file rule:** Rev 0.2.1 remains **documentation-only** on existing draft PR #152. Its updated head SHA must be read afresh before any further review request or approval. No amendment here authorizes merging even a docs-only PR because current `main` push auto-publishes Pages.
+
+**Next exact M1 decision request:** Owner and independent reviewer ratify strict new-candidate core readiness versus already-published section isolation, the proposed hard 6-hour acquisition-age limit and associated 30-day public SLO; then assign operational RACI and a distinct non-author review principal. Retain host deferral. Capture unresolved aspects as UNKNOWN/PROPOSED, not PASS.
+
+**State invariants:** `main` unchanged by this branch-only update; production incident #143 OPEN; no Pages deploy, no CF authority/Queue/D1 changes, no hosting provision, no M2–M5 implementation, no Oracle cycle change.
