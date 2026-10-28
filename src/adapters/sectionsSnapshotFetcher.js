@@ -74,7 +74,9 @@ function isSectionsSnapshotFresh(snapshot, maxAgeMs = SECTION_SNAPSHOT_MAX_AGE_M
   if (!isSupportedSectionsSnapshot(snapshot)) return false;
   const fetchedAt = Number(snapshot?.fetchedAt || 0);
   if (!Number.isFinite(fetchedAt) || fetchedAt <= 0) return false;
-  return Date.now() - fetchedAt <= maxAgeMs;
+  const ageMs = Date.now() - fetchedAt;
+  // A future-dated acquisition timestamp must not extend the freshness lease.
+  return ageMs >= 0 && ageMs <= maxAgeMs;
 }
 
 function itemTimestampMs(item) {
@@ -112,8 +114,10 @@ function maxAgeForSection(sourceSection, item) {
 function isFreshSectionItem(item, sourceSection = '', now = Date.now()) {
   const publishedAt = itemTimestampMs(item);
   if (!publishedAt) return false;
-  if (isLowConfidenceTimestamp(item) && sourceSection === 'topStories') return false;
-  return now - publishedAt <= maxAgeForSection(sourceSection, item);
+  // Missing/low-confidence and future publisher times are unqualified in EVERY section.
+  if (isLowConfidenceTimestamp(item)) return false;
+  const ageMs = now - publishedAt;
+  return ageMs >= 0 && ageMs <= maxAgeForSection(sourceSection, item);
 }
 
 function recordSnapshotBudgetExit(section, error) {
@@ -201,7 +205,9 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
       : lowConfidenceTimestampCount > 0 && sourceSection === 'topStories'
         ? 'top_stories_low_confidence_timestamps'
         : null;
-  if (sourceSection === 'topStories' && snapshotStale) {
+  // Snapshot expiration is an absolute admission gate for every section.
+  // A fresh article inside an expired generation is not a current headline.
+  if (snapshotStale) {
     return {
       items: [],
       sourceSection,
@@ -209,14 +215,17 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
       summary: getSectionsSnapshotRuntimeSummary(snapshot),
       stale: true,
       staleReason,
+      staleFallback: false,
       blockedBySnapshotStaleness: true,
       staleItemCount: sectionItems.length,
       lowConfidenceTimestampCount,
-      itemMaxAgeMs: TOP_STORIES_ITEM_MAX_AGE_MS,
+      itemMaxAgeMs: sourceSection === 'topStories'
+        ? TOP_STORIES_ITEM_MAX_AGE_MS : SECTION_ITEM_MAX_AGE_MS,
     };
   }
-  const usingStaleFallback = freshSectionItems.length === 0 && sectionItems.length > 0;
-  const candidateItems = freshSectionItems.length > 0 ? freshSectionItems : sectionItems;
+  // Never repopulate current cards with expired or unverified stories when
+  // the last fresh story disappears.
+  const candidateItems = freshSectionItems;
   const items = candidateItems
     .map(item => normalizePrefetchedSectionItem(item, requestedSection, sourceSection))
     .sort((a, b) => Number(b.publishedAt || 0) - Number(a.publishedAt || 0))
@@ -226,9 +235,9 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
     sourceSection,
     quality: snapshot?.sectionQuality?.[sourceSection] || null,
     summary: getSectionsSnapshotRuntimeSummary(snapshot),
-    stale: Boolean(staleReason) || usingStaleFallback,
-    staleReason: staleReason || (usingStaleFallback ? 'section_items_stale' : null),
-    staleFallback: usingStaleFallback,
+    stale: Boolean(staleReason),
+    staleReason,
+    staleFallback: false,
     staleItemCount: Math.max(0, sectionItems.length - freshSectionItems.length),
     lowConfidenceTimestampCount,
     itemMaxAgeMs: sourceSection === 'topStories' ? TOP_STORIES_ITEM_MAX_AGE_MS : SECTION_ITEM_MAX_AGE_MS,
