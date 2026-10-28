@@ -4,7 +4,7 @@
 **Checkpoint:** 2026-10-28, user-authorized M0/M1 review preparation  
 **Reference main HEAD:** 3bfbe27127b3a2932ed89139387c4c55b1283395  
 **Checkpoint class:** READ-ONLY evidence inventory; this document is submitted on a separate review branch and is **not** a production release.  
-**Acceptance:** M0 PARTIAL / NOT SIGNED OFF. Independent Rev 0.2 advisory review = PARTIAL ACCEPTANCE. Rev 0.2.1 formal independent GitHub review = PENDING. UNKNOWN means not evidenced, not presumed healthy.
+**Acceptance:** M0 PARTIAL / NOT SIGNED OFF. Rev 0.2.1 advisory assessment at exact head `8a7cadd...` = PARTIAL / R152-01 & R152-02 PASS_DESIGN_ONLY. Rev 0.2.2 formal non-author GitHub review = PENDING. UNKNOWN means not evidenced, not presumed healthy.
 
 ## 1. Current topology and public observables
 
@@ -95,3 +95,39 @@ The October 28 public HTTP probe independently measured anonymous Worker and Pag
 **Next exact M1 decision request:** Owner and independent reviewer ratify strict new-candidate core readiness versus already-published section isolation, the proposed hard 6-hour acquisition-age limit and associated 30-day public SLO; then assign operational RACI and a distinct non-author review principal. Retain host deferral. Capture unresolved aspects as UNKNOWN/PROPOSED, not PASS.
 
 **State invariants:** `main` unchanged by this branch-only update; production incident #143 OPEN; no Pages deploy, no CF authority/Queue/D1 changes, no hosting provision, no M2–M5 implementation, no Oracle cycle change.
+
+## 7. Detailed reviewer return #153 and Rev 0.2.2 design response (2026-10-28)
+
+**Review provenance:** Owner supplied [IR1 detailed source/design report](https://github.com/reallakshman19/NWv-7/issues/153#issuecomment-6461269598) covering PR #152 at exactly `8a7cadd74c5774f763ea2d8c98bdcd8067ddf291`. It is a **technical advisory**, not formal non-author approval: connected GitHub principal `reallakshman19` was the PR author, and the reviewer disclosed prior advisory exposure. Recorded conclusion: R152-01/02 `PASS_DESIGN_ONLY`, M1 ratification HOLD. A follow-up documentation amendment cannot inherit the prior exact-head review.
+
+The [revised concept, Rev 0.2.2](NWv7_Verified_News_Delivery_Concept_Note_Rev02.md) incorporates the bounded **proposed** controls below. No product code/CI tests or browser acceptance have been executed.
+
+| Finding | Rev 0.2.2 concept response | Evidence/authorization still needed |
+| --- | --- | --- |
+| **R152-07 P1** aggregate state partial function | §4.1 defines first-match UNAVAILABLE for invalid whole generation; UNAVAILABLE for no valid core cards; READY for all four ready + mandatory World/Top passing; else DEGRADED. `criticalPolicyFailure` independent. Top-only ready is its own domain, not aggregate core READY. | Owner/editorial signoff, exhaustive state-machine fixtures in future M4; current UI unmodified |
+| **R152-08 P1** mounted data expiry | §5.1 requires expiration at earliest generation, publisher-item, event or trust lease deadline; current designation invalidated in open tabs, focus/visibility/BFCache/resume and offline. | Real browser timed tests; platform timer/suspend behavior not yet verified; no current implementation |
+| **R152-09 P1** untrusted client clock | §5.1 proposes approved TLS-origin or signed UTC anchor, bounded uncertainty, monotonic elapsed time, finite lease and fail closed without verifiable UTC. Device Date.now is not an authority. | Trusted-time provider, CORS/Date/Age/cache/protection, RTT/skew/replay/security approval and clock perturbation tests UNKNOWN |
+| **R152-10 P1** public endpoint versus actual browser | §6.1 separates DATA_DELIVERY_SLI, BROWSER_DELIVERY_FIDELITY_SLI and BROWSER_CONTENT_READINESS_SLI; live origin and actual selected effective source, exact consumed byte/DOM multiset required; no metric substitution. | Synthetic Chromium/regions/cohorts/cost and actual production telemetry NOT_RUN |
+| **R152-11 P2** Top Stories age | §6.2 separately identifies ranker 4/8/12h age bands, 24h live bonus (not admission override), prefetched Top 12h normal/36h heuristic-live consumer rules and current snapshot <=12h; proposed effective display is intersection with event qualification. | Full per-producer trace and approved live evidence exception/versioned policy digest; existing behavior unchanged |
+| **R152-12 P1** all deployment triggers | §7.1 mandates fail-before-publish tests for push, manual dispatch, each workflow_run trigger, rerun, privileged bypass and candidate artifact swap; no reuse of old approval when source/context changes. | Required branch/environment enforcement and negative tests NOT_RUN; current deploy publishes before browser verification |
+
+### Current executable-policy discrepancies (reconfirmed from `main`, not production tests)
+
+- `src/adapters/sectionsSnapshotFetcher.js` currently uses 12h snapshot, 36h ordinary item, 12h ordinary Top, 36h live-like Top; stale ordinary fallback can return all old articles and a future `fetchedAt` may be treated fresh by its current `Date.now() - fetchedAt <= maxAgeMs` test. **The Rev 0.2.2 six-hour rule and continuous validity are proposals, not active protections.**
+- `src/services/topStories/topStoriesPolicy.js` declares ranker age bands 4/8/12h and `liveMaxHours=24`; `topStoriesEvidenceAdmission.js` rejects the ranker's expired age band, while the live 24h feature is used in ranking score. The prefetched live-like 36h item allowance is not proof of ranker authorization.
+- `.github/workflows/deploy.yml` listens to main/master push, workflow_dispatch and named workflow_run, sets `VITE_SECTIONS_AUTHORITY=cloudflare` during build, and has `deploy: needs: build` before postpublication World checks. `main` was unprotected at checkpoint. These are unchanged source observations; no safe prepublication gate presently proved.
+
+### Concept counterexamples defined, not executed
+
+| Case | Required result | Execution |
+| --- | --- | --- |
+| Four core READY, Top policy failure | Aggregate DEGRADED, critical alarm visible | DESIGN_ONLY / NOT_RUN |
+| All core empty, valid Top-only | Core aggregate UNAVAILABLE, independently valid Top may render with explicit scope | DESIGN_ONLY / NOT_RUN |
+| Snapshot crosses 6h while mounted, item crosses 36h, event superseded | Remove current badge/advisory immediately and fail closed if no requalification | DESIGN_ONLY / NOT_RUN |
+| Device clock ±24h, Time/Date origin stale, BFCache/resume | Fail closed or recompute from trusted UTC anchor; no stale current card | DESIGN_ONLY / NOT_RUN |
+| Static public data fresh, production browser selects unapproved Cloudflare shadow | Public-source SLI may pass; browser-fidelity SLI MUST fail | DESIGN_ONLY / NOT_RUN |
+| Any release trigger with real browser failure / prior reused approval | No deployment; deploy job NOT_RUN | DESIGN_ONLY / NOT_RUN |
+
+**Next accountable M1 work:** An authenticated *separate non-author* GitHub principal must review the **new current PR head**, including Rev 0.2.2's total status rules, time-verification feasibility, independent browser/Top policy precedence, and all-trigger deployment gate. Owner/editorial signs policy, security designs the time/publisher trust root, and Owner assigns operational roles. H01–H12 hosting and resources remain DEFERRED_BY_OWNER, no relay executable artifact claimed.
+
+**Still HOLD:** PR merge, runtime code, Pages/data publication, Cloudflare S2/S3 or Queue/D1 mutation, M2–M5 implementation, and Oracle rev change. #143 production incident remains OPEN.
