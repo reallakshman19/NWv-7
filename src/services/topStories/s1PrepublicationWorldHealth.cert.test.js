@@ -59,6 +59,34 @@ describe('S1 static-primary Pages candidate source-to-DOM prepublication contrac
       .toContain('selected_public_named_bytes_do_not_match_candidate');
   });
 
+  it('denies a stale or substituted first browser response masked by a later clean one', () => {
+    const previousTampered = { ...RESPONSE, bytesSha256: 'b'.repeat(64) };
+    const previousError = { ...RESPONSE, responseStatus: 503 };
+    const previousInvalidSchema = {
+      ...RESPONSE, body: { ...RESPONSE.body, schemaVersion: 99 },
+    };
+    for (const earlier of [previousTampered, previousError, previousInvalidSchema]) {
+      const result = check(REPORT, [earlier, RESPONSE]);
+      expect(result.ok).toBe(false);
+      expect(result.errors.some(value =>
+        ['s1_static_snapshot_missing_or_invalid',
+          'selected_public_named_bytes_do_not_match_candidate'].includes(value),
+      )).toBe(true);
+    }
+  });
+
+  it('denies a swapped later response after a clean initial browser read', () => {
+    const substituted = { ...RESPONSE, bytesSha256: 'b'.repeat(64) };
+    expect(check(REPORT, [RESPONSE, substituted]).errors)
+      .toContain('selected_public_named_bytes_do_not_match_candidate');
+  });
+
+  it('accepts repeated identical HTTP 200 snapshots without changing source authority', () => {
+    expect(check(REPORT, [RESPONSE, { ...RESPONSE }])).toMatchObject({
+      ok: true, errors: [], selectedAuthority: 'github_static',
+    });
+  });
+
   it('denies missing or malformed candidate SHA-256 even when static HTTP is healthy', () => {
     expect(check(REPORT, [RESPONSE], { expectedByteSha256: null }).errors)
       .toContain('selected_public_named_bytes_do_not_match_candidate');
