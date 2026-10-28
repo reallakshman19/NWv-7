@@ -3,6 +3,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { createHash } from 'node:crypto';
+import { evaluateS1PrepublicationWorldHealth } from './evaluate_s1_prepublication.mjs';
 
 const DEFAULT_ARTIFACT_DIR = 'artifacts/world-health-deployment';
 const VERIFICATION_TIMEZONE = 'UTC';
@@ -262,7 +264,19 @@ async function main() {
     });
     const page = await context.newPage();
     const observedWorldResponses = [];
+    const observedS1Responses = [];
     page.on('response', response => {
+      if (process.env.PREFLIGHT_REQUIRE_S1_STATIC === 'true') {
+        try {
+          const requestUrl = new URL(response.url());
+          if (requestUrl.origin === 'https://reallakshman19.github.io' &&
+              requestUrl.pathname === '/NWv-7/newsdata/sections_latest.json') {
+            observedS1Responses.push(response);
+          }
+        } catch {
+          // Invalid responses cannot satisfy the S1 gate.
+        }
+      }
       if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD !== 'true') return;
       const url = response.url();
       try {
@@ -364,6 +378,50 @@ async function main() {
     }
     if (!report.topSourcesText || /none recorded/i.test(report.topSourcesText)) {
       throw new Error('World diagnostics do not contain top-source evidence');
+    }
+
+    if (process.env.PREFLIGHT_REQUIRE_S1_STATIC === 'true') {
+      // Nonpublishing S1 candidate evidence; Cloudflare success is not proof.
+      if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD === 'true') {
+        throw new Error('Prepublication cannot qualify two serving authorities');
+      }
+      const witness = await page.evaluate(() => ({
+        selectedSourceEvents: window.__nwPreflightSourceEvents || [],
+        visibleWorldCards: [...document.querySelectorAll(
+          '#world-news article.modern-news-card',
+        )].map(card => ({
+          id: card.getAttribute('data-story-id') || '',
+          url: card.getAttribute('data-story-url') || '',
+        })),
+      }));
+      const expectedBytes = await fs.readFile(
+        path.resolve('dist/newsdata/sections_latest.json'),
+      );
+      const expectedSha256 = createHash('sha256')
+        .update(expectedBytes).digest('hex');
+      const observed = await Promise.all(observedS1Responses.map(async response => ({
+        url: response.url(),
+        responseStatus: response.status(),
+        bytesSha256: createHash('sha256')
+          .update(await response.body()).digest('hex'),
+        body: await response.json().catch(() => null),
+      })));
+      const s1 = evaluateS1PrepublicationWorldHealth({
+        report: { ...report, ...witness },
+        observed,
+        checkedAt: actualCheckedAt,
+        expectedByteSha256: expectedSha256,
+      });
+      report.worldAuthority = s1;
+      report.worldProvenance = {
+        selectedSourceEvents: witness.selectedSourceEvents,
+        visibleWorldCardCount: witness.visibleWorldCards.length,
+        observedNamedStaticResponses: observed.length,
+        expectedCandidateByteSha256: expectedSha256,
+      };
+      if (!s1.ok) {
+        throw new Error('S1 static prepublication refused: ' + s1.errors.join(', '));
+      }
     }
 
     if (process.env.PREFLIGHT_REQUIRE_FRESH_WORLD === 'true') {
