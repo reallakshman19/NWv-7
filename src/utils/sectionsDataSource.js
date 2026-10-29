@@ -35,6 +35,8 @@ export function isCloudflareSectionsPreviewConfigured() {
 }
 
 export function getConfiguredSectionsAuthority() {
+  // S1: an environment flag cannot silently promote the Cloudflare shadow.
+  if (import.meta.env.PROD) return SECTIONS_DATA_SOURCES.GITHUB;
   const configured = String(
     import.meta.env.VITE_SECTIONS_AUTHORITY ||
     (import.meta.env.PROD ? PRODUCTION_RUNTIME_ENDPOINTS.sectionsAuthority : '')
@@ -46,7 +48,9 @@ export function getConfiguredSectionsAuthority() {
 }
 
 export function isSectionsSourceOverrideEnabled() {
-  return String(import.meta.env.VITE_SECTIONS_ALLOW_SOURCE_OVERRIDE || '').trim().toLowerCase() === 'true';
+  // Developer preview is allowed outside production; not a production fallback.
+  return !import.meta.env.PROD &&
+    String(import.meta.env.VITE_SECTIONS_ALLOW_SOURCE_OVERRIDE || '').trim().toLowerCase() === 'true';
 }
 
 export function getSectionsDataSource() {
