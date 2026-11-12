@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import plannerStorage, {
+  getPlannerStorageError,
   isPlannerStorageSuccess,
 } from '../utils/plannerStorage';
+import { useSettings } from '../context/SettingsContext';
+import { load as loadUpAhead } from '../data/datasets/upAheadDataset';
+import { useUpAheadExpiry } from '../hooks/useUpAheadExpiry';
+import {
+  CACHE_KEY, UP_AHEAD_REFRESH_MAX_AGE_MS, UP_AHEAD_UPDATED_EVENT, isUpAheadDataFresh, loadFromCache, sanitizeUpAheadData,
+} from '../services/upAheadService';
+import { getUpAheadPlannerSuggestions } from '../services/upAheadPlannerSuggestions';
 import { downloadCalendarEvent, downloadCalendarEvents } from '../utils/calendar';
 import { getPlannerEvidence } from '../services/plannerEvidence';
 import { getPlannerViewModel } from '../services/plannerViewModel';
@@ -114,7 +122,10 @@ function getRawPlannerItem(item) {
 }
 
 export function useMyPlannerPageViewModel() {
+  const { settings } = useSettings();
   const [planData, setPlanData] = useState({});
+  const [upAheadData, setUpAheadData] = useState(null);
+  const [suggestionError, setSuggestionError] = useState('');
   const [undoItem, setUndoItem] = useState(null);
   const [plannerControls, setPlannerControls] = useState(() => ({ ...DEFAULT_PLANNER_CONTROLS }));
   const [selectedPlannerIds, setSelectedPlannerIds] = useState([]);
@@ -139,6 +150,51 @@ export function useMyPlannerPageViewModel() {
       clearTimer(undoTimerRef);
       clearTimer(copyStatusTimerRef);
     };
+  }, [loadPlan]);
+
+  useEffect(() => {
+    let active = true;
+    const readFeed = () => setUpAheadData(loadFromCache());
+    const onStorage = event => {
+      if (event.key === CACHE_KEY || event.key === null) readFeed();
+    };
+    queueMicrotask(() => {
+      if (!active) return;
+      const retained = loadFromCache();
+      setUpAheadData(retained);
+      if (isUpAheadDataFresh(retained, UP_AHEAD_REFRESH_MAX_AGE_MS)) return;
+      loadUpAhead({ policy: 'published', settings, syncPlanner: false })
+        .then(envelope => { if (active) setUpAheadData(envelope.data.raw); })
+        .catch(() => { if (active) readFeed(); });
+    });
+    window.addEventListener(UP_AHEAD_UPDATED_EVENT, readFeed);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('focus', readFeed);
+    return () => {
+      active = false;
+      window.removeEventListener(UP_AHEAD_UPDATED_EVENT, readFeed);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', readFeed);
+    };
+  }, [settings]);
+
+  const pruneUpAhead = useCallback(() => {
+    setUpAheadData(current => sanitizeUpAheadData(current));
+  }, []);
+  useUpAheadExpiry(upAheadData, pruneUpAhead);
+
+  const upAheadSuggestions = useMemo(() => getUpAheadPlannerSuggestions(
+    upAheadData, planData, plannerStorage.getBlacklist?.() || new Set(), settings?.upAhead
+  ), [upAheadData, planData, settings?.upAhead]);
+
+  const saveUpAheadSuggestion = useCallback(item => {
+    const result = plannerStorage.addItem(item.planDate, item);
+    if (isPlannerStorageSuccess(result)) {
+      setSuggestionError('');
+      loadPlan();
+    } else {
+      setSuggestionError(getPlannerStorageError(result, 'Could not save this suggestion.'));
+    }
   }, [loadPlan]);
 
   const plannerEvidence = useMemo(() => (
@@ -406,6 +462,9 @@ export function useMyPlannerPageViewModel() {
   return {
     planData,
     undoItem,
+    upAheadSuggestions,
+    suggestionError,
+    saveUpAheadSuggestion,
 
     plannerControls,
     setPlannerControls,

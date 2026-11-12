@@ -437,7 +437,7 @@ function UpAheadPage() {
   } = useUpAheadPageViewModel();
 
   const handleRefresh = () => loadData({ forceRefresh: false });
-  const handleForceRefresh = () => loadData({ forceRefresh: true, liveOnly: true });
+  const handleForceRefresh = () => loadData({ forceRefresh: true });
   const envelope = null;
   const error = null;
 
@@ -530,8 +530,8 @@ function UpAheadPage() {
         ) : (
           <>
             <span>{isStaticHost ? 'Snapshot' : 'Live Feed'} • {locationLabel}</span>
-            <button onClick={() => loadData({ forceRefresh: true })} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }} title="Refresh using cached and static data first">🔄</button>
-            <button onClick={handleForceRefresh} className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.7rem' }} title="Clear stale Up Ahead cache and reload from live feeds only">Force Refresh</button>
+            <button onClick={handleRefresh} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }} title="Refresh Up Ahead">🔄</button>
+            <button onClick={handleForceRefresh} className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.7rem' }} title="Check for new items and keep your active list">Force Refresh</button>
           </>
         )}
       </div>

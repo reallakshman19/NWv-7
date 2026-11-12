@@ -1,17 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { useUpAheadExpiry } from '../hooks/useUpAheadExpiry';
 import {
-  fetchStaticUpAheadData,
-  fetchLiveUpAheadData,
-  mergeUpAheadData,
   loadFromCache,
-  saveToCache,
-  clearUpAheadCache,
+  sanitizeUpAheadData,
   isActualWeatherAlertText,
   isActualOfferText,
 } from '../services/upAheadService';
+import { isUpAheadItemActive } from '../services/upAheadLifecycle';
+import { load as loadUpAhead } from '../data/datasets/upAheadDataset';
 import plannerStorage, {
   getPlannerStorageError,
   isPlannerStorageSuccess,
@@ -36,10 +35,6 @@ const DEFAULT_UPAHEAD_SETTINGS = {
   locations: ['Chennai', 'Muscat'],
 };
 
-const OFFER_MAX_AGE_MS         = 30 * 24 * 60 * 60 * 1000;  // 30 days (offers are awareness items; news lags)
-const WEATHER_ALERT_MAX_AGE_MS = 36 * 60 * 60 * 1000;       // 36 hours
-const ALERT_MAX_AGE_MS         = 48 * 60 * 60 * 1000;       // 48 hours
-const CIVIC_MAX_AGE_MS         = 365 * 24 * 60 * 60 * 1000; // 1 year (drop clearly-broken dates; civic feeds are evergreen)
 const CIVIC_MAX_ITEMS          = 20;                        // cap civic notices shown
 
 function normalizePlanDate(dateStr) {
@@ -410,50 +405,35 @@ function buildSuggestedItems({ movieCards, festivalCards, eventItems, onlineOffe
 }
 
 function getVisibleUpAheadProjection({ data, settings }) {
-  const sections = asSections(data);
   const upAheadSettings = settings?.upAhead || DEFAULT_UPAHEAD_SETTINGS;
-
-  const weatherAlerts = asArray(sections.weather_alerts).filter(item => {
-    if (!isActualWeatherAlertText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings)) return false;
-    const age = getEventDateMs(item?.publishedAt || item?.eventStartAt || item?.date || item?.timestamp);
-    if (age > 0 && (Date.now() - age) > WEATHER_ALERT_MAX_AGE_MS) return false;
-    return true;
-  });
-  const generalAlerts = asArray(sections.alerts).filter(item => {
-    const age = getEventDateMs(item?.publishedAt || item?.eventStartAt || item?.date || item?.timestamp);
-    return age === 0 || (Date.now() - age) <= ALERT_MAX_AGE_MS;
-  });
+  const now = Date.now();
+  const sections = Object.fromEntries(Object.entries(asSections(data)).map(([key, items]) => [
+    key,
+    upAheadSettings.categories?.[key] === false
+      ? []
+      : asArray(items).filter(item => isUpAheadItemActive({ category: key, ...item }, now)),
+  ]));
+  const weatherAlerts = asArray(sections.weather_alerts).filter(item =>
+    isActualWeatherAlertText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings)
+  );
+  const generalAlerts = asArray(sections.alerts);
 
   const locations = upAheadSettings.locations || DEFAULT_UPAHEAD_SETTINGS.locations;
 
-  // Civic notices are dateless "current awareness" items: filter to the user's
-  // configured locations (explicit + configurable), drop clearly-broken dates with
-  // a generous 1-year window, sort newest-first, and cap. This is the single source
-  // for both the Civics tab and the civic portion of the Alerts badge.
+  // This feeds both the Civics tab and the civic portion of the Alerts badge.
   const civicItems = asArray(sections.civic)
     .filter(item => matchesConfiguredLocation(item, locations))
-    .filter(item => {
-      const age = publishedMs(item);
-      return age === 0 || (Date.now() - age) <= CIVIC_MAX_AGE_MS;
-    })
     .sort((a, b) => publishedMs(b) - publishedMs(a))
     .slice(0, CIVIC_MAX_ITEMS);
   const civicAlerts = civicItems;
   const combinedAlerts = [...weatherAlerts, ...generalAlerts, ...civicItems];
 
-  // Offers, quality-gated by offer keywords, newest-first.
-  // Online = city-agnostic e-commerce + airlines. These are time-sensitive (Prime
-  // Day, flash/fare sales) so use the tight 30-day window.
+  // Online offers are city-agnostic e-commerce and airline deals.
   const onlineOfferCandidates = [
     ...asArray(sections.shopping),
     ...asArray(sections.airlines),
-  ].filter(item => {
-    if (itemLocation(item)) return false; // city-agnostic only
-    if (!isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings)) return false;
-    const publishedAt = publishedMs(item);
-    if (publishedAt && (Date.now() - publishedAt) > OFFER_MAX_AGE_MS) return false;
-    return true;
-  });
+  ].filter(item => !itemLocation(item)
+    && isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings));
 
   // Group near-duplicate online offers (e.g. the many "Amazon Prime Day 2026"
   // write-ups from different outlets) into a single representative carrying a
@@ -461,10 +441,7 @@ function getVisibleUpAheadProjection({ data, settings }) {
   const onlineOffers = groupOnlineOffers(onlineOfferCandidates)
     .sort((a, b) => publishedMs(b) - publishedMs(a));
 
-  // Offline = location-matched local shopping. These feeds are already offer-
-  // intentioned (e.g. "Chennai sale … OR offer") but sparse & evergreen, so we skip
-  // the strict keyword gate and instead location-match with the same generous window
-  // + cap as civic, recency-sorted.
+  // The local shopping feeds are already filtered for offer intent.
   // Google News RSS items carry no explicit location metadata, so fall back to
   // text scanning when city/locationCanonical/region fields are all absent.
   const offlineOffers = asArray(sections.shopping)
@@ -473,10 +450,6 @@ function getVisibleUpAheadProjection({ data, settings }) {
         ? matchesConfiguredLocation(item, locations)
         : matchesConfiguredLocationByText(item, locations)
     )
-    .filter(item => {
-      const publishedAt = publishedMs(item);
-      return publishedAt === 0 || (Date.now() - publishedAt) <= CIVIC_MAX_AGE_MS;
-    })
     .sort((a, b) => publishedMs(b) - publishedMs(a))
     .slice(0, CIVIC_MAX_ITEMS);
 
@@ -539,7 +512,8 @@ export function useUpAheadPageViewModel() {
   const [view, setView] = useState('plan');
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [liveAcquisition, setLiveAcquisition] = useState(null);
-  const [, setBlacklist] = useState(plannerStorage.getBlacklist ? plannerStorage.getBlacklist() : new Set());
+  const latestLoad = useRef(0);
+  const lastData = useRef(null);
 
   const runtime = useMemo(() => (
     getRuntimeCapabilities()
@@ -547,125 +521,58 @@ export function useUpAheadPageViewModel() {
 
   const upAheadSettings = settings?.upAhead || DEFAULT_UPAHEAD_SETTINGS;
 
-  const loadData = useCallback(async ({ forceRefresh = false, liveOnly = false } = {}) => {
-    if (!runtime.isStaticHost) {
-      await plannerStorage.loadBlacklistFromApi?.();
-      await plannerStorage.loadPlanFromApi?.();
-    }
+  const showRetained = useCallback(() => {
+    const retained = loadFromCache() || sanitizeUpAheadData(lastData.current);
+    lastData.current = retained;
+    setData(retained);
+    return retained;
+  }, []);
 
-    if (forceRefresh) {
-      clearUpAheadCache();
-      if (liveOnly) {
-        setLoading(true);
-        setLoadingPhase(0);
-      }
-
-      setIsRefreshing(true);
-      setLoadingPhase(1);
-    } else {
-      setLoading(true);
-      setLoadingPhase(0);
-    }
-
-    if (!forceRefresh && !liveOnly) {
-      const cached = loadFromCache(upAheadSettings);
-
-      if (cached) {
-        setData(cached);
-        setLoading(false);
-        setLoadingPhase(1);
-      }
-    }
-
-    if (!liveOnly) {
-      try {
-        const staticData = await fetchStaticUpAheadData(upAheadSettings);
-
-        if (staticData) {
-          setData(prev => {
-            const merged = mergeUpAheadData(prev, staticData, upAheadSettings);
-            saveToCache(merged, upAheadSettings);
-            return merged;
-          });
-
-          if (!forceRefresh) setLoadingPhase(2);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.warn('Static Up Ahead fetch failed', error);
-      }
-    }
-
+  const loadData = useCallback(async ({ forceRefresh = false } = {}) => {
+    const request = ++latestLoad.current;
+    const retained = showRetained();
+    setLoading(!retained);
+    setLoadingPhase(retained ? 1 : 0);
     setIsRefreshing(true);
-
-    const browserLiveAllowed = Boolean(
-      runtime.allowWideFeedFetch ??
-      runtime.browserWideFeedFetchAllowed ??
-      !runtime.isStaticHost
-    );
-
-    if (!browserLiveAllowed) {
-      setLiveAcquisition({
-        status: 'blocked',
-        reason: 'static_runtime_blocks_browser_live',
-        attemptedSources: 0,
-        successfulSources: 0,
-        failedSources: 0,
-        returnedItems: 0,
-        byCategory: {},
-      });
-      setIsRefreshing(false);
-      setLoading(false);
-      return;
-    }
-
     try {
-      const liveData = await fetchLiveUpAheadData(upAheadSettings);
-      setLiveAcquisition(liveData?.acquisitionSummary || {
-        status: 'unknown',
-        attemptedSources: 0,
-        successfulSources: 0,
-        failedSources: 0,
-        returnedItems: 0,
-        byCategory: {},
+      const envelope = await loadUpAhead({
+        policy: forceRefresh ? 'refresh-now' : 'smart',
+        forceRefresh,
+        fallbackData: retained,
+        settings,
       });
-
-      setData(prev => {
-        const merged = mergeUpAheadData(prev, liveData, upAheadSettings);
-        saveToCache(merged, upAheadSettings);
-        return merged;
-      });
-
-      setLoadingPhase(3);
+      if (request !== latestLoad.current) return;
+      const { raw, sourceMode, acquisitionSummary } = envelope.data;
+      lastData.current = raw && { ...raw, sourceMode };
+      setData(lastData.current);
+      setLiveAcquisition(acquisitionSummary);
+      setLoadingPhase(acquisitionSummary && acquisitionSummary.status !== 'blocked' ? 3 : 2);
     } catch (error) {
-      console.error('Failed to load Live Up Ahead data', error);
-      setLiveAcquisition({
-        status: 'failed',
-        reason: error?.message || 'live_fetch_failed',
-        attemptedSources: 0,
-        successfulSources: 0,
-        failedSources: 0,
-        returnedItems: 0,
-        byCategory: {},
-      });
+      if (request !== latestLoad.current) return;
+      setLiveAcquisition({ status: 'failed', reason: error?.message || 'refresh_failed', byCategory: {} });
     } finally {
-      setIsRefreshing(false);
-      setLoading(false);
+      if (request === latestLoad.current) {
+        setIsRefreshing(false);
+        setLoading(false);
+      }
     }
-  }, [
-    runtime.allowWideFeedFetch,
-    runtime.browserWideFeedFetchAllowed,
-    runtime.isStaticHost,
-    upAheadSettings,
-  ]);
+  }, [settings, showRetained]);
 
   const { pullDistance } = usePullToRefresh(() => (
-    loadData({ forceRefresh: true, liveOnly: true })
+    loadData({ forceRefresh: true })
   ));
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let active = true;
+    queueMicrotask(() => { if (active) loadData(); });
+    window.addEventListener('focus', showRetained);
+    return () => {
+      active = false;
+      latestLoad.current += 1;
+      window.removeEventListener('focus', showRetained);
+    };
+  }, [loadData, showRetained]);
+  useUpAheadExpiry(data, showRetained);
 
   const handleRemoveFromPlan = useCallback((item) => {
     const id = item?.hiddenKey || item?.canonicalId || item?.id;
@@ -681,10 +588,9 @@ export function useUpAheadPageViewModel() {
         return result;
       }
 
-      setBlacklist(plannerStorage.getBlacklist());
-      loadData();
+      showRetained();
     }
-  }, [loadData]);
+  }, [showRetained]);
 
   const handleAddToPlan = useCallback((item, dateStr) => {
     const hiddenKey = item?.hiddenKey || item?.canonicalId || item?.id;
@@ -693,6 +599,7 @@ export function useUpAheadPageViewModel() {
     const result = plannerStorage.addItem(normalizedDate, {
       id: hiddenKey || item?.id,
       hiddenKey,
+      upAheadIds: item?.upAheadIds,
       title: item?.title,
       category: item?.tags?.[0] || 'event',
       type: item?.type || item?.tags?.[0] || 'event',
@@ -711,14 +618,14 @@ export function useUpAheadPageViewModel() {
       return result;
     }
 
-    loadData();
+    showRetained();
 
     if (typeof window !== 'undefined' && typeof window.alert === 'function') {
       window.alert('Added to Plan!');
     }
 
     return { ok: true };
-  }, [loadData]);
+  }, [showRetained]);
 
   const removeUpAheadLocation = useCallback((location) => {
     const current = upAheadSettings.locations || ['Chennai', 'Muscat'];
@@ -852,7 +759,6 @@ export function useUpAheadPageViewModel() {
 
 export const __upAheadPageViewModelInternalsForTest = {
   DEFAULT_UPAHEAD_SETTINGS,
-  OFFER_MAX_AGE_MS,
   normalizePlanDate,
   asArray,
   asSections,

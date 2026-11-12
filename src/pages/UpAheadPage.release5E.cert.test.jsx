@@ -47,7 +47,7 @@ describe('UpAheadPage Release 5E migration', () => {
     expect(src).toContain('handleForceRefresh');
     expect(src).toContain('handleRefresh');
     expect(src).toContain('loadData({ forceRefresh: false })');
-    expect(src).toContain('loadData({ forceRefresh: true, liveOnly: true })');
+    expect(src).toContain('loadData({ forceRefresh: true })');
   });
 
   it('passes dataset error into DataStateBoundary', () => {

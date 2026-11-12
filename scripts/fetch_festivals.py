@@ -6,20 +6,17 @@ Writes into the same public/data/up_ahead.json, merging with existing items.
 """
 import os
 import sys
-import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-import feedparser
-from datetime import datetime, timezone, timedelta
+from enrich_upahead_contract import merge_upahead_snapshot
 from prefetch_common import (
-    H_MS, DAY_MS, now_ms, read_json, write_json,
-    make_story_id, title_fingerprint, compute_content_hash, is_suppressed
+    now_ms, read_json, write_json, make_story_id, is_suppressed,
 )
 from fetch_upahead_events import (
     extract_event_date, derive_expiry, is_planner_eligible,
-    estimate_actionability, keep_upahead_item, LOCATION_LOCALITY,
-    _safe_feed_parse, THIS_YEAR
+    estimate_actionability, LOCATION_LOCALITY, recent_publication_ms,
+    _safe_feed_parse, THIS_YEAR,
 )
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
@@ -49,9 +46,11 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
         locality_meta = LOCATION_LOCALITY.get(location, {'city': None, 'region': None, 'localityScore': 0.5})
         try:
             feed = _safe_feed_parse(url)
-            for entry in feed.entries[:30]:
-                pub = entry.get('published_parsed')
-                pub_ms  = int(time.mktime(pub) * 1000) if pub else ts
+            before = len(results)
+            for entry in feed.entries:
+                pub_ms = recent_publication_ms(entry, ts)
+                if pub_ms is None:
+                    continue
                 title   = entry.get('title', '').strip()
                 summary = entry.get('summary', '').strip()
                 link    = entry.get('link', '').strip()
@@ -91,7 +90,7 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
 
                 results.append(item)
 
-            source_health[source_group] = {'ok': True, 'items': len(results), 'lastSuccess': ts}
+            source_health[source_group] = {'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
         except Exception as e:
             source_health[source_group] = {'ok': False, 'error': str(e), 'items': 0}
 
@@ -101,37 +100,8 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
 def main():
     ts       = now_ms()
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
-    old_items = existing.get('items', [])
-
-    # Keep all non-festival items as-is; re-fetch all festivals
-    non_festival = [i for i in old_items if i.get('category') != 'festivals']
-    retained_non = {i['id']: i for i in non_festival if i.get('id')}
-
     new_festivals, health = fetch_festival_items(ts)
-    festivals_by_id = {i['id']: i for i in new_festivals if i.get('id')}
-
-    merged_by_id = {**retained_non, **festivals_by_id}
-    all_items = list(merged_by_id.values())
-
-    # Dedup by title fingerprint within festivals category
-    fp_seen: dict[str, dict] = {}
-    final = []
-    for item in sorted(all_items, key=lambda x: x.get('publishedAt', 0), reverse=True):
-        if item.get('category') != 'festivals':
-            final.append(item)
-            continue
-        fp  = title_fingerprint(item.get('title', ''))
-        key = f"festivals::{fp}"
-        if key not in fp_seen:
-            fp_seen[key] = item
-            final.append(item)
-
-    snapshot = {
-        'schemaVersion': 1,
-        'fetchedAt':     ts,
-        'contentHash':   compute_content_hash(final),
-        'items':         final,
-    }
+    snapshot = merge_upahead_snapshot(existing, new_festivals, ts, fetched=any(row['ok'] for row in health.values()))
     write_json(UP_AHEAD_PATH, snapshot)
 
     existing_health = read_json(SOURCE_HEALTH_PATH, {'lastChecked': 0, 'sources': {}})
@@ -140,7 +110,7 @@ def main():
     write_json(SOURCE_HEALTH_PATH, existing_health)
 
     print(
-        f'Done. total={len(final)}, festivals={len(festivals_by_id)}, '
+        f'Done. total={len(snapshot["items"])}, fetchedFestivals={len(new_festivals)}, '
         f'contentHash={snapshot["contentHash"]}'
     )
 

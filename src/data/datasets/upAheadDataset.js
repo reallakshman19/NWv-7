@@ -5,9 +5,11 @@ import { resolveUpAheadProviderPolicy } from './upAheadProviderPolicy.js';
 import {
   fetchStaticUpAheadData,
   fetchLiveUpAheadData,
-  mergeUpAheadData,
   loadFromCache,
   saveToCache,
+  sanitizeUpAheadData,
+  isUpAheadDataFresh,
+  UP_AHEAD_REFRESH_MAX_AGE_MS,
   isActualWeatherAlertText,
   isActualOfferText,
 } from '../../services/upAheadService.js';
@@ -16,11 +18,6 @@ import { getUpAheadBriefing } from '../../services/upAheadBriefing.js';
 import { getRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
 import { getSettings } from '../../utils/storage.js';
 import plannerStorage from '../../utils/plannerStorage.js';
-
-const OFFER_MAX_AGE_MS      = 2  * 24 * 60 * 60 * 1000; // 2 days
-const WEATHER_ALERT_MAX_AGE_MS = 36 * 60 * 60 * 1000;    // 36 hours — forecasts become stale quickly
-const ALERT_MAX_AGE_MS      = 48 * 60 * 60 * 1000;       // 48 hours — general alerts
-const CIVIC_MAX_AGE_MS      = 7  * 24 * 60 * 60 * 1000;  // 7 days — road/civic notices
 
 const DEFAULT_UP_AHEAD_SETTINGS = {
   categories: {
@@ -52,39 +49,20 @@ function getSource(sourceMode) {
   return ENVELOPE_SOURCES.LIVE;
 }
 
-function getItemAgeMs(item) {
-  const raw = item?.publishedAt || item?.eventStartAt || item?.date || item?.timestamp;
-  if (!raw) return 0;
-  const ms = typeof raw === 'number' ? (raw < 10_000_000_000 ? raw * 1000 : raw) : Date.parse(raw);
-  return Number.isFinite(ms) && ms > 0 ? Date.now() - ms : 0;
-}
-
 function buildVisible(data, settings) {
   const sections = data?.sections || {};
-  const weatherAlerts = (sections.weather_alerts || []).filter(item => {
-    if (!isActualWeatherAlertText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead)) return false;
-    const age = getItemAgeMs(item);
-    return !(age > 0 && age > WEATHER_ALERT_MAX_AGE_MS);
-  });
+  const weatherAlerts = (sections.weather_alerts || []).filter(item =>
+    isActualWeatherAlertText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead)
+  );
   const alerts = [
     ...weatherAlerts,
-    ...(sections.alerts || []).filter(item => {
-      const age = getItemAgeMs(item);
-      return age === 0 || age <= ALERT_MAX_AGE_MS;
-    }),
+    ...(sections.alerts || []),
   ];
-  const civics = (sections.civic || []).filter(item => {
-    const age = getItemAgeMs(item);
-    return age === 0 || age <= CIVIC_MAX_AGE_MS;
-  });
+  const civics = sections.civic || [];
   const offers = [
     ...(sections.shopping || []),
     ...(sections.airlines || []),
-  ].filter(item => {
-    if (!isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead)) return false;
-    const pub = item?.publishedAt || item?.eventStartAt;
-    return !(pub && (Date.now() - pub) > OFFER_MAX_AGE_MS);
-  });
+  ].filter(item => isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead));
   return {
     plan: data?.weekly_plan || [],
     offers,
@@ -142,23 +120,23 @@ function pushDatasetApiEdgeDiagnostics(diagnostics, edgeDiagnostics) {
   });
 }
 
-function persistUpAheadData(data) {
-  saveToCache(data);
-  return data;
-}
-
 async function loadDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
   diagnostics.push({ event: 'upAheadDataset.api_attempted', severity: 'info', message: 'Attempting Up Ahead dataset API' });
   const apiResponse = await fetchUpAheadDatasetApiResponse({ baseUrl: runtimeCapabilities.configuredBackendUrl });
   pushDatasetApiEdgeDiagnostics(diagnostics, apiResponse?.diagnostics);
   const apiData = apiResponse?.data;
-  if (apiData && hasVisibleUpAheadContent(apiData)) {
-    const merged = persistUpAheadData(mergeUpAheadData(data, apiData));
+  if (apiData) data = saveToCache(apiData, data);
+  if (hasVisibleUpAheadContent(sanitizeUpAheadData(apiData))) {
     diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
-    return { data: merged, sourceMode: apiData.sourceMode || 'dataset-api', hasUsableApi: true };
+    return {
+      data,
+      sourceMode: apiData.sourceMode || 'dataset-api',
+      hasFreshApi: apiResponse.diagnostics?.freshness === 'fresh'
+        || (apiResponse.diagnostics?.freshness !== 'stale' && isUpAheadDataFresh(apiData)),
+    };
   }
   diagnostics.push({ event: 'upAheadDataset.api_empty', severity: 'warn', message: 'Dataset API returned no visible Up Ahead content' });
-  return { data, sourceMode: null, hasUsableApi: false };
+  return { data, sourceMode: null, hasFreshApi: false };
 }
 
 async function mergeDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
@@ -166,17 +144,17 @@ async function mergeDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
     return await loadDatasetApiData({ runtimeCapabilities, data, diagnostics });
   } catch (error) {
     diagnostics.push({ event: 'upAheadDataset.api_failed', severity: 'warn', message: error?.message || String(error) });
-    return { data, sourceMode: null, hasUsableApi: false };
+    return { data, sourceMode: null, hasFreshApi: false };
   }
 }
 
 async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   try {
     const staticData = await fetchStaticUpAheadData(upAheadSettings);
-    if (staticData && hasVisibleUpAheadContent(staticData)) {
-      const merged = persistUpAheadData(mergeUpAheadData(data, staticData));
+    if (staticData) data = saveToCache(staticData, data);
+    if (hasVisibleUpAheadContent(sanitizeUpAheadData(staticData))) {
       diagnostics.push({ event: 'upAheadDataset.static_loaded', severity: 'info', message: 'Merged static Up Ahead data' });
-      return { data: merged, sourceMode: staticData.sourceMode || 'snapshot', hasUsableStatic: true };
+      return { data, sourceMode: staticData.sourceMode || 'snapshot', hasUsableStatic: isUpAheadDataFresh(staticData) };
     }
     diagnostics.push({ event: 'upAheadDataset.static_empty', severity: 'warn', message: 'Static Up Ahead data was empty or not displayable' });
   } catch (error) {
@@ -185,15 +163,16 @@ async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   return { data, sourceMode: null, hasUsableStatic: false };
 }
 
-async function mergeLiveData({ options, upAheadSettings, data, diagnostics }) {
+async function mergeLiveData({ upAheadSettings, data, diagnostics }) {
   try {
     const liveData = await fetchLiveUpAheadData(upAheadSettings);
-    if (liveData && hasVisibleUpAheadContent(liveData)) {
-      const merged = persistUpAheadData(mergeUpAheadData(options.liveOnly ? null : data, liveData));
+    if (liveData) data = saveToCache(liveData, data);
+    if (hasVisibleUpAheadContent(sanitizeUpAheadData(liveData))) {
       diagnostics.push({ event: 'upAheadDataset.live_loaded', severity: 'info', message: 'Merged live Up Ahead data' });
-      return { data: merged, sourceMode: liveData?.sourceMode || 'live' };
+      return { data, sourceMode: liveData.sourceMode || 'live', acquisitionSummary: liveData.acquisitionSummary };
     }
     diagnostics.push({ event: 'upAheadDataset.live_empty', severity: data ? 'warn' : 'error', message: 'Live Up Ahead fetch returned no visible content' });
+    return { data, sourceMode: null, acquisitionSummary: liveData?.acquisitionSummary };
   } catch (error) {
     diagnostics.push({ event: 'upAheadDataset.live_failed', severity: data ? 'warn' : 'error', message: error?.message || String(error) });
   }
@@ -215,55 +194,62 @@ function getVisibleContext(data, settings, visible) {
 }
 
 export async function load(options = {}) {
-  const settings = safeGetSettings();
+  const settings = options.settings || safeGetSettings();
   const upAheadSettings = settings.upAhead || DEFAULT_UP_AHEAD_SETTINGS;
   const runtimeCapabilities = getRuntimeCapabilities();
   const diagnostics = [];
   let data = null;
   let sourceMode = 'live';
   let hasUsableCache = false;
-  let hasUsableApi = false;
+  let hasFreshApi = false;
   let hasUsableStatic = false;
+  let acquisitionSummary = null;
 
-  await loadPlannerSyncIfAllowed();
+  if (options.syncPlanner !== false) await loadPlannerSyncIfAllowed();
 
-  const initialPolicy = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableApi, hasUsableStatic });
+  const initialPolicy = resolveUpAheadProviderPolicy({ options, runtimeCapabilities });
 
-  if (initialPolicy.shouldReadCache) {
-    const cached = loadFromCache();
-    if (cached) {
-      hasUsableCache = hasVisibleUpAheadContent(cached);
-      data = cached;
-      sourceMode = cached.sourceMode || 'cache';
-      diagnostics.push({ event: 'upAheadDataset.cache_hit', severity: 'info', message: 'Loaded Up Ahead cache' });
-    }
+  const cached = loadFromCache() || sanitizeUpAheadData(options.fallbackData);
+  if (cached) {
+    // Cache freshness can satisfy a fetch policy. All active cached items
+    // remain the baseline even for a forced or live-only refresh.
+    hasUsableCache = initialPolicy.shouldReadCache && isUpAheadDataFresh(cached, UP_AHEAD_REFRESH_MAX_AGE_MS);
+    data = cached;
+    sourceMode = cached.sourceMode || 'cache';
+    diagnostics.push({ event: 'upAheadDataset.cache_hit', severity: 'info', message: 'Loaded retained Up Ahead items' });
   }
 
   if (initialPolicy.shouldAttemptDatasetApi) {
     const result = await mergeDatasetApiData({ runtimeCapabilities, data, diagnostics });
     data = result.data;
-    hasUsableApi = result.hasUsableApi;
+    hasFreshApi = result.hasFreshApi;
     if (result.sourceMode) sourceMode = result.sourceMode;
   } else {
     diagnostics.push({ event: 'upAheadDataset.api_skipped_policy', severity: 'info', message: initialPolicy.apiSkippedReason || 'Dataset API not attempted' });
   }
 
-  if (initialPolicy.shouldReadStatic && !hasUsableApi) {
+  if (initialPolicy.shouldReadStatic && !hasFreshApi) {
     const result = await mergeStaticData({ upAheadSettings, data, diagnostics });
     data = result.data;
     hasUsableStatic = result.hasUsableStatic;
     if (result.sourceMode) sourceMode = result.sourceMode;
   }
 
-  const providerDecision = resolveUpAheadProviderPolicy({ options, runtimeCapabilities, hasUsableCache, hasUsableApi, hasUsableStatic });
+  const providerDecision = resolveUpAheadProviderPolicy({
+    options, runtimeCapabilities, hasUsableCache, hasUsableApi: hasFreshApi, hasUsableStatic,
+  });
   pushProviderDecision(diagnostics, providerDecision);
 
   if (providerDecision.shouldAttemptLive) {
-    const result = await mergeLiveData({ options, upAheadSettings, data, diagnostics });
+    const result = await mergeLiveData({ upAheadSettings, data, diagnostics });
     data = result.data;
+    acquisitionSummary = result.acquisitionSummary;
     if (result.sourceMode) sourceMode = result.sourceMode;
   } else {
     pushLiveSkipped(diagnostics, providerDecision, data);
+    if (!providerDecision.browserWideFeedFetchAllowed) {
+      acquisitionSummary = { status: 'blocked', reason: 'static_runtime_blocks_browser_live', byCategory: {} };
+    }
   }
 
   const visible = buildVisible(data, settings);
@@ -275,7 +261,7 @@ export async function load(options = {}) {
   const envelope = makeEnvelope({
     ok,
     datasetId: 'upAhead',
-    data: { ...visible, briefing, evidence, sourceMode, raw: data },
+    data: { ...visible, briefing, evidence, sourceMode, raw: data, acquisitionSummary },
     source: getSource(sourceMode),
     freshness: ok ? ENVELOPE_FRESHNESS.FRESH : ENVELOPE_FRESHNESS.EMPTY,
     error: ok ? null : 'up ahead unavailable',

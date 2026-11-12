@@ -4,7 +4,6 @@ const mocks = vi.hoisted(() => ({
   fetchStaticUpAheadData: vi.fn(),
   fetchLiveUpAheadData: vi.fn(),
   loadFromCache: vi.fn(),
-  saveToCache: vi.fn(),
   fetchUpAheadDatasetApiResponse: vi.fn(),
   getRuntimeCapabilities: vi.fn(),
 }));
@@ -24,14 +23,13 @@ vi.mock('../../utils/storage.js', () => ({ getSettings: () => ({ upAhead: { cate
 vi.mock('../../utils/plannerStorage.js', () => ({ default: { loadBlacklistFromApi: vi.fn(), loadPlanFromApi: vi.fn() } }));
 vi.mock('../../services/upAheadEvidence.js', () => ({ getUpAheadEvidence: () => ({}) }));
 vi.mock('../../services/upAheadBriefing.js', () => ({ getUpAheadBriefing: () => ({}) }));
-vi.mock('../../services/upAheadService.js', () => ({
+vi.mock('../../services/upAheadService.js', async importOriginal => ({
+  ...await importOriginal(),
   fetchStaticUpAheadData: mocks.fetchStaticUpAheadData,
   fetchLiveUpAheadData: mocks.fetchLiveUpAheadData,
   loadFromCache: mocks.loadFromCache,
-  saveToCache: mocks.saveToCache,
   isActualWeatherAlertText: () => true,
   isActualOfferText: () => true,
-  mergeUpAheadData: (base, incoming) => incoming || base,
 }));
 
 function setStaticWithApiRuntime() {
@@ -112,7 +110,7 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     });
   });
 
-  it('does not reject usable API data because edge freshness is stale', async () => {
+  it('retains active stale API items and checks for a newer published snapshot', async () => {
     mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi, {
       source: 'upstream',
       reason: 'ok',
@@ -123,12 +121,13 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
 
     const envelope = await load({ policy: 'smart' });
 
-    expect(envelope.data.sourceMode).toBe('dataset-api');
-    expect(mocks.fetchStaticUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(envelope.data.events.map(item => item.title)).toEqual(['API event', 'Static event']);
     expect(envelope.diagnostics.find(item => item.event === 'upAheadDataset.api_edge_diagnostics')?.details.freshness).toBe('stale');
   });
 
-  it('does not reject usable API data because edge freshness is unknown', async () => {
+  it('keeps active API items with unknown freshness when the static fallback fails', async () => {
+    mocks.fetchStaticUpAheadData.mockResolvedValueOnce(null);
     mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi, {
       source: 'upstream',
       reason: 'ok',
@@ -140,7 +139,29 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     const envelope = await load({ policy: 'smart' });
 
     expect(envelope.data.sourceMode).toBe('dataset-api');
-    expect(mocks.fetchStaticUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(envelope.data.events.map(item => item.title)).toEqual(['API event']);
     expect(envelope.diagnostics.find(item => item.event === 'upAheadDataset.api_edge_diagnostics')?.details.freshness).toBe('unknown');
+  });
+
+  it('merges raw snapshot items from the API during a forced refresh without clearing the retained feed', async () => {
+    mocks.loadFromCache.mockReturnValue(visibleStatic);
+    const now = Date.now();
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse({
+      fetchedAt: now,
+      items: [{
+        id: 'raw-event',
+        title: 'Raw API event',
+        category: 'events',
+        eventStartAt: now + 86_400_000,
+        plannerEligible: true,
+      }],
+    }));
+    const { load } = await import('./upAheadDataset.js');
+    const envelope = await load({ policy: 'refresh-now', forceRefresh: true });
+
+    expect(envelope.data.events.map(item => item.title)).toEqual(['Static event', 'Raw API event']);
+    expect(mocks.fetchStaticUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchLiveUpAheadData).not.toHaveBeenCalled();
   });
 });

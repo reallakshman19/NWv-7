@@ -2,11 +2,19 @@ import { DEFAULT_SETTINGS } from '../utils/storage.js';
 import plannerStorage from '../utils/plannerStorage.js';
 import { fetchIntelligentUpAheadData } from './intelligentUpAheadFetcher.js';
 import { toDateKey } from '../utils/dateDisplay.js';
-import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
+import {
+  isUpAheadItemActive,
+  mergeUpAheadItems,
+  UP_AHEAD_SOURCE_LOOKBACK_MS,
+  upAheadDateKey,
+  upAheadIdentityKeys,
+  upAheadTimeMs,
+} from './upAheadLifecycle.js';
 
 export const CACHE_KEY = 'upAhead_cache';
+export const UP_AHEAD_UPDATED_EVENT = 'upahead-updated';
+export const UP_AHEAD_REFRESH_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
-const CACHE_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6h — aligned to 5×/day pre-fetch cadence
 const STATIC_UPAHEAD_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 
 function normalizeDateKey(value) {
@@ -36,52 +44,16 @@ function hasItems(items = []) {
   return Array.isArray(items) && items.some(Boolean);
 }
 
-function getStartOfTodayMs() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return today.getTime();
+function filterPastDatedDisplayItems(items = [], now = Date.now()) {
+  return uniqByKey(items).filter(item => isUpAheadItemActive(item, now));
 }
 
-function toTimeMs(value) {
-  if (!value) return 0;
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value < 10_000_000_000 ? value * 1000 : value;
-  }
-
-  const numeric = Number(value);
-  if (Number.isFinite(numeric) && numeric > 0) {
-    return numeric < 10_000_000_000 ? numeric * 1000 : numeric;
-  }
-
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function getDisplayDateMs(item) {
-  return toTimeMs(
-    item?.eventDate ||
-    item?.eventDateKey ||
-    item?.date ||
-    item?.releaseDate ||
-    item?.planDate ||
-    item?.eventStartAt ||
-    item?.expiryAt
-  );
-}
-
-function isPastDatedDisplayItem(item, todayMs = getStartOfTodayMs()) {
-  const eventMs = getDisplayDateMs(item);
-  return eventMs > 0 && eventMs < todayMs;
-}
-
-function filterPastDatedDisplayItems(items = [], todayMs = getStartOfTodayMs()) {
-  return uniqByKey(items || []).filter(item => !isPastDatedDisplayItem(item, todayMs));
-}
-
-function isStaticUpAheadFresh(data, maxAgeMs = STATIC_UPAHEAD_MAX_AGE_MS) {
-  const fetchedAt = toTimeMs(data?.fetchedAt || data?.lastUpdated);
-  if (!fetchedAt) return true;
-  return Date.now() - fetchedAt <= maxAgeMs;
+export function isUpAheadDataFresh(data, maxAgeMs = STATIC_UPAHEAD_MAX_AGE_MS) {
+  if (!data || data.auditSummary?.fallback === 'festival_calendar') return false;
+  const fetchedAt = upAheadTimeMs(data.fetchedAt || data.lastUpdated);
+  if (!fetchedAt) return false;
+  const age = Date.now() - fetchedAt;
+  return age >= 0 && age <= maxAgeMs;
 }
 
 function getItemType(category) {
@@ -232,6 +204,7 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       link: item.link,
       description: item.description || item.summary || '',
       date: eventDateKey,
+      eventDateKey,
       releaseDate: eventDateKey,
       planDate: eventDateKey,
       category: sectionKey,
@@ -243,7 +216,14 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       decisionTrace: item.decisionTrace || [],
       plannerEligible: Boolean(item.plannerEligible && eventDateKey),
       displayEligible: item.displayEligible !== false,
-      publishedAt: item.publishedAt || item.publishDate || null
+      publishedAt: item.publishedAt || item.publishDate || null,
+      eventStartAt: item.eventStartAt || item.originalItem?.eventStartAt || null,
+      eventEndAt: item.eventEndAt || item.originalItem?.eventEndAt || null,
+      eventDateEndKey: item.eventDateEndKey || null,
+      expiryAt: item.expiryAt || item.originalItem?.expiryAt || null,
+      lifecycle: item.lifecycle || null,
+      suppressionReason: item.suppressionReason || null,
+      upAheadIds: [item.rawSourceId, ...(item.mergedWith || [])].filter(Boolean)
     };
 
     if (displayItem.displayEligible && sections[sectionKey]) {
@@ -259,19 +239,11 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
         });
       }
       timelineMap.get(eventDateKey).items.push({
-        id: displayItem.id,
-        hiddenKey: displayItem.hiddenKey,
+        ...displayItem,
         sourceId: item.rawSourceId || displayItem.id,
         type: getItemType(item.category),
-        title: item.title,
-        description: displayItem.description,
         tags: [sectionKey],
-        link: item.link,
-        category: sectionKey,
         icon: null,
-        locationCanonical: item.locationCanonical || null,
-        dateConfidence: item.dateConfidence || 'none',
-        plannerEligible: displayItem.plannerEligible
       });
     }
   }
@@ -279,22 +251,9 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
   const timeline = Array.from(timelineMap.values())
     .map(day => ({
       ...day,
-      items: uniqByKey(day.items)
+      items: mergeUpAheadItems(day.items)
     }))
     .sort((a, b) => a.date.localeCompare(b.date));
-
-  // Cap each section, but reserve slots for location-tagged items. Without this,
-  // a section full of fresh city-agnostic items (e.g. national "Prime Day" offers)
-  // fills all 20 slots and evicts every local Chennai/Muscat offer before the view
-  // model can split them into the Online vs Offline tabs — leaving Offline empty.
-  const byDate = (a, b) => String(a.date || '').localeCompare(String(b.date || ''));
-  const isLocated = (item) => Boolean(item?.city || item?.locationCanonical || item?.region);
-  Object.keys(sections).forEach((key) => {
-    const deduped = uniqByKey(sections[key]);
-    const located = deduped.filter(isLocated).sort(byDate).slice(0, 20);
-    const global = deduped.filter(item => !isLocated(item)).sort(byDate).slice(0, 20);
-    sections[key] = [...global, ...located];
-  });
 
   const weekly_plan = generateWeeklyPlan(timeline);
 
@@ -338,28 +297,21 @@ function transformPythonItemsToDisplay(items = []) {
     .filter(Boolean)
     .map(it => {
       const category = categorySectionKey(it.category);
-      // Only assign a display event-date from a REAL event timestamp. Offers
-      // (shopping/airlines) and civic notices are dateless "current awareness"
-      // items — assigning them expiryAt (48h after an often-stale publish date)
-      // pushed them past `filterPastDatedDisplayItems`, deleting them before they
-      // ever reached their section. They now flow through and are recency-ranked
-      // by the view model instead.
-      const eventTs = it.eventStartAt || it.eventEndAt || null;
-      const eventDate = eventTs ? new Date(eventTs) : null;
-      const hasEventDate = eventDate && !Number.isNaN(eventDate.getTime());
-      const eventDateIso = hasEventDate ? eventDate.toISOString() : null;
-      const eventDateKey = hasEventDate ? eventDateIso.slice(0, 10) : null;
+      const eventDateKey = upAheadDateKey(it);
       return {
         canonicalId:       it.id || it.url || it.title,
         rawSourceId:       it.id || it.url || it.title,
         title:             it.title,
         summary:           it.summary,
         description:       it.summary,
-        link:              it.url,
+        link:              it.url || it.link,
         category,
-        publishDate:       it.publishedAt ? new Date(it.publishedAt).toISOString() : null,
         publishedAt:       it.publishedAt || null,
-        eventDate:         eventDateIso,
+        eventStartAt:      it.eventStartAt || null,
+        eventEndAt:        it.eventEndAt || null,
+        expiryAt:          it.expiryAt || null,
+        lifecycle:        it.lifecycle || null,
+        suppressionReason: it.suppressionReason || null,
         eventDateKey,
         dateConfidence:    it.dateConfidence || (eventDateKey ? 'exact' : 'none'),
         city:              it.city || null,
@@ -376,61 +328,133 @@ function transformPythonItemsToDisplay(items = []) {
   return buildLegacyDisplayFromRanked(ranked, { auditSummary: null, dropReport: [] });
 }
 
-export function sanitizeUpAheadData(data) {
-  if (!data || typeof data !== 'object') return null;
+function prepareItem(item, observedAt, fallback = {}) {
+  const row = typeof item === 'string' ? { title: item } : item;
+  if (!row) return null;
+  return {
+    ...row,
+    category: row.category || fallback.category,
+    date: upAheadDateKey(row) || fallback.date || null,
+    observedAt: row.observedAt || observedAt || null,
+    firstSeenAt: row.firstSeenAt || row.observedAt || observedAt || null,
+  };
+}
 
-  // Python prefetch schema: {schemaVersion, fetchedAt, contentHash, items:[]}
-  if (Array.isArray(data.items) && !data.timeline && !data.sections) {
-    return sanitizeUpAheadData(transformPythonItemsToDisplay(data.items));
+function timelineFromItems(items) {
+  const days = new Map();
+  for (const item of items) {
+    const date = upAheadDateKey(item);
+    if (!date) continue;
+    if (!days.has(date)) days.set(date, { date, dayLabel: getDayLabel(date), items: [] });
+    days.get(date).items.push(item);
   }
+  return [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
 
-  const timeline = Array.isArray(data.timeline)
-    ? data.timeline
-        .filter(Boolean)
-        .map(day => ({ ...day, items: filterPastDatedDisplayItems(day.items || []) }))
-        .filter(day => (day.items || []).length > 0)
-    : [];
-  const sections = data.sections && typeof data.sections === 'object'
-    ? Object.fromEntries(Object.entries(data.sections).map(([key, items]) => [key, uniqByKey(items || [])]))
-    : {};
-  Object.keys(sections).forEach((key) => {
-    sections[key] = filterPastDatedDisplayItems(sections[key] || []);
-  });
-  const weekly_plan = Array.isArray(data.weekly_plan) ? data.weekly_plan : generateWeeklyPlan(timeline);
-  const filteredWeeklyPlan = weekly_plan.map(day => ({
-    ...day,
-    items: filterPastDatedDisplayItems(day.items || []),
-  }));
-  const hasSectionItems = Object.values(sections).some(items => hasItems(items));
-  const hasWeeklyItems = filteredWeeklyPlan.some(day => hasItems(day.items));
-  if (timeline.length === 0 && !hasSectionItems && !hasWeeklyItems) {
+function sectionsFromItems(keys, items) {
+  const sections = Object.fromEntries(keys.map(key => [key, []]));
+  for (const item of mergeUpAheadItems(items)) {
+    const category = categorySectionKey(item.category);
+    (sections[category] ||= []).push(item);
+  }
+  return sections;
+}
+
+function normalizeUpAheadData(data) {
+  if (!data || typeof data !== 'object') return null;
+  const rawSnapshot = Array.isArray(data.items) && !data.timeline && !data.sections;
+  if (rawSnapshot) {
+    const { items, ...metadata } = data;
+    const display = transformPythonItemsToDisplay(items);
+    data = { ...display, lastUpdated: null, ...metadata };
+  }
+  const observedAt = data.fetchedAt || data.lastUpdated;
+  const timeline = timelineFromItems(mergeUpAheadItems(
+    (Array.isArray(data.timeline) ? data.timeline : []).flatMap(day => (
+      (day?.items || []).map(item => prepareItem(item, observedAt, { date: day.date }))
+    ))
+  ));
+  const sectionData = data.sections || {};
+  const sections = sectionsFromItems(Object.keys(sectionData), Object.entries(sectionData).flatMap(([key, items]) =>
+    (Array.isArray(items) ? items : []).map(item => prepareItem(item, observedAt, { category: key }))
+  ));
+  return { ...data, timeline, sections };
+}
+
+function pruneUpAheadData(data, retiredItems = new Map()) {
+  if (!data) return null;
+  const now = Date.now();
+  const isActive = item => isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
+    retiredItems.has(key) && retiredItems.get(key) >= upAheadTimeMs(item.observedAt)
+  );
+  const hasFeedRows = data.timeline.length > 0 || Object.values(data.sections).some(hasItems);
+  const timeline = data.timeline
+    .map(day => ({ ...day, items: day.items.filter(isActive) }))
+    .filter(day => day.items.length > 0);
+  const sections = Object.fromEntries(Object.entries(data.sections).map(([key, items]) => [
+    key,
+    items.filter(isActive),
+  ]));
+  const weekly_plan = !hasFeedRows && Array.isArray(data.weekly_plan)
+    ? data.weekly_plan.map(day => ({
+      ...day,
+      items: filterPastDatedDisplayItems(day.items || [], now),
+    }))
+    : generateWeeklyPlan(timeline);
+  if (!timeline.length && !Object.values(sections).some(hasItems) && !weekly_plan.some(day => hasItems(day.items))) {
     return null;
   }
-  return { ...data, timeline, sections, weekly_plan: filteredWeeklyPlan };
+  return { ...data, timeline, sections, weekly_plan };
+}
+
+export function sanitizeUpAheadData(data) {
+  return pruneUpAheadData(normalizeUpAheadData(data));
+}
+
+function readStoredFeed() {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY));
+  } catch {
+    return null;
+  }
 }
 
 export function loadFromCache() {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-    const parsed = sanitizeUpAheadData(JSON.parse(cached));
-    if (!parsed) return null;
-    const age = Date.now() - new Date(parsed.lastUpdated || 0).getTime();
-    if (age > CACHE_MAX_AGE_MS) return null;
-    return parsed;
-  } catch {
-    return null;
-  }
+  return sanitizeUpAheadData(readStoredFeed());
 }
 
-export function saveToCache(data) {
-  try {
-    const sanitized = sanitizeUpAheadData(data);
-    if (!sanitized) return;
-    localStorage.setItem(CACHE_KEY, JSON.stringify(sanitized));
-  } catch {
-    // ignore cache failures
+export function saveToCache(incoming, fallback = null) {
+  // Read at commit time so concurrent loads merge with the latest saved list.
+  const stored = readStoredFeed();
+  const merged = mergeUpAheadFeed(stored || fallback, incoming);
+  const now = Date.now();
+  const cutoff = now - UP_AHEAD_SOURCE_LOOKBACK_MS;
+  const retiredItems = new Map(Object.entries(stored?.retiredItems || {}).filter(([, time]) => time >= cutoff));
+  // Keep only the identities of recent expired revisions. A late snapshot can
+  // still add a different event, but cannot revive an older version of one.
+  const items = [
+    ...Object.values(merged?.sections || {}).flat(),
+    ...(merged?.timeline || []).flatMap(day => day.items),
+  ];
+  for (const item of items) {
+    const observed = upAheadTimeMs(item.observedAt);
+    if (observed < cutoff || isUpAheadItemActive(item, now)) continue;
+    for (const key of upAheadIdentityKeys(item)) {
+      retiredItems.set(key, Math.max(observed, retiredItems.get(key) || 0));
+    }
   }
+  const updated = pruneUpAheadData(merged, retiredItems);
+  try {
+    if (updated || retiredItems.size) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ...updated, retiredItems: Object.fromEntries(retiredItems) }));
+    } else if (stored) {
+      localStorage.removeItem(CACHE_KEY);
+    }
+  } catch {
+    // The current request can still show the merged data.
+  }
+  if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(UP_AHEAD_UPDATED_EVENT));
+  return updated;
 }
 
 export function clearUpAheadCache() {
@@ -448,26 +472,24 @@ export async function fetchStaticUpAheadData(upAheadSettings = {}) {
     const response = await fetch(`${cleanBase}data/up_ahead.json`, { cache: 'no-cache' });
     if (!response.ok) return null;
     const parsed = await response.json();
-    // When snapshot mode is forced (static host or ?preferSnapshots=true), serve the
-    // static snapshot even if stale — there is no live backend to fall back to, and
-    // showing stale civic/event data beats showing only festival placeholders.
-    const { preferSnapshots } = getRuntimeCapabilities();
-    if (!isStaticUpAheadFresh(parsed) && !preferSnapshots) {
-      console.warn('[UpAheadService] Ignoring stale static Up Ahead snapshot', {
-        fetchedAt: parsed?.fetchedAt || parsed?.lastUpdated,
-      });
-      return sanitizeUpAheadData({
-        ...buildFestivalFallbackData(
-          upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'],
-          new Date()
-        ),
-        sourceMode: 'snapshot',
-      });
-    }
-    return sanitizeUpAheadData({
-      ...parsed,
-      sourceMode: parsed?.sourceMode || 'snapshot',
-    });
+    const snapshot = { ...parsed, sourceMode: parsed?.sourceMode || 'snapshot' };
+    if (sanitizeUpAheadData(snapshot) || !Array.isArray(snapshot.items)) return snapshot;
+
+    const normalized = normalizeUpAheadData(snapshot);
+    const fallback = buildFestivalFallbackData(
+      upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']
+    );
+    // Keep expired incoming rows long enough to supersede an older version of
+    // the same occurrence. The merge drops them before anything is displayed.
+    return {
+      ...normalized,
+      timeline: [...normalized.timeline, ...fallback.timeline],
+      sections: {
+        ...normalized.sections,
+        festivals: [...(normalized.sections.festivals || []), ...fallback.sections.festivals],
+      },
+      auditSummary: fallback.auditSummary,
+    };
   } catch {
     return null;
   }
@@ -531,19 +553,9 @@ function buildFestivalFallbackData(locations, asOfDate = new Date()) {
     date: item.date,
     dayLabel: getDayLabel(item.date),
     items: [{
-      id: item.id,
-      hiddenKey: item.hiddenKey,
+      ...item,
       sourceId: item.id,
-      type: 'festival',
-      title: item.title,
-      description: item.description,
       tags: ['festivals'],
-      link: item.link,
-      category: 'festivals',
-      icon: null,
-      locationCanonical: item.locationCanonical,
-      dateConfidence: item.dateConfidence,
-      plannerEligible: true,
     }],
   }));
 
@@ -559,42 +571,40 @@ function buildFestivalFallbackData(locations, asOfDate = new Date()) {
   };
 }
 
-export function mergeUpAheadData(baseData, newData) {
-  const base = sanitizeUpAheadData(baseData) || { timeline: [], sections: {}, weekly_plan: [] };
-  const incoming = sanitizeUpAheadData(newData);
-  if (!incoming) return sanitizeUpAheadData(base);
-  const timelineMap = new Map();
+function mergeUpAheadFeed(baseData, newData) {
+  const base = normalizeUpAheadData(baseData);
+  const incoming = normalizeUpAheadData(newData);
+  if (!base || !incoming) return incoming || base;
 
-  for (const day of [...(base.timeline || []), ...(incoming.timeline || [])]) {
-    if (!timelineMap.has(day.date)) {
-      timelineMap.set(day.date, { ...day, items: uniqByKey(day.items || []) });
-    } else {
-      const existing = timelineMap.get(day.date);
-      existing.items = uniqByKey([...(existing.items || []), ...(day.items || [])]);
-    }
-  }
-
-  const sections = { ...(base.sections || {}) };
-  for (const [key, items] of Object.entries(incoming.sections || {})) {
-    sections[key] = uniqByKey([...(sections[key] || []), ...(items || [])]);
-  }
-
-  const timeline = Array.from(timelineMap.values()).sort((a, b) => a.date.localeCompare(b.date));
-  const merged = {
+  const sections = sectionsFromItems(
+    [...new Set([...Object.keys(base.sections), ...Object.keys(incoming.sections)])],
+    [...Object.values(base.sections).flat(), ...Object.values(incoming.sections).flat()]
+  );
+  const timeline = timelineFromItems(mergeUpAheadItems(
+    [...base.timeline, ...incoming.timeline].flatMap(day => day.items)
+  ));
+  const freshest = upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
+    >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
+  return {
+    ...base,
+    ...incoming,
     timeline,
     sections,
-    weekly_plan: generateWeeklyPlan(timeline),
-    lastUpdated: incoming.lastUpdated || base.lastUpdated || new Date().toISOString(),
+    fetchedAt: freshest.fetchedAt || null,
+    lastUpdated: freshest.lastUpdated || freshest.fetchedAt || null,
     auditSummary: incoming.auditSummary || base.auditSummary || null,
     dropReport: incoming.dropReport || base.dropReport || [],
     acquisitionSummary: incoming.acquisitionSummary || base.acquisitionSummary || null,
     sourceMode: incoming.sourceMode || base.sourceMode || null,
   };
+}
 
-  return sanitizeUpAheadData(merged);
+export function mergeUpAheadData(baseData, newData) {
+  return pruneUpAheadData(mergeUpAheadFeed(baseData, newData));
 }
 
 export async function fetchLiveUpAheadData(upAheadSettings = {}) {
+  const asOfDate = new Date();
   const categories = Object.entries(upAheadSettings.categories || DEFAULT_SETTINGS.upAhead.categories)
     .filter(([, enabled]) => Boolean(enabled))
     .map(([key]) => key);
@@ -607,28 +617,36 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
       categories,
       locations,
       plannerWindowDays: 7,
-      asOfDate: new Date(),
+      asOfDate,
       mode: 'offline',
       settings: { upAhead: upAheadSettings }
     });
 
-    // NOTE: We deliberately do NOT auto-persist ranked items into the planner.
-    // The planner is for MANUAL additions only (user taps "+ Plan"); automatic
-    // suggestions belong in the "Suggested" feed. Auto-persisting here was the
-    // cause of the planner silently filling with weather/power-cut alerts.
+    // My Planner reads eligible suggestions from the rolling feed. Only + Plan
+    // writes a suggestion into the user's saved agenda.
     const display = {
       ...buildLegacyDisplayFromRanked(result.rankedItems || [], {
         auditSummary: result.auditSummary,
         dropReport: result.dropReport
       }),
       acquisitionSummary: result.acquisitionSummary || null,
+      lastUpdated: asOfDate.toISOString(),
       sourceMode: 'live',
     };
 
     if (!hasItems(display.sections?.festivals)) {
+      const fallback = buildFestivalFallbackData(locations);
+      if (!result.rankedItems?.length) {
+        return {
+          ...fallback,
+          lastUpdated: null,
+          acquisitionSummary: display.acquisitionSummary,
+          sourceMode: 'snapshot',
+        };
+      }
       return mergeUpAheadData(
-        display,
-        buildFestivalFallbackData(locations, new Date())
+        { ...fallback, lastUpdated: null },
+        display
       );
     }
 
@@ -668,7 +686,7 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
 }
 
 export const __upAheadServiceInternalsForTest = {
-  isStaticUpAheadFresh,
+  isStaticUpAheadFresh: isUpAheadDataFresh,
   filterPastDatedDisplayItems,
   getFestivalFallbackItems,
 };
