@@ -1,5 +1,5 @@
 {
-  "generatedAt": 1794467280382,
+  "generatedAt": 1794504941848,
   "policyVersion": "section-source-policy-v1",
   "reportVersion": "section-source-policy-report-v1",
   "schemaVersion": 1,
@@ -16,32 +16,32 @@
       ],
       "topSources": [
         {
-          "count": 20,
-          "sourceGroup": "economic_times"
-        },
-        {
-          "count": 7,
+          "count": 17,
           "sourceGroup": "business_line"
         },
         {
-          "count": 3,
+          "count": 8,
+          "sourceGroup": "economic_times"
+        },
+        {
+          "count": 5,
           "sourceGroup": "google_news"
         }
       ]
     },
     "entertainment": {
       "sourceGroupCount": 1,
-      "storyCount": 16,
+      "storyCount": 18,
       "thin": true,
       "topCategories": [
         {
           "category": "entertainment",
-          "count": 16
+          "count": 18
         }
       ],
       "topSources": [
         {
-          "count": 16,
+          "count": 18,
           "sourceGroup": "google_news"
         }
       ]
@@ -62,11 +62,11 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 5,
+          "count": 6,
           "sourceGroup": "times_of_india"
         },
         {
-          "count": 5,
+          "count": 4,
           "sourceGroup": "ndtv"
         }
       ]
@@ -83,11 +83,11 @@
       ],
       "topSources": [
         {
-          "count": 20,
+          "count": 18,
           "sourceGroup": "times_of_oman"
         },
         {
-          "count": 9,
+          "count": 11,
           "sourceGroup": "google_news_oman"
         },
         {
@@ -108,16 +108,16 @@
       ],
       "topSources": [
         {
-          "count": 13,
+          "count": 12,
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 10,
-          "sourceGroup": "google_news"
+          "count": 12,
+          "sourceGroup": "bbc"
         },
         {
-          "count": 7,
-          "sourceGroup": "bbc"
+          "count": 6,
+          "sourceGroup": "google_news"
         }
       ]
     },
@@ -133,16 +133,16 @@
       ],
       "topSources": [
         {
-          "count": 13,
+          "count": 20,
+          "sourceGroup": "gadgets360"
+        },
+        {
+          "count": 8,
           "sourceGroup": "google_news"
         },
         {
-          "count": 12,
+          "count": 2,
           "sourceGroup": "the_hindu"
-        },
-        {
-          "count": 5,
-          "sourceGroup": "gadgets360"
         }
       ]
     },
@@ -183,36 +183,32 @@
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 7,
+          "count": 9,
           "sourceGroup": "ndtv"
         },
         {
-          "count": 3,
+          "count": 1,
           "sourceGroup": "economic_times"
         }
       ]
     },
     "trichy": {
-      "sourceGroupCount": 3,
-      "storyCount": 17,
+      "sourceGroupCount": 2,
+      "storyCount": 30,
       "thin": false,
       "topCategories": [
         {
           "category": "trichy",
-          "count": 17
+          "count": 30
         }
       ],
       "topSources": [
         {
-          "count": 15,
+          "count": 17,
           "sourceGroup": "the_hindu"
         },
         {
-          "count": 1,
-          "sourceGroup": "google_news_alt"
-        },
-        {
-          "count": 1,
+          "count": 13,
           "sourceGroup": "google_news"
         }
       ]
@@ -229,12 +225,12 @@
       ],
       "topSources": [
         {
-          "count": 17,
-          "sourceGroup": "the_hindu"
+          "count": 21,
+          "sourceGroup": "bbc"
         },
         {
-          "count": 13,
-          "sourceGroup": "bbc"
+          "count": 9,
+          "sourceGroup": "the_hindu"
         }
       ]
     }
@@ -683,7 +679,7 @@
       "configuredFeeds": 1,
       "health": {
         "feedUrl": "https://www.moneycontrol.com/rss/latestnews.xml",
-        "items": 15,
+        "items": 0,
         "ok": true,
         "section": "business"
       },
@@ -725,9 +721,10 @@
     {
       "configuredFeeds": 1,
       "health": {
+        "error": "HTTPSConnectionPool(host='www.omanobserver.om', port=443): Read timed out.",
         "feedUrl": "https://www.omanobserver.om/rss",
         "items": 0,
-        "ok": true,
+        "ok": false,
         "section": "muscat"
       },
       "sections": [
