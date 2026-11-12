@@ -37,6 +37,7 @@ requiredFiles.forEach(path => {
 
 const page = read('src/pages/UpAheadPage.jsx');
 const vm = read('src/viewModels/useUpAheadPageViewModel.js');
+const dataset = read('src/data/datasets/upAheadDataset.js');
 const pkg = JSON.parse(read('package.json'));
 
 pass(!hasImportFrom(page, '../context/SettingsContext'), 'UpAheadPage must not import SettingsContext');
@@ -55,12 +56,9 @@ pass(page.includes('useUpAheadPageViewModel'), 'UpAheadPage must use Up Ahead Vi
   "from '../runtime/runtimeCapabilities'",
   "from '../services/upAheadEvidence'",
   "from '../services/upAheadBriefing'",
-  'fetchStaticUpAheadData',
-  'fetchLiveUpAheadData',
-  'mergeUpAheadData',
+  "from '../data/datasets/upAheadDataset'",
+  'loadUpAhead(',
   'loadFromCache',
-  'saveToCache',
-  'clearUpAheadCache',
   'isActualWeatherAlertText',
   'isActualOfferText',
   'getUpAheadEvidence',
@@ -72,6 +70,10 @@ pass(page.includes('useUpAheadPageViewModel'), 'UpAheadPage must use Up Ahead Vi
   'getSourceModeState',
 ].forEach(token => {
   pass(vm.includes(token), `Up Ahead ViewModel missing token: ${token}`);
+});
+pass(!vm.includes('clearUpAheadCache'), 'Refresh must preserve the retained feed');
+['fetchStaticUpAheadData', 'fetchLiveUpAheadData', 'saveToCache'].forEach(token => {
+  pass(dataset.includes(token), `Shared Up Ahead dataset missing token: ${token}`);
 });
 
 pass(page.includes('<UpAheadEvidencePanel evidence={upAheadEvidence} />'), 'UpAheadPage must preserve evidence panel');

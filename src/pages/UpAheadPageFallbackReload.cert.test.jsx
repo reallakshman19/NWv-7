@@ -9,7 +9,7 @@ describe('UpAheadPage fallback reload wiring', () => {
     expect(src).not.toContain('catch {');
     expect(src).not.toContain('reload: () => {}');
     expect(src).toContain('const handleRefresh = () => loadData({ forceRefresh: false });');
-    expect(src).toContain('const handleForceRefresh = () => loadData({ forceRefresh: true, liveOnly: true });');
+    expect(src).toContain('const handleForceRefresh = () => loadData({ forceRefresh: true });');
     expect(src).toContain('onRetry={handleRefresh}');
   });
 });

@@ -3,6 +3,7 @@ from enrich_upahead_contract import (
     H_MS,
     enrich_snapshot,
     lifecycle_for_item,
+    merge_upahead_snapshot,
 )
 import validate_upahead_prefetch_output as gate
 
@@ -57,6 +58,7 @@ def test_alert_and_offer_use_validity_fallbacks_not_news_36h():
     assert stale_alert["isVisible"] is False
     assert offer["retentionReason"] == "offer_48h_fallback"
     assert offer["isVisible"] is True
+    assert offer["plannerEligibleByLifecycle"] is False
 
 
 def test_enriched_snapshot_has_horizon_and_lifecycle_summary():
@@ -90,6 +92,31 @@ def test_enrichment_prunes_dated_items_outside_7_day_horizon():
     assert ids == {"inside"}
     assert enriched["lifecyclePrunedCount"] == 2
     assert enriched["lifecycleSummary"]["horizonViolationCount"] == 0
+
+
+def test_publisher_keeps_active_omissions_applies_revisions_and_prunes_expiry():
+    original = {
+        "fetchedAt": NOW - H_MS,
+        "items": [
+            item(id="multi-day", title="Expo", eventStartAt=NOW - 2 * DAY_MS, eventEndAt=NOW + DAY_MS),
+            item(id="cancelled", title="Cancelled event"),
+            item(id="outdated", title="Old alert", category="alerts", eventStartAt=None, expiryAt=NOW),
+            item(id="chennai", title="Community workshop", city="Chennai"),
+        ],
+    }
+    fresh = [
+        item(id="cancelled", title="Cancelled event", expiryAt=NOW),
+        item(id="muscat", title="Community workshop", city="Muscat"),
+        item(id="same-chennai", title="Community workshop", city="Chennai", publishedAt=NOW - H_MS),
+        item(id="new-day", title="Community workshop", city="Chennai", eventStartAt=NOW + 2 * DAY_MS),
+    ]
+    snapshot = merge_upahead_snapshot(original, fresh, NOW, fetched=True)
+    assert {row["id"] for row in snapshot["items"]} == {"multi-day", "chennai", "muscat", "new-day"}
+    assert snapshot["fetchedAt"] == NOW
+    assert snapshot["lifecycleSummary"]["visibleItemCount"] == 4
+    retry = merge_upahead_snapshot(snapshot, [], NOW + H_MS, fetched=False)
+    assert retry["contentHash"] == snapshot["contentHash"]
+    assert retry["fetchedAt"] == NOW
 
 
 def test_validator_fails_missing_lifecycle_contract():

@@ -14,6 +14,7 @@ import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
+from prefetch_common import compute_content_hash, title_fingerprint
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
 H_MS = 3_600_000
@@ -67,7 +68,7 @@ def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str
     event_start = _ms(item.get("eventStartAt"))
     published = _ms(item.get("publishedAt")) or now_ms
 
-    if expiry_at is not None:
+    if expiry_at is not None and (event_end is None or expiry_at <= event_end):
         return expiry_at, "expiryAt"
     if event_end is not None:
         return event_end, "eventEndAt"
@@ -85,17 +86,17 @@ def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
     display_until, _reason = _display_until_for_item(item, now_ms)
     if event_start is None:
         return display_until >= now_ms
+    still_running = (_ms(item.get("eventEndAt")) or 0) > now_ms
     return (
-        now_ms - UPAHEAD_EVENT_PAST_GRACE_HOURS * H_MS
-        <= event_start
-        <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS
+        event_start <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS
+        and (still_running or event_start >= now_ms - UPAHEAD_EVENT_PAST_GRACE_HOURS * H_MS)
     )
 
 
 def _within_planner_horizon(item: dict[str, Any], now_ms: int) -> bool:
     event_start = _ms(item.get("eventStartAt"))
     if event_start is None:
-        return bool(item.get("plannerEligible"))
+        return False
     return (
         now_ms - PLANNER_PAST_GRACE_HOURS * H_MS
         <= event_start
@@ -107,8 +108,9 @@ def lifecycle_for_item(item: dict[str, Any], now_ms: int) -> dict[str, Any]:
     display_until, reason = _display_until_for_item(item, now_ms)
     within_event = _within_event_horizon(item, now_ms)
     planner_horizon = _within_planner_horizon(item, now_ms)
-    visible = display_until >= now_ms and within_event
-    planner_eligible = bool(item.get("plannerEligible")) and planner_horizon and display_until >= now_ms
+    action_valid = display_until > now_ms and not item.get("suppressionReason")
+    visible = bool(action_valid and within_event)
+    planner_eligible = bool(item.get("plannerEligible") and planner_horizon and action_valid)
 
     return {
         "contentClass": content_class_for_item(item),
@@ -116,7 +118,7 @@ def lifecycle_for_item(item: dict[str, Any], now_ms: int) -> dict[str, Any]:
         "archiveUntil": max(int(display_until), int(now_ms)) + 7 * DAY_MS,
         "retentionReason": reason,
         "isVisible": bool(visible),
-        "isActionValid": bool(display_until >= now_ms),
+        "isActionValid": bool(action_valid),
         "withinSevenDayHorizon": bool(within_event),
         "plannerPastGraceHours": PLANNER_PAST_GRACE_HOURS,
         "plannerEligibleByLifecycle": bool(planner_eligible),
@@ -132,9 +134,7 @@ def should_publish_item(item: dict[str, Any], lifecycle: dict[str, Any]) -> bool
     the browser and validator treat dated Up Ahead rows as actionable candidates.
     Undated alerts/offers are still governed by displayUntil fallback windows.
     """
-    if _ms(item.get("eventStartAt")) is not None:
-        return bool(lifecycle.get("withinSevenDayHorizon"))
-    return bool(lifecycle.get("isActionValid"))
+    return bool(lifecycle.get("isVisible"))
 
 
 def enrich_items(items: list[dict[str, Any]], now_ms: int) -> list[dict[str, Any]]:
@@ -192,6 +192,33 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
     enriched["lifecycleSummary"] = build_lifecycle_summary(items)
     enriched["lifecyclePrunedCount"] = max(0, len(input_items or []) - len(items))
     return enriched
+
+
+def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fetched: bool) -> dict:
+    # The latest version of an occurrence can close it or move it to another day.
+    # Apply that version before expiry and deduplication.
+    by_id = {item["id"]: item for item in [*existing.get("items", []), *incoming] if item.get("id")}
+    active = enrich_items(list(by_id.values()), ts)
+    unique = {}
+    for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):
+        event_start = _ms(item.get("eventStartAt"))
+        location = item.get("city") or item.get("region") or ""
+        key = (
+            item.get("category"), location.casefold(),
+            event_start // DAY_MS if event_start is not None else None,
+            title_fingerprint(item.get("title", "")) or item["id"],
+        )
+        unique.setdefault(key, item)
+
+    items = list(unique.values())
+    snapshot = enrich_snapshot({
+        "schemaVersion": 1,
+        "fetchedAt": ts if fetched else existing.get("fetchedAt", 0),
+        "contentHash": compute_content_hash(items),
+        "items": items,
+    }, ts)
+    snapshot["lifecyclePrunedCount"] = len(by_id) - len(active)
+    return snapshot
 
 
 def main() -> int:

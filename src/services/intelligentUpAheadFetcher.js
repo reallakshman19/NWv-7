@@ -7,6 +7,7 @@ import { deduplicateCanonicalItems } from '../intelligence/deDuplication.js';
 import { rankEligibleItems } from '../intelligence/eligibilityWindowing.js';
 import { summarizeDecisionRecords, buildDropReport } from '../intelligence/explainabilityAudit.js';
 import { getRuntimeCapabilities } from "../runtime/runtimeCapabilities.js";
+import { UP_AHEAD_SOURCE_LOOKBACK_MS, upAheadTimeMs } from './upAheadLifecycle.js';
 
 function isStaticHostRuntime() { return getRuntimeCapabilities().isStaticHost; }
 
@@ -19,7 +20,10 @@ function normalizeRawFeedItem(item, sourceMeta = {}) {
     summary: item?.summary || item?.description || '',
     contentSnippet: item?.contentSnippet || '',
     link: item?.link || item?.url || '',
-    pubDate: item?.pubDate || item?.publishDate || item?.isoDate || null,
+    pubDate: item?.pubDate || item?.publishDate || item?.isoDate || item?.publishedAt || null,
+    eventStartAt: item?.eventStartAt,
+    eventEndAt: item?.eventEndAt,
+    expiryAt: item?.expiryAt,
     source: sourceMeta.url,
     sourcePack: `${sourceMeta.category || 'unknown'}:${sourceMeta.location || 'unknown'}`,
     feedPack: `${sourceMeta.category || 'unknown'}:${sourceMeta.location || 'unknown'}`,
@@ -76,9 +80,10 @@ export async function fetchIntelligentUpAheadData(options = {}) {
   const locations = options.locations || ['Chennai', 'Muscat', 'Trichy'];
   const plannerWindowDays = Number.isFinite(options.plannerWindowDays) ? options.plannerWindowDays : 7;
   const asOfDate = options.asOfDate || new Date();
+  const asOfTime = new Date(asOfDate).getTime();
 
-  pruneIngestionLedger(options.ledgerMaxAgeDays || 30);
-  let fetchPlan = buildFeedFetchPlan({ categories, locations, registry: options.registry, isStaticHost: isStaticHostRuntime() });
+  pruneIngestionLedger(options.ledgerMaxAgeDays || 7);
+  const fetchPlan = buildFeedFetchPlan({ categories, locations, registry: options.registry, isStaticHost: isStaticHostRuntime() });
 
   const acquisitionSummary = makeAcquisitionSummary(fetchPlan);
   const rawCollected = [];
@@ -89,7 +94,13 @@ export async function fetchIntelligentUpAheadData(options = {}) {
       try {
         const response = await proxyManager.fetchViaProxy(source.url);
         const returnedItems = Array.isArray(response?.items) ? response.items : [];
-        const unseen = filterUnseenFeedItems(source.url, returnedItems);
+        const recent = returnedItems
+          .map(item => normalizeRawFeedItem(item, source))
+          .filter(item => {
+            const publishedAt = upAheadTimeMs(item.pubDate);
+            return publishedAt >= asOfTime - UP_AHEAD_SOURCE_LOOKBACK_MS && publishedAt <= asOfTime;
+          });
+        const unseen = filterUnseenFeedItems(source.url, recent);
 
         acquisitionSummary.successfulSources += 1;
         acquisitionSummary.returnedItems += returnedItems.length;
@@ -100,10 +111,10 @@ export async function fetchIntelligentUpAheadData(options = {}) {
 
         recordFeedResult(source.url, returnedItems.length > 0);
 
-        if (unseen.length > 0) {
-          rawCollected.push(...unseen.map(item => normalizeRawFeedItem(item, source)));
-          markSeenFeedItems(source.url, unseen);
-        }
+        // A feed may revise an already-seen entry. The saved feed owns dedup
+        // and updates. Use the ledger only to report newly seen entries.
+        rawCollected.push(...recent);
+        if (unseen.length) markSeenFeedItems(source.url, unseen);
       } catch (error) {
         acquisitionSummary.failedSources += 1;
         category.failedSources += 1;

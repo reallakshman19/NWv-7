@@ -249,6 +249,24 @@
     text-transform: uppercase;
 }
 
+.planner-suggestions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.planner-suggestions li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 8px;
+}
+
+.planner-suggestions .btn {
+    flex-shrink: 0;
+}
+
 .planner-controls h2 {
     margin: 4px 0;
     color: var(--text-primary, #FFFFFF);

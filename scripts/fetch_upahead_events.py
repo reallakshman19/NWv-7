@@ -9,12 +9,8 @@ Every item in the output MUST have:
   dateConfidence, dateSource, city, region, localityScore,
   plannerEligible, suppressionReason, actionabilityScore
 
-Retention policy:
-  - Items with expiryAt in the future are always kept.
-  - Items with eventStartAt are kept if within [now-1day, now+7days].
-  - shopping  → kept 48 h from publishedAt
-  - alerts / weather_alerts → kept 24 h from publishedAt
-  - All others without eventStartAt are dropped.
+Acquisition uses the available RSS entries published in the preceding 7 days.
+Retention follows each item's lifecycle after merging revisions into the snapshot.
 
 Eligibility gate (is_planner_eligible):
   - suppressionReason must be None
@@ -27,7 +23,7 @@ import os
 import re
 import sys
 import time
-import hashlib
+from calendar import timegm
 from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -35,10 +31,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 import socket as _socket
 import feedparser
 from fetch_tmdb_releases import fetch_tmdb_releases
+from enrich_upahead_contract import merge_upahead_snapshot
 from prefetch_common import (
     H_MS, DAY_MS, now_ms, read_json, write_json,
-    canonical_url, title_fingerprint, make_story_id,
-    compute_content_hash, is_suppressed, normalize_basic_story
+    make_story_id, is_suppressed,
 )
 
 THIS_YEAR = datetime.now().year
@@ -50,11 +46,18 @@ def _safe_feed_parse(url, timeout=10):
     try:
         for attempt in range(2):
             try:
-                return feedparser.parse(url)
+                feed = feedparser.parse(url)
             except Exception:
                 if attempt == 1:
                     raise
                 time.sleep(3)
+            else:
+                status = feed.get('status', 200)
+                if status >= 400:
+                    raise RuntimeError(f'HTTP {status}')
+                if not feed.entries and feed.get('bozo'):
+                    raise RuntimeError(f'Unreadable feed: {feed.get("bozo_exception")}')
+                return feed
     finally:
         _socket.setdefaulttimeout(prev)
 
@@ -307,21 +310,12 @@ def derive_expiry(event_start_ms, event_end_ms, published_ms, category):
     return None
 
 
-# ── Retention ─────────────────────────────────────────────────────────────────
-def keep_upahead_item(item: dict, ts: int) -> bool:
-    expiry      = item.get('expiryAt')
-    event_start = item.get('eventStartAt')
-    category    = item.get('category', '')
-
-    if expiry and expiry >= ts:
-        return True
-    if event_start:
-        return (ts - DAY_MS) <= event_start <= (ts + 7 * DAY_MS)
-    if category == 'shopping':
-        return item.get('publishedAt', 0) >= ts - 48 * H_MS
-    if category in ('alerts', 'weather_alerts', 'civic'):
-        return item.get('publishedAt', 0) >= ts - 24 * H_MS
-    return False
+def recent_publication_ms(entry, ts: int) -> int | None:
+    published = entry.get('published_parsed') or entry.get('updated_parsed')
+    if published is None:
+        return None
+    published_ms = timegm(published) * 1000
+    return published_ms if ts - 7 * DAY_MS <= published_ms <= ts else None
 
 
 # ── Eligibility gate ──────────────────────────────────────────────────────────
@@ -384,9 +378,11 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
     for url, source, source_group in feeds:
         try:
             feed = _safe_feed_parse(url)
-            for entry in feed.entries[:15]:
-                pub = entry.get('published_parsed')
-                pub_ms = int(time.mktime(pub) * 1000) if pub else ts
+            before = len(results)
+            for entry in feed.entries:
+                pub_ms = recent_publication_ms(entry, ts)
+                if pub_ms is None:
+                    continue
                 title   = entry.get('title', '').strip()
                 summary = entry.get('summary', '').strip()
                 link    = entry.get('link', '').strip()
@@ -421,7 +417,7 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
 
                 results.append(item)
 
-            source_health[source_group] = {'ok': True, 'items': len(results), 'lastSuccess': ts}
+            source_health[source_group] = {'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
         except Exception as e:
             source_health[source_group] = {'ok': False, 'error': str(e), 'items': 0}
 
@@ -432,12 +428,6 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
 def main():
     ts = now_ms()
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
-    old_items = existing.get('items', [])
-
-    # Retain items that are still valid
-    retained = [item for item in old_items if keep_upahead_item(item, ts)]
-    retained_by_id = {item['id']: item for item in retained if item.get('id')}
-
     all_health = {}
     new_items = []
 
@@ -454,31 +444,8 @@ def main():
         print(f'  [tmdb] added {len(tmdb_items)} releases to movies section')
         all_health['tmdb'] = {'ok': True, 'items': len(tmdb_items), 'lastSuccess': ts}
 
-    # Merge: new wins (fresh data replaces stale on same ID)
-    merged_by_id = {**retained_by_id}
-    for item in new_items:
-        sid = item.get('id')
-        if sid:
-            merged_by_id[sid] = item  # new always wins
-
-    all_items = list(merged_by_id.values())
-
-    # Dedup — keep most-recently published on title fingerprint collision
-    fp_seen: dict[str, dict] = {}
-    for item in sorted(all_items, key=lambda x: x.get('publishedAt', 0), reverse=True):
-        fp = title_fingerprint(item.get('title', ''))
-        cat = item.get('category', '')
-        key = f"{cat}::{fp}"
-        if key not in fp_seen:
-            fp_seen[key] = item
-    deduped = list(fp_seen.values())
-
-    snapshot = {
-        'schemaVersion': 1,
-        'fetchedAt':     ts,
-        'contentHash':   compute_content_hash(deduped),
-        'items':         deduped,
-    }
+    snapshot = merge_upahead_snapshot(existing, new_items, ts, fetched=any(row['ok'] for row in all_health.values()))
+    deduped = snapshot['items']
     write_json(UP_AHEAD_PATH, snapshot)
 
     # Update source health
@@ -487,10 +454,10 @@ def main():
     existing_health['lastChecked'] = ts
     write_json(SOURCE_HEALTH_PATH, existing_health)
 
-    eligible = sum(1 for item in deduped if item.get('plannerEligible'))
+    eligible = snapshot['lifecycleSummary']['plannerEligibleByLifecycleCount']
     print(
         f'Done. total={len(deduped)}, plannerEligible={eligible}, '
-        f'retained={len(retained)}, contentHash={snapshot["contentHash"]}'
+        f'contentHash={snapshot["contentHash"]}'
     )
 
 

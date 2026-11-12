@@ -13,6 +13,7 @@ function hasHookCall(content, name) {
 describe('Release 6R UpAheadPage ViewModel binding', () => {
   const page = read('src/pages/UpAheadPage.jsx');
   const vm = read('src/viewModels/useUpAheadPageViewModel.js');
+  const dataset = read('src/data/datasets/upAheadDataset.js');
 
   it('UpAheadPage no longer owns settings/runtime/service/planner orchestration', () => {
     expect(page).not.toContain("from '../context/SettingsContext'");
@@ -33,23 +34,21 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
       "from '../runtime/runtimeCapabilities'",
       "from '../services/upAheadEvidence'",
       "from '../services/upAheadBriefing'",
-      'fetchStaticUpAheadData',
-      'fetchLiveUpAheadData',
-      'mergeUpAheadData',
+      "from '../data/datasets/upAheadDataset'",
+      'loadUpAhead(',
       'loadFromCache',
-      'saveToCache',
-      'clearUpAheadCache',
       'plannerStorage.addItem',
       'plannerStorage.addToBlacklist',
       'getRuntimeCapabilities',
     ].forEach(token => {
       expect(vm).toContain(token);
     });
+    expect(vm).not.toContain('clearUpAheadCache');
   });
 
   it('does not treat blocked static-host browser feeds as a successful empty offer query', () => {
-    expect(vm).toContain('runtime.allowWideFeedFetch');
-    expect(vm).toContain('static_runtime_blocks_browser_live');
+    expect(dataset).toContain('providerDecision.browserWideFeedFetchAllowed');
+    expect(dataset).toContain('static_runtime_blocks_browser_live');
     expect(vm).toContain('deriveOfferCapability');
     expect(page).toContain('data-offer-capability');
     expect(page).not.toContain('emptyMessage="No online offers right now."');

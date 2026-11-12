@@ -8,6 +8,29 @@ import './MyPlanner.css';
 // usePlannerTabViewModel — Planner tab ViewModel pattern; page consumes useMyPlannerPageViewModel
 // DataStateBoundary integration: treatEmptyAsReady={true} for non-empty empty-state handling
 
+function PlannerSuggestions({ items = [], error, onSave }) {
+    if (!items.length && !error) return null;
+    return (
+        <section className="planner-controls planner-suggestions" aria-labelledby="planner-suggestions-title">
+            <h2 id="planner-suggestions-title">Suggested from Up Ahead</h2>
+            {error && <p role="alert">{error}</p>}
+            <ul>
+                {items.map(item => (
+                    <li key={item.hiddenKey || item.id}>
+                        <div>
+                            <strong>{item.title}</strong>
+                            <p>{formatPlannerDateLabel(item.planDate)}{item.locationCanonical ? ` · ${item.locationCanonical}` : ''}</p>
+                        </div>
+                        <button type="button" className="btn btn--secondary" onClick={() => onSave(item)} aria-label={`Add ${item.title} to plan`}>
+                            + Plan
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+
 function PlannerControlsPanel({ viewModel, controls, onControlsChange }) {
     const updateControl = (key, value) => {
         onControlsChange(prev => ({
@@ -494,6 +517,9 @@ function MyPlannerPage() {
         clearPlannerSelection,
         exportSelectedPlannerItems,
         removeSelectedPlannerItems,
+        upAheadSuggestions,
+        suggestionError,
+        saveUpAheadSuggestion,
     } = useMyPlannerPageViewModel();
 
     const plannerHeaderActions = (
@@ -513,6 +539,7 @@ function MyPlannerPage() {
             <Header title="My Planner" actions={plannerHeaderActions} shellRuntimeProps={shellRuntimeProps} />
 
             <main className="main-content" style={{ padding: '16px', margin: '0 auto', maxWidth: '800px' }}>
+                <PlannerSuggestions items={upAheadSuggestions} error={suggestionError} onSave={saveUpAheadSuggestion} />
                 <PlannerControlsPanel
                     viewModel={plannerViewModel}
                     controls={plannerControls}
