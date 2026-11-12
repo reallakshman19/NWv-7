@@ -641,9 +641,8 @@ export function useInsightTabViewModel() {
   }, []);
 
   const combinedLoading = Boolean(loading || (datasetLoading && !resultToRender));
-  const error = datasetError || pipelineError || boundaryEnvelope?.error || null;
-
   const hasResult = hasRenderableInsightResult(resultToRender);
+  const error = hasResult ? null : (datasetError || pipelineError || boundaryEnvelope?.error || null);
   const qualityAccepted = hasQualityAcceptedInsightResult(resultToRender);
   const degraded = hasResult && !qualityAccepted;
 

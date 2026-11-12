@@ -52,13 +52,22 @@ staged:
 Queue reservations include the coordinator, 41 lane jobs, finalization, and
 bounded transient retries.
 The ceilings are deliberately below the corresponding Cloudflare Free limits.
-The D1 database reserves at most 350 MB for normalized evidence, leaving about
-150 MB of the Free plan's 500 MB per-database maximum for tables, indexes, and
-operational headroom. Each normalized evidence object is capped at 1 MB and
-each decision-evidence row at 64 KB. Expired evidence is pruned before a new
-epoch starts, except for the current committed epoch. Live feed bodies are
-streamed through a 500 KB acquisition limit; D1 retains at most 20 normalized
-items and 60 KB per lane, never an unbounded feed payload.
+New epochs stop at 450 MB of reported D1 storage and the existing 350 MB
+limit on retained evidence bodies still applies. The hourly cron queues
+cleanup under the same daily quota as acquisition. Each run reserves up to
+2,500 estimated D1 writes, including indexes, and removes expired history in
+bounded batches. It expires abandoned incomplete epochs after 36 hours and
+retains seven days of history plus the current published epoch. The current
+epoch's lane payloads can be needed to serve its snapshot. Live feed bodies
+are streamed through a 500 KB acquisition limit. D1 retains up to 20
+normalized items and 60 KB per lane, 1 MB per normalized snapshot, and
+64 KB per decision row.
+
+Apply the history-retention migration before deploying this Worker version.
+An existing backlog drains over multiple days. Check D1's reported size
+after cleanup. If the database still reports 450 MB or more, new acquisition
+stays paused and a compact copy that preserves the current snapshot must be
+verified before changing the binding.
 The browser-assisted path has a stricter application ceiling of eight minutes
 per UTC day against the provider's ten-minute Free allowance. It transfers at
 most 20 entries per Google lane from the browser, and only the bounded title,

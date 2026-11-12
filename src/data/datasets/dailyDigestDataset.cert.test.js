@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('../../runtime/runtimeCapabilities.js', () => ({
-  getRuntimeCapabilities: () => ({ configuredBackendUrl: 'https://api.example.test' }),
+  getRuntimeCapabilities: vi.fn(() => ({ configuredBackendUrl: 'https://api.example.test' })),
 }));
 
+import { getRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
 import { load, __dailyDigestDatasetInternalsForTest } from './dailyDigestDataset.js';
 
 const SNAPSHOT = {
@@ -63,7 +64,11 @@ describe('Daily Digest dataset', () => {
     expect(card).toBeNull();
   });
 
-  it('uses fresh Sections authority cards in Live mode when the curated backend is not configured', async () => {
+  it.each([
+    { mode: 'Live mode', liveMode: true, hostname: 'example.test' },
+    { mode: 'local Hybrid mode', liveMode: false, hostname: '127.0.0.1' },
+  ])('uses fresh Sections authority cards in $mode when the backend is missing', async ({ liveMode, hostname }) => {
+    getRuntimeCapabilities.mockReturnValueOnce({ configuredBackendUrl: '', hostname });
     const liveFallbackLoader = vi.fn(async () => ({
       status: 'READY',
       generatedAt: Date.parse('2026-08-24T06:00:00Z'),
@@ -108,8 +113,8 @@ describe('Daily Digest dataset', () => {
 
     const envelope = await load({
       asOfDate: '2026-08-24',
-      baseUrl: '',
-      liveMode: true,
+      now: new Date('2026-08-24T06:00:00Z'),
+      liveMode,
       liveFallbackLoader,
       fetchImpl: vi.fn(),
     });
@@ -121,6 +126,23 @@ describe('Daily Digest dataset', () => {
     expect(envelope.data.cards).toHaveLength(3);
     expect(envelope.data.liveFallbackReason).toBe('BACKEND_NOT_CONFIGURED');
     expect(envelope.validation.warnings).toContain('daily_digest_live_fallback');
+  });
+
+  it.each([
+    { hostname: 'example.github.io', digestDate: '2026-08-24' },
+    { hostname: '127.0.0.1', digestDate: '2026-08-23' },
+  ])('preserves an unavailable Hybrid edition on $hostname for $digestDate', async ({ hostname, digestDate }) => {
+    getRuntimeCapabilities.mockReturnValueOnce({ configuredBackendUrl: '', hostname });
+    const liveFallbackLoader = vi.fn();
+    const envelope = await load({
+      asOfDate: digestDate,
+      now: new Date('2026-08-24T06:00:00Z'),
+      liveMode: false,
+      liveFallbackLoader,
+    });
+
+    expect(envelope.data.availability).toBe('BACKEND_NOT_CONFIGURED');
+    expect(liveFallbackLoader).not.toHaveBeenCalled();
   });
 
   it('keeps curated snapshot precedence in Live mode when a valid frozen edition exists', async () => {

@@ -1424,6 +1424,46 @@ html[data-layout-mode='mobile'] .bottom-nav__label {
    MODERN NEWS CARD DESIGN
    ======================================== */
 
+.daily-digest-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 3px 3px 8px;
+  scrollbar-width: thin;
+}
+
+.daily-digest-tabs [role='tab'] {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.daily-digest-tabs [aria-selected='true'] {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 13%, var(--bg-secondary));
+  font-weight: 650;
+}
+
+.daily-digest-tabs [role='tab']:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 1px;
+}
+
+.daily-digest-tab-count {
+  color: var(--text-muted);
+  font-size: 0.8em;
+  font-variant-numeric: tabular-nums;
+}
+
 .news-list-modern {
   display: flex;
   flex-direction: column;

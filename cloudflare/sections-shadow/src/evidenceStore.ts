@@ -1,4 +1,4 @@
-import { ShadowCustodyError } from './contracts';
+import { SHADOW_HISTORY_RETENTION_MS, ShadowCustodyError } from './contracts';
 import { sha256Text } from './crypto';
 import { recordCapacityBlock } from './quota';
 
@@ -23,6 +23,7 @@ const MAX_NORMALIZED_OBJECT_BYTES = 1_000_000;
 const MAX_LANE_PAYLOAD_BYTES = 60_000;
 const EXPECTED_LANE_COUNT = 41;
 const DEFAULT_EVIDENCE_CAP_BYTES = 350_000_000;
+const D1_DATABASE_SAFETY_CAP_BYTES = 450_000_000;
 const RESERVED_NEXT_EPOCH_BYTES = MAX_NORMALIZED_OBJECT_BYTES +
   MAX_LANE_PAYLOAD_BYTES * EXPECTED_LANE_COUNT;
 
@@ -40,17 +41,20 @@ function byteLength(value: string): number {
 export async function readD1EvidenceUsage(db: D1Database): Promise<{
   objectCount: number;
   retainedBytes: number;
+  databaseBytes: number;
 }> {
-  const row = await db.prepare(`
+  const result = await db.prepare(`
     SELECT
       (SELECT COUNT(*) FROM sections_shadow_evidence_objects) +
         (SELECT COUNT(*) FROM sections_shadow_lane_payloads) AS object_count,
       (SELECT COALESCE(SUM(byte_length), 0) FROM sections_shadow_evidence_objects) +
         (SELECT COALESCE(SUM(byte_length), 0) FROM sections_shadow_lane_payloads) AS retained_bytes
-  `).first<{ object_count: number; retained_bytes: number }>();
+  `).all<{ object_count: number; retained_bytes: number }>();
+  const row = result.results[0];
   return {
     objectCount: Number(row?.object_count ?? 0),
     retainedBytes: Number(row?.retained_bytes ?? 0),
+    databaseBytes: result.meta.size_after,
   };
 }
 
@@ -58,24 +62,35 @@ export async function pruneExpiredD1Evidence(
   db: D1Database,
   nowMs: number,
 ): Promise<number> {
+  const cutoff = nowMs - SHADOW_HISTORY_RETENTION_MS;
   const results = await db.batch([
     db.prepare(`
       DELETE FROM sections_shadow_lane_payloads
-      WHERE expires_at_ms <= ?
-        AND NOT EXISTS (
-          SELECT 1 FROM sections_shadow_epochs e
-          WHERE e.epoch_id = sections_shadow_lane_payloads.epoch_id
-            AND e.state = 'STAGED'
-        )
-    `).bind(nowMs),
+      WHERE rowid IN (
+        SELECT p.rowid FROM sections_shadow_lane_payloads p
+        WHERE (p.expires_at_ms <= ? OR p.epoch_id IN (
+          SELECT epoch_id FROM sections_shadow_epochs WHERE logical_slot <= ?
+        ))
+          AND NOT EXISTS (
+            SELECT 1 FROM sections_shadow_epochs e WHERE e.epoch_id = p.epoch_id AND e.state = 'STAGED'
+          )
+          AND NOT EXISTS (SELECT 1 FROM sections_shadow_current_pointer c WHERE c.epoch_id = p.epoch_id)
+        ORDER BY p.expires_at_ms
+        LIMIT 64
+      )
+    `).bind(nowMs, cutoff),
     db.prepare(`
       DELETE FROM sections_shadow_evidence_objects
-      WHERE expires_at_ms <= ?
-        AND NOT EXISTS (
-          SELECT 1 FROM sections_shadow_current_pointer p
-          WHERE p.epoch_id = sections_shadow_evidence_objects.epoch_id
-        )
-    `).bind(nowMs),
+      WHERE rowid IN (
+        SELECT o.rowid FROM sections_shadow_evidence_objects o
+        WHERE (o.expires_at_ms <= ? OR o.epoch_id IN (
+          SELECT epoch_id FROM sections_shadow_epochs WHERE logical_slot <= ?
+        ))
+          AND NOT EXISTS (SELECT 1 FROM sections_shadow_current_pointer p WHERE p.epoch_id = o.epoch_id)
+        ORDER BY o.expires_at_ms
+        LIMIT 4
+      )
+    `).bind(nowMs, cutoff),
   ]);
   return results.reduce((total, result) => total + Number(result.meta?.changes ?? 0), 0);
 }
@@ -83,17 +98,16 @@ export async function pruneExpiredD1Evidence(
 export async function prepareD1EvidenceCapacity(
   env: D1EvidenceEnv,
   nowMs: number,
-): Promise<{ objectCount: number; retainedBytes: number; prunedObjects: number }> {
-  const prunedObjects = await pruneExpiredD1Evidence(env.SHADOW_DB, nowMs);
+): Promise<void> {
   const usage = await readD1EvidenceUsage(env.SHADOW_DB);
-  if (usage.retainedBytes + RESERVED_NEXT_EPOCH_BYTES > configuredEvidenceCap(env)) {
+  if (usage.databaseBytes >= D1_DATABASE_SAFETY_CAP_BYTES ||
+      usage.retainedBytes + RESERVED_NEXT_EPOCH_BYTES > configuredEvidenceCap(env)) {
     await recordCapacityBlock(env.SHADOW_DB, nowMs);
     throw new ShadowCustodyError(
       'FREE_TIER_STORAGE_CAPACITY_EXHAUSTED',
-      'D1 evidence storage cannot admit another shadow epoch within the 350 MB safety ceiling',
+      'D1 storage cannot admit another shadow epoch within the Free-plan safety budget',
     );
   }
-  return { ...usage, prunedObjects };
 }
 
 export async function readD1EvidenceObject(

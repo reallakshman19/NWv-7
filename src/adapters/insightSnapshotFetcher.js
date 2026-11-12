@@ -86,14 +86,12 @@ export function createSnapshotRawFetcher(snapshot) {
   const referenceMs = Number(snapshot.fetchedAt || 0) || Date.now();
   const intakeSummary = getSnapshotIntakeSummary(snapshot, {
     minStoriesPerSlot: 12,
-    maxStoriesPerSlot: 40,
     nowMs: referenceMs,
   });
 
   return async (slot) => {
     const selected = selectSnapshotStoriesForSlot(snapshot, slot, {
       minStoriesPerSlot: 12,
-      maxStoriesPerSlot: 40,
       nowMs: referenceMs,
     });
 

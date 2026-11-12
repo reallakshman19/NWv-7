@@ -67,4 +67,19 @@ describe('Insight Sections authority fallback', () => {
     expect((await fetcher('minus12h')).map(item => item.id)).toEqual(['minus12h']);
     expect((await fetcher('minus24h')).map(item => item.id)).toEqual(['minus24h']);
   });
+
+  it('bounds busy slots without taking space from the older slot', async () => {
+    const snapshot = {
+      schemaVersion: 2,
+      fetchedAt: NOW,
+      sections: { topStories: [
+        ...Array.from({ length: 55 }, (_, index) => story(`recent-${index}`, 1 + index / 60)),
+        story('older', 30),
+      ] },
+    };
+    const fetcher = createSectionsAuthorityInsightRawFetcher(snapshot);
+
+    expect(await fetcher('now')).toHaveLength(40);
+    expect((await fetcher('minus24h')).map(item => item.id)).toEqual(['older']);
+  });
 });

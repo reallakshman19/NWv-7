@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import DailyDigestSection from './DailyDigestSection.jsx';
@@ -8,6 +8,34 @@ import DailyDigestSection from './DailyDigestSection.jsx';
 afterEach(() => cleanup());
 
 describe('DailyDigestSection availability states', () => {
+  it('switches between source tabs by click and keyboard and displays ten stories per tab', () => {
+    const cards = ['BBC', 'The Hindu', 'Times of Oman'].flatMap(source =>
+      Array.from({ length: 10 }, (_, index) => ({
+        slot: 'L' + (index + 1),
+        canonicalId: source + index,
+        canonicalUrl: 'https://example.com/' + encodeURIComponent(source) + '/' + index,
+        title: source + ' story ' + index,
+        source,
+        sourceGroup: source,
+        section: 'world',
+      })));
+    render(<DailyDigestSection cards={cards} deliveryMode="LIVE" availability="READY" />);
+
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
+    expect(within(screen.getByRole('tabpanel')).getAllByRole('link')).toHaveLength(10);
+    const hindu = screen.getByRole('tab', { name: /The Hindu/ });
+    fireEvent.click(hindu);
+    expect(hindu.getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('link', { name: /The Hindu story 0/ })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /BBC story 0/ })).toBeNull();
+
+    fireEvent.keyDown(hindu, { key: 'ArrowRight' });
+    const oman = screen.getByRole('tab', { name: /Times of Oman/ });
+    expect(document.activeElement).toBe(oman);
+    expect(oman.getAttribute('aria-selected')).toBe('true');
+    expect(within(screen.getByRole('tabpanel')).getAllByRole('link')).toHaveLength(10);
+  });
+
   it('keeps the section visible before the 10:15 IST freeze', () => {
     render(
       <DailyDigestSection

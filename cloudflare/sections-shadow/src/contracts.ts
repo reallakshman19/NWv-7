@@ -58,12 +58,16 @@ export interface AcquireLiveBrowserLanesQueueMessage {
   attempt?: number;
 }
 
+export const SHADOW_HISTORY_RETENTION_MS = 7 * 24 * 60 * 60 * 1_000;
+export const SHADOW_RAW_RETENTION_MS = 36 * 60 * 60 * 1_000;
+
 export type ShadowQueueMessage =
   | FrozenReplayQueueMessage
   | StartLiveEpochQueueMessage
   | AcquireLiveLaneQueueMessage
   | AcquireLiveBrowserLanesQueueMessage
-  | FinalizeLiveEpochQueueMessage;
+  | FinalizeLiveEpochQueueMessage
+  | { type: 'PRUNE_HISTORY'; epochId: string; logicalSlot: number; attempt: number };
 
 export interface EpochStart {
   epochId: string;

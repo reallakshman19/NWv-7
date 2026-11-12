@@ -11,6 +11,7 @@ import { loadDailyDigestLiveFallback } from '../dailyDigestLiveFallback.js';
 const IST_TIMEZONE = 'Asia/Kolkata';
 const SNAPSHOT_SCHEMA = 'daily-digest-snapshot/v1';
 const FREEZE_MINUTE_IST = (10 * 60) + 15;
+const LOCAL_PREVIEW_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
 const ALLOWED_HOSTS = Object.freeze({
   AKASHVANI: Object.freeze(['newsonair.gov.in']),
   INDIAN_EXPRESS: Object.freeze(['indianexpress.com', 'www.indianexpress.com']),
@@ -170,13 +171,13 @@ function liveFallbackEnvelope(digestDate, fallback, curatedStatus) {
 }
 
 async function maybeLoadLiveFallback({
-  liveMode,
+  allowFallback,
   digestDate,
   curatedStatus,
   now,
   liveFallbackLoader,
 }) {
-  if (!liveMode) return null;
+  if (!allowFallback) return null;
 
   const fallback = await liveFallbackLoader({
     force: true,
@@ -226,7 +227,7 @@ export async function load(options = {}) {
     }
 
     const liveEnvelope = await maybeLoadLiveFallback({
-      liveMode,
+      allowFallback: liveMode,
       digestDate,
       curatedStatus: snapshot ? 'EMPTY' : 'INVALID_SNAPSHOT',
       now,
@@ -260,8 +261,12 @@ export async function load(options = {}) {
     curatedStatus = missingSnapshotAvailability(digestDate, now);
   }
 
+  const localPreviewFallback = response.status === 'BACKEND_NOT_CONFIGURED'
+    && import.meta.env.DEV
+    && LOCAL_PREVIEW_HOSTS.has(runtime.hostname)
+    && digestDate === dateInTimeZone(now);
   const liveEnvelope = await maybeLoadLiveFallback({
-    liveMode,
+    allowFallback: liveMode || localPreviewFallback,
     digestDate,
     curatedStatus,
     now,
