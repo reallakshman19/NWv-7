@@ -173,7 +173,7 @@ export async function startEpoch(env: CustodyEnv, input: EpochStart): Promise<Sh
     input.nowMs,
     input.nowMs + 36 * HOUR_MS,
     input.nowMs + 7 * DAY_MS,
-    input.nowMs + 30 * DAY_MS,
+    input.nowMs + 7 * DAY_MS,
   ).run();
   const created = await readEpoch(env.SHADOW_DB, input.epochId);
   if (!created) throw new ShadowCustodyError('EPOCH_CREATE_FAILED', 'Staged epoch was not persisted');

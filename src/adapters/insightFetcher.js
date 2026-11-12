@@ -164,12 +164,11 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
 /**
  * createInsightFetcher — returns the appropriate SlotFetcher depending on runtime.
  *
- * Host-based decision (unchanged): preferSnapshots → snapshot-first; else live-first.
- * Hardened so neither mode dead-ends to a blank page.
+ * Hybrid tries fresh Insight and Sections snapshots before browser acquisition.
  *
  * On github.io (preferSnapshots = true):
  *   Live mode: fresh selected Sections authority first (Cloudflare/GitHub routing).
- *   Hybrid mode: fresh Insight snapshot first.
+ *   Hybrid mode: fresh Insight snapshot, then the selected Sections authority.
  *   Then: stale Insight snapshot (≤ 48 h), best-effort browser live, empty state.
  *
  * On full-runtime (local / self-hosted):
@@ -181,36 +180,39 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
 export async function createInsightFetcher() {
   const { preferSnapshots } = getRuntimeCapabilities();
   const liveMode = isLiveMode();
+  let fresh = liveMode ? null : await loadInsightSnapshot({ allowStale: false });
 
-  if (preferSnapshots && liveMode) {
-    const authorityFallback = await loadSectionsAuthorityInsightFallback({ force: true });
+  if (!fresh?.stories.length && (!liveMode || preferSnapshots)) {
+    const authorityFallback = await loadSectionsAuthorityInsightFallback({ force: liveMode });
 
     if (authorityFallback) {
       const { snapshot, runtimeSummary } = authorityFallback;
       return {
         fetcher: createNormalizedSectionsAuthorityFetcher(snapshot, DEFAULT_CONFIG),
-        source: 'live-sections',
+        source: liveMode ? 'live-sections' : 'snapshot',
         snapshotTs: snapshot.fetchedAt,
         contentHash: snapshot.contentHash || '',
         sectionsRuntimeSummary: runtimeSummary,
       };
     }
 
-    console.warn('[InsightFetcher] Static Live mode could not load a fresh Sections authority snapshot; falling back to Insight snapshot/live acquisition.');
+    if (liveMode) {
+      console.warn('[InsightFetcher] Static Live mode could not load a fresh Sections authority snapshot; falling back to Insight snapshot/live acquisition.');
+      fresh = await loadInsightSnapshot({ allowStale: false });
+    }
+  }
+
+  if (fresh?.stories.length) {
+    return {
+      fetcher:     createNormalizedSnapshotFetcher(fresh, DEFAULT_CONFIG),
+      source:      'snapshot',
+      snapshotTs:  fresh.fetchedAt,
+      contentHash: fresh.contentHash,
+      snapshotRuntimeSummary: fresh.runtimeSummary,
+    };
   }
 
   if (preferSnapshots) {
-    const fresh = await loadInsightSnapshot({ allowStale: false });
-    if (fresh) {
-      return {
-        fetcher:     createNormalizedSnapshotFetcher(fresh, DEFAULT_CONFIG),
-        source:      'snapshot',
-        snapshotTs:  fresh.fetchedAt,
-        contentHash: fresh.contentHash,
-        snapshotRuntimeSummary: fresh.runtimeSummary,
-      };
-    }
-
     const stale = await loadInsightSnapshot({ allowStale: true });
     const staleAgeMs = stale ? Date.now() - Number(stale.fetchedAt || 0) : Infinity;
     if (stale && staleAgeMs <= MAX_STALE_SNAPSHOT_AGE_MS) {

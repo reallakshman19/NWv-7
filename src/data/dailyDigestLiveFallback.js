@@ -4,24 +4,12 @@ import {
 } from '../adapters/sectionsSnapshotFetcher.js';
 
 const LIVE_DIGEST_MAX_AGE_MS = 12 * 60 * 60 * 1000;
-const LIVE_DIGEST_MAX_CARDS = 6;
 const LIVE_DIGEST_MIN_CARDS = 3;
-const LIVE_DIGEST_MIN_SOURCE_GROUPS = 2;
-const MAX_PER_SOURCE_GROUP = 2;
+const LIVE_DIGEST_MIN_SOURCE_GROUPS = 3;
+const STORIES_PER_SOURCE = 10;
 
 const PRIMARY_SECTION_ORDER = Object.freeze([
   'topStories',
-  'india',
-  'world',
-  'business',
-  'technology',
-  'tn',
-  'muscat',
-  'sports',
-  'entertainment',
-]);
-
-const DIVERSITY_SECTION_ORDER = Object.freeze([
   'india',
   'world',
   'business',
@@ -73,10 +61,6 @@ function canonicalKey(item) {
   return text(item?.title || item?.headline).toLowerCase().replace(/\s+/g, ' ');
 }
 
-function sourceGroup(item) {
-  return text(item?.sourceGroup || item?.source || item?.publisher, 'Unknown');
-}
-
 function normalizeCandidate(item, section, rank, nowMs) {
   if (!item || typeof item !== 'object') return null;
 
@@ -85,16 +69,15 @@ function normalizeCandidate(item, section, rank, nowMs) {
   const publishedAt = timestampMs(item);
   const ageMs = publishedAt > 0 ? Math.max(0, nowMs - publishedAt) : Infinity;
 
-  if (!title || !canonicalUrl || !publishedAt || ageMs > LIVE_DIGEST_MAX_AGE_MS) return null;
-
-  const source = text(item.source || item.publisher || item.sourceGroup, 'Unknown');
+  const source = text(item.source) || text(item.publisher) || text(item.sourceGroup);
+  if (!title || !canonicalUrl || !publishedAt || !source || ageMs > LIVE_DIGEST_MAX_AGE_MS) return null;
 
   return {
     canonicalId: text(item.canonicalId || item.id || canonicalKey(item)),
     title,
     canonicalUrl,
     source,
-    sourceGroup: sourceGroup(item),
+    sourceGroup: text(item.sourceGroup, source),
     section,
     publishedAt,
     rank,
@@ -127,78 +110,36 @@ export function buildLiveDigestCandidatePool(snapshot, { nowMs } = {}) {
   return pool;
 }
 
-function canUseSource(candidate, sourceCounts, enforceCap = true) {
-  if (!enforceCap) return true;
-  return Number(sourceCounts.get(candidate.sourceGroup) || 0) < MAX_PER_SOURCE_GROUP;
-}
-
-function pushCandidate(selected, selectedKeys, sourceCounts, candidate, enforceCap = true) {
-  const key = candidate.canonicalUrl.toLowerCase();
-  if (selectedKeys.has(key) || !canUseSource(candidate, sourceCounts, enforceCap)) return false;
-
-  selected.push(candidate);
-  selectedKeys.add(key);
-  sourceCounts.set(candidate.sourceGroup, Number(sourceCounts.get(candidate.sourceGroup) || 0) + 1);
-  return true;
+function compareDigestStories(a, b) {
+  const topStoriesFirst = Number(b.section === 'topStories') - Number(a.section === 'topStories');
+  return topStoriesFirst || b.impactScore - a.impactScore || b.publishedAt - a.publishedAt || a.rank - b.rank;
 }
 
 export function selectLiveDigestCards(snapshot, options = {}) {
-  const limit = Math.max(1, Math.min(
-    LIVE_DIGEST_MAX_CARDS,
-    Number(options.limit || LIVE_DIGEST_MAX_CARDS)
-  ));
   const pool = buildLiveDigestCandidatePool(snapshot, options);
-  const selected = [];
-  const selectedKeys = new Set();
-  const sourceCounts = new Map();
-
-  const topStories = pool.filter(item => item.section === 'topStories');
-  for (const candidate of topStories.slice(0, 4)) {
-    if (selected.length >= Math.min(2, limit)) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
+  const bySource = new Map();
+  for (const story of pool) {
+    if (!bySource.has(story.sourceGroup)) bySource.set(story.sourceGroup, []);
+    bySource.get(story.sourceGroup).push(story);
   }
 
-  for (const section of DIVERSITY_SECTION_ORDER) {
-    if (selected.length >= limit) break;
-    const candidate = pool.find(item => item.section === section && !selectedKeys.has(item.canonicalUrl.toLowerCase()));
-    if (candidate) pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
-  }
-
-  const rankedRemainder = pool
-    .filter(item => !selectedKeys.has(item.canonicalUrl.toLowerCase()))
-    .sort((a, b) => {
-      const impactDelta = Number(b.impactScore || 0) - Number(a.impactScore || 0);
-      if (impactDelta !== 0) return impactDelta;
-      const publishedDelta = Number(b.publishedAt || 0) - Number(a.publishedAt || 0);
-      if (publishedDelta !== 0) return publishedDelta;
-      return Number(a.rank || 0) - Number(b.rank || 0);
-    });
-
-  for (const candidate of rankedRemainder) {
-    if (selected.length >= limit) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, true);
-  }
-
-  for (const candidate of rankedRemainder) {
-    if (selected.length >= limit) break;
-    pushCandidate(selected, selectedKeys, sourceCounts, candidate, false);
-  }
-
-  const uniqueSources = new Set(selected.map(item => item.sourceGroup));
-
-  if (
-    selected.length < LIVE_DIGEST_MIN_CARDS ||
-    uniqueSources.size < LIVE_DIGEST_MIN_SOURCE_GROUPS
-  ) {
+  if (pool.length < LIVE_DIGEST_MIN_CARDS || bySource.size < LIVE_DIGEST_MIN_SOURCE_GROUPS) {
     return {
       cards: [],
-      reason: selected.length < LIVE_DIGEST_MIN_CARDS
+      reason: pool.length < LIVE_DIGEST_MIN_CARDS
         ? 'live_digest_insufficient_cards'
         : 'live_digest_insufficient_source_diversity',
       candidateCount: pool.length,
-      sourceGroupCount: uniqueSources.size,
+      sourceGroupCount: bySource.size,
     };
   }
+
+  const sources = [...bySource.values()];
+  const fullSources = sources.filter(stories => stories.length >= STORIES_PER_SOURCE);
+  const selectedSources = fullSources.length >= LIVE_DIGEST_MIN_SOURCE_GROUPS
+    ? fullSources
+    : sources.sort((a, b) => b.length - a.length).slice(0, LIVE_DIGEST_MIN_SOURCE_GROUPS);
+  const selected = selectedSources.flatMap(stories => stories.sort(compareDigestStories).slice(0, STORIES_PER_SOURCE));
 
   return {
     cards: selected.map((candidate, index) => ({
@@ -215,7 +156,7 @@ export function selectLiveDigestCards(snapshot, options = {}) {
     })),
     reason: null,
     candidateCount: pool.length,
-    sourceGroupCount: uniqueSources.size,
+    sourceGroupCount: selectedSources.length,
   };
 }
 
@@ -265,12 +206,10 @@ export async function loadDailyDigestLiveFallback({ force = true, nowMs } = {}) 
 
 export const __dailyDigestLiveFallbackInternalsForTest = {
   LIVE_DIGEST_MAX_AGE_MS,
-  LIVE_DIGEST_MAX_CARDS,
   LIVE_DIGEST_MIN_CARDS,
   LIVE_DIGEST_MIN_SOURCE_GROUPS,
-  MAX_PER_SOURCE_GROUP,
+  STORIES_PER_SOURCE,
   PRIMARY_SECTION_ORDER,
-  DIVERSITY_SECTION_ORDER,
   timestampMs,
   normalizeHttpUrl,
   canonicalKey,

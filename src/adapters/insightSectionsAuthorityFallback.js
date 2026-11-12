@@ -2,6 +2,7 @@ import {
   getSectionsSnapshotRuntimeSummary,
   loadSectionsSnapshot,
 } from './sectionsSnapshotFetcher.js';
+import { INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT } from './insightSnapshotIntake.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -101,10 +102,11 @@ export function createSectionsAuthorityInsightRawFetcher(snapshot) {
     const window = SLOT_WINDOWS[slot];
     if (!window) return [];
 
-    return pool.filter(story => {
+    const inWindow = pool.filter(story => {
       const ageMs = Math.max(0, referenceMs - Number(story.publishedAt || 0));
       return ageMs >= window.minAgeMs && ageMs < window.maxAgeMs;
     });
+    return inWindow.slice(0, INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT);
   };
 }
 
@@ -116,7 +118,8 @@ export async function loadSectionsAuthorityInsightFallback({ force = true } = {}
     if (runtimeSummary.stale || runtimeSummary.totalStories <= 0) return null;
 
     const pool = buildSectionsAuthorityInsightPool(snapshot);
-    if (pool.length === 0) return null;
+    const referenceMs = Number(snapshot.fetchedAt) || Date.now();
+    if (!pool.some(story => referenceMs - story.publishedAt < SLOT_WINDOWS.minus24h.maxAgeMs)) return null;
 
     return {
       snapshot,

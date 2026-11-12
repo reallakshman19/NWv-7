@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId, useState } from 'react';
 
 const PUBLISHER_LABELS = Object.freeze({
   AKASHVANI: 'Akashvani',
@@ -108,6 +108,21 @@ function emptyStateCopy({ availability, loading, error }) {
   };
 }
 
+function groupDigestCards(cards, deliveryMode) {
+  const groups = new Map();
+  for (const card of cards) {
+    const live = isLiveCard(card, deliveryMode);
+    const source = String(card.source || card.sourceGroup || 'Sections authority').trim();
+    const key = live ? card.sourceGroup || source : card.publisherFamily || 'curated';
+    const label = live ? source : publisherLabel(card.publisherFamily) || 'Publisher';
+    if (!groups.has(key)) groups.set(key, { key, label, cards: [] });
+    const group = groups.get(key);
+    if (live && label.length < group.label.length) group.label = label;
+    group.cards.push(card);
+  }
+  return [...groups.values()];
+}
+
 export function DailyDigestSection({
   cards = [],
   digestDate,
@@ -120,6 +135,26 @@ export function DailyDigestSection({
 }) {
   const frozen = freezeLabel(frozenAt);
   const status = cards.length ? null : emptyStateCopy({ availability, loading, error });
+  const sourceTabs = groupDigestCards(cards, deliveryMode);
+  const [selectedSource, setSelectedSource] = useState(null);
+  const activeIndex = Math.max(0, sourceTabs.findIndex(tab => tab.key === selectedSource));
+  const activeSource = sourceTabs[activeIndex];
+  const tabsId = useId();
+  const panelId = tabsId + '-panel';
+
+  function handleTabKey(event, index) {
+    const count = sourceTabs.length;
+    const nextIndex = {
+      ArrowLeft: (index + count - 1) % count,
+      ArrowRight: (index + 1) % count,
+      Home: 0,
+      End: count - 1,
+    }[event.key];
+    if (!Number.isInteger(nextIndex)) return;
+    event.preventDefault();
+    setSelectedSource(sourceTabs[nextIndex].key);
+    event.currentTarget.parentElement.children[nextIndex].focus();
+  }
 
   return (
     <section className="news-section" id="daily-digest" data-availability={availability}>
@@ -141,32 +176,57 @@ export function DailyDigestSection({
       </h2>
 
       {cards.length > 0 ? (
-        <div className="news-list-modern">
-          {cards.map(card => (
-            <a
-              key={`${card.slot}:${card.canonicalId}`}
-              href={card.canonicalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="modern-news-card"
-              style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
-            >
-              <div className="mnc-header">
-                <span className="mnc-source">{cardSourceLabel(card, deliveryMode)}</span>
-                <span className="mnc-badge">
-                  {isLiveCard(card, deliveryMode) ? sectionLabel(card.section) : card.slot}
-                </span>
-              </div>
-              <h3 className="mnc-headline">{card.title}</h3>
-              <div className="mnc-badges">
-                {isLiveCard(card, deliveryMode)
-                  ? <span className="mnc-badge">Live · Auto-selected</span>
-                  : <span className="mnc-badge">Publisher-curated</span>}
-                {card.replacementReason && <span className="mnc-badge">Health failover</span>}
-              </div>
-            </a>
-          ))}
-        </div>
+        <>
+          <div className="daily-digest-tabs" role="tablist" aria-label="Daily Digest sources">
+            {sourceTabs.map((source, index) => (
+              <button
+                key={source.key}
+                id={tabsId + '-tab-' + index}
+                type="button"
+                role="tab"
+                aria-controls={panelId}
+                aria-selected={activeIndex === index}
+                tabIndex={activeIndex === index ? 0 : -1}
+                onClick={() => setSelectedSource(source.key)}
+                onKeyDown={event => handleTabKey(event, index)}
+              >
+                {source.label}
+                <span className="daily-digest-tab-count">{source.cards.length}</span>
+              </button>
+            ))}
+          </div>
+          <div
+            className="news-list-modern"
+            id={panelId}
+            role="tabpanel"
+            aria-labelledby={tabsId + '-tab-' + activeIndex}
+          >
+            {activeSource.cards.map(card => (
+              <a
+                key={`${card.slot}:${card.canonicalId}`}
+                href={card.canonicalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="modern-news-card"
+                style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className="mnc-header">
+                  <span className="mnc-source">{cardSourceLabel(card, deliveryMode)}</span>
+                  <span className="mnc-badge">
+                    {isLiveCard(card, deliveryMode) ? sectionLabel(card.section) : card.slot}
+                  </span>
+                </div>
+                <h3 className="mnc-headline">{card.title}</h3>
+                <div className="mnc-badges">
+                  {isLiveCard(card, deliveryMode)
+                    ? <span className="mnc-badge">Live · Auto-selected</span>
+                    : <span className="mnc-badge">Publisher-curated</span>}
+                  {card.replacementReason && <span className="mnc-badge">Health failover</span>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </>
       ) : (
         <div
           className="modern-news-card"

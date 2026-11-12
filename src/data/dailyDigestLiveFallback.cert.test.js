@@ -53,34 +53,41 @@ describe('Daily Digest Live fallback selector', () => {
     expect(pool.filter(item => item.canonicalUrl.includes('/shared'))).toHaveLength(1);
   });
 
-  it('builds a diverse deterministic live digest from ranked Sections authority stories', () => {
+  it('keeps ten distinct stories for each of at least three complete sources', () => {
+    const sourceStories = (source, section) => Array.from({ length: 12 }, (_, index) =>
+      story(`${source}-${index}`, 1 + index / 5, source, section, 1 - index / 20));
     const snapshot = {
       schemaVersion: 2,
       fetchedAt: NOW,
       sections: {
-        topStories: [
-          story('top-a', 1, 'wire-a', 'topStories', 0.95),
-          story('top-b', 1.2, 'wire-a', 'topStories', 0.90),
-          story('top-c', 1.4, 'wire-a', 'topStories', 0.85),
-        ],
-        india: [story('india-a', 2, 'india-pub', 'india', 0.80)],
-        world: [story('world-a', 2.2, 'world-pub', 'world', 0.78)],
-        business: [story('business-a', 2.4, 'biz-pub', 'business', 0.76)],
+        india: sourceStories('india-pub', 'india'),
+        world: sourceStories('world-pub', 'world'),
+        business: sourceStories('biz-pub', 'business'),
         technology: [story('tech-a', 2.6, 'tech-pub', 'technology', 0.74)],
       },
     };
 
     const result = selectLiveDigestCards(snapshot, { nowMs: NOW });
 
-    expect(result.cards).toHaveLength(6);
-    expect(result.sourceGroupCount).toBeGreaterThanOrEqual(2);
+    expect(result.cards).toHaveLength(30);
+    expect(result.sourceGroupCount).toBe(3);
+    expect(new Set(result.cards.map(card => card.canonicalUrl)).size).toBe(30);
     expect(result.cards[0].deliveryMode).toBe('LIVE');
-    expect(result.cards.some(card => card.section === 'india')).toBe(true);
-    expect(result.cards.some(card => card.section === 'world')).toBe(true);
-    expect(result.cards.some(card => card.section === 'business')).toBe(true);
+    for (const source of ['india-pub', 'world-pub', 'biz-pub']) {
+      expect(result.cards.filter(card => card.sourceGroup === source)).toHaveLength(10);
+    }
+  });
 
-    const wireCards = result.cards.filter(card => card.sourceGroup === 'wire-a');
-    expect(wireCards.length).toBeLessThanOrEqual(2);
+  it('returns the real stories from three sources when some sources have fewer than ten', () => {
+    const snapshot = { fetchedAt: NOW, sections: { world: [
+      story('one', 1, 'first', 'world'),
+      story('two', 2, 'second', 'world'),
+      story('three', 3, 'third', 'world'),
+    ] } };
+
+    const result = selectLiveDigestCards(snapshot, { nowMs: NOW });
+    expect(result.sourceGroupCount).toBe(3);
+    expect(result.cards.map(card => card.canonicalId)).toEqual(['one', 'two', 'three']);
   });
 
   it('refuses to fabricate a digest from an insufficient or single-source pool', () => {

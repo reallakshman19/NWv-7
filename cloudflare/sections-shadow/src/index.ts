@@ -1,9 +1,11 @@
 import {
   SHADOW_MODE,
+  SHADOW_HISTORY_RETENTION_MS,
+  SHADOW_RAW_RETENTION_MS,
   ShadowCustodyError,
   type ShadowQueueMessage,
 } from './contracts';
-import { readCurrentShadow, type CustodyEnv } from './custody';
+import { readCurrentShadow, readEpoch, type CustodyEnv } from './custody';
 import { timingSafeEqual } from './crypto';
 import { runBundledFrozenReplay } from './frozenReplay';
 import {
@@ -16,6 +18,7 @@ import { readQuotaDay } from './quota';
 import { sectionsRegistryAuthority } from './registry';
 import { queueFailureFields } from './queueDiagnostics';
 import { readCommittedPreviewSnapshot } from './previewSnapshot';
+import { pruneShadowHistory } from './retention';
 
 const HOUR_MS = 60 * 60 * 1_000;
 
@@ -131,9 +134,10 @@ async function findLatestRecoverableLiveEpoch(
       AND acquisition_mode = 'INDEPENDENT_LIVE'
       AND terminal_lane_count = expected_lane_count
       AND logical_slot < ?
+      AND logical_slot > ?
     ORDER BY logical_slot DESC
     LIMIT 1
-  `).bind(beforeLogicalSlot).first<{
+  `).bind(beforeLogicalSlot, beforeLogicalSlot - SHADOW_HISTORY_RETENTION_MS).first<{
     epoch_id: string;
     logical_slot: number;
     attempt: number;
@@ -213,8 +217,23 @@ async function consumeMessage(message: Message<ShadowQueueMessage>, env: Env): P
     message.ack();
     return;
   }
+  const nowMs = Date.now();
+  if (body.logicalSlot <= nowMs - SHADOW_HISTORY_RETENTION_MS) {
+    message.ack();
+    return;
+  }
   try {
+    if (body.type !== 'PRUNE_HISTORY' && body.logicalSlot <= nowMs - SHADOW_RAW_RETENTION_MS &&
+        (await readEpoch(env.SHADOW_DB, body.epochId))?.failure_code === 'EPOCH_EXPIRED') {
+      message.ack();
+      return;
+    }
     switch (body.type) {
+      case 'PRUNE_HISTORY': {
+        const changes = await pruneShadowHistory(env);
+        console.log('Sections shadow retention completed', { changes });
+        break;
+      }
       case 'RUN_FROZEN_REPLAY':
         await runBundledFrozenReplay(env, body);
         break;
@@ -268,6 +287,14 @@ export default {
     return handleRequest(request, env);
   },
   async scheduled(controller, env) {
+    if (env.SHADOW_SCHEDULE_ENABLED === 'true') {
+      await env.SHADOW_QUEUE.send({
+        type: 'PRUNE_HISTORY',
+        epochId: `retention-${controller.scheduledTime}`,
+        logicalSlot: controller.scheduledTime,
+        attempt: 1,
+      });
+    }
     const status = await runScheduledDispatch(controller, env);
     console.log('Sections shadow scheduled event', status);
   },

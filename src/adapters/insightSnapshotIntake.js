@@ -1,6 +1,7 @@
 const H = 3_600_000;
 
 export const INSIGHT_SNAPSHOT_SLOT_NAMES = ['now', 'minus4h', 'minus12h', 'minus24h'];
+export const INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT = 40;
 
 const SLOT_WINDOWS = {
   now:      { min: 0,  max: 4  * H, center: 2  * H },
@@ -11,7 +12,7 @@ const SLOT_WINDOWS = {
 
 const DEFAULT_INTAKE_OPTIONS = {
   minStoriesPerSlot: 12,
-  maxStoriesPerSlot: 40,
+  maxStoriesPerSlot: INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT,
   maxFallbackAgeHours: 48,
 };
 
