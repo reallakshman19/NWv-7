@@ -169,15 +169,20 @@ export function attachFetchDiagnostics(result, trace, details = {}) {
 
 export async function withInFlightCleanup(inFlightMap, cacheKey, resolveInFlight, action) {
   const startedAt = Date.now();
+  let completedResult;
   try {
     const result = await action();
     if (shouldDecorateCanonicalResult(result)) {
       const { trace, details } = buildCanonicalSectionDiagnostics(cacheKey, startedAt, result);
-      return attachFetchDiagnostics(result, trace, details);
+      completedResult = attachFetchDiagnostics(result, trace, details);
+    } else {
+      completedResult = result;
     }
-    return result;
+    return completedResult;
   } finally {
     inFlightMap.delete(cacheKey);
-    if (resolveInFlight) resolveInFlight();
+    // Coalesced authority readers receive the same qualified result instead
+    // of an empty array when duplicate RSS caching is disabled.
+    if (resolveInFlight) resolveInFlight(completedResult);
   }
 }
