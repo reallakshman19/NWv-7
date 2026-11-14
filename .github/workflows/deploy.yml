@@ -249,7 +249,7 @@ jobs:
 
   verify-world-health:
     name: Verify deployed World section health
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: deploy
     timeout-minutes: 20
     steps:
