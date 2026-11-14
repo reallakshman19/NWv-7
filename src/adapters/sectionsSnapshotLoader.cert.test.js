@@ -38,6 +38,23 @@ afterEach(() => {
 });
 
 describe('sections snapshot shared load certification', () => {
+  it('reads current repository data on the official Pages deployment', async () => {
+    vi.stubGlobal('window', {
+      location: { origin: 'https://reallakshman19.github.io', pathname: '/NWv-7/' },
+      dispatchEvent: vi.fn(),
+    });
+    const fetchMock = vi.fn().mockResolvedValue(response(snapshot('current-repository')));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const loaded = await loadSectionsSnapshot({ budgetMs: 5000 });
+
+    expect(loaded.contentHash).toBe('current-repository');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
   it('coalesces concurrent cold-cache callers into one fetch', async () => {
     const gate = deferred();
     const fetchMock = vi.fn(() => gate.promise);

@@ -4,11 +4,14 @@ fetch_sections_stories.py — news sections pre-fetch.
 Populates public/newsdata/sections_latest.json with 10 section keys:
   topStories, india, tn, trichy, muscat, world, business, technology, sports, entertainment
 
-Runs on the same schedule as fetch_insight_stories.py (news_prefetch.yml).
+Runs in the Sections Snapshot Recovery workflow.
 """
 import calendar
 import os
+import re
 import sys
+from html import unescape
+from urllib.parse import urlsplit
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -51,6 +54,73 @@ DEFAULT_SECTIONS_SNAPSHOT = {
     'contentHash':   '',
     'sections': {s: [] for s in SECTION_FEEDS},
 }
+
+TAMIL_NADU_PATH = re.compile(r'/(?:tamil-nadu|tamilnadu|chennai)(?:/|$)', re.IGNORECASE)
+TAMIL_NADU_PLACE = re.compile(r'\b(?:tamil\s*nadu|chennai)\b', re.IGNORECASE)
+WEATHER = re.compile(r'\b(?:rain\w*|cyclon\w*|monsoon|low[- ]pressure|weather)\b', re.IGNORECASE)
+LOCAL_WEATHER_CONTEXT = re.compile(r'\b(?:Bay of Bengal|(?:in|across|over) (?:the )?state)\b', re.IGNORECASE)
+WIDER_INDIA_SCOPE = re.compile(
+    r'\b(?:across (?:the country|India)|nationwide|pan[- ]India|(?:multiple|several|\d+) states|'
+    r'Andaman|Andhra Pradesh|Assam|Bihar|Delhi|Gujarat|Karnataka|Kerala|Maharashtra|'
+    r'Odisha|Orissa|Rajasthan|Telangana|Uttar Pradesh|West Bengal)\b',
+    re.IGNORECASE,
+)
+WORLD_PATH = re.compile(
+    r'^/(?:news/)?(?:world(?:-news)?|international)(?:/|$)', re.IGNORECASE,
+)
+MIXED_TOI_PATH = re.compile(r'^/(?:science|real-estate)(?:/|$)', re.IGNORECASE)
+INDIA_PATH = re.compile(r'/(?:india|india-news|india-business)(?:/|$)', re.IGNORECASE)
+INDIA_PLACE = re.compile(
+    r'\b(?:india|indians?|bharat|delhi|mumbai|bengaluru|kolkata|hyderabad|'
+    r'tamil\s*nadu|chennai|andhra pradesh|karnataka|kerala|odisha|telangana|'
+    r'west bengal|ISRO|IITs?|IISc|CSIR|DRDO)\b', re.IGNORECASE,
+)
+INDIA_NAME_EXCEPTIONS = re.compile(
+    r'\b(?:times of india|(?:new )?indian express|indian ocean|indian wells)\b',
+    re.IGNORECASE,
+)
+
+
+def clean_story_text(value: str) -> str:
+    return re.sub(r'\s+', ' ', re.sub(r'<[^>]*>', ' ', unescape(value or ''))).strip()
+
+
+def india_story_destination(item: dict) -> str | None:
+    """Use publisher geography and local weather coverage to route India feed rows."""
+    title = clean_story_text(item.get('title', ''))
+    summary = clean_story_text(item.get('summary', ''))
+    text = f'{title} {summary}'
+    try:
+        path = urlsplit(item.get('url') or '').path
+    except ValueError:
+        path = ''
+
+    state_weather = WEATHER.search(title) and (
+        TAMIL_NADU_PLACE.search(title)
+        or (LOCAL_WEATHER_CONTEXT.search(title) and TAMIL_NADU_PLACE.search(summary))
+    )
+    if (TAMIL_NADU_PATH.search(path) or state_weather) and not WIDER_INDIA_SCOPE.search(title):
+        return 'tn'
+
+    needs_india_evidence = WORLD_PATH.search(path) or (
+        item.get('sourceGroup') == 'times_of_india'
+        and MIXED_TOI_PATH.search(path)
+        and not INDIA_PATH.search(path)
+    )
+    if needs_india_evidence and not INDIA_PLACE.search(INDIA_NAME_EXCEPTIONS.sub(' ', text)):
+        return None
+    return 'india'
+
+
+def route_india_stories(sections: dict[str, list]) -> None:
+    india_stories = sections.get('india', [])
+    sections['india'] = []
+    for item in india_stories:
+        destination = india_story_destination(item)
+        if destination == 'india':
+            sections['india'].append(item)
+        elif destination == 'tn':
+            sections['tn'].append({**item, 'category': 'tn'})
 
 
 def parse_entry_timestamp(entry: dict) -> tuple[int, str, str]:
@@ -147,18 +217,20 @@ def main():
     cutoff = ts - STORY_RETAIN_HOURS * H_MS
 
     print(f'Fetching sections (ts={ts}, retainHours={STORY_RETAIN_HOURS})…')
-    new_sections: dict = {}
+    candidates: dict = {}
     all_health: dict   = {}
 
     for section, feeds in SECTION_FEEDS.items():
         items, health = fetch_section(section, feeds, ts)
         all_health.update(health)
-        # Drop stories outside the configured collector retention window.
-        fresh = filter_retained_stories(items, cutoff)
-        deduped = dedup_section(fresh)
-        # Most recent first, capped
-        deduped.sort(key=lambda x: x.get('publishedAt', 0), reverse=True)
-        new_sections[section] = deduped[:MAX_STORIES_PER_SECTION]
+        candidates[section] = filter_retained_stories(items, cutoff)
+
+    route_india_stories(candidates)
+    new_sections = {
+        section: dedup_section(items)[:MAX_STORIES_PER_SECTION]
+        for section, items in candidates.items()
+    }
+    for section in new_sections:
         print(f'  [{section}] {len(new_sections[section])} stories')
 
     # Backfill under-populated city sections from their parent sections.

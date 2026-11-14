@@ -29,6 +29,7 @@ import { isLiveMode } from '../utils/fetchMode.js';
 import { severityHits, matchesEntertainmentGuard, DEFAULT_RANKING_POLICY } from '../config/rankingPolicy.js';
 import { temporalScore } from './temporalScorer.js';
 import { withInFlightCleanup } from './fetchLifecycleDiagnostics.js';
+import { belongsInRegionalSection } from './regionalSectionPolicy.js';
 import {
     shouldForceSectionsAuthorityRefresh,
     shouldUseSectionsAuthoritySnapshot
@@ -938,6 +939,8 @@ async function rankAndFilter(items, section, limit, allowedSources, overrideSett
 
         const preProcessed = items
             .filter(item => {
+                if (!belongsInRegionalSection(item, section)) return false;
+
                 // 0. Global Keyword Block
                 if (blockedKeywords.length > 0) {
                     const text = (item.title + " " + item.description).toLowerCase();

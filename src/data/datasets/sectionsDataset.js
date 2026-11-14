@@ -9,6 +9,8 @@ import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
 import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
+import { removeRegionalSectionOverlap } from '../../services/regionalSectionPolicy.js';
+import { checkSingleSource, getSectionHealth } from '../../utils/sectionHealth.js';
 import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
 import {
   SERVED_FROM,
@@ -276,9 +278,25 @@ export async function load(options = {}) {
     const withBudgetDiagnostics = attachBudgetExitDiagnostics(section, result);
     return summarizeSection(section, ensureSectionDiagnostics(section, withBudgetDiagnostics, durationMs));
   }));
-  const summaries = settled.map((entry, index) => {
+  const fetchedSummaries = settled.map((entry, index) => {
     if (entry.status === 'fulfilled') return entry.value;
     return summarizeFailure(sections[index], entry.reason);
+  });
+  const bySection = new Map(fetchedSummaries.map(summary => [summary.section, summary.items]));
+  const tamilNaduItems = [...(bySection.get('chennai') || []), ...(bySection.get('tn') || [])];
+  const summaries = fetchedSummaries.map(summary => {
+    const counterpart = summary.section === 'india' ? tamilNaduItems : bySection.get('india');
+    const items = removeRegionalSectionOverlap(summary.items, summary.section, counterpart);
+    if (items.length === summary.count) return summary;
+    return {
+      ...summary,
+      items,
+      count: items.length,
+      sourceCounts: countSources(items),
+      health: getSectionHealth(summary.section, items.length),
+      isSingleSource: checkSingleSource(items),
+      duplicateHints: getDuplicateHints(items),
+    };
   });
   const failed = summaries.filter(summary => !summary.ok);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));

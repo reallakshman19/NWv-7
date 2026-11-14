@@ -2,11 +2,14 @@ import {
   getSectionsSnapshotRuntimeSummary,
   loadSectionsSnapshot,
 } from '../adapters/sectionsSnapshotFetcher.js';
+import { getSectionsDataSource } from '../utils/sectionsDataSource.js';
 
 const LIVE_DIGEST_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 const LIVE_DIGEST_MIN_CARDS = 3;
 const LIVE_DIGEST_MIN_SOURCE_GROUPS = 3;
 const STORIES_PER_SOURCE = 10;
+const CANONICAL_SNAPSHOT_URL = 'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json';
+const CANONICAL_SNAPSHOT_TIMEOUT_MS = 2000;
 
 const PRIMARY_SECTION_ORDER = Object.freeze([
   'topStories',
@@ -160,48 +163,75 @@ export function selectLiveDigestCards(snapshot, options = {}) {
   };
 }
 
+function digestFromSnapshot(snapshot, nowMs) {
+  const summary = getSectionsSnapshotRuntimeSummary(snapshot);
+  if (!summary.supported || summary.stale || summary.totalStories <= 0) {
+    let reason = 'sections_snapshot_empty';
+    if (summary.stale) reason = 'sections_snapshot_stale';
+    if (!summary.supported) reason = 'unsupported_snapshot_schema';
+    return { status: 'UNAVAILABLE', cards: [], reason, summary };
+  }
+
+  const selection = selectLiveDigestCards(snapshot, { nowMs });
+  if (selection.cards.length === 0) {
+    return { status: 'UNAVAILABLE', cards: [], reason: selection.reason, summary, selection };
+  }
+
+  return {
+    status: 'READY',
+    cards: selection.cards,
+    digestDate: null,
+    generatedAt: Number(snapshot.fetchedAt),
+    summary,
+    selection,
+  };
+}
+
+function isOfficialPagesDeployment() {
+  const location = globalThis.window?.location;
+  return location?.origin === 'https://reallakshman19.github.io'
+    && (location.pathname === '/NWv-7' || location.pathname.startsWith('/NWv-7/'));
+}
+
+async function loadCanonicalDigest(primary, nowMs) {
+  try {
+    const response = await fetch(CANONICAL_SNAPSHOT_URL, {
+      cache: 'no-store',
+      redirect: 'error',
+      signal: AbortSignal.timeout(CANONICAL_SNAPSHOT_TIMEOUT_MS),
+    });
+    if (!response.ok) return primary;
+    const snapshot = await response.json();
+    const digest = digestFromSnapshot({
+      ...snapshot,
+      runtimeDataSource: {
+        requested: primary.summary?.dataSource?.requested || getSectionsDataSource(),
+        effective: 'github_main',
+        fallback: true,
+        fallbackReason: primary.reason,
+      },
+    }, nowMs);
+    return digest.status === 'READY' ? digest : primary;
+  } catch {
+    return primary;
+  }
+}
+
 export async function loadDailyDigestLiveFallback({ force = true, nowMs } = {}) {
+  let primary;
   try {
     const snapshot = await loadSectionsSnapshot({ force });
-    const summary = getSectionsSnapshotRuntimeSummary(snapshot);
-
-    if (summary.stale || summary.totalStories <= 0) {
-      return {
-        status: 'UNAVAILABLE',
-        cards: [],
-        reason: summary.stale ? 'sections_snapshot_stale' : 'sections_snapshot_empty',
-        summary,
-      };
-    }
-
-    const selection = selectLiveDigestCards(snapshot, { nowMs });
-
-    if (selection.cards.length === 0) {
-      return {
-        status: 'UNAVAILABLE',
-        cards: [],
-        reason: selection.reason,
-        summary,
-        selection,
-      };
-    }
-
-    return {
-      status: 'READY',
-      cards: selection.cards,
-      digestDate: null,
-      generatedAt: Number(snapshot.fetchedAt || Date.now()),
-      summary,
-      selection,
-    };
+    primary = digestFromSnapshot(snapshot, nowMs);
   } catch (error) {
-    return {
+    primary = {
       status: 'UNAVAILABLE',
       cards: [],
       reason: error?.message || String(error),
       summary: null,
     };
   }
+  if (primary.status === 'READY' || !isOfficialPagesDeployment()) return primary;
+  return loadCanonicalDigest(primary, nowMs);
 }
 
 export const __dailyDigestLiveFallbackInternalsForTest = {
