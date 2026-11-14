@@ -8,6 +8,7 @@ import {
   SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS,
   SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
 } from './sectionsSnapshotLoader.js';
+import { removeRegionalSectionOverlap } from '../services/regionalSectionPolicy.js';
 
 export {
   loadSectionsSnapshot,
@@ -189,7 +190,10 @@ export function selectPrefetchedSectionItems(snapshot, section, limit = 10) {
   }
   const requestedSection = String(section || '');
   const sourceSection = normalizeSectionKey(section);
-  const sectionItems = safeArray(snapshot?.sections?.[sourceSection]);
+  const oppositeSection = sourceSection === 'india' ? 'tn' : 'india';
+  const sectionItems = removeRegionalSectionOverlap(
+    safeArray(snapshot.sections[sourceSection]), sourceSection, safeArray(snapshot.sections[oppositeSection]),
+  );
   const snapshotStale = !isSectionsSnapshotFresh(snapshot);
   const now = Date.now();
   const lowConfidenceTimestampCount = sectionItems.filter(isLowConfidenceTimestamp).length;

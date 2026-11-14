@@ -1,8 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { loadSectionsSnapshot } from '../adapters/sectionsSnapshotFetcher.js';
 import {
   buildLiveDigestCandidatePool,
+  loadDailyDigestLiveFallback,
   selectLiveDigestCards,
 } from './dailyDigestLiveFallback.js';
+
+vi.mock('../adapters/sectionsSnapshotFetcher.js', async importOriginal => ({
+  ...await importOriginal(),
+  loadSectionsSnapshot: vi.fn(),
+}));
 
 const H = 60 * 60 * 1000;
 const NOW = Date.parse('2026-10-18T12:00:00Z');
@@ -118,5 +125,57 @@ describe('Daily Digest Live fallback selector', () => {
 
     expect(singleSource.cards).toEqual([]);
     expect(singleSource.reason).toBe('live_digest_insufficient_source_diversity');
+  });
+});
+
+describe('Daily Digest on the official Pages deployment', () => {
+  const fresh = {
+    schemaVersion: 2,
+    fetchedAt: NOW,
+    sections: {
+      world: ['first', 'second', 'third'].map(id => story(id, 1, id, 'world')),
+    },
+  };
+  const stale = { ...fresh, fetchedAt: NOW - 13 * H };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it.each([
+    { scenario: 'stale authority', authority: stale, canonical: fresh, ready: true, requests: 1 },
+    { scenario: 'unreachable authority', authorityError: 'network error', canonical: fresh, ready: true, requests: 1 },
+    { scenario: 'stale canonical snapshot', authority: stale, canonical: stale, ready: false, requests: 1 },
+    { scenario: 'fresh authority', authority: fresh, canonical: fresh, ready: true, requests: 0 },
+    { scenario: 'another repo', pathname: '/different-app/', authority: stale, canonical: fresh, ready: false, requests: 0 },
+    { scenario: 'another Pages host', origin: 'https://example.github.io', authority: stale, canonical: fresh, ready: false, requests: 0 },
+  ])('checks the canonical snapshot only when eligible for $scenario', async ({
+    pathname = '/NWv-7/', origin = 'https://reallakshman19.github.io',
+    authority, authorityError, canonical, ready, requests,
+  }) => {
+    vi.spyOn(Date, 'now').mockReturnValue(NOW);
+    vi.stubGlobal('window', { location: new URL(pathname, origin) });
+    const fetchCanonical = vi.fn(async () => ({ ok: true, json: async () => canonical }));
+    vi.stubGlobal('fetch', fetchCanonical);
+    if (authorityError) loadSectionsSnapshot.mockRejectedValueOnce(new Error(authorityError));
+    else loadSectionsSnapshot.mockResolvedValueOnce(authority);
+
+    const result = await loadDailyDigestLiveFallback({ nowMs: NOW });
+
+    expect(result.status).toBe(ready ? 'READY' : 'UNAVAILABLE');
+    expect(result.cards).toHaveLength(ready ? 3 : 0);
+    expect(fetchCanonical).toHaveBeenCalledTimes(requests);
+    if (ready && requests) {
+      expect(fetchCanonical).toHaveBeenCalledWith(
+        'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json',
+        expect.objectContaining({ cache: 'no-store', redirect: 'error', signal: expect.any(AbortSignal) }),
+      );
+      expect(result.summary.dataSource).toMatchObject({
+        effective: 'github_main',
+        fallback: true,
+        fallbackReason: authorityError || 'sections_snapshot_stale',
+      });
+    }
   });
 });

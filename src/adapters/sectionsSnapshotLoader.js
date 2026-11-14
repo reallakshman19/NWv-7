@@ -23,6 +23,13 @@ export function isSupportedSectionsSnapshot(snapshot) {
 }
 
 function getGithubSnapshotUrl() {
+  const location = globalThis.window?.location;
+  if (location?.origin === 'https://reallakshman19.github.io'
+    && (location.pathname === '/NWv-7' || location.pathname.startsWith('/NWv-7/'))) {
+    // Data refreshes commit independently of Pages builds. Read the published
+    // repository snapshot so a working collector cannot leave the app stale.
+    return 'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json';
+  }
   const base = import.meta.env.BASE_URL || '/';
   const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
   return `${cleanBase}${SECTION_SNAPSHOT_PATH}?t=${Date.now()}`;
@@ -85,7 +92,9 @@ async function fetchWithBudget(url, remainingMs, { bypassCache = true } = {}) {
     return await fetch(url, {
       cache: bypassCache ? 'no-store' : 'default',
       signal: controller?.signal,
-      headers: bypassCache ? {
+      // Explicit cache headers trigger a CORS preflight on remote publishers.
+      // The Fetch cache mode already bypasses cache for those requests.
+      headers: bypassCache && !/^https?:\/\//i.test(url) ? {
         'cache-control': 'no-cache',
         pragma: 'no-cache',
       } : undefined,

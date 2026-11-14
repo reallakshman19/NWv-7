@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../runtime/runtimeCapabilities.js', () => ({
+vi.mock('../../runtime/runtimeCapabilities.js', async importOriginal => ({
+  ...await importOriginal(),
   getRuntimeCapabilities: vi.fn(() => ({ configuredBackendUrl: 'https://api.example.test' })),
 }));
 
-import { getRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
+import { getRuntimeCapabilities, resolveRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
 import { load, __dailyDigestDatasetInternalsForTest } from './dailyDigestDataset.js';
 
 const SNAPSHOT = {
@@ -67,8 +68,9 @@ describe('Daily Digest dataset', () => {
   it.each([
     { mode: 'Live mode', liveMode: true, hostname: 'example.test' },
     { mode: 'local Hybrid mode', liveMode: false, hostname: '127.0.0.1' },
+    { mode: 'deployed Hybrid mode', liveMode: false, hostname: 'example.github.io' },
   ])('uses fresh Sections authority cards in $mode when the backend is missing', async ({ liveMode, hostname }) => {
-    getRuntimeCapabilities.mockReturnValueOnce({ configuredBackendUrl: '', hostname });
+    getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({ isBrowser: true, hostname }));
     const liveFallbackLoader = vi.fn(async () => ({
       status: 'READY',
       generatedAt: Date.parse('2026-08-24T06:00:00Z'),
@@ -125,19 +127,27 @@ describe('Daily Digest dataset', () => {
     expect(envelope.data.availability).toBe('READY');
     expect(envelope.data.cards).toHaveLength(3);
     expect(envelope.data.liveFallbackReason).toBe('BACKEND_NOT_CONFIGURED');
+    expect(envelope.data.authoritySummary.dataSource.effective).toBe('cloudflare_preview');
     expect(envelope.validation.warnings).toContain('daily_digest_live_fallback');
   });
 
   it.each([
-    { hostname: 'example.github.io', digestDate: '2026-08-24' },
-    { hostname: '127.0.0.1', digestDate: '2026-08-23' },
-  ])('preserves an unavailable Hybrid edition on $hostname for $digestDate', async ({ hostname, digestDate }) => {
-    getRuntimeCapabilities.mockReturnValueOnce({ configuredBackendUrl: '', hostname });
+    { scenario: 'a past Hybrid edition', digestDate: '2026-08-23', liveMode: false },
+    { scenario: 'a past Live edition', digestDate: '2026-08-23', liveMode: true },
+    { scenario: 'a future Live edition', digestDate: '2026-08-25', liveMode: true },
+    { scenario: 'snapshot-only Hybrid mode', digestDate: '2026-08-24', liveMode: false, forceSnapshots: true },
+    { scenario: 'snapshot-only Live mode', digestDate: '2026-08-24', liveMode: true, forceSnapshots: true },
+  ])('preserves the missing backend state for $scenario', async ({ digestDate, liveMode, forceSnapshots }) => {
+    getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({
+      isBrowser: true,
+      hostname: 'example.github.io',
+      forceSnapshots,
+    }));
     const liveFallbackLoader = vi.fn();
     const envelope = await load({
       asOfDate: digestDate,
       now: new Date('2026-08-24T06:00:00Z'),
-      liveMode: false,
+      liveMode,
       liveFallbackLoader,
     });
 
@@ -157,6 +167,7 @@ describe('Daily Digest dataset', () => {
 
     const envelope = await load({
       asOfDate: '2026-08-24',
+      now: new Date('2026-08-24T06:00:00Z'),
       liveMode: true,
       liveFallbackLoader,
       fetchImpl,

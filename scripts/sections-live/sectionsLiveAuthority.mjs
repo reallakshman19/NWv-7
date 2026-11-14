@@ -1,5 +1,9 @@
 import { createHash } from 'node:crypto';
 import { digestCanonicalJson } from '../top-stories-shadow/canonicalJson.mjs';
+import {
+  isTamilNaduStory,
+  removeRegionalSectionOverlap,
+} from '../../src/services/regionalSectionPolicy.js';
 
 export const SECTIONS_LIVE_EVIDENCE_SCHEMA = 'nw-sections-live-evidence/v1';
 export const LIVE_STORY_RETAIN_HOURS = 36;
@@ -402,6 +406,19 @@ export function assembleLiveSections(laneResults, nowMs) {
       diagnostics: result.diagnostics,
     };
   }
+
+  const indiaCandidates = sections.india || [];
+  const tamilNaduCandidates = [...(sections.tn || [])];
+  for (const item of indiaCandidates) {
+    if (isTamilNaduStory(item)) tamilNaduCandidates.push({ ...item, category: 'tn' });
+  }
+  if (sections.india) {
+    sections.india = removeRegionalSectionOverlap(indiaCandidates, 'india', tamilNaduCandidates);
+  }
+  if (sections.tn || tamilNaduCandidates.length > 0) {
+    sections.tn = removeRegionalSectionOverlap(tamilNaduCandidates, 'tn', sections.india);
+  }
+
   for (const sectionKey of Object.keys(sections)) sections[sectionKey] = dedupeAndCap(sections[sectionKey]);
   for (const [child, parent] of Object.entries(SECTION_BACKFILL)) {
     const current = sections[child] || [];

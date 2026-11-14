@@ -41,6 +41,32 @@ const snapshot = {
 };
 
 describe('Sections snapshot browser ingestion certification', () => {
+  it('fills India slots with relevant news and keeps the regional weather story in Tamil Nadu', () => {
+    const story = (id, title, url, description = '', age = 1) => ({
+      id, title, url, description, publishedAt: snapshot.fetchedAt - age * 1000,
+      source: 'Times of India', region: 'in',
+    });
+    const peru = story('peru', 'Study Links Climate And Violence: Peru skeletons show low conflict',
+      'https://timesofindia.indiatimes.com/science/archaeology/articleshow/135702253.cms');
+    const california = story('california', 'California pier walk raises record $3.3 million',
+      'https://timesofindia.indiatimes.com/world/us/articleshow/135706114.cms', '', 2);
+    const weather = story('rain', 'Low-pressure area likely to form over Bay of Bengal, ease rain deficit in State',
+      'https://www.thehindu.com/news/national/tamil-nadu/article71689794.ece',
+      'Regional Meteorological Centre watches rainfall prospects over Tamil Nadu', 3);
+    const national = story('national', 'India and the United States sign a trade agreement',
+      'https://timesofindia.indiatimes.com/world/us/articleshow/135706115.cms', '', 4);
+    const mixed = {
+      ...snapshot,
+      sections: {
+        india: [peru, california, weather, national],
+        tn: [{ ...weather, id: 'publisher-local-id', url: `${weather.url}?utm_source=chennai` }, national],
+      },
+    };
+
+    expect(selectPrefetchedSectionItems(mixed, 'india', 1).items.map(item => item.id)).toEqual(['national']);
+    expect(selectPrefetchedSectionItems(mixed, 'chennai', 10).items.map(item => item.id)).toEqual(['publisher-local-id']);
+  });
+
   it('summarizes section snapshot runtime quality', () => {
     const summary = getSectionsSnapshotRuntimeSummary(snapshot);
 
