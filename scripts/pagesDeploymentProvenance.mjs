@@ -7,6 +7,9 @@ export const PAGES_SOURCE_RESOLUTION_MODES = Object.freeze({
   push: 'push-event-sha',
   workflow_dispatch: 'workflow-dispatch-event-sha',
 });
+export const PAGES_CI_VERIFIED_SOURCE_MODE = 'workflow-run-ci-verified-sha';
+export const PAGES_CI_VALIDATION_WORKFLOW = 'CI Validation Gate';
+
 export const PAGES_TRACKED_FILE_NAMES = Object.freeze([
   'insight_latest.json',
   'sections_latest.json',
@@ -27,7 +30,8 @@ const REASON_ORDER = [
   'source_checkout_mismatch', 'expected_source_sha_mismatch',
   'deploy_workflow_context_invalid', 'frozen_at_invalid',
   'workflow_run_upstream_missing', 'workflow_run_upstream_sha_invalid',
-  'upstream_fields_unexpected', 'tracked_file_missing',
+  'upstream_fields_unexpected', 'ci_upstream_sha_mismatch',
+  'ci_upstream_not_successful', 'tracked_file_missing',
   'tracked_file_duplicate', 'tracked_file_record_invalid',
   'tracked_file_hash_invalid', 'tracked_file_hash_mismatch',
   'tracked_file_accounting_mismatch',
@@ -75,9 +79,18 @@ function normalizeFrozenAt(input) {
   return text;
 }
 
-function normalizeResolutionMode(input, event) {
+function isCiWorkflowRun(context = {}) {
+  return triggerEvent(context) === 'workflow_run' &&
+    String(value(workflowRun(context), 'workflowName', 'name') || '').trim() ===
+      PAGES_CI_VALIDATION_WORKFLOW;
+}
+
+function normalizeResolutionMode(input, event, context = {}) {
   const mode = String(input || '').trim();
-  if (mode !== PAGES_SOURCE_RESOLUTION_MODES[event]) {
+  const expected = isCiWorkflowRun(context)
+    ? PAGES_CI_VERIFIED_SOURCE_MODE
+    : PAGES_SOURCE_RESOLUTION_MODES[event];
+  if (mode !== expected) {
     fail(
       'source_resolution_mode_invalid',
       `sourceResolutionMode is invalid for ${event || 'missing event'}`,
@@ -96,10 +109,11 @@ export function resolvePagesDeploymentSource(context = {}) {
     fail('trigger_event_unsupported', `Unsupported deployment trigger: ${event || 'missing'}`);
   }
   if (event === 'workflow_run') {
-    normalizeSha(
+    const upstreamSha = normalizeSha(
       value(workflowRun(context), 'headSha', 'head_sha'),
       'workflow_run_upstream_sha_invalid',
     );
+    if (isCiWorkflowRun(context)) return upstreamSha;
     return normalizeSha(context.checkedOutSha, 'checked_out_sha_invalid');
   }
   return normalizeSha(context.githubSha ?? context.github_sha);
@@ -155,6 +169,7 @@ export function buildPagesDeploymentProvenance(context = {}) {
     sourceResolutionMode: normalizeResolutionMode(
       context.sourceResolutionMode,
       event,
+      context,
     ),
     triggerEvent: event,
     deployWorkflowRunId: normalizeRunId(
@@ -190,8 +205,12 @@ function validateProvenance(provenance, expected, reasons) {
   add(reasons, 'provenance_schema_unsupported',
     provenance.schemaVersion !== PAGES_DEPLOYMENT_PROVENANCE_SCHEMA);
   add(reasons, 'trigger_event_unsupported', !EVENTS.has(event));
+  const expectedMode = event === 'workflow_run' &&
+      provenance.upstreamWorkflowName === PAGES_CI_VALIDATION_WORKFLOW
+    ? PAGES_CI_VERIFIED_SOURCE_MODE
+    : PAGES_SOURCE_RESOLUTION_MODES[event];
   add(reasons, 'source_resolution_mode_invalid',
-    provenance.sourceResolutionMode !== PAGES_SOURCE_RESOLUTION_MODES[event]);
+    provenance.sourceResolutionMode !== expectedMode);
   add(reasons, 'source_sha_invalid', !SHA_RE.test(String(provenance.sourceSha || '')));
   add(reasons, 'checked_out_sha_invalid',
     !SHA_RE.test(String(provenance.checkedOutSha || '')));
@@ -224,6 +243,12 @@ function validateProvenance(provenance, expected, reasons) {
         !INTEGER_RE.test(String(provenance.upstreamWorkflowRunAttempt ?? '')));
     add(reasons, 'workflow_run_upstream_sha_invalid',
       !SHA_RE.test(String(provenance.upstreamHeadSha || '')));
+    if (provenance.upstreamWorkflowName === PAGES_CI_VALIDATION_WORKFLOW) {
+      add(reasons, 'ci_upstream_sha_mismatch',
+        provenance.sourceSha !== provenance.upstreamHeadSha);
+      add(reasons, 'ci_upstream_not_successful',
+        provenance.upstreamConclusion !== 'success');
+    }
   } else if (EVENTS.has(event)) {
     add(reasons, 'upstream_fields_unexpected',
       upstream.some(item => item !== null));
