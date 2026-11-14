@@ -340,7 +340,8 @@ describe('NW-RANK-011A Top Stories evaluator trace', () => {
       /displayNews\s*=\s*news\.slice\(0,\s*displayCount\)/,
     );
     expect(viewModel).toMatch(
-      /filterLatestStories\(sourceFrontPage,\s*safeSettings\.customSortTopStories\)/,
+      /filterLatestStories\(projectedNewsData\.frontPage,\s*safeSettings\.customSortTopStories\)/,
     );
+    expect(viewModel).not.toContain('prioritizedNewsData.frontPage');
   });
 });
