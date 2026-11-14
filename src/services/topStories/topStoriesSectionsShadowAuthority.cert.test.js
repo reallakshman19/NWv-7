@@ -29,6 +29,7 @@ import {
 import {
   evaluateFrozenSectionsEpoch,
 } from '../../../scripts/top-stories-shadow/sectionsShadowEvaluator.mjs';
+import { digestCanonicalJson } from '../../../scripts/top-stories-shadow/canonicalJson.mjs';
 
 function readJson(path) {
   return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
@@ -258,7 +259,21 @@ describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
     expect(first.candidateCount).toBe(benchmark.expected.candidateCount);
     expect(first.normalizationDigest).toBe(benchmark.expected.normalizationDigest);
     expect(first.rankerPolicyDigest).toBe(benchmark.expected.rankerPolicyDigest);
-    expect(first.decisionOutputDigest).toBe(benchmark.expected.decisionOutputDigest);
+    const currentDecision = Object.fromEntries(Object.entries(first).filter(([key]) => (
+      !['schemaVersion', 'decisionOutputDigest'].includes(key)
+    )));
+    expect(first.decisionOutputDigest).toBe(digestCanonicalJson(currentDecision));
+    // The immutable A-O benchmark binds classifier v1 in its provenance hash.
+    // Keep that record intact and prove every decision field still matches it,
+    // allowing only the intentional executable classifier version change.
+    const frozenV1Decision = {
+      ...currentDecision,
+      executableVersions: {
+        ...currentDecision.executableVersions,
+        eventClassifierVersion: 'nw-top-stories-event-classifier-v1',
+      },
+    };
+    expect(digestCanonicalJson(frozenV1Decision)).toBe(benchmark.expected.decisionOutputDigest);
     expect(first.selectedIds).toEqual(benchmark.expected.selectedIds);
     expect(first.displayedIds).toEqual(benchmark.expected.displayedIds);
 

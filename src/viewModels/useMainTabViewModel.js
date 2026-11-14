@@ -63,10 +63,10 @@ function filterLatestStories(frontPage = [], customSortTopStories = false) {
 function getNavSections(sections = {}) {
   return [
     { id: 'top-stories', icon: '⭐', label: 'Top' },
+    { id: 'world-news', icon: '🌍', label: 'World' },
     sections.india?.enabled && { id: 'india-news', icon: '🇮🇳', label: 'India' },
     sections.chennai?.enabled && { id: 'chennai-news', icon: '🏛️', label: 'Tamil Nadu' },
     sections.local?.enabled && { id: 'local-news', icon: '📍', label: 'Muscat' },
-    { id: 'world-news', icon: '🌍', label: 'World' },
   ].filter(Boolean);
 }
 

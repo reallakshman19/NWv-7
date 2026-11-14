@@ -175,9 +175,9 @@ describe('Main ViewModel internals', () => {
 
     expect(result.map(item => item.id)).toEqual([
       'top-stories',
+      'world-news',
       'india-news',
       'local-news',
-      'world-news',
     ]);
   });
 
@@ -418,9 +418,9 @@ describe('Main ViewModel internals', () => {
 
     expect(result.map(item => item.id)).toEqual([
       'top-stories',
+      'world-news',
       'india-news',
       'local-news',
-      'world-news',
     ]);
   });
 

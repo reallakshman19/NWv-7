@@ -258,6 +258,13 @@ export function applyAreaRelevance(stories = [], target = '') {
       index,
     }))
     .sort((a, b) => {
+      // Keep weak/off-area matches below grounded local coverage. Within the
+      // region, public consequence takes precedence over neighbourhood proximity.
+      const relevanceTier = story => ['weak', 'off-area'].includes(story._areaRelevance.label) ? 1 : 0;
+      const tierDelta = relevanceTier(a.story) - relevanceTier(b.story);
+      if (tierDelta !== 0) return tierDelta;
+      const impactDelta = Number(b.story._publicImpact?.priority || 0) - Number(a.story._publicImpact?.priority || 0);
+      if (impactDelta !== 0) return impactDelta;
       const rankDelta = areaSortRank(a.story._areaRelevance.label) - areaSortRank(b.story._areaRelevance.label);
       if (rankDelta !== 0) return rankDelta;
       const scoreDelta = b.story._areaRelevance.score - a.story._areaRelevance.score;
