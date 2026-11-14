@@ -436,16 +436,12 @@ export function useMainTabViewModel() {
   ), [travelMergedNewsData, travelLocationProfile]);
 
   const latestStories = useMemo(() => {
-    const sourceFrontPage = travelLocationProfile?.prioritizeStories
-      ? prioritizedNewsData.frontPage
-      : projectedNewsData.frontPage;
-
-    return filterLatestStories(sourceFrontPage, safeSettings.customSortTopStories);
+    // The Top Stories ranker owns this order. Travel proximity is available in
+    // the travel panel and regional lists, after their public-impact priority.
+    return filterLatestStories(projectedNewsData.frontPage, safeSettings.customSortTopStories);
   }, [
-    prioritizedNewsData.frontPage,
     projectedNewsData.frontPage,
     safeSettings.customSortTopStories,
-    travelLocationProfile?.prioritizeStories,
   ]);
 
   const navSections = useMemo(() => (

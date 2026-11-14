@@ -98,4 +98,17 @@ describe('Story location priority certification', () => {
     expect(prioritized.local[0]._areaRelevance.label).toBe('exact-area');
     expect(prioritized.travelLocal).toBeUndefined();
   });
+
+  it('keeps a statewide public decision above a travel-local feature in the final projection', () => {
+    const profile = getTravelLocationProfile({ travelLocation: { city: 'Chennai' } });
+    const prioritized = applyTravelLocationPriority({
+      chennai: [
+        { id: 'bridge', title: 'Chennai footbridge needs maintenance', _publicImpact: { priority: 1 } },
+        { id: 'state-policy', title: 'Tamil Nadu government imposes food stock limits', _publicImpact: { priority: 3 } },
+        { id: 'foreign', title: 'California earthquake emergency', _publicImpact: { priority: 3 } },
+      ],
+    }, profile);
+    expect(prioritized.chennai.map(story => story.id)).toEqual(['state-policy', 'bridge', 'foreign']);
+    expect(prioritized.travelLocal.some(story => story.id === 'bridge')).toBe(true);
+  });
 });
