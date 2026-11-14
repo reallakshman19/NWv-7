@@ -92,7 +92,9 @@ async function fetchWithBudget(url, remainingMs, { bypassCache = true } = {}) {
     return await fetch(url, {
       cache: bypassCache ? 'no-store' : 'default',
       signal: controller?.signal,
-      headers: bypassCache ? {
+      // Explicit cache headers trigger a CORS preflight on remote publishers.
+      // The Fetch cache mode already bypasses cache for those requests.
+      headers: bypassCache && !/^https?:\/\//i.test(url) ? {
         'cache-control': 'no-cache',
         pragma: 'no-cache',
       } : undefined,

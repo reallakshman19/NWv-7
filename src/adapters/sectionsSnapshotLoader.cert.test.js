@@ -51,7 +51,7 @@ describe('sections snapshot shared load certification', () => {
     expect(loaded.contentHash).toBe('current-repository');
     expect(fetchMock).toHaveBeenCalledWith(
       'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json',
-      expect.objectContaining({ cache: 'no-store' }),
+      expect.objectContaining({ cache: 'no-store', headers: undefined }),
     );
   });
 
