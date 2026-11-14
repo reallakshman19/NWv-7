@@ -10,7 +10,7 @@ import { analyzeArticleSentiment } from '../utils/sentimentAnalyzer.js';
 import { deduplicateAndCluster } from '../utils/similarity.js';
 import { breakingDetector } from '../utils/breakingNewsDetector.js';
 import { calculateSourceScore, getSourceWeightForCategory, SOURCE_METRICS } from '../data/sourceMetrics.js';
-import { calculateImpactScore } from '../utils/impactScorer.js';
+import { calculateImpactScore, assessPublicImpact } from '../utils/impactScorer.js';
 import { calculateProximityScore } from '../utils/proximityScorer.js';
 import { calculateNoveltyScore } from '../utils/noveltyScorer.js';
 import { calculateCurrencyScore } from '../utils/currencyScorer.js';
@@ -293,9 +293,20 @@ function generateCriticsOneLiner(title, description) {
     return null;
 }
 
-export function computeImpactScore(item, section, viewCount = 0, overrideSettings = null) {
+export function computeImpactScore(item, section, viewCount = 0, overrideSettings = null, rankingSection = section) {
     const scoringSettings = overrideSettings || getSettings();
     const w = scoringSettings.rankingWeights || {};
+    // Re-scoring cached items should replace its explanation, not accumulate
+    // decisions from a previous score or section.
+    item._rankDecisions = [];
+    const regionalRanking = ['india', 'tn', 'chennai', 'trichy', 'tamilnadu'].includes(String(rankingSection || '').toLowerCase());
+    const publicImpact = regionalRanking ? assessPublicImpact(item.title, item.description || item.summary) : null;
+    if (publicImpact) {
+        item._publicImpact = publicImpact;
+        item._rankDecisions.push(`public impact: ${publicImpact.kind}, ${publicImpact.scope}, priority ${publicImpact.priority} x${publicImpact.multiplier.toFixed(2)}`);
+    } else {
+        delete item._publicImpact;
+    }
 
     // 1. Freshness — unified exponential model (RC-6 fix: no more 12h cliff)
     const maxBoost = (w.freshness?.maxBoost || DEFAULT_RANKING_POLICY.weights.freshnessMaxBoost || 3);
@@ -344,14 +355,17 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     // --- NEW SCORING LOGIC CHECK ---
     if (scoringSettings.enableNewScoring === false) {
         // ORIGINAL SCORING (Status Quo)
-        return (freshness + sourceComponent + keywordBoost + sentimentBoost) * sectionPriority * breakingBoost * liveBoost;
+        return (freshness + sourceComponent + keywordBoost + sentimentBoost) * sectionPriority * breakingBoost * liveBoost * (publicImpact?.multiplier || 1);
     }
 
     // --- NEW SCORING LOGIC (9-Factor) ---
     // Calculate new multipliers
     // PASS SETTINGS to impact scorer now
     const impactMultiplier = calculateImpactScore(item.title, item.description, scoringSettings);
-    const proximityMultiplier = calculateProximityScore(item.title, item.description);
+    const rawProximityMultiplier = calculateProximityScore(item.title, item.description);
+    // Being in a familiar city establishes relevance, not statewide/national
+    // importance. Retain a modest local preference after public consequences.
+    const proximityMultiplier = regionalRanking ? Math.min(rawProximityMultiplier, 1.3) : rawProximityMultiplier;
     const noveltyMultiplier = calculateNoveltyScore(item.title, item.description, section);
     // Note: passing null for keywords array as it's not currently extracted in normalizeItem
     const currencyMultiplier = calculateCurrencyScore(item.title, null);
@@ -375,9 +389,12 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     const fullText = `${item.title} ${item.description}`;
     const entertainmentGuarded = matchesEntertainmentGuard(fullText);
     const sevHits = entertainmentGuarded ? [] : severityHits(fullText);
-    const severityMultiplier = sevHits.length
+    const rawSeverityMultiplier = sevHits.length
         ? Math.min(DEFAULT_RANKING_POLICY.severityBoost ** Math.min(sevHits.length, 3), 5)
         : 1.0;
+    const severityMultiplier = publicImpact?.incidentalAnimalMortality ? 1
+        : publicImpact && publicImpact.priority < 2 ? Math.min(rawSeverityMultiplier, 1.2)
+        : rawSeverityMultiplier;
     if (sevHits.length) {
         item._rankDecisions = [...(item._rankDecisions || []), `severity: ${sevHits.join(',')} x${severityMultiplier.toFixed(2)}`];
     }
@@ -388,7 +405,7 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     }
 
     // Hard multipliers (geo/impact, proximity, currency, severity) — no cap needed here
-    const hardMultipliers = impactMultiplier * proximityMultiplier * currencyMultiplier * severityMultiplier;
+    const hardMultipliers = impactMultiplier * proximityMultiplier * currencyMultiplier * severityMultiplier * (publicImpact?.multiplier || 1);
 
     // --- BUZZ / SECTION-SPECIFIC RANKING (NEW) ---
     // Applies strictly to configured sections (Entertainment, Tech, Sports)
@@ -485,6 +502,9 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
         currency: currencyMultiplier,
         visual: visualMultiplier,
         severity: severityMultiplier,
+        publicImpact: publicImpact?.multiplier || 1,
+        publicImpactPriority: publicImpact?.priority ?? null,
+        publicImpactKind: publicImpact?.kind || null,
         sectionPriority,
         breakingBoost,
         liveBoost,
@@ -919,6 +939,28 @@ function normalizeItem(item, feedSource, section = 'general') {
     };
 }
 
+// Shared eligibility for section widgets and the complete Top Stories pool.
+// Keep this independent of scoring, clustering and display limits.
+export function filterEligibleSectionItems(items, section, settings, allowedSources, now = Date.now()) {
+    const limitHours = settings.hideOlderThanHours || settings.freshnessLimitHours || 60;
+    const maxAgeMs = limitHours * 60 * 60 * 1000;
+    return items.filter(item => {
+        if (!belongsInRegionalSection(item, section)) return false;
+        const description = item.description || item.summary || '';
+        const text = `${item.title || ''} ${description}`.toLowerCase();
+        if ((settings.feedBlockedKeywords || []).some(keyword => text.includes(keyword.toLowerCase()))) return false;
+        const isLive = /^live\b|\b(live\s+blog|live\s+updates:|live\s+coverage)\b/i.test(item.title) ||
+            (item.url && item.url.includes('/live/'));
+        if (settings.strictFreshness !== false && now - item.publishedAt > maxAgeMs * (isLive ? 3 : 1)) return false;
+        const source = normalizeSourceText(item.source);
+        if (settings.filteringMode === 'keyword') return checkKeywords(item.title, description);
+        if (settings.topWebsitesOnly) {
+            return ['BBC', 'Reuters', 'NDTV', 'The Hindu', 'Times of India', 'Moneycontrol'].some(name => source.includes(name));
+        }
+        return !allowedSources || isSourceAllowed(source, allowedSources);
+    });
+}
+
 async function rankAndFilter(items, section, limit, allowedSources, overrideSettings = null) {
     try {
         const seen = new Set();
@@ -928,53 +970,11 @@ async function rankAndFilter(items, section, limit, allowedSources, overrideSett
         const settings = overrideSettings || getSettings();
         // Use new setting hideOlderThanHours, fallback to legacy freshnessLimitHours
         const limitHours = settings.hideOlderThanHours || settings.freshnessLimitHours || 60;
-        const MAX_AGE_MS = limitHours * 60 * 60 * 1000;
-        const bypassFreshness = settings.strictFreshness === false; // If strict is off, bypass
         const shouldScore = settings.rankingMode !== 'legacy'; // Optimization: Skip scoring in Legacy mode
 
         console.log(`[RSSDebug] filtering for ${section}: Limit=${limitHours}h. Items=${items.length}`);
 
-        // Global Blocked Keywords
-        const blockedKeywords = settings.feedBlockedKeywords || [];
-
-        const preProcessed = items
-            .filter(item => {
-                if (!belongsInRegionalSection(item, section)) return false;
-
-                // 0. Global Keyword Block
-                if (blockedKeywords.length > 0) {
-                    const text = (item.title + " " + item.description).toLowerCase();
-                    if (blockedKeywords.some(k => text.includes(k.toLowerCase()))) {
-                        return false;
-                    }
-                }
-
-                // 1. Freshness Filter (Strict)
-                // Relax freshness only for genuine live blogs (title starts with LIVE, or
-                // explicit "live blog/updates/coverage" phrase, or URL path contains /live/)
-                const isLive = /^live\b|\b(live\s+blog|live\s+updates:|live\s+coverage)\b/i.test(item.title) ||
-                               (item.url && item.url.includes('/live/'));
-                const effectiveMaxAge = isLive ? MAX_AGE_MS * 3 : MAX_AGE_MS; // Allow up to 3x longer (e.g. ~7 days)
-
-                if (!bypassFreshness && (now - item.publishedAt > effectiveMaxAge)) return false;
-
-                // 2. Filtering Mode (Source vs Keyword)
-                const src = normalizeSourceText(item.source);
-
-                if (settings.filteringMode === 'keyword') {
-                    // Strict Keyword Mode: Must match high-impact keywords
-                    if (!checkKeywords(item.title, item.description)) return false;
-                } else if (settings.topWebsitesOnly) {
-                    // Phase 8: Top Websites Only Mode
-                    const TOP_SOURCES = ['BBC', 'Reuters', 'NDTV', 'The Hindu', 'Times of India', 'Moneycontrol'];
-                    if (!TOP_SOURCES.some(s => src.includes(s))) return false;
-                } else {
-                    // Source Mode (Default): Check allowlist
-                    if (allowedSources && !isSourceAllowed(src, allowedSources)) return false;
-                }
-
-                return true;
-            })
+        const preProcessed = filterEligibleSectionItems(items, section, settings, allowedSources, now)
             .map(item => {
                 // Use the item's section (which might have been re-classified)
                 // or fallback to the requested section if missing
@@ -986,7 +986,7 @@ async function rankAndFilter(items, section, limit, allowedSources, overrideSett
                 // Optimization: In Legacy mode, skip expensive scoring
                 // Default to 0, sorting will rely on pubDate
                 // Pass settings explicitly to computeImpactScore
-                const score = shouldScore ? computeImpactScore(item, itemSection, views, settings) : 0;
+                const score = shouldScore ? computeImpactScore(item, itemSection, views, settings, section) : 0;
 
                 return {
                     ...item,

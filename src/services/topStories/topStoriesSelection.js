@@ -7,14 +7,49 @@ function getSourceKey(story = {}) {
   return getStorySourceFamily(story);
 }
 
+function normalizeGeoValue(value) {
+  if (typeof value !== 'string') return '';
+  return value.trim().toLowerCase().replace(/[\s_-]+/g, '_');
+}
+
+function getPlaceKey(value) {
+  if (value && typeof value === 'object') {
+    return getPlaceKey(value.city || value.name) ||
+      getCountryKey(value.countryCode || value.country);
+  }
+  const key = normalizeGeoValue(value);
+  return key ? `place:${key}` : '';
+}
+
+function getCountryKey(value) {
+  const key = normalizeGeoValue(value);
+  if (!key) return '';
+  const aliases = { in: 'india', ind: 'india', om: 'oman', omn: 'oman' };
+  return `country:${aliases[key] || key}`;
+}
+
+function getEditorialGeoKey(story) {
+  const section = normalizeGeoValue(story.section || story.sourceSection);
+  const aliases = {
+    top: 'top_stories', topstories: 'top_stories',
+    india_news: 'india', world_news: 'world', international: 'world',
+    chennai: 'tamil_nadu', tn: 'tamil_nadu', tamilnadu: 'tamil_nadu',
+    trichy: 'tamil_nadu', tiruchi: 'tamil_nadu', tiruchirappalli: 'tamil_nadu',
+    local: 'oman', muscat: 'oman',
+  };
+  return `section:${aliases[section] || section || 'unknown'}`;
+}
+
 function getGeoKey(story = {}) {
-  return String(
-    story.region ||
-    story.geo ||
-    story.section ||
-    story.sourceSection ||
-    'unknown',
-  ).toLowerCase();
+  // `region` in acquired snapshots describes the feed's acquisition market.
+  // It is commonly "in" even for Oman and world news, so it is not evidence
+  // of the event's location. Prefer explicit event geography; otherwise keep
+  // the existing diversity budget on a normalized editorial section.
+  return getPlaceKey(story.city) ||
+    getPlaceKey(story.geo) ||
+    getPlaceKey(story.location) ||
+    getCountryKey(story.countryCode || story.country) ||
+    getEditorialGeoKey(story);
 }
 
 function markSlot(story, slotBand) {

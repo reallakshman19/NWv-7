@@ -165,7 +165,7 @@ export function rankStoriesForLocation(newsData = {}, profileInput = null, optio
     .slice(0, limit);
 }
 
-export function prioritizeStoryArrayForLocation(stories = [], profileInput = null) {
+export function prioritizeStoryArrayForLocation(stories = [], profileInput = null, { preservePublicImpact = false } = {}) {
   const profile = isTravelLocationProfile(profileInput)
     ? profileInput
     : getTravelLocationProfile(profileInput || {});
@@ -177,6 +177,13 @@ export function prioritizeStoryArrayForLocation(stories = [], profileInput = nul
       score: scoreStoryForLocation(story, profile),
     }))
     .sort((a, b) => {
+      if (preservePublicImpact) {
+        const weakArea = story => ['weak', 'off-area'].includes(story._areaRelevance?.label) ? 1 : 0;
+        const areaDelta = weakArea(a.story) - weakArea(b.story);
+        if (areaDelta !== 0) return areaDelta;
+        const impactDelta = Number(b.story._publicImpact?.priority || 0) - Number(a.story._publicImpact?.priority || 0);
+        if (impactDelta !== 0) return impactDelta;
+      }
       if (b.score !== a.score) return b.score - a.score;
       return a.index - b.index;
     })
@@ -199,7 +206,9 @@ export function applyTravelLocationPriority(newsData = {}, profileInput = null) 
 
   for (const [key, value] of Object.entries(areaNewsData || {})) {
     if (Array.isArray(value)) {
-      next[key] = prioritizeStoryArrayForLocation(value, profile);
+      next[key] = prioritizeStoryArrayForLocation(value, profile, {
+        preservePublicImpact: ['india', 'chennai', 'tn', 'trichy'].includes(key),
+      });
     }
   }
 

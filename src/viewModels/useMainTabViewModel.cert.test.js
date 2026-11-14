@@ -68,9 +68,9 @@ describe('useMainTabViewModel static checks', () => {
     expect(src).toContain("typeof Notification === 'undefined'");
   });
 
-  it('applies travel priority to Top Stories when enabled', () => {
-    expect(src).toContain('travelLocationProfile?.prioritizeStories');
-    expect(src).toContain('prioritizedNewsData.frontPage');
+  it('keeps the canonical Top Stories order when travel priority is enabled', () => {
+    expect(src).toContain('filterLatestStories(projectedNewsData.frontPage, safeSettings.customSortTopStories)');
+    expect(src).not.toContain('prioritizedNewsData.frontPage');
   });
 
   it('is not a second Top Stories ranking authority (NW-RANK-001)', () => {
@@ -175,9 +175,9 @@ describe('Main ViewModel internals', () => {
 
     expect(result.map(item => item.id)).toEqual([
       'top-stories',
+      'world-news',
       'india-news',
       'local-news',
-      'world-news',
     ]);
   });
 
@@ -418,9 +418,9 @@ describe('Main ViewModel internals', () => {
 
     expect(result.map(item => item.id)).toEqual([
       'top-stories',
+      'world-news',
       'india-news',
       'local-news',
-      'world-news',
     ]);
   });
 

@@ -75,7 +75,7 @@ const MainPage = () => {
         || dailyDigest.availability !== 'UNKNOWN'
         || Boolean(dailyDigest.error);
     const pageNavSections = showDailyDigestSection
-        ? [navSections[0], { id: 'daily-digest', icon: '🗞️', label: 'Digest' }, ...navSections.slice(1)].filter(Boolean)
+        ? [...navSections.slice(0, 2), { id: 'daily-digest', icon: '🗞️', label: 'Digest' }, ...navSections.slice(2)].filter(Boolean)
         : navSections;
 
     useEffect(() => {
@@ -111,6 +111,18 @@ const MainPage = () => {
             error={dailyDigest.error}
         />
     ) : null;
+
+    const worldNewsSection = (
+        <NewsSection
+            id="world-news"
+            title="World"
+            icon="🌍"
+            colorClass="news-section__title--world"
+            news={newsData.world}
+            maxDisplay={sections.world?.count || 5}
+            healthSummary={getHealthSummary('world', 'world-news')}
+        />
+    );
 
     return (
         <div className={`page-container mode-${uiMode} ${isWebView ? 'page-container--desktop' : ''}`}>
@@ -192,26 +204,6 @@ const MainPage = () => {
                                         <TravelLocationBanner profile={travelLocationProfile} />
                                         <TravelLocalStories newsData={prioritizedNewsData} profile={travelLocationProfile} />
 
-                                        <div className="modern-card" style={{ marginTop: '20px' }}>
-                                            <div className="modern-card__header">
-                                                <h2 className="modern-card__title">🌍 Global News</h2>
-                                            </div>
-
-                                            <div className="newspaper-column">
-                                                {(newsData.world || []).slice(0, 8).map((item, idx) => (
-                                                    <a
-                                                        key={idx}
-                                                        href={item.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="newspaper-item"
-                                                    >
-                                                        <div className="newspaper-item__title">{item.title}</div>
-                                                        <div className="newspaper-item__meta">{item.source} • {item.time}</div>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
                                     </div>
 
                                     <div className="right-col">
@@ -228,6 +220,7 @@ const MainPage = () => {
                                                 />
                                             )}
 
+                                            {worldNewsSection}
                                             {dailyDigestSection}
 
                                             {sections.india?.enabled && (
@@ -306,6 +299,7 @@ const MainPage = () => {
                                                     />
                                                 )}
 
+                                                {worldNewsSection}
                                                 {dailyDigestSection}
 
                                                 {sections.india?.enabled && (
@@ -344,15 +338,6 @@ const MainPage = () => {
                                                     />
                                                 )}
 
-                                                <NewsSection
-                                                    id="world-news"
-                                                    title="World"
-                                                    icon="🌍"
-                                                    colorClass="news-section__title--world"
-                                                    news={newsData.world}
-                                                    maxDisplay={sections.world?.count || 5}
-                                                    healthSummary={getHealthSummary('world', 'world-news')}
-                                                />
                                             </>
                                         )}
                                     </div>

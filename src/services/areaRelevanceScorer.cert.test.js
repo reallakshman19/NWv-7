@@ -131,4 +131,21 @@ describe('area relevance scorer', () => {
     expect(result.score).toBe(0);
     expect(result.reasons).toContain('no_area_evidence');
   });
+
+  it('keeps a statewide emergency above a routine exact-neighbourhood report', () => {
+    const result = applyAreaRelevance([
+      { id: 'feature', title: 'Chennai Adyar artisans prepare festival lamps', _publicImpact: { priority: 0 } },
+      { id: 'cyclone', title: 'Tamil Nadu cyclone warning issued across districts', _publicImpact: { priority: 3 } },
+      { id: 'foreign', title: 'California declares emergency', _publicImpact: { priority: 3 } },
+    ], 'chennai');
+    expect(result.map(story => story.id)).toEqual(['cyclone', 'feature', 'foreign']);
+  });
+
+  it('preserves proximity ordering for equal public consequence', () => {
+    const result = applyAreaRelevance([
+      { id: 'state', title: 'Tamil Nadu schools announce new schedule', _publicImpact: { priority: 2 } },
+      { id: 'city', title: 'Chennai schools announce new schedule', _publicImpact: { priority: 2 } },
+    ], 'chennai');
+    expect(result.map(story => story.id)).toEqual(['city', 'state']);
+  });
 });

@@ -78,7 +78,7 @@ pass(vm.includes('data.frontPage'), 'Main ViewModel must support mainDataset fro
 pass(vm.includes('data.quickWeather'), 'Main ViewModel must support mainDataset quickWeather shape');
 pass(vm.includes('data.raw?.newsData'), 'Main ViewModel must support raw newsData fallback');
 pass(vm.includes('travelLocationProfile?.prioritizeStories'), 'Top Stories must respect travel priority when enabled');
-pass(vm.includes('prioritizedNewsData.frontPage'), 'Top Stories must read prioritized frontPage when travel priority is enabled');
+pass(vm.includes('filterLatestStories(projectedNewsData.frontPage, safeSettings.customSortTopStories)'), 'Top Stories must preserve canonical frontPage order when travel priority is enabled');
 pass(vm.includes("typeof Notification === 'undefined'"), 'Main ViewModel must guard Notification access');
 
 pass(vm.includes('Promise.allSettled'), 'Main ViewModel must use Promise.allSettled for refresh fan-out');

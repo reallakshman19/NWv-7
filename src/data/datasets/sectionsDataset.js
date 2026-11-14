@@ -4,14 +4,22 @@ import {
   ENVELOPE_FRESHNESS,
 } from '../dataEnvelope.js';
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
-import { fetchSectionNews } from '../../services/rssAggregator.js';
+import { fetchSectionNews, filterEligibleSectionItems } from '../../services/rssAggregator.js';
 import { getSettings } from '../../utils/storage.js';
 import { deduplicateAndCluster } from '../../utils/similarity.js';
-import { consumeSectionsSnapshotBudgetExit } from '../../adapters/sectionsSnapshotFetcher.js';
+import {
+  consumeSectionsSnapshotBudgetExit,
+  getSectionsSnapshotRuntimeSummary,
+  loadSectionsSnapshot,
+  selectPrefetchedSectionItems,
+} from '../../adapters/sectionsSnapshotFetcher.js';
 import { rankTopStories } from '../../services/topStories/topStoriesRanker.js';
+import { getAgeBand } from '../../services/topStories/topStoriesEvidenceAdmission.js';
+import { getTopStoriesPolicy } from '../../services/topStories/topStoriesPolicy.js';
+import { getAgeHours, getTimestampConfidence } from '../../services/topStories/topStoriesSignals.js';
 import { removeRegionalSectionOverlap } from '../../services/regionalSectionPolicy.js';
 import { checkSingleSource, getSectionHealth } from '../../utils/sectionHealth.js';
-import { normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
+import { getTopFeedIdentity, normalizeTopFeedSnapshotRows } from '../../services/topStories/topStoriesTopFeedSignals.js';
 import {
   SERVED_FROM,
   attachFetchDiagnostics,
@@ -72,6 +80,42 @@ function getSectionLimit(settings, section) {
 
 function getTopFeedSnapshotRows(options = {}) {
   return normalizeTopFeedSnapshotRows(options.topFeedItems || options.topFeedSnapshot || []);
+}
+
+async function getSnapshotRankingPool(summaries, diagnostics, settings) {
+  // Widget limits must not decide which headlines the Top Stories ranker sees.
+  // Reuse the snapshot already fetched by the sections, retaining its epoch and
+  // freshness rules, rather than acquiring another set of browser RSS feeds.
+  if (!summaries.some(summary => summary.prefetched || summary.items.some(item => item._prefetchedSection))) {
+    return { items: [], topFeedItems: [] };
+  }
+  try {
+    const snapshot = await loadSectionsSnapshot();
+    const runtime = getSectionsSnapshotRuntimeSummary(snapshot);
+    const authorityHash = summaries.find(summary => summary.snapshotRuntimeSummary?.contentHash)
+      ?.snapshotRuntimeSummary.contentHash;
+    if (runtime.stale || (authorityHash && authorityHash !== runtime.contentHash)) {
+      return { items: [], topFeedItems: [] };
+    }
+    const selected = Object.entries(snapshot.sections || {}).map(([section, items]) => ({
+      section,
+      ...selectPrefetchedSectionItems(snapshot, section, Array.isArray(items) ? items.length : 0),
+    })).filter(section => !section.staleFallback).map(section => ({
+      ...section,
+      items: filterEligibleSectionItems(section.items, section.section, settings, settings.newsSources),
+    }));
+    return {
+      items: selected.flatMap(section => section.items),
+      topFeedItems: selected.find(section => section.section === 'topStories')?.items || [],
+    };
+  } catch (error) {
+    diagnostics.push({
+      event: 'sectionsDataset.top_stories_pool_unavailable',
+      severity: 'warn',
+      message: error?.message || String(error),
+    });
+    return { items: [], topFeedItems: [] };
+  }
 }
 
 function countSources(items = []) {
@@ -267,7 +311,6 @@ export async function load(options = {}) {
   const diagnostics = [];
   const settings = safeGetSettings();
   const sections = getRequestedSections(settings, options, diagnostics);
-  const topFeedItems = getTopFeedSnapshotRows(options);
   const settled = await Promise.allSettled(sections.map(async section => {
     const limit = getSectionLimit(settings, section);
     const startedAt = Date.now();
@@ -301,9 +344,24 @@ export async function load(options = {}) {
   const failed = summaries.filter(summary => !summary.ok);
   const sectionItems = Object.fromEntries(summaries.map(summary => [summary.section, summary.items]));
   const allItems = summaries.flatMap(summary => summary.items);
-  const dedupedItems = deduplicateAndCluster(allItems, settings.storyDeduplication || 0.75);
-  const rankedSections = { ...sectionItems, __all: dedupedItems };
-  const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs: Date.now() }, { limit: options.frontPageLimit || 25 });
+  const rankingPool = await getSnapshotRankingPool(summaries, diagnostics, settings);
+  const topFeedRows = filterEligibleSectionItems(getTopFeedSnapshotRows({
+    topFeedItems: [...rankingPool.topFeedItems, ...(options.topFeedItems || options.topFeedSnapshot || [])],
+  }), 'topStories', settings, settings.newsSources);
+  const nowMs = Date.now();
+  const policy = getTopStoriesPolicy();
+  const timeEligibleItems = [...allItems, ...rankingPool.items, ...topFeedRows].filter(item => {
+    const ageBand = getAgeBand({ ageHours: getAgeHours(item, nowMs), timestampConfidence: getTimestampConfidence(item) }, policy);
+    return ageBand !== 'expired' && ageBand !== 'rejected';
+  });
+  // An expired, previously scored widget must not become the representative
+  // of a fresh update and make the whole event fail Top Stories admission.
+  const dedupedItems = deduplicateAndCluster(timeEligibleItems, settings.storyDeduplication || 0.75);
+  const retainedIdentities = new Set(dedupedItems.map(getTopFeedIdentity));
+  const topFeedItems = topFeedRows.filter(item => retainedIdentities.has(getTopFeedIdentity(item)));
+  // Originals would reintroduce stories removed by cross-section clustering.
+  const rankedSections = { __all: dedupedItems };
+  const frontPage = rankTopStories({ sectionItems: rankedSections, topFeedItems, settings, nowMs }, { limit: options.frontPageLimit || 25 });
   const envelope = makeEnvelope({
     datasetId: 'sections',
     ok: summaries.some(summary => summary.ok),
