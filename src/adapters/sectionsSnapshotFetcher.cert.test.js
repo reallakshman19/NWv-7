@@ -99,7 +99,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.items[0].title).toBe('Tech trend');
   });
 
-  it('serves only item-fresh normal-section rows from a stale snapshot', () => {
+  it('rejects ALL current cards from an expired generation even if items are young', () => {
     const staleSnapshot = {
       ...snapshot,
       fetchedAt: Date.now() - SECTION_SNAPSHOT_MAX_AGE_MS - 1000,
@@ -107,9 +107,10 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(staleSnapshot, 'chennai', 10);
 
-    expect(result.items).toHaveLength(2);
-    expect(result.items[0]._prefetchedSection).toBe(true);
+    expect(result.items).toEqual([]);
     expect(result.stale).toBe(true);
+    expect(result.staleFallback).toBe(false);
+    expect(result.blockedBySnapshotStaleness).toBe(true);
     expect(result.staleReason).toBe('sections_snapshot_stale');
   });
 
@@ -140,7 +141,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.blockedBySnapshotStaleness).toBe(true);
   });
 
-  it('serves low-confidence Top Stories rows as labelled stale fallback', () => {
+  it('rejects low-confidence Top Stories instead of using stale fallback', () => {
     const topStoriesSnapshot = {
       schemaVersion: 2,
       fetchedAt: Date.now(),
@@ -162,10 +163,9 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(topStoriesSnapshot, 'topStories', 10);
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0].publishedAtSource).toBe('fetch_time_fallback');
+    expect(result.items).toEqual([]);
     expect(result.stale).toBe(true);
-    expect(result.staleFallback).toBe(true);
+    expect(result.staleFallback).toBe(false);
     expect(result.staleReason).toBe('section_items_stale');
     expect(result.lowConfidenceTimestampCount).toBe(1);
   });
@@ -196,7 +196,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.items[0].section).toBe('local');
   });
 
-  it('serves stale normal-section rows as labelled fallback', () => {
+  it('rejects expired normal-section items rather than serving a labelled fallback', () => {
     const oldItemsSnapshot = {
       ...snapshot,
       fetchedAt: Date.now(),
@@ -214,10 +214,78 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(oldItemsSnapshot, 'chennai', 10);
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]._prefetchedSection).toBe(true);
+    expect(result.items).toEqual([]);
     expect(result.stale).toBe(true);
-    expect(result.staleFallback).toBe(true);
+    expect(result.staleFallback).toBe(false);
     expect(result.staleReason).toBe('section_items_stale');
   });
+  it('does not admit future-dated snapshot acquisition timestamps', () => {
+    const future = { ...snapshot, fetchedAt: Date.now() + 60 * 60 * 1000 };
+    const result = selectPrefetchedSectionItems(future, 'chennai', 10);
+
+    expect(result.items).toEqual([]);
+    expect(result.blockedBySnapshotStaleness).toBe(true);
+    expect(result.staleReason).toBe('sections_snapshot_stale');
+  });
+
+  it('excludes low-confidence and future-dated publisher stories from ordinary sections', () => {
+    const now = Date.now();
+    const mixed = {
+      ...snapshot,
+      fetchedAt: now,
+      sections: {
+        tn: [
+          { id: 'real', title: 'Publisher news', url: 'https://example.com/real',
+            publishedAt: now - 60_000, sourceGroup: 'the_hindu' },
+          { id: 'fabricated', title: 'Fetch-time fallback', url: 'https://example.com/fabricated',
+            publishedAt: now - 60_000, publishedAtSource: 'fetch_time_fallback' },
+          { id: 'future', title: 'Future dated', url: 'https://example.com/future',
+            publishedAt: now + 3_600_000, sourceGroup: 'example' },
+        ],
+      },
+    };
+    const result = selectPrefetchedSectionItems(mixed, 'tn', 10);
+
+    expect(result.items.map(item => item.id)).toEqual(['real']);
+    expect(result.lowConfidenceTimestampCount).toBe(1);
+    expect(result.staleFallback).toBe(false);
+  });
+
+  it('never re-admits the expired remainder when a section has no current stories', () => {
+    const now = Date.now();
+    const expired = {
+      ...snapshot,
+      fetchedAt: now,
+      sections: { tn: [
+        { id: 'old', publishedAt: now - 40 * 60 * 60 * 1000,
+          url: 'https://example.com/old' },
+        { id: 'undated', publishedAt: now, timestampConfidence: 'low',
+          url: 'https://example.com/undated' },
+      ] },
+    };
+    const result = selectPrefetchedSectionItems(expired, 'tn', 10);
+
+    expect(result.items).toEqual([]);
+    expect(result.staleReason).toBe('section_items_stale');
+    expect(result.staleFallback).toBe(false);
+  });
+
+  it('does not let a live-looking Top Stories headline bypass the 12-hour item limit', () => {
+    const now = Date.now();
+    const top = {
+      schemaVersion: 2,
+      fetchedAt: now,
+      sections: { topStories: [
+        { id: 'live-old', title: 'LIVE: Older updates', isBreaking: true,
+          publishedAt: now - 20 * 60 * 60 * 1000,
+          url: 'https://example.com/live/news', sourceGroup: 'example' },
+      ] },
+    };
+    const result = selectPrefetchedSectionItems(top, 'topStories', 10);
+
+    expect(result.items).toEqual([]);
+    expect(result.stale).toBe(true);
+    expect(result.staleReason).toBe('section_items_stale');
+  });
+
 });

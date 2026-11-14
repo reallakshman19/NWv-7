@@ -547,7 +547,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     });
 
     // Check cache first if enabled
-    if (!force && cacheEnabled && !liveMode) {
+    if (!force && cacheEnabled && !liveMode && !useAuthoritySnapshot) {
         const cached = memoryCache.get(cacheKey);
         if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
             const ageSeconds = Math.round((Date.now() - cached.timestamp) / 1000);
@@ -569,7 +569,12 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     if (inFlightFetches.has(cacheKey)) {
         console.log(`[RSS] ⏳ In-flight fetch already running for ${section} — waiting`);
         try {
-            await inFlightFetches.get(cacheKey);
+            const sharedResult = await inFlightFetches.get(cacheKey);
+            if (useAuthoritySnapshot) {
+                // Never resurrect a detached cached snapshot. Share only the
+                // result that passed the authority's current admission gate.
+                return Array.isArray(sharedResult) ? sharedResult : [];
+            }
         } catch {
             // ignore — we'll use the cache or return empty below
         }
@@ -599,21 +604,10 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
             );
 
             if (prefetched.stale) {
+                // An expired generation or stale article is never a current-news
+                // fallback. Fail visibly rather than rendering unsafe cards.
                 if (prefetched.items.length > 0) {
-                    // Stale but has data — show it with a stale marker rather than nothing.
-                    console.warn(`[RSS] Prefetched sections STALE for ${section} (${prefetched.staleReason}) — serving stale data as fallback`);
-                    const stalePrefetched = await rankAndFilter(prefetched.items, section, limit, allowedSources);
-                    stalePrefetched.prefetched = true;
-                    stalePrefetched.prefetchSourceSection = prefetched.sourceSection;
-                    stalePrefetched.sectionQuality = prefetched.quality;
-                    stalePrefetched.snapshotRuntimeSummary = prefetched.summary;
-                    stalePrefetched.staleReason = prefetched.staleReason;
-                    stalePrefetched.health = getSectionHealth(section, stalePrefetched.length);
-                    stalePrefetched.isSingleSource = checkSingleSource(stalePrefetched);
-                    if (settings.enableCache !== false) {
-                        memoryCache.set(cacheKey, { timestamp: Date.now(), data: stalePrefetched });
-                    }
-                    return stalePrefetched;
+                    console.error(`[RSS] Rejecting ${prefetched.items.length} stale prefetched items for ${section}`);
                 }
                 if (!runtime.allowWideFeedFetch) {
                     console.warn(`[RSS] Prefetched sections STALE+EMPTY for ${section}; live RSS disabled for static host`);
@@ -646,13 +640,9 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
 
                 recordFetchCount(section, rankedPrefetched.length);
 
-                if (settings.enableCache !== false) {
-                    memoryCache.set(cacheKey, {
-                        timestamp: Date.now(),
-                        data: rankedPrefetched
-                    });
-                }
-
+                // Do not cache a second detached copy of authority news here:
+                // loader memory has its own TTL, and selection must reapply
+                // publication and publisher-age admission on every read.
                 return rankedPrefetched;
             }
 

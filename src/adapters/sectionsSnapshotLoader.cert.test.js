@@ -162,4 +162,23 @@ describe('sections snapshot shared load certification', () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+  it('rejects future-dated Preview even when the response schema is valid', async () => {
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
+    const futurePreview = { ...snapshot('future-preview'), fetchedAt: Date.now() + 60_000 };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(futurePreview))
+      .mockResolvedValueOnce(response(snapshot('github-safe')));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const loaded = await loadSectionsSnapshot({ budgetMs: 5000 });
+
+    expect(loaded.contentHash).toBe('github-safe');
+    expect(loaded.runtimeDataSource).toMatchObject({
+      effective: 'github_static',
+      fallbackReason: 'preview_snapshot_unusable',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
 });

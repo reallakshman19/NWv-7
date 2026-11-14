@@ -30,11 +30,13 @@ function getGithubSnapshotUrl() {
 
 function isUsablePreviewSnapshot(snapshot) {
   const fetchedAt = Number(snapshot?.fetchedAt || 0);
+  const ageMs = Date.now() - fetchedAt;
   const sections = snapshot?.sections;
   return isSupportedSectionsSnapshot(snapshot) &&
     Number.isFinite(fetchedAt) &&
     fetchedAt > 0 &&
-    Date.now() - fetchedAt <= PREVIEW_SNAPSHOT_MAX_AGE_MS &&
+    ageMs >= 0 &&
+    ageMs <= PREVIEW_SNAPSHOT_MAX_AGE_MS &&
     sections &&
     typeof sections === 'object' &&
     !Array.isArray(sections);

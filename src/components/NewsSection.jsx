@@ -258,6 +258,10 @@ function NewsSection({
                         return (
                             <article
                                 key={item.id || idx}
+                                // Browser acceptance must compare actual visible cards to
+                                // the exact selected source; the cards have no <a> href.
+                                data-story-id={item.id == null ? '' : String(item.id)}
+                                data-story-url={storyUrl || ''}
                                 className={`modern-news-card ${item.imageUrl ? 'modern-news-card--with-image' : ''}`}
                                 onClick={() => handleStoryClick(item)}
                                 style={{ cursor: storyUrl ? 'pointer' : 'default' }}
