@@ -600,20 +600,40 @@ function buildFestivalFallbackData(locations, asOfDate = new Date()) {
   };
 }
 
+function isCalendarFallbackItem(item) {
+  return item?.source === 'Festival calendar' || item?.calendarFallback === true;
+}
+
+function hasPublisherContent(data) {
+  if (data?.auditSummary?.fallback === 'festival_calendar' || data?.auditSummary?.error
+    || data?.sourceMode === 'failed' || data?.acquisitionSummary?.status === 'failed') return false;
+  return [...Object.values(data?.sections || {}).flat(), ...(data?.timeline || []).flatMap(day => day.items)]
+    .some(item => !isCalendarFallbackItem(item));
+}
+
 function mergeUpAheadFeed(baseData, newData) {
   const base = normalizeUpAheadData(baseData);
   const incoming = normalizeUpAheadData(newData);
   if (!base || !incoming) return incoming || base;
 
+  const basePublished = hasPublisherContent(base);
+  const incomingPublished = hasPublisherContent(incoming);
+  const freshest = basePublished !== incomingPublished
+    ? (incomingPublished ? incoming : base)
+    : upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
+      >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
+  // Calendar estimates only support a publisher outage. They cannot remain
+  // attached to a recovered publication or make genuine data look like fallback.
+  const retainPublished = items => hasPublisherContent(freshest)
+    ? items.filter(item => !isCalendarFallbackItem(item)) : items;
+
   const sections = sectionsFromItems(
     [...new Set([...Object.keys(base.sections), ...Object.keys(incoming.sections)])],
-    [...Object.values(base.sections).flat(), ...Object.values(incoming.sections).flat()]
+    retainPublished([...Object.values(base.sections).flat(), ...Object.values(incoming.sections).flat()])
   );
   const timeline = timelineFromItems(mergeUpAheadItems(
-    [...base.timeline, ...incoming.timeline].flatMap(day => day.items), { preferEventCategory: true }
+    retainPublished([...base.timeline, ...incoming.timeline].flatMap(day => day.items)), { preferEventCategory: true }
   ));
-  const freshest = upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
-    >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
   return {
     ...base,
     ...incoming,
@@ -621,10 +641,10 @@ function mergeUpAheadFeed(baseData, newData) {
     sections,
     fetchedAt: freshest.fetchedAt || null,
     lastUpdated: freshest.lastUpdated || freshest.fetchedAt || null,
-    auditSummary: incoming.auditSummary || base.auditSummary || null,
+    auditSummary: freshest.auditSummary || null,
     dropReport: incoming.dropReport || base.dropReport || [],
     acquisitionSummary: incoming.acquisitionSummary || base.acquisitionSummary || null,
-    sourceMode: incoming.sourceMode || base.sourceMode || null,
+    sourceMode: freshest.sourceMode || null,
   };
 }
 
