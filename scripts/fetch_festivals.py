@@ -1,11 +1,14 @@
 """
 fetch_festivals.py — weekly festivals / public holidays pre-fetch.
 
-Runs once per week (Sunday 3am IST = Saturday 21:30 UTC) via upahead_refresh.yml.
-Writes into the same public/data/up_ahead.json, merging with existing items.
+The main UpAhead Refresh collector calls fetch_festival_items each run. The
+standalone entrypoint only merges festival records; it cannot certify freshness
+of the other categories.
 """
 import os
 import sys
+import re
+from html import unescape
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -14,28 +17,21 @@ from prefetch_common import (
     now_ms, read_json, write_json, make_story_id, is_suppressed,
 )
 from fetch_upahead_events import (
-    extract_event_date, derive_expiry, is_planner_eligible,
+    extract_event_dates, derive_expiry, is_planner_eligible,
     estimate_actionability, LOCATION_LOCALITY, recent_publication_ms,
-    _safe_feed_parse, THIS_YEAR,
+    _safe_feed_parse, google_feed,
+    item_locality,
 )
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 UP_AHEAD_PATH      = 'public/data/up_ahead.json'
-SOURCE_HEALTH_PATH = 'public/newsdata/source_health.json'
+SOURCE_HEALTH_PATH = 'public/data/up_ahead_source_health.json'
 
 # ── Festival feeds ────────────────────────────────────────────────────────────
 FESTIVAL_FEEDS = [
-    # India
-    ('https://www.timeanddate.com/holidays/india/feed',
-     'Time and Date India', 'timeanddate', 'India'),
-    (f'https://news.google.com/rss/search?q=India+public+holiday+OR+Pongal+OR+Diwali+OR+Republic+Day+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-     'Google News India Festivals', 'google_news', 'India'),
-    # Oman / Muscat
-    (f'https://news.google.com/rss/search?q=Oman+public+holiday+OR+Eid+OR+National+Day+{THIS_YEAR}&hl=en-US&gl=US&ceid=US:en',
-     'Google News Oman Festivals', 'google_news', 'Oman'),
-    # Tamil Nadu specific
-    (f'https://news.google.com/rss/search?q=Tamil+Nadu+festival+OR+state+holiday+{THIS_YEAR}+date&hl=en-IN&gl=IN&ceid=IN:en',
-     'Google News TN Festivals', 'google_news', 'India'),
+    (*google_feed('India ("public holiday" OR festival OR observance) date', 'Google News India Festivals'), 'India'),
+    (*google_feed('Oman ("public holiday" OR Eid OR "National Day") date', 'Google News Oman Festivals', 'Oman'), 'Oman'),
+    (*google_feed('"Tamil Nadu" (festival OR "public holiday" OR observance) date', 'Google News TN Festivals'), 'India'),
 ]
 
 
@@ -47,22 +43,24 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
         try:
             feed = _safe_feed_parse(url)
             before = len(results)
-            for entry in feed.entries:
+            for entry in feed.entries[:100]:
                 pub_ms = recent_publication_ms(entry, ts)
                 if pub_ms is None:
                     continue
                 title   = entry.get('title', '').strip()
-                summary = entry.get('summary', '').strip()
+                summary = re.sub(r'<[^>]+>', ' ', unescape(entry.get('summary', ''))).strip()[:2000]
                 link    = entry.get('link', '').strip()
 
                 raw_text = f"{title} {summary}"
-                event_start_ms, date_conf = extract_event_date(raw_text, pub_ms)
+                event_start_ms, event_end_ms, date_conf = extract_event_dates(raw_text, pub_ms)
+                locality_meta = item_locality(raw_text, location)
 
+                if re.search(r'\b(lottery|bumper|prize|draw)\b', raw_text, re.IGNORECASE):
+                    continue
                 # For festivals without explicit date, skip (too noisy)
                 if not event_start_ms:
                     continue
 
-                event_end_ms = None
                 expiry_ms    = derive_expiry(event_start_ms, event_end_ms, pub_ms, 'festivals')
 
                 item = {
@@ -90,9 +88,11 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
 
                 results.append(item)
 
-            source_health[source_group] = {'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
+            source_health[f'festivals:{location}:{url}'] = {'category': 'festivals', 'source': source,
+                'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
         except Exception as e:
-            source_health[source_group] = {'ok': False, 'error': str(e), 'items': 0}
+            source_health[f'festivals:{location}:{url}'] = {'category': 'festivals', 'source': source,
+                'ok': False, 'error': str(e), 'items': 0}
 
     return results, source_health
 
@@ -101,7 +101,8 @@ def main():
     ts       = now_ms()
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
     new_festivals, health = fetch_festival_items(ts)
-    snapshot = merge_upahead_snapshot(existing, new_festivals, ts, fetched=any(row['ok'] for row in health.values()))
+    snapshot = merge_upahead_snapshot(existing, new_festivals, ts, fetched=False)
+    snapshot['acquisitionSummary'] = existing.get('acquisitionSummary')
     write_json(UP_AHEAD_PATH, snapshot)
 
     existing_health = read_json(SOURCE_HEALTH_PATH, {'lastChecked': 0, 'sources': {}})

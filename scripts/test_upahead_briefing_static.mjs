@@ -13,6 +13,7 @@ const module = read('src/services/upAheadBriefing.js');
 const moduleTest = read('src/services/upAheadBriefing.cert.test.js');
 const page = read('src/pages/UpAheadPage.jsx');
 const viewModel = read('src/viewModels/useUpAheadPageViewModel.js');
+const projection = read('src/services/upAheadProjection.js');
 const css = read('src/pages/UpAhead.css');
 const certGate = read('scripts/run_certification_gate.mjs');
 const packageJson = read('package.json');
@@ -53,8 +54,9 @@ for (const token of [
   'getUpAheadBriefing',
   'upAheadBriefing: getUpAheadBriefing({'
 ]) {
-  assert(viewModel.includes(token), `useUpAheadPageViewModel.js missing briefing token: ${token}`);
+  assert(projection.includes(token), `upAheadProjection.js missing briefing token: ${token}`);
 }
+assert(viewModel.includes('getVisibleUpAheadProjection'), 'Page ViewModel must use shared visible projection');
 
 for (const token of [
   '.ua-briefing',

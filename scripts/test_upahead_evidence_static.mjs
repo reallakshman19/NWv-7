@@ -13,6 +13,7 @@ const evidenceModule = read('src/services/upAheadEvidence.js');
 const evidenceTest = read('src/services/upAheadEvidence.cert.test.js');
 const page = read('src/pages/UpAheadPage.jsx');
 const viewModel = read('src/viewModels/useUpAheadPageViewModel.js');
+const projection = read('src/services/upAheadProjection.js');
 const css = read('src/pages/UpAhead.css');
 const certGate = read('scripts/run_certification_gate.mjs');
 const packageJson = read('package.json');
@@ -55,8 +56,9 @@ for (const token of [
   'getUpAheadEvidence',
   'upAheadEvidence: getUpAheadEvidence({'
 ]) {
-  assert(viewModel.includes(token), `useUpAheadPageViewModel.js missing token: ${token}`);
+  assert(projection.includes(token), `upAheadProjection.js missing token: ${token}`);
 }
+assert(viewModel.includes('getVisibleUpAheadProjection'), 'Page ViewModel must use shared visible projection');
 
 for (const token of [
   '.ua-evidence',

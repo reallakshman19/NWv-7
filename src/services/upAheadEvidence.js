@@ -40,8 +40,8 @@ function getLocations(settings) {
   return locations.length > 0 ? locations : ['Chennai'];
 }
 
-function getSectionCounts(data, sectionKeys) {
-  const sections = safeObject(data?.sections);
+function getSectionCounts(data, sectionKeys, visible) {
+  const sections = safeObject(visible.projectedSections || data?.sections);
 
   return sectionKeys.map(key => ({
     key,
@@ -102,9 +102,15 @@ function getQualityTitle(status) {
 export function getUpAheadEvidence({ data, settings, visible = {} }) {
   const sectionKeys = getEnabledCategoryKeys(settings);
   const locations = getLocations(settings);
-  const sectionCounts = getSectionCounts(data, sectionKeys);
-  const timelineStats = getTimelineStats(data);
-  const weeklyPlanStats = getWeeklyPlanStats(data);
+  const sectionCounts = getSectionCounts(data, sectionKeys, visible);
+  const projectedKeys = visible.projectedSections && new Set(Object.values(visible.projectedSections)
+    .flat().map(item => item.id || item.link || item.url || item.title));
+  const projectedData = projectedKeys ? Object.fromEntries(['timeline', 'weekly_plan'].map(key => [key,
+    safeArray(data?.[key]).map(day => ({ ...day, items: safeArray(day.items)
+      .filter(item => projectedKeys.has(item.id || item.link || item.url || item.title)) })),
+  ])) : data;
+  const timelineStats = getTimelineStats(projectedData);
+  const weeklyPlanStats = getWeeklyPlanStats(projectedData);
 
   const coveredSections = sectionCounts.filter(section => section.count > 0);
   const missingSections = sectionCounts.filter(section => section.count === 0);
@@ -116,10 +122,9 @@ export function getUpAheadEvidence({ data, settings, visible = {} }) {
   const visibleFestivalCount = countItems(visible.festivalCards);
 
   const totalSectionItems = sectionCounts.reduce((sum, section) => sum + section.count, 0);
-  const totalVisibleItems =
-    totalSectionItems +
-    timelineStats.itemCount +
-    weeklyPlanStats.itemCount;
+  const totalVisibleItems = visible.projectedSections
+    ? new Set(Object.values(visible.projectedSections).flat().map(item => item.id || item.link || item.url || item.title)).size
+    : totalSectionItems;
 
   const categoryCoverageRatio = coveredSections.length / Math.max(1, sectionKeys.length);
   const timelineCoverageRatio = timelineStats.dayCount > 0
@@ -129,7 +134,7 @@ export function getUpAheadEvidence({ data, settings, visible = {} }) {
     ? weeklyPlanStats.populatedDayCount / weeklyPlanStats.dayCount
     : 0;
 
-  const qualityScore = Math.round(
+  const qualityScore = totalVisibleItems === 0 ? 0 : Math.round(
     Math.min(30, categoryCoverageRatio * 30) +
     Math.min(20, timelineCoverageRatio * 20) +
     Math.min(20, planCoverageRatio * 20) +

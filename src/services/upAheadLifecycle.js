@@ -85,7 +85,7 @@ export function upAheadIdentityKeys(item) {
 
 // Stable identity keeps a saved or dismissed occurrence attached to a revision.
 // Later observations update the details without moving the item to the end.
-export function mergeUpAheadItems(items) {
+export function mergeUpAheadItems(items, { preferEventCategory = false } = {}) {
   const indexes = new Map();
   const merged = [];
   for (const item of items) {
@@ -97,7 +97,14 @@ export function mergeUpAheadItems(items) {
     const existing = merged[index];
     let result = item;
     if (existing) {
-      const latest = upAheadTimeMs(item.observedAt) >= upAheadTimeMs(existing.observedAt) ? item : existing;
+      let latest = upAheadTimeMs(item.observedAt) >= upAheadTimeMs(existing.observedAt) ? item : existing;
+      // Timeline is one occurrence per article, while tabs retain all category
+      // routes. An alert observation must not replace an active event's dates.
+      if (preferEventCategory && item.category !== existing.category) {
+        const priority = row => Number(isUpAheadItemActive(row)) * 2
+          + Number(['events', 'movies', 'festivals', 'sports'].includes(row.category));
+        if (priority(item) !== priority(existing)) latest = priority(item) > priority(existing) ? item : existing;
+      }
       const previous = latest === item ? existing : item;
       const ids = [item, ...matches.map(match => merged[match])].flatMap(row => [
         row.hiddenKey, row.canonicalId, row.id, ...(row.upAheadIds || []),
