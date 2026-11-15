@@ -37,6 +37,7 @@ requiredFiles.forEach(path => {
 
 const page = read('src/pages/UpAheadPage.jsx');
 const vm = read('src/viewModels/useUpAheadPageViewModel.js');
+const projection = read('src/services/upAheadProjection.js');
 const dataset = read('src/data/datasets/upAheadDataset.js');
 const pkg = JSON.parse(read('package.json'));
 
@@ -54,15 +55,10 @@ pass(page.includes('useUpAheadPageViewModel'), 'UpAheadPage must use Up Ahead Vi
   "from '../services/upAheadService'",
   "from '../utils/plannerStorage'",
   "from '../runtime/runtimeCapabilities'",
-  "from '../services/upAheadEvidence'",
-  "from '../services/upAheadBriefing'",
+  "from '../services/upAheadProjection.js'",
   "from '../data/datasets/upAheadDataset'",
   'loadUpAhead(',
   'loadFromCache',
-  'isActualWeatherAlertText',
-  'isActualOfferText',
-  'getUpAheadEvidence',
-  'getUpAheadBriefing',
   'plannerStorage.addItem',
   'plannerStorage.addToBlacklist',
   'getRuntimeCapabilities',
@@ -70,6 +66,9 @@ pass(page.includes('useUpAheadPageViewModel'), 'UpAheadPage must use Up Ahead Vi
   'getSourceModeState',
 ].forEach(token => {
   pass(vm.includes(token), `Up Ahead ViewModel missing token: ${token}`);
+});
+['isActualWeatherAlertText', 'isActualOfferText', 'getUpAheadEvidence', 'getUpAheadBriefing'].forEach(token => {
+  pass(projection.includes(token), `Shared Up Ahead projection missing token: ${token}`);
 });
 pass(!vm.includes('clearUpAheadCache'), 'Refresh must preserve the retained feed');
 ['fetchStaticUpAheadData', 'fetchLiveUpAheadData', 'saveToCache'].forEach(token => {

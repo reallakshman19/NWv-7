@@ -32,8 +32,7 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
       "from '../services/upAheadService'",
       "from '../utils/plannerStorage'",
       "from '../runtime/runtimeCapabilities'",
-      "from '../services/upAheadEvidence'",
-      "from '../services/upAheadBriefing'",
+      "from '../services/upAheadProjection.js'",
       "from '../data/datasets/upAheadDataset'",
       'loadUpAhead(',
       'loadFromCache',
@@ -44,6 +43,10 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
       expect(vm).toContain(token);
     });
     expect(vm).not.toContain('clearUpAheadCache');
+    const projection = read('src/services/upAheadProjection.js');
+    expect(projection).toContain('upAheadEvidence: getUpAheadEvidence({');
+    expect(projection).toContain('upAheadBriefing: getUpAheadBriefing({');
+    expect(dataset).toContain('getVisibleUpAheadProjection({ data, settings })');
   });
 
   it('does not treat blocked static-host browser feeds as a successful empty offer query', () => {
@@ -82,12 +85,12 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
     });
   });
 
-  it('visible content detector handles timeline, sections and weekly plan', () => {
+  it('visible content detector requires fetched rows rather than only saved plan items', () => {
     const { hasVisibleUpAheadContent } = __upAheadPageViewModelInternalsForTest;
 
     expect(hasVisibleUpAheadContent({ timeline: [{ items: [{ id: 'x' }] }] })).toBe(true);
     expect(hasVisibleUpAheadContent({ sections: { movies: [{ id: 'x' }] } })).toBe(true);
-    expect(hasVisibleUpAheadContent({ weekly_plan: [{ items: [{ id: 'x' }] }] })).toBe(true);
+    expect(hasVisibleUpAheadContent({ weekly_plan: [{ items: [{ id: 'x' }] }] })).toBe(false);
     expect(hasVisibleUpAheadContent({ timeline: [], sections: {}, weekly_plan: [] })).toBe(false);
   });
 });

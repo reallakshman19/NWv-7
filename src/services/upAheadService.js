@@ -217,6 +217,7 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       plannerEligible: Boolean(item.plannerEligible && eventDateKey),
       displayEligible: item.displayEligible !== false,
       publishedAt: item.publishedAt || item.publishDate || null,
+      datePrecision: item.datePrecision || null,
       eventStartAt: item.eventStartAt || item.originalItem?.eventStartAt || null,
       eventEndAt: item.eventEndAt || item.originalItem?.eventEndAt || null,
       eventDateEndKey: item.eventDateEndKey || null,
@@ -251,7 +252,7 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
   const timeline = Array.from(timelineMap.values())
     .map(day => ({
       ...day,
-      items: mergeUpAheadItems(day.items)
+      items: mergeUpAheadItems(day.items, { preferEventCategory: true })
     }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -307,6 +308,8 @@ function transformPythonItemsToDisplay(items = []) {
         link:              it.url || it.link,
         category,
         publishedAt:       it.publishedAt || null,
+        datePrecision:     it.datePrecision || null,
+        posterUrl:         it.posterUrl || null,
         eventStartAt:      it.eventStartAt || null,
         eventEndAt:        it.eventEndAt || null,
         expiryAt:          it.expiryAt || null,
@@ -353,11 +356,11 @@ function timelineFromItems(items) {
 
 function sectionsFromItems(keys, items) {
   const sections = Object.fromEntries(keys.map(key => [key, []]));
-  for (const item of mergeUpAheadItems(items)) {
+  for (const item of items) {
     const category = categorySectionKey(item.category);
     (sections[category] ||= []).push(item);
   }
-  return sections;
+  return Object.fromEntries(Object.entries(sections).map(([key, rows]) => [key, mergeUpAheadItems(rows)]));
 }
 
 function normalizeUpAheadData(data) {
@@ -372,7 +375,7 @@ function normalizeUpAheadData(data) {
   const timeline = timelineFromItems(mergeUpAheadItems(
     (Array.isArray(data.timeline) ? data.timeline : []).flatMap(day => (
       (day?.items || []).map(item => prepareItem(item, observedAt, { date: day.date }))
-    ))
+    )), { preferEventCategory: true }
   ));
   const sectionData = data.sections || {};
   const sections = sectionsFromItems(Object.keys(sectionData), Object.entries(sectionData).flatMap(([key, items]) =>
@@ -385,7 +388,8 @@ function pruneUpAheadData(data, retiredItems = new Map()) {
   if (!data) return null;
   const now = Date.now();
   const isActive = item => isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
-    retiredItems.has(key) && retiredItems.get(key) >= upAheadTimeMs(item.observedAt)
+    [key, `${item.category}:${key}`].some(retiredKey =>
+      retiredItems.has(retiredKey) && retiredItems.get(retiredKey) >= upAheadTimeMs(item.observedAt))
   );
   const hasFeedRows = data.timeline.length > 0 || Object.values(data.sections).some(hasItems);
   const timeline = data.timeline
@@ -440,7 +444,8 @@ export function saveToCache(incoming, fallback = null) {
     const observed = upAheadTimeMs(item.observedAt);
     if (observed < cutoff || isUpAheadItemActive(item, now)) continue;
     for (const key of upAheadIdentityKeys(item)) {
-      retiredItems.set(key, Math.max(observed, retiredItems.get(key) || 0));
+      const retiredKey = `${item.category}:${key}`;
+      retiredItems.set(retiredKey, Math.max(observed, retiredItems.get(retiredKey) || 0));
     }
   }
   const updated = pruneUpAheadData(merged, retiredItems);
@@ -465,34 +470,58 @@ export function clearUpAheadCache() {
   }
 }
 
-export async function fetchStaticUpAheadData(upAheadSettings = {}) {
-  try {
-    const baseUrl = import.meta.env.BASE_URL;
-    const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-    const response = await fetch(`${cleanBase}data/up_ahead.json`, { cache: 'no-cache' });
-    if (!response.ok) return null;
-    const parsed = await response.json();
-    const snapshot = { ...parsed, sourceMode: parsed?.sourceMode || 'snapshot' };
-    if (sanitizeUpAheadData(snapshot) || !Array.isArray(snapshot.items)) return snapshot;
+function getUpAheadSnapshotUrls() {
+  const baseUrl = import.meta.env.BASE_URL || '/';
+  const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const deployed = `${cleanBase}data/up_ahead.json`;
+  const location = globalThis.window?.location;
+  return location?.origin === 'https://reallakshman19.github.io'
+    && (location.pathname === '/NWv-7' || location.pathname.startsWith('/NWv-7/'))
+    ? ['https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/data/up_ahead.json', deployed]
+    : [deployed];
+}
 
-    const normalized = normalizeUpAheadData(snapshot);
-    const fallback = buildFestivalFallbackData(
-      upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']
-    );
-    // Keep expired incoming rows long enough to supersede an older version of
-    // the same occurrence. The merge drops them before anything is displayed.
-    return {
-      ...normalized,
-      timeline: [...normalized.timeline, ...fallback.timeline],
-      sections: {
-        ...normalized.sections,
-        festivals: [...(normalized.sections.festivals || []), ...fallback.sections.festivals],
-      },
-      auditSummary: fallback.auditSummary,
-    };
-  } catch {
-    return null;
+export async function fetchStaticUpAheadData(upAheadSettings = {}) {
+  let snapshot = null;
+  const failures = [];
+  for (const url of getUpAheadSnapshotUrls()) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    try {
+      // No custom cross-origin headers: they require a rejected CORS preflight.
+      const response = await fetch(`${url}?t=${Date.now()}`, { cache: 'no-cache', signal: controller.signal });
+      if (!response.ok) throw new Error(`Snapshot HTTP ${response.status}`);
+      const parsed = await response.json();
+      if (!parsed || typeof parsed !== 'object' || (!Array.isArray(parsed.items) && !parsed.sections)) {
+        throw new Error('Unsupported Up Ahead snapshot');
+      }
+      const candidate = { ...parsed, sourceMode: parsed.sourceMode || 'snapshot', snapshotUrl: url };
+      if (!snapshot || upAheadTimeMs(candidate.fetchedAt) > upAheadTimeMs(snapshot.fetchedAt)) snapshot = candidate;
+      if (isUpAheadDataFresh(candidate) && sanitizeUpAheadData(candidate)) break;
+    } catch (error) {
+      failures.push(error?.message || String(error));
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  if (!snapshot) throw new Error(failures.join('; ') || 'Up Ahead snapshot unavailable');
+  if (sanitizeUpAheadData(snapshot) || !Array.isArray(snapshot.items)) return snapshot;
+
+  const normalized = normalizeUpAheadData(snapshot);
+  const fallback = buildFestivalFallbackData(
+    upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']
+  );
+  // Keep expired incoming rows long enough to supersede an older version of
+  // the same occurrence. The merge drops them before anything is displayed.
+  return {
+    ...normalized,
+    timeline: [...normalized.timeline, ...fallback.timeline],
+    sections: {
+      ...normalized.sections,
+      festivals: [...(normalized.sections.festivals || []), ...fallback.sections.festivals],
+    },
+    auditSummary: fallback.auditSummary,
+  };
 }
 
 function makeFestivalItem({ id, title, date, location, description }) {
@@ -581,7 +610,7 @@ function mergeUpAheadFeed(baseData, newData) {
     [...Object.values(base.sections).flat(), ...Object.values(incoming.sections).flat()]
   );
   const timeline = timelineFromItems(mergeUpAheadItems(
-    [...base.timeline, ...incoming.timeline].flatMap(day => day.items)
+    [...base.timeline, ...incoming.timeline].flatMap(day => day.items), { preferEventCategory: true }
   ));
   const freshest = upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
     >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
@@ -689,4 +718,5 @@ export const __upAheadServiceInternalsForTest = {
   isStaticUpAheadFresh: isUpAheadDataFresh,
   filterPastDatedDisplayItems,
   getFestivalFallbackItems,
+  getUpAheadSnapshotUrls,
 };

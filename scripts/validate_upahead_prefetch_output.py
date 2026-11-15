@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 import time
+import argparse
 from collections import Counter
 from pathlib import Path
 from typing import Any
+from enrich_upahead_contract import lifecycle_for_item
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
 REPORT_PATH = Path("public/data/up_ahead_quality_report.json")
@@ -20,6 +22,7 @@ EXPECTED_LOOKAHEAD_DAYS = 7
 EXPECTED_EVENT_PAST_GRACE_HOURS = 24
 EXPECTED_PLANNER_PAST_GRACE_HOURS = 6
 MIN_VISIBLE_ITEMS = 3
+MAX_SNAPSHOT_AGE_MS = 12 * 3_600_000
 
 
 def read_json(path: Path, fallback: Any = None) -> Any:
@@ -34,7 +37,8 @@ def write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True), encoding="utf-8")
 
 
-def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict[str, Any]:
+def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, require_acquisition=False) -> dict[str, Any]:
+    ts = int(now_ms if now_ms is not None else time.time() * 1000)
     errors: list[str] = []
     warnings: list[str] = []
     items = snapshot.get("items") if isinstance(snapshot.get("items"), list) else []
@@ -45,6 +49,10 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> di
         errors.append("schemaVersion is missing or invalid")
     if not int(snapshot.get("fetchedAt") or 0):
         errors.append("fetchedAt is missing or zero")
+    else:
+        age = ts - int(snapshot['fetchedAt'])
+        if age < -300_000 or age > MAX_SNAPSHOT_AGE_MS:
+            errors.append("Snapshot is stale or future-dated (maximum age 12 hours)")
     if not snapshot.get("contentHash"):
         errors.append("contentHash is missing")
     if snapshot.get("contractVersion") != EXPECTED_CONTRACT_VERSION:
@@ -76,17 +84,32 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> di
         if not lifecycle:
             missing_lifecycle.append(item.get("id") or item.get("url") or item.get("title") or "unknown")
             continue
-        if lifecycle.get("isVisible"):
+        current = lifecycle_for_item(item, ts)
+        if current.get("isVisible"):
             visible_count += 1
-        if lifecycle.get("plannerEligibleByLifecycle"):
+        if current.get("plannerEligibleByLifecycle"):
             planner_lifecycle_count += 1
-        if item.get("eventStartAt") and lifecycle.get("withinSevenDayHorizon") is not True:
+        if item.get("eventStartAt") and current.get("withinSevenDayHorizon") is not True:
             horizon_violations.append(item.get("id") or item.get("title") or "unknown")
         if item.get("plannerEligible") and lifecycle.get("plannerPastGraceHours") != EXPECTED_PLANNER_PAST_GRACE_HOURS:
             planner_grace_violations.append(item.get("id") or item.get("title") or "unknown")
 
     if missing_lifecycle:
         errors.append(f"{len(missing_lifecycle)} items missing lifecycle metadata")
+    if visible_count == 0:
+        errors.append("No currently active Up Ahead items; publication is unusable")
+    acquisition = snapshot.get('acquisitionSummary') or {}
+    if require_acquisition and not acquisition:
+        errors.append('Missing acquisition evidence')
+    if acquisition and not acquisition.get('successfulSources'):
+        errors.append('All acquisition sources failed')
+    if acquisition.get('failedSources'):
+        warnings.append(f"{acquisition['failedSources']} acquisition sources failed; coverage is partial")
+    for category, row in acquisition.get('byCategory', {}).items():
+        if not row.get('successfulSources'):
+            warnings.append(f'{category}: acquisition unavailable')
+        elif not category_counts.get(category):
+            warnings.append(f'{category}: no currently active items')
     if horizon_violations:
         errors.append(f"{len(horizon_violations)} dated items outside Up Ahead 7-day horizon")
     if planner_grace_violations:
@@ -99,7 +122,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> di
     status = "FAIL" if errors else "WARN" if warnings else "PASS"
     return {
         "status": status,
-        "generatedAt": int(now_ms if now_ms is not None else time.time() * 1000),
+        "generatedAt": ts,
         "schemaVersion": snapshot.get("schemaVersion", 0),
         "contractVersion": snapshot.get("contractVersion", ""),
         "fetchedAt": snapshot.get("fetchedAt", 0),
@@ -118,6 +141,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> di
             "eventPastGraceHours": EXPECTED_EVENT_PAST_GRACE_HOURS,
             "plannerPastGraceHours": EXPECTED_PLANNER_PAST_GRACE_HOURS,
             "minVisibleItems": MIN_VISIBLE_ITEMS,
+            "maxSnapshotAgeMs": MAX_SNAPSHOT_AGE_MS,
         },
     }
 
@@ -146,8 +170,11 @@ def write_summary(report: dict[str, Any]) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--require-acquisition', action='store_true')
+    args = parser.parse_args()
     snapshot = read_json(UP_AHEAD_PATH, {})
-    report = validate_snapshot(snapshot)
+    report = validate_snapshot(snapshot, require_acquisition=args.require_acquisition)
     write_json(REPORT_PATH, report)
     write_summary(report)
     print(json.dumps({

@@ -11,16 +11,19 @@ function read(path) {
 
 const upAheadPage = read('src/pages/UpAheadPage.jsx');
 const upAheadPageViewModel = read('src/viewModels/useUpAheadPageViewModel.js');
+const upAheadProjection = read('src/services/upAheadProjection.js');
 const upAheadEvidence = read('src/services/upAheadEvidence.js');
 const certGate = read('scripts/run_certification_gate.mjs');
 const packageJson = read('package.json');
 
-const moduleFormatIndex = upAheadPageViewModel.indexOf('function formatConciseDate(dateStr');
+const moduleFormatIndex = upAheadProjection.indexOf('function formatConciseDate(dateStr');
+const formatterImportIndex = upAheadPageViewModel.indexOf("from '../services/upAheadProjection.js'");
 const viewModelIndex = upAheadPageViewModel.indexOf('export function useUpAheadPageViewModel()');
 
 assert(moduleFormatIndex !== -1, 'formatConciseDate must exist as module-scope function');
 assert(viewModelIndex !== -1, 'useUpAheadPageViewModel function must exist');
-assert(moduleFormatIndex < viewModelIndex, 'formatConciseDate must be declared before useUpAheadPageViewModel');
+assert(formatterImportIndex >= 0 && formatterImportIndex < viewModelIndex,
+  'ViewModel must import the shared module-scope formatter before its hook');
 
 assert(
   upAheadPage.includes('formatConciseDate') &&

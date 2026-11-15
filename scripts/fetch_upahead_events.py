@@ -2,7 +2,7 @@
 fetch_upahead_events.py — UpAhead events / offers / alerts pre-fetch.
 
 Runs 5× per day (IST 4am, 10am, 2pm, 6pm, 8pm) via upahead_refresh.yml.
-Festivals / holidays are handled by a separate weekly script (fetch_festivals.py).
+Festivals / holidays are collected in the same bounded publication run.
 
 Every item in the output MUST have:
   publishedAt, eventStartAt, eventEndAt, expiryAt,
@@ -24,12 +24,14 @@ import re
 import sys
 import time
 from calendar import timegm
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-import socket as _socket
 import feedparser
+import requests
+from html import unescape
+from urllib.parse import urlencode
 from fetch_tmdb_releases import fetch_tmdb_releases
 from enrich_upahead_contract import merge_upahead_snapshot
 from prefetch_common import (
@@ -40,149 +42,68 @@ from prefetch_common import (
 THIS_YEAR = datetime.now().year
 
 
-def _safe_feed_parse(url, timeout=10):
-    prev = _socket.getdefaulttimeout()
-    _socket.setdefaulttimeout(timeout)
-    try:
-        for attempt in range(2):
-            try:
-                feed = feedparser.parse(url)
-            except Exception:
-                if attempt == 1:
-                    raise
-                time.sleep(3)
-            else:
-                status = feed.get('status', 200)
-                if status >= 400:
-                    raise RuntimeError(f'HTTP {status}')
-                if not feed.entries and feed.get('bozo'):
-                    raise RuntimeError(f'Unreadable feed: {feed.get("bozo_exception")}')
-                return feed
-    finally:
-        _socket.setdefaulttimeout(prev)
+def _safe_feed_parse(url, timeout=8):
+    # Per-request timeout; do not mutate the process-wide socket timeout.
+    for attempt in range(2):
+        try:
+            response = requests.get(url, timeout=timeout, headers={
+                'User-Agent': 'NWv7-UpAhead/1.0 (public RSS planner)',
+                'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+            })
+            response.raise_for_status()
+            feed = feedparser.parse(response.content)
+            if not feed.entries and (feed.get('bozo') or not feed.get('version')):
+                raise RuntimeError('Response is not a usable RSS/Atom feed')
+            return feed
+        except (requests.RequestException, RuntimeError):
+            if attempt == 1:
+                raise
+            time.sleep(1)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 UP_AHEAD_PATH      = 'public/data/up_ahead.json'
-SOURCE_HEALTH_PATH = 'public/newsdata/source_health.json'
+SOURCE_HEALTH_PATH = 'public/data/up_ahead_source_health.json'
 
 # ── Category feeds ────────────────────────────────────────────────────────────
-# Structure: category → location_key → [(url, source_name, source_group)]
-# Tier A direct feeds are preferred; Google News search fills gaps.
+# Disjunctions are grouped: joining every event keyword with AND returned zero
+# matches; ungrouped shopping OR terms returned unrelated international sales.
+def google_feed(query, source, location='India'):
+    india = location not in ('Muscat', 'Oman')
+    params = dict(q=query + ' when:7d', hl='en-IN' if india else 'en-US',
+                  gl='IN' if india else 'US', ceid='IN:en' if india else 'US:en')
+    return ('https://news.google.com/rss/search?' + urlencode(params), source, 'google_news')
+
+
 CATEGORY_FEEDS = {
-    'movies': {
-        'India': [
-            ('https://www.hindustantimes.com/feeds/rss/entertainment/tamil-cinema/rssfeed.xml',
-             'Hindustan Times Tamil', 'hindustan_times'),
-            ('https://www.hindustantimes.com/feeds/rss/entertainment/bollywood/rssfeed.xml',
-             'Hindustan Times Bollywood', 'hindustan_times'),
-            (f'https://news.google.com/rss/search?q=upcoming+Tamil+movie+release+date+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News', 'google_news'),
-            (f'https://news.google.com/rss/search?q=upcoming+Hindi+movie+release+OTT+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News', 'google_news'),
-        ],
-    },
-    'events': {
-        'Chennai': [
-            ('https://allevents.in/chennai/rss',
-             'AllEvents Chennai', 'allevents'),
-            ('https://news.google.com/rss/search?q=Chennai+upcoming+events+concert+exhibition+workshop+this+week&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai', 'google_news'),
-            (f'https://news.google.com/rss/search?q=Chennai+festival+cultural+program+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Festivals', 'google_news'),
-        ],
-        'Muscat': [
-            ('https://allevents.in/muscat/rss',
-             'AllEvents Muscat', 'allevents'),
-            ('https://news.google.com/rss/search?q=Muscat+upcoming+events+concert+exhibition+this+month&hl=en-US&gl=US&ceid=US:en',
-             'Google News Muscat', 'google_news'),
-            (f'https://news.google.com/rss/search?q=Oman+event+festival+weekend+{THIS_YEAR}&hl=en-US&gl=US&ceid=US:en',
-             'Google News Oman Events', 'google_news'),
-        ],
-        'Trichy': [
-            ('https://allevents.in/trichy/rss',
-             'AllEvents Trichy', 'allevents'),
-            ('https://news.google.com/rss/search?q=Trichy+events+exhibition+cultural+event+this+week&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Trichy', 'google_news'),
-        ],
-    },
-    'alerts': {
-        'Chennai': [
-            ('https://www.thehindu.com/news/cities/chennai/feeder/default.rss',
-             'The Hindu Chennai', 'the_hindu'),
-            ('https://www.dtnext.in/rss',
-             'DT Next', 'dtnext'),
-            ('https://news.google.com/rss/search?q=Chennai+power+cut+OR+water+supply+OR+TANGEDCO+OR+metro+water&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Alerts', 'google_news'),
-        ],
-        'Muscat': [
-            ('https://www.omanobserver.om/rss',
-             'Oman Observer', 'oman_observer'),
-            ('https://timesofoman.com/rss',
-             'Times of Oman', 'times_of_oman'),
-            ('https://news.google.com/rss/search?q=Muscat+road+closure+OR+advisory+OR+announcement&hl=en-US&gl=US&ceid=US:en',
-             'Google News Muscat Alerts', 'google_news'),
-        ],
-        'Trichy': [
-            ('https://www.thehindu.com/news/cities/Tiruchirapalli/feeder/default.rss',
-             'The Hindu Trichy', 'the_hindu'),
-            ('https://news.google.com/rss/search?q=Trichy+power+cut+OR+water+supply+OR+civic+alert&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Trichy Alerts', 'google_news'),
-        ],
-    },
-    'weather_alerts': {
-        'Chennai': [
-            ('https://news.google.com/rss/search?q=IMD+Chennai+weather+warning+OR+cyclone+OR+heavy+rain+alert&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Weather', 'google_news'),
-        ],
-        'Muscat': [
-            ('https://news.google.com/rss/search?q=Oman+Met+weather+warning+OR+thunderstorm+OR+flood+alert+Muscat&hl=en-US&gl=US&ceid=US:en',
-             'Google News Muscat Weather', 'google_news'),
-        ],
-        'Trichy': [
-            ('https://news.google.com/rss/search?q=Trichy+weather+warning+OR+Tamil+Nadu+rain+alert+OR+IMD&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Trichy Weather', 'google_news'),
-        ],
-    },
+    'movies': {'India': [
+        ('https://www.hindustantimes.com/feeds/rss/entertainment/tamil-cinema/rssfeed.xml',
+         'Hindustan Times Tamil', 'hindustan_times'),
+        ('https://www.hindustantimes.com/feeds/rss/entertainment/bollywood/rssfeed.xml',
+         'Hindustan Times Bollywood', 'hindustan_times'),
+        google_feed('(Tamil movie OR Tamil OTT) (release OR releasing OR premiere)', 'Google News Tamil Releases'),
+        google_feed('(Hindi movie OR Hindi OTT) (release OR releasing OR premiere)', 'Google News Hindi Releases'),
+    ]},
+    'events': {city: [google_feed(f'{city} (event OR concert OR exhibition OR workshop OR expo OR fair)',
+                                 f'Google News {city} Events', city)]
+               for city in ('Chennai', 'Muscat', 'Trichy')},
+    'alerts': {city: [google_feed(f'{city} ("power cut" OR "power shutdown" OR "water supply" OR "road closure" OR advisory)',
+                                 f'Google News {city} Alerts', city)]
+               for city in ('Chennai', 'Muscat', 'Trichy')},
+    'weather_alerts': {city: [google_feed(f'{city} ("weather warning" OR "rain alert" OR cyclone OR "heavy rain")',
+                                         f'Google News {city} Weather', city)]
+                       for city in ('Chennai', 'Muscat', 'Trichy')},
     'shopping': {
-        'online': [
-            (f'https://news.google.com/rss/search?q=Amazon+sale+OR+Flipkart+sale+OR+Myntra+sale+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Shopping', 'google_news'),
-            (f'https://news.google.com/rss/search?q=online+shopping+sale+discount+coupon+India+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Deals', 'google_news'),
-        ],
-        'Chennai': [
-            ('https://news.google.com/rss/search?q=Chennai+sale+OR+offer+OR+discount+T+Nagar+OR+Phoenix+Marketcity+OR+Express+Avenue+OR+Saravana+Stores+OR+Pothys+when:14d&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Shopping', 'google_news'),
-            ('https://news.google.com/rss/search?q=Chennai+mall+weekend+sale+OR+festive+offer+OR+shopping+deal+this+week&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Deals', 'google_news'),
-        ],
-        'Trichy': [
-            ('https://news.google.com/rss/search?q=Trichy+OR+Tiruchirappalli+shopping+sale+OR+offer+OR+discount+mall+when:14d&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Trichy Shopping', 'google_news'),
-        ],
-        'Muscat': [
-            ('https://news.google.com/rss/search?q=Muscat+sale+OR+offer+OR+discount+Lulu+OR+Carrefour+OR+City+Centre+OR+Oman+Avenues+Mall+when:14d&hl=en-US&gl=US&ceid=US:en',
-             'Google News Muscat Shopping', 'google_news'),
-            ('https://news.google.com/rss/search?q=Oman+shopping+festival+OR+weekend+offer+OR+mall+sale+this+week&hl=en-US&gl=US&ceid=US:en',
-             'Google News Oman Deals', 'google_news'),
-        ],
+        'online': [google_feed('(Amazon OR Flipkart OR Myntra) (sale OR discount OR offer) India', 'Google News India Shopping')],
+        **{city: [google_feed(f'{city} (sale OR offer OR discount) (mall OR shopping OR stores)',
+                              f'Google News {city} Shopping', city)]
+           for city in ('Chennai', 'Muscat', 'Trichy')},
     },
-    'airlines': {
-        'global': [
-            (f'https://news.google.com/rss/search?q=IndiGo+OR+Air+India+OR+Oman+Air+OR+SalamAir+fare+sale+booking+{THIS_YEAR}&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Airlines', 'google_news'),
-        ],
-    },
-    'civic': {
-        'Chennai': [
-            ('https://news.google.com/rss/search?q=Chennai+metro+water+OR+TANGEDCO+OR+corporation+notice+OR+civic+body&hl=en-IN&gl=IN&ceid=IN:en',
-             'Google News Chennai Civic', 'google_news'),
-        ],
-        'Muscat': [
-            ('https://news.google.com/rss/search?q=Muscat+municipality+OR+Oman+civic+announcement+OR+road+work&hl=en-US&gl=US&ceid=US:en',
-             'Google News Muscat Civic', 'google_news'),
-        ],
-    },
+    'airlines': {'global': [google_feed('(IndiGo OR "Air India" OR "Oman Air" OR SalamAir) ("fare sale" OR "booking discount" OR "flight offer")',
+                                        'Google News Airline Offers')]},
+    'sports': {city: [google_feed(f'{city} (fixture OR tournament OR "match schedule")',
+                                 f'Google News {city} Sports', city)] for city in ('Chennai', 'Muscat')},
+    'civic': {city: [google_feed(f'{city} (notice OR deadline OR shutdown OR "traffic diversion" OR "water supply")',
+                                f'Google News {city} Civic', city)] for city in ('Chennai', 'Muscat', 'Trichy')},
 }
 
 # ── Locality config ───────────────────────────────────────────────────────────
@@ -198,99 +119,7 @@ LOCATION_LOCALITY = {
 
 
 # ── Date extraction ───────────────────────────────────────────────────────────
-_DATE_PATTERNS = [
-    # "January 15, 2025" or "15 January 2025"
-    (r'\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{4})\b',
-     'dmy_full'),
-    (r'\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})\b',
-     'mdy_full'),
-    # "Jan 15" (current year assumed)
-    (r'\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})\b',
-     'md_abbr'),
-    # "this friday", "next saturday"
-    (r'\b(this|next)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b',
-     'relative_weekday'),
-    # "releasing on DD/MM" or "opening MM/DD"
-    (r'\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b',
-     'numeric_date'),
-]
-
-_MONTH_MAP = {
-    'january': 1, 'february': 2, 'march': 3, 'april': 4,
-    'may': 5, 'june': 6, 'july': 7, 'august': 8,
-    'september': 9, 'october': 10, 'november': 11, 'december': 12,
-    'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4,
-    'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
-}
-
-_WEEKDAY_MAP = {'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
-                'friday': 4, 'saturday': 5, 'sunday': 6}
-
-
-def _next_weekday(ref_dt, target_wd):
-    days_ahead = (target_wd - ref_dt.weekday()) % 7
-    if days_ahead == 0:
-        days_ahead = 7
-    return ref_dt + timedelta(days=days_ahead)
-
-
-def extract_event_date(text: str, ref_ts: int) -> tuple[int | None, str]:
-    """
-    Return (event_start_ms, confidence) where confidence is one of
-    'exact', 'range', 'inferred', 'unknown'.
-    ref_ts is the publishedAt timestamp of the article.
-    """
-    lower = (text or '').lower()
-    ref_dt = datetime.fromtimestamp(ref_ts / 1000, tz=timezone.utc)
-
-    # Full date patterns
-    for pat, kind in _DATE_PATTERNS:
-        m = re.search(pat, lower)
-        if not m:
-            continue
-        try:
-            if kind == 'dmy_full':
-                day, month_str, year = int(m.group(1)), m.group(2), int(m.group(3))
-                month = _MONTH_MAP.get(month_str, 0)
-                if month:
-                    dt = datetime(year, month, day, 0, 0, 0, tzinfo=timezone.utc)
-                    return int(dt.timestamp() * 1000), 'exact'
-            elif kind == 'mdy_full':
-                month_str, day, year = m.group(1), int(m.group(2)), int(m.group(3))
-                month = _MONTH_MAP.get(month_str, 0)
-                if month:
-                    dt = datetime(year, month, day, 0, 0, 0, tzinfo=timezone.utc)
-                    return int(dt.timestamp() * 1000), 'exact'
-            elif kind == 'md_abbr':
-                month_str, day = m.group(1), int(m.group(2))
-                month = _MONTH_MAP.get(month_str, 0)
-                if month:
-                    year = ref_dt.year
-                    dt = datetime(year, month, day, 0, 0, 0, tzinfo=timezone.utc)
-                    # If date appears to be in the past, bump to next year
-                    if dt < ref_dt - timedelta(days=1):
-                        dt = dt.replace(year=year + 1)
-                    return int(dt.timestamp() * 1000), 'inferred'
-            elif kind == 'relative_weekday':
-                prefix, wd_str = m.group(1), m.group(2)
-                wd = _WEEKDAY_MAP[wd_str]
-                if prefix == 'this':
-                    days = (wd - ref_dt.weekday()) % 7
-                    dt = ref_dt + timedelta(days=days)
-                else:  # next
-                    dt = _next_weekday(ref_dt, wd)
-                return int(dt.replace(hour=0, minute=0, second=0, microsecond=0).timestamp() * 1000), 'inferred'
-            elif kind == 'numeric_date':
-                d1, d2, yr = int(m.group(1)), int(m.group(2)), m.group(3)
-                year = ref_dt.year if not yr else (int(yr) if int(yr) > 100 else 2000 + int(yr))
-                # Assume DD/MM for Indian context
-                if 1 <= d2 <= 12:
-                    dt = datetime(year, d2, d1, 0, 0, 0, tzinfo=timezone.utc)
-                    return int(dt.timestamp() * 1000), 'inferred'
-        except (ValueError, OverflowError):
-            continue
-
-    return None, 'unknown'
+from upahead_dates import extract_event_date, extract_event_dates
 
 
 # ── Expiry derivation ─────────────────────────────────────────────────────────
@@ -328,7 +157,9 @@ def is_planner_eligible(item: dict, ts: int) -> bool:
     event_start = item.get('eventStartAt')
     if event_start:
         days_ahead = (event_start - ts) / DAY_MS
-        if days_ahead < -0.25 or days_ahead > 7:
+        ongoing = event_start <= ts < (item.get('eventEndAt') or 0)
+        today_only = item.get('datePrecision') == 'day' and event_start // DAY_MS == ts // DAY_MS
+        if not ongoing and not today_only and (days_ahead < -0.25 or days_ahead > 7):
             return False
     else:
         # No event date: allow only categories that don't require one,
@@ -371,6 +202,58 @@ def estimate_actionability(item: dict) -> float:
 
 
 # ── Feed parse ────────────────────────────────────────────────────────────────
+INTENT = {
+    'alerts': r'\b(power cut|power shutdown|outage|water supply|road closure|traffic diversion|advisory|warning|disruption|evacuat\w*|suspend\w*|cancel\w*|closed|closure)\b',
+    'weather_alerts': r'\b(weather|rain|cyclone|storm|flood|heatwave|imd|met)\b.*\b(warn\w*|alert|heavy|severe|red|orange)\b|\b(warn\w*|alert|heavy|severe)\b.*\b(rain|cyclone|storm|flood|heatwave)\b',
+    'civic': r'\b(notice|advisory|deadline|apply|registration|power cut|shutdown|water supply|interruption|traffic diversion|road closure|road work|closed|closure|service disruption)\b',
+    'shopping': r'\b(sale|discount|coupon|offer|deal|off)\b',
+    'airlines': r'\b(fare sale|sale|discount|offer|coupon|deal|special fare)\b',
+    'movies': r'\b(release|releases|releasing|premiere|premieres|streaming|ott|debut)\b',
+    'events': r'\b(event|concert|workshop|exhibition|expo|festival|conference|marathon|performance|fair|show|meet|opening)\b',
+    'sports': r'\b(match|fixture|tournament|championship|race|kick.off|schedule)\b',
+}
+
+
+def has_category_intent(category, text):
+    if category in ('shopping', 'airlines') and re.search(r'\b(sold out|unavailable|vanished|sale ended|offer expired)\b', text, re.IGNORECASE):
+        return False
+    if category == 'shopping' and not re.search(
+        r'\b(amazon|flipkart|myntra|lulu|carrefour|mall|stores?|pothys|saravana|discount|coupon|offer|deal)\b|%\s*off',
+        text, re.IGNORECASE
+    ):
+        return False
+    return bool(re.search(INTENT.get(category, r'.'), text, re.IGNORECASE))
+
+
+def item_locality(text, acquisition_location):
+    metadata = dict(LOCATION_LOCALITY.get(acquisition_location, {'city': None, 'region': None, 'localityScore': 0.3}))
+    # A search location is acquisition scope, not proof of the event venue.
+    aliases = [('Chennai', r'\b(chennai|madras)\b'), ('Trichy', r'\b(trichy|tiruchira?pp?alli)\b'),
+               ('Muscat', r'\bmuscat\b')]
+    foreign = ('New Delhi', 'Delhi', 'Mumbai', 'Bengaluru', 'Bangalore', 'Hyderabad',
+               'Kolkata', 'London', 'New York', 'Punjab', 'Kerala')
+    for city, pattern in aliases + [(city, r'\b' + re.escape(city) + r'\b') for city in foreign]:
+        if re.search(pattern, text, re.IGNORECASE):
+            return {**metadata, 'city': city}
+    return {**metadata, 'city': None}
+
+
+def acquisition_summary(health, ts):
+    by_category = {}
+    for row in health.values():
+        category = row['category']
+        totals = by_category.setdefault(category, dict(attemptedSources=0, successfulSources=0,
+                                                       failedSources=0, returnedItems=0))
+        totals['attemptedSources'] += 1
+        totals['successfulSources'] += int(row['ok'])
+        totals['failedSources'] += int(not row['ok'])
+        totals['returnedItems'] += row.get('items', 0)
+    totals = {key: sum(row[key] for row in by_category.values())
+              for key in ('attemptedSources', 'successfulSources', 'failedSources', 'returnedItems')}
+    return dict(**totals, byCategory=by_category, checkedAt=ts,
+                status='failed' if not totals['successfulSources'] else 'partial' if totals['failedSources'] else 'success')
+
+
 def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> tuple[list, dict]:
     results, source_health = [], {}
     locality_meta = LOCATION_LOCALITY.get(location, {'city': None, 'region': None, 'localityScore': 0.3})
@@ -379,17 +262,19 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
         try:
             feed = _safe_feed_parse(url)
             before = len(results)
-            for entry in feed.entries:
+            for entry in feed.entries[:100]:
                 pub_ms = recent_publication_ms(entry, ts)
                 if pub_ms is None:
                     continue
                 title   = entry.get('title', '').strip()
-                summary = entry.get('summary', '').strip()
+                summary = re.sub(r'<[^>]+>', ' ', unescape(entry.get('summary', ''))).strip()[:2000]
                 link    = entry.get('link', '').strip()
 
                 raw_text = f"{title} {summary}"
-                event_start_ms, date_conf = extract_event_date(raw_text, pub_ms)
-                event_end_ms   = None
+                if not title or not link.startswith(('https://', 'http://')) or not has_category_intent(category, raw_text):
+                    continue
+                event_start_ms, event_end_ms, date_conf = extract_event_dates(raw_text, pub_ms)
+                locality_meta = item_locality(raw_text, location)
                 expiry_ms      = derive_expiry(event_start_ms, event_end_ms, pub_ms, category)
 
                 item = {
@@ -404,7 +289,9 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                     'eventEndAt':   event_end_ms,
                     'expiryAt':     expiry_ms,
                     'dateConfidence': date_conf,
-                    'dateSource':   'title' if event_start_ms else 'none',
+                    'dateSource':   'title_or_summary' if event_start_ms else 'none',
+                    'datePrecision': 'day' if event_start_ms else None,
+                    'acquisitionLocation': location,
                     'city':         locality_meta['city'],
                     'region':       locality_meta['region'],
                     'localityScore': locality_meta['localityScore'],
@@ -417,15 +304,18 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
 
                 results.append(item)
 
-            source_health[source_group] = {'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
+            source_health[f'{category}:{location}:{url}'] = {'category': category, 'source': source,
+                'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
         except Exception as e:
-            source_health[source_group] = {'ok': False, 'error': str(e), 'items': 0}
+            source_health[f'{category}:{location}:{url}'] = {'category': category, 'source': source,
+                'ok': False, 'error': str(e), 'items': 0}
 
     return results, source_health
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
+    from fetch_festivals import fetch_festival_items
     ts = now_ms()
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
     all_health = {}
@@ -442,16 +332,22 @@ def main():
     if tmdb_items:
         new_items.extend(tmdb_items)
         print(f'  [tmdb] added {len(tmdb_items)} releases to movies section')
-        all_health['tmdb'] = {'ok': True, 'items': len(tmdb_items), 'lastSuccess': ts}
+        all_health['tmdb'] = {'category': 'movies', 'ok': True, 'items': len(tmdb_items), 'lastSuccess': ts}
+
+    festivals, festival_health = fetch_festival_items(ts)
+    new_items.extend(festivals)
+    all_health.update(festival_health)
 
     snapshot = merge_upahead_snapshot(existing, new_items, ts, fetched=any(row['ok'] for row in all_health.values()))
+    snapshot['acquisitionSummary'] = acquisition_summary(all_health, ts)
+    for category, row in snapshot['acquisitionSummary']['byCategory'].items():
+        row['activeItems'] = snapshot['lifecycleSummary']['categoryCounts'].get(category, 0)
     deduped = snapshot['items']
     write_json(UP_AHEAD_PATH, snapshot)
 
     # Update source health
-    existing_health = read_json(SOURCE_HEALTH_PATH, {'lastChecked': 0, 'sources': {}})
-    existing_health['sources'].update(all_health)
-    existing_health['lastChecked'] = ts
+    # Keep only this bounded run's evidence; no unbounded history table/service.
+    existing_health = {'lastChecked': ts, 'sources': all_health}
     write_json(SOURCE_HEALTH_PATH, existing_health)
 
     eligible = snapshot['lifecycleSummary']['plannerEligibleByLifecycleCount']

@@ -97,11 +97,10 @@ def _within_planner_horizon(item: dict[str, Any], now_ms: int) -> bool:
     event_start = _ms(item.get("eventStartAt"))
     if event_start is None:
         return False
-    return (
-        now_ms - PLANNER_PAST_GRACE_HOURS * H_MS
-        <= event_start
-        <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS
-    )
+    ongoing = event_start <= now_ms < (_ms(item.get("eventEndAt")) or 0)
+    today_only = item.get('datePrecision') == 'day' and event_start // DAY_MS == now_ms // DAY_MS
+    return ongoing or today_only or (now_ms - PLANNER_PAST_GRACE_HOURS * H_MS <= event_start
+                       <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS)
 
 
 def lifecycle_for_item(item: dict[str, Any], now_ms: int) -> dict[str, Any]:
@@ -174,7 +173,7 @@ def build_lifecycle_summary(items: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict[str, Any]:
-    ts = int(now_ms if now_ms is not None else snapshot.get("fetchedAt") or time.time() * 1000)
+    ts = int(now_ms if now_ms is not None else time.time() * 1000)
     input_items = snapshot.get("items", [])
     items = enrich_items(input_items, ts)
     enriched = dict(snapshot)
@@ -197,7 +196,10 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
 def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fetched: bool) -> dict:
     # The latest version of an occurrence can close it or move it to another day.
     # Apply that version before expiry and deduplication.
-    by_id = {item["id"]: item for item in [*existing.get("items", []), *incoming] if item.get("id")}
+    # One article can carry an event AND an alert. Preserve each category route;
+    # a revision still supersedes the same occurrence within that category.
+    by_id = {(item.get("category"), item["id"]): item
+             for item in [*existing.get("items", []), *incoming] if item.get("id")}
     active = enrich_items(list(by_id.values()), ts)
     unique = {}
     for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):

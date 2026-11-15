@@ -1,3 +1,7 @@
+import { toLocalDateKey } from '../utils/dateKey.js';
+import { isUpAheadItemActive, upAheadTimeMs } from './upAheadLifecycle.js';
+import { getUpAheadPlannerSuggestions } from './upAheadPlannerSuggestions.js';
+
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
 }
@@ -8,12 +12,12 @@ function safeObject(value) {
 
 function asDateValue(value) {
   if (!value) return Number.POSITIVE_INFINITY;
-  const time = new Date(value).getTime();
-  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time;
+  const time = upAheadTimeMs(value);
+  return Number.isFinite(time) && time > 0 ? time : Number.POSITIVE_INFINITY;
 }
 
 function normalizeItemDate(item) {
-  return item?.date || item?.releaseDate || item?.eventDate || item?.planDate || '';
+  return item?.date || item?.releaseDate || item?.eventDate || item?.planDate || item?.eventStartAt || '';
 }
 
 function getItemId(item, fallbackPrefix, index) {
@@ -121,34 +125,36 @@ export function getUpAheadBriefing({ data, settings, visible = {}, now = Date.no
     safeArray(visible.festivalCards).map((item, index) => makeBriefingItem(item, 'festival', index))
   );
 
-  const eventItems = sortByDateThenTitle([
-    ...fromSection(data, 'events', 'event'),
-    ...fromSection(data, 'sports', 'sports'),
-  ]);
+  const eventItems = sortByDateThenTitle(Array.isArray(visible.eventItems)
+    ? visible.eventItems.map((item, index) => makeBriefingItem(item, 'event', index))
+    : [...fromSection(data, 'events', 'event'), ...fromSection(data, 'sports', 'sports')]);
 
-  const timelineItems = sortByDateThenTitle(fromTimeline(data));
-  const planItems = sortByDateThenTitle(fromWeeklyPlan(data));
+  const timelineItems = visible.projectedSections ? [] : sortByDateThenTitle(fromTimeline(data));
+  const planItems = visible.projectedSections ? [] : sortByDateThenTitle(fromWeeklyPlan(data));
 
   const soonCutoff = now + 72 * 60 * 60 * 1000;
-  const todayCutoff = now + 24 * 60 * 60 * 1000;
+  const todayKey = toLocalDateKey(now);
 
-  const allDated = sortByDateThenTitle([
+  const allDated = takeUnique(sortByDateThenTitle([
     ...eventItems,
     ...movieItems,
     ...festivalItems,
     ...offerItems,
     ...timelineItems,
     ...planItems,
-  ]).filter(item => Number.isFinite(item.dateValue));
+    ...alertItems,
+  ]).filter(item => Number.isFinite(item.dateValue) && isUpAheadItemActive(item.raw, now)), Infinity);
 
   const todayItems = takeUnique(
-    allDated.filter(item => item.dateValue >= now && item.dateValue <= todayCutoff),
-    5
+    allDated.filter(item => toLocalDateKey(item.dateValue) === todayKey
+      || (item.dateValue < now && upAheadTimeMs(item.raw.eventEndAt) > now)),
+    Infinity
   );
 
   const next72hItems = takeUnique(
-    allDated.filter(item => item.dateValue >= now && item.dateValue <= soonCutoff),
-    8
+    allDated.filter(item => (toLocalDateKey(item.dateValue) >= todayKey
+      || upAheadTimeMs(item.raw.eventEndAt) > now) && item.dateValue <= soonCutoff),
+    Infinity
   );
 
   const highlights = [
@@ -170,13 +176,13 @@ export function getUpAheadBriefing({ data, settings, visible = {}, now = Date.no
       key: 'today',
       label: 'Today',
       count: todayItems.length,
-      items: todayItems,
+      items: todayItems.slice(0, 5),
     },
     {
       key: 'next72h',
       label: 'Next 72h',
       count: next72hItems.length,
-      items: next72hItems,
+      items: next72hItems.slice(0, 8),
     },
     {
       key: 'events',
@@ -204,20 +210,24 @@ export function getUpAheadBriefing({ data, settings, visible = {}, now = Date.no
     },
   ];
 
-  const plannerReadyCount = planItems.length + todayItems.length + next72hItems.length;
-  const urgencyLabel = buildUrgencyLabel(alertItems.length, offerItems.length, todayItems.length);
+  const plannerReadyCount = getUpAheadPlannerSuggestions({ timeline: [{ items: allDated.map(item => item.raw) }] },
+    {}, new Set(), settings?.upAhead, now).length;
+  const coverageMissing = visible.coverageAvailable === false;
+  const urgencyLabel = coverageMissing && !alertItems.length && !todayItems.length && !offerItems.length
+    ? 'Current coverage unavailable' : buildUrgencyLabel(alertItems.length, offerItems.length, todayItems.length);
 
   const notes = [];
 
   if (alertItems.length > 0) notes.push(`${alertItems.length} alert item(s) should be reviewed first.`);
-  if (todayItems.length > 0) notes.push(`${todayItems.length} item(s) fall within the next 24 hours.`);
+  if (todayItems.length > 0) notes.push(`${todayItems.length} item(s) are scheduled for today or still running.`);
   if (next72hItems.length > 0) notes.push(`${next72hItems.length} item(s) are visible within the next 72 hours.`);
   if (offerItems.length > 0) notes.push(`${offerItems.length} offer item(s) can be saved or dismissed.`);
   if (plannerReadyCount > 0) notes.push(`${plannerReadyCount} planner-ready item(s) available.`);
+  if (coverageMissing) notes.push('Current source coverage is unavailable; an empty tab does not confirm there are no alerts or events.');
   if (notes.length === 0) notes.push('No urgent Up Ahead actions found.');
 
   return {
-    status: alertItems.length > 0 ? 'urgent' : plannerReadyCount > 0 ? 'active' : 'quiet',
+    status: alertItems.length > 0 ? 'urgent' : plannerReadyCount > 0 ? 'active' : coverageMissing ? 'limited' : 'quiet',
     title: urgencyLabel,
     locations,
     locationLabel: locations.join(', '),

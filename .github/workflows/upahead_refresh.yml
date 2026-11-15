@@ -1,0 +1,83 @@
+name: UpAhead Refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Five bounded runs daily: 04:00/10:00/14:00/18:00/20:00 India time.
+    - cron: '30 4,8,12,14,22 * * *'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/upahead_refresh.yml'
+      - 'scripts/*upahead*'
+      - 'scripts/fetch_festivals.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upahead-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install bounded publisher dependencies
+        run: python -m pip install --disable-pip-version-check requests feedparser pytest
+      - name: Check stale, expired, date-range and rolling-merge regressions
+        run: python -m pytest scripts/test_upahead_recovery.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_acquisition.py -q
+
+  refresh:
+    name: Publish qualified rolling Up Ahead snapshot
+    needs: certify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install collector dependencies
+        run: python -m pip install --disable-pip-version-check requests feedparser
+      - name: Acquire seven days of source-dated entries and retain active occurrences
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: python scripts/fetch_upahead_events.py
+      - name: Reject stale, empty, expired or failed acquisition output
+        run: python scripts/validate_upahead_prefetch_output.py --require-acquisition
+      - name: Commit only qualified Up Ahead output
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/data/up_ahead.json public/data/up_ahead_quality_report.json public/data/up_ahead_quality_summary.md public/data/up_ahead_source_health.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data(upahead): refresh verified rolling snapshot [skip ci]"
+          # Fail on a concurrent main update; never overwrite unrelated changes.
+          git push origin HEAD:main
+      - name: Preserve acquisition and validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upahead-publication-${{ github.run_id }}
+          path: |
+            public/data/up_ahead.json
+            public/data/up_ahead_quality_report.json
+            public/data/up_ahead_quality_summary.md
+            public/data/up_ahead_source_health.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -176,7 +176,7 @@ function GridSection({
       {items.map((item, i) => (
         <div key={item.id || i} className="modern-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div className={`ua-badge ${colorClass}`}>{formatConciseDate(item.date || item.releaseDate, item.publishedAt)}</div>
+            <div className={`ua-badge ${colorClass}`}>{formatConciseDate(item.date || item.releaseDate, item.publishedAt, item.eventEndAt)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               {item.groupedCount > 1 && (
                 <span className="ua-tab-count" title={(item.sources || []).join(', ')}>🔗 {item.groupedCount} sources</span>
@@ -193,19 +193,20 @@ function GridSection({
             <button
               className="ua-cal-btn"
               onClick={(event) => {
+                const button = event.currentTarget;
                 const result = onAddToPlan(item, item.date || item.releaseDate);
                 if (result?.ok === false) {
-                  event.currentTarget.innerHTML = 'Save failed';
+                  button.textContent = 'Save failed';
                   return;
                 }
-                event.currentTarget.innerHTML = '✅ Saved';
-                event.currentTarget.style.backgroundColor = 'var(--accent-primary)';
-                event.currentTarget.style.color = 'white';
+                button.textContent = '✅ Saved';
+                button.style.backgroundColor = 'var(--accent-primary)';
+                button.style.color = 'white';
 
                 setTimeout(() => {
-                  event.currentTarget.innerHTML = '+ Plan';
-                  event.currentTarget.style.backgroundColor = '';
-                  event.currentTarget.style.color = '';
+                  button.textContent = '+ Plan';
+                  button.style.backgroundColor = '';
+                  button.style.color = '';
                 }, 2000);
               }}
             >
@@ -278,19 +279,20 @@ function TimelineCard({
             <button
               className="ua-cal-btn"
               onClick={(event) => {
+                const button = event.currentTarget;
                 const result = handleAddToPlan(item, dayDate);
                 if (result?.ok === false) {
-                  event.currentTarget.innerHTML = 'Save failed';
+                  button.textContent = 'Save failed';
                   return;
                 }
-                event.currentTarget.innerHTML = '✅ Saved';
-                event.currentTarget.style.backgroundColor = 'var(--accent-primary)';
-                event.currentTarget.style.color = 'white';
+                button.textContent = '✅ Saved';
+                button.style.backgroundColor = 'var(--accent-primary)';
+                button.style.color = 'white';
 
                 setTimeout(() => {
-                  event.currentTarget.innerHTML = '📌 Plan';
-                  event.currentTarget.style.backgroundColor = '';
-                  event.currentTarget.style.color = '';
+                  button.textContent = '📌 Plan';
+                  button.style.backgroundColor = '';
+                  button.style.color = '';
                 }, 2000);
               }}
               title="Save to My Planner"
@@ -395,6 +397,9 @@ function UpAheadPage() {
   const [offerMode, setOfferMode] = useState('online');
   const {
     data,
+    envelope,
+    error,
+    emptyMessages,
     loading,
     isRefreshing,
     loadingPhase,
@@ -410,8 +415,6 @@ function UpAheadPage() {
     modeStr,
     modeLabel,
 
-    weatherAlerts,
-    civicAlerts,
     civicItems,
     combinedAlerts,
     onlineOffers,
@@ -438,8 +441,6 @@ function UpAheadPage() {
 
   const handleRefresh = () => loadData({ forceRefresh: false });
   const handleForceRefresh = () => loadData({ forceRefresh: true });
-  const envelope = null;
-  const error = null;
 
   if (loading && !data) {
     return (
@@ -467,7 +468,7 @@ function UpAheadPage() {
           emptyMessage="No upcoming events found."
           errorTitle="Up Ahead unavailable"
           errorMessage={error || 'Unable to load Up Ahead.'}
-          allowDegraded={true}
+          allowDegraded={false}
           treatEmptyAsReady={false}
           showMeta={true}
           showBanner={false}
@@ -529,7 +530,7 @@ function UpAheadPage() {
           </>
         ) : (
           <>
-            <span>{isStaticHost ? 'Snapshot' : 'Live Feed'} • {locationLabel}</span>
+            <span>{modeLabel || (isStaticHost ? 'Snapshot' : 'Live Feed')} • {locationLabel}</span>
             <button onClick={handleRefresh} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }} title="Refresh Up Ahead">🔄</button>
             <button onClick={handleForceRefresh} className="btn btn--secondary" style={{ padding: '4px 8px', fontSize: '0.7rem' }} title="Check for new items and keep your active list">Force Refresh</button>
           </>
@@ -537,6 +538,9 @@ function UpAheadPage() {
       </div>
 
       <main className="main-content">
+        {error && (
+          <div className="ua-storage-alert" role="status" aria-live="polite">{error}</div>
+        )}
         {watchlistError && (
           <div className="ua-storage-alert" role="status" aria-live="polite">
             {watchlistError}
@@ -548,7 +552,7 @@ function UpAheadPage() {
           <button className={`ua-toggle-btn ${view === 'offers' ? 'active' : ''}`} onClick={() => setView('offers')} title="Offers">🏷️ Offers{(onlineOffers.length + offlineOffers.length) > 0 && <span className="ua-tab-count">{onlineOffers.length + offlineOffers.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'movies' ? 'active' : ''}`} onClick={() => setView('movies')} title="Releases">🎬 Release{movieCards.length > 0 && <span className="ua-tab-count">{movieCards.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'events' ? 'active' : ''}`} onClick={() => setView('events')} title="Events">{'🎫 Events'}{eventItems.length > 0 && <span className="ua-tab-count">{eventItems.length}</span>}</button>
-          <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')} title="Alerts">🚨 Alerts{(weatherAlerts.length + civicAlerts.length) > 0 && <span className="ua-tab-count">{weatherAlerts.length + civicAlerts.length}</span>}</button>
+          <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')} title="Alerts">🚨 Alerts{combinedAlerts.length > 0 && <span className="ua-tab-count">{combinedAlerts.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'festivals' ? 'active' : ''}`} onClick={() => setView('festivals')} title="Festivals">🎉 Festivals{festivalCards.length > 0 && <span className="ua-tab-count">{festivalCards.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'feed' ? 'active' : ''}`} onClick={() => setView('feed')} title="Civics">🏛️ Civics{civicItems.length > 0 && <span className="ua-tab-count">{civicItems.length}</span>}</button>
           <button
@@ -622,7 +626,7 @@ function UpAheadPage() {
           </div>
         )}
 
-        {view === 'movies' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><EntertainmentStyleGrid items={movieCards} emptyMessage="No upcoming movie releases found." /></div>}
+        {view === 'movies' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><EntertainmentStyleGrid items={movieCards} emptyMessage={emptyMessages.movies} /></div>}
         {view === 'offers' && (
           <div className="ua-tab-view">
             <ProgressBar active={loading || isRefreshing} />
@@ -657,8 +661,8 @@ function UpAheadPage() {
               : <GridSection items={offlineOffers} colorClass="type-shopping" emptyMessage={offlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />}
           </div>
         )}
-        {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={eventItems} colorClass="type-event" emptyMessage="No upcoming events found." onAddToPlan={handleAddToPlan} /></div>}
-        {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage="No alerts found." onAddToPlan={handleAddToPlan} /></div>}
+        {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={eventItems} colorClass="type-event" emptyMessage={emptyMessages.events} onAddToPlan={handleAddToPlan} /></div>}
+        {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage={emptyMessages.alerts} onAddToPlan={handleAddToPlan} /></div>}
 
         {view === 'festivals' && (
           <div className="ua-tab-view">
@@ -691,7 +695,7 @@ function UpAheadPage() {
                 🔄 Fetch Festivals
               </button>
             </div>
-            <EntertainmentStyleGrid items={festivalCards} emptyMessage='No festivals found. Tap "Fetch Festivals" to load.' />
+            <EntertainmentStyleGrid items={festivalCards} emptyMessage={emptyMessages.festivals} />
           </div>
         )}
 
@@ -723,7 +727,7 @@ function UpAheadPage() {
             <GridSection
               items={civicItems}
               colorClass="type-civic"
-              emptyMessage={`No civic notices for ${locationLabel} right now.`}
+              emptyMessage={emptyMessages.civic}
               onAddToPlan={handleAddToPlan}
             />
           </div>

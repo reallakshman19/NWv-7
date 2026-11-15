@@ -10,11 +10,8 @@ import {
   sanitizeUpAheadData,
   isUpAheadDataFresh,
   UP_AHEAD_REFRESH_MAX_AGE_MS,
-  isActualWeatherAlertText,
-  isActualOfferText,
 } from '../../services/upAheadService.js';
-import { getUpAheadEvidence } from '../../services/upAheadEvidence.js';
-import { getUpAheadBriefing } from '../../services/upAheadBriefing.js';
+import { getVisibleUpAheadProjection } from '../../services/upAheadProjection.js';
 import { getRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
 import { getSettings } from '../../utils/storage.js';
 import plannerStorage from '../../utils/plannerStorage.js';
@@ -39,7 +36,6 @@ function hasVisibleUpAheadContent(data) {
   if (!data) return false;
   if (Array.isArray(data.timeline) && data.timeline.some(day => (day?.items || []).length > 0)) return true;
   if (data.sections && Object.values(data.sections).some(items => Array.isArray(items) && items.length > 0)) return true;
-  if (Array.isArray(data.weekly_plan) && data.weekly_plan.some(day => (day?.items || []).length > 0)) return true;
   return false;
 }
 
@@ -50,29 +46,18 @@ function getSource(sourceMode) {
 }
 
 function buildVisible(data, settings) {
-  const sections = data?.sections || {};
-  const weatherAlerts = (sections.weather_alerts || []).filter(item =>
-    isActualWeatherAlertText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead)
-  );
-  const alerts = [
-    ...weatherAlerts,
-    ...(sections.alerts || []),
-  ];
-  const civics = sections.civic || [];
-  const offers = [
-    ...(sections.shopping || []),
-    ...(sections.airlines || []),
-  ].filter(item => isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, settings.upAhead));
+  const projected = getVisibleUpAheadProjection({ data, settings });
   return {
     plan: data?.weekly_plan || [],
-    offers,
-    releases: sections.movies || [],
-    events: sections.events || [],
-    alerts,
-    weatherAlerts,
-    combinedAlerts: [...alerts, ...civics],
-    festivals: sections.festivals || [],
-    civics,
+    offers: projected.offerItems,
+    releases: projected.movieCards,
+    events: projected.eventItems,
+    alerts: projected.generalAlerts,
+    weatherAlerts: projected.weatherAlerts,
+    combinedAlerts: projected.combinedAlerts,
+    festivals: projected.festivalCards,
+    civics: projected.civicItems,
+    projected,
   };
 }
 
@@ -179,20 +164,6 @@ async function mergeLiveData({ upAheadSettings, data, diagnostics }) {
   return { data, sourceMode: null };
 }
 
-function getVisibleContext(data, settings, visible) {
-  return {
-    data,
-    settings,
-    visible: {
-      weatherAlerts: visible.weatherAlerts,
-      combinedAlerts: visible.combinedAlerts,
-      offerItems: visible.offers,
-      movieCards: visible.releases,
-      festivalCards: visible.festivals,
-    },
-  };
-}
-
 export async function load(options = {}) {
   const settings = options.settings || safeGetSettings();
   const upAheadSettings = settings.upAhead || DEFAULT_UP_AHEAD_SETTINGS;
@@ -248,23 +219,28 @@ export async function load(options = {}) {
   } else {
     pushLiveSkipped(diagnostics, providerDecision, data);
     if (!providerDecision.browserWideFeedFetchAllowed) {
-      acquisitionSummary = { status: 'blocked', reason: 'static_runtime_blocks_browser_live', byCategory: {} };
+      acquisitionSummary = data?.acquisitionSummary || { status: 'blocked', reason: 'static_runtime_blocks_browser_live', byCategory: {} };
     }
   }
 
   const visible = buildVisible(data, settings);
-  const context = getVisibleContext(data, settings, visible);
-  const evidence = getUpAheadEvidence(context);
-  const briefing = getUpAheadBriefing(context);
-  const ok = hasVisibleUpAheadContent(data);
+  acquisitionSummary ||= data?.acquisitionSummary || null;
+  const evidence = visible.projected.upAheadEvidence;
+  const briefing = visible.projected.upAheadBriefing;
+  const ok = visible.projected.hasVisibleContent;
+  const fresh = ok && (hasFreshApi || isUpAheadDataFresh(data));
+  const coverageError = !ok ? 'Current Up Ahead coverage is unavailable. Please refresh later.'
+    : !fresh ? 'The publisher has not provided a fresh update. Showing retained active items only.' : null;
+  if (!fresh) diagnostics.push({ event: 'upAheadDataset.coverage_not_fresh', severity: 'warn', message: coverageError });
 
   const envelope = makeEnvelope({
     ok,
     datasetId: 'upAhead',
     data: { ...visible, briefing, evidence, sourceMode, raw: data, acquisitionSummary },
     source: getSource(sourceMode),
-    freshness: ok ? ENVELOPE_FRESHNESS.FRESH : ENVELOPE_FRESHNESS.EMPTY,
-    error: ok ? null : 'up ahead unavailable',
+    freshness: ok ? (fresh ? ENVELOPE_FRESHNESS.FRESH : ENVELOPE_FRESHNESS.STALE) : ENVELOPE_FRESHNESS.EMPTY,
+    fetchedAt: data?.fetchedAt || data?.lastUpdated || null,
+    error: coverageError,
     validation: {
       passed: ok,
       errors: ok ? [] : ['up_ahead_unavailable'],
