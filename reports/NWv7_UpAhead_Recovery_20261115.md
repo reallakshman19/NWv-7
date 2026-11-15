@@ -32,3 +32,7 @@ Validation is **WARN**, not complete coverage: Events, general Alerts, Shopping,
 The publisher operates within the existing GitHub path. Cloudflare requests/writes/deployments for this repair are zero. GitHub documents [standard public-runner usage](https://docs.github.com/en/actions/concepts/billing-and-usage) and the [GITHUB_TOKEN push recursion guard](https://docs.github.com/en/actions/concepts/security/github_token); the existing workflow-completion deployment route addresses that guard.
 
 Private evidence beside the task checkpoint: `NWv7-upahead-local-browser-20261115.json`, `NWv7-upahead-local-repaired-20261115.jpg`, `NWv7-upahead-old-publication-rejected-20261115.json`, staged acquisition output, and pre-fix test logs. Personal Planner records are excluded from the release.
+
+## Live cache upgrade follow-up
+
+After PR162 merged and the real publisher/deploy passed, the existing live browser cache exposed an additional recovery defect: real records retained a previous `festival_calendar` audit marker and two calendar estimates. That made a fresh publication appear Limited. The follow-up selects publication metadata from genuine publisher content, removes calendar estimates when that content recovers, and prevents an empty failed refresh from advancing the publication clock. Two populated-cache counterexamples failed before this correction and pass afterward. Existing real items still retain append/revision/expiry behavior; personal Planner records are untouched.

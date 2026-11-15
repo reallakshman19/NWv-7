@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fixture from './fixtures/upAheadRecovery.json';
-import { fetchStaticUpAheadData, saveToCache } from './upAheadService.js';
+import { fetchStaticUpAheadData, saveToCache, isUpAheadDataFresh } from './upAheadService.js';
 import { getVisibleUpAheadProjection } from './upAheadProjection.js';
 import { getUpAheadPlannerSuggestions } from './upAheadPlannerSuggestions.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
@@ -87,5 +87,29 @@ describe('Up Ahead publication and dated nine-category replay', () => {
     expect(retained?.sections.events).toHaveLength(1);
     expect(retained?.sections.alerts).toHaveLength(0);
     expect(getUpAheadPlannerSuggestions(retained, {}, new Set(), settings.upAhead, Date.now())).toHaveLength(1);
+  });
+
+  it('upgrades an existing calendar cache to real publication and rejects late fallback metadata', () => {
+    const fallback = { fetchedAt: NOW - 1000, sourceMode: 'snapshot', auditSummary: { fallback: 'festival_calendar' },
+      sections: { festivals: [{ id: 'calendar-only', title: 'Old calendar entry', date: '2026-11-16',
+        category: 'festivals', source: 'Festival calendar' }] } };
+    saveToCache(fallback);
+    let retained = saveToCache(fixture);
+    expect(isUpAheadDataFresh(retained)).toBe(true);
+    expect(retained.auditSummary?.fallback).toBeUndefined();
+    expect(retained.sections.festivals.map(item => item.id)).toEqual(['fixture-festivals']);
+    retained = saveToCache({ ...fallback, fetchedAt: NOW + 1000 });
+    expect(retained.fetchedAt).toBe(NOW);
+    expect(retained.auditSummary?.fallback).toBeUndefined();
+    expect(retained.sections.festivals.map(item => item.id)).toEqual(['fixture-festivals']);
+  });
+
+  it('does not let an empty failed refresh advance publication freshness', () => {
+    saveToCache({ ...fixture, sourceMode: 'snapshot' });
+    const retained = saveToCache({ fetchedAt: NOW + 3600_000, sourceMode: 'failed',
+      acquisitionSummary: { status: 'failed' }, sections: {} });
+    expect(retained.fetchedAt).toBe(NOW);
+    expect(retained.sourceMode).toBe('snapshot');
+    expect(retained.sections.movies).toHaveLength(1);
   });
 });
