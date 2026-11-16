@@ -40,6 +40,18 @@ async function testCleanupOnReturn() {
   assert.equal(map.has('india'), false);
 }
 
+async function testCoalescedResultIsReturnedToAllWaiters() {
+  const inFlight = new Map();
+  let resolveShared;
+  const shared = new Promise(resolve => { resolveShared = resolve; });
+  inFlight.set('world', shared);
+
+  const result = await withInFlightCleanup(inFlight, 'world', resolveShared, async () => ['qualified']);
+  assert.deepEqual(result, ['qualified']);
+  assert.deepEqual(await shared, ['qualified']);
+  assert.equal(inFlight.has('world'), false);
+}
+
 async function testCleanupOnFailure() {
   const map = new Map([['india', Promise.resolve()]]);
   let failed = false;
@@ -51,7 +63,7 @@ async function testCleanupOnFailure() {
   assert.equal(map.has('india'), false);
 }
 
-function testStaleFallbackKeepsRows() {
+function testStaleSnapshotFailsClosed() {
   const old = Date.now() - 72 * 60 * 60 * 1000;
   const snapshot = {
     schemaVersion: 2,
@@ -62,7 +74,9 @@ function testStaleFallbackKeepsRows() {
     sectionQuality: { india: { status: 'stale' } },
   };
   const result = selectPrefetchedSectionItems(snapshot, 'india', 5);
-  assert.equal(result.items.length, 1);
+  assert.equal(result.items.length, 0);
+  assert.equal(result.blockedBySnapshotStaleness, true);
+  assert.equal(result.staleFallback, false);
   assert.equal(result.stale, true);
   assert.equal(result.staleReason, 'sections_snapshot_stale');
 }
@@ -127,7 +141,9 @@ function testNoLifecycleFetcherReferencesRemain() {
 function testForegroundSnapshotBudgetIsBounded() {
   assert.equal(SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS, 1500);
   assert.ok(SECTION_SNAPSHOT_RETRY_BACKOFF_MS.reduce((sum, ms) => sum + ms, 0) < SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS);
-  const src = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  // The loader owns the actual network budget and AbortController; the
+  // fetcher adapter only consumes and exposes the budget diagnostics.
+  const src = readRepoFile('src/adapters/sectionsSnapshotLoader.js');
   assert.match(src, /budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS/);
   assert.match(src, /AbortController/);
   assert.match(src, /snapshot-budget-exceeded/);
@@ -217,6 +233,8 @@ function testStaticLiveModeUsesSelectedAuthority() {
 
   const aggregator = readRepoFile('src/services/rssAggregator.js');
   assert.match(aggregator, /if \(useAuthoritySnapshot\)/);
+  assert.match(aggregator, /!useAuthoritySnapshot/);
+  assert.match(aggregator, /return Array\.isArray\(sharedResult\) \? sharedResult : \[\]/);
   assert.match(aggregator, /force: forceAuthorityRefresh/);
   assert.doesNotMatch(
     aggregator,
@@ -231,7 +249,8 @@ function testNoGeneratedSnapshotFilesChanged() {
 
 await testCleanupOnReturn();
 await testCleanupOnFailure();
-testStaleFallbackKeepsRows();
+await testCoalescedResultIsReturnedToAllWaiters();
+testStaleSnapshotFailsClosed();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
