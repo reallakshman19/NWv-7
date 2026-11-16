@@ -1,0 +1,19 @@
+{
+  "checkedOn": "2026-11-16",
+  "retailers": [
+    { "id": "amazon-in", "name": "Amazon India", "market": "india", "cities": ["Chennai"], "channels": ["online"], "url": "https://www.amazon.in/gp/goldbox", "aliases": ["amazon"], "domains": ["amazon.in", "aboutamazon.in"], "note": "India deals; delivery and price depend on your PIN code." },
+    { "id": "flipkart-in", "name": "Flipkart India", "market": "india", "cities": ["Chennai"], "channels": ["online"], "url": "https://www.flipkart.com/offers-store", "aliases": ["flipkart"], "domains": ["flipkart.com"], "note": "India offers; check seller, dates and delivery PIN code." },
+    { "id": "lulu-chennai", "name": "LuLu Chennai", "market": "india", "cities": ["Chennai"], "channels": ["offline"], "url": "https://www.luluhypermarket.in/", "aliases": ["lulu", "lu lu"], "domains": ["luluhypermarket.in"], "note": "Select the Chennai branch; offers from other Indian stores are not Chennai offers." },
+    { "id": "lulu-oman", "name": "LuLu Oman", "market": "oman", "cities": ["Muscat"], "channels": ["online", "offline"], "url": "https://gcc.luluhypermarket.com/en-om/deals/", "aliases": ["lulu", "lu lu"], "domains": ["luluhypermarket.com"], "note": "Choose your Muscat delivery area or branch; online and in-store terms may differ." },
+    { "id": "hypermax-oman", "name": "HyperMax Oman", "market": "oman", "cities": ["Muscat"], "channels": ["online", "offline"], "url": "https://www.hypermax.com.om/mafomn/en", "aliases": ["hypermax", "hyper max"], "domains": ["hypermax.com.om"], "note": "Select Muscat/Seeb and check the selected branch or online delivery terms." },
+    { "id": "sharaf-oman", "name": "Sharaf DG Oman", "market": "oman", "cities": ["Muscat"], "channels": ["offline"], "url": "https://oman.sharafdg.com/", "aliases": ["sharaf dg"], "domains": ["oman.sharafdg.com"], "note": "Check Muscat store eligibility; online-only deals are not in-store offers." },
+    { "id": "extra-oman", "name": "eXtra Oman", "market": "oman", "cities": ["Muscat"], "channels": ["offline"], "url": "https://www.extra.com/en-om", "aliases": ["extra oman", "extra stores"], "domains": ["extra.com"], "note": "Choose an Oman/Muscat store; verify leaflet dates and in-store terms." }
+  ],
+  "alerts": [
+    { "id": "imd-chennai", "name": "IMD Chennai weather warnings", "city": "Chennai", "url": "https://mausam.imd.gov.in/chennai/", "kind": "Weather", "note": "Official regional and district warnings. Check Chennai district and bulletin validity." },
+    { "id": "tneb-chennai", "name": "TNEB Chennai power shutdowns", "city": "Chennai", "url": "https://tneb.tnebnet.org/cpro/today.html", "kind": "Power", "note": "Official scheduled maintenance notice. Check the date and affected street." },
+    { "id": "oman-met", "name": "Oman CAA Meteorology", "city": "Muscat", "url": "https://met.caa.gov.om/", "kind": "Weather", "note": "Official Oman warnings. Check whether Muscat governorate is affected." },
+    { "id": "nama-water", "name": "Nama Water Services", "city": "Muscat", "url": "https://nws.nama.om/", "kind": "Water", "note": "Official provider notices and contact channels; check your affected service area." },
+    { "id": "nama-electricity", "name": "Nama Electricity Distribution", "city": "Muscat", "url": "https://distribution.nama.om/", "kind": "Power", "note": "Official distribution provider; check scheduled maintenance for your service area." }
+  ]
+}

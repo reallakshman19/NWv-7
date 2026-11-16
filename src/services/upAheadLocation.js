@@ -1,6 +1,7 @@
 // Acquisition countries/regions are not physical venue cities.
 const REGIONS = new Set(['in', 'india', 'tn', 'tamil nadu', 'om', 'oman', 'global', 'online', 'national', 'worldwide']);
-const ALIASES = { tiruchirappalli: 'trichy', tiruchirapalli: 'trichy', madras: 'chennai' };
+const ALIASES = { tiruchirappalli: 'trichy', tiruchirapalli: 'trichy', madras: 'chennai',
+  seeb: 'muscat', 'al seeb': 'muscat', ghubrah: 'muscat', 'al ghubrah': 'muscat', mawaleh: 'muscat' };
 const normalize = value => {
   const key = String(value || '').toLowerCase().trim();
   return ALIASES[key] || key;

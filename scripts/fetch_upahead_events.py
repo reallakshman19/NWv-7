@@ -34,6 +34,7 @@ from html import unescape
 from urllib.parse import urlencode
 from fetch_tmdb_releases import fetch_tmdb_releases
 from enrich_upahead_contract import merge_upahead_snapshot
+from upahead_local_policy import classify_retail_offer, explicit_city, source_authority
 from prefetch_common import (
     H_MS, DAY_MS, now_ms, read_json, write_json,
     make_story_id, is_suppressed,
@@ -93,10 +94,10 @@ CATEGORY_FEEDS = {
                                          f'Google News {city} Weather', city)]
                        for city in ('Chennai', 'Muscat', 'Trichy')},
     'shopping': {
-        'online': [google_feed('(Amazon OR Flipkart OR Myntra) (sale OR discount OR offer) India', 'Google News India Shopping')],
-        **{city: [google_feed(f'{city} (sale OR offer OR discount) (mall OR shopping OR stores)',
-                              f'Google News {city} Shopping', city)]
-           for city in ('Chennai', 'Muscat', 'Trichy')},
+        'online-india': [google_feed('(Amazon India OR Flipkart) (sale OR discount OR offer) (India OR Indian)', 'India online retailer discovery')],
+        'online-oman': [google_feed('(Lulu OR Hypermax) Oman (online OR app OR delivery) (sale OR discount OR offer)', 'Oman online retailer discovery', 'Oman')],
+        'Chennai': [google_feed('Chennai Lulu (sale OR discount OR offer)', 'Chennai LuLu discovery', 'Chennai')],
+        'Muscat': [google_feed('(Muscat OR Seeb OR Ghubrah OR Mawaleh OR "across Oman") (Lulu OR Hypermax OR "Sharaf DG" OR "eXtra Oman") (sale OR discount OR offer)', 'Muscat retailer discovery', 'Muscat')],
     },
     'airlines': {'global': [google_feed('(IndiGo OR "Air India" OR "Oman Air" OR SalamAir) ("fare sale" OR "booking discount" OR "flight offer")',
                                         'Google News Airline Offers')]},
@@ -218,7 +219,7 @@ def has_category_intent(category, text):
     if category in ('shopping', 'airlines') and re.search(r'\b(sold out|unavailable|vanished|sale ended|offer expired)\b', text, re.IGNORECASE):
         return False
     if category == 'shopping' and not re.search(
-        r'\b(amazon|flipkart|myntra|lulu|carrefour|mall|stores?|pothys|saravana|discount|coupon|offer|deal)\b|%\s*off',
+        r'\b(amazon|flipkart|lulu|hypermax|sharaf dg|extra|discount|coupon|offer|deal)\b|%\s*off',
         text, re.IGNORECASE
     ):
         return False
@@ -273,15 +274,29 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                 raw_text = f"{title} {summary}"
                 if not title or not link.startswith(('https://', 'http://')) or not has_category_intent(category, raw_text):
                     continue
+                entry_source = entry.get('source') or {}
+                publisher_name = entry_source.get('title') or source
+                publisher_url = entry_source.get('href') or link
+                retail_scope = classify_retail_offer(raw_text, publisher_url, location) if category == 'shopping' else None
+                if category == 'shopping' and not retail_scope:
+                    continue
+                if category in ('alerts', 'weather_alerts', 'civic') and not explicit_city(raw_text, location):
+                    continue
                 event_start_ms, event_end_ms, date_conf = extract_event_dates(raw_text, pub_ms)
                 locality_meta = item_locality(raw_text, location)
+                if retail_scope:
+                    locality_meta.update(city=retail_scope['city'], region=retail_scope['offerMarket'])
+                elif category in ('alerts', 'weather_alerts', 'civic'):
+                    locality_meta['city'] = explicit_city(raw_text, location)
                 expiry_ms      = derive_expiry(event_start_ms, event_end_ms, pub_ms, category)
 
                 item = {
                     'title':        title,
                     'summary':      summary,
                     'url':          link,
-                    'source':       source,
+                    'source':       publisher_name,
+                    'sourceUrl':    publisher_url,
+                    'sourceAuthority': source_authority(publisher_url) if category in ('alerts', 'weather_alerts', 'civic') else 'retailer_or_news',
                     'sourceGroup':  source_group,
                     'category':     category,
                     'publishedAt':  pub_ms,
@@ -297,6 +312,8 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                     'localityScore': locality_meta['localityScore'],
                     'language':     'en',
                 }
+                if retail_scope:
+                    item.update(retail_scope)
                 item['id'] = make_story_id(item)
                 is_suppressed(item, category)  # sets suppressionReason
                 item['actionabilityScore'] = estimate_actionability(item)

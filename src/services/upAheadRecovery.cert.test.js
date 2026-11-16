@@ -23,7 +23,7 @@ describe('Up Ahead live-audit regressions', () => {
   });
   it('includes general and weather alerts in Suggested', () => {
     vi.useFakeTimers().setSystemTime(NOW);
-    const result = project({ alerts: [row('road closure advisory', 'alerts')], weather_alerts: [
+    const result = project({ alerts: [row('Chennai road closure advisory', 'alerts')], weather_alerts: [
       row('heavy rain weather warning Chennai', 'weather_alerts'),
     ] });
     expect(result.combinedAlerts).toHaveLength(2);
@@ -47,9 +47,9 @@ describe('Up Ahead live-audit regressions', () => {
   it('keeps unrelated retailers and products separate during Black Friday', () => {
     vi.useFakeTimers().setSystemTime(NOW);
     const result = project({ shopping: [
-      row('Amazon Black Friday laptop sale', 'shopping'),
-      row('Nordstrom Black Friday clothing sale', 'shopping'),
-      row('Amazon Black Friday camera sale', 'shopping'),
+      row('Amazon India Black Friday laptop sale', 'shopping'),
+      row('Flipkart India Black Friday clothing sale', 'shopping'),
+      row('Amazon India Black Friday camera sale', 'shopping'),
     ] });
     expect(result.onlineOffers).toHaveLength(3);
   });

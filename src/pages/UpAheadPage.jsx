@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import Header, { DataStatePill } from '../components/Header';
 import { ImageCard } from '../components/ImageCard';
 import { downloadCalendarEvent } from '../utils/calendar';
@@ -8,13 +7,13 @@ import ProgressBar from '../components/ProgressBar';
 import { shortenSourceLabel } from '../utils/storyMeta';
 import { sanitizeHtmlText } from '../utils/htmlText.js';
 import DataStateBoundary from '../components/DataStateBoundary.jsx';
+import { getLocalSourceDirectory, matchesLocalAlert } from '../services/upAheadLocalPolicy.js';
 import {
   useUpAheadPageViewModel,
   __upAheadPageViewModelInternalsForTest,
 } from '../viewModels/useUpAheadPageViewModel';
 import { useShellRuntimeProps } from '../viewModels/useShellRuntimeProps';
 import './UpAhead.css';
-// DataStateBoundary integration: <DataStateBoundary onRetry={handleRefresh} errorMessage={error || 'Unable to load Up Ahead.'} />
 
 const {
   formatConciseDate,
@@ -188,6 +187,11 @@ function GridSection({
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '8px 0', flex: 1 }}>
             {sanitizeHtmlText(item.description || 'No description available.', { maxLength: 200 })}
           </p>
+          {(item.alertProvenance || item.retailerId) && <p className="ua-source-context">
+            {item.alertProvenance || `${item.offerMarket === 'oman' ? 'Oman' : 'India'} retailer offer`}
+            {item.source && ` · ${item.source}`}
+            {item.city && ` · ${item.city}`}
+          </p>}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Details ↗</a>
             <button
@@ -216,6 +220,30 @@ function GridSection({
         </div>
       ))}
     </div>
+  );
+}
+
+export function UpAheadSourceDirectory({ locations = ['Chennai', 'Muscat'], channel, alerts = [] }) {
+  const directory = getLocalSourceDirectory(locations, channel);
+  const isAlerts = channel === 'alerts';
+  const rows = isAlerts ? directory.alerts : directory.retailers;
+  return (
+    <section className="ua-source-directory" aria-label={isAlerts ? 'Local alert sources' : 'Official retailer sources'}>
+      <h3>{isAlerts ? 'Chennai & Muscat alert coverage' : `${channel === 'offline' ? 'In-store' : 'Online'} retailer sources`}</h3>
+      <p>{isAlerts
+        ? 'Automatic cards are dated news reports discovered through Google News, filtered to the affected city. They are not a complete official alert feed. No cards does not mean no active warnings.'
+        : 'Open the official retailer to see current prices and leaflets. These source links are not verified offers and are not added to Planner. Dated matching offers appear below when available.'}</p>
+      {isAlerts && <p>{locations.map(city => `${city}: ${alerts.filter(item => matchesLocalAlert(item, [city])).length} matching card(s)`).join(' · ')}</p>}
+      <div className="ua-source-directory__grid">
+        {rows.map(row => <article key={row.id}>
+          <a href={row.url} target="_blank" rel="noopener noreferrer">{row.name} ↗</a>
+          <small>{row.city || row.cities.join(' / ')} · {row.kind || (row.market === 'oman' ? 'Oman' : 'India')}</small>
+          <p>{row.note}</p>
+        </article>)}
+      </div>
+      {!rows.length && <p>No official directory entries configured for the selected locations.</p>}
+      {isAlerts && <p>Use the official sources above for validity periods and affected areas before acting.</p>}
+    </section>
   );
 }
 
@@ -454,43 +482,6 @@ function UpAheadPage() {
     );
   }
 
-  if (!hasVisibleContent) {
-    return (
-      <div className="page-container">
-        <Header title="Up Ahead" loadingPhase={loadingPhase} shellRuntimeProps={shellRuntimeProps} />
-        <DataStateBoundary
-          envelope={envelope}
-          loading={loading}
-          error={error}
-          onRetry={handleRefresh}
-          label="Up Ahead"
-          emptyTitle="Nothing on the radar"
-          emptyMessage="No upcoming events found."
-          errorTitle="Up Ahead unavailable"
-          errorMessage={error || 'Unable to load Up Ahead.'}
-          allowDegraded={false}
-          treatEmptyAsReady={false}
-          showMeta={true}
-          showBanner={false}
-        >
-          {() => (
-            <div className="modern-card empty-state" style={{ borderStyle: 'dashed', margin: '20px auto', maxWidth: '600px' }}>
-              <span style={{ fontSize: '3rem', marginBottom: '16px', display: 'block' }}>🔭</span>
-              <h3 style={{ marginBottom: '8px', color: 'var(--text-primary)' }}>Nothing on the radar</h3>
-              <p style={{ color: 'var(--text-secondary)' }}>No upcoming events found.</p>
-              <button onClick={handleForceRefresh} className="btn btn--primary" style={{ marginTop: '24px' }}>Force Refresh</button>
-              <div style={{ marginTop: '12px' }}>
-                <small style={{ color: 'var(--text-muted)' }}>
-                  Try adding more locations or categories in <Link to="/settings" style={{ color: 'var(--accent-primary)' }}>Settings</Link>.
-                </small>
-              </div>
-            </div>
-          )}
-        </DataStateBoundary>
-      </div>
-    );
-  }
-
   const rightElementUI = (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
       {isRefreshing && <div className="scanning-indicator" style={{ fontSize: '0.7rem', color: 'var(--accent-primary)' }}>Scanning...</div>}
@@ -538,7 +529,13 @@ function UpAheadPage() {
       </div>
 
       <main className="main-content">
-        {error && (
+        {!hasVisibleContent && <DataStateBoundary envelope={envelope} loading={loading} error={error}
+          onRetry={handleRefresh} label="Up Ahead" emptyTitle="No matching dated items"
+          emptyMessage="Check the official sources in Alerts and Offers for current notices and deals."
+          errorTitle="Up Ahead unavailable"
+          errorMessage={error || 'Unable to load Up Ahead.'}
+          allowDegraded={false} treatEmptyAsReady={false} showMeta={true} showBanner={false} /> }
+        {error && hasVisibleContent && (
           <div className="ua-storage-alert" role="status" aria-live="polite">{error}</div>
         )}
         {watchlistError && (
@@ -553,7 +550,7 @@ function UpAheadPage() {
           <button className={`ua-toggle-btn ${view === 'movies' ? 'active' : ''}`} onClick={() => setView('movies')} title="Releases">🎬 Release{movieCards.length > 0 && <span className="ua-tab-count">{movieCards.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'events' ? 'active' : ''}`} onClick={() => setView('events')} title="Events">{'🎫 Events'}{eventItems.length > 0 && <span className="ua-tab-count">{eventItems.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')} title="Alerts">🚨 Alerts{combinedAlerts.length > 0 && <span className="ua-tab-count">{combinedAlerts.length}</span>}</button>
-          <button className={`ua-toggle-btn ${view === 'festivals' ? 'active' : ''}`} onClick={() => setView('festivals')} title="Festivals">🎉 Festivals{festivalCards.length > 0 && <span className="ua-tab-count">{festivalCards.length}</span>}</button>
+          <button className={`ua-toggle-btn ${view === 'festivals' ? 'active' : ''}`} onClick={() => setView('festivals')} title="Holidays">🎉 Holidays{festivalCards.length > 0 && <span className="ua-tab-count">{festivalCards.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'feed' ? 'active' : ''}`} onClick={() => setView('feed')} title="Civics">🏛️ Civics{civicItems.length > 0 && <span className="ua-tab-count">{civicItems.length}</span>}</button>
           <button
             type="button"
@@ -656,17 +653,21 @@ function UpAheadPage() {
                 Source status: {String(offlineOffersCapability?.status || 'unknown').replaceAll('_', ' ')}
               </div>
             )}
+            <UpAheadSourceDirectory locations={upAheadSettings?.locations} channel={offerMode} />
             {offerMode === 'online'
               ? <GridSection items={onlineOffers} colorClass="type-shopping" emptyMessage={onlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />
               : <GridSection items={offlineOffers} colorClass="type-shopping" emptyMessage={offlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />}
           </div>
         )}
         {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={eventItems} colorClass="type-event" emptyMessage={emptyMessages.events} onAddToPlan={handleAddToPlan} /></div>}
-        {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage={emptyMessages.alerts} onAddToPlan={handleAddToPlan} /></div>}
+        {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} />
+          <UpAheadSourceDirectory locations={upAheadSettings?.locations} channel="alerts" alerts={combinedAlerts} />
+          <GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage={emptyMessages.alerts} onAddToPlan={handleAddToPlan} /></div>}
 
         {view === 'festivals' && (
           <div className="ua-tab-view">
             <ProgressBar active={loading || isRefreshing} />
+            <p className="ua-source-context">Bundled 2026–2027 calendar for Chennai and Muscat. Oman 2027 dates are provisional until announced; check the source before booking.</p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px', alignItems: 'center', padding: '8px' }}>
               {(upAheadSettings?.locations || ['Chennai', 'Muscat']).map(location => (
                 <span key={location} className="ua-badge type-festival" style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
@@ -692,7 +693,7 @@ function UpAheadPage() {
                 style={{ padding: '4px 12px', fontSize: '0.75rem' }}
                 onClick={() => loadData({ forceRefresh: true })}
               >
-                🔄 Fetch Festivals
+                🔄 Refresh Holidays
               </button>
             </div>
             <EntertainmentStyleGrid items={festivalCards} emptyMessage={emptyMessages.festivals} />

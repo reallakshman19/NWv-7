@@ -39,7 +39,7 @@ describe('Actual Up Ahead page recovery wiring', () => {
   it('renders all seven tabs from dated source data and counts every alert', async () => {
     open();
     await screen.findByRole('button', { name: /Suggested/ });
-    for (const name of [/Offers/, /Release/, /Events/, /Alerts/, /Festivals/, /Civics/]) {
+    for (const name of [/Offers/, /Release/, /Events/, /Alerts/, /Holidays/, /Civics/]) {
       fireEvent.click(screen.getByRole('button', { name }));
       expect(screen.queryByText(/coverage cannot be verified/i)).toBeNull();
     }
@@ -55,6 +55,9 @@ describe('Actual Up Ahead page recovery wiring', () => {
     await screen.findByText('Up Ahead unavailable');
     expect(screen.getByText('Publisher snapshot unavailable')).toBeTruthy();
     expect(screen.queryByText('No upcoming events found.')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Alerts/ }));
+    expect(screen.getByRole('link', { name: /IMD Chennai weather warnings/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /Oman CAA Meteorology/ })).toBeTruthy();
   });
 
   it('keeps retained cards with a visible stale warning and safely resets saved-button feedback', async () => {
