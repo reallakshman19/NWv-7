@@ -23,6 +23,7 @@ const {
   getNavSections,
   getProjectedMainData,
   makeMainBoundaryEnvelope,
+  getMainBoundaryError,
   getRefreshOutcome,
   getFirstNewsError,
 } = __mainViewModelInternalsForTest;
@@ -314,6 +315,63 @@ describe('Main ViewModel internals', () => {
     expect(result.ok).toBe(true);
     expect(result.datasetId).toBe('main');
     expect(result.data.projectedHasRenderableMain).toBe(true);
+  });
+
+  it('keeps Main renderable when the Sections source envelope is degraded', () => {
+    const sourceEnvelope = {
+      ok: false,
+      datasetId: 'sections',
+      source: 'snapshot',
+      freshness: 'empty',
+      fallbackUsed: true,
+      error: 'sections dataset unavailable',
+      slo: {
+        id: 'sectionsSlo',
+        required: true,
+        passed: false,
+        score: 0,
+      },
+      data: {
+        frontPage: [],
+        sections: {},
+      },
+      validation: {
+        passed: false,
+        errors: ['sections_empty'],
+        warnings: ['sections_empty_buckets:india,world'],
+      },
+      diagnostics: [],
+    };
+
+    const result = makeMainBoundaryEnvelope({
+      envelope: sourceEnvelope,
+      newsData: {},
+      weatherData: {
+        chennai: { temp: 35 },
+      },
+      breakingNews: [],
+      isLoading: false,
+      error: sourceEnvelope.error,
+    });
+
+    expect(result.datasetId).toBe('main');
+    expect(result.ok).toBe(true);
+    expect(result.error).toBeNull();
+    expect(result.freshness).toBe('fresh');
+    expect(result.fallbackUsed).toBe(true);
+    expect(result.slo).toBeUndefined();
+    expect(result.validation.passed).toBe(true);
+    expect(result.validation.errors).toEqual([]);
+    expect(result.validation.warnings).toContain('main_source_degraded');
+    expect(result.data.raw.sourceEnvelope.slo.score).toBe(0);
+  });
+
+  it('only promotes a source error to the Main error surface when Main is not renderable', () => {
+    expect(getMainBoundaryError({ ok: true, error: null }, 'sections unavailable')).toBeNull();
+    expect(getMainBoundaryError({ ok: false, error: 'main unavailable' }, 'sections unavailable'))
+      .toBe('main unavailable');
+    expect(getMainBoundaryError({ ok: false, error: null }, 'sections unavailable'))
+      .toBe('sections unavailable');
   });
 
   it('does not mark loading-only empty fallback envelope as ok', () => {
