@@ -17,6 +17,9 @@ const NewspaperCard = ({ article, sourceName, isTranslated }) => {
                 </a>
             </h3>
 
+            {article.publishedAt && <time dateTime={new Date(article.publishedAt).toISOString()} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                {new Date(article.publishedAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+            </time>}
             <div className="newspaper-card__footer">
                 <a
                     href={article.link}

@@ -3,16 +3,9 @@ import { useSettings } from '../context/SettingsContext';
 import { geminiService } from '../services/geminiService';
 import { extractArticleText } from '../utils/articleExtractor';
 import { summarizeText } from '../utils/extractiveSummary';
-import { virtualPaperService } from '../services/virtualPaperService';
+import { PAPER_SOURCES, fetchCurrentNewspaperPublication, fetchCurrentSectionsPaper } from '../services/newspaperEditionService';
 
-const DATA_URL = `${import.meta.env.BASE_URL}data/epaper_data.json`;
-
-export const SOURCES = {
-  THE_HINDU: { id: 'THE_HINDU', label: 'The Hindu', lang: 'en' },
-  INDIAN_EXPRESS: { id: 'INDIAN_EXPRESS', label: 'Indian Express', lang: 'en' },
-  DINAMANI: { id: 'DINAMANI', label: 'Dinamani', lang: 'ta' },
-  DAILY_THANTHI: { id: 'DAILY_THANTHI', label: 'Daily Thanthi', lang: 'ta' },
-};
+export const SOURCES = PAPER_SOURCES;
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -94,65 +87,11 @@ function getSectionSummaryResult({
 }
 
 async function fetchStaticNewspaperData() {
-  const response = await fetch(`${DATA_URL}?t=${Date.now()}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch data');
-  }
-
-  const json = await response.json();
-
-  if (!json || !json.sources) {
-    throw new Error('Invalid data format');
-  }
-
-  return {
-    sources: json.sources,
-    lastUpdated: json.lastUpdated,
-  };
+  return fetchCurrentNewspaperPublication();
 }
 
-async function fetchFallbackVirtualPaper({
-  sourceKeys = Object.keys(SOURCES),
-  timeoutMs = 15000,
-} = {}) {
-  const sources = {};
-  let timeoutId = null;
-
-  const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error('Timeout')), timeoutMs);
-  });
-
-  const fetchPromises = sourceKeys.map(async sourceKey => {
-    try {
-      const sections = await virtualPaperService.getVirtualPaper(sourceKey);
-
-      if (Array.isArray(sections) && sections.length > 0) {
-        sources[sourceKey] = sections;
-      }
-    } catch (error) {
-      console.warn(`Virtual Paper failed for ${sourceKey}:`, error?.message || String(error));
-    }
-  });
-
-  try {
-    await Promise.race([
-      Promise.all(fetchPromises),
-      timeoutPromise,
-    ]);
-  } catch (error) {
-    console.warn('Virtual Paper fetch timed out or failed:', error);
-  } finally {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  if (Object.keys(sources).length === 0) {
-    throw new Error('Failed to generate Virtual Paper. Please check connection.');
-  }
-
-  return sources;
+async function fetchFallbackVirtualPaper() {
+  return fetchCurrentSectionsPaper();
 }
 
 export function useNewspaperPageViewModel() {
@@ -163,6 +102,8 @@ export function useNewspaperPageViewModel() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sourceStatus, setSourceStatus] = useState({});
+  const [provenance, setProvenance] = useState(null);
 
   const [isTranslated, setIsTranslated] = useState(false);
   const [dynamicSummaries, setDynamicSummaries] = useState({});
@@ -196,16 +137,28 @@ export function useNewspaperPageViewModel() {
       const json = await fetchStaticNewspaperData();
       setData(json.sources);
       setLastUpdated(json.lastUpdated);
+      setSourceStatus(json.sourceStatus);
+      setProvenance(json.provenance);
+      setDynamicSummaries({});
+      setClientSummaries({});
+      setDynamicTitles({});
     } catch (fetchError) {
       console.warn('JSON fetch failed, trying Virtual Paper fallback...', fetchError);
 
       try {
         const fallbackData = await fetchFallbackPaper();
-        setData(fallbackData);
-        setLastUpdated(new Date().toISOString());
+        setData(fallbackData.sources);
+        setLastUpdated(fallbackData.lastUpdated);
+        setSourceStatus(fallbackData.sourceStatus);
+        setProvenance(fallbackData.provenance);
+        setDynamicSummaries({});
+        setClientSummaries({});
+        setDynamicTitles({});
       } catch (fallbackError) {
         console.error('Fallback failed:', fallbackError);
-        setError("Failed to load today's paper. Please check your internet connection.");
+        setData(null);
+        setLastUpdated(null);
+        setError("Current newspaper headlines are unavailable. Old editions are hidden; retry or open a publisher below.");
       }
     } finally {
       setLoading(false);
@@ -459,6 +412,8 @@ export function useNewspaperPageViewModel() {
     currentSections,
     data,
     lastUpdated,
+    sourceStatus,
+    provenance,
     loading,
     error,
 
@@ -493,7 +448,6 @@ export function useNewspaperPageViewModel() {
 }
 
 export const __newspaperPageViewModelInternalsForTest = {
-  DATA_URL,
   SOURCES,
   asArray,
   getSourceMeta,

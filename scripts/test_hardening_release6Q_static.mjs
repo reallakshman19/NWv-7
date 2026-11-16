@@ -71,7 +71,7 @@ pass(page.includes('useNewspaperPageViewModel'), 'NewspaperPage must use Newspap
   "from '../services/geminiService'",
   "from '../utils/articleExtractor'",
   "from '../utils/extractiveSummary'",
-  "from '../services/virtualPaperService'",
+  "from '../services/newspaperEditionService'",
   'useSettings',
   'fetchStaticNewspaperData',
   'fetchFallbackVirtualPaper',
@@ -81,14 +81,18 @@ pass(page.includes('useNewspaperPageViewModel'), 'NewspaperPage must use Newspap
   'geminiService.translateTexts',
   'extractArticleText',
   'summarizeText',
-  'virtualPaperService.getVirtualPaper',
+  'fetchCurrentNewspaperPublication',
+  'fetchCurrentSectionsPaper',
   'getSectionSummaryResult',
   'handleGenerateAll',
   'generateClientSummary',
-  'clearTimeout',
 ].forEach(token => {
   pass(vm.includes(token), `Newspaper ViewModel missing token: ${token}`);
 });
+
+const editionService = read('src/services/newspaperEditionService.js');
+pass(editionService.includes('clearTimeout'), 'Newspaper acquisition must clear bounded fetch timers');
+pass(editionService.includes('normalizeNewspaperEdition'), 'Newspaper must validate publication freshness and identity');
 
 pass(!vm.includes('proxyManager'), 'Newspaper ViewModel must not include unused proxyManager');
 pass(vm.includes('finally'), 'Newspaper ViewModel must guard long-running generation/loading state with finally');

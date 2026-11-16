@@ -33,23 +33,23 @@ describe('Release 6Q NewspaperPage ViewModel binding', () => {
     expect(page).not.toContain('virtualPaperService.');
   });
 
-  it('ViewModel owns newspaper fetch, fallback, AI generation and translation', () => {
+  it('ViewModel delegates freshness-checked acquisition and owns AI generation and translation', () => {
     [
       "from '../context/SettingsContext'",
       "from '../services/geminiService'",
       "from '../utils/articleExtractor'",
       "from '../utils/extractiveSummary'",
-      "from '../services/virtualPaperService'",
+      "from '../services/newspaperEditionService'",
       'fetchStaticNewspaperData',
       'fetchFallbackVirtualPaper',
       'fetchFallbackPaper',
       'fetchFallbackRSS: fetchFallbackPaper',
-      'clearTimeout',
       'geminiService.generateSummary',
       'geminiService.translateTexts',
       'extractArticleText',
       'summarizeText',
-      'virtualPaperService.getVirtualPaper',
+      'fetchCurrentNewspaperPublication',
+      'fetchCurrentSectionsPaper',
       'generateClientSummary',
       'handleGenerateAll',
     ].forEach(token => {
