@@ -105,12 +105,12 @@ function pushDatasetApiEdgeDiagnostics(diagnostics, edgeDiagnostics) {
   });
 }
 
-async function loadDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
+async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics }) {
   diagnostics.push({ event: 'upAheadDataset.api_attempted', severity: 'info', message: 'Attempting Up Ahead dataset API' });
   const apiResponse = await fetchUpAheadDatasetApiResponse({ baseUrl: runtimeCapabilities.configuredBackendUrl });
   pushDatasetApiEdgeDiagnostics(diagnostics, apiResponse?.diagnostics);
   const apiData = apiResponse?.data;
-  if (apiData) data = saveToCache(apiData, data);
+  if (apiData) data = saveToCache(apiData, data, upAheadSettings);
   if (hasVisibleUpAheadContent(sanitizeUpAheadData(apiData))) {
     diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
     return {
@@ -124,9 +124,9 @@ async function loadDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
   return { data, sourceMode: null, hasFreshApi: false };
 }
 
-async function mergeDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
+async function mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics }) {
   try {
-    return await loadDatasetApiData({ runtimeCapabilities, data, diagnostics });
+    return await loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics });
   } catch (error) {
     diagnostics.push({ event: 'upAheadDataset.api_failed', severity: 'warn', message: error?.message || String(error) });
     return { data, sourceMode: null, hasFreshApi: false };
@@ -136,7 +136,7 @@ async function mergeDatasetApiData({ runtimeCapabilities, data, diagnostics }) {
 async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   try {
     const staticData = await fetchStaticUpAheadData(upAheadSettings);
-    if (staticData) data = saveToCache(staticData, data);
+    if (staticData) data = saveToCache(staticData, data, upAheadSettings);
     if (hasVisibleUpAheadContent(sanitizeUpAheadData(staticData))) {
       diagnostics.push({ event: 'upAheadDataset.static_loaded', severity: 'info', message: 'Merged static Up Ahead data' });
       return { data, sourceMode: staticData.sourceMode || 'snapshot', hasUsableStatic: isUpAheadDataFresh(staticData) };
@@ -151,7 +151,7 @@ async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
 async function mergeLiveData({ upAheadSettings, data, diagnostics }) {
   try {
     const liveData = await fetchLiveUpAheadData(upAheadSettings);
-    if (liveData) data = saveToCache(liveData, data);
+    if (liveData) data = saveToCache(liveData, data, upAheadSettings);
     if (hasVisibleUpAheadContent(sanitizeUpAheadData(liveData))) {
       diagnostics.push({ event: 'upAheadDataset.live_loaded', severity: 'info', message: 'Merged live Up Ahead data' });
       return { data, sourceMode: liveData.sourceMode || 'live', acquisitionSummary: liveData.acquisitionSummary };
@@ -180,7 +180,7 @@ export async function load(options = {}) {
 
   const initialPolicy = resolveUpAheadProviderPolicy({ options, runtimeCapabilities });
 
-  const cached = loadFromCache() || sanitizeUpAheadData(options.fallbackData);
+  const cached = loadFromCache(upAheadSettings) || sanitizeUpAheadData(options.fallbackData);
   if (cached) {
     // Cache freshness can satisfy a fetch policy. All active cached items
     // remain the baseline even for a forced or live-only refresh.
@@ -191,7 +191,7 @@ export async function load(options = {}) {
   }
 
   if (initialPolicy.shouldAttemptDatasetApi) {
-    const result = await mergeDatasetApiData({ runtimeCapabilities, data, diagnostics });
+    const result = await mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics });
     data = result.data;
     hasFreshApi = result.hasFreshApi;
     if (result.sourceMode) sourceMode = result.sourceMode;

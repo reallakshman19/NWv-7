@@ -226,11 +226,11 @@ export function useUpAheadPageViewModel() {
   const upAheadSettings = settings?.upAhead || DEFAULT_UPAHEAD_SETTINGS;
 
   const showRetained = useCallback(() => {
-    const retained = loadFromCache() || sanitizeUpAheadData(lastData.current);
+    const retained = loadFromCache(upAheadSettings) || sanitizeUpAheadData(lastData.current);
     lastData.current = retained;
     setData(retained);
     return retained;
-  }, []);
+  }, [upAheadSettings]);
 
   const loadData = useCallback(async ({ forceRefresh = false } = {}) => {
     const request = ++latestLoad.current;

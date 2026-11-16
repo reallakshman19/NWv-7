@@ -30,7 +30,8 @@ describe('Up Ahead freshness and festival fallback', () => {
     const result = getFestivalFallbackItems(['Chennai', 'Muscat'], new Date('2026-05-29T12:00:00+05:30'));
 
     expect(result.length).toBeGreaterThan(0);
-    expect(result.every(item => item.date >= '2026-05-29')).toBe(true);
+    // A multi-day holiday remains current through its last local day.
+    expect(result.every(item => Date.parse(item.expiryAt) > Date.parse('2026-05-29T12:00:00+05:30'))).toBe(true);
     expect(result.some(item => item.locationCanonical === 'Chennai')).toBe(true);
     expect(result.some(item => item.locationCanonical === 'Muscat')).toBe(true);
   });
