@@ -116,9 +116,9 @@ describe("Audit remediation regression locks (I001, I002, I004, I007, I008, I010
     expect(Math.abs(diag.formulaDelta)).toBeLessThan(1e-3);
   });
 
-  // ── I002: stale sections snapshot serves labelled rows, not a silent empty Main ──
-  it("I002: an all-stale sections snapshot yields stale-flagged rows, not empty", () => {
-    const old = Date.now() - 40 * 60 * 60 * 1000; // 40h old → snapshot stale AND item past the 36h item gate
+  // ── I002: safety supersession: expired news cannot be admitted as current ──
+  it("I002: an all-stale sections snapshot is unavailable with explicit stale diagnostics", () => {
+    const old = Date.now() - 40 * 60 * 60 * 1000; // 40h old: snapshot and story expired
     const snapshot = {
       schemaVersion: 2,
       fetchedAt: old,
@@ -126,9 +126,11 @@ describe("Audit remediation regression locks (I001, I002, I004, I007, I008, I010
       sections: { world: [{ id: "w1", title: "Stale story", url: "https://e/w1", source: "X", publishedAt: old }] },
     };
     const res = selectPrefetchedSectionItems(snapshot, "world", 5);
-    expect(res.items.length).toBeGreaterThan(0); // not silently empty (the fix)
-    expect(res.stale).toBe(true);                // surfaced as stale so UI labels it
-    expect(res.staleFallback).toBe(true);        // served via stale fallback, not the fresh path
+    expect(res.items).toEqual([]);                 // no unsafe stale-current fallback
+    expect(res.stale).toBe(true);                 // retain truthful diagnostic signal
+    expect(res.staleFallback).toBe(false);       // expired source is never current
+    expect(res.blockedBySnapshotStaleness).toBe(true);
+    expect(res.staleReason).toBe("sections_snapshot_stale");
   });
 
   // ── I001: deploy publishes on data-workflow completion (GITHUB_TOKEN-safe) ──
