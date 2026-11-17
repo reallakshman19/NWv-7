@@ -30,7 +30,7 @@ export const DEFAULT_MARKET_SETTINGS = {
     layoutVariant: 'hybrid',
     cacheMinutes: 15,
     showIndices: true,
-    showGlobalIndices: true,
+    showGlobalIndices: false,
     showGainers: true,
     showLosers: true,
     showSectorals: true,
