@@ -24,6 +24,7 @@ jobs:
         run: |
           npx vitest run --config vitest.config.js \
             src/services/a03GeographySourceConfidence.cert.test.js \
+            src/components/travel/a03GeographyVisibleMarkup.cert.test.jsx \
             src/services/areaRelevanceScorer.cert.test.js \
             src/services/storyLocationPriority.cert.test.js \
             src/services/travelLocationProfile.cert.test.js \
