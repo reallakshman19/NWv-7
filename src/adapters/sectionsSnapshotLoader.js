@@ -44,7 +44,8 @@ function isUsablePreviewSnapshot(snapshot) {
     Date.now() - fetchedAt <= PREVIEW_SNAPSHOT_MAX_AGE_MS &&
     sections &&
     typeof sections === 'object' &&
-    !Array.isArray(sections);
+    !Array.isArray(sections) &&
+    Object.values(sections).some(items => Array.isArray(items) && items.length > 0);
 }
 
 function withRuntimeSource(snapshot, requested, effective, fallbackReason = null) {
@@ -85,35 +86,46 @@ export function makeBudgetExit(error) {
   };
 }
 
-async function fetchWithBudget(url, remainingMs, { bypassCache = true } = {}) {
-  const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), remainingMs) : null;
+async function fetchWithBudget(url, remainingMs, {
+  bypassCache = true, startedAt = Date.now(), budgetMs = remainingMs,
+} = {}) {
+  const controller = new AbortController();
+  let timer;
+  const deadline = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(makeBudgetError(startedAt, budgetMs));
+    }, remainingMs);
+  });
   try {
-    return await fetch(url, {
-      cache: bypassCache ? 'no-store' : 'default',
-      signal: controller?.signal,
-      // Explicit cache headers trigger a CORS preflight on remote publishers.
-      // The Fetch cache mode already bypasses cache for those requests.
-      headers: bypassCache && !/^https?:\/\//i.test(url) ? {
-        'cache-control': 'no-cache',
-        pragma: 'no-cache',
-      } : undefined,
-    });
+    return await Promise.race([
+      (async () => {
+        const response = await fetch(url, {
+          cache: bypassCache ? 'no-store' : 'default',
+          signal: controller.signal,
+          headers: bypassCache && !/^https?:\/\//i.test(url) ? {
+            'cache-control': 'no-cache',
+            pragma: 'no-cache',
+          } : undefined,
+        });
+        if (!response.ok) throw new Error(`sections snapshot fetch failed: HTTP ${response.status}`);
+        return response.json();
+      })(),
+      deadline,
+    ]);
   } finally {
-    if (timer) clearTimeout(timer);
+    clearTimeout(timer);
   }
 }
 
-async function requestSnapshotUrl(url, budgetMs, options = {}) {
-  const startedAt = Date.now();
-  let response;
+async function requestSnapshotUrl(url, budgetMs, options = {}, startedAt = Date.now()) {
+  let snapshot;
   let lastError;
   for (let attempt = 0; attempt <= SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length; attempt += 1) {
     const remainingMs = getRemainingBudgetMs(startedAt, budgetMs);
     if (remainingMs <= 0) throw makeBudgetError(startedAt, budgetMs);
     try {
-      response = await fetchWithBudget(url, remainingMs, options);
-      if (!response.ok) throw new Error(`sections snapshot fetch failed: HTTP ${response.status}`);
+      snapshot = await fetchWithBudget(url, remainingMs, { ...options, startedAt, budgetMs });
       break;
     } catch (error) {
       lastError = error?.name === 'AbortError'
@@ -121,15 +133,10 @@ async function requestSnapshotUrl(url, budgetMs, options = {}) {
         : error;
       const retryMs = SECTION_SNAPSHOT_RETRY_BACKOFF_MS[attempt] || 0;
       const waitMs = Math.min(retryMs, getRemainingBudgetMs(startedAt, budgetMs));
-      if (attempt < SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length && waitMs > 0) {
-        await sleep(waitMs);
-      }
+      if (attempt < SECTION_SNAPSHOT_RETRY_BACKOFF_MS.length && waitMs > 0) await sleep(waitMs);
     }
   }
-  if (!response?.ok) {
-    throw lastError || new Error('sections snapshot fetch failed');
-  }
-  const snapshot = await response.json();
+  if (!snapshot) throw lastError || new Error('sections snapshot fetch failed');
   if (!isSupportedSectionsSnapshot(snapshot)) {
     throw new Error(`unsupported sections snapshot schema: ${snapshot?.schemaVersion}`);
   }
@@ -137,11 +144,13 @@ async function requestSnapshotUrl(url, budgetMs, options = {}) {
 }
 
 async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDataSource()) {
+  const startedAt = Date.now();
+  const previewBudgetMs = Math.max(1, Math.floor(budgetMs * 2 / 3));
   if (requestedSource === SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW) {
     const previewUrl = getCloudflareSectionsPreviewUrl();
     if (previewUrl) {
       try {
-        const previewSnapshot = await requestSnapshotUrl(previewUrl, budgetMs, { bypassCache: true });
+        const previewSnapshot = await requestSnapshotUrl(previewUrl, previewBudgetMs, { bypassCache: true }, startedAt);
         if (!isUsablePreviewSnapshot(previewSnapshot)) {
           const error = new Error('Cloudflare Preview snapshot is stale or incomplete');
           error.code = 'preview_snapshot_unusable';
@@ -153,7 +162,7 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
           SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW,
         );
       } catch (error) {
-        const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs);
+        const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
         return withRuntimeSource(
           githubSnapshot,
           requestedSource,
@@ -162,7 +171,7 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
         );
       }
     }
-    const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs);
+    const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
     return withRuntimeSource(
       githubSnapshot,
       requestedSource,
@@ -171,7 +180,7 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
     );
   }
 
-  const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs);
+  const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
   return withRuntimeSource(
     githubSnapshot,
     requestedSource,
@@ -192,6 +201,13 @@ function completeSnapshotLoad(shared, snapshot, generation, requestedSource) {
 
 function failSnapshotLoad(shared, error) {
   if (activeSnapshotLoad === shared) {
+    publishSectionsDataSourceStatus({
+      requested: activeSnapshotSource,
+      effective: 'unavailable',
+      fallback: false,
+      failed: true,
+      fallbackReason: error?.code || error?.message || 'all_sources_unavailable',
+    });
     activeSnapshotLoad = null;
     activeSnapshotSource = null;
   }
