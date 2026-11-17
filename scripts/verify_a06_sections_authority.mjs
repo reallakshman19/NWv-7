@@ -26,9 +26,23 @@ function answer(route, data) {
 }
 
 async function check(page, label, expectedText, trace) {
-  await page.goto(BASE + '/#/', { waitUntil: 'domcontentloaded' });
-  await page.getByText(expectedText, { exact: false }).first()
-    .waitFor({ state: 'visible', timeout: 40_000 });
+  // Navigating to the unchanged hash is same-document and need not reload React.
+  // Force a new published-data epoch for each phase.
+  if (label === 'cf-success') {
+    await page.goto(BASE + '/#/', { waitUntil: 'domcontentloaded' });
+  } else {
+    await page.reload({ waitUntil: 'domcontentloaded' });
+  }
+  try {
+    await page.getByText(expectedText, { exact: false }).first()
+      .waitFor({ state: 'visible', timeout: 30_000 });
+  } catch (error) {
+    await page.screenshot({ path: 'artifacts/a06/sections-' + label + '-failure.png', fullPage: true });
+    console.error('A06-R3 authority phase failed', {
+      label, expectedText, trace, bodyExcerpt: (await page.locator('body').innerText()).slice(0, 1000),
+    });
+    throw error;
+  }
   await page.screenshot({ path: 'artifacts/a06/sections-' + label + '.png', fullPage: true });
   if (!trace.includes('CF')) throw new Error(label + ': Cloudflare was not requested');
   if (label === 'cf-success' && trace.includes('GH')) {
