@@ -8,25 +8,55 @@ const EDGE_EVENT = 'upAheadDataset.api_edge_diagnostics';
  * useDataset(). Publish a compact receipt so Data Health can see that run.
  * Never store the raw dataset or user planner entries in diagnostics.
  */
+let nextDirectAttempt = 0;
+
+function compactEdge(details) {
+  if (!details || typeof details !== 'object') return null;
+  return {
+    source: details.source || 'unknown',
+    reason: details.reason || 'unknown',
+    freshness: details.freshness || 'unknown',
+    ageSeconds: details.ageSeconds || 'unknown',
+  };
+}
+
+/** Tie every direct-page receipt to only its own API attempt, never to an older event. */
 export function publishDirectUpAheadEnvelope(envelope) {
+  const attemptId = 'up-ahead-page-' + (++nextDirectAttempt);
   const edge = (envelope?.diagnostics || []).findLast(
     item => item?.event === EDGE_EVENT && item?.details,
   );
-  if (edge) {
-    recordDiagnostic({
+  const edgeDetails = compactEdge(edge?.details);
+  const edgeEvent = edgeDetails
+    ? recordDiagnostic({
       datasetId: 'upAhead',
       event: EDGE_EVENT,
       severity: edge.severity || 'info',
       message: edge.message || 'Direct Up Ahead Worker response',
-      details: edge.details,
-    });
-  }
+      details: { ...edgeDetails, attemptId },
+    })
+    : null;
+  const sourceMode = envelope?.data?.sourceMode || 'unknown';
+  const transport = sourceMode === 'dataset-api' ? 'worker-http'
+    : ['snapshot', 'static'].includes(sourceMode) ? 'published-json'
+      : sourceMode === 'cache' ? 'retained-cache' : 'other';
   const details = {
+    attemptId,
+    edgeDiagnosticEventId: edgeEvent?.id || null,
+    edgeApiDiagnostics: edgeDetails,
     ok: envelope?.ok === true,
     source: envelope?.source || 'unknown',
-    sourceMode: envelope?.data?.sourceMode || 'unknown',
+    sourceMode,
     freshness: envelope?.freshness || 'unknown',
     fallbackUsed: Boolean(envelope?.fallbackUsed),
+    providerProvenance: {
+      transport,
+      effectiveProvider: sourceMode === 'dataset-api' ? 'up-ahead-worker'
+        : ['snapshot', 'static'].includes(sourceMode) ? 'github-static'
+          : sourceMode === 'cache' ? 'retained-cache' : sourceMode,
+      upstreamSource: edgeDetails?.source || null,
+      requestedPagePolicy: 'smart-or-refresh-now',
+    },
     payloadHash: envelope?.payloadHash || null,
     fetchedAt: envelope?.fetchedAt || null,
     lastGoodAt: envelope?.lastGoodAt || null,
