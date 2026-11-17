@@ -38,6 +38,14 @@ export function getAlertProvenance(item) {
   return official ? 'Official notice' : 'News report · verify with authority';
 }
 
+export function isLocalHoliday(item, locations = ['Chennai', 'Muscat']) {
+  if (item?.calendarDataset) return true;
+  // News discovery also returns elections and generic state closure roundups.
+  // A festival search tag is not evidence of a holiday in either destination.
+  return /\b(holidays?|festivals?|diwali|deepavali|pongal|eid|christmas|national day|republic day|independence day)\b/i.test(itemText(item))
+    && matchesLocalAlert(item, locations);
+}
+
 export function classifyRetailOffer(item, locations = ['Chennai', 'Muscat']) {
   const text = itemText(item);
   const urls = `${item?.sourceUrl || ''} ${item?.link || item?.url || ''}`.toLowerCase();

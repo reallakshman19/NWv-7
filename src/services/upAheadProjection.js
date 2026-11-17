@@ -3,7 +3,7 @@ import { isUpAheadItemActive } from './upAheadLifecycle.js';
 import { getUpAheadEvidence } from './upAheadEvidence.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
 import { matchesUpAheadLocation } from './upAheadLocation.js';
-import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance } from './upAheadLocalPolicy.js';
+import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday } from './upAheadLocalPolicy.js';
 
 const DEFAULT_UPAHEAD_SETTINGS = {
   categories: {
@@ -282,7 +282,8 @@ function getVisibleUpAheadProjection({ data, settings }) {
   const offerItems = [...onlineOffers, ...offlineOffers]; // combined, for backward-compat
 
   const movieCards = asArray(sections.movies).filter(local).map(buildCardArticle);
-  const festivalCards = asArray(sections.festivals).filter(local).map(buildCardArticle);
+  const festivalCards = asArray(sections.festivals).filter(local)
+    .filter(item => isLocalHoliday(item, locations)).map(buildCardArticle);
   const eventItems = [
     ...asArray(sections.events),
     ...asArray(sections.sports),

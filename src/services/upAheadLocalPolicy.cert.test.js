@@ -63,4 +63,14 @@ describe('Chennai and Muscat sources and scope', () => {
     });
     expect(rows.map(row => row.id)).toEqual(['soon', 'alert']);
   });
+  it('keeps election reports and unscoped school-closure roundups out of Holidays', () => {
+    const now = Date.now();
+    const row = (title, extra = {}) => ({ title, id: title, publishedAt: now, expiryAt: now + 86400_000, ...extra });
+    const result = getVisibleUpAheadProjection({ settings: { upAhead: { locations: ['Chennai', 'Muscat'] } }, data: { sections: {
+      festivals: [row('110 candidates to contest Oman Chamber elections on Nov 23', { region: 'oman' }),
+        row('School Holiday Today: Check State-Wise List', { region: 'in' }),
+        row('Muscat cultural festival tomorrow'), row('Christmas 2026', { city: 'Chennai', calendarDataset: 'curated-calendar' })],
+    } } });
+    expect(result.festivalCards.map(item => item.title)).toEqual(['Muscat cultural festival tomorrow', 'Christmas 2026']);
+  });
 });
