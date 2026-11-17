@@ -591,7 +591,7 @@ export function useInsightTabViewModel() {
     setResult(renderableDatasetResult);
     setSource(datasetEnvelope?.data?.source || datasetEnvelope?.source || 'unknown');
     setLoading(false);
-  }, [datasetEnvelope?.source, renderableDatasetResult]);
+  }, [datasetEnvelope?.source, datasetEnvelope?.data?.source, renderableDatasetResult]);
 
   useEffect(() => {
     const timer = setInterval(() => {
