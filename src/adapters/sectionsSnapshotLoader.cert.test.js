@@ -27,7 +27,7 @@ function snapshot(id) {
     schemaVersion: 2,
     fetchedAt: Date.now(),
     contentHash: id,
-    sections: {},
+    sections: { topStories: [{ id, title: id, url: 'https://publisher.example/'+id, publishedAt: Date.now() }] },
   };
 }
 
@@ -179,4 +179,22 @@ describe('sections snapshot shared load certification', () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+  it('rejects fresh-but-empty Cloudflare data and selects the available GitHub snapshot', async () => {
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY', 'cloudflare');
+    vi.stubEnv('VITE_SECTIONS_AUTHORITY_URL', 'https://preview.example/preview/sections/latest');
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response({ ...snapshot('cf-empty'), sections: {} }))
+      .mockResolvedValueOnce(response(snapshot('gh-winner')));
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await loadSectionsSnapshot({ budgetMs: 5000 });
+    expect(result.contentHash).toBe('gh-winner');
+    expect(result.runtimeDataSource).toMatchObject({
+      requested: 'cloudflare_preview',
+      effective: 'github_static',
+      fallback: true,
+      fallbackReason: 'preview_snapshot_unusable',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
 });
