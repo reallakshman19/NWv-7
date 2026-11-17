@@ -1,0 +1,58 @@
+name: A03 source-custody native export
+on:
+  push:
+    branches: [evidence/a03-native-export-20261117]
+permissions:
+  contents: read
+jobs:
+  native-source-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Create frozen A03 source and patch archive, with verified git objects
+        run: |
+          python3 - <<'PY'
+          import hashlib,subprocess,zipfile,io,json
+          from pathlib import Path
+          base='695e27c64b42d2220449936792792b68e87a1375'
+          head='14213e6e0cec31b6e3eedcdf3bf73560cf9e43de'
+          def git(*args):
+              return subprocess.check_output(['git',*args])
+          if len(git('rev-parse',head).strip())!=40: raise SystemExit('Missing candidate')
+          files=git('diff','--name-only',base,head).decode().splitlines()
+          assert len(files)>=15 and len(files)<30,files
+          out=Path('artifacts/a03-native')
+          out.mkdir(parents=True,exist_ok=True)
+          target=out/'A03_native_exact_head_source_and_patch.zip'
+          checks=[]
+          def insert(z,archive_name,data,git_id=None):
+              z.writestr(archive_name,data)
+              checks.append(dict(path=archive_name,sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),gitBlob=git_id))
+          with zipfile.ZipFile(target,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+              for path in files:
+                  for label,ref in [('candidate',head),('baseline',base)]:
+                      exists=subprocess.run(['git','cat-file','-e',f'{ref}:{path}'],capture_output=True).returncode==0
+                      if exists:
+                          native=git('show',f'{ref}:{path}')
+                          blob=git('rev-parse',f'{ref}:{path}').decode().strip()
+                          assert hashlib.sha1((f'blob {len(native)}\0').encode()+native).hexdigest()==blob,(path,label)
+                          insert(z,f'{label}/{path}',native,blob)
+              insert(z,'A03_16_file_exact_head.patch',git('diff','--binary','--full-index',base,head))
+              insert(z,'A03_changed_pathnames.txt',('\n'.join(files)+'\n').encode())
+              insert(z,'A03_lineage.txt',(f'base={base}\nhead={head}\nexportBranchHead='+git('rev-parse','HEAD').decode().strip()+'\n').encode())
+              manifest=json.dumps({'scope':'NWv7 A03 only','base':base,'head':head,'candidateChangedFiles':files,'note':'checkout-free exact Git source; this export workflow branch is not the A03 implementation branch','members':checks},ensure_ascii=False,indent=2).encode()
+              z.writestr('A03_Native_Git_Object_Manifest.json',manifest)
+          test=zipfile.ZipFile(target).testzip()
+          assert test is None,test
+          print(json.dumps({'status':'PASS','head':head,'fileCount':len(files),'archiveBytes':target.stat().st_size,'archiveSha256':hashlib.sha256(target.read_bytes()).hexdigest(),'members':len(checks)+1}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: a03-exact-head-native-source-and-patch
+          path: artifacts/a03-native/
+          if-no-files-found: error
+          retention-days: 30
