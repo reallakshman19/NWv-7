@@ -427,9 +427,9 @@ export function useMainTabViewModel() {
 
   const travelMergedNewsData = useMemo(() => (
     travelNewsPayload && travelLocationProfile?.prioritizeStories
-      ? mergeTravelNewsIntoNewsData(projectedNewsData, travelNewsPayload)
+      ? mergeTravelNewsIntoNewsData(projectedNewsData, travelNewsPayload, travelLocationProfile)
       : projectedNewsData
-  ), [projectedNewsData, travelNewsPayload, travelLocationProfile?.prioritizeStories]);
+  ), [projectedNewsData, travelNewsPayload, travelLocationProfile]);
 
   const prioritizedNewsData = useMemo(() => (
     applyTravelLocationPriority(travelMergedNewsData, travelLocationProfile)

@@ -30,9 +30,9 @@ const TARGETS = Object.freeze({
       'egmore',
       'central station',
     ],
-    city: ['chennai', 'madras'],
+    city: ['chennai', 'madras', 'சென்னை'],
     institutions: ['greater chennai corporation', 'chennai corporation', 'metro rail', 'chennai metro', 'cmrl', 'gcc'],
-    stateRegion: ['tamil nadu', 'tamilnadu', 'tn'],
+    stateRegion: ['tamil nadu', 'tamilnadu', 'tn', 'தமிழ்நாடு'],
     country: ['india', 'indian'],
     offArea: ['mumbai', 'delhi', 'bengaluru', 'bangalore', 'hyderabad', 'kerala', 'karnataka'],
   }),
@@ -60,9 +60,9 @@ const TARGETS = Object.freeze({
       'port sultan qaboos',
       'oman airports',
     ],
-    city: ['muscat', 'masqat', 'maskat'],
+    city: ['muscat', 'masqat', 'maskat', 'مسقط'],
     stateRegion: ['muscat governorate'],
-    country: ['oman', 'omani', 'royal oman police'],
+    country: ['oman', 'omani', 'royal oman police', 'عمان'],
     regionalBackfill: ['gulf', 'hormuz', 'iran', 'middle east', 'regional'],
     offArea: ['dubai', 'abu dhabi', 'doha', 'riyadh', 'kuwait city'],
   }),
@@ -73,13 +73,11 @@ const FIELD_WEIGHTS = Object.freeze({
   headline: 1,
   summary: 0.78,
   description: 0.78,
-  source: 0.45,
-  sourceGroup: 0.45,
-  section: 0.35,
+  // Acquisition metadata is not admissible evidence of event geography.
   city: 1,
   country: 0.65,
   location: 0.95,
-  url: 0.4,
+  // Publisher URLs and feed lanes cannot establish an event location.
 });
 
 function asArray(value) {
@@ -90,7 +88,8 @@ function normalize(value) {
   return String(value || '')
     .toLowerCase()
     .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/[\u064b-\u065f\u0670]/g, '')
+    .replace(/[^\p{L}\p{N}\p{M}\s]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -116,7 +115,18 @@ function hasTerm(fieldValue, normalizedTerm) {
   if (!fieldValue || !normalizedTerm) return false;
   const padded = ` ${fieldValue} `;
   const term = ` ${normalizedTerm} `;
-  return padded.includes(term);
+  if (padded.includes(term)) return true;
+  // Tamil place-names may carry grammatical suffixes: சென்னை -> சென்னையில்.
+  return /[\u0b80-\u0bff]/u.test(normalizedTerm) && fieldValue.split(' ').some(token => token.startsWith(normalizedTerm));
+}
+
+function isContextualLocalTerm(term, value) {
+  if (term === 'airport') return /(?:^| )(?:chennai|madras|meenambakkam)(?: |$)/.test(value);
+  if (term === 'gcc') return !/(?:gulf cooperation council|gcc summit|gcc leaders|gcc ministers)/.test(value)
+    && /(?:^| )(?:chennai|corporation|municipal|civic|cmrl|tender|flyover|road|traffic|water)(?: |$)/.test(value);
+  if (term === 'omr') return !/(?:^| )(?:omr [0-9]|[0-9]+ omr)(?: |$)/.test(value)
+    && /(?:^| )(?:road|route|metro|traffic|junction|corridor|transport|chennai|sholinganallur|cmrl)(?: |$)/.test(value);
+  return true;
 }
 
 function collectMatches(fields, terms, category, baseScore) {
@@ -127,7 +137,7 @@ function collectMatches(fields, terms, category, baseScore) {
     if (!term) continue;
 
     for (const row of fields) {
-      if (!hasTerm(row.value, term)) continue;
+      if (!hasTerm(row.value, term) || !isContextualLocalTerm(term, row.value)) continue;
       matches.push({
         term: rawTerm,
         normalizedTerm: term,
@@ -221,6 +231,7 @@ export function scoreAreaRelevance(story = {}, target = '') {
   if (categories.includes('country')) reasons.push('country_backfill');
   if (categories.includes('regional-backfill')) reasons.push('regional_backfill');
   if (offAreaMatches.length > 0 && matches.length === 0) reasons.push('off_area_match_without_target_evidence');
+  if (offAreaMatches.length > 0 && matches.length > 0) reasons.push('conflicting_event_locations');
   if (matches.length === 0) reasons.push('no_area_evidence');
   if (score > 0 && !['exact-area', 'city'].includes(label)) reasons.push('not_exact_local');
 
@@ -231,6 +242,8 @@ export function scoreAreaRelevance(story = {}, target = '') {
     matchedTerms: evidence.matchedTerms,
     matchedFields: evidence.matchedFields,
     sourceEvidence: evidence.sourceEvidence,
+    locationConflict: offAreaMatches.length > 0 && matches.length > 0,
+    offAreaTerms: uniqueStrings(offAreaMatches.map(match => match.term)),
     reasons: uniqueStrings(reasons),
     version: AREA_RELEVANCE_VERSION,
   };

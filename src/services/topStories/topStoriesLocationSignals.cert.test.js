@@ -39,7 +39,7 @@ describe('Top Stories geography evidence provenance', () => {
 
   it.each([
     [{ title: 'India election commission issues an update' }, 0.82],
-    [{ region: 'Oman', title: 'Airport traffic update' }, 0.82],
+    [{ country: 'Oman', title: 'Airport traffic update' }, 0.82],
     [{ countryCode: 'IN', title: 'National policy update' }, 0.82],
     [{ location: { city: 'Muscat' }, title: 'Municipal update' }, 0.82],
   ])('retains explicit local story evidence', (story, expected) => {

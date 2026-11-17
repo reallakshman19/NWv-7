@@ -33,8 +33,9 @@ function normalizeTravelStory(story = {}, profile) {
     sourceGroup: story.sourceGroup || source,
     section: story.section || 'travelLocal',
     category: story.category || 'Travel local',
-    city: story.city || profile.display,
-    country: story.country || profile.countryLabel,
+    // Never manufacture event geography from a user preference or acquisition lane.
+    ...(story.city ? { city: story.city } : {}),
+    ...(story.country ? { country: story.country } : {}),
     locationKey: profile.key,
     _travelLocationKey: profile.key,
     _travelLocationScore: scoreStoryForLocation(story, profile),
@@ -80,8 +81,11 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
 export function mergeTravelNewsIntoNewsData(newsData = {}, payload = {}, profileInput = null) {
   const profile = isTravelLocationProfile(profileInput)
     ? profileInput
-    : getTravelLocationProfile(profileInput || {});
+    : getTravelLocationProfile(profileInput || (payload.locationKey
+      ? { travelLocation: { city: payload.locationKey } } : {}));
 
+  // A late response from another location must not enter this location's feed.
+  if (payload.locationKey && payload.locationKey !== profile.key) return newsData;
   const normalizedPayload = normalizeTravelNewsPayload(payload, profile);
   const existingTravel = asArray(newsData.travelLocal);
   const merged = [...normalizedPayload.stories, ...existingTravel];
@@ -99,7 +103,7 @@ export function mergeTravelNewsIntoNewsData(newsData = {}, payload = {}, profile
     travelLocal: deduped,
   }, profile, {
     limit: 12,
-    minScore: 1,
+    minScore: 18,
   });
 
   return {

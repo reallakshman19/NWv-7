@@ -1,9 +1,9 @@
-const LOCAL_PATTERN = /\b(oman|muscat|chennai|trichy|tamil nadu|india)\b/;
+const LOCAL_PATTERN = /(?:^|[^\p{L}\p{N}\p{M}])(?:oman|muscat|chennai|trichy|tamil nadu|india|مسقط|عمان|சென்னை|சென்னையில்|தமிழ்நாடு)(?=$|[^\p{L}\p{N}\p{M}])/iu;
 const WORLD_PATTERN = /\b(world|global|international|gaza|ukraine|russia|israel)\b/;
 const LOCAL_COUNTRY_CODES = new Set(['in', 'ind', 'om', 'omn']);
 
 const STORY_LOCATION_FIELDS = Object.freeze([
-  'region',
+  // 'region' is a publisher acquisition-market field in the frozen snapshot.
   'country',
   'countryCode',
   'city',
