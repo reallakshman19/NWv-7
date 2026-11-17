@@ -261,4 +261,5 @@ export async function load(options = {}) {
 export const __upAheadDatasetInternalsForTest = {
   hasVisibleUpAheadContent,
   buildVisible,
+  getSource,
 };
