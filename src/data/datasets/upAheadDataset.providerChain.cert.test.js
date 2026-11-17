@@ -8,7 +8,8 @@ const mocks = vi.hoisted(() => ({
   getRuntimeCapabilities: vi.fn(),
 }));
 
-const visibleApi = { sections: { events: [{ title: 'API event' }] }, timeline: [], weekly_plan: [] };
+// A Worker response header alone cannot qualify freshness; preserve the source epoch.
+const visibleApi = { fetchedAt: Date.now(), sections: { events: [{ title: 'API event' }] }, timeline: [], weekly_plan: [] };
 const visibleStatic = { sections: { events: [{ title: 'Static event' }] }, timeline: [], weekly_plan: [] };
 const emptyData = { sections: {}, timeline: [], weekly_plan: [] };
 const okDiagnostics = { source: 'upstream', reason: 'ok', freshness: 'fresh', ageSeconds: '42' };
