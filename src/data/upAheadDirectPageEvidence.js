@@ -21,7 +21,7 @@ function compactEdge(details) {
 }
 
 /** Tie every direct-page receipt to only its own API attempt, never to an older event. */
-export function publishDirectUpAheadEnvelope(envelope) {
+export function publishDirectUpAheadEnvelope(envelope, { requestedPagePolicy = 'unknown' } = {}) {
   const attemptId = 'up-ahead-page-' + (++nextDirectAttempt);
   const edge = (envelope?.diagnostics || []).findLast(
     item => item?.event === EDGE_EVENT && item?.details,
@@ -55,7 +55,7 @@ export function publishDirectUpAheadEnvelope(envelope) {
         : ['snapshot', 'static'].includes(sourceMode) ? 'github-static'
           : sourceMode === 'cache' ? 'retained-cache' : sourceMode,
       upstreamSource: edgeDetails?.source || null,
-      requestedPagePolicy: 'smart-or-refresh-now',
+      requestedPagePolicy,
     },
     payloadHash: envelope?.payloadHash || null,
     fetchedAt: envelope?.fetchedAt || null,
