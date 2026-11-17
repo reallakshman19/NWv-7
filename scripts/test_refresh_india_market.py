@@ -50,11 +50,19 @@ def test_bse_qualifies_complete_offers_and_india_closing_day():
         parse_bse({"blocked": True}, NOW)
 
 
-def test_nfo_rejects_unrelated_tables_and_qualifies_headers():
+def test_nfo_rss_does_not_infer_open_status_from_launch_date():
+    body = """<rss><channel><item><title>Fixture NFO</title><description><![CDATA[
+    <table><tr><td><b>Launch Date</b></td><td>15-Nov-2026</td></tr></table>
+    ]]></description></item></channel></rss>"""
+    row = parse_nfo(body, NOW)[0]
+    assert row["status"] == "announced"
+    assert row["openDate"] == "2026-11-15"
+    assert row["closeDate"] is None
+    closed = body.replace("</table>", "<tr><td>Closure Date</td><td>14-Nov-2026</td></tr></table>")
     with pytest.raises(ValueError):
-        parse_nfo("<table><tr><th>Name</th><th>Other</th></tr></table>", NOW)
-    html = "<table><tr><th>Scheme Name</th><th>Opening Date</th><th>Closing Date</th></tr><tr><td>Fixture NFO</td><td>17-Nov-2026</td><td>30-Nov-2026</td></tr></table>"
-    assert parse_nfo(html, NOW)[0]["status"] == "upcoming"
+        parse_nfo(closed, NOW)
+    with pytest.raises(ValueError):
+        parse_nfo("<html><table /></html>", NOW)
 
 
 def test_failure_is_preserved_without_carrying_old_sidecars():

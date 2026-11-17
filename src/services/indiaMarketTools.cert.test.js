@@ -78,4 +78,10 @@ describe('India Market free-source tools', () => {
     expect(currentNfoRows(rows, NOW).map(row => [row.name, row.offerState])).toEqual([['Open', 'Open'], ['Upcoming', 'Upcoming']]);
     expect(currentNfoRows(rows, Date.parse('2026-11-16T18:30:00Z')).map(row => row.name)).toEqual(['Upcoming']);
   });
+
+  it('shows recent dated AMFI announcements without asserting an open subscription', () => {
+    const item = { name: 'An AMFI announcement', openDate: '2026-11-15', closeDate: null, source: 'AMFI', status: 'announced' };
+    expect(currentNfoRows([item], NOW)[0].offerState).toContain('verify availability');
+    expect(currentNfoRows([{ ...item, openDate: '2026-10-01' }], NOW)).toEqual([]);
+  });
 });

@@ -1,11 +1,10 @@
 {
-  "generatedAt": "2026-11-16T15:24:58.324459Z",
+  "generatedAt": "2026-11-17T01:47:40.879041Z",
   "validation": {
     "status": "WARN",
     "indices": 6,
     "failures": {
-      "ipo": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P",
-      "nfo": "HTTPSConnectionPool(host='www.amfiindia.com', port=443): Max retries exceeded with url: /new-fund-offer (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.amfiindia.com', port=443) at 0x2996499"
+      "ipo": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P"
     }
   },
   "sources": {
@@ -156,11 +155,11 @@
       "count": 0
     },
     "nfo": {
-      "status": "failed",
+      "status": "snapshot",
       "provider": "AMFI",
-      "sourceUrl": "https://www.amfiindia.com/new-fund-offer",
-      "message": "HTTPSConnectionPool(host='www.amfiindia.com', port=443): Max retries exceeded with url: /new-fund-offer (Caused by ConnectTimeoutError(<HTTPSConnection(host='www.amfiindia.com', port=443) at 0x2996499",
-      "count": 0
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "count": 7,
+      "message": "Source-dated rows"
     }
   }
 }

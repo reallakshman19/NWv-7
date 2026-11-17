@@ -121,7 +121,11 @@ export function currentNfoRows(rows = [], now = Date.now()) {
   return (Array.isArray(rows) ? rows : []).flatMap(row => {
     const open = parseIndiaDate(row?.openDate || row?.startDate);
     const close = parseIndiaDate(row?.closeDate || row?.endDate);
-    if (!row?.name || open == null || close == null || close < today || close < open || open > today + 90 * DAY) return [];
+    if (!row?.name || open == null || open > today + 90 * DAY) return [];
+    if (close == null && row.status === 'announced' && row.source === 'AMFI' && open >= today - 21 * DAY) {
+      return [{ ...row, offerState: 'Announced · verify availability' }];
+    }
+    if (close == null || close < today || close < open) return [];
     return [{ ...row, offerState: open > today ? 'Upcoming' : 'Open' }];
   });
 }

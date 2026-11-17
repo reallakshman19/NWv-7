@@ -15,6 +15,7 @@ import math
 from pathlib import Path
 import re
 from urllib.parse import quote
+from xml.etree import ElementTree
 
 import requests
 from bs4 import BeautifulSoup
@@ -25,7 +26,7 @@ STOCKS = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "ITC", "BH
           "KOTAKBANK", "LT", "HINDUNILVR", "AXISBANK", "BAJFINANCE", "MARUTI", "WIPRO", "SUNPHARMA"]
 BSE = "https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P"
 NAV = "https://portal.amfiindia.com/spages/NAVAll.txt"
-NFO = "https://www.amfiindia.com/new-fund-offer"
+NFO = "https://portal.amfiindia.com/rssNAV.aspx?nfo=y"
 IST = timezone(timedelta(hours=5, minutes=30))
 HEADERS = {"User-Agent": "Mozilla/5.0 NWv7IndiaMarket/1.0", "Accept": "application/json,text/plain,text/html"}
 
@@ -139,31 +140,40 @@ def parse_bse(payload, now):
     return results
 
 
-def parse_nfo(html, now):
-    soup = BeautifulSoup(html, "html.parser")
-    for table in soup.find_all("table"):
-        rows = table.find_all("tr")
-        if not rows:
+def parse_nfo(xml, now):
+    feed = ElementTree.fromstring(xml)
+    channel = feed.find("channel")
+    if feed.tag != "rss" or channel is None:
+        raise ValueError("Expected the official AMFI RSS channel")
+    items = channel.findall("item")
+    today = now.astimezone(IST).date()
+    result = []
+    for item in items[:100]:
+        name = (item.findtext("title") or "").strip()
+        description = BeautifulSoup(item.findtext("description") or "", "html.parser")
+        fields = {}
+        for row in description.find_all("tr"):
+            cells = row.find_all("td", recursive=False)
+            if len(cells) >= 2:
+                label = cells[0].get_text(" ", strip=True).casefold()
+                fields[label] = cells[1].get_text(" ", strip=True)
+        opened = date_value(fields.get("launch date"))
+        closed = date_value(fields.get("new fund offer closure date") or fields.get("closure date"))
+        if not name or not opened:
             continue
-        headers = [cell.get_text(" ", strip=True).lower() for cell in rows[0].find_all(["th", "td"])]
-        find = lambda terms: next((index for index, header in enumerate(headers) if any(term in header for term in terms)), None)
-        name, opened, closed = find(["scheme name", "fund name"]), find(["open", "start", "launch"]), find(["close", "closing", "closure", "end"])
-        if None in (name, opened, closed):
-            continue
-        results, data_rows = [], 0
-        for tr in rows[1:101]:
-            cells = [cell.get_text(" ", strip=True) for cell in tr.find_all("td")]
-            if len(cells) <= max(name, opened, closed):
-                continue
-            data_rows += 1
-            row = active_offer({"name": cells[name], "openDate": cells[opened], "closeDate": cells[closed],
-                                "source": "AMFI", "sourceUrl": NFO}, now)
-            if row:
-                results.append(row)
-        if data_rows and not results:
-            raise ValueError("AMFI NFO rows lack current, complete offer dates")
-        return results
-    raise ValueError("No recognized AMFI NFO schedule table; dynamic or blocked page")
+        row = {"name": name, "openDate": opened.isoformat(), "source": "AMFI",
+               "sourceUrl": NFO, "category": fields.get("scheme category", "")}
+        if closed:
+            qualified = active_offer({**row, "closeDate": closed.isoformat()}, now)
+            if qualified:
+                result.append(qualified)
+        elif today - timedelta(days=21) <= opened <= today + timedelta(days=90):
+            # The RSS feed usually omits closing dates. Its launch date is
+            # useful as an announcement without asserting availability.
+            result.append({**row, "status": "announced", "closeDate": None})
+    if items and not result:
+        raise ValueError("AMFI RSS returned no usable dated announcements")
+    return result
 
 
 def acquire(now, getter=get):
