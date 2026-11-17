@@ -65,6 +65,11 @@ describe('A10 R2 fail-closed evidence contract and retained-display gate', () =>
     expect(state(e,'provider 503')).toBe('degraded');
     expect(state(e)).toBe('ready');
   });
+  it('missing validation cannot show Ready simply because source and freshness look good',()=>{
+    const e=makeEnvelope({ok:true,source:'live',data:{headline:'A'},freshness:'fresh'});
+    expect(e.validation.passed).toBeNull();
+    expect(state(e)).toBe('degraded');
+  });
   it('unverified freshness cannot show Ready simply because content exists',()=>{
     const e=makeEnvelope({ok:true,data:{headline:'A'},freshness:'unknown'});
     expect(state(e)).toBe('degraded');
