@@ -253,7 +253,7 @@ export function useUpAheadPageViewModel() {
       });
       if (request !== latestLoad.current) return;
       setEnvelope(nextEnvelope);
-      publishDirectUpAheadEnvelope(nextEnvelope);
+      publishDirectUpAheadEnvelope(nextEnvelope, { requestedPagePolicy: forceRefresh ? 'refresh-now' : 'smart' });
       setError(nextEnvelope.error || null);
       const { raw, sourceMode, acquisitionSummary } = nextEnvelope.data || {};
       lastData.current = raw && { ...raw, sourceMode };
@@ -266,7 +266,7 @@ export function useUpAheadPageViewModel() {
         ok: false, source: 'failed', freshness: 'unknown',
         error: error?.message || 'Up Ahead refresh failed',
         data: { sourceMode: 'failed' },
-      });
+      }, { requestedPagePolicy: forceRefresh ? 'refresh-now' : 'smart' });
       setError(error?.message || 'Up Ahead refresh failed. Showing retained active items if available.');
       setLiveAcquisition({ status: 'failed', reason: error?.message || 'refresh_failed', byCategory: {} });
     } finally {
