@@ -24,7 +24,7 @@ import { buildRuntimeSectionHealthSummary, resolveSectionHealthSummary } from '.
 const source = path => readFileSync(path, 'utf8');
 const ssrHealth = envelope => {
   __clearDatasetCacheForTest();
-  if (envelope) __getDatasetCacheForTest().set('a10-deep', envelope);
+  if (envelope) __getDatasetCacheForTest().set(envelope.datasetId || 'a10-deep', envelope);
   return renderToStaticMarkup(<DataHealthPanel />);
 };
 const state = (env, error = null, loading = false, allowDegraded = true) => boundary.getBoundaryState({
@@ -245,7 +245,8 @@ describe('A10 Insight, Newspaper and provenance cross-route',()=>{
   it('46 Newspaper page does not render DataStateBoundary despite declarative comment',()=>{
     const s=source('src/pages/NewspaperPage.jsx');
     expect(s).toMatch(/\/\/ DataStateBoundary integration:/);
-    expect(s).not.toMatch(/<DataStateBoundary(?:\s|>)/);
+    const executable = s.split('\n').filter(line => !line.trim().startsWith('//')).join('\n');
+    expect(executable).not.toMatch(/<DataStateBoundary(?:\s|>)/);
     expect(s).not.toMatch(/import DataStateBoundary/);
   });
   it('47 Newspaper publisher-domain safety positive control',()=>{
