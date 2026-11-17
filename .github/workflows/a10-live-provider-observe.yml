@@ -1,0 +1,44 @@
+name: A10 public live UI and Cloudflare HTTP observation (read-only)
+on:
+  push:
+    branches: [audit/a10-live-http-surface-observer-20261117]
+permissions:
+  contents: read
+jobs:
+  observe-public-routes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Assert no production modifications
+        run: |
+          git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD
+          if git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD | grep -Ev '^(audit/evidence/a10_deployed_live_observer.mjs|.github/workflows/a10-live-provider-observe.yml)$'; then
+            echo "Non-audit change detected" >&2; exit 1
+          fi
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Observe public Cloudflare preview and Pages in desktop/mobile Chromium
+        run: node audit/evidence/a10_deployed_live_observer.mjs
+      - name: Native script custody
+        if: always()
+        run: |
+          mkdir -p artifacts/a10-live-observe/native
+          cp audit/evidence/a10_deployed_live_observer.mjs artifacts/a10-live-observe/native/
+          cp .github/workflows/a10-live-provider-observe.yml artifacts/a10-live-observe/native/
+          git rev-parse HEAD > artifacts/a10-live-observe/native/a10_live_audit_head.txt
+          git rev-parse 695e27c64b42d2220449936792792b68e87a1375 > artifacts/a10-live-observe/native/main_baseline.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a10-live-public-origin-observations-desktop-mobile
+          path: artifacts/a10-live-observe/
+          if-no-files-found: error
+          retention-days: 30
