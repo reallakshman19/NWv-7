@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchIPOData, fetchMutualFunds } from './indianMarketStableService.js';
+import { fetchAllMarketData, fetchIPOData, fetchMutualFunds } from './indianMarketStableService.js';
+
+vi.mock('./indexedDbCache.js', () => ({
+  getIdbCache: vi.fn().mockResolvedValue(null),
+  setIdbCache: vi.fn().mockResolvedValue(undefined),
+}));
 
 function mockJsonResponse(payload, ok = true) {
   return Promise.resolve({
@@ -57,5 +62,33 @@ describe('Indian market stable sidecar feeds', () => {
     })));
 
     await expect(fetchIPOData()).resolves.toEqual({ upcoming: [], live: [], recent: [] });
+  });
+
+  it('keeps the dated India publication during overnight gaps and preserves empty boards', async () => {
+    const publishedAt = Date.now() - 14 * 60 * 60 * 1000;
+    const quoteAt = new Date(publishedAt - 60 * 60 * 1000).toISOString();
+    const read = vi.fn(() => mockJsonResponse({
+      schemaVersion: 'market-india-1',
+      fetchedAt: publishedAt,
+      indices: ['NIFTY 50', 'SENSEX', 'BANK NIFTY'].map(name => ({ name, value: '100', quoteAt })),
+      commodities: [],
+      currencies: [],
+      sectorals: [],
+      sourceHealth: { nfo: { status: 'failed', provider: 'AMFI' } },
+    }));
+    vi.stubGlobal('fetch', read);
+
+    const data = await fetchAllMarketData();
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(data).toMatchObject({
+      sourceMode: 'snapshot',
+      publicationSchema: 'market-india-1',
+      fetchedAt: publishedAt,
+      commodities: [],
+      currencies: [],
+      sectorals: [],
+      sourceHealth: { nfo: { status: 'failed', provider: 'AMFI' } },
+    });
+    expect(data.indices[0].quoteAt).toBe(quoteAt);
   });
 });

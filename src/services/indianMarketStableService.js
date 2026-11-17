@@ -17,6 +17,7 @@ const CACHE_KEY = MARKET_SERVICE_CACHE_KEY;
 const CACHE_TTL = MARKET_SERVICE_CACHE_TTL_MS;
 const STALE_CACHE_MAX_AGE = MARKET_STALE_CACHE_MAX_AGE_MS;
 const SNAPSHOT_FRESH_MS = MARKET_SNAPSHOT_FRESH_MS;
+const INDIA_PUBLICATION_SCHEMA = 'market-india-1';
 const STALE_SNAPSHOT_MAX_AGE = 24 * 60 * 60 * 1000;
 const MUTUAL_FUND_SNAPSHOT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MARKET_SIDECAR_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
@@ -240,9 +241,9 @@ function withMeta(data, sourceMode, extra = {}) {
     ...data,
     indices: Array.isArray(data?.indices) && data.indices.length ? data.indices : MARKET_SEED.indices,
     movers: data?.movers || MARKET_SEED.movers,
-    sectorals: Array.isArray(data?.sectorals) && data.sectorals.length ? data.sectorals : MARKET_SEED.sectorals,
-    commodities: Array.isArray(data?.commodities) && data.commodities.length ? data.commodities : MARKET_SEED.commodities,
-    currencies: Array.isArray(data?.currencies) && data.currencies.length ? data.currencies : MARKET_SEED.currencies,
+    sectorals: Array.isArray(data?.sectorals) ? data.sectorals : sourceMode === 'seed' ? MARKET_SEED.sectorals : [],
+    commodities: Array.isArray(data?.commodities) ? data.commodities : sourceMode === 'seed' ? MARKET_SEED.commodities : [],
+    currencies: Array.isArray(data?.currencies) ? data.currencies : sourceMode === 'seed' ? MARKET_SEED.currencies : [],
     schemaVersion: MARKET_CACHE_SCHEMA_VERSION,
     fetchedAt: timestamp,
     generatedAt: data?.generatedAt || data?.generated_at || new Date(timestamp).toISOString(),
@@ -250,7 +251,7 @@ function withMeta(data, sourceMode, extra = {}) {
     sourceHealth: markMarketPayload(
       {
         sourceHealth: {
-          ...MARKET_SEED.sourceHealth,
+          ...(sourceMode === 'seed' ? MARKET_SEED.sourceHealth : {}),
           ...(data?.sourceHealth || {}),
           ...(extra.sourceHealth || {})
         }
@@ -405,19 +406,23 @@ export async function fetchStaticSnapshot() {
       return null;
     }
 
-    return markMarketPayload(snapshot, snapshot.sourceMode || 'snapshot', {
+    const publicationSchema = snapshot.schemaVersion;
+    const maxAgeMs = publicationSchema === INDIA_PUBLICATION_SCHEMA
+      ? MARKET_EXPIRED_DISPLAY_MAX_AGE_MS : SNAPSHOT_FRESH_MS;
+    const fresh = isFreshPayload(snapshot, maxAgeMs);
+    return markMarketPayload({
+      ...snapshot,
+      publicationSchema,
       sourceHealth: {
+        ...snapshot.sourceHealth,
         snapshot: {
-          status: isFreshPayload(snapshot, SNAPSHOT_FRESH_MS) ? 'snapshot' : 'stale',
+          status: fresh ? 'snapshot' : 'stale-snapshot',
           provider: 'market_snapshot.json',
-          mode: 'snapshot',
           freshnessMs: getPayloadAgeMs(snapshot),
-          message: isFreshPayload(snapshot, SNAPSHOT_FRESH_MS)
-            ? 'Fresh static snapshot'
-            : 'Stale static snapshot'
-        }
-      }
-    });
+          message: fresh ? 'Current daily snapshot' : 'Stale daily snapshot',
+        },
+      },
+    }, snapshot.sourceMode || 'snapshot');
   } catch {
     return null;
   }
@@ -631,8 +636,10 @@ export async function fetchAllMarketData() {
   if (freshCache) return withMeta(freshCache, 'cache', { sourceHealth: { cache: 'fresh' } });
 
   const snapshot = await fetchStaticSnapshot();
-  if (isFreshPayload(snapshot, SNAPSHOT_FRESH_MS)) {
-    const normalized = withMeta(snapshot, 'snapshot', { sourceHealth: { indices: 'fresh-snapshot' } });
+  const snapshotTtl = snapshot?.publicationSchema === INDIA_PUBLICATION_SCHEMA
+    ? MARKET_EXPIRED_DISPLAY_MAX_AGE_MS : SNAPSHOT_FRESH_MS;
+  if (isFreshPayload(snapshot, snapshotTtl)) {
+    const normalized = withMeta(snapshot, 'snapshot', { sourceHealth: { indices: 'snapshot' } });
     try { await setIdbCache(CACHE_KEY, normalized); } catch { /* ignore */ }
     return normalized;
   }

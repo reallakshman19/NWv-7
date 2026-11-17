@@ -99,6 +99,7 @@ export function projectMarketData(marketData) {
     currencies: asArray(safeMarketData.currencies),
     ipo: asRecord(safeMarketData.ipo),
     mutualFunds: asArray(safeMarketData.mutualFunds),
+    nfo: asArray(safeMarketData.nfo),
     movers: asRecord(safeMarketData.movers),
     sectorals: asArray(safeMarketData.sectorals),
     fiidii: asRecord(safeMarketData.fiidii),
@@ -201,6 +202,8 @@ export function useMarketTabViewModel() {
   ), [marketData, sourceHealth, sessionState, error, loading, lastFetch]);
 
   const navSections = useMemo(() => ([
+    { id: 'india-tools', icon: '🇮🇳', label: 'India tools' },
+    marketSettings.showMutualFunds !== false && { id: 'nfo-tracker', icon: '📅', label: 'NFOs' },
     (marketSettings.showGainers !== false || marketSettings.showLosers !== false) &&
       { id: 'market-movers', icon: '📈', label: 'Top Movers' },
 
@@ -223,19 +226,13 @@ export function useMarketTabViewModel() {
       { id: 'fiidii', icon: '🏦', label: 'FII/DII' },
 
     marketSettings.showMutualFunds !== false &&
-      hasUsableSectionData(projectedMarketData.mutualFunds) &&
       { id: 'mutual-funds', icon: '💰', label: 'Mutual Funds' },
 
     marketSettings.showMarketHealth !== false &&
       { id: 'source-health', icon: '📡', label: 'Source Health' },
 
     marketSettings.showIPO !== false &&
-      (
-        hasUsableSectionData(projectedMarketData.ipo?.upcoming) ||
-        hasUsableSectionData(projectedMarketData.ipo?.live) ||
-        hasUsableSectionData(projectedMarketData.ipo?.recent)
-      ) &&
-      { id: 'ipo-tracker', icon: '🎯', label: 'IPO Watch' },
+      { id: 'ipo-tracker', icon: '🎯', label: 'IPO / FPO' },
   ].filter(Boolean)), [marketSettings, projectedMarketData]);
 
   const refresh = useCallback(async (force = true) => {

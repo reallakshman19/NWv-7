@@ -26,10 +26,10 @@ describe('UpAhead online offers — de-duplicate & group (Prime Day)', () => {
     const data = {
       sections: {
         shopping: [
-          offer('a', 'Amazon Prime Day 2026: When You Can Start Shopping, Early Deals and More', 'TODAY.com'),
-          offer('b', 'Amazon Prime Day 2026 dates revealed for summer sale', 'Cincinnati Enquirer'),
-          offer('c', 'Amazon Prime Day 2026 will run for four days and include major tech discounts', 'SFGATE'),
-          offer('d', 'Amazon Prime Day 2026 is in June — early deals up to 73% off', 'People.com'),
+          offer('a', 'Amazon India Prime Day 2026: When You Can Start Shopping, Early Deals and More', 'Business Standard'),
+          offer('b', 'Amazon India Prime Day 2026 dates revealed for summer sale', 'The Hindu'),
+          offer('c', 'Amazon India Prime Day 2026 will run for four days and include major tech discounts', 'Indian Express'),
+          offer('d', 'Amazon India Prime Day 2026 is in June — early deals up to 73% off', 'LiveMint'),
           // An unrelated offer that must remain separate.
           offer('e', 'Flipkart Big Billion Days 2026 sale: up to 80% off announced', 'LiveMint'),
         ],
@@ -51,7 +51,7 @@ describe('UpAhead online offers — de-duplicate & group (Prime Day)', () => {
   it('leaves a single distinct offer untouched (sourceCount 1)', () => {
     const data = {
       sections: {
-        shopping: [offer('only', 'Myntra End of Season Sale flat 50-70% off', 'Myntra')],
+        shopping: [offer('only', 'Flipkart India End of Season Sale flat 50-70% off', 'Flipkart')],
       },
     };
     const result = getVisibleUpAheadProjection({ data, settings: {} });

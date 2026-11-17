@@ -889,3 +889,24 @@
 [data-theme="light"] .ua-briefing__details ul {
     color: var(--text-secondary);
 }
+.ua-source-directory {
+  margin: 0 0 20px;
+  padding: 16px;
+  border: 1px solid var(--border-color, #30363d);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+}
+.ua-source-directory > p, .ua-source-directory article p, .ua-source-context {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.ua-source-directory__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.ua-source-directory article { padding: 10px; border: 1px solid var(--border-color, #30363d); border-radius: 8px; }
+.ua-source-directory a { color: var(--accent-primary); font-weight: 700; }
+.ua-source-directory small { display: block; color: var(--text-secondary); margin-top: 5px; }

@@ -1,51 +1,29 @@
 import { getFeedWeight } from './feedHealthMonitor.js';
 
 const CURRENT_YEAR = new Date().getFullYear();
+const discovery = (query, oman = false) => ({
+  url: `https://news.google.com/rss/search?${new URLSearchParams({ q: `${query} when:7d`, hl: oman ? 'en-US' : 'en-IN', gl: oman ? 'US' : 'IN', ceid: oman ? 'US:en' : 'IN:en' })}`,
+  sourceType: 'search', trust: 'medium',
+});
 
 const DEFAULT_FEED_SOURCE_REGISTRY = Object.freeze({
   alerts: {
-    Chennai: [
-      { url: 'https://www.thehindu.com/news/cities/chennai/feeder/default.rss', sourceType: 'general_news', trust: 'high' },
-      { url: 'https://www.dtnext.in/rss', sourceType: 'general_news', trust: 'high' },
-      { url: 'https://news.google.com/rss/search?q=Chennai+power+cut+OR+water+supply+OR+TANGEDCO+OR+metro+water&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ],
-    Muscat: [
-      { url: 'https://www.omanobserver.om/rss', sourceType: 'general_news', trust: 'high' },
-      { url: 'https://timesofoman.com/rss', sourceType: 'general_news', trust: 'high' },
-      { url: 'https://news.google.com/rss/search?q=Muscat+road+closure+OR+advisory+OR+announcement&hl=en-US&gl=US&ceid=US:en', sourceType: 'search', trust: 'high' }
-    ],
-    Trichy: [
-      { url: 'https://www.thehindu.com/news/cities/Tiruchirapalli/feeder/default.rss', sourceType: 'general_news', trust: 'high' },
-      { url: 'https://news.google.com/rss/search?q=Trichy+power+cut+OR+water+supply+OR+civic+alert&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ]
+    Chennai: [discovery('Chennai ("power cut" OR "power shutdown" OR "water supply" OR "road closure" OR advisory)')],
+    Muscat: [discovery('(Muscat OR Seeb OR Ghubrah OR Mawaleh) ("road closure" OR "water supply" OR "power shutdown" OR advisory)', true)],
+    Trichy: [discovery('Trichy ("power cut" OR "water supply" OR "road closure" OR advisory)')],
   },
   weather_alerts: {
-    Chennai: [
-      { url: 'https://news.google.com/rss/search?q=IMD+Chennai+weather+warning+OR+cyclone+OR+heavy+rain+alert&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ],
-    Muscat: [
-      { url: 'https://news.google.com/rss/search?q=Oman+Met+weather+warning+OR+thunderstorm+OR+flood+alert+Muscat&hl=en-US&gl=US&ceid=US:en', sourceType: 'search', trust: 'high' }
-    ],
-    Trichy: [
-      { url: 'https://news.google.com/rss/search?q=Trichy+weather+warning+OR+Tamil+Nadu+rain+alert+OR+IMD&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ]
+    Chennai: [discovery('Chennai ("weather warning" OR "rain alert" OR cyclone OR "heavy rain")')],
+    Muscat: [discovery('(Muscat OR Seeb) ("weather warning" OR "rain alert" OR thunderstorm OR flood)', true)],
+    Trichy: [discovery('Trichy ("weather warning" OR "rain alert" OR cyclone OR "heavy rain")')],
   },
   shopping: {
     online: [
-      { url: `https://news.google.com/rss/search?q=Amazon+sale+OR+Flipkart+sale+OR+Myntra+sale+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en`, sourceType: 'search', trust: 'high' },
-      { url: `https://news.google.com/rss/search?q=online+shopping+sale+discount+coupon+India+${CURRENT_YEAR}&hl=en-IN&gl=IN&ceid=IN:en`, sourceType: 'search', trust: 'high' }
+      discovery('(Amazon India OR Flipkart) (sale OR discount OR offer) (India OR Indian)'),
+      discovery('(Lulu OR Hypermax) Oman (online OR app OR delivery) (sale OR discount OR offer)', true),
     ],
-    Chennai: [
-      { url: 'https://news.google.com/rss/search?q=Chennai+sale+OR+offer+OR+discount+T+Nagar+OR+Phoenix+Marketcity+OR+Express+Avenue+OR+Saravana+Stores+OR+Pothys+when:14d&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' },
-      { url: 'https://news.google.com/rss/search?q=Chennai+mall+weekend+sale+OR+festive+offer+OR+shopping+deal+this+week&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ],
-    Trichy: [
-      { url: 'https://news.google.com/rss/search?q=Trichy+OR+Tiruchirappalli+shopping+sale+OR+offer+OR+discount+mall+when:14d&hl=en-IN&gl=IN&ceid=IN:en', sourceType: 'search', trust: 'high' }
-    ],
-    Muscat: [
-      { url: 'https://news.google.com/rss/search?q=Muscat+sale+OR+offer+OR+discount+Lulu+OR+Carrefour+OR+City+Centre+OR+Oman+Avenues+Mall+when:14d&hl=en-US&gl=US&ceid=US:en', sourceType: 'search', trust: 'high' },
-      { url: 'https://news.google.com/rss/search?q=Oman+shopping+festival+OR+weekend+offer+OR+mall+sale+this+week&hl=en-US&gl=US&ceid=US:en', sourceType: 'search', trust: 'high' }
-    ]
+    Chennai: [discovery('Chennai Lulu (sale OR discount OR offer)')],
+    Muscat: [discovery('(Muscat OR Seeb OR Ghubrah OR Mawaleh OR "across Oman") (Lulu OR Hypermax OR "Sharaf DG" OR "eXtra Oman") (sale OR discount OR offer)', true)],
   },
   airlines: {
     global: [

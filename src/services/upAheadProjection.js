@@ -2,7 +2,8 @@ import { isActualWeatherAlertText, isActualOfferText, isUpAheadDataFresh } from 
 import { isUpAheadItemActive } from './upAheadLifecycle.js';
 import { getUpAheadEvidence } from './upAheadEvidence.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
-import { upAheadCityLocation, matchesUpAheadLocation, matchesUpAheadLocationText } from './upAheadLocation.js';
+import { matchesUpAheadLocation } from './upAheadLocation.js';
+import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday } from './upAheadLocalPolicy.js';
 
 const DEFAULT_UPAHEAD_SETTINGS = {
   categories: {
@@ -29,20 +30,6 @@ function asSections(data) {
   return data?.sections && typeof data.sections === 'object'
     ? data.sections
     : {};
-}
-
-function itemLocation(item) {
-  return upAheadCityLocation(item);
-}
-
-function matchesConfiguredLocation(item, locations) {
-  return matchesUpAheadLocation(item, locations, { allowUnknown: false });
-}
-
-// Fallback for items (e.g. Google News shopping results) that have no explicit
-// location metadata: scan title + description + source for the configured city name.
-function matchesConfiguredLocationByText(item, locations) {
-  return matchesUpAheadLocationText(item, locations);
 }
 
 function publishedMs(item) {
@@ -198,9 +185,16 @@ function getSuggestedSortMs(item) {
 // festivals, offers, civic — rank them (soonest upcoming first, then most
 // recent), dedupe, and cap.
 function buildSuggestedItems({ movieCards, festivalCards, eventItems, onlineOffers, offlineOffers, civicAlerts, generalAlerts, weatherAlerts } = {}) {
+  const now = Date.now();
+  // The full bundled holiday calendar belongs in Holidays. Suggested is this week.
+  const nearHolidays = asArray(festivalCards).filter(item => {
+    const start = getEventDateMs(item.date || item.eventStartAt || item.releaseDate);
+    const end = getEventDateMs(item.eventEndAt || item.expiryAt);
+    return start > 0 && start <= now + 7 * 86_400_000 && (start >= now || end > now);
+  });
   const tagged = [
     ...asArray(movieCards).map(item => ({ ...item, _suggestKind: 'release' })),
-    ...asArray(festivalCards).map(item => ({ ...item, _suggestKind: 'festival' })),
+    ...nearHolidays.map(item => ({ ...item, _suggestKind: 'festival' })),
     ...asArray(eventItems).map(item => ({ ...item, _suggestKind: 'event' })),
     ...asArray(onlineOffers).map(item => ({ ...item, _suggestKind: 'offer', isOffer: true })),
     ...asArray(offlineOffers).map(item => ({ ...item, _suggestKind: 'offer', isOffer: true })),
@@ -218,7 +212,6 @@ function buildSuggestedItems({ movieCards, festivalCards, eventItems, onlineOffe
     deduped.push(item);
   }
 
-  const now = Date.now();
   return deduped
     .sort((a, b) => {
       const aMs = getSuggestedSortMs(a);
@@ -246,24 +239,31 @@ function getVisibleUpAheadProjection({ data, settings }) {
   );
   const locations = upAheadSettings.locations || DEFAULT_UPAHEAD_SETTINGS.locations;
   const local = item => matchesUpAheadLocation(item, locations);
-  const generalAlerts = asArray(sections.alerts).filter(local);
-  const localWeatherAlerts = weatherAlerts.filter(local);
+  const alertCard = item => ({ ...item, alertProvenance: getAlertProvenance(item) });
+  const generalAlerts = asArray(sections.alerts).filter(item => matchesLocalAlert(item, locations)).map(alertCard);
+  const localWeatherAlerts = weatherAlerts.filter(item => matchesLocalAlert(item, locations)).map(alertCard);
 
   // This feeds both the Civics tab and the civic portion of the Alerts badge.
   const civicItems = asArray(sections.civic)
-    .filter(item => matchesConfiguredLocation(item, locations))
+    .filter(item => matchesLocalAlert(item, locations))
+    .map(alertCard)
     .sort((a, b) => publishedMs(b) - publishedMs(a))
     .slice(0, CIVIC_MAX_ITEMS);
   const civicAlerts = civicItems;
   const combinedAlerts = [...new Map([...localWeatherAlerts, ...generalAlerts, ...civicItems]
     .map(item => [item.id || item.link || item.url || item.title, item])).values()];
 
-  // Online offers are city-agnostic e-commerce and airline deals.
+  const retailOffers = asArray(sections.shopping)
+    .filter(item => isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings))
+    .map(item => ({ item, scope: classifyRetailOffer(item, locations) }))
+    .filter(row => row.scope);
   const onlineOfferCandidates = [
-    ...asArray(sections.shopping),
-    ...asArray(sections.airlines),
-  ].filter(item => !itemLocation(item) && !matchesConfiguredLocationByText(item, locations)
-    && isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings));
+    ...retailOffers.filter(row => row.scope.online).map(({ item, scope }) => ({
+      ...item, retailerId: scope.retailer.id, offerMarket: scope.market,
+    })),
+    ...asArray(sections.airlines).filter(item =>
+      isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings)),
+  ];
 
   // Group near-duplicate online offers (e.g. the many "Amazon Prime Day 2026"
   // write-ups from different outlets) into a single representative carrying a
@@ -274,20 +274,16 @@ function getVisibleUpAheadProjection({ data, settings }) {
   // The local shopping feeds are already filtered for offer intent.
   // Google News RSS items carry no explicit location metadata, so fall back to
   // text scanning when city/locationCanonical/region fields are all absent.
-  const offlineOffers = asArray(sections.shopping)
-    .filter(item => isActualOfferText(`${item?.title || ''} ${item?.description || ''}`, upAheadSettings))
-    .filter(item =>
-      itemLocation(item)
-        ? matchesConfiguredLocation(item, locations)
-        : matchesConfiguredLocationByText(item, locations)
-    )
+  const offlineOffers = retailOffers.filter(row => row.scope.offline)
+    .map(({ item, scope }) => ({ ...item, retailerId: scope.retailer.id, offerMarket: scope.market }))
     .sort((a, b) => publishedMs(b) - publishedMs(a))
     .slice(0, CIVIC_MAX_ITEMS);
 
   const offerItems = [...onlineOffers, ...offlineOffers]; // combined, for backward-compat
 
   const movieCards = asArray(sections.movies).filter(local).map(buildCardArticle);
-  const festivalCards = asArray(sections.festivals).filter(local).map(buildCardArticle);
+  const festivalCards = asArray(sections.festivals).filter(local)
+    .filter(item => isLocalHoliday(item, locations)).map(buildCardArticle);
   const eventItems = [
     ...asArray(sections.events),
     ...asArray(sections.sports),

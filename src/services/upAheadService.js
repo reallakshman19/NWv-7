@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS } from '../utils/storage.js';
 import plannerStorage from '../utils/plannerStorage.js';
 import { fetchIntelligentUpAheadData } from './intelligentUpAheadFetcher.js';
 import { toDateKey } from '../utils/dateDisplay.js';
+import { getHolidayCalendarItems, isBundledHoliday } from './holidayCalendar.js';
 import {
   isUpAheadItemActive,
   mergeUpAheadItems,
@@ -209,6 +210,14 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       planDate: eventDateKey,
       category: sectionKey,
       source: item.sourceDomain || item.source || sectionKey,
+      retailerId: item.retailerId || null,
+      offerMarket: item.offerMarket || null,
+      offerChannel: item.offerChannel || null,
+      acquisitionLocation: item.acquisitionLocation || null,
+      sourceUrl: item.sourceUrl || null,
+      sourceAuthority: item.sourceAuthority || null,
+      affectedLocations: item.affectedLocations || null,
+      affectedScope: item.affectedScope || null,
       city: item.city || null,
       region: item.region || null,
       locationCanonical: item.locationCanonical || item.city || item.region || null,
@@ -322,6 +331,14 @@ function transformPythonItemsToDisplay(items = []) {
         locationCanonical: it.city || it.region || null,
         sourceDomain:      it.source,
         source:            it.source,
+        retailerId:        it.retailerId || null,
+        offerMarket:       it.offerMarket || null,
+        offerChannel:      it.offerChannel || null,
+        acquisitionLocation: it.acquisitionLocation || null,
+        sourceUrl:         it.sourceUrl || null,
+        sourceAuthority:   it.sourceAuthority || null,
+        affectedLocations: it.affectedLocations || null,
+        affectedScope:     it.affectedScope || null,
         displayEligible:   it.displayEligible !== false,
         upAheadEligible:   Boolean(eventDateKey),
         plannerEligible:   Boolean(it.plannerEligible && eventDateKey),
@@ -423,14 +440,23 @@ function readStoredFeed() {
   }
 }
 
-export function loadFromCache() {
-  return sanitizeUpAheadData(readStoredFeed());
+export function loadFromCache(upAheadSettings = null) {
+  const cached = sanitizeUpAheadData(readStoredFeed());
+  if (!upAheadSettings) return cached;
+  const locations = upAheadSettings.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'];
+  return sanitizeUpAheadData(attachHolidayCalendar(
+    cached || buildFestivalFallbackData(locations), locations
+  ));
 }
 
-export function saveToCache(incoming, fallback = null) {
+export function saveToCache(incoming, fallback = null, upAheadSettings = null) {
   // Read at commit time so concurrent loads merge with the latest saved list.
   const stored = readStoredFeed();
-  const merged = mergeUpAheadFeed(stored || fallback, incoming);
+  const combined = mergeUpAheadFeed(stored || fallback, incoming);
+  // A fresh dataset API can skip static/live acquisition. Reconcile the
+  // independent calendar after every merge, including location changes.
+  const merged = upAheadSettings ? attachHolidayCalendar(combined,
+    upAheadSettings.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']) : combined;
   const now = Date.now();
   const cutoff = now - UP_AHEAD_SOURCE_LOOKBACK_MS;
   const retiredItems = new Map(Object.entries(stored?.retiredItems || {}).filter(([, time]) => time >= cutoff));
@@ -504,100 +530,41 @@ export async function fetchStaticUpAheadData(upAheadSettings = {}) {
       clearTimeout(timer);
     }
   }
-  if (!snapshot) throw new Error(failures.join('; ') || 'Up Ahead snapshot unavailable');
-  if (sanitizeUpAheadData(snapshot) || !Array.isArray(snapshot.items)) return snapshot;
-
-  const normalized = normalizeUpAheadData(snapshot);
-  const fallback = buildFestivalFallbackData(
-    upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']
-  );
-  // Keep expired incoming rows long enough to supersede an older version of
-  // the same occurrence. The merge drops them before anything is displayed.
-  return {
-    ...normalized,
-    timeline: [...normalized.timeline, ...fallback.timeline],
-    sections: {
-      ...normalized.sections,
-      festivals: [...(normalized.sections.festivals || []), ...fallback.sections.festivals],
-    },
-    auditSummary: fallback.auditSummary,
-  };
-}
-
-function makeFestivalItem({ id, title, date, location, description }) {
-  return {
-    id: `festival-${id}-${date}-${location}`.toLowerCase().replace(/[^a-z0-9-]+/g, '-'),
-    hiddenKey: `festival-${id}-${date}-${location}`,
-    canonicalId: `festival-${id}-${date}-${location}`,
-    title,
-    link: '',
-    description,
-    date,
-    releaseDate: date,
-    planDate: date,
-    category: 'festivals',
-    type: 'festival',
-    source: 'Festival calendar',
-    locationCanonical: location,
-    dateConfidence: 'calendar',
-    plannerEligible: true,
-    displayEligible: true,
-  };
+  const locations = upAheadSettings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'];
+  if (!snapshot) {
+    const fallback = buildFestivalFallbackData(locations);
+    return {
+      ...fallback,
+      auditSummary: { ...fallback.auditSummary, error: failures.join('; ') || 'Up Ahead snapshot unavailable' },
+      acquisitionSummary: { status: 'failed', error: failures.join('; ') || 'Up Ahead snapshot unavailable' },
+    };
+  }
+  // The one-time calendar is independent of RSS coverage and feed freshness.
+  // Fresh news must not remove holidays; old bundled rows are replaced on read.
+  return attachHolidayCalendar(snapshot, locations);
 }
 
 function getFestivalFallbackItems(locations = [], asOfDate = new Date()) {
-  const selected = new Set((locations || []).map(location => String(location || '').toLowerCase()));
-  const includeIndia = selected.size === 0 || selected.has('chennai') || selected.has('trichy') || selected.has('india');
-  const includeOman = selected.size === 0 || selected.has('muscat') || selected.has('oman');
-  const todayKey = normalizeDateKey(asOfDate);
+  return getHolidayCalendarItems(locations, asOfDate);
+}
 
-  const indiaFestivals = [
-    { id: 'muharram', title: 'Muharram', date: '2026-06-17', location: 'Chennai', description: 'Major public holiday observed in India.' },
-    { id: 'independence-day', title: 'Independence Day', date: '2026-08-15', location: 'Chennai', description: 'National holiday in India.' },
-    { id: 'onam', title: 'Onam', date: '2026-08-26', location: 'Chennai', description: 'Regional festival widely followed across South India.' },
-    { id: 'ganesh-chaturthi', title: 'Ganesh Chaturthi', date: '2026-09-14', location: 'Chennai', description: 'Festival observance and local events expected.' },
-    { id: 'gandhi-jayanti', title: 'Gandhi Jayanti', date: '2026-10-02', location: 'Chennai', description: 'National holiday in India.' },
-    { id: 'diwali', title: 'Diwali', date: '2026-11-08', location: 'Chennai', description: 'Major festival and public-holiday period.' },
-    { id: 'christmas', title: 'Christmas', date: '2026-12-25', location: 'Chennai', description: 'Public holiday and festival observance.' },
-  ];
-
-  const omanFestivals = [
-    { id: 'islamic-new-year', title: 'Islamic New Year', date: '2026-06-17', location: 'Muscat', description: 'Expected holiday period; official dates may vary by moon sighting.' },
-    { id: 'prophets-birthday', title: "Prophet's Birthday", date: '2026-08-25', location: 'Muscat', description: 'Expected holiday period; official dates may vary by moon sighting.' },
-    { id: 'oman-national-day', title: 'Oman National Day', date: '2026-11-18', location: 'Muscat', description: 'National holiday in Oman.' },
-  ];
-
-  return [
-    ...(includeIndia ? indiaFestivals : []),
-    ...(includeOman ? omanFestivals : []),
-  ]
-    .filter(item => !todayKey || item.date >= todayKey)
-    .map(makeFestivalItem)
-    .slice(0, 12);
+function attachHolidayCalendar(data, locations, asOfDate = new Date()) {
+  const normalized = normalizeUpAheadData(data) || { timeline: [], sections: {} };
+  const keepFeedRows = rows => rows.filter(item => !isBundledHoliday(item) && !isCalendarFallbackItem(item));
+  const festivals = getHolidayCalendarItems(locations, asOfDate);
+  const timeline = timelineFromItems(mergeUpAheadItems([
+    ...keepFeedRows(normalized.timeline.flatMap(day => day.items)), ...festivals,
+  ], { preferEventCategory: true }));
+  const sections = Object.fromEntries(Object.entries(normalized.sections).map(([key, rows]) => [key, keepFeedRows(rows)]));
+  sections.festivals = mergeUpAheadItems([...(sections.festivals || []), ...festivals]);
+  return { ...normalized, timeline, sections, weekly_plan: generateWeeklyPlan(timeline) };
 }
 
 function buildFestivalFallbackData(locations, asOfDate = new Date()) {
-  const festivals = getFestivalFallbackItems(locations, asOfDate);
-  const timeline = festivals.map(item => ({
-    date: item.date,
-    dayLabel: getDayLabel(item.date),
-    items: [{
-      ...item,
-      sourceId: item.id,
-      tags: ['festivals'],
-    }],
-  }));
-
-  return {
-    timeline,
-    sections: {
-      festivals,
-    },
-    weekly_plan: generateWeeklyPlan(timeline),
-    lastUpdated: new Date().toISOString(),
-    auditSummary: { fallback: 'festival_calendar' },
-    dropReport: [],
-  };
+  return attachHolidayCalendar({
+    timeline: [], sections: {}, lastUpdated: null,
+    auditSummary: { fallback: 'festival_calendar' }, dropReport: [], sourceMode: 'calendar',
+  }, locations, asOfDate);
 }
 
 function isCalendarFallbackItem(item) {
@@ -608,7 +575,7 @@ function hasPublisherContent(data) {
   if (data?.auditSummary?.fallback === 'festival_calendar' || data?.auditSummary?.error
     || data?.sourceMode === 'failed' || data?.acquisitionSummary?.status === 'failed') return false;
   return [...Object.values(data?.sections || {}).flat(), ...(data?.timeline || []).flatMap(day => day.items)]
-    .some(item => !isCalendarFallbackItem(item));
+    .some(item => !isCalendarFallbackItem(item) && !isBundledHoliday(item));
 }
 
 function mergeUpAheadFeed(baseData, newData) {
@@ -622,8 +589,8 @@ function mergeUpAheadFeed(baseData, newData) {
     ? (incomingPublished ? incoming : base)
     : upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
       >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
-  // Calendar estimates only support a publisher outage. They cannot remain
-  // attached to a recovered publication or make genuine data look like fallback.
+  // Legacy calendar estimates only support a publisher outage. The new
+  // source-backed bundled calendar is independent and survives recovery.
   const retainPublished = items => hasPublisherContent(freshest)
     ? items.filter(item => !isCalendarFallbackItem(item)) : items;
 
@@ -673,36 +640,28 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
 
     // My Planner reads eligible suggestions from the rolling feed. Only + Plan
     // writes a suggestion into the user's saved agenda.
+    const hasPublication = Array.isArray(result.rankedItems) && result.rankedItems.length > 0;
+    const failed = result.acquisitionSummary?.status === 'failed'
+      || (Number(result.acquisitionSummary?.attemptedSources) > 0
+        && Number(result.acquisitionSummary?.successfulSources) === 0);
     const display = {
       ...buildLegacyDisplayFromRanked(result.rankedItems || [], {
         auditSummary: result.auditSummary,
         dropReport: result.dropReport
       }),
       acquisitionSummary: result.acquisitionSummary || null,
-      lastUpdated: asOfDate.toISOString(),
-      sourceMode: 'live',
+      lastUpdated: hasPublication && !failed ? asOfDate.toISOString() : null,
+      sourceMode: failed ? 'failed' : hasPublication ? 'live' : 'calendar',
+      ...(!hasPublication && { auditSummary: {
+        ...result.auditSummary, fallback: 'festival_calendar',
+        ...(failed && { error: 'No Up Ahead source returned a qualified publication.' }),
+      } }),
     };
 
-    if (!hasItems(display.sections?.festivals)) {
-      const fallback = buildFestivalFallbackData(locations);
-      if (!result.rankedItems?.length) {
-        return {
-          ...fallback,
-          lastUpdated: null,
-          acquisitionSummary: display.acquisitionSummary,
-          sourceMode: 'snapshot',
-        };
-      }
-      return mergeUpAheadData(
-        { ...fallback, lastUpdated: null },
-        display
-      );
-    }
-
-    return display;
+    return attachHolidayCalendar(display, locations, asOfDate);
   } catch (error) {
     console.error('[UpAheadService] Intelligent fetch failed', error);
-    return {
+    return attachHolidayCalendar({
       timeline: [],
       sections: {
         movies: [],
@@ -716,7 +675,7 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
         airlines: []
       },
       weekly_plan: generateWeeklyPlan([]),
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: null,
       auditSummary: { total: 0, dropped: 0, error: error?.message || 'unknown' },
       dropReport: [],
       acquisitionSummary: {
@@ -730,7 +689,7 @@ export async function fetchLiveUpAheadData(upAheadSettings = {}) {
         error: error?.message || 'unknown',
       },
       sourceMode: 'failed',
-    };
+    }, locations, asOfDate);
   }
 }
 

@@ -1,0 +1,16 @@
+.india-tools { margin-bottom: 16px; }
+.india-tools h2 { font-size: 1.2rem; margin: 0 0 8px; }
+.india-tools h3 { font-size: 1rem; margin: 0 0 10px; }
+.india-tools p, .india-tools small { color: var(--text-secondary); line-height: 1.5; }
+.india-tools a { color: var(--accent-primary); text-decoration: underline; }
+.india-tools__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; }
+.india-tools__grid > div { min-width: 0; padding: 14px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; }
+.india-tools__form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; margin-bottom: 10px; }
+.india-tools label { display: flex; flex: 1 1 90px; min-width: 0; flex-direction: column; gap: 5px; font-size: .85rem; }
+.india-tools input, .india-tools select, .india-tools button { max-width: 100%; min-height: 40px; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; color: var(--text-primary); background: var(--bg-primary); }
+.india-tools input, .india-tools select { width: 100%; box-sizing: border-box; }
+.india-tools button { cursor: pointer; }
+.india-tools button:disabled { opacity: .5; cursor: default; }
+.india-tools output { display: block; font-size: 1.3rem; font-weight: 700; }
+.india-tools ul { padding-left: 20px; }
+.india-tools li { margin-bottom: 8px; overflow-wrap: anywhere; }

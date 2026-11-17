@@ -10,8 +10,8 @@ function shoppingItem(i, { city = null } = {}) {
   return {
     id: `s${i}${city || 'na'}`,
     title: city
-      ? `${city} mall weekend sale up to 50% off (${i})`
-      : `Amazon national mega sale ${i} — up to 70% off`,
+      ? `${city} Lulu store weekend sale up to 50% off (${i})`
+      : `Amazon India national mega sale ${i} — up to 70% off`,
     summary: 'offer discount sale',
     url: `https://example.com/${city || 'na'}/${i}`,
     source: 'Google News',

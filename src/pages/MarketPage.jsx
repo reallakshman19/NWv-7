@@ -7,6 +7,8 @@ import MarketSparkline from '../components/MarketSparkline';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import EmptyState from '../components/EmptyState';
 import GradeBadge from '../components/audit/GradeBadge.jsx';
+import IndiaMarketTools, { NewFundOffers } from '../components/market/IndiaMarketTools.jsx';
+import { INDIA_MARKET_SOURCES } from '../services/indiaMarketTools.js';
 // useMarketTabViewModel — consumed via page-scoped alias useMarketPageViewModel
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
 
@@ -16,7 +18,8 @@ function formatUpdated(timestamp) {
         hour: '2-digit',
         minute: '2-digit',
         day: '2-digit',
-        month: 'short'
+        month: 'short',
+        timeZone: 'Asia/Kolkata',
     });
 }
 
@@ -81,11 +84,11 @@ function MarketPage() {
     const hasFIIDIIData =
         hasUsableSectionData(marketData?.fiidii?.fii) ||
         hasUsableSectionData(marketData?.fiidii?.dii);
-    const hasMutualFundData = hasUsableSectionData(marketData?.mutualFunds);
     const hasIPOData =
         hasUsableSectionData(marketData?.ipo?.upcoming) ||
         hasUsableSectionData(marketData?.ipo?.live) ||
         hasUsableSectionData(marketData?.ipo?.recent);
+    const indexQuoteAt = (marketData?.indices || []).map(row => Date.parse(row.quoteAt || '')).filter(Number.isFinite);
 
     const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -180,6 +183,9 @@ function MarketPage() {
                     </div>
                 )}
 
+                <IndiaMarketTools showCurrency={marketSettings.showCurrency !== false} showMutualFunds={marketSettings.showMutualFunds !== false} />
+                {indexQuoteAt.length > 0 && <p className="market-section__subtitle">Index quotes as of {new Date(Math.min(...indexQuoteAt)).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST. Daily / delayed data; refresh time is collection time.</p>}
+
                 {marketSettings.showIndices !== false && displayedPrimaryIndices.length > 0 && (
                     <section className="market-hero-grid">
                         <div className="market-hero-panel modern-card">
@@ -210,13 +216,14 @@ function MarketPage() {
                                                 <div className="market-hero-board__range">
                                                     {index.dayLow ? Number(index.dayLow).toLocaleString('en-IN') : '--'} - {index.dayHigh ? Number(index.dayHigh).toLocaleString('en-IN') : '--'}
                                                 </div>
+                                                {index.quoteAt && <div className="market-section__subtitle">Daily · {formatUpdated(index.quoteAt)} IST</div>}
                                             </div>
                                         );
                                     })}
                                 </div>
                                 <div className="market-hero-panel__spark">
                                     <MarketSparkline series={heroSeries} positive={getFloat(displayedPrimaryIndices[0]?.change) >= 0} />
-                                    <div className="market-hero-panel__timestamp">Updated {formatUpdated(lastFetch || marketData?.fetchedAt)}</div>
+                                    <div className="market-hero-panel__timestamp">Collected {formatUpdated(lastFetch || marketData?.fetchedAt)} IST</div>
                                 </div>
                             </div>
 
@@ -281,10 +288,10 @@ function MarketPage() {
                     <section id="market-movers" className="market-section modern-card">
                         <div className="modern-card__header">
                             <div>
-                                <div className="market-section__eyebrow">Live movers</div>
+                                <div className="market-section__eyebrow">Tracked NSE shares</div>
                                 <h2 className="modern-card__title">Top Movers</h2>
                             </div>
-                            <div className="market-section__subtitle">Market breadth leaders and laggards</div>
+                            <div className="market-section__subtitle">Gainers and losers in the tracked shares</div>
                         </div>
 
                         <div className="market-movers-grid">
@@ -296,7 +303,7 @@ function MarketPage() {
                                             <div key={`${stock.symbol}-${idx}`} className={`market-table__row ${getMarketToneClass(stock.changePercent)}`}>
                                                 <div>
                                                     <div className="market-table__symbol">{stock.symbol}</div>
-                                                    <div className="market-table__meta">{stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Live quote'}</div>
+                                                    <div className="market-table__meta">{stock.quoteAt ? `Daily · ${formatUpdated(stock.quoteAt)} IST` : stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Quote time unavailable'}</div>
                                                 </div>
                                                 <div className="market-table__value">
                                                     <div>{stock.price}</div>
@@ -316,7 +323,7 @@ function MarketPage() {
                                             <div key={`${stock.symbol}-${idx}`} className={`market-table__row ${getMarketToneClass(stock.changePercent)}`}>
                                                 <div>
                                                     <div className="market-table__symbol">{stock.symbol}</div>
-                                                    <div className="market-table__meta">{stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Live quote'}</div>
+                                                    <div className="market-table__meta">{stock.quoteAt ? `Daily · ${formatUpdated(stock.quoteAt)} IST` : stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Quote time unavailable'}</div>
                                                 </div>
                                                 <div className="market-table__value">
                                                     <div>{stock.price}</div>
@@ -348,6 +355,7 @@ function MarketPage() {
                                     <div key={sector.name} className={`market-heatmap__tile ${isUp ? 'market-heatmap__tile--up' : 'market-heatmap__tile--down'} ${getMarketToneClass(sector.changePercent)}`}>
                                         <div className="market-heatmap__name">{sector.name}</div>
                                         <div className="market-heatmap__value">{sector.value}</div>
+                                        {sector.quoteAt && <small>Daily · {formatUpdated(sector.quoteAt)} IST</small>}
                                         <div className={isUp ? 'text-success' : 'text-danger'}>
                                             {isUp ? '▲' : '▼'} {Math.abs(getFloat(sector.changePercent)).toFixed(2)}%
                                         </div>
@@ -453,7 +461,7 @@ function MarketPage() {
                 </section>
 
                 <section className="market-bottom-grid">
-                    {marketSettings.showMutualFunds !== false && hasMutualFundData && (
+                    {marketSettings.showMutualFunds !== false && (
                         <div id="mutual-funds" className="market-section modern-card">
                             <div className="modern-card__header">
                                 <div>
@@ -466,19 +474,22 @@ function MarketPage() {
                         </div>
                     )}
 
-                    {marketSettings.showIPO !== false && hasIPOData && (
+                    {marketSettings.showIPO !== false && (
                         <div id="ipo-tracker" className="market-section modern-card">
                             <div className="modern-card__header">
                                 <div>
                                     <div className="market-section__eyebrow">Primary issues</div>
-                                    <h2 className="modern-card__title">IPO Tracker</h2>
+                                    <h2 className="modern-card__title">Equity IPO / FPO</h2>
                                 </div>
                                 <div className="market-section__subtitle">Upcoming, live and recent issues</div>
                             </div>
-                            <IPOCard ipoData={marketData.ipo} />
+                            {hasIPOData ? <IPOCard ipoData={marketData.ipo} /> : <p>{sourceHealth.ipo?.status === 'failed' ? 'The exchange issue feed could not be reached. Check the exchange for open and upcoming issues.' : 'No verified current issue schedule in this feed. Check the exchange for open and upcoming issues.'}</p>}
+                            <p><a href={INDIA_MARKET_SOURCES.ipo} target="_blank" rel="noopener noreferrer">NSE public issues ↗</a> · <a href={INDIA_MARKET_SOURCES.issueDocuments} target="_blank" rel="noopener noreferrer">IPO / FPO offer documents ↗</a></p>
                         </div>
                     )}
                 </section>
+
+                {marketSettings.showMutualFunds !== false && <NewFundOffers rows={marketData.nfo} sourceStatus={sourceHealth.nfo?.status} />}
 
                 
 
@@ -549,7 +560,7 @@ function MarketPage() {
                 <div className="market-disclaimer market-disclaimer--revamp">
                     <div>* Data is for informational purposes only. Not investment advice.</div>
                     <div className="market-disclaimer__meta">
-                        Last Updated: {marketData?.fetchedAt ? new Date(marketData.fetchedAt).toLocaleString() : 'N/A'}
+                        Collected: {marketData?.fetchedAt ? new Date(marketData.fetchedAt).toLocaleString() : 'N/A'}
                     </div>
                 </div>
             </main>

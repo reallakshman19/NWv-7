@@ -81,6 +81,7 @@ describe('Release 6J Market surface binding', () => {
       currencies: [],
       ipo: {},
       mutualFunds: [],
+      nfo: [],
       movers: {},
       sectorals: [],
       fiidii: {},
@@ -106,5 +107,10 @@ describe('Release 6J Market surface binding', () => {
       fiidii: {},
       sourceHealth: {},
     });
+  });
+
+  it('preserves acquired NFO schedules for the Market page', () => {
+    const nfo = [{ name: 'Fixture new fund', openDate: '2026-11-16', closeDate: '2026-11-30' }];
+    expect(projectMarketData({ nfo }).nfo).toEqual(nfo);
   });
 });

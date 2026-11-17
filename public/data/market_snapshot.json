@@ -1,1246 +1,781 @@
 {
-  "schemaVersion": "2.0.0",
-  "generatedAt": "2026-07-21T11:13:51.335422Z",
-  "generated_at": "2026-07-21T11:13:51.335427Z",
-  "fetchedAt": 1784632431335,
-  "sourceMode": "snapshot-worker-v2",
+  "schemaVersion": "market-india-1",
+  "generatedAt": "2026-11-17T01:47:40.879041Z",
+  "fetchedAt": 1794880060879,
+  "sourceMode": "snapshot",
   "indices": [
     {
       "name": "NIFTY 50",
       "symbol": "^NSEI",
-      "value": "24,187.70",
-      "change": "-50.80",
-      "changePercent": "-0.21",
+      "value": "25291.10",
+      "price": "25291.10",
+      "change": "-8.25",
+      "changePercent": "-0.03",
       "direction": "down",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
       "name": "SENSEX",
       "symbol": "^BSESN",
-      "value": "77,470.11",
-      "change": "-238.41",
-      "changePercent": "-0.31",
-      "direction": "down",
+      "value": "82104.79",
+      "price": "82104.79",
+      "change": "193.78",
+      "changePercent": "0.24",
+      "direction": "up",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:02:29Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
-      "name": "NIFTY BANK",
+      "name": "BANK NIFTY",
       "symbol": "^NSEBANK",
-      "value": "57,835.35",
-      "change": "-109.65",
-      "changePercent": "-0.19",
-      "direction": "down",
+      "value": "61575.90",
+      "price": "61575.90",
+      "change": "57.40",
+      "changePercent": "0.09",
+      "direction": "up",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
       "name": "NIFTY IT",
       "symbol": "^CNXIT",
-      "value": "28,984.40",
-      "change": "-177.50",
-      "changePercent": "-0.61",
+      "value": "31941.05",
+      "price": "31941.05",
+      "change": "-222.50",
+      "changePercent": "-0.69",
       "direction": "down",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
       "name": "NIFTY AUTO",
       "symbol": "^CNXAUTO",
-      "value": "27,280.60",
-      "change": "180.85",
-      "changePercent": "0.67",
-      "direction": "up",
+      "value": "27570.25",
+      "price": "27570.25",
+      "change": "-660.75",
+      "changePercent": "-2.34",
+      "direction": "down",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
       "name": "NIFTY PHARMA",
       "symbol": "^CNXPHARMA",
-      "value": "26,092.85",
-      "change": "89.70",
-      "changePercent": "0.34",
-      "direction": "up",
+      "value": "28098.40",
+      "price": "28098.40",
+      "change": "-577.35",
+      "changePercent": "-2.01",
+      "direction": "down",
       "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     }
   ],
-  "globalIndices": [
+  "globalIndices": [],
+  "commodities": [],
+  "currencies": [],
+  "sectorals": [
     {
-      "name": "DOW JONES",
-      "symbol": "^DJI",
-      "value": "51,839.26",
-      "change": "-307.16",
-      "changePercent": "-0.59",
-      "direction": "down",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "NASDAQ",
-      "symbol": "^IXIC",
-      "value": "25,508.07",
-      "change": "-12.17",
-      "changePercent": "-0.05",
-      "direction": "down",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "S&P 500",
-      "symbol": "^GSPC",
-      "value": "7,443.28",
-      "change": "-14.41",
-      "changePercent": "-0.19",
-      "direction": "down",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "NIKKEI 225",
-      "symbol": "^N225",
-      "value": "66,232.19",
-      "change": "2091.07",
-      "changePercent": "3.26",
+      "name": "BANK NIFTY",
+      "symbol": "^NSEBANK",
+      "value": "61575.90",
+      "price": "61575.90",
+      "change": "57.40",
+      "changePercent": "0.09",
       "direction": "up",
-      "sourceMode": "yahoo-yfinance"
+      "currency": "₹",
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     },
     {
-      "name": "HANG SENG",
-      "symbol": "^HSI",
-      "value": "25,132.29",
-      "change": "-10.76",
-      "changePercent": "-0.04",
+      "name": "NIFTY IT",
+      "symbol": "^CNXIT",
+      "value": "31941.05",
+      "price": "31941.05",
+      "change": "-222.50",
+      "changePercent": "-0.69",
       "direction": "down",
-      "sourceMode": "yahoo-yfinance"
+      "currency": "₹",
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
+    },
+    {
+      "name": "NIFTY AUTO",
+      "symbol": "^CNXAUTO",
+      "value": "27570.25",
+      "price": "27570.25",
+      "change": "-660.75",
+      "changePercent": "-2.34",
+      "direction": "down",
+      "currency": "₹",
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
+    },
+    {
+      "name": "NIFTY PHARMA",
+      "symbol": "^CNXPHARMA",
+      "value": "28098.40",
+      "price": "28098.40",
+      "change": "-577.35",
+      "changePercent": "-2.01",
+      "direction": "down",
+      "currency": "₹",
+      "quoteAt": "2026-11-16T10:01:11Z",
+      "sourceMode": "yahoo-free-daily",
+      "source": "Yahoo Finance daily chart"
     }
   ],
   "movers": {
     "gainers": [
       {
-        "symbol": "KOTAKBANK",
-        "price": "385.95",
-        "change": "3.90",
-        "changePercent": "1.02",
+        "name": "ITC",
+        "symbol": "ITC.NS",
+        "value": "295.10",
+        "price": "295.10",
+        "change": "11.05",
+        "changePercent": "3.89",
         "direction": "up",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:14Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "MARUTI",
-        "price": "13597.00",
-        "change": "83.00",
-        "changePercent": "0.61",
+        "name": "BHARTIARTL",
+        "symbol": "BHARTIARTL.NS",
+        "value": "2153.50",
+        "price": "2153.50",
+        "change": "57.50",
+        "changePercent": "2.74",
         "direction": "up",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "BAJFINANCE",
-        "price": "1069.20",
-        "change": "5.20",
-        "changePercent": "0.49",
+        "name": "HINDUNILVR",
+        "symbol": "HINDUNILVR.NS",
+        "value": "2000.30",
+        "price": "2000.30",
+        "change": "26.30",
+        "changePercent": "1.33",
         "direction": "up",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "BHARTIARTL",
-        "price": "1948.40",
-        "change": "8.30",
-        "changePercent": "0.43",
+        "name": "KOTAKBANK",
+        "symbol": "KOTAKBANK.NS",
+        "value": "494.20",
+        "price": "494.20",
+        "change": "3.80",
+        "changePercent": "0.77",
         "direction": "up",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:14Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "SUNPHARMA",
-        "price": "1961.90",
-        "change": "5.50",
-        "changePercent": "0.28",
+        "name": "HDFCBANK",
+        "symbol": "HDFCBANK.NS",
+        "value": "816.50",
+        "price": "816.50",
+        "change": "4.20",
+        "changePercent": "0.52",
         "direction": "up",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       }
     ],
     "losers": [
       {
-        "symbol": "HDFCBANK",
-        "price": "761.45",
-        "change": "-16.15",
-        "changePercent": "-2.08",
+        "name": "MARUTI",
+        "symbol": "MARUTI.NS",
+        "value": "12571.00",
+        "price": "12571.00",
+        "change": "-453.00",
+        "changePercent": "-3.48",
         "direction": "down",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "RELIANCE",
-        "price": "1303.70",
-        "change": "-19.40",
-        "changePercent": "-1.47",
+        "name": "TCS",
+        "symbol": "TCS.NS",
+        "value": "2405.00",
+        "price": "2405.00",
+        "change": "-37.40",
+        "changePercent": "-1.53",
         "direction": "down",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "SBIN",
-        "price": "1044.40",
-        "change": "-15.60",
-        "changePercent": "-1.47",
+        "name": "WIPRO",
+        "symbol": "WIPRO.NS",
+        "value": "193.54",
+        "price": "193.54",
+        "change": "-2.66",
+        "changePercent": "-1.36",
         "direction": "down",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "TCS",
-        "price": "2221.10",
-        "change": "-30.00",
-        "changePercent": "-1.33",
+        "name": "SUNPHARMA",
+        "symbol": "SUNPHARMA.NS",
+        "value": "1867.50",
+        "price": "1867.50",
+        "change": "-17.50",
+        "changePercent": "-0.93",
         "direction": "down",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       },
       {
-        "symbol": "INFY",
-        "price": "1073.50",
-        "change": "-13.60",
-        "changePercent": "-1.25",
+        "name": "INFY",
+        "symbol": "INFY.NS",
+        "value": "1145.10",
+        "price": "1145.10",
+        "change": "-6.10",
+        "changePercent": "-0.53",
         "direction": "down",
-        "sourceMode": "yahoo-yfinance"
+        "currency": "₹",
+        "quoteAt": "2026-11-16T09:59:13Z",
+        "sourceMode": "yahoo-free-daily",
+        "source": "Yahoo Finance daily chart"
       }
-    ],
-    "source": "yahoo-yfinance"
+    ]
   },
-  "sectorals": [
-    {
-      "name": "NIFTY BANK",
-      "symbol": "^NSEBANK",
-      "value": "57,835.35",
-      "change": "-109.65",
-      "changePercent": "-0.19",
-      "direction": "down",
-      "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "NIFTY IT",
-      "symbol": "^CNXIT",
-      "value": "28,984.40",
-      "change": "-177.50",
-      "changePercent": "-0.61",
-      "direction": "down",
-      "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "NIFTY AUTO",
-      "symbol": "^CNXAUTO",
-      "value": "27,280.60",
-      "change": "180.85",
-      "changePercent": "0.67",
-      "direction": "up",
-      "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
-    },
-    {
-      "name": "NIFTY PHARMA",
-      "symbol": "^CNXPHARMA",
-      "value": "26,092.85",
-      "change": "89.70",
-      "changePercent": "0.34",
-      "direction": "up",
-      "currency": "₹",
-      "sourceMode": "yahoo-yfinance"
-    }
-  ],
-  "commodities": [
-    {
-      "name": "Crude Oil",
-      "symbol": "CL=F",
-      "value": "$83.26",
-      "unit": "$/bbl",
-      "change": "0.03",
-      "changePercent": "0.04",
-      "direction": "up",
-      "source": "yahoo-yfinance"
-    },
-    {
-      "name": "Gold",
-      "symbol": "GC=F",
-      "value": "$4066.50",
-      "unit": "$/oz",
-      "change": "56.20",
-      "changePercent": "1.40",
-      "direction": "up",
-      "source": "yahoo-yfinance"
-    },
-    {
-      "name": "Silver",
-      "symbol": "SI=F",
-      "value": "$59.13",
-      "unit": "$/oz",
-      "change": "2.33",
-      "changePercent": "4.11",
-      "direction": "up",
-      "source": "yahoo-yfinance"
-    }
-  ],
-  "currencies": [
-    {
-      "name": "GBP/INR",
-      "pair": "GBPINR",
-      "symbol": "GBPINR=X",
-      "value": "₹129.1724",
-      "rate": 129.17239379882812,
-      "change": "-0.2652",
-      "changePercent": "-0.20",
-      "direction": "down",
-      "source": "yahoo-yfinance",
-      "mode": "fallback-intraday",
-      "asOf": "2026-07-21T11:12:09.920055Z"
-    },
-    {
-      "name": "EUR/INR",
-      "pair": "EURINR",
-      "symbol": "EURINR=X",
-      "value": "₹109.9722",
-      "rate": 109.97219848632812,
-      "change": "0.0082",
-      "changePercent": "0.01",
-      "direction": "up",
-      "source": "yahoo-yfinance",
-      "mode": "fallback-intraday",
-      "asOf": "2026-07-21T11:12:09.946037Z"
-    },
-    {
-      "name": "JPY/INR",
-      "pair": "JPYINR",
-      "symbol": "JPYINR=X",
-      "value": "₹0.5914",
-      "rate": 0.5914199948310852,
-      "change": "-0.0001",
-      "changePercent": "-0.01",
-      "direction": "down",
-      "source": "yahoo-yfinance",
-      "mode": "fallback-intraday",
-      "asOf": "2026-07-21T11:12:09.947812Z"
-    },
-    {
-      "name": "OMR/INR",
-      "pair": "OMRINR",
-      "symbol": "OMRINR=X",
-      "value": "₹249.8800",
-      "rate": 249.8800048828125,
-      "change": "0.0000",
-      "changePercent": "0.00",
-      "direction": "up",
-      "source": "yahoo-yfinance",
-      "mode": "fallback-intraday",
-      "asOf": "2026-07-21T11:12:09.950434Z"
-    },
-    {
-      "name": "USD/INR",
-      "pair": "USDINR",
-      "symbol": "USDINR=X",
-      "value": "₹96.2350",
-      "rate": 96.23500061035156,
-      "change": "-0.0498",
-      "changePercent": "-0.05",
-      "direction": "down",
-      "source": "yahoo-yfinance",
-      "mode": "fallback-intraday",
-      "asOf": "2026-07-21T11:12:09.984400Z"
-    }
-  ],
   "mutualFunds": [
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120348",
-      "isinGrowth": "INF205K01LE4",
-      "isinDividendReinvestment": "-",
-      "name": "Invesco India Contra Fund - Direct Plan - Growth",
-      "nav": 158.55,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.712653Z"
-      },
-      "extras": {},
-      "fundType": "value",
-      "fundHouse": "Invesco Mutual Fund",
-      "category": "value"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "119769",
-      "isinGrowth": "INF174K01KZ9",
-      "isinDividendReinvestment": "-",
-      "name": "Kotak Contra Fund - Direct Plan - Growth",
-      "nav": 184.549,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.712673Z"
-      },
-      "extras": {},
-      "fundType": "value",
-      "fundHouse": "Kotak Mahindra Mutual Fund",
-      "category": "value"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "154337",
-      "isinGrowth": "INF247L01GW6",
-      "isinDividendReinvestment": "-",
-      "name": "Motilal Oswal Contra Fund - Direct â Growth",
-      "nav": 10.5923,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.712695Z"
-      },
-      "extras": {},
-      "fundType": "value",
-      "fundHouse": "Motilal Oswal Mutual Fund",
-      "category": "value"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "119835",
-      "isinGrowth": "INF200K01RA0",
-      "isinDividendReinvestment": "-",
-      "name": "SBI CONTRA FUND - DIRECT PLAN - GROWTH",
-      "nav": 417.0405,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.712718Z"
-      },
-      "extras": {},
-      "fundType": "value",
-      "fundHouse": "SBI Mutual Fund",
-      "category": "value"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "151165",
-      "isinGrowth": "INF579M01AN2",
-      "isinDividendReinvestment": "-",
-      "name": "360 ONE ELSS Tax Saver Nifty 50 Index Fund - Direct Plan - Growth",
-      "nav": 13.7661,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.712992Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "360 ONE Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Aditya Birla Sun Life ELSS Tax Saver Fund - Direct Plan - GROWTH",
+      "code": "119544",
       "schemeCode": "119544",
-      "isinGrowth": "INF209K01UN8",
-      "isinDividendReinvestment": "-",
-      "name": "Aditya Birla Sun Life ELSS Tax Saver Fund - Growth - Direct Plan",
-      "nav": 69.95,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713029Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Aditya Birla Sun Life Mutual Fund",
-      "category": "elss"
+      "nav": 71.11,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120503",
-      "isinGrowth": "INF846K01EW2",
-      "isinDividendReinvestment": "-",
-      "name": "Axis ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 109.8895,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713051Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Axis Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "153201",
-      "isinGrowth": "INF0QA701AK0",
-      "isinDividendReinvestment": "-",
-      "name": "BAJAJ FINSERV ELSS TAX SAVER FUND - DIRECT - GROWTH",
-      "nav": 11.904,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713069Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Bajaj Finserv Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "118473",
-      "isinGrowth": "INF194K01Y29",
-      "isinDividendReinvestment": "-",
-      "name": "BANDHAN ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 178.331,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713087Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Bandhan Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "119351",
-      "isinGrowth": "INF761K01884",
-      "isinDividendReinvestment": "-",
-      "name": "BANK OF INDIA ELSS Tax Saver -Direct Plan- Growth",
-      "nav": 194.56,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713110Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Bank of India Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Baroda BNP Paribas ELSS Tax Saver Fund - Direct Plan - Growth Option",
+      "code": "150159",
       "schemeCode": "150159",
-      "isinGrowth": "INF251K01HF3",
-      "isinDividendReinvestment": "-",
-      "name": "BARODA BNP PARIBAS ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 113.1794,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713139Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Baroda BNP Paribas Mutual Fund",
-      "category": "elss"
+      "nav": 116.64,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "118285",
-      "isinGrowth": "INF760K01EL8",
-      "isinDividendReinvestment": "-",
-      "name": "CANARA ROBECO ELSS TAX SAVER - DIRECT PLAN - GROWTH OPTION",
-      "nav": 201.94,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713159Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Canara Robeco Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "119242",
-      "isinGrowth": "INF740K01OK1",
-      "isinDividendReinvestment": "-",
-      "name": "DSP ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 156.239,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713177Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "DSP Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "118620",
-      "isinGrowth": "INF754K01CA8",
-      "isinDividendReinvestment": "-",
-      "name": "Edelweiss ELSS Tax Saver Fund - Direct Plan-Growth Option",
-      "nav": 138.84,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713201Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Edelweiss Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Franklin India ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "118540",
       "schemeCode": "118540",
-      "isinGrowth": "INF090I01JS8",
-      "isinDividendReinvestment": "-",
-      "name": "Franklin India ELSS Tax Saver Fund - Direct - Growth",
-      "nav": 1610.725,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713216Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Franklin Templeton Mutual Fund",
-      "category": "elss"
+      "nav": 1661.4584,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "141808",
-      "isinGrowth": "INF666M01DK7",
-      "isinDividendReinvestment": "-",
-      "name": "Groww ELSS Tax Saver Fund (formerly known as Indiabulls Tax Savings Fund)- Direct Plan- Growth Option",
-      "nav": 21.82,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713241Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Groww Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "119060",
-      "isinGrowth": "INF179K01YS4",
-      "isinDividendReinvestment": "-",
-      "name": "HDFC ELSS Tax saver - Growth Option - Direct Plan",
-      "nav": 1489.755,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713256Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "HDFC Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "151078",
-      "isinGrowth": "INF917K01GP0",
-      "isinDividendReinvestment": "-",
-      "name": "HSBC ELSS Tax saver Fund - Direct Growth",
-      "nav": 153.7214,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713300Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "HSBC Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120592",
-      "isinGrowth": "INF109K01Y31",
-      "isinDividendReinvestment": "-",
-      "name": "ICICI Prudential ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 1039.66,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713317Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "ICICI Prudential Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120416",
-      "isinGrowth": "INF205K01NT8",
-      "isinDividendReinvestment": "-",
-      "name": "Invesco India ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 148.56,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713337Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Invesco Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "147541",
-      "isinGrowth": "INF00XX01390",
-      "isinDividendReinvestment": "-",
       "name": "ITI ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 28.8226,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713355Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "ITI Mutual Fund",
-      "category": "elss"
+      "code": "147541",
+      "schemeCode": "147541",
+      "nav": 28.4966,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120494",
-      "isinGrowth": "INF192K01CE3",
-      "isinDividendReinvestment": "-",
-      "name": "JM ELSS Tax Saver Fund (Direct) - Growth Option",
-      "nav": 58.3223,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713374Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "JM Financial Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Kotak ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "119773",
       "schemeCode": "119773",
-      "isinGrowth": "INF174K01LI3",
-      "isinDividendReinvestment": "-",
-      "name": "Kotak ELSS Tax Saver Fund-Growth - Direct",
-      "nav": 138.902,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713404Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Kotak Mahindra Mutual Fund",
-      "category": "elss"
+      "nav": 144.649,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "120270",
-      "isinGrowth": "INF767K01EM1",
-      "isinDividendReinvestment": "-",
-      "name": "LIC MF ELSS Tax Saver-Direct Plan-Growth",
-      "nav": 171.0053,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713418Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "LIC Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "135781",
-      "isinGrowth": "INF769K01DM9",
-      "isinDividendReinvestment": "-",
-      "name": "Mirae Asset ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 57.539,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713614Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Mirae Asset Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Motilal Oswal ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "133386",
       "schemeCode": "133386",
-      "isinGrowth": "INF247L01569",
-      "isinDividendReinvestment": "-",
-      "name": "Motilal Oswal ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 63.9187,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713632Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Motilal Oswal Mutual Fund",
-      "category": "elss"
+      "nav": 65.2498,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "135654",
-      "isinGrowth": "INF959L01CD5",
-      "isinDividendReinvestment": "-",
-      "name": "Navi ELSS Tax Saver Fund- Direct Plan- Growth Option",
-      "nav": 32.8119,
-      "navDate": "10-Apr-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713660Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Navi Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "NAVI ELSS TAX SAVER NIFTY50 INDEX FUND - Direct Plan - GROWTH",
+      "code": "151471",
       "schemeCode": "151471",
-      "isinGrowth": "INF959L01GR6",
-      "isinDividendReinvestment": "-",
-      "name": "NAVI ELSS TAX SAVER NIFTY 50 INDEX FUND - DIRECT PLAN GROWTH",
-      "nav": 14.7254,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713668Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Navi Mutual Fund",
-      "category": "elss"
+      "nav": 15.4017,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "118803",
-      "isinGrowth": "INF204K01L55",
-      "isinDividendReinvestment": "-",
-      "name": "Nippon India ELSS Tax Saver Fund - Direct Plan Growth Plan - Growth Option",
-      "nav": 144.9524,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713704Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Nippon India Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "151611",
-      "isinGrowth": "INF0J8L01115",
-      "isinDividendReinvestment": "-",
-      "name": "NJ ELSS Tax Saver Scheme Direct Growth",
-      "nav": 14.83,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713718Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "NJ Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "PGIM India ELSS Tax Saver Fund - Direct Plan - Direct Growth",
+      "code": "135601",
       "schemeCode": "135601",
-      "isinGrowth": "INF663L01FN5",
-      "isinDividendReinvestment": "-",
-      "name": "PGIM India ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 40.12,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713739Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "PGIM India Mutual Fund",
-      "category": "elss"
+      "nav": 42.27,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Parag Parikh ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "147481",
       "schemeCode": "147481",
-      "isinGrowth": "INF879O01100",
-      "isinDividendReinvestment": "-",
-      "name": "Parag Parikh ELSS Tax Saver Fund- Direct Growth",
-      "nav": 32.0532,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713757Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "PPFAS Mutual Fund",
-      "category": "elss"
+      "nav": 32.7096,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Quant ELSS Tax Saver Fund - Direct Plan - Growth Option",
+      "code": "120847",
       "schemeCode": "120847",
-      "isinGrowth": "INF966L01986",
-      "isinDividendReinvestment": "-",
-      "name": "quant ELSS Tax Saver Fund - Growth Option - Direct Plan",
-      "nav": 463.806,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713766Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "quant Mutual Fund",
-      "category": "elss"
+      "nav": 470.387,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Quantum ELSS Tax Saver Fund - Direct Plan - Growth Option",
+      "code": "111549",
       "schemeCode": "111549",
-      "isinGrowth": "INF082J01069",
-      "isinDividendReinvestment": "-",
-      "name": "Quantum ELSS Tax Saver Fund - Direct Plan Growth Option",
-      "nav": 126.43,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713799Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Quantum Mutual Fund",
-      "category": "elss"
+      "nav": 128.78,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "150838",
-      "isinGrowth": "INF0K1H01065",
-      "isinDividendReinvestment": "-",
-      "name": "Samco ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 13.16,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713818Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Samco Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "SBI ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "119723",
       "schemeCode": "119723",
-      "isinGrowth": "INF200K01UM9",
-      "isinDividendReinvestment": "-",
-      "name": "SBI ELSS Tax Saver FUND - DIRECT PLAN -GROWTH",
-      "nav": 478.8849,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713832Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "SBI Mutual Fund",
-      "category": "elss"
+      "nav": 477.6691,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Shriram ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "145819",
       "schemeCode": "145819",
-      "isinGrowth": "INF680P01158",
-      "isinDividendReinvestment": "-",
-      "name": "Shriram ELSS Tax Saver Fund - Direct Growth",
-      "nav": 23.7718,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713846Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Shriram Mutual Fund",
-      "category": "elss"
+      "nav": 24.3309,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Sundaram ELSS Tax Saver Fund - Direct Plan - GROWTH",
+      "code": "149570",
       "schemeCode": "149570",
-      "isinGrowth": "INF173K01HZ7",
-      "isinDividendReinvestment": "-",
-      "name": "Sundaram ELSS Tax Saver Fund Direct Plan Growth",
-      "nav": 533.408,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713872Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Sundaram Mutual Fund",
-      "category": "elss"
+      "nav": 542.6793,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "132756",
-      "isinGrowth": "INF277K01I86",
-      "isinDividendReinvestment": "-",
-      "name": "Tata ELSS Fund-Growth-Direct Plan",
-      "nav": 53.995,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713896Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Tata Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
-      "schemeCode": "118866",
-      "isinGrowth": "INF044D01CG6",
-      "isinDividendReinvestment": "INF044D01AA3",
       "name": "Taurus ELSS Tax Saver Fund - Direct Plan - Growth",
-      "nav": 197.81,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713905Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Taurus Mutual Fund",
-      "category": "elss"
+      "code": "118866",
+      "schemeCode": "118866",
+      "nav": 209.89,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Union ELSS Tax Saver Fund (Formerly Union Tax Saver (ELSS) Fund - Direct Plan - Growth Option",
+      "code": "119307",
       "schemeCode": "119307",
-      "isinGrowth": "INF582M01765",
-      "isinDividendReinvestment": "-",
-      "name": "Union ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 72.31,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713927Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "Union Mutual Fund",
-      "category": "elss"
+      "nav": 73.63,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "UTI ELSS Tax Saver Fund - Direct Plan - Growth",
+      "code": "120715",
       "schemeCode": "120715",
-      "isinGrowth": "INF789F01TF7",
-      "isinDividendReinvestment": "-",
-      "name": "UTI ELSS Tax Saver Fund - Direct Plan - Growth Option",
-      "nav": 229.0869,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713947Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "UTI Mutual Fund",
-      "category": "elss"
+      "nav": 232.2325,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "150587",
-      "isinGrowth": "INF03VN01621",
-      "isinDividendReinvestment": "-",
-      "name": "WhiteOak Capital ELSS Tax Saver Fund Direct Plan Growth",
-      "nav": 19.033,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.713966Z"
-      },
-      "extras": {},
-      "fundType": "elss",
-      "fundHouse": "WhiteOak Capital Mutual Fund",
-      "category": "elss"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Abakkus Flexi Cap Fund - Direct Plan - Growth",
+      "code": "154043",
       "schemeCode": "154043",
-      "isinGrowth": "INF2JJD01136",
-      "isinDividendReinvestment": "-",
-      "name": "Abakkus Flexi Cap Fund - Direct - Growth",
-      "nav": 11.099,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714006Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Abakkus Mutual Fund",
-      "category": "flexi-cap"
+      "nav": 11.364,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "Aditya Birla Sun Life Flexi Cap Fund - Direct Plan - GROWTH",
+      "code": "120564",
       "schemeCode": "120564",
-      "isinGrowth": "INF209K01XX1",
-      "isinDividendReinvestment": "-",
-      "name": "Aditya Birla Sun Life Flexi Cap Fund - Growth - Direct Plan",
-      "nav": 2169.61,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714028Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Aditya Birla Sun Life Mutual Fund",
-      "category": "flexi-cap"
+      "nav": 2274.34,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "141925",
-      "isinGrowth": "INF846K01B28",
-      "isinDividendReinvestment": "-",
-      "name": "Axis Flexi Cap Fund - Direct Plan - Growth",
-      "nav": 30.76,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714046Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Axis Mutual Fund",
-      "category": "flexi-cap"
-    },
-    {
-      "instrumentType": "mutualFund",
+      "name": "Bajaj Finserv Flexi Cap Fund - Direct Plan - Growth",
+      "code": "151895",
       "schemeCode": "151895",
-      "isinGrowth": "INF0QA701342",
-      "isinDividendReinvestment": "-",
-      "name": "Bajaj Finserv Flexi Cap Fund-Direct Plan-Growth",
-      "nav": 16.272,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714074Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Bajaj Finserv Mutual Fund",
-      "category": "flexi-cap"
+      "nav": 16.856,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "BANDHAN Flexi Cap Fund - Direct Plan - Growth",
+      "code": "118424",
       "schemeCode": "118424",
-      "isinGrowth": "INF194K01W62",
-      "isinDividendReinvestment": "-",
-      "name": "BANDHAN Flexi Cap Fund-Direct Plan-Growth",
-      "nav": 231.695,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714097Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Bandhan Mutual Fund",
-      "category": "flexi-cap"
+      "nav": 241.482,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
+      "name": "BANK OF INDIA FLEXI CAP FUND - Direct Plan - Growth",
+      "code": "148404",
       "schemeCode": "148404",
-      "isinGrowth": "INF761K01FF5",
-      "isinDividendReinvestment": "-",
-      "name": "BANK OF INDIA Flexi Cap Fund Direct Plan -Growth",
-      "nav": 41.59,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714107Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Bank of India Mutual Fund",
-      "category": "flexi-cap"
+      "nav": 43.17,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     },
     {
-      "instrumentType": "mutualFund",
-      "schemeCode": "150387",
-      "isinGrowth": "INF251K01QZ2",
-      "isinDividendReinvestment": "-",
       "name": "Baroda BNP Paribas Flexi Cap Fund - Direct Plan - Growth Option",
-      "nav": 16.8288,
-      "navDate": "20-Jul-2026",
-      "source": {
-        "provider": "amfi_navall",
-        "mode": "official-daily",
-        "fetchedAt": "2026-07-21T11:12:12.714127Z"
-      },
-      "extras": {},
-      "fundType": "flexi-cap",
-      "fundHouse": "Baroda BNP Paribas Mutual Fund",
-      "category": "flexi-cap"
+      "code": "150387",
+      "schemeCode": "150387",
+      "nav": 17.0953,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Capitalmind Flexi Cap Fund - Direct Plan - Growth",
+      "code": "153738",
+      "schemeCode": "153738",
+      "nav": 10.5671,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "DSP Flexi Cap Fund - Direct Plan - Growth",
+      "code": "119076",
+      "schemeCode": "119076",
+      "nav": 120.094,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Edelweiss Flexi Cap Fund - Direct Plan - Growth",
+      "code": "140353",
+      "schemeCode": "140353",
+      "nav": 47.138,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Franklin India Flexi Cap Fund - Direct Plan - Growth",
+      "code": "118535",
+      "schemeCode": "118535",
+      "nav": 1851.0062,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "HDFC Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "118955",
+      "schemeCode": "118955",
+      "nav": 2371.428,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "ITI Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "151379",
+      "schemeCode": "151379",
+      "nav": 22.0418,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "LIC MF Flexi Cap Fund - Direct Plan - Growth",
+      "code": "120264",
+      "schemeCode": "120264",
+      "nav": 118.6566,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Motilal Oswal Flexi Cap Fund - Direct Plan - Growth",
+      "code": "129046",
+      "schemeCode": "129046",
+      "nav": 72.6059,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Navi Flexi Cap Fund - Direct Plan - Growth",
+      "code": "143793",
+      "schemeCode": "143793",
+      "nav": 29.9183,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Nippon India Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "149094",
+      "schemeCode": "149094",
+      "nav": 18.2257,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Old Bridge Flexi Cap Fund - Direct Plan - Direct Growth",
+      "code": "154225",
+      "schemeCode": "154225",
+      "nav": 10.98,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "PGIM India Flexi Cap Fund - Direct Plan - Direct Growth",
+      "code": "133839",
+      "schemeCode": "133839",
+      "nav": 45.84,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Parag Parikh Flexi Cap Fund - Direct Plan - Growth",
+      "code": "122639",
+      "schemeCode": "122639",
+      "nav": 94.2594,
+      "navDate": "2026-11-13",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Quant Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "120843",
+      "schemeCode": "120843",
+      "nav": 122.4732,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "SBI FLEXICAP FUND - Direct Plan - Growth",
+      "code": "119718",
+      "schemeCode": "119718",
+      "nav": 125.513,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Shriram Flexi Cap Fund - Direct Plan - Growth",
+      "code": "144905",
+      "schemeCode": "144905",
+      "nav": 23.3019,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Sundaram Flexicap Fund - Direct Plan - GROWTH",
+      "code": "150571",
+      "schemeCode": "150571",
+      "nav": 15.5498,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Tata Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "144546",
+      "schemeCode": "144546",
+      "nav": 26.9517,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Taurus Flexi Cap Fund - Direct Plan - Growth",
+      "code": "118883",
+      "schemeCode": "118883",
+      "nav": 263.84,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "The Wealth Company Flexi Cap Fund - Direct Plan - Growth",
+      "code": "153872",
+      "schemeCode": "153872",
+      "nav": 9.93,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "TRUSTMF Flexi Cap Fund - Direct Plan - Growth",
+      "code": "152584",
+      "schemeCode": "152584",
+      "nav": 13.3,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "UNIFI FLEXI CAP FUND - Direct Plan - GROWTH",
+      "code": "153543",
+      "schemeCode": "153543",
+      "nav": 11.2341,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Union Flexi Cap Fund - Direct Plan - Growth Option",
+      "code": "119292",
+      "schemeCode": "119292",
+      "nav": 61.49,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "UTI - Flexi Cap Fund. - Direct Plan - Growth",
+      "code": "120662",
+      "schemeCode": "120662",
+      "nav": 361.3896,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Abakkus Large & Mid Cap Fund - Direct Plan - Growth",
+      "code": "154477",
+      "schemeCode": "154477",
+      "nav": 9.975,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Aditya Birla Sun Life Large & Mid Cap Fund - Direct Plan - GROWTH",
+      "code": "119436",
+      "schemeCode": "119436",
+      "nav": 1085.8,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
+    },
+    {
+      "name": "Bandhan Large & Mid Cap Fund - Direct Plan - Growth",
+      "code": "118419",
+      "schemeCode": "118419",
+      "nav": 169.703,
+      "navDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "sourceMode": "official-daily"
     }
   ],
   "ipo": {
@@ -1248,62 +783,229 @@
     "live": [],
     "recent": []
   },
-  "nfo": [],
-  "ipoLastCheckedAt": "2026-07-21T11:12:15.281462+00:00",
-  "marketNews": [],
-  "stockCategories": {
-    "highs": [],
-    "lows": [],
-    "all": []
-  },
-  "fiidii": {
-    "fii": {},
-    "dii": {},
-    "date": ""
-  },
+  "nfo": [
+    {
+      "name": "Aditya Birla Sun Life Fixed Maturity Plan- Series VC (114 Days)",
+      "openDate": "2026-11-05",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Income/Debt Oriented Schemes",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "DSP Fixed Maturity Plan (FMP) - Series 280 - 90 Days",
+      "openDate": "2026-11-13",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Income/Debt Oriented Schemes",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "HDFC Charity Fund for Cancer Cure (Feb 2030)",
+      "openDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Income/Debt Oriented Schemes",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "Invesco India BSE Top 10 Banks ETF",
+      "openDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Exchange Traded Funds (ETFs)",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "Invesco India Nifty Metal Index Fund",
+      "openDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Index Funds",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "Kotak Nifty Pharma Index Fund",
+      "openDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Index Funds",
+      "status": "announced",
+      "closeDate": null
+    },
+    {
+      "name": "SBI BSE India Defence ETF FOF",
+      "openDate": "2026-11-16",
+      "source": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "category": "Fund of Funds Scheme (Domestic)",
+      "status": "announced",
+      "closeDate": null
+    }
+  ],
+  "ipoLastCheckedAt": "2026-11-17T01:47:40.879041Z",
+  "fiidii": {},
   "sourceHealth": {
-    "indices": {
-      "status": "ok",
-      "provider": "yahoo_yfinance",
-      "mode": "ok",
-      "message": "6 Indian indices fetched"
+    "NIFTY 50": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:01:11Z"
     },
-    "globalIndices": {
-      "status": "ok",
-      "provider": "yahoo_yfinance",
-      "mode": "ok",
-      "message": "5 global indices fetched"
+    "SENSEX": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5EBSESN?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:02:29Z"
     },
-    "movers": {
-      "status": "ok",
-      "provider": "yahoo_yfinance",
-      "mode": "ok",
-      "message": "16 stocks scanned for movers"
+    "BANK NIFTY": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEBANK?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:01:11Z"
     },
-    "commodities": {
-      "status": "ok",
-      "provider": "yahoo_yfinance",
-      "mode": "ok",
-      "message": "3 commodity rows fetched"
+    "NIFTY IT": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXIT?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:01:11Z"
     },
-    "fx": {
-      "status": "ok",
-      "provider": "yahoo_yfinance",
-      "mode": "ok",
-      "message": "RBI reference scrape failed: unknown; 5 FX pairs fetched from Yahoo fallback"
+    "NIFTY AUTO": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXAUTO?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:01:11Z"
+    },
+    "NIFTY PHARMA": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXPHARMA?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T10:01:11Z"
+    },
+    "RELIANCE": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "TCS": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/TCS.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "HDFCBANK": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/HDFCBANK.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "INFY": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/INFY.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "ICICIBANK": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/ICICIBANK.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "SBIN": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/SBIN.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:14Z"
+    },
+    "ITC": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/ITC.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:14Z"
+    },
+    "BHARTIARTL": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BHARTIARTL.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "KOTAKBANK": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/KOTAKBANK.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:14Z"
+    },
+    "LT": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/LT.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:21Z"
+    },
+    "HINDUNILVR": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/HINDUNILVR.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "AXISBANK": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/AXISBANK.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:20Z"
+    },
+    "BAJFINANCE": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BAJFINANCE.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "MARUTI": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/MARUTI.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "WIPRO": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/WIPRO.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
+    },
+    "SUNPHARMA": {
+      "status": "snapshot",
+      "provider": "Yahoo Finance",
+      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/SUNPHARMA.NS?range=5d&interval=1d",
+      "quoteAt": "2026-11-16T09:59:13Z"
     },
     "mutualFunds": {
-      "status": "ok",
-      "provider": "amfi_navall",
-      "mode": "ok",
-      "message": "14243 AMFI NAV rows parsed; 300 selected"
+      "status": "snapshot",
+      "provider": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
+      "count": 50,
+      "message": "Source-dated rows"
     },
-    "eodBhavcopy": {
+    "ipo": {
       "status": "failed",
-      "provider": "none",
-      "mode": "failed",
-      "message": "nse_bhavcopy bhavcopy unavailable from known candidate URLs; bse_bhavcopy bhavcopy unavailable from known candidate URLs"
+      "provider": "BSE",
+      "sourceUrl": "https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P",
+      "message": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P",
+      "count": 0
+    },
+    "nfo": {
+      "status": "snapshot",
+      "provider": "AMFI",
+      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
+      "count": 7,
+      "message": "Source-dated rows"
     }
   },
-  "errors": {}
+  "errors": {
+    "ipo": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P"
+  }
 }

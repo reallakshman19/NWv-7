@@ -125,6 +125,7 @@ export function buildCanonicalItem(rawItem, options = {}) {
     description,
     link,
     source: raw.source || raw.rawSource || 'feed',
+    sourceUrl: raw.sourceUrl || null,
     sourceDomain: locationAnnotated.sourceDomain || classified.sourceDomain || null,
     sourceType: classified.sourceType || null,
     sourceTrust: classified.sourceTrust || 'low',
