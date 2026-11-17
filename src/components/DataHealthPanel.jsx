@@ -15,6 +15,11 @@ const ACTIVATION_STATUS_LABELS = ['configured', 'not configured', 'missing', 'un
 const READINESS_COMMAND = 'npm run test:upahead-edge-readiness';
 const SMOKE_COMMAND = 'VITE_API_BASE_URL=https://<worker-host> npm run test:upahead-edge-readiness -- --require-config --smoke';
 
+// Only user click handlers call this helper; do not read a clock during render.
+function getExportTimestamp() {
+  return Date.now();
+}
+
 function formatTime(value) {
   if (!value) return '--';
 
@@ -278,8 +283,9 @@ export default function DataHealthPanel() {
   const rawUnlinkedEdgeDetails = getLatestUpAheadEdgeDiagnostics(diagnostics);
 
   const exportPayload = () => {
+    const exportTimestamp = getExportTimestamp();
     const payload = {
-      exportedAt: Date.now(),
+      exportedAt: exportTimestamp,
       diagnostics,
       datasets: cachedEnvelopes.map(({ datasetId, envelope }) => ({
         datasetId,
@@ -320,7 +326,7 @@ export default function DataHealthPanel() {
       const anchor = document.createElement('a');
 
       anchor.href = url;
-      anchor.download = `data-health-${Date.now()}.json`;
+      anchor.download = `data-health-${exportTimestamp}.json`;
       anchor.click();
 
       URL.revokeObjectURL(url);
