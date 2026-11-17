@@ -25,6 +25,7 @@ const TARGETS = Object.freeze({
       'pallavaram',
       'chennai airport',
       'airport',
+      'kodungaiyur',
       'chennai port',
       'marina',
       'egmore',
@@ -32,7 +33,7 @@ const TARGETS = Object.freeze({
     ],
     city: ['chennai', 'madras', 'சென்னை'],
     institutions: ['greater chennai corporation', 'chennai corporation', 'metro rail', 'chennai metro', 'cmrl', 'gcc'],
-    stateRegion: ['tamil nadu', 'tamilnadu', 'tn', 'தமிழ்நாடு'],
+    stateRegion: ['tamil nadu', 'tamilnadu', 'tn', 'தமிழ்நாடு', 'madurai', 'sriperumbudur'],
     country: ['india', 'indian'],
     offArea: ['mumbai', 'delhi', 'bengaluru', 'bangalore', 'hyderabad', 'kerala', 'karnataka'],
   }),
@@ -62,7 +63,7 @@ const TARGETS = Object.freeze({
     ],
     city: ['muscat', 'masqat', 'maskat', 'مسقط'],
     stateRegion: ['muscat governorate'],
-    country: ['oman', 'omani', 'royal oman police', 'عمان'],
+    country: ['oman', 'omani', 'royal oman police', 'عمان', 'dhofar', 'salalah', 'nizwa', 'sohar', 'duqm', 'ibra'],
     regionalBackfill: ['gulf', 'hormuz', 'iran', 'middle east', 'regional'],
     offArea: ['dubai', 'abu dhabi', 'doha', 'riyadh', 'kuwait city'],
   }),
@@ -102,13 +103,23 @@ function normalizeTarget(target) {
 }
 
 function storyFields(story = {}) {
+  // Normalized snapshots mirror title/headline and summary/description. A copy
+  // of the same words is not a second independent event-location observation.
+  const seenText = new Set();
   return Object.entries(FIELD_WEIGHTS)
     .map(([field, weight]) => ({
       field,
       weight,
       value: normalize(story?.[field]),
     }))
-    .filter(row => row.value);
+    .filter(row => {
+      if (!row.value) return false;
+      if (['title', 'headline', 'summary', 'description'].includes(row.field)) {
+        if (seenText.has(row.value)) return false;
+        seenText.add(row.value);
+      }
+      return true;
+    });
 }
 
 function hasTerm(fieldValue, normalizedTerm) {
@@ -167,22 +178,17 @@ function evidenceFromMatches(matches) {
   };
 }
 
-export function getAreaRelevanceLabel(score = 0, evidence = {}) {
+export function getAreaRelevanceLabel(_score = 0, evidence = {}) {
+  // Scope is a property of the *kind* of event evidence, not the sum of how
+  // many times 'Oman' appeared. In particular, 5 country mentions cannot
+  // establish Muscat-city or exact-neighbourhood evidence.
   const categories = new Set(asArray(evidence.categories));
-  const hasStrongLocalEvidence =
-    categories.has('exact-area') ||
-    categories.has('city') ||
-    categories.has('institution') ||
-    categories.has('state-region') ||
-    categories.has('country');
-
   if (categories.has('off-area') && !categories.has('exact-area') && !categories.has('city')) return 'off-area';
-  if (categories.has('exact-area') || score >= 86) return 'exact-area';
-  if (categories.has('city') || categories.has('institution') || score >= 70) return 'city';
-  if (categories.has('state-region') || score >= 48) return 'state-region';
-  if (categories.has('regional-backfill') && !hasStrongLocalEvidence) return 'backfill';
-  if (categories.has('country') || score >= 28) return 'country';
-  if (categories.has('regional-backfill') || score >= 14) return 'backfill';
+  if (categories.has('exact-area')) return 'exact-area';
+  if (categories.has('city') || categories.has('institution')) return 'city';
+  if (categories.has('state-region')) return 'state-region';
+  if (categories.has('country')) return 'country';
+  if (categories.has('regional-backfill')) return 'backfill';
   return 'weak';
 }
 
@@ -217,7 +223,10 @@ export function scoreAreaRelevance(story = {}, target = '') {
     ...collectMatches(fields, config.regionalBackfill, 'regional-backfill', 8),
   ];
   const offAreaMatches = collectMatches(fields, config.offArea, 'off-area', 0);
-  const categories = uniqueStrings(matches.map(match => match.category));
+  const categories = uniqueStrings([
+    ...matches.map(match => match.category),
+    ...(offAreaMatches.length ? ['off-area'] : []),
+  ]);
   const rawScore = matches.reduce((sum, match) => sum + match.score, 0);
   const score = normalizeScore(rawScore);
   const evidence = evidenceFromMatches(matches);
