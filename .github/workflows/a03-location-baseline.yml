@@ -1,0 +1,35 @@
+name: A03 Location Baseline Evidence
+on:
+  push:
+    branches:
+      - audit/a03-location-r0-source-frozen
+    paths:
+      - 'audit/evidence/a03_location_baseline_probe.mjs'
+      - '.github/workflows/a03-location-baseline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Run native source A03 negative and positive controls
+        shell: bash
+        run: |
+          mkdir -p artifacts/a03
+          node audit/evidence/a03_location_baseline_probe.mjs | tee artifacts/a03/a03-location-baseline.json
+      - name: Upload frozen A03 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a03-location-r0-baseline
+          path: artifacts/a03/
+          if-no-files-found: warn
+          retention-days: 30
