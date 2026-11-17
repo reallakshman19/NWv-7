@@ -334,7 +334,7 @@ export default function DataHealthPanel() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
               <div><strong>Status:</strong> {envelope?.ok ? 'ok' : 'degraded'}</div>
-              <div><strong>Source:</strong> {envelope?.source || '--'}</div>
+              <div><strong>Source:</strong> {(envelope?.sourceMode === 'dataset-api' || envelope?.data?.sourceMode === 'dataset-api') ? 'Worker API (snapshot-backed)' : (envelope?.source || '--')}</div>
               <div><strong>Freshness:</strong> {envelope?.freshness || '--'}</div>
               <div><strong>Fallback:</strong> {envelope?.fallbackUsed ? 'yes' : 'no'}</div>
               <div><strong>Payload hash:</strong> {envelope?.payloadHash || '--'}</div>
