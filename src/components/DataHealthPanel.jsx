@@ -273,7 +273,9 @@ export default function DataHealthPanel() {
   const cachedEnvelopes = getCacheSnapshot(diagnostics);
   const pageCoverage = getPageCoverage(cachedEnvelopes);
   const runtimeCapabilities = readRuntimeCapabilities();
-  // Unlinked edge events remain in the raw diagnostics history only.
+  // Raw edge observations are still useful, but are NOT matched to a
+  // different cached payload or reused as proof of its effective provider.
+  const rawUnlinkedEdgeDetails = getLatestUpAheadEdgeDiagnostics(diagnostics);
 
   const exportPayload = () => {
     const payload = {
@@ -367,6 +369,13 @@ export default function DataHealthPanel() {
           ))}
         </div>
       </div>
+
+      {rawUnlinkedEdgeDetails && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          Unlinked historical Up Ahead edge telemetry is available in Recent diagnostics.
+          It is not proof of the selected page or cached dataset source.
+        </p>
+      )}
 
       <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
         {cachedEnvelopes.length === 0 ? (
