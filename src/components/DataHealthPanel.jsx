@@ -268,9 +268,13 @@ export default function DataHealthPanel() {
         validation: envelope?.validation,
         slo: envelope?.slo,
         error: envelope?.error,
-        edgeApiDiagnostics: (datasetId === 'upAhead' || datasetId === 'upAhead (page)')
-          ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
-          : null,
+        edgeApiDiagnostics: datasetId === 'upAhead (page)'
+          ? buildEdgeApiDiagnosticsExport(envelope?.edgeApiDiagnostics)
+          : datasetId === 'upAhead'
+            ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
+            : null,
+        providerProvenance: envelope?.providerProvenance || null,
+        attemptId: envelope?.attemptId || null,
       })),
     };
 
@@ -335,6 +339,9 @@ export default function DataHealthPanel() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
               <div><strong>Status:</strong> {envelope?.ok ? 'ok' : 'degraded'}</div>
               <div><strong>Source:</strong> {(envelope?.sourceMode === 'dataset-api' || envelope?.data?.sourceMode === 'dataset-api') ? 'Worker API (snapshot-backed)' : (envelope?.source || '--')}</div>
+              {envelope?.providerProvenance && (
+                <div><strong>Effective provider:</strong> {envelope.providerProvenance.effectiveProvider || '--'}</div>
+              )}
               <div><strong>Freshness:</strong> {envelope?.freshness || '--'}</div>
               <div><strong>Fallback:</strong> {envelope?.fallbackUsed ? 'yes' : 'no'}</div>
               <div><strong>Payload hash:</strong> {envelope?.payloadHash || '--'}</div>
@@ -347,10 +354,14 @@ export default function DataHealthPanel() {
               <>
                 <UpAheadEdgeActivationStatus
                   envelope={envelope}
-                  diagnosticEvent={latestUpAheadEdgeDiagnosticEvent}
+                  diagnosticEvent={datasetId === 'upAhead (page)'
+                    ? diagnostics.find(event => event.id === envelope?.edgeDiagnosticEventId) || null
+                    : latestUpAheadEdgeDiagnosticEvent}
                   runtimeCapabilities={runtimeCapabilities}
                 />
-                <EdgeApiSummary details={latestUpAheadEdgeDiagnostics} />
+                <EdgeApiSummary details={datasetId === 'upAhead (page)'
+                  ? envelope?.edgeApiDiagnostics
+                  : latestUpAheadEdgeDiagnostics} />
               </>
             )}
 
