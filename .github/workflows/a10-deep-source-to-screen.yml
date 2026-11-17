@@ -1,0 +1,85 @@
+name: A10 deep source-to-screen 3x3 audit — controlled evidence
+on:
+  push:
+    branches: [audit/a10-deep-provenance-3x3-20261117]
+permissions:
+  contents: read
+jobs:
+  a10-deep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Fail closed on unexpected production changes
+        run: |
+          git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD
+          if git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD | grep -Ev '^(src/components/a10DeepProvenanceBaseline.cert.test.jsx|audit/evidence/a10_deep_route_matrix.mjs|.github/workflows/a10-deep-source-to-screen.yml)$'; then
+            echo "A10 audit-only branch must not modify application files" >&2; exit 1
+          fi
+      - run: npm ci
+      - name: Native 53+ counterexample and positive controls
+        run: npx vitest run --config vitest.config.js src/components/a10DeepProvenanceBaseline.cert.test.jsx
+      - name: Verify lint without auto-fixes
+        run: npm run lint
+      - name: Build production Vite bundle
+        run: npm run build
+      - name: Install supported Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Deep 3-configuration x 5-route controlled Chromium matrix
+        run: node audit/evidence/a10_deep_route_matrix.mjs
+      - name: Export immutable native sources, patch and reproducibility ledger
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib,subprocess,zipfile
+          base='695e27c64b42d2220449936792792b68e87a1375'
+          commit=subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()
+          paths=[
+            'src/App.jsx','src/components/Header.jsx','src/components/FetchModeToggle.jsx',
+            'src/components/DataHealthPanel.jsx','src/components/DataStateBoundary.jsx',
+            'src/components/DataStateBoundary.internals.js','src/components/data-state/DataStateMeta.jsx',
+            'src/components/data-state/DataSourceBadge.internals.js','src/data/dataEnvelope.js',
+            'src/data/diagnosticsStore.js','src/data/orchestrator/useDataset.js',
+            'src/data/datasets/sectionsDataset.js','src/data/datasets/insightDataset.js',
+            'src/data/datasets/upAheadDataset.js','src/data/datasets/newspaperDataset.js',
+            'src/context/NewsContext.jsx','src/viewModels/useMainTabViewModel.js',
+            'src/viewModels/useUpAheadPageViewModel.js','src/viewModels/useInsightTabViewModel.js',
+            'src/viewModels/useNewspaperPageViewModel.js','src/pages/MainPage.jsx',
+            'src/pages/UpAheadPage.jsx','src/pages/InsightPage.jsx','src/pages/NewspaperPage.jsx',
+            'src/pages/DataHealthPage.jsx','src/services/upAheadService.js',
+            'src/services/newspaperEditionService.js','src/services/runtimeSectionHealthFallback.js',
+            'src/adapters/insightFetcher.js','src/runtime/runtimeCapabilities.js',
+            'src/components/a10DeepProvenanceBaseline.cert.test.jsx',
+            'audit/evidence/a10_deep_route_matrix.mjs',
+            '.github/workflows/a10-deep-source-to-screen.yml'
+          ]
+          out=pathlib.Path('artifacts/a10-deep');out.mkdir(parents=True,exist_ok=True)
+          rows=[]
+          with zipfile.ZipFile(out/'A10_exact_native_source_baseline_and_audit.zip','w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
+            for path in paths:
+              data=pathlib.Path(path).read_bytes()
+              sha=subprocess.check_output(['git','rev-parse',f'HEAD:{path}']).decode().strip()
+              actual=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
+              assert sha==actual,(path,sha,actual)
+              rows.append({'path':path,'sha256':hashlib.sha256(data).hexdigest(),'gitBlob':sha,'bytes':len(data)})
+              z.writestr('native/'+path,data)
+            patch=subprocess.check_output(['git','diff','--binary','--full-index',base,commit])
+            z.writestr('A10_audit_only_patch.patch',patch)
+            z.writestr('A10_code_manifest.json',json.dumps({'base':base,'auditHead':commit,'sources':rows,'classification':'READ_ONLY_DIAGNOSTIC_CODE_ONLY'},indent=2))
+          (out/'A10_code_manifest.json').write_text(json.dumps({'base':base,'auditHead':commit,'files':rows,'release':'HOLD'},indent=2))
+          print('A10 native file count',len(rows),'audit exact head',commit)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a10-deep-3x3-native-dom-and-screenshots
+          path: artifacts/a10-deep/
+          if-no-files-found: error
+          retention-days: 30
