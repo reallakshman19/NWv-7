@@ -1,0 +1,49 @@
+name: A06 Provider Browser Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/data/upAheadDirectPageEvidence.js'
+      - 'src/viewModels/useUpAheadPageViewModel.js'
+      - 'src/components/DataHealthPanel.jsx'
+      - 'src/data/datasets/upAheadDatasetApiClient.js'
+      - 'src/data/datasets/upAheadDataset.js'
+      - 'cloudflare/upahead-dataset-api/src/index.js'
+      - 'scripts/verify_a06_provider_ui.mjs'
+      - '.github/workflows/a06-provider-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.x'
+          cache: npm
+      - name: Install exact repository dependencies
+        run: npm ci
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+      - name: Build with synthetic A06 Worker authority
+        env:
+          VITE_API_BASE_URL: https://a06-edge.example.test
+        run: npm run build
+      - name: Test real pages in desktop and portrait Chromium
+        run: node scripts/verify_a06_provider_ui.mjs
+      - name: Preserve browser receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a06-browser-evidence
+          path: artifacts/a06/
+          if-no-files-found: warn
+          retention-days: 14
