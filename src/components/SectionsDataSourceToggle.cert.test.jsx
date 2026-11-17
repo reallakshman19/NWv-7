@@ -2,7 +2,8 @@
 import React from 'react';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import SectionsDataSourceToggle, { statusCopy } from './SectionsDataSourceToggle.jsx';
+import SectionsDataSourceToggle from './SectionsDataSourceToggle.jsx';
+import { statusCopy } from './sectionsStatusCopy.js';
 import {
   SECTIONS_DATA_SOURCES,
   publishSectionsDataSourceStatus,
