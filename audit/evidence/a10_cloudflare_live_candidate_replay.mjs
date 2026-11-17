@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
+import { classifySectionsSnapshotAuthority } from '../../src/adapters/sectionsSnapshotAuthority.js';
 const root='artifacts/a10-fix';
 fs.mkdirSync(root,{recursive:true});
 const output={classification:'LIVE_HTTP_RECEIPT_PLUS_CONTROLLED_CANDIDATE_BROWSER',
@@ -25,6 +26,9 @@ try{
  const rowCounts=Object.fromEntries(Object.entries(payload.sections||{}).map(([k,rows])=>[k,Array.isArray(rows)?rows.length:0]));
  const total=Object.values(rowCounts).reduce((a,b)=>a+b,0);
  const fresherThan12h=Number.isFinite(ageMs)&&ageMs>=0&&ageMs<=43200000;
+ // Exercise the actual native A06 authority classifier using the unmodified
+ // Cloudflare response bytes, rather than reproducing its decision by hand.
+ const authorityVerdict=classifySectionsSnapshotAuthority(payload,Date.now());
  output.cloudflare={
    url:cf,httpStatus:response.status,serverDate:response.headers.get('date'),
    sizeBytes:bytes.length,sha256:sha256(bytes),rowCounts,total,
@@ -32,11 +36,13 @@ try{
    authority:payload?.preview?.servingAuthority||'unknown',
    fetchedAt,ageHours:Math.round(ageMs/36000)/100,
    gateFresh12h:fresherThan12h,
+   nativeAuthorityVerdict:authorityVerdict,
    gateReason:fresherThan12h?'fresh_current_epoch':'stale_or_missing_epoch',
    producerEvidenceIsHttp200Only:response.ok&&!fresherThan12h,
  };
  fs.writeFileSync(root+'/a10_cloudflare_public_origin_raw.json',bytes);
- output.gates.cloudflare12h=fresherThan12h?'PASS':'HOLD_STALE';
+ output.gates.cloudflare12h=fresherThan12h&&authorityVerdict.valid?'PASS':'HOLD_STALE_OR_UNQUALIFIED';
+ output.gates.nativeAuthorityClassifier=authorityVerdict.valid?'PASS':'HOLD_'+String(authorityVerdict.reason||'unknown');
  output.gates.sourceNotFaked=payload.preview?.servingAuthority!=='cloudflare' ? 'provider_not_claimed':'provider_reported';
  save();
  console.log('A10_LIVE_CLOUDFLARE_RECEIPT',JSON.stringify(output.cloudflare));
