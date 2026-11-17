@@ -62,8 +62,9 @@ export function getBoundaryState({
   const notTrusted = Boolean(
     error ||
     envelope.error ||
-    envelope.validation?.passed === false ||
+    envelope.validation?.passed !== true ||
     envelope.slo?.passed === false ||
+    !envelope.freshness ||
     ['stale', 'expired', 'unknown'].includes(envelope.freshness)
   );
   if (notTrusted) {
