@@ -17,12 +17,12 @@ export default function FetchModeToggle() {
     const isLive = mode === FETCH_MODES.LIVE;
 
     return (
-        <div className="fetch-mode-toggle" role="group" aria-label="Data fetch mode">
+        <div className="fetch-mode-toggle" role="group" aria-label="Data fetch mode (runtime and page restrictions apply)">
             <button
                 type="button"
                 className={`fmt-btn${!isLive ? ' fmt-btn--active' : ''}`}
                 onClick={() => toggle(FETCH_MODES.HYBRID)}
-                title="Hybrid: use prefetched workflow data, fall back to live if unavailable"
+                title="Hybrid: prefer published data; eligible pages may refresh feeds. Up Ahead has its own Worker-first source policy."
                 aria-pressed={!isLive}
             >
                 Hybrid
@@ -31,7 +31,7 @@ export default function FetchModeToggle() {
                 type="button"
                 className={`fmt-btn${isLive ? ' fmt-btn--active' : ''}`}
                 onClick={() => toggle(FETCH_MODES.LIVE)}
-                title="Live: fetch fresh data from RSS and live sources, bypass all caches"
+                title="Live: request fresh sources only where runtime permits; static hosts use published snapshots. Up Ahead follows its separate Worker-first policy."
                 aria-pressed={isLive}
             >
                 Live
