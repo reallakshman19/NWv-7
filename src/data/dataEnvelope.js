@@ -4,6 +4,7 @@ export const ENVELOPE_SOURCES = Object.freeze({
   CACHE: 'cache',
   SEED: 'seed',
   FAILED: 'failed',
+  UNKNOWN: 'unknown',
 });
 
 export const ENVELOPE_FRESHNESS = Object.freeze({
@@ -40,10 +41,11 @@ export function fnv1aHex(input) {
 }
 
 export function makeEnvelope(partial = {}) {
-  const now = Date.now();
-  const ok = partial.ok ?? true;
+  // A rendered payload alone is not evidence that acquisition or validation succeeded.
+  // Do not invent a current provider or an acquisition timestamp for retained bytes.
+  const ok = partial.ok === true;
   const data = partial.data ?? null;
-  const source = partial.source || ENVELOPE_SOURCES.LIVE;
+  const source = partial.source || ENVELOPE_SOURCES.UNKNOWN;
 
   return Object.freeze({
     ok,
@@ -51,14 +53,14 @@ export function makeEnvelope(partial = {}) {
     data,
     payloadHash: partial.payloadHash || fnv1aHex(stableStringify(data)),
     source,
-    freshness: partial.freshness || ENVELOPE_FRESHNESS.FRESH,
+    freshness: partial.freshness || ENVELOPE_FRESHNESS.UNKNOWN,
     generatedAt: partial.generatedAt ?? null,
-    fetchedAt: partial.fetchedAt ?? now,
-    lastGoodAt: partial.lastGoodAt ?? (ok ? now : null),
+    fetchedAt: partial.fetchedAt ?? null,
+    lastGoodAt: partial.lastGoodAt ?? null,
     schemaVersion: partial.schemaVersion || '1.0.0',
     fallbackUsed: source !== ENVELOPE_SOURCES.LIVE,
-    validation: partial.validation || { passed: true, errors: [], warnings: [] },
-    slo: partial.slo || { passed: true, score: 100, reasons: [] },
+    validation: partial.validation ?? { passed: null, errors: [], warnings: ['not_evaluated'] },
+    slo: partial.slo ?? { passed: null, score: null, reasons: ['not_evaluated'] },
     diagnostics: partial.diagnostics || [],
     error: partial.error ?? null,
   });
