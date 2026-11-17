@@ -118,9 +118,14 @@ async function check(browser, width, height, mode) {
   return { mode, viewport: `${width}x${height}`, status: 'PASS' };
 }
 
-const server = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx',
-  ['vite', 'preview', '--host', HOST, '--port', String(PORT), '--strictPort'],
-  { stdio: 'pipe', shell: process.platform === 'win32' });
+const server = spawn(process.execPath,
+  ['node_modules/vite/bin/vite.js', 'preview', '--host', HOST, '--port', String(PORT), '--strictPort'],
+  { stdio: 'ignore' });
+const hardDeadline = setTimeout(() => {
+  console.error('A06 Chromium verification exceeded 180 seconds');
+  process.exit(124);
+}, 180_000);
+hardDeadline.unref();
 let browser;
 try {
   await waitForPreview();
@@ -134,5 +139,6 @@ try {
   if (browser) await browser.close().catch(() => {});
   server.kill('SIGTERM');
   await sleep(300);
-  if (!server.killed) server.kill('SIGKILL');
+  if (server.exitCode === null && server.signalCode === null) server.kill('SIGKILL');
+  clearTimeout(hardDeadline);
 }
