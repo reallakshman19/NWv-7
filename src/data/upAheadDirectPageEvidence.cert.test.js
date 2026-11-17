@@ -53,4 +53,39 @@ describe('A06 direct page to Data Health provider chain', () => {
       envelope: { ok: false, source: 'failed', error: 'Worker timed out' },
     });
   });
+  it('correlates Worker edge provenance with only its own page receipt', () => {
+    const first = publishDirectUpAheadEnvelope({
+      ok: true, source: 'live', freshness: 'fresh',
+      data: { sourceMode: 'dataset-api' },
+      diagnostics: [{ event: 'upAheadDataset.api_edge_diagnostics', details: {
+        source: 'upstream', reason: 'ok', freshness: 'fresh', ageSeconds: '5',
+        dangerousRawData: { items: [{ title: 'PRIVATE' }] },
+      } }],
+    });
+    expect(first.edgeApiDiagnostics).toMatchObject({
+      source: 'upstream', reason: 'ok',
+    });
+    expect(first.providerProvenance).toMatchObject({
+      transport: 'worker-http', effectiveProvider: 'up-ahead-worker',
+    });
+    const firstEvent = listDiagnostics().find(item => item.id === first.edgeDiagnosticEventId);
+    expect(firstEvent.details.attemptId).toBe(first.attemptId);
+    expect(JSON.stringify(listDiagnostics())).not.toContain('PRIVATE');
+
+    const second = publishDirectUpAheadEnvelope({
+      ok: true, source: 'snapshot', freshness: 'fresh',
+      data: { sourceMode: 'static' }, diagnostics: [],
+    });
+    expect(second.attemptId).not.toBe(first.attemptId);
+    expect(second.edgeApiDiagnostics).toBeNull();
+    expect(second.edgeDiagnosticEventId).toBeNull();
+    expect(second.providerProvenance).toMatchObject({
+      transport: 'published-json', effectiveProvider: 'github-static',
+    });
+    const active = getDirectUpAheadEnvelopeEntry(listDiagnostics());
+    expect(active.envelope.attemptId).toBe(second.attemptId);
+    expect(active.envelope.edgeApiDiagnostics).toBeNull();
+    expect(active.envelope.edgeDiagnosticEventId).toBeNull();
+  });
+
 });
