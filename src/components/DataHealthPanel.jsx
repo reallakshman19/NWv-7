@@ -5,6 +5,7 @@ import {
   subscribeDiagnostics,
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
+import { combineDatasetHealthEntries } from '../data/upAheadDirectPageEvidence.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 
 const EDGE_DIAGNOSTIC_EVENT = 'upAheadDataset.api_edge_diagnostics';
@@ -28,8 +29,8 @@ function formatTime(value) {
   }
 }
 
-function getCacheSnapshot() {
-  return listDatasetCache();
+function getCacheSnapshot(diagnostics = []) {
+  return combineDatasetHealthEntries(listDatasetCache(), diagnostics);
 }
 
 function isObjectRecord(value) {
@@ -246,7 +247,7 @@ export default function DataHealthPanel() {
     return unsubscribe;
   }, []);
 
-  const cachedEnvelopes = getCacheSnapshot();
+  const cachedEnvelopes = getCacheSnapshot(diagnostics);
   const runtimeCapabilities = readRuntimeCapabilities();
   const latestUpAheadEdgeDiagnosticEvent = getLatestUpAheadEdgeDiagnosticEvent(diagnostics);
   const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
@@ -267,7 +268,7 @@ export default function DataHealthPanel() {
         validation: envelope?.validation,
         slo: envelope?.slo,
         error: envelope?.error,
-        edgeApiDiagnostics: datasetId === 'upAhead'
+        edgeApiDiagnostics: (datasetId === 'upAhead' || datasetId === 'upAhead (page)')
           ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
           : null,
       })),
@@ -342,7 +343,7 @@ export default function DataHealthPanel() {
               <div><strong>SLO score:</strong> {envelope?.slo?.score ?? '--'}</div>
             </div>
 
-            {datasetId === 'upAhead' && (
+            {(datasetId === 'upAhead' || datasetId === 'upAhead (page)') && (
               <>
                 <UpAheadEdgeActivationStatus
                   envelope={envelope}
