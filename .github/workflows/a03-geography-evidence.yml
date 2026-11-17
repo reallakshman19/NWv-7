@@ -20,6 +20,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Compare A03 Top Stories actual versus preserved golden
+        run: node audit/evidence/a03_top_golden_diff.mjs
       - name: Run A03 and inherited regional/travel/Top Stories contracts
         run: |
           npx vitest run --config vitest.config.js \
