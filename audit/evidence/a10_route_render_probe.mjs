@@ -16,7 +16,7 @@ const routes = [
 ];
 const out = 'artifacts/a10';
 mkdirSync(out, { recursive:true });
-const app = spawn('npm',['run','preview','--','--host',host,'--port',String(port)],{stdio:'pipe'});
+const app = spawn(process.execPath,['node_modules/vite/bin/vite.js','preview','--host',host,'--port',String(port)],{stdio:'ignore'});
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const results={type:'A10_CONTROLLED_BROWSER_STAGE1',baseline:'695e27c64b42d2220449936792792b68e87a1375',mode:'production-vite-preview-with-remote-network-blocked',browser:'Chromium',timestamp:new Date().toISOString(),routes:[],errors:[]};
 try {
@@ -66,7 +66,7 @@ try {
     await wait(1600);
     results.dataHealthAfterRoutes={text:(await page.locator('body').innerText()).slice(0,9000)};
     await page.screenshot({path:`${out}/a10_data_health_after_routes.png`,fullPage:true,timeout:15000});
-  }finally{await browser.close()}
+  }finally{await context.close().catch(()=>{}); await browser.close()}
 } catch(error){results.fatal=String(error);process.exitCode=1}
 finally{app.kill('SIGTERM')}
 writeFileSync(`${out}/a10_route_render_evidence.json`,JSON.stringify(results,null,2));
