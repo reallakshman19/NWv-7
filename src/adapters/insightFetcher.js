@@ -178,18 +178,20 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
  * @returns {Promise<{ fetcher: Function, source: string, snapshotTs: number, contentHash: string }>}
  */
 export async function createInsightFetcher() {
-  const { preferSnapshots } = getRuntimeCapabilities();
+  const { preferSnapshots, browserWideFeedFetchAllowed } = getRuntimeCapabilities();
+  const snapshotOnly = preferSnapshots || browserWideFeedFetchAllowed === false;
   const liveMode = isLiveMode();
   let fresh = liveMode ? null : await loadInsightSnapshot({ allowStale: false });
 
-  if (!fresh?.stories.length && (!liveMode || preferSnapshots)) {
+  if (!fresh?.stories.length && (!liveMode || snapshotOnly)) {
     const authorityFallback = await loadSectionsAuthorityInsightFallback({ force: liveMode });
 
     if (authorityFallback) {
       const { snapshot, runtimeSummary } = authorityFallback;
       return {
         fetcher: createNormalizedSectionsAuthorityFetcher(snapshot, DEFAULT_CONFIG),
-        source: liveMode ? 'live-sections' : 'snapshot',
+        source: 'snapshot',
+        requestedMode: liveMode ? 'live' : 'hybrid',
         snapshotTs: snapshot.fetchedAt,
         contentHash: snapshot.contentHash || '',
         sectionsRuntimeSummary: runtimeSummary,
@@ -212,7 +214,7 @@ export async function createInsightFetcher() {
     };
   }
 
-  if (preferSnapshots) {
+  if (snapshotOnly) {
     const stale = await loadInsightSnapshot({ allowStale: true });
     const staleAgeMs = stale ? Date.now() - Number(stale.fetchedAt || 0) : Infinity;
     if (stale && staleAgeMs <= MAX_STALE_SNAPSHOT_AGE_MS) {
@@ -232,8 +234,11 @@ export async function createInsightFetcher() {
       console.warn(`[InsightFetcher] Stale snapshot too old (${Math.round(staleAgeMs / 3_600_000)}h) — not serving it`);
     }
 
-    // No usable snapshot — best-effort live as a last resort (proxies may work even on
-    // static hosts). Guarded to this branch only, so it never floods on the happy path.
+    // A static runtime may not fan out to browser RSS/proxies.
+    if (browserWideFeedFetchAllowed === false) {
+      return { fetcher: async () => [], source: 'unavailable', snapshotTs: null, contentHash: '' };
+    }
+    // Explicitly allowed wide-feed hosts retain the legacy last-resort live path.
     return {
       fetcher:     slotFetcher,
       source:      'live',
