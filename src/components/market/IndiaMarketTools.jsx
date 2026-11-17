@@ -6,7 +6,7 @@ import './IndiaMarketTools.css';
 const rupees = amount => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(amount);
 const External = ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer">{children} ↗</a>;
 
-export function NewFundOffers({ rows = [] }) {
+export function NewFundOffers({ rows = [], sourceStatus }) {
   const offers = currentNfoRows(rows);
   return <section id="nfo-tracker" className="market-section modern-card india-tools">
     <h2>Mutual fund NFOs</h2>
@@ -14,7 +14,7 @@ export function NewFundOffers({ rows = [] }) {
     {offers.length ? <ul>{offers.map((row, index) => <li key={row.id || `${row.name}-${index}`}>
       <strong>{row.name}</strong> · {row.offerState}<br />
       {row.openDate || row.startDate} – {row.closeDate || row.endDate}
-    </li>)}</ul> : <p>No verified current NFO schedule in this feed. Check the official source for open and upcoming offers.</p>}
+    </li>)}</ul> : <p>{sourceStatus === 'failed' ? 'The AMFI schedule could not be reached. Check AMFI for open and upcoming offers.' : 'No verified current NFO schedule in this feed. Check the official source for open and upcoming offers.'}</p>}
     <External href={SOURCES.nfo}>AMFI new fund offers</External>
   </section>;
 }

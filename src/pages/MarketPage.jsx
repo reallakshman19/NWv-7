@@ -288,10 +288,10 @@ function MarketPage() {
                     <section id="market-movers" className="market-section modern-card">
                         <div className="modern-card__header">
                             <div>
-                                <div className="market-section__eyebrow">Live movers</div>
+                                <div className="market-section__eyebrow">Tracked NSE shares</div>
                                 <h2 className="modern-card__title">Top Movers</h2>
                             </div>
-                            <div className="market-section__subtitle">Market breadth leaders and laggards</div>
+                            <div className="market-section__subtitle">Gainers and losers in the tracked shares</div>
                         </div>
 
                         <div className="market-movers-grid">
@@ -483,13 +483,13 @@ function MarketPage() {
                                 </div>
                                 <div className="market-section__subtitle">Upcoming, live and recent issues</div>
                             </div>
-                            {hasIPOData ? <IPOCard ipoData={marketData.ipo} /> : <p>No verified current issue schedule in this feed. Check the exchange for open and upcoming issues.</p>}
+                            {hasIPOData ? <IPOCard ipoData={marketData.ipo} /> : <p>{sourceHealth.ipo?.status === 'failed' ? 'The exchange issue feed could not be reached. Check the exchange for open and upcoming issues.' : 'No verified current issue schedule in this feed. Check the exchange for open and upcoming issues.'}</p>}
                             <p><a href={INDIA_MARKET_SOURCES.ipo} target="_blank" rel="noopener noreferrer">NSE public issues ↗</a> · <a href={INDIA_MARKET_SOURCES.issueDocuments} target="_blank" rel="noopener noreferrer">IPO / FPO offer documents ↗</a></p>
                         </div>
                     )}
                 </section>
 
-                {marketSettings.showMutualFunds !== false && <NewFundOffers rows={marketData.nfo} />}
+                {marketSettings.showMutualFunds !== false && <NewFundOffers rows={marketData.nfo} sourceStatus={sourceHealth.nfo?.status} />}
 
                 
 
@@ -560,7 +560,7 @@ function MarketPage() {
                 <div className="market-disclaimer market-disclaimer--revamp">
                     <div>* Data is for informational purposes only. Not investment advice.</div>
                     <div className="market-disclaimer__meta">
-                        Last Updated: {marketData?.fetchedAt ? new Date(marketData.fetchedAt).toLocaleString() : 'N/A'}
+                        Collected: {marketData?.fetchedAt ? new Date(marketData.fetchedAt).toLocaleString() : 'N/A'}
                     </div>
                 </div>
             </main>
