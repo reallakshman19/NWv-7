@@ -25,6 +25,9 @@ function readableFallbackReason(value) {
 function statusCopy(source, runtimeStatus, previewConfigured) {
   if (source === SECTIONS_DATA_SOURCES.GITHUB) return 'GitHub static authority';
   if (!previewConfigured) return 'Preview endpoint is not configured';
+  if (runtimeStatus?.effective === 'unavailable' || runtimeStatus?.failed) {
+    return `Cloudflare and GitHub unavailable · ${readableFallbackReason(runtimeStatus.fallbackReason)}`;
+  }
   if (runtimeStatus?.fallback) {
     return `Cloudflare authority fallback · ${readableFallbackReason(runtimeStatus.fallbackReason)} · showing GitHub`;
   }
