@@ -40,7 +40,9 @@ function getInsightSourceLabel(source) {
   if (source === 'dataset') return 'Dataset';
   if (source === 'unavailable') return 'Unavailable';
   if (source === 'failed') return 'Failed';
-  return 'Live';
+  if (source === 'live') return 'Live';
+  if (source === 'live-sections') return 'Snapshot (Sections)';
+  return 'Unknown';
 }
 
 function formatInsightAge(timestamp) {
@@ -1629,6 +1631,7 @@ export default function InsightPage() {
     loading,
     source,
     staleLabel,
+    sourceLabel,
     emptyReason,
     error,
     refresh,
@@ -1640,10 +1643,14 @@ export default function InsightPage() {
     rawResult,
   } = useInsightTabViewModel();
 
-  // On static hosts surface "Pre-generated · Nh ago" to set correct user expectations
-  const displayStaleLabel = isStaticHost && staleLabel
-    ? `Pre-generated · ${staleLabel}`
-    : staleLabel;
+  // Mode buttons indicate requested fetching mode; the status pill below must
+  // describe the *winning* feed, never the selected mode or the host capability.
+  const verifiedSourceLabel = sourceLabel || getInsightSourceLabel(source);
+  const headerStateLabel = !hasResult
+    ? `${verifiedSourceLabel} · Unavailable`
+    : degraded ? `${verifiedSourceLabel} · Degraded` : verifiedSourceLabel;
+  const headerStateType = source === 'live' && !degraded ? 'live'
+    : (source === 'snapshot' || source === 'stale-snapshot' || source === 'cached') ? 'stale' : 'degraded';
 
   const handleRefresh = () => refresh(false);
 
@@ -1670,8 +1677,8 @@ export default function InsightPage() {
       <div className="page-container insight-page">
         <Header
           title="Insight"
-          stateLabel={displayStaleLabel || (source === 'failed' || source === 'unavailable' ? 'Unavailable' : 'Live · Degraded')}
-          stateType={staleLabel ? 'stale' : 'live'}
+          stateLabel={headerStateLabel}
+          stateType={headerStateType}
           onRefresh={handleRefresh}
           shellRuntimeProps={shellRuntimeProps}
         />
@@ -1715,8 +1722,8 @@ export default function InsightPage() {
     <div className="page-container">
       <Header
         title="Insight"
-        stateLabel={displayStaleLabel || (degraded ? 'Live · Degraded' : 'Live')}
-        stateType={staleLabel ? 'stale' : 'live'}
+        stateLabel={headerStateLabel}
+        stateType={headerStateType}
         onRefresh={handleRefresh}
         shellRuntimeProps={shellRuntimeProps}
       />
