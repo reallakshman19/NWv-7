@@ -283,3 +283,20 @@ describe('A10 Insight, Newspaper and provenance cross-route',()=>{
     }
   });
 });
+
+describe('A10 static-runtime constraints: real capability resolver',()=>{
+  it('54 GitHub Pages without configured API is static snapshot only',()=>{
+    const r=resolveRuntimeCapabilities({isBrowser:true,hostname:'reallakshman19.github.io',configuredBackendUrl:''});
+    expect(r.isStaticHost).toBe(true);
+    expect(r.browserWideFeedFetchAllowed).toBe(false);
+    expect(r.preferSnapshots).toBe(true);
+    expect(r.datasetRuntimeMode).toBe('static-snapshot');
+  });
+  it('55 GitHub Pages with configured dataset API still forbids browser-wide RSS',()=>{
+    const r=resolveRuntimeCapabilities({isBrowser:true,hostname:'reallakshman19.github.io',configuredBackendUrl:'https://example.test'});
+    expect(r.isStaticHost).toBe(true);
+    expect(r.canUseConfiguredDatasetApi).toBe(true);
+    expect(r.browserWideFeedFetchAllowed).toBe(false);
+    expect(r.datasetRuntimeMode).toBe('dataset-api');
+  });
+});
