@@ -15,10 +15,14 @@ describe('dataEnvelope', () => {
     });
 
     expect(Object.isFrozen(env)).toBe(true);
-    expect(env.ok).toBe(true);
+    expect(env.ok).toBe(false);
     expect(env.datasetId).toBe('test');
-    expect(env.source).toBe('live');
-    expect(env.fallbackUsed).toBe(false);
+    expect(env.source).toBe(ENVELOPE_SOURCES.UNKNOWN);
+    expect(env.freshness).toBe('unknown');
+    expect(env.validation.passed).toBe(null);
+    expect(env.slo.score).toBe(null);
+    expect(env.lastGoodAt).toBe(null);
+    expect(env.fallbackUsed).toBe(true);
   });
 
   it('marks fallbackUsed when source is not live', () => {
