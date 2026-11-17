@@ -1,3 +1,4 @@
+import { publishPageProvenance } from '../data/pageProvenance.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWeather } from '../context/WeatherContext';
 import { useNews } from '../context/NewsContext';
@@ -220,7 +221,7 @@ function makeMainBoundaryEnvelope({
       },
       validation: {
         ...existingValidation,
-        passed: Boolean(existingValidation.passed !== false && hasRenderableMain),
+        passed: Boolean(existingValidation.passed === true && hasRenderableMain),
         errors: hasRenderableMain
           ? (Array.isArray(existingValidation.errors) ? existingValidation.errors : [])
           : [
@@ -256,9 +257,11 @@ function makeMainBoundaryEnvelope({
       projectedHasRenderableMain: hasRenderableMain,
     },
     source: 'context',
-    freshness: hasRenderableMain ? 'fresh' : 'empty',
+    // A Context projection has no independent producer epoch. Content may
+    // render without a valid freshness or source authority receipt.
+    freshness: hasRenderableMain ? 'unknown' : 'empty',
     validation: {
-      passed: hasRenderableMain,
+      passed: null,
       errors: hasRenderableMain ? [] : (error ? [error] : []),
       warnings: [
         ...(isLoading ? ['main_loading_without_renderable_projection'] : []),
@@ -631,6 +634,16 @@ export function useMainTabViewModel() {
     isLoading,
     error,
   ]);
+
+  // Route-local projection bypasses shared useDataset cache; publish a bounded
+  // read-only receipt for Data Health after settled loading.
+  useEffect(() => {
+    if (isLoading) return;
+    publishPageProvenance('main', boundaryEnvelope, {
+      transport: 'news-context-projection',
+      provider: boundaryEnvelope?.source || 'unknown',
+    });
+  }, [isLoading, boundaryEnvelope]);
 
   return {
     envelope: boundaryEnvelope,
