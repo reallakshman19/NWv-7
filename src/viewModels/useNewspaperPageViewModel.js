@@ -1,3 +1,4 @@
+import { publishPageProvenance } from '../data/pageProvenance.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { geminiService } from '../services/geminiService';
@@ -138,7 +139,12 @@ export function useNewspaperPageViewModel() {
       setData(json.sources);
       setLastUpdated(json.lastUpdated);
       setSourceStatus(json.sourceStatus);
-      setProvenance(json.provenance);
+      setProvenance(json.provenance);
+      publishPageProvenance('newspaper', {
+        ok: true, source: 'snapshot', freshness: 'unknown',
+        fetchedAt: json.lastUpdated ?? null,
+        validation: { passed: true, errors: [], warnings: ['publisher_source_checked_not_live'] },
+      }, { transport: 'published-headline-json', provider: json.provenance || 'publisher-snapshot' });
       setDynamicSummaries({});
       setClientSummaries({});
       setDynamicTitles({});
@@ -150,14 +156,24 @@ export function useNewspaperPageViewModel() {
         setData(fallbackData.sources);
         setLastUpdated(fallbackData.lastUpdated);
         setSourceStatus(fallbackData.sourceStatus);
-        setProvenance(fallbackData.provenance);
+        setProvenance(fallbackData.provenance);
+        publishPageProvenance('newspaper', {
+          ok: true, source: 'snapshot', freshness: 'unknown',
+          fetchedAt: fallbackData.lastUpdated ?? null, fallbackUsed: true,
+          validation: { passed: true, errors: [], warnings: ['virtual_paper_fallback_not_primary'] },
+        }, { transport: 'virtual-paper-fallback', provider: fallbackData.provenance || 'unknown' });
         setDynamicSummaries({});
         setClientSummaries({});
         setDynamicTitles({});
       } catch (fallbackError) {
         console.error('Fallback failed:', fallbackError);
         setData(null);
-        setLastUpdated(null);
+        setLastUpdated(null);
+        publishPageProvenance('newspaper', {
+          ok: false, source: 'failed', freshness: 'unknown',
+          error: 'Newspaper headline providers unavailable',
+          validation: { passed: false, errors: ['newspaper_all_sources_failed'], warnings: [] },
+        }, { transport: 'provider-unavailable', provider: 'none' });
         setError("Current newspaper headlines are unavailable. Old editions are hidden; retry or open a publisher below.");
       }
     } finally {
