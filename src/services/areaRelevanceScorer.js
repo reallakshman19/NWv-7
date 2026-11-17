@@ -178,7 +178,8 @@ function evidenceFromMatches(matches) {
   };
 }
 
-export function getAreaRelevanceLabel(_score = 0, evidence = {}) {
+export function getAreaRelevanceLabel(score = 0, evidence = {}) {
+  void score; // Retain the numeric public API, but labels depend on evidence scope.
   // Scope is a property of the *kind* of event evidence, not the sum of how
   // many times 'Oman' appeared. In particular, 5 country mentions cannot
   // establish Muscat-city or exact-neighbourhood evidence.
