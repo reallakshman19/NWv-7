@@ -261,7 +261,7 @@ function makeMainBoundaryEnvelope({
     // render without a valid freshness or source authority receipt.
     freshness: hasRenderableMain ? 'unknown' : 'empty',
     validation: {
-      passed: null,
+      passed: hasRenderableMain ? null : false,
       errors: hasRenderableMain ? [] : (error ? [error] : []),
       warnings: [
         ...(isLoading ? ['main_loading_without_renderable_projection'] : []),
