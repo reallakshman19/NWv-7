@@ -80,7 +80,7 @@ async function configure(page, mode) {
         body: JSON.stringify(fixture()),
       });
     }
-    if (/\\/data\\/up_ahead\\.json(?:\\?|$)/.test(url)) {
+    if (url.includes('/data/up_ahead.json')) {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(fixture()) });
     }
     if (url.startsWith(BASE)) return route.continue();
