@@ -83,6 +83,24 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
       modeStr: 'cached',
       modeLabel: 'Cached',
     });
+
+    expect(getSourceModeState({
+      data: { sourceMode: 'dataset-api' },
+      runtime: { isStaticHost: true },
+      envelope: { freshness: 'fresh' },
+    })).toEqual({
+      modeStr: 'snapshot',
+      modeLabel: 'Worker API',
+    });
+
+    expect(getSourceModeState({
+      data: { sourceMode: 'dataset-api' },
+      runtime: { isStaticHost: true },
+      envelope: { freshness: 'stale' },
+    })).toEqual({
+      modeStr: 'degraded',
+      modeLabel: 'Limited',
+    });
   });
 
   it('visible content detector requires fetched rows rather than only saved plan items', () => {
