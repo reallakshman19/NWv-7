@@ -41,8 +41,11 @@ function hasVisibleUpAheadContent(data) {
 
 function getSource(sourceMode) {
   if (sourceMode === 'cache') return ENVELOPE_SOURCES.CACHE;
-  if (sourceMode === 'snapshot' || sourceMode === 'static') return ENVELOPE_SOURCES.SNAPSHOT;
-  return ENVELOPE_SOURCES.LIVE;
+  if (['snapshot', 'static', 'dataset-api'].includes(sourceMode)) return ENVELOPE_SOURCES.SNAPSHOT;
+  if (sourceMode === 'calendar') return ENVELOPE_SOURCES.SEED;
+  if (sourceMode === 'failed') return ENVELOPE_SOURCES.FAILED;
+  if (sourceMode === 'live') return ENVELOPE_SOURCES.LIVE;
+  return ENVELOPE_SOURCES.UNKNOWN;
 }
 
 function buildVisible(data, settings) {
@@ -116,8 +119,9 @@ async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, 
     return {
       data,
       sourceMode: apiData.sourceMode || 'dataset-api',
-      hasFreshApi: apiResponse.diagnostics?.freshness === 'fresh'
-        || (apiResponse.diagnostics?.freshness !== 'stale' && isUpAheadDataFresh(apiData)),
+      // The Worker may answer HTTP 200 using a retained snapshot. Do not
+      // override a stale response header or a stale payload timestamp.
+      hasFreshApi: apiResponse.diagnostics?.freshness !== 'stale' && isUpAheadDataFresh(apiData),
     };
   }
   diagnostics.push({ event: 'upAheadDataset.api_empty', severity: 'warn', message: 'Dataset API returned no visible Up Ahead content' });
@@ -228,7 +232,9 @@ export async function load(options = {}) {
   const evidence = visible.projected.upAheadEvidence;
   const briefing = visible.projected.upAheadBriefing;
   const ok = visible.projected.hasVisibleContent;
-  const fresh = ok && (hasFreshApi || isUpAheadDataFresh(data));
+  const fresh = ok && data?.auditSummary?.fallback !== 'festival_calendar'
+    && sourceMode !== 'calendar' && sourceMode !== 'failed'
+    && (hasFreshApi || isUpAheadDataFresh(data));
   const coverageError = !ok ? 'Current Up Ahead coverage is unavailable. Please refresh later.'
     : !fresh ? 'The publisher has not provided a fresh update. Showing retained active items only.' : null;
   if (!fresh) diagnostics.push({ event: 'upAheadDataset.coverage_not_fresh', severity: 'warn', message: coverageError });
