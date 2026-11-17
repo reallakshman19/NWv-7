@@ -1,9 +1,11 @@
 import {
   getCloudflareSectionsPreviewUrl,
   getSectionsDataSource,
+  getSectionsDataSourceRuntimeStatus,
   publishSectionsDataSourceStatus,
   SECTIONS_DATA_SOURCES,
 } from '../utils/sectionsDataSource.js';
+import { classifySectionsSnapshotAuthority } from './sectionsSnapshotAuthority.js';
 
 const SECTION_SNAPSHOT_PATH = '/newsdata/sections_latest.json';
 const SECTION_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
@@ -35,27 +37,18 @@ function getGithubSnapshotUrl() {
   return `${cleanBase}${SECTION_SNAPSHOT_PATH}?t=${Date.now()}`;
 }
 
-function isUsablePreviewSnapshot(snapshot) {
-  const fetchedAt = Number(snapshot?.fetchedAt || 0);
-  const sections = snapshot?.sections;
-  return isSupportedSectionsSnapshot(snapshot) &&
-    Number.isFinite(fetchedAt) &&
-    fetchedAt > 0 &&
-    Date.now() - fetchedAt <= PREVIEW_SNAPSHOT_MAX_AGE_MS &&
-    sections &&
-    typeof sections === 'object' &&
-    !Array.isArray(sections) &&
-    Object.values(sections).some(items => Array.isArray(items) && items.length > 0);
+function checkSnapshotAuthority(snapshot, provider) {
+  const quality = classifySectionsSnapshotAuthority(snapshot);
+  if (quality.valid) return quality;
+  const error = new Error(provider + ' sections snapshot invalid: ' + quality.reason);
+  error.code = provider === 'Cloudflare' ? 'preview_snapshot_unusable' : 'github_snapshot_unusable';
+  error.validationReason = quality.reason;
+  throw error;
 }
 
-function withRuntimeSource(snapshot, requested, effective, fallbackReason = null) {
-  const runtimeDataSource = {
-    requested,
-    effective,
-    fallback: requested !== effective,
-    fallbackReason,
-  };
-  publishSectionsDataSourceStatus(runtimeDataSource);
+function withRuntimeSource(snapshot, requested, effective, fallbackReason = null, fallbackDetail = null) {
+  const runtimeDataSource = { requested, effective, fallback: requested !== effective, fallbackReason };
+  if (fallbackDetail) runtimeDataSource.fallbackDetail = fallbackDetail;
   return { ...snapshot, runtimeDataSource };
 }
 
@@ -151,27 +144,33 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
     if (previewUrl) {
       try {
         const previewSnapshot = await requestSnapshotUrl(previewUrl, previewBudgetMs, { bypassCache: true }, startedAt);
-        if (!isUsablePreviewSnapshot(previewSnapshot)) {
-          const error = new Error('Cloudflare Preview snapshot is stale or incomplete');
-          error.code = 'preview_snapshot_unusable';
-          throw error;
-        }
+        checkSnapshotAuthority(previewSnapshot, 'Cloudflare');
         return withRuntimeSource(
           previewSnapshot,
           requestedSource,
           SECTIONS_DATA_SOURCES.CLOUDFLARE_PREVIEW,
         );
       } catch (error) {
-        const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
+        let githubSnapshot;
+        try {
+          githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
+          checkSnapshotAuthority(githubSnapshot, 'GitHub');
+        } catch (fallbackError) {
+          fallbackError.primaryFailure = error?.code || error?.message || 'preview_snapshot_unavailable';
+          fallbackError.primaryFailureDetail = error?.validationReason || null;
+          throw fallbackError;
+        }
         return withRuntimeSource(
           githubSnapshot,
           requestedSource,
           SECTIONS_DATA_SOURCES.GITHUB,
           error?.code || error?.message || 'preview_snapshot_unavailable',
+          error?.validationReason || null,
         );
       }
     }
     const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
+    checkSnapshotAuthority(githubSnapshot, 'GitHub');
     return withRuntimeSource(
       githubSnapshot,
       requestedSource,
@@ -181,6 +180,7 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
   }
 
   const githubSnapshot = await requestSnapshotUrl(getGithubSnapshotUrl(), budgetMs, {}, startedAt);
+  checkSnapshotAuthority(githubSnapshot, 'GitHub');
   return withRuntimeSource(
     githubSnapshot,
     requestedSource,
@@ -189,24 +189,38 @@ async function requestSectionsSnapshot(budgetMs, requestedSource = getSectionsDa
 }
 
 function completeSnapshotLoad(shared, snapshot, generation, requestedSource) {
-  if (generation === cacheGeneration) {
-    memorySnapshot = { loadedAt: Date.now(), requestedSource, snapshot };
-  }
-  if (activeSnapshotLoad === shared) {
+  // A superseded load may resolve, but must never overwrite authority status.
+  if (generation === cacheGeneration && activeSnapshotLoad === shared) {
+    const now = Date.now();
+    memorySnapshot = { loadedAt: now, requestedSource, snapshot };
+    publishSectionsDataSourceStatus({
+      ...snapshot.runtimeDataSource,
+      failed: false,
+      successfulAt: now,
+      lastSuccessfulAt: now,
+      lastSuccessfulEffective: snapshot.runtimeDataSource?.effective || null,
+    });
     activeSnapshotLoad = null;
     activeSnapshotSource = null;
   }
   return snapshot;
 }
 
-function failSnapshotLoad(shared, error) {
-  if (activeSnapshotLoad === shared) {
+function failSnapshotLoad(shared, error, generation) {
+  if (generation === cacheGeneration && activeSnapshotLoad === shared) {
+    const previous = getSectionsDataSourceRuntimeStatus();
     publishSectionsDataSourceStatus({
       requested: activeSnapshotSource,
       effective: 'unavailable',
       fallback: false,
       failed: true,
+      failureAt: Date.now(),
       fallbackReason: error?.code || error?.message || 'all_sources_unavailable',
+      failureDetail: error?.validationReason || null,
+      primaryFailure: error?.primaryFailure || null,
+      primaryFailureDetail: error?.primaryFailureDetail || null,
+      lastSuccessfulAt: previous?.lastSuccessfulAt || previous?.successfulAt || null,
+      lastSuccessfulEffective: previous?.lastSuccessfulEffective || (previous?.failed ? null : previous?.effective) || null,
     });
     activeSnapshotLoad = null;
     activeSnapshotSource = null;
@@ -219,7 +233,7 @@ function startSnapshotLoad(budgetMs, requestedSource) {
   let shared;
   shared = requestSectionsSnapshot(budgetMs, requestedSource).then(
     snapshot => completeSnapshotLoad(shared, snapshot, generation, requestedSource),
-    error => failSnapshotLoad(shared, error),
+    error => failSnapshotLoad(shared, error, generation),
   );
   activeSnapshotLoad = shared;
   activeSnapshotSource = requestedSource;
