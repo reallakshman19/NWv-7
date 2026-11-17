@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   a10-stage1-native:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +33,15 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Controlled production build real-route DOM smoke (NOT live)
         run: node audit/evidence/a10_route_render_probe.mjs
+      - name: Preserve native A10 audit files with executed browser evidence
+        if: always()
+        run: |
+          mkdir -p artifacts/a10/native
+          cp src/components/a10UiProvenanceBaseline.cert.test.jsx artifacts/a10/native/
+          cp audit/evidence/a10_route_render_probe.mjs artifacts/a10/native/
+          cp .github/workflows/a10-stage1-ui-provenance.yml artifacts/a10/native/
+          git rev-parse HEAD > artifacts/a10/native/exact_head_sha.txt
+          git rev-parse 695e27c64b42d2220449936792792b68e87a1375 > artifacts/a10/native/baseline_sha.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
