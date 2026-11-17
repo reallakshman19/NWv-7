@@ -26,6 +26,7 @@ export const TOP_STORIES_GOLDEN_REVIEW_SNAPSHOT = Object.freeze({
     'stale-expired-story',
   ]),
   rejectedExpiredIds: Object.freeze([
+    'fallback-hard-news', // Geo-unproven fallback now rejected (A03 provenance gate).
     'god-of-war-promo',
     'low-confidence-story',
     'same-source-top-feed-spam',
