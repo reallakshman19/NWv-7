@@ -1,0 +1,42 @@
+name: A10 UI provenance Stage 1 — source-first baseline
+on:
+  push:
+    branches:
+      - audit/a10-ui-provenance-stage1-20261117
+permissions:
+  contents: read
+jobs:
+  a10-stage1-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Verify only audit/test files differ from immutable main
+        run: |
+          git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD
+          if git diff --name-only 695e27c64b42d2220449936792792b68e87a1375..HEAD | grep -Ev '^(src/components/a10UiProvenanceBaseline.cert.test.jsx|audit/evidence/a10_route_render_probe.mjs|.github/workflows/a10-stage1-ui-provenance.yml)$'; then
+            echo "UNAUTHORIZED production code or out-of-scope file changed" >&2
+            exit 1
+          fi
+      - run: npm ci
+      - name: A10 8 source and React DOM baseline controls
+        run: npx vitest run --config vitest.config.js src/components/a10UiProvenanceBaseline.cert.test.jsx
+      - run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Controlled production build real-route DOM smoke (NOT live)
+        run: node audit/evidence/a10_route_render_probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a10-stage1-controlled-browser-screenshots-and-dom
+          path: artifacts/a10/
+          if-no-files-found: warn
+          retention-days: 30
