@@ -38,6 +38,26 @@ function getSourceModeState({ data, runtime, envelope }) {
     || (envelope && envelope.freshness !== 'fresh')) {
     return { modeStr: 'degraded', modeLabel: data?.auditSummary?.fallback === 'festival_calendar' ? 'Calendar fallback' : 'Limited' };
   }
+  // The selected envelope is the canonical source family. Payload sourceMode
+  // may describe an older retained response and must never promote it to Live.
+  if (envelope?.source === 'failed' || envelope?.source === 'unknown') {
+    return { modeStr: 'degraded', modeLabel: 'Source unverified' };
+  }
+  if (envelope?.source === 'seed') {
+    return { modeStr: 'degraded', modeLabel: 'Calendar fallback' };
+  }
+  if (envelope?.source === 'cache') {
+    return { modeStr: 'cached', modeLabel: 'Cached' };
+  }
+  if (envelope?.source === 'snapshot'
+      && !['snapshot', 'static', 'dataset-api'].includes(data?.sourceMode)) {
+    return { modeStr: 'snapshot', modeLabel: 'Snapshot' };
+  }
+  if (envelope?.source === 'live'
+      && ['snapshot', 'static', 'dataset-api'].includes(data?.sourceMode)) {
+    return { modeStr: 'degraded', modeLabel: 'Source mismatch' };
+  }
+
   // A Worker-backed snapshot is a successful dataset API response, not a
   // degraded feed merely because the frontend is hosted on GitHub Pages.
   if (data?.sourceMode === 'dataset-api') {
@@ -55,8 +75,10 @@ function getSourceModeState({ data, runtime, envelope }) {
   }
 
   return {
-    modeStr: data?.sourceMode === 'cache' ? 'cached' : 'live',
-    modeLabel: data?.sourceMode === 'cache' ? 'Cached' : 'Live',
+    modeStr: data?.sourceMode === 'cache' ? 'cached'
+      : data?.sourceMode === 'live' ? 'live' : 'degraded',
+    modeLabel: data?.sourceMode === 'cache' ? 'Cached'
+      : data?.sourceMode === 'live' ? 'Live' : 'Source unverified',
   };
 }
 
