@@ -30,8 +30,9 @@ try {
   }
   if(!ready)throw new Error('Production Vite preview not reachable');
   const browser=await chromium.launch({headless:true});
+  let context;
   try{
-    const context=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'});
+    context=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'});
     const requests=[];
     await context.route('**/*',async route=>{
       try{
@@ -70,7 +71,7 @@ try {
     await wait(1600);
     results.dataHealthAfterRoutes={text:(await page.locator('body').innerText()).slice(0,9000)};
     await page.screenshot({path:`${out}/a10_data_health_after_routes.png`,fullPage:false,animations:'disabled',timeout:7500});
-  }finally{await context.close().catch(()=>{}); await browser.close()}
+  }finally{if(context) await context.close().catch(()=>{}); await browser.close()}
 } catch(error){results.fatal=String(error);process.exitCode=1}
 finally{app.kill('SIGTERM')}
 writeFileSync(`${out}/a10_route_render_evidence.json`,JSON.stringify(results,null,2));
