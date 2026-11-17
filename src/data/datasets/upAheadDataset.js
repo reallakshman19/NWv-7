@@ -121,7 +121,7 @@ async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, 
       sourceMode: apiData.sourceMode || 'dataset-api',
       // The Worker may answer HTTP 200 using a retained snapshot. Do not
       // override a stale response header or a stale payload timestamp.
-      hasFreshApi: apiResponse.diagnostics?.freshness !== 'stale' && isUpAheadDataFresh(apiData),
+      hasFreshApi: apiResponse.diagnostics?.freshness === 'fresh' && isUpAheadDataFresh(apiData),
     };
   }
   diagnostics.push({ event: 'upAheadDataset.api_empty', severity: 'warn', message: 'Dataset API returned no visible Up Ahead content' });
