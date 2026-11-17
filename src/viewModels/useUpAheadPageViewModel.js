@@ -119,8 +119,6 @@ function deriveOfferCapability({
     };
   }
 
-  const counts = categoryAcquisitionTotals(acquisitionSummary, categories);
-
   if (acquisitionSummary && counts.attemptedSources > 0) {
     if (counts.successfulSources === 0 && counts.failedSources > 0) {
       return {
