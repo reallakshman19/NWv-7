@@ -7,6 +7,8 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { chromium } from 'playwright';
+const absoluteTimeout = setTimeout(() => { console.error('A10 hard timeout: route evidence incomplete'); process.exit(124); }, 150000);
+absoluteTimeout.unref();
 const host = '127.0.0.1';
 const port = 4176;
 const base = `http://${host}:${port}/`;
@@ -42,8 +44,8 @@ try {
     const page=await context.newPage();
     page.on('pageerror',error=>results.errors.push({route:page.url(),error:String(error)}));
     for(const [name,hash]of routes){
-      await page.goto(base+'#'+hash,{waitUntil:'domcontentloaded',timeout:30000});
-      await wait(2500);
+      await page.goto(base+'#'+hash,{waitUntil:'domcontentloaded',timeout:15000});
+      await wait(1400);
       const dom=await page.evaluate(()=>({
         text:document.body?.innerText?.slice(0,9000)||'',
         mainText:(document.querySelector('main')?.innerText||'').slice(0,3000),
@@ -55,8 +57,10 @@ try {
         dataHealthPresent:Boolean(document.querySelector('[data-testid=data-health-panel]')),
         sourceBadges:Array.from(document.querySelectorAll('[data-testid=data-source-badge]')).map(n=>n.innerText).slice(0,15),
       }));
-      await page.screenshot({path:`${out}/a10_${name}.png`,fullPage:true,timeout:15000});
+      await page.screenshot({path:`${out}/a10_${name}.png`,fullPage:false,animations:'disabled',timeout:7500});
       results.routes.push({name,url:page.url(),...dom,blockedExternalCount:requests.length});
+      writeFileSync(`${out}/a10_route_render_evidence.json`, JSON.stringify(results,null,2));
+      console.log('A10_CAPTURED_ROUTE '+name);
     }
     results.blockedExternalRequests=requests.slice(0,35);
     results.allFiveRendered=results.routes.length===5&&results.routes.every(r=>r.text.length>0);
@@ -65,10 +69,12 @@ try {
     await page.goto(base+'#/data-health',{waitUntil:'domcontentloaded'});
     await wait(1600);
     results.dataHealthAfterRoutes={text:(await page.locator('body').innerText()).slice(0,9000)};
-    await page.screenshot({path:`${out}/a10_data_health_after_routes.png`,fullPage:true,timeout:15000});
+    await page.screenshot({path:`${out}/a10_data_health_after_routes.png`,fullPage:false,animations:'disabled',timeout:7500});
   }finally{await context.close().catch(()=>{}); await browser.close()}
 } catch(error){results.fatal=String(error);process.exitCode=1}
 finally{app.kill('SIGTERM')}
 writeFileSync(`${out}/a10_route_render_evidence.json`,JSON.stringify(results,null,2));
 console.log(JSON.stringify({routes:results.routes.map(x=>({name:x.name,headings:x.headings,alerts:x.alerts,statuses:x.statuses,articleCount:x.articleCount,dataHealthPresent:x.dataHealthPresent,blockedExternalCount:x.blockedExternalCount,sourceBadges:x.sourceBadges})),allFiveRendered:results.allFiveRendered,fatal:results.fatal||null,errors:results.errors.length},null,2));
 if(!results.allFiveRendered)process.exitCode=1;
+clearTimeout(absoluteTimeout);
+process.exit(process.exitCode || 0);
