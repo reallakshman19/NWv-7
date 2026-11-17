@@ -6,6 +6,7 @@ import {
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
 import { combineDatasetHealthEntries } from '../data/upAheadDirectPageEvidence.js';
+import { combinePageProvenanceEntries } from '../data/pageProvenance.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 
 const EDGE_DIAGNOSTIC_EVENT = 'upAheadDataset.api_edge_diagnostics';
@@ -30,7 +31,29 @@ function formatTime(value) {
 }
 
 function getCacheSnapshot(diagnostics = []) {
-  return combineDatasetHealthEntries(listDatasetCache(), diagnostics);
+  return combinePageProvenanceEntries(
+    combineDatasetHealthEntries(listDatasetCache(), diagnostics), diagnostics
+  );
+}
+
+const PAGE_COVERAGE_IDS = ['main', 'upAhead', 'insight', 'newspaper'];
+function getPageCoverage(entries) {
+  return PAGE_COVERAGE_IDS.map(page => {
+    const direct = entries.find(row => row.datasetId === page + ' (page)');
+    const shared = entries.find(row => row.datasetId === page);
+    const entry = direct || shared;
+    return {
+      page,
+      observed: Boolean(entry),
+      source: entry?.envelope?.source || 'not observed',
+      freshness: entry?.envelope?.freshness || 'unknown',
+      origin: entry?.origin || (shared ? 'shared-cache' : 'not observed'),
+    };
+  });
+}
+function validationLabel(envelope) {
+  return envelope?.validation?.passed === true ? 'passed'
+    : envelope?.validation?.passed === false ? 'failed' : 'unknown / not evaluated';
 }
 
 function isObjectRecord(value) {
@@ -248,9 +271,9 @@ export default function DataHealthPanel() {
   }, []);
 
   const cachedEnvelopes = getCacheSnapshot(diagnostics);
+  const pageCoverage = getPageCoverage(cachedEnvelopes);
   const runtimeCapabilities = readRuntimeCapabilities();
-  const latestUpAheadEdgeDiagnosticEvent = getLatestUpAheadEdgeDiagnosticEvent(diagnostics);
-  const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
+  // Unlinked edge events remain in the raw diagnostics history only.
 
   const exportPayload = () => {
     const payload = {
@@ -270,11 +293,12 @@ export default function DataHealthPanel() {
         error: envelope?.error,
         edgeApiDiagnostics: datasetId === 'upAhead (page)'
           ? buildEdgeApiDiagnosticsExport(envelope?.edgeApiDiagnostics)
-          : datasetId === 'upAhead'
-            ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
-            : null,
+          : null,
         providerProvenance: envelope?.providerProvenance || null,
         attemptId: envelope?.attemptId || null,
+        validationState: validationLabel(envelope),
+        evidenceClass: envelope?.providerProvenance ? 'direct-page-receipt'
+          : 'local-envelope-cache',
       })),
     };
 
@@ -327,6 +351,23 @@ export default function DataHealthPanel() {
         </div>
       </div>
 
+      <div style={{ marginTop: '14px' }} aria-label="Page coverage in this browser session">
+        <h3>Page coverage (this browser session)</h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          Not observed means no current-session receipt; it does not prove a route failed.
+          An envelope or receipt is not proof of a fresh Cloudflare epoch.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {pageCoverage.map(row => (
+            <span key={row.page} className="data-state-badge" data-testid={`a10-coverage-${row.page}`}>
+              {row.page}: {row.observed
+                ? `${row.source} · ${row.freshness} · ${row.origin}`
+                : 'not observed'}
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
         {cachedEnvelopes.length === 0 ? (
           <div className="empty-state" style={{ padding: '16px' }}>
@@ -344,9 +385,9 @@ export default function DataHealthPanel() {
               )}
               <div><strong>Freshness:</strong> {envelope?.freshness || '--'}</div>
               <div><strong>Fallback:</strong> {envelope?.fallbackUsed ? 'yes' : 'no'}</div>
-              <div><strong>Payload hash:</strong> {envelope?.payloadHash || '--'}</div>
+              <div><strong>Local payload checksum:</strong> {envelope?.payloadHash || '--'}</div>
               <div><strong>Last good:</strong> {formatTime(envelope?.lastGoodAt)}</div>
-              <div><strong>Validation:</strong> {envelope?.validation?.passed === false ? 'failed' : 'passed'}</div>
+              <div><strong>Validation:</strong> {validationLabel(envelope)}</div>
               <div><strong>SLO score:</strong> {envelope?.slo?.score ?? '--'}</div>
             </div>
 
@@ -356,12 +397,12 @@ export default function DataHealthPanel() {
                   envelope={envelope}
                   diagnosticEvent={datasetId === 'upAhead (page)'
                     ? diagnostics.find(event => event.id === envelope?.edgeDiagnosticEventId) || null
-                    : latestUpAheadEdgeDiagnosticEvent}
+                    : null}
                   runtimeCapabilities={runtimeCapabilities}
                 />
                 <EdgeApiSummary details={datasetId === 'upAhead (page)'
                   ? envelope?.edgeApiDiagnostics
-                  : latestUpAheadEdgeDiagnostics} />
+                  : null} />
               </>
             )}
 
