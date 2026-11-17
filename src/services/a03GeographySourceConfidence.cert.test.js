@@ -104,6 +104,31 @@ describe('A03 provenance-preserving location repair', () => {
     expect(getLocationRelevanceSignal({ ...story, country: 'Oman' }).score).toBe(0.82);
   });
 
+  it('country mentions cannot inflate to Muscat city from duplicate snapshot headline/summary', () => {
+    const title = 'Oman Plans Aerospace Hub Around Duqm Spaceport';
+    const summary = 'Oman aerospace activity across the country';
+    const result = scoreAreaRelevance({ title, headline: title, summary, description: summary }, 'muscat');
+    expect(result.label).toBe('country');
+    expect(result.reasons).toContain('country_backfill');
+    expect(result.label).not.toBe('city');
+    expect(result.matchedFields).not.toContain('headline');
+    expect(result.matchedFields).not.toContain('description');
+  });
+
+  it('recovers named Oman and Tamil Nadu locations without publisher provenance', () => {
+    const dhofar = scoreAreaRelevance({
+      title: 'Workshop held in Dhofar discusses ways to protect cultural property', source: 'Times of Oman',
+    }, 'muscat');
+    expect(dhofar.label).toBe('country');
+    expect(dhofar.matchedFields).toEqual(['title']);
+    expect(scoreAreaRelevance({
+      title: 'Kodungaiyur Police head to Madurai in search of gang', source: 'The Hindu Chennai',
+    }, 'chennai').label).toBe('exact-area');
+    expect(scoreAreaRelevance({
+      title: '20 cows found dead in farmland near Sriperumbudur', source: 'The Hindu Chennai',
+    }, 'chennai').label).toBe('state-region');
+  });
+
   it('preserves public-consequence sorting inside recognized regional coverage', () => {
     const list = applyAreaRelevance([
       { id: 'feature', title: 'Chennai Adyar artisans prepare festival lamps', _publicImpact: { priority: 0 } },
