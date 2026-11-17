@@ -77,7 +77,9 @@ describe('NW-RANK-004 Top Stories audit harness', () => {
       },
     ]);
     expect(snapshot.rankedIdsInOrder).toContain('local-public-alert');
-    expect(snapshot.rankedIdsInOrder).toContain('fallback-hard-news');
+    // The world acquisition region is not evidence of event geography.
+    // Without an explicit world event anchor the 10h fallback misses admission.
+    expect(snapshot.rankedIdsInOrder).not.toContain('fallback-hard-news');
   });
 
   it('does not mutate input fixtures', () => {
