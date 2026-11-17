@@ -37,6 +37,10 @@ function getGithubSnapshotUrl() {
   return `${cleanBase}${SECTION_SNAPSHOT_PATH}?t=${Date.now()}`;
 }
 
+function isUsablePreviewSnapshot(snapshot) {
+  return classifySectionsSnapshotAuthority(snapshot).valid;
+}
+
 function checkSnapshotAuthority(snapshot, provider) {
   const quality = classifySectionsSnapshotAuthority(snapshot);
   if (quality.valid) return quality;
