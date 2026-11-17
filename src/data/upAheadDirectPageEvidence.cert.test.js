@@ -76,12 +76,13 @@ describe('A06 direct page to Data Health provider chain', () => {
     const second = publishDirectUpAheadEnvelope({
       ok: true, source: 'snapshot', freshness: 'fresh',
       data: { sourceMode: 'static' }, diagnostics: [],
-    });
+    }, { requestedPagePolicy: 'refresh-now' });
     expect(second.attemptId).not.toBe(first.attemptId);
     expect(second.edgeApiDiagnostics).toBeNull();
     expect(second.edgeDiagnosticEventId).toBeNull();
     expect(second.providerProvenance).toMatchObject({
       transport: 'published-json', effectiveProvider: 'github-static',
+      requestedPagePolicy: 'refresh-now',
     });
     const active = getDirectUpAheadEnvelopeEntry(listDiagnostics());
     expect(active.envelope.attemptId).toBe(second.attemptId);
