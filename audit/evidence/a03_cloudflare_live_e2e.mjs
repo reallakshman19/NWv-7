@@ -127,10 +127,12 @@ try {
   trace.rowCount = original.length;
   trace.uniqueIds = new Set(original.map(x => x.item.id).filter(Boolean)).size;
   trace.previewEpoch = snapshot.preview?.epochId || null;
-  if (!Number.isFinite(fetchedAt) || fetchedAt <= 0 || ageMs > 12 * 60 * 60 * 1000) {
-    save('cloudflare_raw_capture.json', bytes.toString('utf8'));
-    throw new Error('Cloudflare preview snapshot is stale or timestamp invalid');
-  }
+  trace.liveUsable = Number.isFinite(fetchedAt) && fetchedAt > 0
+    && ageMs >= -60_000 && ageMs <= 12 * 60 * 60 * 1000;
+  trace.stalenessReason = trace.liveUsable ? null
+    : 'cloudflare_snapshot_older_than_12h_or_invalid_timestamp';
+  trace.committedEpoch = Boolean(snapshot.preview?.evidenceVerified);
+  trace.servingAuthority = snapshot.preview?.servingAuthority || null;
   // Public-read D1 projection, exact response bytes. No GitHub fallback.
   save('cloudflare_raw_capture.json', bytes.toString('utf8'));
   const baseline = await readBaseline();
@@ -201,8 +203,10 @@ try {
   assert.equal(trace.negativeControls.substringWomanCorrected, 0);
   assert(trace.negativeControls.sourceOnlyTokyoBaseline > 0);
   assert(trace.negativeControls.substringWomanBaseline > 0);
-  trace.verifiedCloudflare = true;
-  trace.result = 'SOURCE_PROJECTION_PASS_NOT_BROWSER_CERTIFICATION';
+  trace.verifiedCloudflare = true; // Exact public Cloudflare response verified; freshness separate.
+  trace.result = trace.liveUsable
+    ? 'LIVE_CLOUDFLARE_SOURCE_PROJECTION_PASS_NOT_BROWSER'
+    : 'HISTORICAL_CLOUDFLARE_SOURCE_PROJECTION_PASS_LIVE_UNQUALIFIED';
   save('cloudflare_row_replay.csv', csv(rows, [
     'acquisitionSection','outputSection','ordinal','id','title','originalSource','originalRegion',
     'originalCountry','originalCity','beforeAreaScore','afterAreaScore','beforeAreaLabel','afterAreaLabel',
@@ -210,6 +214,9 @@ try {
   ]));
   save('cloudflare_geographic_replay.json', trace);
   console.log(JSON.stringify(trace, null, 2));
+  // A stale real Cloudflare epoch may validate the semantic hypothesis but must
+  // never satisfy the current-live freshness or deployed-browser acceptance gate.
+  if (!trace.liveUsable) process.exitCode = 1;
 } catch (error) {
   trace.result = 'CLOUDFLARE_NOT_VERIFIED';
   trace.error = String(error?.stack || error);
