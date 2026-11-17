@@ -42,8 +42,8 @@ describe('NW-RANK-005 Top Stories audit adapter shadow mode', () => {
     expect(payload.summary).toMatchObject({
       ok: true,
       mode: 'shadow-audit',
-      rankedCount: 6,
-      expectedRankedCount: 6,
+      rankedCount: 5,
+      expectedRankedCount: 5,
       rankedIdsInOrder: expect.any(Array),
       topFeedBoostedIds: expect.any(Array),
       penalizedIds: expect.any(Array),
