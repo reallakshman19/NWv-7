@@ -45,13 +45,13 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('ageSeconds');
   });
 
-  it('derives latest Up Ahead edge diagnostics for the dataset card', () => {
+  it('retains raw Up Ahead edge history but never joins it to an unrelated cached card', () => {
     expect(src).toContain('getLatestUpAheadEdgeDiagnostics');
     expect(src).toContain('getLatestUpAheadEdgeDiagnosticEvent');
-    expect(src).toContain('upAheadDataset.api_edge_diagnostics');
-    expect(src).toContain('latestUpAheadEdgeDiagnostics');
-    expect(src).toContain('latestUpAheadEdgeDiagnosticEvent');
-    expect(src).toContain("datasetId === 'upAhead'");
+    expect(src).toContain('rawUnlinkedEdgeDetails');
+    expect(src).toContain('Unlinked historical Up Ahead edge telemetry');
+    expect(src).not.toContain('latestUpAheadEdgeDiagnostics');
+    expect(src).toContain('event.id === envelope?.edgeDiagnosticEventId');
   });
 
   it('renders a pinned Edge API summary with edge metadata fields', () => {
@@ -105,11 +105,11 @@ describe('DataHealthPanel', () => {
     expect(src).toContain('datasets: cachedEnvelopes.map');
   });
 
-  it('exports Up Ahead edge diagnostics in the dataset summary', () => {
+  it('exports Up Ahead edge diagnostics only from the same direct-page attempt', () => {
     expect(src).toContain('buildEdgeApiDiagnosticsExport');
     expect(src).toContain('edgeApiDiagnostics');
-    expect(src).toContain("datasetId === 'upAhead'");
-    expect(src).toContain('latestUpAheadEdgeDiagnostics');
+    expect(src).toContain("datasetId === 'upAhead (page)'");
+    expect(src).not.toContain('latestUpAheadEdgeDiagnostics');
     expect(src).toContain('source: formatDiagnosticValue(details.source)');
     expect(src).toContain('reason: formatDiagnosticValue(details.reason)');
     expect(src).toContain('freshness: formatDiagnosticValue(details.freshness)');
