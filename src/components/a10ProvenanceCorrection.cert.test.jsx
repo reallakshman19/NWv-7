@@ -153,3 +153,26 @@ describe('A10 Main/Newspaper operator receipts and source classification',()=>{
     expect(r).toMatchObject({status:'ready',verified:true});
   });
 });
+
+describe('A10 explicit source-envelope disagreement controls',()=>{
+  it('never promotes retained snapshot envelope to live because payload says live',()=>{
+    const r=upAhead.getSourceModeState({data:{sourceMode:'live'},
+      runtime:{isStaticHost:false},envelope:{source:'snapshot',freshness:'fresh'}});
+    expect(r).toMatchObject({modeStr:'snapshot',modeLabel:'Snapshot'});
+  });
+  it('unknown payload source is unverified, not live',()=>{
+    const r=upAhead.getSourceModeState({data:{sourceMode:'calendar'},
+      runtime:{isStaticHost:false},envelope:{freshness:'fresh'}});
+    expect(r).toMatchObject({modeStr:'degraded',modeLabel:'Source unverified'});
+  });
+  it('mismatched Worker API and live envelope emits explicit source conflict',()=>{
+    const r=upAhead.getSourceModeState({data:{sourceMode:'dataset-api'},
+      runtime:{isStaticHost:false},envelope:{source:'live',freshness:'fresh'}});
+    expect(r).toMatchObject({modeStr:'degraded',modeLabel:'Source mismatch'});
+  });
+  it('authentic Worker API snapshot transport retains R3 label',()=>{
+    const r=upAhead.getSourceModeState({data:{sourceMode:'dataset-api'},
+      runtime:{isStaticHost:true},envelope:{source:'snapshot',freshness:'fresh'}});
+    expect(r).toMatchObject({modeStr:'snapshot',modeLabel:'Worker API'});
+  });
+});
