@@ -27,9 +27,10 @@ describe('A06 direct page to Data Health provider chain', () => {
     expect(events.map(item => item.event)).toEqual([
       'upAheadDataset.api_edge_diagnostics', UP_AHEAD_DIRECT_PAGE_EVENT,
     ]);
-    expect(events[0].details).toEqual({
+    expect(events[0].details).toMatchObject({
       source: 'upstream', reason: 'ok', freshness: 'fresh', ageSeconds: '30',
     });
+    expect(events[0].details.attemptId).toBe(result.attemptId);
     expect(JSON.stringify(events)).not.toContain('secret-item');
     const entry = getDirectUpAheadEnvelopeEntry(events);
     expect(entry).toMatchObject({
