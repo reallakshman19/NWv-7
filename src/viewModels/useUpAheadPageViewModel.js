@@ -8,6 +8,7 @@ import {
   sanitizeUpAheadData,
 } from '../services/upAheadService';
 import { load as loadUpAhead } from '../data/datasets/upAheadDataset';
+import { publishDirectUpAheadEnvelope } from '../data/upAheadDirectPageEvidence.js';
 import plannerStorage, {
   getPlannerStorageError,
   isPlannerStorageSuccess,
@@ -36,6 +37,11 @@ function getSourceModeState({ data, runtime, envelope }) {
   if (data?.auditSummary?.fallback === 'festival_calendar'
     || (envelope && envelope.freshness !== 'fresh')) {
     return { modeStr: 'degraded', modeLabel: data?.auditSummary?.fallback === 'festival_calendar' ? 'Calendar fallback' : 'Limited' };
+  }
+  // A Worker-backed snapshot is a successful dataset API response, not a
+  // degraded feed merely because the frontend is hosted on GitHub Pages.
+  if (data?.sourceMode === 'dataset-api') {
+    return { modeStr: 'snapshot', modeLabel: 'Worker API' };
   }
   if (data?.sourceMode === 'snapshot' || data?.sourceMode === 'static') {
     return { modeStr: 'snapshot', modeLabel: 'Snapshot' };
@@ -247,6 +253,7 @@ export function useUpAheadPageViewModel() {
       });
       if (request !== latestLoad.current) return;
       setEnvelope(nextEnvelope);
+      publishDirectUpAheadEnvelope(nextEnvelope);
       setError(nextEnvelope.error || null);
       const { raw, sourceMode, acquisitionSummary } = nextEnvelope.data || {};
       lastData.current = raw && { ...raw, sourceMode };
@@ -255,6 +262,11 @@ export function useUpAheadPageViewModel() {
       setLoadingPhase(acquisitionSummary && acquisitionSummary.status !== 'blocked' ? 3 : 2);
     } catch (error) {
       if (request !== latestLoad.current) return;
+      publishDirectUpAheadEnvelope({
+        ok: false, source: 'failed', freshness: 'unknown',
+        error: error?.message || 'Up Ahead refresh failed',
+        data: { sourceMode: 'failed' },
+      });
       setError(error?.message || 'Up Ahead refresh failed. Showing retained active items if available.');
       setLiveAcquisition({ status: 'failed', reason: error?.message || 'refresh_failed', byCategory: {} });
     } finally {
