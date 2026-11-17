@@ -86,21 +86,22 @@ function deriveOfferCapability({
   sourceMode = null,
   freshness = 'fresh',
 } = {}) {
-  if (Array.isArray(offers) && offers.length > 0) {
-    return {
-      status: 'ready',
-      verified: true,
-      reason: 'results',
-      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
-    };
+  // Configuration authority and offer availability are separate. Preserve
+  // retained cards but never call them verified without fresh successful sources.
+  const counts = categoryAcquisitionTotals(acquisitionSummary, categories);
+  if (!enabled) {
+    return { status: 'disabled', verified: false, reason: 'category_disabled', counts };
   }
 
-  if (!enabled) {
+  if (Array.isArray(offers) && offers.length > 0) {
+    const verified = freshness === 'fresh' && counts.successfulSources > 0
+      && counts.failedSources === 0;
     return {
-      status: 'disabled',
-      verified: true,
-      reason: 'category_disabled',
-      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
+      status: 'ready',
+      verified,
+      reason: verified ? 'verified_acquired_results'
+        : freshness !== 'fresh' ? 'retained_results_stale' : 'unverified_acquired_results',
+      counts,
     };
   }
 
