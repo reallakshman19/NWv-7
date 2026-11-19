@@ -1,110 +1,94 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { useMarket } from '../context/MarketContext';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
-import { formatMarketTimestamp, getMarketSessionState, getOldestMarketQuoteAt } from '../utils/marketSession.js';
 import MarketPage from './MarketPage';
 
-vi.mock('../context/MarketContext', () => ({ useMarket: vi.fn() }));
 vi.mock('../viewModels/useMarketPageViewModel.js', () => ({ useMarketPageViewModel: vi.fn() }));
-vi.mock('../components/Header', () => ({ DataStatePill: ({ label }) => <span>{label}</span> }));
-vi.mock('../components/market/IndiaMarketTools.jsx', () => ({ default: () => null, NewFundOffers: () => null }));
-vi.mock('../components/audit/GradeBadge.jsx', () => ({ default: () => null }));
+vi.mock('../components/market/MarketWorkspaceTools.jsx', () => ({
+  EquityWorkspace: ({ data }) => <div>Equity ready · {data.equities?.length || 0} quotes</div>,
+  FundsWorkspace: () => <div>Funds ready without India quotes</div>,
+  CurrencyWorkspace: () => <div>Currency ready without India quotes</div>,
+}));
+const now = Date.now();
+const quoteAt = new Date(now - 3 * 60000).toISOString();
+const published = now - 60000;
+const india = { name:'NIFTY 50', symbol:'^NSEI', value:'25000', quoteAt, change:'10', changePercent:'0.04', source:'Daily close' };
+const global = { name:'S&P 500', symbol:'^GSPC', value:'6000', quoteAt, change:'-2', changePercent:'-0.03', source:'Daily close' };
 
-const collectedAt = Date.parse('2026-11-19T05:05:00Z');
-const indiaQuote = {
-  name: 'NIFTY 50', value: '25,000.25', change: '7.50', changePercent: '0.03',
-  sourceMode: 'yahoo-free-daily', quoteAt: '2026-11-18T10:00:00Z',
-};
-const globalQuote = {
-  name: 'S&P 500', value: '6,250.25', change: '-1.50', changePercent: '-0.02',
-  sourceProvider: 'yahoo-quote-query1-direct', quoteAt: '2026-11-18T21:00:00Z',
-};
-
-function renderMarket({ indiaRows = [indiaQuote], globalRows = [globalQuote], marketSettings = {}, loading = false, sourceMode = 'snapshot' } = {}) {
-  const sourceHealth = { indices: { status: sourceMode === 'cache' ? 'live' : sourceMode } };
-  const marketData = { indices: indiaRows, globalIndices: globalRows, fetchedAt: collectedAt, sourceMode, sourceHealth };
-  const refreshMarket = vi.fn();
-  useMarket.mockReturnValue({ marketData });
-  useMarketPageViewModel.mockReturnValue({
-    marketData,
-    rawMarketData: marketData,
-    marketSettings: {
-      showGainers: false, showLosers: false, showSectorals: false, showMutualFunds: false, showIPO: false, ...marketSettings,
-    },
-    displayedPrimaryIndices: indiaRows,
-    globalIndices: globalRows,
-    sectoralIndices: [],
-    heroSeries: [],
-    mood: { tone: 'neutral', label: 'Mixed market tone' },
-    sourceHealth,
-    sessionState: getMarketSessionState({ now: new Date(collectedAt), quoteAt: getOldestMarketQuoteAt(indiaRows) }),
-    trackedIndexBreadth: { rising: 1, falling: 0, flat: 0, unknown: 1 },
-    navSections: [],
-    loading,
-    refreshMarket,
-    helpers: {
-      getFloat: Number,
-      getMarketToneClass: () => 'market-tone--neutral',
-      hasUsableSectionData: data => Array.isArray(data) && data.length > 0,
-    },
-  });
-  const { container } = render(<MarketPage />);
-  return { container, refreshMarket };
+function setMarket({ indices = [india], globalIndices = [global], sectorals = [], sourceMode = 'snapshot', loading = false, marketSettings = {} } = {}) {
+  const marketData = { indices, globalIndices, sectorals, sourceMode, fetchedAt:published, sourceHealth:{indices:{status:sourceMode}} };
+  const refreshMarket = vi.fn().mockResolvedValue({ok:true});
+  useMarketPageViewModel.mockReturnValue({marketData, rawMarketData: marketData, marketSettings, sourceHealth:marketData.sourceHealth, sessionState:{label:'After hours'},loading, error:null,refreshMarket});
+  return refreshMarket;
 }
+beforeEach(() => { window.location.hash = '#/markets'; window.localStorage.clear(); });
+afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
-afterEach(cleanup);
-
-describe('Market partial-feed rendering', () => {
-  it('keeps global quotes visible when India rows are missing or malformed', () => {
-    const { container } = renderMarket({ indiaRows: [null, 5, { name: 'NIFTY 50', value: {} }], globalRows: [null, globalQuote] });
-    expect(screen.queryByRole('heading', { name: 'Market pulse' })).toBeNull();
-    const globalPanel = within(container.querySelector('.market-hero-side'));
-    expect(globalPanel.getByText('S&P 500')).toBeTruthy();
-    expect(globalPanel.getByText(`Quote as of ${formatMarketTimestamp(globalQuote.quoteAt)}`)).toBeTruthy();
+describe('Market four-workspace shell', () => {
+  it('renders only the active workspace, and changes URL for Back/reload', () => {
+    setMarket(); render(<MarketPage />);
+    expect(screen.getByRole('heading',{name:'Indices'})).toBeTruthy();
+    expect(screen.queryByText('Funds ready without India quotes')).toBeNull();
+    fireEvent.click(screen.getByRole('button',{name:'Funds'}));
+    expect(window.location.hash).toBe('#/markets?view=funds');
+    expect(screen.getByText('Funds ready without India quotes')).toBeTruthy();
+    window.location.hash = '#/markets?view=currency';
+    fireEvent(window, new Event('hashchange'));
+    expect(screen.getByText('Currency ready without India quotes')).toBeTruthy();
   });
 
-  it('respects independent India and Global display settings', () => {
-    renderMarket({ marketSettings: { showIndices: false } });
-    expect(screen.queryByRole('heading', { name: 'Market pulse' })).toBeNull();
-    expect(screen.getByText('Global context')).toBeTruthy();
-    cleanup();
-
-    renderMarket({ marketSettings: { showGlobalIndices: false } });
-    expect(screen.getByRole('heading', { name: 'Market pulse' })).toBeTruthy();
-    expect(screen.queryByText('Global context')).toBeNull();
+  it('supports Global index observations when India has no qualified rows', () => {
+    setMarket({indices:[{name:'NIFTY 50',symbol:'^NSEI',value:30000,quoteAt:null}],globalIndices:[global]});
+    render(<MarketPage />);
+    expect(screen.getByText(/No qualified India index observations/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Market region'), {target:{value:'global'}});
+    expect(screen.getByText('S&P 500')).toBeTruthy();
+    expect(screen.getByText('6,000')).toBeTruthy();
+    expect(screen.queryByText('30,000')).toBeNull();
   });
 
-  it('keeps quote age, source mode and source time distinct', () => {
-    const { container } = renderMarket({ indiaRows: [null, indiaQuote] });
-    const panel = within(container.querySelector('.market-hero-panel'));
-    expect(panel.getByText(`Daily · ${formatMarketTimestamp(indiaQuote.quoteAt)}`)).toBeTruthy();
-    expect(panel.getByText('Feed timestamp')).toBeTruthy();
-    expect(panel.getByText(formatMarketTimestamp(collectedAt))).toBeTruthy();
-    expect(panel.getByText('19h ago')).toBeTruthy();
-    expect(panel.getByText('Snapshot')).toBeTruthy();
-    expect(panel.getByText('Regular NSE Hours')).toBeTruthy();
-    expect(panel.getByText('1 rising · 0 falling · 0 flat · 1 unknown')).toBeTruthy();
-    expect(screen.queryByText(/^live$/i)).toBeNull();
+  it('deduplicates the same BANK NIFTY in indices and sectorals', () => {
+    const bank={name:'BANK NIFTY',symbol:'^NSEBANK',value:'52000',quoteAt,change:'0'};
+    setMarket({indices:[india,bank],sectorals:[bank]}); render(<MarketPage />);
+    expect(screen.getAllByText('BANK NIFTY')).toHaveLength(1);
+    expect(screen.getByText(/1 up · 0 down · 1 flat/)).toBeTruthy();
   });
 
-  it('disables sticky refresh while loading and suppresses a seed payload', () => {
-    const { refreshMarket } = renderMarket({ loading: true, sourceMode: 'seed' });
-    const refreshButton = screen.getByRole('button', { name: 'Refresh market data' });
+  it('never promotes seed prices or a missing quote timestamp', () => {
+    setMarket({indices:[{...india,sourceMode:'seed',value:99999},{name:'SENSEX',symbol:'^BSESN',value:82000}]});
+    render(<MarketPage />);
+    expect(screen.queryByText('99,999')).toBeNull();
+    expect(screen.queryByText('82,000')).toBeNull();
+    expect(screen.getByText(/No qualified India index observations/)).toBeTruthy();
+  });
+
+  it('shows the shell during Market boot and Funds/Currency remain usable', () => {
+    setMarket({indices:[],globalIndices:[],loading:true}); render(<MarketPage />);
+    expect(screen.getByRole('heading',{name:'Markets'})).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'Funds'}));
+    expect(screen.getByText('Funds ready without India quotes')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'Currency'}));
+    expect(screen.getByText('Currency ready without India quotes')).toBeTruthy();
+  });
+
+  it('keeps source publication timestamp separate from the quote timestamp', () => {
+    setMarket();render(<MarketPage />);
+    expect(screen.getByText(/Publication:/)).toBeTruthy();
+    expect(screen.getByText(/Quote as of/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button',{name:'Data status'}));
+    const details=within(document.getElementById('market-data-status-details'));
+    expect(details.getByText(/Publication time does not change the quote time/)).toBeTruthy();
+    expect(screen.queryByText(/^Official$/)).toBeNull();
+  });
+
+  it('disables only the quote refresh button while loading', () => {
+    const refresh=setMarket({loading:true});render(<MarketPage />);
+    const refreshButton=screen.getByRole('button',{name:'Refresh indices'});
     expect(refreshButton.disabled).toBe(true);
     fireEvent.click(refreshButton);
-    expect(refreshMarket).not.toHaveBeenCalled();
-    expect(screen.getByText('Unavailable', { selector: '.market-sticky-header__title-row span' })).toBeTruthy();
-    expect(screen.queryByText('25,000.25')).toBeNull();
-    expect(screen.queryByText('6,250.25')).toBeNull();
-  });
-
-  it('suppresses explicitly seeded rows in a cached payload', () => {
-    const seed = { name: 'NIFTY 50', value: '22,340.55', sourceMode: 'seed' };
-    const { container } = renderMarket({ indiaRows: [seed, indiaQuote], sourceMode: 'cache' });
-    expect(screen.queryByText(seed.value)).toBeNull();
-    expect(within(container.querySelector('.market-hero-panel')).getByText(indiaQuote.value)).toBeTruthy();
+    expect(refresh).not.toHaveBeenCalled();
+    expect(screen.getByRole('button',{name:'Currency'}).disabled).toBe(false);
   });
 });
