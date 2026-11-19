@@ -236,10 +236,10 @@ test('hypothetical complete bundle can be PRIVATE staged with independently reha
   assert.throws(second,/CUSTODY_RECEIPT_ALREADY_EXISTS/);
 }));
 
-test('production scheduled Market publication is disabled by default until licensed source switch is explicitly set',()=>{
+test('free/open-only no longer contains any scheduled public quote writer',()=>{
   const workflow=fs.readFileSync(path.join(ROOT,'.github/workflows/market_refresh.yml'),'utf8');
-  assert.match(workflow,/vars\.MARKET_LICENSED_PUBLICATION_ENABLED == 'true'/);
-  assert.match(workflow,/github\.ref == 'refs\/heads\/main'/);
+  assert.doesNotMatch(workflow,/^\\s*schedule:/m);
+  assert.doesNotMatch(workflow,/^\\s*refresh:/m);
+  assert.doesNotMatch(workflow,/git push origin HEAD:main/);
   assert.match(workflow,/persist-credentials: false/);
-  assert.match(workflow,/git push origin HEAD:main/);
 });
