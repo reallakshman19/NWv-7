@@ -55,7 +55,7 @@ describe('Market workflow independence',()=>{
   it('fetches currency only when the Currency workspace mounts; typing and swap remain offline',async()=>{
     sources.loadOmrRate.mockResolvedValue({rate:245.123456,asOf:Date.now()-86400000,stale:false});
     render(<CurrencyWorkspace />);
-    const attribution = screen.getByRole('link', { name: 'Rates By Exchange Rate API' });
+    const attribution = screen.getByRole('link', { name: 'Frankfurter — open-source FX reference' });
     expect(attribution.getAttribute('href')).toBe(sources.INDIA_MARKET_SOURCES.fx);
     expect(sources.loadOmrRate).toHaveBeenCalledTimes(1);
     await screen.findByText(/1 OMR =/);
