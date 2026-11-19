@@ -45,7 +45,7 @@ jobs:
         run: python -m pytest -q scripts/test_refresh_india_market.py
       - name: Market Vitest certification
         if: steps.install.outcome == 'success'
-        run: npx vitest run --config vitest.config.js src/pages/MarketPage.workspaces.cert.test.jsx src/pages/MarketPage.partialFeed.cert.test.jsx src/pages/MarketPage.release6J.cert.test.jsx src/components/market/IndiaMarketTools.cert.test.jsx src/services/indiaMarketTools.cert.test.js src/services/indianMarketStableService.cert.test.js src/context/MarketContext.cert.test.jsx src/services/marketTrust.delivery.cert.test.js
+        run: npx vitest run --config vitest.config.js src/pages/MarketPage.workspaces.cert.test.jsx src/pages/MarketPage.partialFeed.cert.test.jsx src/pages/MarketPage.release6J.cert.test.jsx src/components/market/IndiaMarketTools.cert.test.jsx src/services/indiaMarketTools.cert.test.js src/services/indianMarketStableService.cert.test.js src/context/MarketContext.cert.test.jsx src/services/marketTrust.delivery.cert.test.js src/utils/storage.market.cert.test.js
       - name: Full Vitest regression
         if: always() && steps.install.outcome == 'success'
         run: npm run test:unit
