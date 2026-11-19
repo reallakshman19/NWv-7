@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import DailyDigestSection from './DailyDigestSection.jsx';
 import { digestPublishedAt, digestSnippet } from '../utils/digestCardContent.js';
@@ -9,6 +9,19 @@ import { digestPublishedAt, digestSnippet } from '../utils/digestCardContent.js'
 afterEach(() => cleanup());
 
 describe('DailyDigestSection availability states', () => {
+  it('offers a retry for unavailable current stories and disables it during recovery', () => {
+    const refresh = vi.fn();
+    const view = render(<DailyDigestSection availability="SECTIONS_UNAVAILABLE" onRefresh={refresh} />);
+    expect(screen.getByText('Daily Digest could not load current stories')).toBeTruthy();
+    expect(screen.queryByText(/backend is not configured/i)).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Retry Daily Digest' }));
+    expect(refresh).toHaveBeenCalledTimes(1);
+    view.rerender(<DailyDigestSection availability="SECTIONS_UNAVAILABLE" loading onRefresh={refresh} />);
+    const button = screen.getByRole('button', { name: 'Checking Daily Digest…' });
+    expect(button.disabled).toBe(true);
+    fireEvent.click(button);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
   it('renders snapshot-derived publisher tabs and source metadata without Live or curated claims',()=>{
     render(<DailyDigestSection deliveryMode="SNAPSHOT" availability="READY" cards={[{slot:'L1',canonicalId:'published-1',
       title:'Published city update',canonicalUrl:'https://example.com/story',source:'The Hindu',sourceGroup:'the_hindu',section:'tn',

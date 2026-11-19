@@ -24,6 +24,11 @@ const EMPTY_STATE_COPY = Object.freeze({
     title: 'Daily Digest service unavailable',
     message: 'The Daily Digest backend is not configured for this deployment.',
   }),
+  SECTIONS_UNAVAILABLE: Object.freeze({
+    badge: 'Unavailable',
+    title: 'Daily Digest could not load current stories',
+    message: 'The current news snapshot could not be loaded. Retry to check again.',
+  }),
   EMPTY: Object.freeze({
     badge: 'Empty',
     title: 'No Daily Digest cards available',
@@ -151,6 +156,7 @@ export function DailyDigestSection({
   availability = 'UNKNOWN',
   loading = false,
   error = null,
+  onRefresh,
 }) {
   const frozen = freezeLabel(frozenAt);
   const status = cards.length ? null : emptyStateCopy({ availability, loading, error });
@@ -262,6 +268,12 @@ export function DailyDigestSection({
           <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', lineHeight: 1.45 }}>
             {status.message}
           </p>
+          {onRefresh && <button
+            type="button"
+            className="daily-digest-retry"
+            onClick={onRefresh}
+            disabled={loading}
+          >{loading ? 'Checking Daily Digest…' : 'Retry Daily Digest'}</button>}
         </div>
       )}
 

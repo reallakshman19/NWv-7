@@ -141,8 +141,54 @@ describe('Daily Digest on the official Pages deployment', () => {
   const stale = { ...fresh, fetchedAt: NOW - 13 * H };
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it('recovers a current publication whose body takes longer than the old two-second budget', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation(ms => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), ms);
+      return controller.signal;
+    });
+    vi.stubGlobal('window', { location: new URL('http://127.0.0.1:4173/') });
+    loadSectionsSnapshot.mockRejectedValueOnce(new Error('snapshot-budget-exceeded'));
+    vi.stubGlobal('fetch', vi.fn(async (_url, { signal }) => ({
+      ok: true,
+      json: async () => {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        if (signal.aborted) throw new DOMException('Timed out', 'AbortError');
+        return fresh;
+      },
+    })));
+    const pending = loadDailyDigestLiveFallback({ nowMs: NOW });
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(await pending).toMatchObject({ status: 'READY', cards: expect.any(Array) });
+    expect((await pending).cards).toHaveLength(3);
+  });
+
+  it('stops recovery after eight seconds when the publication cannot be reached', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation(ms => {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), ms);
+      return controller.signal;
+    });
+    vi.stubGlobal('window', { location: new URL('http://127.0.0.1:4173/') });
+    loadSectionsSnapshot.mockRejectedValueOnce(new Error('snapshot-budget-exceeded'));
+    vi.stubGlobal('fetch', vi.fn((_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new DOMException('Timed out', 'AbortError')), { once: true });
+    })));
+    let settled = false;
+    const pending = loadDailyDigestLiveFallback({ nowMs: NOW }).then(result => { settled = true; return result; });
+    await vi.advanceTimersByTimeAsync(7999);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await pending).toMatchObject({ status: 'UNAVAILABLE', cards: [] });
   });
 
   it.each([

@@ -114,11 +114,11 @@ function expectedEmptyEnvelope(digestDate, status) {
   });
 }
 
-function failureEnvelope(digestDate, status) {
+function failureEnvelope(digestDate, status, details = {}) {
   return makeEnvelope({
     ok: false,
     datasetId: 'dailyDigest',
-    data: { availability: status, digestDate, cards: [] },
+    data: { availability: status, digestDate, cards: [], ...details },
     source: ENVELOPE_SOURCES.FAILED,
     freshness: ENVELOPE_FRESHNESS.EMPTY,
     error: `daily digest unavailable: ${status}`,
@@ -182,10 +182,18 @@ async function maybeLoadLiveFallback({
 }) {
   if (!allowFallback) return null;
 
+  let fallback;
   try {
-    const fallback = await liveFallbackLoader({ force: true, nowMs: Number(now?.getTime?.() || Date.now()) });
-    return liveFallbackEnvelope(digestDate, fallback, curatedStatus);
-  } catch { return null; }
+    fallback = await liveFallbackLoader({ force: true, nowMs: Number(now?.getTime?.() || Date.now()) });
+  } catch (error) {
+    fallback = { reason: error?.message || 'sections_snapshot_unavailable' };
+  }
+  return liveFallbackEnvelope(digestDate, fallback, curatedStatus)
+    || failureEnvelope(digestDate, curatedStatus === 'SNAPSHOT_ONLY' ? 'PUBLISHED_UNAVAILABLE' : 'SECTIONS_UNAVAILABLE', {
+      liveFallbackReason: curatedStatus,
+      fallbackFailureReason: fallback?.reason || 'sections_snapshot_unavailable',
+      authoritySummary: fallback?.summary || null,
+    });
 }
 
 export async function load(options = {}) {

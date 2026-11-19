@@ -161,6 +161,20 @@ describe('Daily Digest dataset', () => {
     expect(liveFallbackLoader).not.toHaveBeenCalled();
   });
 
+  it.each(['empty', 'network'])('reports the actual Sections recovery failure (%s), rather than a missing backend', async scenario => {
+    getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({ isBrowser: true, hostname: '127.0.0.1' }));
+    const liveFallbackLoader = vi.fn(async () => {
+      if (scenario === 'network') throw new Error('Network unavailable');
+      return { status: 'UNAVAILABLE', cards: [], reason: 'sections_snapshot_stale' };
+    });
+    const result = await load({ now: new Date('2026-08-24T06:00:00Z'), liveMode: false, liveFallbackLoader });
+    expect(result).toMatchObject({ ok: false, source: 'failed', data: {
+      availability: 'SECTIONS_UNAVAILABLE', cards: [], liveFallbackReason: 'BACKEND_NOT_CONFIGURED',
+      fallbackFailureReason: scenario === 'network' ? 'Network unavailable' : 'sections_snapshot_stale',
+    } });
+    expect(liveFallbackLoader).toHaveBeenCalledTimes(1);
+  });
+
   it.each([false,true])('uses published Sections in snapshot-only mode (Live pill %s), without calling APIs or live acquisition', async liveMode=>{
     getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({isBrowser:true,hostname:'127.0.0.1',forceSnapshots:true,configuredBackendUrl:'https://api.example.test'}));
     const fetchImpl=vi.fn();const liveFallbackLoader=vi.fn();
