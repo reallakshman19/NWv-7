@@ -34,7 +34,9 @@ jobs:
       - run: python -m pytest scripts/test_refresh_india_market.py -q
   refresh:
     needs: certify
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Default OFF. Opt-in requires a separately reviewed licensed-source and Owner release decision.
+    # This branch does not alter the currently deployed main workflow.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.MARKET_LICENSED_PUBLICATION_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     permissions:

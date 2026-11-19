@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "market-publication-rights-v1",
+  "target": "public-web-display",
+  "candidateSha256": null,
+  "grants": [],
+  "documentation": {
+    "status": "UNVERIFIED",
+    "instruction": "A signed/licensed permission document for each required source layer must be provided separately. Do not put licenses or quote values into this repository. Hash each evidence document locally. No document is accepted by this template.",
+    "requiredActions": [
+      "public-display",
+      "reproduce",
+      "distribute"
+    ],
+    "requiredScopes": {
+      "indices": [
+        "provider",
+        "underlying-exchange"
+      ],
+      "equities": [
+        "provider",
+        "underlying-exchange"
+      ],
+      "mutualFunds": [
+        "source"
+      ],
+      "nfo": [
+        "source"
+      ],
+      "ipo": [
+        "source"
+      ]
+    },
+    "grantFieldExample": {
+      "scope": "indices",
+      "layer": "underlying-exchange",
+      "grantId": "REPLACE_WITH_CONTRACT_REFERENCE",
+      "licensor": "REPLACE_WITH_ACTUAL_LICENSOR",
+      "licensee": "REPLACE_WITH_LICENSEE",
+      "rights": [
+        "public-display",
+        "reproduce",
+        "distribute"
+      ],
+      "effectiveFrom": "REPLACE_WITH_OFFSET_AWARE_START",
+      "expiresAt": "REPLACE_WITH_OFFSET_AWARE_END",
+      "evidenceFile": "REPLACE_WITH_PRIVATE_EVIDENCE_BASENAME",
+      "evidenceSha256": "REPLACE_WITH_64_CHARACTER_SHA256"
+    }
+  }
+}
