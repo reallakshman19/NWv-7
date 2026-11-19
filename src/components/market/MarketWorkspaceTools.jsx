@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { safeGetJson, safeSetJson } from '../../data/safeStorage.js';
 import {
   INDIA_MARKET_SOURCES, equityQuoteUrl, loadOmrRate, convertOmrInr,
   searchIndianFunds, loadFundNav, calculateSip, currentNfoRows,
 } from '../../services/indiaMarketTools.js';
 import { canonicalEquitySymbol, TRACKED_EQUITY_SYMBOLS, qualifyTrackedEquities } from '../../services/marketEquityPolicy.js';
+import { createMarketFundNavStore, normalizeSavedFundCodes } from '../../services/marketFundRequests.js';
 
 const WATCHLIST_KEY = 'nw7.india-watchlist.v1';
 const SAVED_FUNDS_KEY = 'nw7.market-saved-funds.v1';
@@ -77,59 +78,182 @@ export function FundsWorkspace({ data, settings = {} }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selectedCode, setSelectedCode] = useState(null);
-  const [nav, setNav] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [saved, setSaved] = useState(() => {
-    const stored = safeGetJson(SAVED_FUNDS_KEY, []);
-    return Array.isArray(stored) ? stored.filter(value => /^\d{3,8}$/.test(String(value))).map(String).slice(0, 12) : [];
-  });
-  const latestRequest = useRef(0);
-  useEffect(() => () => { latestRequest.current += 1; }, []);
-  const begin = () => { latestRequest.current += 1; setBusy(true); setError(''); return latestRequest.current; };
-  const find = async event => {
-    event.preventDefault(); const id = begin(); setResults([]); setNav(null); setSelectedCode(null);
-    try { const rows = await searchIndianFunds(query); if (id === latestRequest.current) setResults(rows); }
-    catch (failure) { if (id === latestRequest.current) setError(failure?.message || 'Fund search failed.'); }
-    finally { if (id === latestRequest.current) setBusy(false); }
-  };
-  const select = async code => {
-    const id = begin(); setSelectedCode(String(code)); setNav(null);
-    try { const item = await loadFundNav(code); if (id === latestRequest.current) setNav(item); }
-    catch (failure) { if (id === latestRequest.current) setError(failure?.message || 'NAV lookup failed.'); }
-    finally { if (id === latestRequest.current) setBusy(false); }
+  const [selectedBusy, setSelectedBusy] = useState(false);
+  const [searchBusy, setSearchBusy] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [selectedError, setSelectedError] = useState('');
+  const [storageError, setStorageError] = useState('');
+  const [navByCode, setNavByCode] = useState({});
+  const [saved, setSaved] = useState(() => normalizeSavedFundCodes(safeGetJson(SAVED_FUNDS_KEY, [])));
+  const navStore = useMemo(() => createMarketFundNavStore({ load: loadFundNav, read: safeGetJson, write: safeSetJson }), []);
+  const searchCache = useRef(new Map());
+  const searchAbort = useRef(null);
+  const selectionAbort = useRef(null);
+  const latestSearch = useRef(0);
+  const latestSelection = useRef(0);
+  const savedKey = saved.join('|');
+  const publicationNav = useMemo(() => new Map(
+    (data.mutualFunds || []).filter(row => /^\d{3,8}$/.test(String(row.code || row.schemeCode))).map(row => [String(row.code || row.schemeCode), row])
+  ), [data.mutualFunds]);
+
+  // The Funds panel is the first request boundary: no saved NAV fetch on Market boot.
+  // Each saved code has independent state, with at most three concurrent requests.
+  useEffect(() => {
+    if (settings.showMutualFunds === false || !saved.length) return undefined;
+    const controller = new AbortController();
+    const update = item => {
+      if (controller.signal.aborted) return;
+      setNavByCode(prev => ({ ...prev, [item.code]: { ...prev[item.code], ...item } }));
+    };
+    void navStore.batch(saved, { signal: controller.signal, onItem: update });
+    return () => controller.abort();
+  }, [navStore, savedKey, settings.showMutualFunds]); // savedKey is a stable serialized bounded code list
+
+  useEffect(() => () => {
+    latestSearch.current += 1;
+    latestSelection.current += 1;
+    searchAbort.current?.abort();
+    selectionAbort.current?.abort();
+  }, []);
+
+  const persist = next => {
+    setSaved(next);
+    if (!safeSetJson(SAVED_FUNDS_KEY, next)) setStorageError('Saved scheme changes could not be persisted in this browser.');
+    else setStorageError('');
   };
   const save = code => {
-    const value = String(code); if (saved.includes(value) || saved.length >= 12) return;
-    const next = [...saved, value]; setSaved(next); safeSetJson(SAVED_FUNDS_KEY, next);
+    const next = normalizeSavedFundCodes([...saved, String(code)]);
+    if (next.length !== saved.length || next.some((value, index) => value !== saved[index])) persist(next);
   };
-  const remove = code => { const next = saved.filter(item => item !== String(code)); setSaved(next); safeSetJson(SAVED_FUNDS_KEY, next); };
-  const publicationNav = new Map((data.mutualFunds || []).map(row => [String(row.code || row.schemeCode), row]));
+  const remove = code => {
+    const next = saved.filter(value => value !== String(code));
+    persist(next);
+    if (selectedCode === String(code)) { latestSelection.current++; selectionAbort.current?.abort(); setSelectedCode(null); }
+  };
+
+  const find = async event => {
+    event.preventDefault();
+    const cleaned = query.trim().replace(/\s+/g, ' ').slice(0, 120);
+    if (cleaned.length < 3) { setSearchError('Enter at least three characters'); return; }
+    const key = cleaned.toLocaleLowerCase('en');
+    const old = searchCache.current.get(key);
+    latestSearch.current += 1;
+    searchAbort.current?.abort();
+    const request = latestSearch.current;
+    setSearchError('');
+    if (old && old.checkedAt <= Date.now() && Date.now() - old.checkedAt < 15 * 60 * 1000) {
+      setResults(old.rows); setSearchBusy(false); return;
+    }
+    const controller = new AbortController();
+    searchAbort.current = controller;
+    setSearchBusy(true);
+    setResults([]);
+    try {
+      const rows = await searchIndianFunds(cleaned, { signal: controller.signal });
+      if (controller.signal.aborted || request !== latestSearch.current) return;
+      searchCache.current.set(key, { rows, checkedAt: Date.now() });
+      if (searchCache.current.size > 20) searchCache.current.delete(searchCache.current.keys().next().value);
+      setResults(rows);
+    } catch (failure) {
+      if (!controller.signal.aborted && request === latestSearch.current)
+        setSearchError(failure?.message || 'Fund search failed.');
+    } finally {
+      if (request === latestSearch.current) setSearchBusy(false);
+    }
+  };
+
+  const select = async (code, force = false) => {
+    const value = String(code);
+    latestSelection.current += 1;
+    selectionAbort.current?.abort();
+    const request = latestSelection.current;
+    const controller = new AbortController();
+    selectionAbort.current = controller;
+    setSelectedCode(value);
+    setSelectedError('');
+    setSelectedBusy(true);
+    try {
+      const item = await navStore.request(value, { signal: controller.signal, force });
+      if (controller.signal.aborted || request !== latestSelection.current) return;
+      setNavByCode(previous => ({ ...previous, [value]: { code: value, status: 'ready', value: item } }));
+    } catch (failure) {
+      if (controller.signal.aborted || request !== latestSelection.current) return;
+      setSelectedError(failure?.status === 429 ? 'NAV provider rate-limited requests. Retry later.' : failure?.message || 'NAV lookup failed.');
+    } finally {
+      if (request === latestSelection.current) setSelectedBusy(false);
+    }
+  };
+
   const offers = currentNfoRows(data.nfo || []);
   const [monthly, setMonthly] = useState('5000');
   const [years, setYears] = useState('10');
   const [annual, setAnnual] = useState('8');
   const scenario = calculateSip(monthly, years, annual);
+  const selected = selectedCode ? navByCode[selectedCode]?.value || publicationNav.get(selectedCode) : null;
+
   return <section id="market-funds" aria-labelledby="funds-heading" className="market-workspace__panel">
-    <div className="market-workspace__panel-header"><div><h2 id="funds-heading">Funds</h2><p>Source-dated NAVs; Direct/Regular and Growth/IDCW schemes remain distinct.</p></div></div>
+    <div className="market-workspace__panel-header"><div><h2 id="funds-heading">Funds</h2><p>Exact scheme IDs and source-dated NAVs. Saved funds load only when Funds is opened.</p></div></div>
     {settings.showMutualFunds === false ? <p>Mutual funds are hidden in Market settings.</p> : <>
-    <div className="market-workspace__section-switch" aria-label="Fund sections">{[['saved','My funds'],['search','Find a fund'],['offers','NFOs']].map(([id,label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}</div>
-    {section === 'saved' && <>{saved.length ? <ul className="market-workspace__list">{saved.map(code => {
-      const known = publicationNav.get(code);
-      return <li className="market-workspace__row" key={code}><div className="market-workspace__name"><strong>{known?.name || `Scheme ${code}`}</strong><span className="market-workspace__muted">{known ? `NAV ${rupees(Number(known.nav))} · Date ${known.navDate || 'unavailable'}` : 'No dated NAV loaded. Select to request the latest.'}</span></div><div className="market-workspace__field-row"><button type="button" onClick={() => select(code)}>Load NAV</button><button type="button" onClick={() => remove(code)}>Remove</button></div></li>;
-    })}</ul> : <p className="market-workspace__empty">No saved funds. Search by scheme name and save its exact scheme code.</p>}
-      <details className="market-workspace__nested"><summary>Published NAV collection ({publicationNav.size})</summary>
-        {publicationNav.size ? <ul className="market-workspace__list">{[...publicationNav.entries()].slice(0, 50).map(([code, row]) => <li className="market-workspace__row" key={code}>
-          <div className="market-workspace__name"><strong>{row.name || `Scheme ${code}`}</strong><span className="market-workspace__muted">NAV {Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 ? rupees(Number(row.nav)) : 'Unavailable'} · Date {row.navDate || 'Unavailable'} · {row.category || 'Category unknown'}</span></div>
-          <button type="button" onClick={() => save(code)} disabled={saved.includes(code) || saved.length >= 12}>{saved.includes(code) ? 'Saved' : 'Save'}</button>
-        </li>)}</ul> : <p className="market-workspace__empty">No qualified NAV rows in the Market publication. Search for a scheme to retrieve its NAV.</p>}
+      <div className="market-workspace__section-switch" aria-label="Fund sections">
+        {[['saved','My funds'],['search','Find a fund'],['offers','NFOs']].map(([id,label]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{label}</button>)}
+      </div>
+      {storageError && <p role="alert">{storageError}</p>}
+      {section === 'saved' && <>
+        {saved.length ? <ul className="market-workspace__list">{saved.map(code => {
+          const status = navByCode[code];
+          const known = status?.value || publicationNav.get(code);
+          const navValue = Number(known?.nav);
+          const navDate = known?.date || known?.navDate;
+          return <li className="market-workspace__row" key={code}>
+            <div className="market-workspace__name"><strong>{known?.name || `Scheme ${code}`}</strong>
+              <span className="market-workspace__muted">{Number.isFinite(navValue) && navValue > 0 && navDate ? `NAV ${rupees(navValue)} · Source date ${navDate}` : 'NAV unavailable — scheme remains saved'}</span>
+              {status?.status === 'loading' && <span role="status">Checking NAV for scheme {code}…</span>}
+              {status?.status === 'error' && <span role="alert">{status.error} · Other schemes remain available</span>}
+              {status?.status === 'cooldown' && <span role="alert">Source rate limit reached. Please retry later.</span>}
+              {status?.value?.delivery === 'cache' && <span className="market-workspace__muted">Browser-held source-dated NAV · Previously checked {new Date(status.value.checkedAt).toLocaleDateString('en-IN')}</span>}
+              {status?.value?.stale && <span className="market-workspace__muted">Historical NAV, not current</span>}
+            </div><div className="market-workspace__field-row">
+              <button type="button" onClick={() => select(code)} disabled={selectedBusy && selectedCode === code}>{selectedCode === code && selectedBusy ? 'Loading…' : 'View NAV'}</button>
+              <button type="button" onClick={() => select(code, true)} disabled={status?.status === 'cooldown' || (selectedBusy && selectedCode === code)}>Retry source</button>
+              <button type="button" onClick={() => remove(code)}>Remove</button>
+            </div>
+          </li>;
+        })}</ul> : <p className="market-workspace__empty">No saved funds. Search by scheme name and save its exact scheme code.</p>}
+        <details className="market-workspace__nested"><summary>Published NAV collection ({publicationNav.size})</summary>
+          {publicationNav.size ? <ul className="market-workspace__list">{[...publicationNav.entries()].slice(0, 50).map(([code, row]) => <li className="market-workspace__row" key={code}>
+            <div className="market-workspace__name"><strong>{row.name || `Scheme ${code}`}</strong>
+              <span className="market-workspace__muted">NAV {Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 ? rupees(Number(row.nav)) : 'Unavailable'} · Date {row.navDate || 'Unavailable'} · {row.category || 'Category unknown'}</span></div>
+            <button type="button" onClick={() => save(code)} disabled={saved.includes(code) || saved.length >= 12}>{saved.includes(code) ? 'Saved' : 'Save'}</button>
+          </li>)}</ul> : <p className="market-workspace__empty">No qualified NAV rows in this publication. Search for the scheme directly.</p>}
+        </details>
+      </>}
+      {section === 'search' && <>
+        <form className="market-workspace__field-row" onSubmit={find}><label>Scheme or fund house<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Nifty 50 Direct Growth" maxLength={120} /></label>
+          <button type="submit" disabled={searchBusy}>{searchBusy ? 'Searching…' : 'Search funds'}</button></form>
+        {searchError && <p role="alert">{searchError} <button type="button" onClick={() => void find({ preventDefault() {} })}>Retry search</button></p>}
+        <ul className="market-workspace__list">{results.map(item => <li className="market-workspace__row" key={item.schemeCode}>
+          <div className="market-workspace__name"><strong>{item.schemeName}</strong><span className="market-workspace__muted">Scheme {item.schemeCode}</span></div>
+          <div className="market-workspace__field-row"><button type="button" onClick={() => select(item.schemeCode)}>View NAV</button>
+            <button type="button" disabled={saved.includes(String(item.schemeCode)) || saved.length >= 12} onClick={() => save(item.schemeCode)}>{saved.includes(String(item.schemeCode)) ? 'Saved' : 'Save'}</button></div>
+        </li>)}</ul>
+      </>}
+      {section === 'offers' && <>
+        {offers.length ? <ul className="market-workspace__list">{offers.map((item,index)=><li className="market-workspace__row" key={`${item.name}-${index}`}><div><strong>{item.name}</strong><p>{item.offerState} · Launch {item.openDate} · Close {item.closeDate || 'unavailable'}</p></div></li>)}</ul>
+          : <p role="status">{data.sourceHealth?.nfo?.status === 'failed' ? 'NFO source unavailable.' : 'No currently qualified NFO schedule in this publication.'}</p>}
+        {external(INDIA_MARKET_SOURCES.nfo,'AMFI NFO verification')}
+      </>}
+      {selectedBusy && <p role="status">Checking NAV for selected scheme {selectedCode}…</p>}
+      {selectedError && <p role="alert">{selectedError}</p>}
+      {selected && selectedCode && <div className="market-workspace__nested"><strong>{selected.name}</strong>
+        <p>NAV {rupees(Number(selected.nav))} · Source NAV date {selected.date || selected.navDate} · {selected.category || 'Category unknown'}</p>
+        <p>{selected.stale ? 'Historical NAV — not current' : 'Source-dated NAV'} · {external(INDIA_MARKET_SOURCES.nav,'AMFI verification')}</p>
+      </div>}
+      <details className="market-workspace__nested"><summary>SIP scenario (offline calculator)</summary><p>End-of-month payments; nominal annual assumed return divided by 12. This is an illustration, not an investment forecast.</p>
+        <div className="market-workspace__filters"><label>Monthly INR<input type="number" min="1" value={monthly} onChange={event => setMonthly(event.target.value)} /></label>
+          <label>Years<input type="number" min="0" max="50" step="any" value={years} onChange={event => setYears(event.target.value)} /></label>
+          <label>Assumed annual %<input type="number" min="0" max="50" value={annual} onChange={event => setAnnual(event.target.value)} /></label></div>
+        <output>{scenario ? `Invested ${rupees(scenario.invested)} · Illustrative value ${rupees(scenario.value)}` : 'Enter valid scenario inputs.'}</output>
       </details>
-    </>}
-    {section === 'search' && <><form className="market-workspace__field-row" onSubmit={find}><label>Scheme or fund house<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Nifty 50 Direct Growth" maxLength={120} /></label><button type="submit" disabled={busy}>Search funds</button></form><ul className="market-workspace__list">{results.map(item => <li className="market-workspace__row" key={item.schemeCode}><div className="market-workspace__name"><strong>{item.schemeName}</strong><span className="market-workspace__muted">Scheme {item.schemeCode}</span></div><div className="market-workspace__field-row"><button type="button" disabled={busy} onClick={() => select(item.schemeCode)}>Load NAV</button><button type="button" disabled={saved.includes(String(item.schemeCode)) || saved.length >= 12} onClick={() => save(item.schemeCode)}>{saved.includes(String(item.schemeCode)) ? 'Saved' : 'Save'}</button></div></li>)}</ul></>}
-    {section === 'offers' && <>{offers.length ? <ul className="market-workspace__list">{offers.map((item,index)=><li className="market-workspace__row" key={`${item.name}-${index}`}><div><strong>{item.name}</strong><p>{item.offerState} · Launch {item.openDate} · Close {item.closeDate || 'unavailable'}</p></div></li>)}</ul> : <p role="status">{data.sourceHealth?.nfo?.status === 'failed' ? 'NFO source unavailable.' : 'No currently qualified NFO schedule in this publication.'}</p>}{external(INDIA_MARKET_SOURCES.nfo,'AMFI NFO verification')}</>}
-    {busy && <p role="status">Loading selected fund data…</p>}{error && <p role="alert">{error}</p>}
-    {nav && selectedCode === nav.code && <div className="market-workspace__nested"><strong>{nav.name}</strong><p>NAV {rupees(nav.nav)} · NAV date {nav.date} · {nav.category || 'Category unknown'}</p><p>{nav.stale ? 'Historical NAV — not current' : 'Source-dated NAV'} · {external(INDIA_MARKET_SOURCES.nav,'AMFI verification')}</p></div>}
-    <details className="market-workspace__nested"><summary>SIP scenario (offline calculator)</summary><p>End-of-month payments; nominal annual assumed return divided by 12. This is an illustration, not an investment forecast.</p><div className="market-workspace__filters"><label>Monthly INR<input type="number" min="1" value={monthly} onChange={event => setMonthly(event.target.value)} /></label><label>Years<input type="number" min="0" max="50" step="any" value={years} onChange={event => setYears(event.target.value)} /></label><label>Assumed annual %<input type="number" min="0" max="50" value={annual} onChange={event => setAnnual(event.target.value)} /></label></div><output>{scenario ? `Invested ${rupees(scenario.invested)} · Illustrative value ${rupees(scenario.value)}` : 'Enter valid scenario inputs.'}</output></details>
     </>}
   </section>;
 }
