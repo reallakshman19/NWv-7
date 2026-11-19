@@ -4,6 +4,8 @@ Implementation/reproduction by the current Coder; this is author verification,
 not independent acceptance. Base main: `077c1e5cbb25336d537076b50d8ee9509371e002`.
 Branch: `fix/upahead-retention-followup-20261119`. No Worker deployment, database
 mutation, migration, queue dispatch, merge or production acceptance is claimed.
+Draft review: https://github.com/reallakshman19/NWv-7/pull/170 . Implementation
+commit `694490756e29837ee56ab71aa4b13de9dadb666e` passed all four hosted workflows.
 
 ## Up Ahead correction
 
@@ -15,7 +17,7 @@ projects its calendar view independently. A fixed-clock thirty-day announcement
 survives twenty-four days without rediscovery, enters the visible week and is
 removed at its exact end. Source publication/fetch clocks are preserved.
 
-New admission limits are180days ahead,500pending rows and1,000,000serialized
+New admission limits are 180 days ahead, 500 pending rows and 1,000,000 serialized
 bytes. The nearest admissible occurrences win under overflow; rejection counts
 are reported. These are code defaults, not a newly exposed Settings control.
 An admitted occurrence ages toward the view and keeps its finite true deadline;
@@ -29,7 +31,7 @@ including a browser that never received the cancelled revision. Distinct times,
 venues, sessions and declared occurrences survive publisher deduplication.
 
 Clockless legacy feed rows no longer return Infinity. Browser cache maintenance
-keeps recoverable copies in a seven-day quarantine, bounded to100rows/256KB,
+keeps recoverable copies in a seven-day quarantine, bounded to 100 rows/256 KB,
 without inventing publication dates. Duplicate copies do not restart quarantine
 age. Cache reads persist safe expiry pruning; storage-write failure preserves
 the original bytes. A commit-time custody check avoids overwriting a changed
@@ -96,13 +98,15 @@ publication dates were not restamped. Its collector validation is WARN with no
 structural/freshness errors. Publisher groups are not proof of independent wire
 origins.
 
-On the same pinned input, the prior candidate admitted143eligible stories and
-showed1multi-angle parent. The repaired source replay admitted280 and showed5,
-with1.7average angles. Its unchanged real-snapshot ratchet is WARN and its core
-grade remainsD. The final routed browser, which applies actual runtime settings,
-shows279eligible stories,10parents and4multi-angle parents at both1366/390widths.
-Do not equate the replay with routed runtime parity or claim current C quality.
-The strict historical793-row replay remainsC/PASS under its original clock and
+On the same pinned input, the prior candidate admitted 143 eligible stories and
+showed 1 multi-angle parent. The final committed source replay admits 279 and
+shows 4, with 1.6 average angles. Intermediate replays showed five before the
+final unrelated-page exclusions; those receipts are not final-head results.
+The unchanged real-snapshot ratchet is WARN and the core grade remains D. The
+final routed browser also shows 279 eligible stories, 10 parents and 4 multi-angle
+parents at both 1366/390 widths. This checks the pinned snapshot route; it does
+not certify every cross-page Live mode or current C quality.
+The strict historical 793-row replay remains C/PASS under its original clock and
 unchanged thresholds. Historical C does not certify live editorial depth.
 
 | Check | Result |
