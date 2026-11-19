@@ -26,6 +26,7 @@ async function runViewport(width, height) {
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
   const external = [];
+  let unrelatedProxyRequests = 0;
   let fxRequests = 0;
   let snapshotRequests = 0;
   await page.route(/\/data\/market_snapshot\.json(?:\?|$)/, async route => {
@@ -50,7 +51,14 @@ async function runViewport(width, height) {
   });
   page.on('request', request => {
     const url = request.url();
-    if (/finance\.yahoo\.com|allorigins\.win|corsproxy\.io|codetabs\.com/i.test(url)) external.push(url);
+    // News/RSS pages can independently use cross-origin proxies. This gate
+    // prohibits Market quote proxy cascades, not unrelated news acquisition.
+    let expanded = url;
+    try { expanded = decodeURIComponent(decodeURIComponent(url)); } catch { /* Keep original. */ }
+    const isProxy = /api\.allorigins\.win|corsproxy\.io|api\.codetabs\.com/i.test(url);
+    const isMarketProvider = /finance\.yahoo\.com|api\.bseindia\.com|portal\.amfiindia\.com|nseindia\.com\/api/i.test(expanded);
+    if (isMarketProvider) external.push(url);
+    else if (isProxy) unrelatedProxyRequests++;
   });
   page.on('pageerror', error => report.errors.push({width,message:error.message}));
 
@@ -126,7 +134,7 @@ async function runViewport(width, height) {
     check('print-hides-workspace-navigation-' + width,
       await page.locator('.market-workspace__tabs').evaluate(node=>getComputedStyle(node).display)==='none');
 
-    report.requests[width]={snapshotRequests,fxRequests,proxies:external.length};
+    report.requests[width]={snapshotRequests,fxRequests,marketSourceProxies:external.length,unrelatedProxyRequests};
   } finally {
     await context.close();
   }
