@@ -1,5 +1,6 @@
 import { getIdbCache, setIdbCache } from './indexedDbCache.js';
 import { mergeQualifiedIndices } from './marketQuotePolicy.js';
+import { TRACKED_EQUITY_SYMBOLS, mergeQualifiedEquities, qualifyTrackedEquities, deriveTrackedMovers } from './marketEquityPolicy.js';
 import {
   MARKET_CACHE_SCHEMA_VERSION,
   MARKET_SERVICE_CACHE_KEY,
@@ -51,11 +52,8 @@ const CORE_INDICES = [
   { key: 'hangSeng', name: 'HANG SENG', symbol: '^HSI' },
 ];
 
-const TOP_STOCKS = [
-  'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
-  'BHARTIARTL.NS', 'SBIN.NS', 'ITC.NS', 'LT.NS', 'AXISBANK.NS',
-  'KOTAKBANK.NS', 'MARUTI.NS', 'BAJFINANCE.NS', 'HINDUNILVR.NS', 'SUNPHARMA.NS',
-];
+// Legacy developer fallback uses the same bounded universe as the publisher.
+const TOP_STOCKS = TRACKED_EQUITY_SYMBOLS.map((symbol) => `${symbol}.NS`);
 
 // The ticker also uses this when no market data is available.
 export const MARKET_SEED = {
@@ -140,6 +138,7 @@ export function sanitizeMarketPayload(data, sourceMode = data?.sourceMode, extra
     ...data,
     indices: quoteRows(data.indices),
     globalIndices: quoteRows(data.globalIndices),
+    equities: qualifyTrackedEquities(data.equities),
     movers: {
       ...data.movers,
       gainers: quoteRows(data.movers?.gainers),
@@ -521,7 +520,8 @@ async function fetchLiveMarketBundle(snapshot) {
 // Reconcile independent quote observations. A publication clock is not a quote clock.
 function reconcilePayloads(previous, incoming) {
   const merged = mergeQualifiedIndices(previous, incoming);
-  if (!merged.indices.length) return null;
+  const equityMerge = mergeQualifiedEquities(previous, incoming);
+  if (!merged.indices.length && !equityMerge.equities.length) return null;
   const previousTime = parseMarketTimestamp(previous) || 0;
   const incomingTime = parseMarketTimestamp(incoming) || 0;
   const publicationAdvanced = incomingTime > previousTime;
@@ -534,15 +534,21 @@ function reconcilePayloads(previous, incoming) {
   }, current.sourceMode);
   // Empty or failed independent sidecars cannot clear valid retained data.
   const arrayFrom = (key) => (Array.isArray(updated[key]) && updated[key].length ? updated[key] : (retain[key] || []));
-  const movers = (updated.movers?.gainers?.length || updated.movers?.losers?.length)
-    ? updated.movers : (retain.movers || MARKET_SEED.movers);
+  // Only qualified same-session observations can generate tracked-share movers.
+  const movers = equityMerge.equities.length
+    ? deriveTrackedMovers(equityMerge.equities)
+    : ((updated.movers?.gainers?.length || updated.movers?.losers?.length)
+      ? updated.movers : (retain.movers || MARKET_SEED.movers));
   const payload = {
     ...retain,
     ...updated,
     indices: merged.indices,
     globalIndices: merged.globalIndices,
     sectorals: merged.sectorals,
-    equities: arrayFrom('equities'),
+    equities: equityMerge.equities,
+    equityCoverage: (Array.isArray(updated.equities) || Array.isArray(retain.equities))
+      ? equityMerge.coverage : null,
+    equityMerge: equityMerge.summary,
     movers,
     commodities: arrayFrom('commodities'),
     currencies: arrayFrom('currencies'),
@@ -554,7 +560,7 @@ function reconcilePayloads(previous, incoming) {
     errors: { ...retain.errors, ...updated.errors },
     quoteMerge: merged.summary,
   };
-  return { payload, changed: merged.changed, publicationAdvanced };
+  return { payload, changed: merged.changed || equityMerge.changed, publicationAdvanced };
 }
 
 function eligibleMarketData(data) {
@@ -593,7 +599,7 @@ export async function fetchAllMarketData({ forceRefresh = false, previousData = 
 
   const verifiedSnapshot = snapshot ? reconcilePayloads(baseline, snapshot) : null;
   if (snapshot?.sourceMode === 'snapshot' && verifiedSnapshot &&
-      (!baseline || verifiedSnapshot.publicationAdvanced)) {
+      (!baseline || verifiedSnapshot.publicationAdvanced || verifiedSnapshot.changed)) {
     return storeMarketData({ ...verifiedSnapshot.payload, sourceMode: 'snapshot' });
   }
 
