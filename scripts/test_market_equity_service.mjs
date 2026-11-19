@@ -39,6 +39,9 @@ test('newer partial share publication retains eligible omitted stocks',async()=>
   assert.equal(data.equities.find(r=>r.symbol==='TCS').value,2000);
   assert.equal(data.equities.find(r=>r.symbol==='TCS').quoteAt,new Date(now-180000).toISOString());
   assert.equal(data.equityMerge.advanced,1);
+  assert.equal(data.equityCoverage.quotedCount,2);
+  assert.equal(data.equityCoverage.sourceAcquiredCount,1);
+  assert.equal(data.equityCoverage.retainedCount,1);
 });
 test('same publication date but newer share observation can be retained',async()=>{
   const previous=publication([equity('INFY',1000)]);
