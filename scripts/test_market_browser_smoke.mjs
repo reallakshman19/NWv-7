@@ -20,7 +20,9 @@ const check = (name, condition, detail) => {
 
 const browser = await chromium.launch({ headless: true });
 async function runViewport(width, height) {
-  const context = await browser.newContext({ viewport:{ width, height }, colorScheme:'dark' });
+  // The SW owns app-shell caching; disable it in this deterministic network fixture.
+  // Its market-publication bypass is verified separately by test_market_sw_contract.mjs.
+  const context = await browser.newContext({ viewport:{ width, height }, colorScheme:'dark', serviceWorkers:'block' });
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
   const external = [];
