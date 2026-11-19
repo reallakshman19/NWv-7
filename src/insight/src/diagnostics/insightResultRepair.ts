@@ -7,7 +7,9 @@ import {
 
 type StoriesByIdLike = Map<string, InsightStory> | Record<string, InsightStory> | undefined | null;
 
-export const INSIGHT_OUTPUT_CONTRACT_VERSION = "insight-output-contract-v5-eligible-child-links";
+// A v5 cache may contain only the previous 300-row subset. Repairing its tree
+// cannot recover reports that were never admitted; the view model must refetch.
+export const INSIGHT_OUTPUT_CONTRACT_VERSION = "insight-output-contract-v6-complete-bounded-intake";
 
 function safeArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];

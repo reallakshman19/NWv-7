@@ -10,6 +10,7 @@ production outage gate:
 from __future__ import annotations
 
 import json
+import argparse
 import os
 import sys
 import time
@@ -117,7 +118,7 @@ def _count_event_sketches(snapshot: dict[str, Any]) -> tuple[int, int, int]:
     return len(sketches), len(multi_source), len(multi_angle)
 
 
-def validate_snapshot(snapshot: dict[str, Any], now_ms: int) -> dict[str, Any]:
+def validate_snapshot(snapshot: dict[str, Any], now_ms: int, *, require_acquisition=False) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -154,6 +155,19 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int) -> dict[str, Any]:
     total_stories = len(stories)
     source_groups = Counter(story_source_group(story) for story in stories)
     usable_36h = [story for story in stories if story_is_within_retention_window(story, now_ms)]
+    if require_acquisition:
+        acquired = snapshot.get('acquisitionSummary') or {}
+        fetched_at = int(snapshot.get('fetchedAt') or 0)
+        if not 0 <= now_ms - fetched_at <= 3 * 3_600_000:
+            errors.append('Insight artifact is stale or future-dated (maximum age 3 hours)')
+        if not acquired.get('successfulSources'):
+            errors.append('No successful native acquisition evidence')
+        if len(usable_36h) < MIN_USABLE_36H_STORIES or len(source_groups) < MIN_SOURCE_GROUPS:
+            errors.append('Fresh Insight pool is too thin for publication')
+        if any(story.get('publishedAtSource') in (None, 'missing', 'fetch_time_fallback') for story in stories):
+            errors.append('Insight publication requires genuine source timestamps for every story')
+        if len(usable_36h) != len(stories):
+            errors.append('Insight publication contains expired, malformed or future publication clocks')
 
     stories_with_hints = [story for story in stories if story_angle_hints(story)]
     non_base_angle_stories = [
@@ -214,7 +228,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int) -> dict[str, Any]:
     try:
         sys.path.insert(0, os.path.dirname(__file__))
         from source_health import zero_item_warnings
-        sh_path = 'public/newsdata/source_health.json'
+        sh_path = 'public/newsdata/insight_source_health.json'
         if os.path.exists(sh_path):
             with open(sh_path, 'r', encoding='utf-8') as fh:
                 sh_doc = json.load(fh)
@@ -308,6 +322,9 @@ def write_summary(report: dict[str, Any]) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--require-acquisition', action='store_true')
+    args = parser.parse_args()
     now_ms = int(time.time() * 1000)
 
     if not INSIGHT_PATH.exists():
@@ -337,7 +354,7 @@ def main() -> int:
         return 1
 
     snapshot = read_json(INSIGHT_PATH, {})
-    report = validate_snapshot(snapshot, now_ms)
+    report = validate_snapshot(snapshot, now_ms, require_acquisition=args.require_acquisition)
 
     write_json(REPORT_PATH, report)
     write_summary(report)

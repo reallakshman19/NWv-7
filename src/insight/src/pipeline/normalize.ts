@@ -22,12 +22,13 @@ const TIER_MAP: Record<string, SourceTier> = {
   bloomberg:           "A", ft:                "A", "financial express": "A",
   "the hindu":         "A", hindu:             "A", the_hindu: "A",
   economic_times:      "A", business_line:     "A", ndtv_profit:      "A",
-  financial_express:   "A", mint:              "A",
+  financial_express:   "A", mint:              "A", indian_express: "A", dw: "A",
 
   // Tier B
   ndtv:                "B", toi:               "B", "times of india": "B", times_of_india: "B",
   moneycontrol:        "B", cnbc:              "B", "oman observer":  "B",
-  hindustan_times:     "B", india_today:       "B", oman_observer: "B",
+  hindustan_times:     "B", india_today:       "B", oman_observer: "B", al_jazeera: "B",
+  ars_technica: "B", the_arabian_stories: "B",
 
   // Tier C — admitted only as fallback
   // (everything else defaults to C)
@@ -51,6 +52,8 @@ const SOURCE_DISTRIBUTION_MAP: Record<string, SourceDistributionType> = {
   pti: "wire", ani: "wire", ap: "wire", reuters: "wire",
   economic_times: "publisher", business_line: "publisher", ndtv_profit: "publisher",
   financial_express: "publisher", mint: "publisher", bloomberg: "publisher",
+  indian_express: "publisher", al_jazeera: "publisher",
+  dw: "publisher", ars_technica: "publisher", the_arabian_stories: "publisher",
   moneycontrol: "publisher", ft: "publisher", the_hindu: "publisher",
   "the hindu": "publisher", hindu: "publisher", ndtv: "publisher",
   toi: "publisher", times_of_india: "publisher", "times of india": "publisher",
@@ -68,6 +71,7 @@ const SOURCE_CONTENT_DOMAIN_MAP: Record<string, SourceContentDomain> = {
   times_of_india: "general", "times of india": "general", bbc: "general",
   hindustan_times: "general", india_today: "general", reuters: "general",
   pti: "general", ani: "general", ap: "general",
+  dw: "general", ars_technica: "tech", the_arabian_stories: "regional",
 };
 
 const SECTION_DOMAIN_MAP: Record<string, SourceContentDomain> = {

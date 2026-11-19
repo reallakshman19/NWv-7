@@ -136,3 +136,19 @@ def test_write_summary_creates_markdown(tmp_path, monkeypatch):
     assert "Insight Prefetch Quality Report" in text
     assert "Event sketches" in text
     assert "Multi-source sketches" in text
+
+
+def test_validator_uses_insight_health_without_sections_diagnostic_leakage(tmp_path, monkeypatch):
+    import json
+    health_dir = tmp_path / 'public/newsdata'
+    health_dir.mkdir(parents=True)
+    (health_dir / 'source_health.json').write_text(json.dumps({'sources': {
+        'unrelated_sections_source': {'zeroItemRuns': 500},
+    }}))
+    (health_dir / 'insight_source_health.json').write_text(json.dumps({'sources': {
+        'insight_empty_source': {'zeroItemRuns': 4},
+    }}))
+    monkeypatch.chdir(tmp_path)
+    report = gate.validate_snapshot(make_rich_snapshot(), NOW_MS)
+    assert not any('unrelated_sections_source' in warning for warning in report['warnings'])
+    assert any('insight_empty_source' in warning for warning in report['warnings'])

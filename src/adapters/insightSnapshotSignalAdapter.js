@@ -1,3 +1,5 @@
+import { extractLocalEntities, extractLocalVerbs } from './nlpAdapter.js';
+
 const SUPPORTED_SNAPSHOT_SCHEMAS = new Set([2, 3]);
 
 function safeArray(value) {
@@ -17,21 +19,6 @@ function unique(values) {
   )];
 }
 
-function tokensFromText(value) {
-  return String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .map(token => token.replace(/^-+|-+$/g, ''))
-    .filter(token => token.length >= 4);
-}
-
-function getAngleHintLabels(story) {
-  return safeArray(story?.angleHints || story?.storySignals?.angleHints)
-    .map(hint => typeof hint === 'string' ? hint : hint?.angle)
-    .filter(Boolean);
-}
-
 function getSignalTopicTokens(story) {
   return unique([
     ...safeArray(story?.storySignals?.topicTokens),
@@ -48,37 +35,23 @@ function getSignalNumbers(story) {
 
 function getSignalKeywords(story) {
   const topicTokens = getSignalTopicTokens(story);
-  const angleTokens = getAngleHintLabels(story)
-    .flatMap(label => tokensFromText(label.replace(/_/g, ' ')));
 
   return unique([
     ...topicTokens,
-    ...angleTokens,
     ...safeArray(story?.keywords),
   ]).slice(0, 12);
 }
 
 function getSignalEntities(story) {
   const existing = story?.entities || {};
-  const topicTokens = getSignalTopicTokens(story);
+  const extracted = extractLocalEntities(`${story?.title || ''} ${story?.summary || story?.description || ''}`);
   const sourceGroup = safeText(story?.storySignals?.sourceGroup || story?.sourceGroup || story?.source);
-
-  const orgCandidates = unique([
-    ...safeArray(existing.orgs),
-    ...topicTokens.filter(token => /bank|ministry|court|agency|authority|commission|group|corp|company|market|exchange|regulator/.test(token)),
-  ]);
-
-  const placeCandidates = unique([
-    ...safeArray(existing.places),
-    ...topicTokens.filter(token => /india|chennai|trichy|tamil|muscat|oman|delhi|mumbai|bengaluru|dubai|london|tokyo|gaza|ukraine/.test(token)),
-  ]);
-
   return {
-    people: unique(existing.people),
-    orgs: orgCandidates,
-    places: placeCandidates,
-    products: unique(existing.products),
-    symbols: unique(existing.symbols),
+    people: unique([...safeArray(existing.people), ...extracted.people]),
+    orgs: unique([...safeArray(existing.orgs), ...extracted.orgs]),
+    places: unique([...safeArray(existing.places), ...extracted.places]),
+    products: unique([...safeArray(existing.products), ...extracted.products]),
+    symbols: unique([...safeArray(existing.symbols), ...extracted.symbols]),
     sourceGroup,
   };
 }
@@ -125,7 +98,7 @@ export function getInsightSnapshotSignals(story) {
   const entities = getSignalEntities(story);
   const verbs = unique([
     ...safeArray(story?.eventVerbs),
-    ...angleHints.flatMap(hint => tokensFromText(hint.angle.replace(/_/g, ' '))),
+    ...extractLocalVerbs(`${story?.title || ''} ${story?.summary || story?.description || ''}`),
   ]).slice(0, 10);
 
   return {

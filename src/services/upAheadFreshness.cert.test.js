@@ -15,7 +15,7 @@ describe('Up Ahead freshness and festival fallback', () => {
     expect(isStaticUpAheadFresh({ fetchedAt: now - 30 * 60 * 60 * 1000 }, 12 * 60 * 60 * 1000)).toBe(false);
   });
 
-  it('filters past-dated cards while preserving future items', () => {
+  it('filters expired and clockless cards while preserving dated future items', () => {
     const todayMs = Date.UTC(2026, 4, 29, 0, 0, 0);
     const result = filterPastDatedDisplayItems([
       { id: 'past', title: 'Past rain warning', date: '2026-05-27' },
@@ -23,7 +23,7 @@ describe('Up Ahead freshness and festival fallback', () => {
       { id: 'undated', title: 'Undated live alert' },
     ], todayMs);
 
-    expect(result.map(item => item.id)).toEqual(['future', 'undated']);
+    expect(result.map(item => item.id)).toEqual(['future']);
   });
 
   it('provides future festival cards for selected Chennai and Muscat locations', () => {

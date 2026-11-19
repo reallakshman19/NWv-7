@@ -24,9 +24,11 @@ import {
   evaluateRealInsightSnapshotQualityRatchet,
 } from "./insightRealSnapshotQualityRatchet";
 
-const SNAPSHOT_PATH = path.resolve("public/newsdata/insight_latest.json");
-const REPORT_PATH = path.resolve("public/newsdata/real_insight_quality_report.json");
-const SUMMARY_PATH = path.resolve("public/newsdata/real_insight_quality_summary.md");
+// A pinned historical replay must not overwrite the current live publication.
+const SNAPSHOT_PATH = path.resolve(process.env.INSIGHT_BENCHMARK_SNAPSHOT || "public/newsdata/insight_latest.json");
+const REPORT_ROOT = process.env.INSIGHT_BENCHMARK_OUTPUT_DIR || "public/newsdata";
+const REPORT_PATH = path.resolve(REPORT_ROOT, "real_insight_quality_report.json");
+const SUMMARY_PATH = path.resolve(REPORT_ROOT, "real_insight_quality_summary.md");
 
 const SLOT_ORDER: SnapshotSlot[] = ["now", "minus4h", "minus12h", "minus24h", "minus36h", "minus48h"];
 

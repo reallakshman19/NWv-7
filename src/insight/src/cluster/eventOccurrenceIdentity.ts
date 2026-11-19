@@ -27,7 +27,15 @@ export function isGenericPublisherPage(story: Pick<InsightStory, "title" | "summ
     .replace(/[أإآ]/g, "ا").replace(/[^\p{L}\p{N}]+/gu, " ").toLowerCase().trim();
   const title = clean(story.title);
   const navigation = /^(?:news|latest news|headlines|home) (?:oman news agency|وكالة الانباء العمانية(?: العمانية)?|reuters|associated press|bbc news)$/;
-  return navigation.test(title) && (!clean(story.summary) || clean(story.summary) === title);
+  const summary = clean(story.summary);
+  // Broad multi-event live pages and daily roundups cannot be the identity of
+  // a single occurrence. Dedicated event liveblogs remain eligible.
+  const roundup = /^(?:india|world|top|latest|breaking) news live updates\b/.test(title)
+    || /^(?:ht )?(?:morning |evening )?news brief\b/.test(title)
+    || /^(?:india|world) news \d{1,2} [a-z]+ 20\d{2}\b/.test(title)
+    || /^letters to (?:the )?editor\b/.test(title);
+  const quoteTracker = /\bshare price live updates\b/.test(title) && !summary;
+  return roundup || quoteTracker || navigation.test(title) && (!summary || summary === title);
 }
 
 function token(value: unknown): string {

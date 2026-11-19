@@ -144,12 +144,18 @@ async function findLatestRecoverableLiveEpoch(
     FROM sections_shadow_epochs
     WHERE state = 'STAGED'
       AND acquisition_mode = 'INDEPENDENT_LIVE'
+      AND source_registry_version = ? AND source_registry_digest = ?
       AND terminal_lane_count = expected_lane_count
       AND logical_slot < ?
       AND logical_slot > ?
     ORDER BY logical_slot DESC
     LIMIT 1
-  `).bind(beforeLogicalSlot, beforeLogicalSlot - SHADOW_HISTORY_RETENTION_MS).first<{
+  `).bind(
+    sectionsRegistryAuthority.sourceRegistryVersion,
+    sectionsRegistryAuthority.sourceRegistryDigest,
+    beforeLogicalSlot,
+    beforeLogicalSlot - SHADOW_HISTORY_RETENTION_MS,
+  ).first<{
     epoch_id: string;
     logical_slot: number;
     attempt: number;
@@ -281,6 +287,13 @@ async function consumeMessage(message: Message<ShadowQueueMessage>, env: Env): P
     const error = caught instanceof Error && /sections_shadow_storage_capacity_exhausted/.test(caught.message)
       ? new ShadowCustodyError('FREE_TIER_STORAGE_CAPACITY_EXHAUSTED', 'Retained JSON reached the shared safety ceiling')
       : caught;
+    if (error instanceof ShadowCustodyError &&
+        (error.code === 'EPOCH_REGISTRY_MISMATCH' || error.code === 'EPOCH_NOT_ACQUIRABLE')) {
+      // A later deployment must not reinterpret an old epoch or retry its sources.
+      console.warn('Sections shadow delayed message rejected', queueFailureFields(body, error, message.attempts));
+      message.ack();
+      return;
+    }
     if (error instanceof ShadowCustodyError && error.code === 'RETRYABLE_SOURCE_RESPONSE') {
       console.warn('Sections shadow source response will receive one bounded retry', { code: error.code });
       message.retry({ delaySeconds: 20 });

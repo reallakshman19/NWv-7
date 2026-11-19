@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policyVersion": "insight-source-policy-v1",
+  "policyVersion": "insight-source-policy-v3-direct-publishers",
   "slots": {
     "now": [
       {
@@ -71,6 +71,41 @@
     ],
     "minus12h": [
       {
+        "url": "https://rss.dw.com/rdf/rss-en-all",
+        "source": "DW English",
+        "sourceGroup": "dw",
+        "tier": "A",
+        "topic": "world"
+      },
+      {
+        "url": "https://feeds.arstechnica.com/arstechnica/index",
+        "source": "Ars Technica",
+        "sourceGroup": "ars_technica",
+        "tier": "B",
+        "topic": "tech"
+      },
+      {
+        "url": "https://www.thearabianstories.com/category/oman-news/feed/",
+        "source": "The Arabian Stories Oman",
+        "sourceGroup": "the_arabian_stories",
+        "tier": "B",
+        "topic": "regional"
+      },
+      {
+        "url": "https://indianexpress.com/section/explained/feed/",
+        "source": "Indian Express Explained",
+        "sourceGroup": "indian_express",
+        "tier": "A",
+        "topic": "analysis"
+      },
+      {
+        "url": "https://www.thehindu.com/opinion/feeder/default.rss",
+        "source": "The Hindu Opinion",
+        "sourceGroup": "the_hindu",
+        "tier": "A",
+        "topic": "opinion"
+      },
+      {
         "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
         "source": "BBC World",
         "sourceGroup": "bbc",
@@ -78,9 +113,9 @@
         "topic": "world"
       },
       {
-        "url": "https://feeds.bbci.co.uk/news/india/rss.xml",
-        "source": "BBC India",
-        "sourceGroup": "bbc",
+        "url": "https://indianexpress.com/section/india/feed/",
+        "source": "Indian Express India",
+        "sourceGroup": "indian_express",
         "tier": "A",
         "topic": "india"
       },
@@ -92,17 +127,17 @@
         "topic": "international"
       },
       {
-        "url": "https://www.reutersagency.com/feed/?best-regions=asia&post_type=best",
-        "source": "Reuters India",
-        "sourceGroup": "reuters",
-        "tier": "A",
+        "url": "https://www.aljazeera.com/xml/rss/all.xml",
+        "source": "Al Jazeera",
+        "sourceGroup": "al_jazeera",
+        "tier": "B",
         "topic": "india"
       },
       {
         "url": "https://news.google.com/rss/search?q=site:reuters.com+India&hl=en-IN&gl=IN&ceid=IN:en",
-        "source": "Reuters India (Google)",
-        "sourceGroup": "reuters",
-        "tier": "A",
+        "source": "Google News Reuters search",
+        "sourceGroup": "google_news",
+        "tier": "B",
         "topic": "india"
       },
       {
@@ -122,10 +157,10 @@
         "topic": "markets"
       },
       {
-        "url": "https://www.moneycontrol.com/rss/latestnews.xml",
-        "source": "Moneycontrol",
-        "sourceGroup": "moneycontrol",
-        "tier": "B",
+        "url": "https://www.livemint.com/rss/markets",
+        "source": "Mint Markets",
+        "sourceGroup": "mint",
+        "tier": "A",
         "topic": "markets"
       },
       {
@@ -136,9 +171,9 @@
         "topic": "business"
       },
       {
-        "url": "https://www.financialexpress.com/feed/",
-        "source": "Financial Express",
-        "sourceGroup": "financial_express",
+        "url": "https://indianexpress.com/section/business/feed/",
+        "source": "Indian Express Business",
+        "sourceGroup": "indian_express",
         "tier": "A",
         "topic": "business"
       },

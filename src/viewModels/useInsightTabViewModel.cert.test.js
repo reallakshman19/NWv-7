@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import {
   __insightViewModelInternalsForTest,
@@ -74,6 +74,25 @@ describe('useInsightTabViewModel static checks', () => {
 });
 
 describe('Insight ViewModel internals', () => {
+  it('refetches a prior capped-intake cache while preserving personal recovery data', () => {
+    const now = Date.now();
+    const storage = new Map([
+      [CACHE_KEY, JSON.stringify({ ts: now, schemaVersion: 'insight-output-contract-v5-eligible-child-links',
+        data: { parents: [{ parentId: 'old-capped-parent' }], storiesById: {}, runtimeQualityGate: { attempted: false } } })],
+      ['nw_planner_seed_recovery_v1', 'preserved-recovery'],
+      ['upAhead_planner', 'preserved-planner'],
+    ]);
+    vi.stubGlobal('window', { localStorage: {
+      getItem: key => storage.get(key) ?? null,
+      removeItem: key => storage.delete(key),
+    } });
+    try {
+      expect(__insightViewModelInternalsForTest.readInsightCache(now)).toBeNull();
+      expect(storage.has(CACHE_KEY)).toBe(false);
+      expect(storage.get('nw_planner_seed_recovery_v1')).toBe('preserved-recovery');
+      expect(storage.get('upAhead_planner')).toBe('preserved-planner');
+    } finally { vi.unstubAllGlobals(); }
+  });
   it('defines cache and refresh constants', () => {
     expect(CACHE_KEY).toBe('insight_pipeline_cache');
     expect(CACHE_SCHEMA_VERSION).toBeTruthy();

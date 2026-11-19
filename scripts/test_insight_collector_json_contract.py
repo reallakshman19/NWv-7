@@ -8,6 +8,7 @@ from insight_json_contract import (
     compute_snapshot_content_hash,
     infer_angle_hints,
     optimize_insight_snapshot,
+    build_story_signals,
 )
 
 
@@ -46,6 +47,18 @@ def test_angle_hints_detect_official_market_and_public():
     assert official[0]["angle"] == "official_response"
     assert market[0]["angle"] == "market_reaction"
     assert public[0]["angle"] == "reaction_public"
+
+
+def test_headline_subject_is_not_displaced_by_repeated_reaction_summary():
+    signals = build_story_signals(sample_story(1, 'Acme Bank outage shares fell', 'Shares fell as shares fell in trading'))
+    assert signals['topicTokens'][:3] == ['acme', 'bank', 'outage']
+    other = build_story_signals(sample_story(2, 'Zenith Bank outage shares fell', 'Shares fell as shares fell in trading'))
+    assert other['topicTokens'][:3] == ['zenith', 'bank', 'outage']
+
+
+def test_sharing_a_weather_forecast_does_not_invent_market_reaction():
+    hints = infer_angle_hints(sample_story(1, 'Expert shares Chennai rain forecast', 'Water rose after intense rain; Observer publishes a forecast'))
+    assert all(hint['angle'] != 'market_reaction' for hint in hints)
 
 
 def test_event_sketches_capture_repeated_topic_sources_and_angles():
