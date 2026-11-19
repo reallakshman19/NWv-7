@@ -85,3 +85,26 @@ describe('India Market free-source tools', () => {
     expect(currentNfoRows([{ ...item, openDate: '2026-10-01' }], NOW)).toEqual([]);
   });
 });
+
+
+describe('bounded independent Market source requests', () => {
+  it('retains provider 429 status without repeated requests', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+    await expect(loadFundNav('100001', { fetchImpl, now: NOW })).rejects.toMatchObject({ status: 429 });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+  it('rejects HTML SPA fallback presented as a successful NAV source', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, headers: { get: () => 'text/html' }, json: async () => ({}) });
+    await expect(loadFundNav('100001', { fetchImpl, now: NOW })).rejects.toThrow(/HTML rather than JSON/);
+  });
+  it('honors cancellation of a pending fund search', async () => {
+    const controller = new AbortController();
+    const fetchImpl = vi.fn((_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })));
+    }));
+    const pending = searchIndianFunds('Nifty Direct', { fetchImpl, signal: controller.signal });
+    controller.abort();
+    await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+});
