@@ -149,6 +149,7 @@ export function normalizeHealthStatus(value) {
   if (text.includes('eod')) return 'eod';
   if (text.includes('failed') || text.includes('error')) return 'failed';
   if (text.includes('empty')) return 'empty';
+  if (text.includes('partial')) return 'partial';
 
   return 'unknown';
 }
@@ -167,6 +168,7 @@ export function summarizeMarketSourceHealth(marketData = {}) {
     seed: 0,
     failed: 0,
     empty: 0,
+    partial: 0,
     unknown: 0
   };
 
@@ -208,7 +210,7 @@ export function summarizeMarketSourceHealth(marketData = {}) {
   } else if (counts.snapshot > 0) {
     modeStr = 'snapshot';
     modeLabel = 'Snapshot';
-  } else if (counts.failed > 0 || counts.empty > 0) {
+  } else if (counts.failed > 0 || counts.empty > 0 || counts.partial > 0) {
     modeStr = 'degraded';
     modeLabel = 'Limited';
   }
