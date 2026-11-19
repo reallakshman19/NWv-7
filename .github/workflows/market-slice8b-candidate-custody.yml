@@ -45,7 +45,7 @@ jobs:
           assert.equal(receipt.stageEligible,false);
           assert.equal(receipt.candidateCustody,'NO_CANDIDATE_STAGED');
           assert.equal(receipt.technicalStatus,'HOLD');
-          assert.ok(receipt.technicalBlocks.includes('EQUITIES_MISSING'));
+          assert.ok(receipt.technicalBlocks.includes('SCHEMA_UNKNOWN'));
           assert.ok(receipt.rightsBlocks.includes('RIGHTS_MANIFEST_MISSING'));
           assert.ok(receipt.sidecarBlocks.includes('SOURCE_SIDECARS_REQUIRED'));
           console.log('CONFIRMED: committed publication is not a releasable candidate.');
