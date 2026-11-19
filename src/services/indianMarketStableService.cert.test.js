@@ -286,7 +286,7 @@ describe('manual market revalidation', () => {
       } }] } });
       return mockJsonResponse(null, false);
     }));
-    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous, allowLegacyLive: true });
     expect(data.indices).toHaveLength(2);
     expect(data.indices.find(row => row.symbol === '^BSESN')).toEqual(previous.indices[1]);
     if (advanceMs === 0) {
@@ -321,7 +321,7 @@ describe('manual market revalidation', () => {
       return new Promise(() => {});
     }));
 
-    const request = fetchAllMarketData({ forceRefresh: true });
+    const request = fetchAllMarketData({ forceRefresh: true, allowLegacyLive: true });
     await vi.advanceTimersByTimeAsync(12_000);
 
     await expect(request).resolves.toMatchObject({ sourceMode: 'failed' });
@@ -330,5 +330,16 @@ describe('manual market revalidation', () => {
     const requestCount = signals.length;
     await vi.advanceTimersByTimeAsync(40_000);
     expect(signals).toHaveLength(requestCount);
+  });
+});
+
+describe('no implicit browser proxy waterfall', () => {
+  it('does not query any Yahoo or public proxy when the publication fails', async () => {
+    const fetcher = vi.fn(() => mockJsonResponse(null, false));
+    vi.stubGlobal('fetch', fetcher);
+    const result = await fetchAllMarketData({ forceRefresh: true });
+    expect(result.sourceMode).toBe('failed');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(String(fetcher.mock.calls[0][0])).toContain('market_snapshot.json');
   });
 });
