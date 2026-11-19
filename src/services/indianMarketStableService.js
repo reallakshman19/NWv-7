@@ -583,7 +583,7 @@ async function storeMarketData(data) {
   return data;
 }
 
-export async function fetchAllMarketData({ forceRefresh = false, previousData = null } = {}) {
+export async function fetchAllMarketData({ forceRefresh = false, previousData = null, allowLegacyLive = false } = {}) {
   if (!forceRefresh) {
     const freshCache = await readMarketCache();
     if (freshCache) return sanitizeMarketPayload(freshCache, 'cache', { sourceHealth: { cache: 'cache' } });
@@ -615,6 +615,23 @@ export async function fetchAllMarketData({ forceRefresh = false, previousData = 
       sourceHealth: { cache: 'stale-cache' },
       errors: { feed: 'Showing previously collected market data.' },
     });
+  }
+
+  // Public browser proxy cascades are not a qualified production data contract.
+  // Diagnostic access requires an explicit opt-in and cannot run in a production build.
+  if (!allowLegacyLive || import.meta.env?.PROD === true) {
+    if (snapshot && verifiedSnapshot) {
+      return sanitizeMarketPayload(verifiedSnapshot.payload, snapshot.sourceMode, {
+        sourceHealth: { snapshot: snapshot.sourceHealth?.snapshot || { status: snapshot.sourceMode } },
+      });
+    }
+    if (fallback) return sanitizeMarketPayload(fallback, 'stale-cache', {
+      sourceHealth: { cache: 'stale-cache' },
+      errors: { feed: 'Market publication unavailable. Showing eligible previously collected quotes.' },
+    });
+    return { ...MARKET_SEED, sourceMode: 'failed',
+      sourceHealth: normalizeSourceHealth({ indices: 'failed', equities: 'failed' }, 'failed'),
+      errors: { feed: 'Market quotes are currently unavailable.' } };
   }
 
   const live = await fetchLiveMarketBundle(rawSnapshot);
