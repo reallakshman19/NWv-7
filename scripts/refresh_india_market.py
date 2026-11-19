@@ -70,12 +70,26 @@ def parse_chart(payload, name, symbol, now):
     quote_at = datetime.fromtimestamp(float(meta["regularMarketTime"]), timezone.utc)
     if quote_at > now + timedelta(minutes=5) or now - quote_at > timedelta(days=5):
         raise ValueError("Quote timestamp is future-dated or older than five days")
-    closes = [number(value) for value in result["indicators"]["quote"][0]["close"]]
-    closes = [value for value in closes if value is not None and value > 0]
+    timestamps = result.get("timestamp") or []
+    closes = result["indicators"]["quote"][0]["close"]
+    if len(timestamps) != len(closes):
+        raise ValueError("Daily timestamps and closes are not aligned")
+
+    quote_day = quote_at.astimezone(IST).date()
+    previous_time = None
+    previous = None
+    for timestamp, close in zip(timestamps, closes):
+        bar_time = number(timestamp)
+        if bar_time is None:
+            raise ValueError("Missing daily bar timestamp")
+        bar_day = datetime.fromtimestamp(bar_time, IST).date()
+        if bar_day < quote_day and (previous_time is None or bar_time > previous_time):
+            previous_time = bar_time
+            previous = number(close)
+
     price = number(meta.get("regularMarketPrice"))
-    if price is None or price <= 0 or len(closes) < 2:
+    if price is None or price <= 0 or previous is None or previous <= 0:
         raise ValueError("Missing positive price or previous daily close")
-    previous = closes[-2]
     change = price - previous
     return {"name": name, "symbol": symbol, "value": f"{price:.2f}", "price": f"{price:.2f}",
             "change": f"{change:.2f}", "changePercent": f"{change / previous * 100:.2f}",

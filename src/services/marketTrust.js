@@ -173,21 +173,36 @@ export function summarizeMarketSourceHealth(marketData = {}) {
   let modeStr = 'cached';
   let modeLabel = 'Cached';
 
-  if (sourceMode === 'live' || counts.live > 0) {
-    modeStr = 'live';
-    modeLabel = 'Live';
-  } else if (sourceMode === 'official' || counts.official > 0) {
-    modeStr = 'live';
-    modeLabel = 'Official';
-  } else if (sourceMode === 'snapshot' || counts.snapshot > 0) {
-    modeStr = 'snapshot';
-    modeLabel = 'Snapshot';
-  } else if (sourceMode === 'stale-cache' || sourceMode === 'stale-snapshot' || counts.stale > 0) {
+  // The delivery mode describes this result; source-health entries describe
+  // its upstream history and must not turn a cached result into a live one.
+  if (sourceMode === 'stale-cache' || sourceMode === 'stale-snapshot') {
     modeStr = 'degraded';
     modeLabel = 'Stale';
-  } else if (sourceMode === 'seed' || counts.seed > 0) {
+  } else if (sourceMode === 'cache') {
+    modeStr = 'cached';
+    modeLabel = 'Cached';
+  } else if (sourceMode === 'seed') {
     modeStr = 'degraded';
-    modeLabel = 'Seed';
+    modeLabel = 'Unavailable';
+  } else if (sourceMode === 'live') {
+    // Yahoo's public endpoints do not establish a real-time entitlement.
+    modeStr = 'cached';
+    modeLabel = 'Delayed';
+  } else if (sourceMode === 'official') {
+    modeStr = 'live';
+    modeLabel = 'Official';
+  } else if (sourceMode === 'snapshot') {
+    modeStr = 'snapshot';
+    modeLabel = 'Snapshot';
+  } else if (counts.stale > 0) {
+    modeStr = 'degraded';
+    modeLabel = 'Stale';
+  } else if (counts.seed > 0) {
+    modeStr = 'degraded';
+    modeLabel = 'Unavailable';
+  } else if (counts.snapshot > 0) {
+    modeStr = 'snapshot';
+    modeLabel = 'Snapshot';
   } else if (counts.failed > 0 || counts.empty > 0) {
     modeStr = 'degraded';
     modeLabel = 'Limited';

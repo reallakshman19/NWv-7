@@ -156,7 +156,7 @@ pass(marketVm.includes('quickMarketProps'), 'Market ViewModel must expose quickM
   'sessionState',
   'moverGainers',
   'moverLosers',
-  'marketBreath',
+  'trackedIndexBreadth',
   'sectoralIndices',
   'marketTabAudit',
   'navSections',

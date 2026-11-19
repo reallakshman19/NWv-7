@@ -1,5 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchAllMarketData, fetchIPOData, fetchMutualFunds } from './indianMarketStableService.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fetchAllMarketData, fetchIPOData, fetchMutualFunds, MARKET_SEED } from './indianMarketStableService.js';
+import { getIdbCache, setIdbCache } from './indexedDbCache.js';
+import { MARKET_CACHE_SCHEMA_VERSION, MARKET_SERVICE_CACHE_KEY } from './marketTrust.js';
 
 vi.mock('./indexedDbCache.js', () => ({
   getIdbCache: vi.fn().mockResolvedValue(null),
@@ -90,5 +92,221 @@ describe('Indian market stable sidecar feeds', () => {
       sourceHealth: { nfo: { status: 'failed', provider: 'AMFI' } },
     });
     expect(data.indices[0].quoteAt).toBe(quoteAt);
+  });
+});
+
+function datedMarketData(fetchedAt, quoteAt = fetchedAt) {
+  return {
+    schemaVersion: MARKET_CACHE_SCHEMA_VERSION,
+    sourceMode: 'snapshot',
+    fetchedAt,
+    generatedAt: new Date(fetchedAt).toISOString(),
+    indices: [{
+      name: 'NIFTY 50',
+      symbol: '^NSEI',
+      value: '25227.95',
+      quoteAt: new Date(quoteAt).toISOString(),
+    }],
+  };
+}
+
+describe('manual market revalidation', () => {
+  beforeEach(() => {
+    getIdbCache.mockReset().mockResolvedValue(null);
+    setIdbCache.mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('reads a newer publication over a fresh local cache and preserves publication and quote times', async () => {
+    const now = Date.now();
+    const cached = datedMarketData(now - 120_000, now - 180_000);
+    const published = { ...datedMarketData(now - 60_000, now - 90_000), schemaVersion: 'market-india-1' };
+    getIdbCache.mockResolvedValue(cached);
+    const read = vi.fn(() => mockJsonResponse(published));
+    vi.stubGlobal('fetch', read);
+
+    await expect(fetchAllMarketData()).resolves.toMatchObject({
+      sourceMode: 'cache',
+      fetchedAt: cached.fetchedAt,
+    });
+    expect(read).not.toHaveBeenCalled();
+
+    const data = await fetchAllMarketData({ forceRefresh: true });
+    expect(read).toHaveBeenCalledOnce();
+    expect(read).toHaveBeenCalledWith(expect.stringContaining('market_snapshot.json'), {
+      cache: 'no-cache',
+      signal: expect.any(AbortSignal),
+    });
+    expect(data).toMatchObject({
+      sourceMode: 'snapshot',
+      fetchedAt: published.fetchedAt,
+      indices: published.indices,
+    });
+    expect(setIdbCache).toHaveBeenCalledWith(MARKET_SERVICE_CACHE_KEY, data);
+  });
+
+  it('moves past an unchanged publication and accepts only quotes with provider timestamps', async () => {
+    const now = Date.now();
+    const previous = datedMarketData(now - 120_000, now - 180_000);
+    const latestSeconds = Math.floor((now - 30_000) / 1000);
+    const read = vi.fn((url) => {
+      if (url.endsWith('market_snapshot.json')) return mockJsonResponse(previous);
+      if (url.includes('chart/%5ENSEI?')) return mockJsonResponse({
+        chart: { result: [{ meta: { regularMarketPrice: 25300, regularMarketTime: latestSeconds } }] },
+      });
+      return mockJsonResponse({
+        chart: { result: [{ meta: { regularMarketPrice: 99999 } }] },
+        quoteResponse: { result: [{ regularMarketPrice: 99999 }] },
+      });
+    });
+    vi.stubGlobal('fetch', read);
+
+    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+
+    expect(data).toMatchObject({
+      sourceMode: 'live',
+      fetchedAt: latestSeconds * 1000,
+      generatedAt: new Date(latestSeconds * 1000).toISOString(),
+      indices: [{
+        symbol: '^NSEI',
+        timestamp: latestSeconds * 1000,
+        quoteAt: new Date(latestSeconds * 1000).toISOString(),
+      }],
+      movers: { gainers: [], losers: [] },
+      commodities: [],
+      currencies: [],
+      sectorals: [],
+      sourceHealth: {
+        indices: { status: 'live' },
+        commodities: { status: 'empty' },
+      },
+    });
+    expect(data.indices).toHaveLength(1);
+  });
+
+  it('keeps the newest usable stale quote and filters seeded prices from historic caches', async () => {
+    const now = Date.now();
+    const previous = datedMarketData(now - 2 * 3_600_000, now - 3 * 3_600_000);
+    const seed = { name: 'Sample', value: '99', price: '99', sourceMode: 'seed' };
+    previous.indices.push(seed);
+    previous.globalIndices = [seed];
+    previous.movers = { gainers: [seed], losers: [seed] };
+    previous.sectorals = [seed];
+    previous.commodities = [{ name: 'Sample', value: '99', source: 'seed' }];
+    previous.currencies = [{ name: 'Sample', value: '99', source: 'SEED' }];
+    getIdbCache.mockResolvedValue(datedMarketData(now - 4 * 3_600_000));
+    vi.stubGlobal('fetch', vi.fn(() => mockJsonResponse(null, false)));
+
+    expect(await fetchAllMarketData({ forceRefresh: true, previousData: previous })).toMatchObject({
+      sourceMode: 'stale-cache',
+      fetchedAt: previous.fetchedAt,
+      generatedAt: previous.generatedAt,
+      indices: previous.indices.slice(0, 1),
+      movers: { gainers: [], losers: [] },
+      globalIndices: [],
+      sectorals: [],
+      commodities: [],
+      currencies: [],
+      errors: { feed: expect.stringContaining('refresh failed') },
+    });
+    expect(setIdbCache).not.toHaveBeenCalled();
+  });
+
+  it('does not surface seeded or untimed prices after all providers fail', async () => {
+    const now = Date.now();
+    const cached = datedMarketData(now);
+    getIdbCache.mockResolvedValue({ ...cached, sourceMode: 'seed' });
+    vi.stubGlobal('fetch', vi.fn((url) => mockJsonResponse(
+      url.endsWith('market_snapshot.json') ? { indices: cached.indices } : null,
+    )));
+
+    const data = await fetchAllMarketData({ forceRefresh: true });
+
+    expect(data).toMatchObject({
+      sourceMode: 'failed',
+      indices: [],
+      commodities: [],
+      currencies: [],
+      errors: { feed: expect.stringContaining('unavailable') },
+    });
+    expect(data.fetchedAt).toBeUndefined();
+    expect(data.generatedAt).toBeUndefined();
+    expect(MARKET_SEED.indices).toEqual([]);
+    expect(MARKET_SEED.commodities).toEqual([]);
+    expect(setIdbCache).not.toHaveBeenCalled();
+  });
+
+  it.each(['newer global quote', 'newer publication with partial coverage', 'mixed India quote ages'])(
+    'keeps the full India snapshot instead of accepting %s', async scenario => {
+      const now = Date.now();
+      const previous = datedMarketData(now - 120_000, now - 180_000);
+      previous.indices.push({ name: 'SENSEX', symbol: '^BSESN', value: '82000', quoteAt: previous.indices[0].quoteAt });
+      const candidate = { ...datedMarketData(now - 30_000, now - 180_000), schemaVersion: 'market-india-1' };
+      if (scenario === 'newer global quote') {
+        candidate.indices[0].quoteAt = new Date(now - 3600_000).toISOString();
+        candidate.indices.push({ name: 'S&P 500', symbol: '^GSPC', value: '6000', quoteAt: new Date(now - 1000).toISOString() });
+      }
+      if (scenario === 'mixed India quote ages') {
+        candidate.indices[0].quoteAt = new Date(now - 1000).toISOString();
+        candidate.indices.push({ ...previous.indices[1], quoteAt: new Date(now - 3600_000).toISOString() });
+      }
+      vi.stubGlobal('fetch', vi.fn(url => mockJsonResponse(url.endsWith('market_snapshot.json') ? candidate : null)));
+
+      const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+      expect(data.sourceMode).toBe('stale-cache');
+      expect(data.indices).toEqual(previous.indices);
+      expect(data.fetchedAt).toBe(previous.fetchedAt);
+      expect(setIdbCache).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([0, 60_000])('does not replace a fuller snapshot with a partial live quote advanced by %s ms', async advanceMs => {
+    const now = Math.floor(Date.now() / 1000) * 1000;
+    const previous = datedMarketData(now - 120_000, now - 180_000);
+    previous.indices.push({ name: 'SENSEX', symbol: '^BSESN', value: '82000', quoteAt: previous.indices[0].quoteAt });
+    vi.stubGlobal('fetch', vi.fn(url => {
+      if (url.endsWith('market_snapshot.json')) return mockJsonResponse(previous);
+      if (url.includes('chart/%5ENSEI?')) return mockJsonResponse({ chart: { result: [{ meta: {
+        regularMarketPrice: 25300, regularMarketTime: (now - 180_000 + advanceMs) / 1000,
+      } }] } });
+      return mockJsonResponse(null, false);
+    }));
+    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+    expect(data.sourceMode).toBe('stale-cache');
+    expect(data.indices).toEqual(previous.indices);
+    expect(setIdbCache).not.toHaveBeenCalled();
+  });
+
+  it('applies the same 24-hour expiry to in-memory data as persisted cache data', async () => {
+    const previous = datedMarketData(Date.now() - 25 * 3600_000);
+    vi.stubGlobal('fetch', vi.fn(() => mockJsonResponse(null, false)));
+    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+    expect(data).toMatchObject({ sourceMode: 'failed', indices: [] });
+    expect(data.fetchedAt).toBeUndefined();
+    expect(setIdbCache).not.toHaveBeenCalled();
+  });
+
+  it('aborts hanging transports at the bundle deadline without starting more requests', async () => {
+    vi.useFakeTimers();
+    const signals = [];
+    vi.stubGlobal('fetch', vi.fn((url, { signal }) => {
+      if (url.includes('snapshot.json')) return mockJsonResponse(null, false);
+      signals.push(signal);
+      return new Promise(() => {});
+    }));
+
+    const request = fetchAllMarketData({ forceRefresh: true });
+    await vi.advanceTimersByTimeAsync(12_000);
+
+    await expect(request).resolves.toMatchObject({ sourceMode: 'failed' });
+    expect(signals.length).toBeGreaterThan(0);
+    expect(signals.every((signal) => signal.aborted)).toBe(true);
+    const requestCount = signals.length;
+    await vi.advanceTimersByTimeAsync(40_000);
+    expect(signals).toHaveLength(requestCount);
   });
 });

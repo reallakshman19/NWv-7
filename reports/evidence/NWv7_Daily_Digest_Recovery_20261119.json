@@ -1,0 +1,168 @@
+{
+  "scope": "Previously recorded isolated-browser verification; no user browser storage or production mutation",
+  "before": {
+    "scope": "Isolated localhost browser; only public Sections sources allowed externally",
+    "requests": [
+      {
+        "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+        "failure": {
+          "errorText": "net::ERR_ABORTED"
+        }
+      },
+      {
+        "url": "http://127.0.0.1:4173/newsdata/sections_latest.json?t=1795090823187",
+        "status": 200
+      },
+      {
+        "url": "https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json",
+        "failure": {
+          "errorText": "net::ERR_ABORTED"
+        }
+      }
+    ],
+    "errors": [],
+    "clock": "2026-11-19T12:20:25.238Z",
+    "build": "assets/index-qz2aWSF4.js",
+    "availability": "BACKEND_NOT_CONFIGURED",
+    "tabs": [],
+    "text": "\ud83d\uddde\ufe0f\nDaily Digest\nUNAVAILABLE\nPublisher-curated edition\nDaily Digest service unavailable\n\nThe Daily Digest backend is not configured for this deployment.\n\n2026-11-19"
+  },
+  "after": {
+    "scope": "Actual localhost build in isolated contexts; original captured input timestamps; no user storage",
+    "cases": [
+      {
+        "scenario": "slow-publication",
+        "status": "PASS",
+        "build": "assets/index-COISFeoI.js",
+        "tabs": [
+          "The Hindu10",
+          "NDTV10",
+          "BBC10",
+          "Business Line10",
+          "Mint Markets10",
+          "Gadgets36010",
+          "DT Next10",
+          "Times of Oman10"
+        ],
+        "cards": 10,
+        "publishedTimes": 10,
+        "errors": [],
+        "canonicalRequests": 1,
+        "requests": [
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091124230",
+            "canonical": false
+          },
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091124526",
+            "canonical": false
+          },
+          {
+            "url": "https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "scenario": "failure-then-retry",
+        "status": "PASS",
+        "build": "assets/index-COISFeoI.js",
+        "tabs": [
+          "The Hindu10",
+          "NDTV10",
+          "BBC10",
+          "Business Line10",
+          "Mint Markets10",
+          "Gadgets36010",
+          "DT Next10",
+          "Times of Oman10"
+        ],
+        "cards": 10,
+        "publishedTimes": 10,
+        "errors": [],
+        "canonicalRequests": 2,
+        "requests": [
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091128186",
+            "canonical": false
+          },
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091128502",
+            "canonical": false
+          },
+          {
+            "url": "https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json",
+            "canonical": true
+          },
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091128984",
+            "canonical": false
+          },
+          {
+            "url": "https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json",
+            "canonical": true
+          }
+        ]
+      },
+      {
+        "scenario": "current-live-inputs",
+        "status": "PASS",
+        "build": "assets/index-COISFeoI.js",
+        "tabs": [
+          "The Hindu10",
+          "NDTV10",
+          "BBC10",
+          "Business Line10",
+          "Mint Markets10",
+          "Gadgets36010",
+          "DT Next10",
+          "Times of Oman10"
+        ],
+        "cards": 10,
+        "publishedTimes": 10,
+        "errors": [],
+        "canonicalRequests": 0,
+        "requests": [
+          {
+            "url": "https://nw-sections-shadow.reallaksh19.workers.dev/preview/sections/latest",
+            "canonical": false
+          },
+          {
+            "url": "http://127.0.0.1:4174/newsdata/sections_latest.json?t=1795091130405",
+            "canonical": false
+          },
+          {
+            "url": "https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json",
+            "canonical": true
+          }
+        ]
+      }
+    ],
+    "status": "PASS"
+  },
+  "tests": {
+    "digest": "55 passed across 4 files",
+    "marketReproduction": "7 failed, 12 passed across 2 files"
+  },
+  "build": "assets/index-COISFeoI.js"
+}

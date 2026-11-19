@@ -1,172 +1,110 @@
+import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { getIdbCache, setIdbCache } from '../services/indexedDbCache.js';
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { isLiveMode } from '../utils/fetchMode.js';
-import { fetchAllMarketData, MARKET_SEED } from '../services/indianMarketStableService';
+import { fetchAllMarketData, sanitizeMarketPayload } from '../services/indianMarketStableService.js';
 import {
+    getMarketPayloadAgeMs,
+    isMarketPayloadUsable,
     MARKET_CONTEXT_CACHE_KEY,
     MARKET_CACHE_SCHEMA_VERSION,
     MARKET_FRESH_CACHE_TTL_MS,
     shouldRejectMarketPayload,
-    markMarketPayload
-} from '../services/marketTrust';
+} from '../services/marketTrust.js';
+import { isLiveMode } from '../utils/fetchMode.js';
 
 const MarketContext = createContext(null);
 /* eslint-disable react-refresh/only-export-components */
 
-const CACHE_KEY = MARKET_CONTEXT_CACHE_KEY;
-const CACHE_DURATION = MARKET_FRESH_CACHE_TTL_MS;
+async function readContextCache() {
+    try {
+        const cached = await getIdbCache(MARKET_CONTEXT_CACHE_KEY);
+        if (cached?.schemaVersion !== MARKET_CACHE_SCHEMA_VERSION) return null;
 
-function publicDataUrl(path) {
-    const base = (import.meta.env.BASE_URL || './').replace(/\/?$/, '/');
-    return `${base}${String(path).replace(/^\//, '')}`;
-}
-
-function hasUsableMarketData(data) {
-    const rejection = shouldRejectMarketPayload(data, {
-        allowSeed: true
-    });
-
-    return !rejection.reject;
+        const data = sanitizeMarketPayload(cached);
+        return shouldRejectMarketPayload(data, { allowSeed: false }).reject ? null : data;
+    } catch {
+        return null;
+    }
 }
 
 export function MarketProvider({ children }) {
     const [marketData, setMarketData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [lastFetch, setLastFetch] = useState(null);
     const [booted, setBooted] = useState(false);
+    const bootStarted = useRef(false);
+    const bootRequest = useRef(null);
+    const activeRefresh = useRef(null);
+    const lastData = useRef(null);
 
-    const loadMarketData = useCallback(async (forceRefresh = false) => {
-        if (!forceRefresh && !isLiveMode()) {
-            try {
-                const parsed = await getIdbCache(CACHE_KEY);
-                if (
-                    parsed &&
-                    parsed.schemaVersion === MARKET_CACHE_SCHEMA_VERSION &&
-                    hasUsableMarketData(parsed)
-                ) {
-                    if (Date.now() - parsed.fetchedAt < CACHE_DURATION) {
-                        console.log('[MarketContext] Using cached data');
-                        setMarketData(parsed);
-                        setLoading(false);
-                        setLastFetch(parsed.fetchedAt);
-                        return;
-                    }
-                }
-            } catch {
-                console.warn('[MarketContext] Cache read failed');
-            }
-        }
-
+    const loadMarketData = useCallback(async (forceRefresh) => {
         setLoading(true);
         setError(null);
 
+        const showData = (data) => {
+            lastData.current = data;
+            setMarketData(data);
+        };
+
+        const previousData = lastData.current || await readContextCache();
         try {
-            const data = await fetchAllMarketData();
-            if (!hasUsableMarketData(data)) {
-                throw new Error('Market data unavailable: live, cache, and static snapshot returned no displayable rows.');
+            if (!forceRefresh && !isLiveMode() &&
+                getMarketPayloadAgeMs(previousData) < MARKET_FRESH_CACHE_TTL_MS) {
+                showData(sanitizeMarketPayload(previousData, 'cache', { sourceHealth: { cache: 'cache' } }));
+                return;
             }
 
-            const normalized = markMarketPayload(
-                data,
-                data.sourceMode || 'live',
-                {
-                    sourceHealth: data.sourceHealth || {
-                        market: {
-                            status: data.sourceMode || 'live',
-                            provider: data.sourceMode || 'live',
-                            mode: data.sourceMode || 'live'
-                        }
-                    }
+            const data = await fetchAllMarketData({ forceRefresh, previousData });
+            const message = data.errors?.feed;
+            if (!message || isMarketPayloadUsable(data) || !isMarketPayloadUsable(previousData)) {
+                showData(data);
+            }
+
+            if (message && forceRefresh) throw new Error(message);
+            setError(message || null);
+
+            if (data.sourceMode === 'snapshot' || data.sourceMode === 'live') {
+                try {
+                    await setIdbCache(MARKET_CONTEXT_CACHE_KEY, data);
+                } catch {
+                    // Storage is optional after displaying a valid payload.
                 }
-            );
-
-            const reject = shouldRejectMarketPayload(normalized, {
-                allowSeed: true
-            });
-
-            if (reject.reject) {
-                throw new Error(reject.reason);
             }
-
-            setMarketData(normalized);
-            setLastFetch(normalized.fetchedAt || Date.now());
-
-            if (normalized.sourceMode !== 'seed') {
-                await setIdbCache(CACHE_KEY, normalized);
-            }
-
-            if (normalized.sourceMode === 'seed') {
-                setError('Live market feed unavailable. Showing bundled Indian market seed.');
-            }
-            console.log('[MarketContext] ✅ Market data loaded');
         } catch (err) {
-            console.error('[MarketContext] ❌ Failed to load market data:', err);
-
-            try {
-                const parsed = await getIdbCache(CACHE_KEY);
-                if (
-                    parsed &&
-                    parsed.schemaVersion === MARKET_CACHE_SCHEMA_VERSION &&
-                    hasUsableMarketData(parsed)
-                ) {
-                    const age = Date.now() - parsed.fetchedAt;
-                    console.log(`[MarketContext] Using stale cache due to fetch error (Age: ${(age/60000).toFixed(0)}m)`);
-                    setMarketData(parsed);
-                    setLastFetch(parsed.fetchedAt);
-                    setError(age > 4 * 60 * 60 * 1000 ? 'Network error. Data is expired (>4h).' : 'Network error. Showing cached data.');
-                } else {
-                    try {
-                        const resp = await fetch(publicDataUrl('data/market_snapshot.json'), { cache: 'no-cache' });
-                        if (resp.ok) {
-                            const snapshot = await resp.json();
-                            const normalizedSnapshot = markMarketPayload(snapshot, 'snapshot', {
-                                sourceHealth: {
-                                    snapshot: {
-                                        status: 'snapshot',
-                                        provider: 'market_snapshot.json',
-                                        mode: 'snapshot'
-                                    }
-                                }
-                            });
-
-                            if (hasUsableMarketData(normalizedSnapshot)) {
-                                console.log('[MarketContext] Using static snapshot fallback');
-                                setMarketData(normalizedSnapshot);
-                                setLastFetch(normalizedSnapshot.fetchedAt || Date.now());
-                                setError('Using offline snapshot. Live data failed.');
-                                return;
-                            }
-                        }
-                    } catch (staticErr) {
-                        console.warn('Static fallback failed', staticErr);
-                    }
-
-                    const seed = { ...MARKET_SEED, fetchedAt: Date.now(), generatedAt: new Date().toISOString(), sourceMode: 'seed' };
-                    setMarketData(seed);
-                    setLastFetch(seed.fetchedAt);
-                    setError('Live market feed and snapshot unavailable. Showing bundled Indian market seed.');
-                }
-            } catch {
-                const seed = { ...MARKET_SEED, fetchedAt: Date.now(), generatedAt: new Date().toISOString(), sourceMode: 'seed' };
-                setMarketData(seed);
-                setLastFetch(seed.fetchedAt);
-                setError('Live market feed and snapshot unavailable. Showing bundled Indian market seed.');
+            const message = err?.message || 'Market refresh failed.';
+            if (isMarketPayloadUsable(previousData) &&
+                (lastData.current === previousData || !isMarketPayloadUsable(lastData.current))) {
+                showData(sanitizeMarketPayload(previousData, 'stale-cache', {
+                    sourceHealth: { cache: 'stale-cache' },
+                    errors: { feed: message },
+                }));
             }
+            setError(message);
+            if (forceRefresh) throw err;
         } finally {
             setLoading(false);
         }
     }, []);
 
     const ensureBoot = useCallback(() => {
-        if (!booted) {
-            setBooted(true);
-            loadMarketData();
-        }
-    }, [booted, loadMarketData]);
+        if (bootStarted.current) return;
+
+        bootStarted.current = true;
+        setBooted(true);
+        bootRequest.current = loadMarketData(false);
+    }, [loadMarketData]);
 
     const refreshMarket = useCallback(() => {
-        return loadMarketData(true);
+        if (activeRefresh.current) return activeRefresh.current;
+
+        bootStarted.current = true;
+        setBooted(true);
+        const request = Promise.resolve(bootRequest.current)
+            .then(() => loadMarketData(true))
+            .finally(() => {
+                activeRefresh.current = null;
+            });
+        activeRefresh.current = request;
+        return request;
     }, [loadMarketData]);
 
     return (
@@ -174,7 +112,7 @@ export function MarketProvider({ children }) {
             marketData,
             loading: booted ? loading : true,
             error,
-            lastFetch,
+            lastFetch: marketData?.fetchedAt || null,
             refreshMarket,
             ensureBoot,
             booted
