@@ -117,7 +117,14 @@ export function FundsWorkspace({ data, settings = {} }) {
     {section === 'saved' && <>{saved.length ? <ul className="market-workspace__list">{saved.map(code => {
       const known = publicationNav.get(code);
       return <li className="market-workspace__row" key={code}><div className="market-workspace__name"><strong>{known?.name || `Scheme ${code}`}</strong><span className="market-workspace__muted">{known ? `NAV ${rupees(Number(known.nav))} · Date ${known.navDate || 'unavailable'}` : 'No dated NAV loaded. Select to request the latest.'}</span></div><div className="market-workspace__field-row"><button type="button" onClick={() => select(code)}>Load NAV</button><button type="button" onClick={() => remove(code)}>Remove</button></div></li>;
-    })}</ul> : <p className="market-workspace__empty">No saved funds. Search by scheme name and save its exact scheme code.</p>}</>}
+    })}</ul> : <p className="market-workspace__empty">No saved funds. Search by scheme name and save its exact scheme code.</p>}
+      <details className="market-workspace__nested"><summary>Published NAV collection ({publicationNav.size})</summary>
+        {publicationNav.size ? <ul className="market-workspace__list">{[...publicationNav.entries()].slice(0, 50).map(([code, row]) => <li className="market-workspace__row" key={code}>
+          <div className="market-workspace__name"><strong>{row.name || `Scheme ${code}`}</strong><span className="market-workspace__muted">NAV {Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 ? rupees(Number(row.nav)) : 'Unavailable'} · Date {row.navDate || 'Unavailable'} · {row.category || 'Category unknown'}</span></div>
+          <button type="button" onClick={() => save(code)} disabled={saved.includes(code) || saved.length >= 12}>{saved.includes(code) ? 'Saved' : 'Save'}</button>
+        </li>)}</ul> : <p className="market-workspace__empty">No qualified NAV rows in the Market publication. Search for a scheme to retrieve its NAV.</p>}
+      </details>
+    </>}
     {section === 'search' && <><form className="market-workspace__field-row" onSubmit={find}><label>Scheme or fund house<input value={query} onChange={event => setQuery(event.target.value)} placeholder="Nifty 50 Direct Growth" maxLength={120} /></label><button type="submit" disabled={busy}>Search funds</button></form><ul className="market-workspace__list">{results.map(item => <li className="market-workspace__row" key={item.schemeCode}><div className="market-workspace__name"><strong>{item.schemeName}</strong><span className="market-workspace__muted">Scheme {item.schemeCode}</span></div><div className="market-workspace__field-row"><button type="button" disabled={busy} onClick={() => select(item.schemeCode)}>Load NAV</button><button type="button" disabled={saved.includes(String(item.schemeCode)) || saved.length >= 12} onClick={() => save(item.schemeCode)}>{saved.includes(String(item.schemeCode)) ? 'Saved' : 'Save'}</button></div></li>)}</ul></>}
     {section === 'offers' && <>{offers.length ? <ul className="market-workspace__list">{offers.map((item,index)=><li className="market-workspace__row" key={`${item.name}-${index}`}><div><strong>{item.name}</strong><p>{item.offerState} · Launch {item.openDate} · Close {item.closeDate || 'unavailable'}</p></div></li>)}</ul> : <p role="status">{data.sourceHealth?.nfo?.status === 'failed' ? 'NFO source unavailable.' : 'No currently qualified NFO schedule in this publication.'}</p>}{external(INDIA_MARKET_SOURCES.nfo,'AMFI NFO verification')}</>}
     {busy && <p role="status">Loading selected fund data…</p>}{error && <p role="alert">{error}</p>}
@@ -140,7 +147,10 @@ export function CurrencyWorkspace({ settings = {} }) {
     catch (failure) { if (generation.current === request) setError(failure?.message || 'Currency rate unavailable.'); }
     finally { if (generation.current === request) setLoading(false); }
   }, []);
-  useEffect(() => { void reload(); return () => { generation.current += 1; }; }, [reload]); // Browser-held daily cache survives workspace changes.
+  useEffect(() => {
+    if (settings.showCurrency !== false) void reload();
+    return () => { generation.current += 1; };
+  }, [reload, settings.showCurrency]); // Browser-held daily cache survives workspace changes.
   const converted = convertOmrInr(amount, rate?.rate, base);
   return <section id="market-currency" aria-labelledby="currency-heading" className="market-workspace__panel">
     <div className="market-workspace__panel-header"><div><h2 id="currency-heading">Currency conversion</h2><p>Daily OMR/INR reference rate; not a bank transfer quote.</p></div></div>
@@ -151,7 +161,7 @@ export function CurrencyWorkspace({ settings = {} }) {
       {rate ? <p>1 OMR = {rate.rate.toPrecision(8)} INR · {rate.stale ? 'Stale reference' : 'Daily reference'} · As of {new Date(rate.asOf).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{rate.warning ? ` · ${rate.warning}` : ''}</p> : <p role="status">{loading ? 'Loading daily reference rate…' : 'No rate available.'}</p>}
       {error && <p role="alert">{error}</p>}
       <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rate provider')} · Transfer fees and spreads excluded.</p>
-      {!loading && (error || rate?.stale) && <button type="button" onClick={() => void reload()}>Retry rate acquisition</button>}
+      {!loading && error && <button type="button" onClick={() => void reload()}>Retry rate acquisition</button>}
     </>}
   </section>;
 }
