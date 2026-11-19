@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getDatasetLoader } from '../datasets/index.js';
 import { recordDiagnostic } from '../diagnosticsStore.js';
 import { useMountedRef } from '../../hooks/useMountedRef.js';
@@ -12,6 +12,7 @@ import {
 const envelopeCache = new Map();
 const cacheMetadata = new Map();
 const inFlight = new Map();
+const requestOwners = new Map();
 const fetchLifecycleByEnvelope = new WeakMap();
 
 function makeFetchLifecycle(env, details) {
@@ -59,7 +60,23 @@ function makeLifecycleDetails(params) {
 
 function cacheEnvelope(cacheKey, datasetId, envelope, normalizedOptions) {
   envelopeCache.set(cacheKey, envelope);
-  cacheMetadata.set(cacheKey, { datasetId, cacheKey, options: normalizedOptions });
+  const now = Date.now();
+  const ttl = datasetId === 'insight' ? 8 * 3_600_000 : ['sections', 'main'].includes(datasetId) ? 12 * 3_600_000 : 5 * 60_000;
+  const timestamp = value => typeof value === 'number' ? value : Date.parse(value);
+  const clocks = [envelope.fetchedAt, envelope.generatedAt, envelope.data?.raw?.fetcherInfo?.snapshotTs]
+    .map(timestamp).filter(x => Number.isFinite(x) && x > 0);
+  const candidates = [now + ttl, ...clocks.map(x => x + ttl)];
+  const rows = envelope.data?.insight?.storiesById;
+  const stories = rows instanceof Map ? [...rows.values()] : rows && typeof rows === 'object' ? Object.values(rows) : [];
+  // Insight slot transitions invalidate a cached projection even within the TTL.
+  for (const row of stories) {
+    const publishedAt = timestamp(row?.publishedAt);
+    if (!Number.isFinite(publishedAt) || publishedAt <= 0 || publishedAt > now) { candidates.push(now); continue; }
+    const next = [4, 12, 24, 36, 48].map(h => publishedAt + h * 3_600_000).find(t => t > now);
+    candidates.push(next ?? now);
+  }
+  cacheMetadata.set(cacheKey, { datasetId, cacheKey, options: normalizedOptions,
+    expiresAt: Math.min(...candidates) });
 }
 
 function recordDatasetLoaded(datasetId, envelope) {
@@ -96,7 +113,14 @@ function decorateFromContext(env, context, servedFrom) {
 
 function readCachedEnvelope(context) {
   if (context.bypassCache || !envelopeCache.has(context.cacheKey)) return null;
-  return decorateFromContext(envelopeCache.get(context.cacheKey), context, 'memory-cache');
+  const envelope = envelopeCache.get(context.cacheKey);
+  const meta = cacheMetadata.get(context.cacheKey);
+  if (!meta || Date.now() >= meta.expiresAt || !envelope?.ok || envelope.freshness !== 'fresh') {
+    envelopeCache.delete(context.cacheKey);
+    cacheMetadata.delete(context.cacheKey);
+    return null;
+  }
+  return decorateFromContext(envelope, context, 'memory-cache');
 }
 
 function readInFlightEnvelope(context) {
@@ -105,25 +129,35 @@ function readInFlightEnvelope(context) {
 }
 
 function startLoaderRequest(context) {
-  const promise = context.loader.load(context.normalizedOptions)
+  const owner = {};
+  requestOwners.set(context.cacheKey, owner);
+  // Forced refresh supersedes the cache and pending acquisition for this key.
+  envelopeCache.delete(context.cacheKey);
+  cacheMetadata.delete(context.cacheKey);
+  const promise = Promise.resolve(context.loader.load(context.normalizedOptions))
     .then(env => {
       const servedFrom = context.bypassCache ? 'loader-force' : 'loader';
       const decorated = decorateFromContext(env, context, servedFrom);
-      cacheEnvelope(context.cacheKey, context.datasetId, decorated, context.normalizedOptions);
-      recordDatasetLoaded(context.datasetId, decorated);
+      if (requestOwners.get(context.cacheKey) === owner) {
+        cacheEnvelope(context.cacheKey, context.datasetId, decorated, context.normalizedOptions);
+        recordDatasetLoaded(context.datasetId, decorated);
+      }
       return decorated;
     })
     .finally(() => {
-      inFlight.delete(context.cacheKey);
+      if (inFlight.get(context.cacheKey) === promise) inFlight.delete(context.cacheKey);
+      if (requestOwners.get(context.cacheKey) === owner) requestOwners.delete(context.cacheKey);
     });
 
-  if (!context.bypassCache) inFlight.set(context.cacheKey, promise);
+  inFlight.set(context.cacheKey, promise);
   return promise;
 }
 
 function getInitialEnvelope(datasetId, options) {
   const normalizedOptions = normalizeDatasetOptions(options, { liveMode: isLiveMode() });
-  return envelopeCache.get(buildDatasetCacheKey(datasetId, normalizedOptions)) || null;
+  const key = buildDatasetCacheKey(datasetId, normalizedOptions);
+  const envelope = envelopeCache.get(key);
+  return envelope?.ok && envelope.freshness === 'fresh' && Date.now() < (cacheMetadata.get(key)?.expiresAt || 0) ? envelope : null;
 }
 
 function useBaseLoadOptions(options) {
@@ -147,6 +181,7 @@ export async function loadDataset(datasetId, options = {}) {
 export function useDataset(datasetId, options = {}) {
   const { auto = true } = options;
   const mountedRef = useMountedRef();
+  const reloadOwner = useRef(0);
   const baseLoadOptions = useBaseLoadOptions(options);
   const initialEnvelope = getInitialEnvelope(datasetId, baseLoadOptions);
 
@@ -157,18 +192,19 @@ export function useDataset(datasetId, options = {}) {
   }));
 
   const reload = useCallback(async (reloadOptions = true) => {
+    const generation = ++reloadOwner.current;
     if (mountedRef.current) setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       const requestOptions = mergeDatasetOptions(baseLoadOptions, reloadOptions);
       const envelope = await loadDataset(datasetId, requestOptions);
-      if (mountedRef.current) {
+      if (mountedRef.current && reloadOwner.current === generation) {
         setState({ envelope, loading: false, error: envelope.ok ? null : envelope.error });
       }
       return envelope;
     } catch (error) {
       const message = error?.message || String(error);
-      if (mountedRef.current) setState(prev => ({ ...prev, loading: false, error: message }));
+      if (mountedRef.current && reloadOwner.current === generation) setState(prev => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   }, [baseLoadOptions, datasetId, mountedRef]);
@@ -198,10 +234,9 @@ export function clearEnvelopeCache() {
   envelopeCache.clear();
   cacheMetadata.clear();
   inFlight.clear();
+  requestOwners.clear();
 }
 
 export function __clearDatasetCacheForTest() {
-  envelopeCache.clear();
-  cacheMetadata.clear();
-  inFlight.clear();
+  clearEnvelopeCache();
 }

@@ -22,11 +22,30 @@ function story(id, ageHours, extra = {}) {
 }
 
 function rank(items, options = {}) {
-  return rankTopStories({ sectionItems: { world: items }, nowMs: NOW, topFeedItems: options.topFeedItems || [] }, options);
+  return rankTopStories({
+    sectionItems: { world: items },
+    nowMs: NOW,
+    topFeedItems: options.topFeedItems || [],
+    topFeedEvidence: options.topFeedEvidence || [],
+  }, options);
 }
 
 function score(item) {
   return scoreTopStoryCandidate(item, { nowMs: NOW });
+}
+
+function corroboratedStory(id, ageHours, extra) {
+  const first = story(id, ageHours, {
+    url: `https://desk-${id}.example/report`,
+    ...extra,
+  });
+  const second = story(`reuters-${id}`, ageHours + 0.1, {
+    title: first.title,
+    url: `https://www.reuters.com/world/${id}`,
+    source: 'Reuters',
+    sourceGroup: 'reuters',
+  });
+  return { ...first, newsEvidenceRows: [first, second] };
 }
 
 function trustedSingleSource(id, ageHours, extra = {}) {
@@ -76,14 +95,20 @@ describe('NW-RANK-001 Top Stories ranker', () => {
       title: `Court verdict announced in case ${i}`,
       section: `primary-${i}`,
     }));
-    const secondary = Array.from({ length: 15 }, (_, i) => story(`s${i}`, 6, {
+    const secondary = Array.from({ length: 15 }, (_, i) => corroboratedStory(`s${i}`, 6, {
       title: `Flood evacuation alert ${i}`,
       section: `secondary-${i}`,
-      sourceCount: 2,
     }));
     const ranked = rank([...primary, ...secondary]);
     expect(ranked).toHaveLength(25);
     expect(ranked.slice(10).every(item => item._topStoryRank.slotBand === 'secondary')).toBe(true);
+    for (const unusableMember of [
+      (report) => ({ ...report, newsEvidenceRows: [], sourceCount: 99, allSources: ['Reuters', report.source] }),
+      (report) => ({ ...report, newsEvidenceRows: [report.newsEvidenceRows[0], { ...report.newsEvidenceRows[1], url: report.url + '?utm_source=mirror' }] }),
+      (report) => ({ ...report, newsEvidenceRows: [report.newsEvidenceRows[0], { ...report.newsEvidenceRows[1], publishedAt: NOW - 37 * hour }] }),
+    ]) {
+      expect(rank([...primary, ...secondary.map(unusableMember)])).toHaveLength(10);
+    }
   });
 
   it('uses 8-12h fallback only when fewer than 25 diverse current stories exist', () => {
@@ -91,11 +116,9 @@ describe('NW-RANK-001 Top Stories ranker', () => {
       title: `Public safety alert ${i}`,
       section: `current-${i}`,
     }));
-    const fallback = Array.from({ length: 20 }, (_, i) => story(`f${i}`, 10, {
+    const fallback = Array.from({ length: 20 }, (_, i) => corroboratedStory(`f${i}`, 10, {
       title: `Public government warning ${i}`,
       section: `fallback-${i}`,
-      sourceCount: 2,
-      allSources: [`Fallback Source ${i}`, `Fallback Confirm ${i}`],
     }));
     const ranked = rank([...current, ...fallback]);
     expect(ranked.some(item => item._topStoryRank.slotBand === 'fallback')).toBe(true);
@@ -121,11 +144,12 @@ describe('NW-RANK-001 Top Stories ranker', () => {
   });
 
   it('boosts LIVE only with fresh update evidence or consensus', () => {
-    const ranked = rank([
-      story('live-fresh', 5, { title: 'LIVE cyclone warning updates', updatedAt: NOW - hour, sourceCount: 2 }),
-      story('live-old', 5, { title: 'LIVE cyclone warning old blog', sourceCount: 2 }),
-    ]);
-    expect(ranked[0].id).toBe('live-fresh');
+    const base = { title: 'LIVE cyclone warning updates', source: 'Reuters', sourceGroup: 'reuters' };
+    const fresh = trustedSingleSource('live-fresh', 5, { ...base, updatedAt: NOW - hour });
+    const old = trustedSingleSource('live-old', 5, base);
+    expect(score(fresh)._topStoryRank.breakingLiveScore).toBeGreaterThan(0);
+    expect(score(old)._topStoryRank.breakingLiveScore).toBe(0);
+    expect(score(corroboratedStory('live-confirmed', 5, { title: base.title }))._topStoryRank.breakingLiveScore).toBeGreaterThan(0);
   });
 
   it('does not let old live blogs persist indefinitely', () => {
@@ -149,13 +173,14 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(ranked[0].id).toBe('public-alert');
   });
 
-  it('collapses same-story duplicates while retaining merged source metadata', () => {
+  it('does not count multiple labels for the same original report as corroboration', () => {
     const ranked = rank([
       story('', 1, { id: undefined, url: 'https://example.com/storm-1', title: 'Cyclone alert', source: 'Source A', sourceGroup: 'src-a', sourceCount: 3 }),
       story('', 1, { id: undefined, url: 'https://example.com/storm-1', title: 'Cyclone alert update', source: 'Source B', sourceGroup: 'src-b' }),
     ]);
     expect(ranked).toHaveLength(1);
-    expect(ranked[0]._topStoryRank.sourceCount).toBeGreaterThanOrEqual(3);
+    expect(ranked[0]._topStoryRank.sourceCount).toBe(1);
+    expect(ranked[0]._topStoryRank.independentEvidenceCount).toBe(0);
   });
 
   it('collapses clustered duplicates to a single Top Stories slot', () => {
@@ -336,13 +361,16 @@ describe('NW-RANK-001 Top Stories ranker', () => {
     expect(scored._topStoryRank.slotBand).toBe('expired');
   });
 
-  it('uses strong top-feed corroboration as a bounded boost for equivalent hard news', () => {
+  it('retains Top Feed membership without counting the same corroborating report twice', () => {
+    const strong = corroboratedStory('strong-feed', 1, { title: 'Court verdict announced in public case update' });
     const ranked = rank([
       story('weak-feed', 1, { title: 'Court verdict announced in public case' }),
-      story('strong-feed', 1, { title: 'Court verdict announced in public case update' }),
-    ], { topFeedItems: topFeedRows('strong-feed', 4) });
+      strong,
+    ], { topFeedEvidence: [strong.newsEvidenceRows[1]] });
     expect(ranked[0].id).toBe('strong-feed');
-    expect(ranked[0]._topStoryRank.topFeedCorroborationHits).toBeGreaterThan(0);
+    expect(ranked[0]._topStoryRank.topFeedPresent).toBe(true);
+    expect(ranked[0]._topStoryRank.independentEvidenceCount).toBe(1);
+    expect(ranked[0]._topStoryRank.topFeedCorroborationHits).toBe(0);
   });
 
   it('does not treat one top-feed row as independent corroboration', () => {

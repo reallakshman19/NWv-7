@@ -95,14 +95,16 @@ describe('NW-RANK-003 Top Stories explainability', () => {
     expect(promo.highlights).toContain('penalty-applied');
   });
 
-  it('shows bounded independent top-feed contribution for boosted hard news', () => {
+  it('explains independent reports without double-crediting their Top Feed appearance', () => {
     const boosted = explainTopStoriesList(rankFixture())
       .find(item => item.id === 'source-diverse-top-feed');
     expect(boosted).toBeTruthy();
     expect(boosted.topFeedHits).toBeGreaterThan(0);
-    expect(boosted.topFeedCorroborationHits).toBeGreaterThan(0);
+    expect(boosted.topFeedCorroborationHits).toBe(0);
+    expect(boosted.independentEvidenceCount).toBe(3);
+    expect(boosted.consensusScore).toBeGreaterThan(0);
     expect(boosted.consensusScore).toBeLessThanOrEqual(1);
-    expect(boosted.highlights).toContain('bounded-top-feed-signal');
+    expect(boosted.highlights).toContain('top-feed-membership-only');
   });
 
   it('shows same-source top-feed membership without false corroboration', () => {

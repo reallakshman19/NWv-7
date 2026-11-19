@@ -45,6 +45,19 @@ function story(id: string, title: string, summary: string, category = "national"
 }
 
 describe("Insight topic cohesion certification", () => {
+  it('keeps derived token memoization independent of callers and in-place input changes', () => {
+    const input = story('memo','Harbour renewal','Harbour renewal details');
+    getStoryTopicTokens(input).push('injected-token');
+    expect(getStoryTopicTokens(input)).not.toContain('injected-token');
+    input.summary = 'Geothermal transport planning';
+    input.entities.places.push('Geothermal');
+    input.keywords.push('geothermal');
+    expect(getStoryTopicTokens(input)).toContain('geothermal');
+    input.keywords.splice(input.keywords.indexOf('geothermal'),1);
+    input.entities.places.pop();
+    input.summary = 'Harbour renewal details';
+    expect(getStoryTopicTokens(input)).not.toContain('geothermal');
+  });
   it("extracts stable topic tokens from title, summary, entities, and keywords", () => {
     const tokens = getStoryTopicTokens(story(
       "a",

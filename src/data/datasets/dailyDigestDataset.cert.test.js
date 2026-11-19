@@ -65,6 +65,14 @@ describe('Daily Digest dataset', () => {
     expect(card).toBeNull();
   });
 
+  it('preserves publisher publication metadata and summaries through curated normalization', () => {
+    const card = __dailyDigestDatasetInternalsForTest.normalizeCard({
+      ...SNAPSHOT.cards[0],pubDate:'2026-08-24T03:10:00Z',description:'<p>Today’s briefing covers public transport &amp; the economy.</p>',
+    });
+    expect(card).toMatchObject({publishedAt:Date.parse('2026-08-24T03:10:00Z'),snippet:'Today’s briefing covers public transport & the economy.'});
+    expect(__dailyDigestDatasetInternalsForTest.normalizeCard({...SNAPSHOT.cards[0],fetchedAt:1795008000000}).publishedAt).toBeNull();
+  });
+
   it.each([
     { mode: 'Live mode', liveMode: true, hostname: 'example.test' },
     { mode: 'local Hybrid mode', liveMode: false, hostname: '127.0.0.1' },
@@ -135,8 +143,6 @@ describe('Daily Digest dataset', () => {
     { scenario: 'a past Hybrid edition', digestDate: '2026-08-23', liveMode: false },
     { scenario: 'a past Live edition', digestDate: '2026-08-23', liveMode: true },
     { scenario: 'a future Live edition', digestDate: '2026-08-25', liveMode: true },
-    { scenario: 'snapshot-only Hybrid mode', digestDate: '2026-08-24', liveMode: false, forceSnapshots: true },
-    { scenario: 'snapshot-only Live mode', digestDate: '2026-08-24', liveMode: true, forceSnapshots: true },
   ])('preserves the missing backend state for $scenario', async ({ digestDate, liveMode, forceSnapshots }) => {
     getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({
       isBrowser: true,
@@ -153,6 +159,23 @@ describe('Daily Digest dataset', () => {
 
     expect(envelope.data.availability).toBe('BACKEND_NOT_CONFIGURED');
     expect(liveFallbackLoader).not.toHaveBeenCalled();
+  });
+
+  it.each([false,true])('uses published Sections in snapshot-only mode (Live pill %s), without calling APIs or live acquisition', async liveMode=>{
+    getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({isBrowser:true,hostname:'127.0.0.1',forceSnapshots:true,configuredBackendUrl:'https://api.example.test'}));
+    const fetchImpl=vi.fn();const liveFallbackLoader=vi.fn();
+    const publishedFallbackLoader=vi.fn(async()=>({status:'READY',deliveryMode:'SNAPSHOT',generatedAt:Date.parse('2026-08-24T05:00:00Z'),
+      cards:[{canonicalId:'published-story',title:'Current published story',source:'Publisher',deliveryMode:'SNAPSHOT'}]}));
+    const result=await load({now:new Date('2026-08-24T06:00:00Z'),liveMode,fetchImpl,liveFallbackLoader,publishedFallbackLoader});
+    expect(result).toMatchObject({ok:true,source:'snapshot',data:{availability:'READY',deliveryMode:'SNAPSHOT',compositionState:'PUBLISHED_SECTIONS_AUTHORITY',frozenAt:null}});
+    expect(publishedFallbackLoader).toHaveBeenCalledTimes(1);expect(liveFallbackLoader).not.toHaveBeenCalled();expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('reports unavailable published data when snapshot-only recovery fails, rather than a backend configuration error',async()=>{
+    getRuntimeCapabilities.mockReturnValueOnce(resolveRuntimeCapabilities({isBrowser:true,hostname:'127.0.0.1',forceSnapshots:true}));
+    const publishedFallbackLoader=vi.fn(async()=>{throw Error('network failed');});
+    const result=await load({now:new Date('2026-08-24T06:00:00Z'),publishedFallbackLoader});
+    expect(result.data.availability).toBe('PUBLISHED_UNAVAILABLE');expect(result.ok).toBe(false);
   });
 
   it('keeps curated snapshot precedence in Live mode when a valid frozen edition exists', async () => {

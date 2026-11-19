@@ -52,8 +52,10 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
                 link    = entry.get('link', '').strip()
 
                 raw_text = f"{title} {summary}"
-                event_start_ms, event_end_ms, date_conf = extract_event_dates(raw_text, pub_ms)
                 locality_meta = item_locality(raw_text, location)
+                venue = locality_meta.get('city')
+                date_text = ' • '.join(filter(None, (title, summary)))
+                event_start_ms, event_end_ms, date_conf = extract_event_dates(date_text, pub_ms, venue)
 
                 if re.search(r'\b(lottery|bumper|prize|draw)\b', raw_text, re.IGNORECASE):
                     continue
@@ -61,7 +63,7 @@ def fetch_festival_items(ts: int) -> tuple[list, dict]:
                 if not event_start_ms:
                     continue
 
-                expiry_ms    = derive_expiry(event_start_ms, event_end_ms, pub_ms, 'festivals')
+                expiry_ms    = derive_expiry(event_start_ms, event_end_ms, pub_ms, 'festivals', venue)
 
                 item = {
                     'title':        title,

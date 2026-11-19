@@ -1,5 +1,6 @@
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
-import { DEFAULT_NEWS_SETTINGS, DEFAULT_NEWSPAPER_SETTINGS } from '../config/settings_news.js';
+import { hasLegacyNewsIdAmbiguity, newsUrl } from '../services/newsStoryIdentity.js';
+import { DEFAULT_NEWS_SETTINGS, DEFAULT_NEWSPAPER_SETTINGS, resolveNewsAgeLimit } from '../config/settings_news.js';
 import { DEFAULT_WEATHER_SETTINGS } from '../config/settings_weather.js';
 import { DEFAULT_MARKET_SETTINGS } from '../config/settings_market.js';
 import { DEFAULT_UPAHEAD_SETTINGS } from '../config/settings_upahead.js';
@@ -25,23 +26,26 @@ const ADDITIVE_ARRAY_SETTING_PATHS = new Set([
     'sources.enabled',
     'highImpactKeywords',
 ]);
+const RESERVED_SETTING_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function isSettingRecord(value) {
+    return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
 
 function migrateSettings(stored) {
     const version = stored?.schemaVersion || 1;
-    let migrated = { ...stored };
-
-    if (version < 2) {
-        migrated = {
-            ...migrated,
-            schemaVersion: 2
-        };
+    const migrated = { ...stored };
+    if (version < SETTINGS_SCHEMA_VERSION) {
+        migrated.schemaVersion = SETTINGS_SCHEMA_VERSION;
     }
-
+    if (stored.hideOlderThanHours == null && typeof stored.freshnessLimitHours === 'number') {
+        migrated.hideOlderThanHours = resolveNewsAgeLimit(stored);
+    }
+    if (Number.isFinite(stored.storyDeduplication)) {
+        migrated.storyDeduplication = { similarityThreshold: stored.storyDeduplication };
+    }
     return migrated;
 }
-
-
-function isStaticHostRuntime() { return getRuntimeCapabilities().isStaticHost; }
 
 // Default settings - REDESIGNED SCHEMA
 
@@ -52,7 +56,7 @@ export const DEFAULT_SETTINGS = {
     theme: 'dark',
     fontSize: 26,
     freshnessLimitHours: 36,
-    hideOlderThanHours: 60,
+    hideOlderThanHours: DEFAULT_NEWS_SETTINGS.hideOlderThanHours,
     weatherFreshnessLimit: 4,
     strictFreshness: true,
     filteringMode: 'source',
@@ -75,8 +79,7 @@ export const DEFAULT_SETTINGS = {
         technology: { enabled: true, positiveKeywords: ['startup','ai','artificial intelligence','innovation','funding','launch','generative ai','llm'], positiveMultiplier: 2.0, negativeKeywords: ['rumour','leak','speculation'], negativeMultiplier: 2.0, filterThreshold: 0 },
         sports: { enabled: true, positiveKeywords: ['cricket','football','ipl','world cup','india vs','final','highlights'], positiveMultiplier: 2.0, negativeKeywords: ['opinion','blog'], negativeMultiplier: 2.0, filterThreshold: 0 }
     },
-    // Per-section keyword overrides: keys match SECTION_KEYWORDS sections (world, india, chennai, etc.)
-    // When set, REPLACES (not merges with) the default keyword list for that section.
+    // User additions to built-in section keywords. An empty list clears the additions.
     sectionKeywords: {},
     // Buzz Hub entertainment region classification keywords (configurable)
     buzzRegionKeywords: {
@@ -156,33 +159,41 @@ export const DEFAULT_SETTINGS = {
     lastUpdated: 0
 };
 
-export function getSettings() {
+export function getDefaultSettings() {
     let defaultFontSize = DEFAULT_SETTINGS.fontSize;
     if (typeof window !== 'undefined') {
         defaultFontSize = (window.innerWidth >= 1024 && !isDevMobileViewForced()) ? 18 : 26;
     }
-    const dynamicDefaults = { ...DEFAULT_SETTINGS, fontSize: defaultFontSize };
-    if (typeof localStorage === 'undefined') return { ...dynamicDefaults };
+    return { ...DEFAULT_SETTINGS, fontSize: defaultFontSize };
+}
+
+function normalizeSettings(stored) {
+    const defaults = getDefaultSettings();
+    if (!isSettingRecord(stored)) return defaults;
+    const merged = deepMerge(defaults, migrateSettings(stored));
+    merged.hideOlderThanHours = resolveNewsAgeLimit({ hideOlderThanHours: merged.hideOlderThanHours });
+    return merged;
+}
+
+export function getSettings() {
     try {
+        if (typeof localStorage === 'undefined') return getDefaultSettings();
         const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            const migrated = migrateSettings(parsed);
-            return deepMerge(dynamicDefaults, migrated);
-        }
+        if (stored) return normalizeSettings(JSON.parse(stored));
     } catch (error) {
         console.error('Error reading settings:', error);
     }
-    return { ...dynamicDefaults };
+    return getDefaultSettings();
 }
 
 export function saveSettings(settings) {
     try {
-        const settingsToSave = { ...settings, lastUpdated: Date.now() };
+        if (!isSettingRecord(settings)) return false;
+        const settingsToSave = { ...normalizeSettings(settings), lastUpdated: Date.now() };
         if (!safeSetJson(STORAGE_KEYS.SETTINGS, settingsToSave)) {
             return false;
         }
-        if (!isStaticHostRuntime()) {
+        if (getRuntimeCapabilities().allowRemoteSettingsSync) {
             saveSettingsToApi(settingsToSave);
         }
         return true;
@@ -193,7 +204,6 @@ export function saveSettings(settings) {
 }
 
 async function saveSettingsToApi(settings) {
-    if (isStaticHostRuntime()) return false;
     try {
         const response = await fetch(`${API_BASE}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
         if (!response.ok) {
@@ -207,7 +217,7 @@ async function saveSettingsToApi(settings) {
 }
 
 export async function fetchSettingsFromApi() {
-    if (isStaticHostRuntime()) return null;
+    if (!getRuntimeCapabilities().allowRemoteSettingsSync) return null;
     try {
         const response = await fetch(`${API_BASE}/settings`);
         if (!response.ok) return null;
@@ -218,19 +228,26 @@ export async function fetchSettingsFromApi() {
     }
 }
 
+export function acceptRemoteSettings(settings) {
+    if (!isSettingRecord(settings) || !Number.isFinite(settings.lastUpdated)) return false;
+    if (settings.lastUpdated <= getSettings().lastUpdated) return false;
+    return safeSetJson(STORAGE_KEYS.SETTINGS, normalizeSettings(settings));
+}
+
 export function updateSetting(path, value) {
     const settings = getSettings();
     const keys = path.split('.');
+    if (keys.some(key => !key || RESERVED_SETTING_KEYS.has(key))) return false;
     let obj = settings;
     for (let i = 0; i < keys.length - 1; i++) {
-        if (!obj[keys[i]]) obj[keys[i]] = {};
+        obj[keys[i]] = { ...obj[keys[i]] };
         obj = obj[keys[i]];
     }
     obj[keys[keys.length - 1]] = value;
     return saveSettings(settings);
 }
 
-export function resetSettings() { return saveSettings(DEFAULT_SETTINGS); }
+export function resetSettings() { return saveSettings(getDefaultSettings()); }
 
 export function getLastRefresh(section) {
     try {
@@ -325,17 +342,21 @@ function mergeAdditiveArray(defaultValues = [], storedValues = []) {
 
 function deepMerge(target, source, path = []) {
     const result = { ...target };
-    for (const key in source) {
-        const val = source[key];
+    for (const [key, val] of Object.entries(source)) {
+        if (RESERVED_SETTING_KEYS.has(key) || val == null) continue;
+        if (typeof val === 'number' && !Number.isFinite(val)) continue;
+        const fallback = Object.hasOwn(target, key) ? target[key] : undefined;
+        if (fallback !== undefined && (
+            typeof fallback !== typeof val || Array.isArray(fallback) !== Array.isArray(val)
+        )) continue;
         const nextPath = [...path, key];
         const pathKey = nextPath.join('.');
-        if (val === null || val === undefined) continue;
         if (Array.isArray(val)) {
             result[key] = ADDITIVE_ARRAY_SETTING_PATHS.has(pathKey)
                 ? mergeAdditiveArray(target[key], val)
                 : val;
-        } else if (typeof val === 'object') {
-            result[key] = deepMerge(target[key] || {}, val, nextPath);
+        } else if (isSettingRecord(val)) {
+            result[key] = deepMerge(fallback || {}, val, nextPath);
         } else {
             result[key] = val;
         }
@@ -395,41 +416,78 @@ export function updateTopicLastFetched(topicId) {
     return { ok: false, reason: 'not-found', error: 'Topic was not found' };
 }
 
-export function incrementViewCount(articleIds) {
-    if (!articleIds || articleIds.length === 0) return;
+function viewKey(article) {
+    if (typeof article === 'string') return article;
+    const url = newsUrl(article);
+    return url ? 'news-url:' + url : article?.id;
+}
+
+function provenLegacyViewKey(article, views) {
+    const url = newsUrl(article);
+    const legacyId = article?.legacyId;
+    if (!url || !legacyId || !Object.hasOwn(views, legacyId) || hasLegacyNewsIdAmbiguity(url)) return null;
+    const matches = getSettings().readingHistory.filter(entry => entry?.id === legacyId);
+    return matches.length && matches.every(entry => newsUrl(entry) === url) ? legacyId : null;
+}
+
+export function incrementViewCount(articles) {
+    if (!articles || articles.length === 0) return;
     try {
         const stored = localStorage.getItem(STORAGE_KEYS.ARTICLE_VIEWS);
         const views = stored ? JSON.parse(stored) : {};
-        articleIds.forEach(id => { views[id] = (views[id] || 0) + 1; });
+        articles.forEach(article => {
+            const key = viewKey(article);
+            if (!key || RESERVED_SETTING_KEYS.has(key)) return;
+            const legacy = provenLegacyViewKey(article, views);
+            views[key] = (views[key] || 0) + (legacy ? views[legacy] : 0) + 1;
+            if (legacy) delete views[legacy];
+        });
         localStorage.setItem(STORAGE_KEYS.ARTICLE_VIEWS, JSON.stringify(views));
     } catch (e) {
         console.error('[Storage] Error incrementing views', e);
     }
 }
 
-export function getViewCount(articleId) {
+export function getViewCount(article) {
     try {
         const stored = localStorage.getItem(STORAGE_KEYS.ARTICLE_VIEWS);
         const views = stored ? JSON.parse(stored) : {};
-        return views[articleId] || 0;
+        const legacy = provenLegacyViewKey(article, views);
+        return (views[viewKey(article)] || 0) + (legacy ? views[legacy] : 0);
     } catch {
         return 0;
     }
 }
 
-export function isArticleRead(articleId) {
+function isSameReadArticle(entry, article) {
+    if (!entry) return false;
+    if (typeof article === 'string') return entry.id === article;
+    const url = newsUrl(article);
+    const entryUrl = newsUrl(entry);
+    if (url && entryUrl) return url === entryUrl;
+    if (!url) return Boolean(article?.id && entry.id === article.id);
+    if (entry.id === 'news-url:' + url) return true;
+    // An old hash without a URL does not identify which semantic-query or
+    // case-sensitive variant was read. Leave that record in history.
+    if (hasLegacyNewsIdAmbiguity(url)) return false;
+    const matchesId = entry.id === article.id || entry.id === article.legacyId;
+    return Boolean(matchesId && entry.title && entry.title === article.title);
+}
+
+export function isArticleRead(article) {
     if (typeof localStorage === 'undefined') return false;
     const settings = getSettings();
-    return settings.readingHistory?.some(h => h.id === articleId) || false;
+    return settings.readingHistory?.some(entry => isSameReadArticle(entry, article)) || false;
 }
 
 export function addReadArticle(article) {
     if (!article || !article.title) return { ok: false, reason: 'invalid-article', error: 'Article is invalid' };
     const settings = getSettings();
     const history = Array.isArray(settings.readingHistory) ? settings.readingHistory : [];
-    if (history.some(h => h.id === article.id)) return { ok: true, skipped: true };
+    if (history.some(entry => isSameReadArticle(entry, article))) return { ok: true, skipped: true };
+    const url = newsUrl(article);
     const nextHistory = [
-        { id: article.id, title: article.title, description: article.description || '', timestamp: Date.now() },
+        { id: article.id, ...(url ? { url } : {}), title: article.title, description: article.description || '', timestamp: Date.now() },
         ...history,
     ].slice(0, 50);
     const nextSettings = {

@@ -69,7 +69,9 @@ describe('InsightPage Release 5G migration', () => {
 
   it('does not label an empty Insight result as up to date', () => {
     expect(src).not.toContain("displayStaleLabel || 'Up to date'");
-    expect(src).toContain('Live · Degraded');
+    expect(src).toContain('headerStateLabel');
+    expect(src).toContain('verifiedSourceLabel');
+    expect(src).not.toContain('Live · Degraded');
     expect(src).toContain('Unavailable');
   });
 

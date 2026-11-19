@@ -8,7 +8,7 @@ function normalizeKeyPart(value) {
 
 export function makePlannerSelectionKey(item) {
   const dateKey = normalizeKeyPart(item?.dateKey || item?.eventDateKey || item?.planDate || item?.date || 'undated');
-  const itemKey = normalizeKeyPart(item?.hiddenKey || item?.canonicalId || item?.id || item?.title);
+  const itemKey = String(item?.savedPlanId || item?.id || item?.hiddenKey || item?.canonicalId || item?.title || '').trim();
 
   return `${dateKey}::${itemKey}`;
 }

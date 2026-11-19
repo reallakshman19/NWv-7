@@ -7,8 +7,8 @@ vi.mock('../utils/storage', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    isArticleRead: (id) => readState.readIds.has(id),
-    getViewCount: (id) => readState.viewCounts.get(id) ?? 0,
+    isArticleRead: (story) => readState.readIds.has(story.id),
+    getViewCount: (story) => readState.viewCounts.get(story.id) ?? 0,
   };
 });
 

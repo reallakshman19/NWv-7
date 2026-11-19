@@ -9,6 +9,7 @@ import {
 import * as datasetsIndex from '../datasets/index.js';
 
 function envelope(id) {
+  const timestamp = Date.now();
   return {
     ok: true,
     datasetId: id,
@@ -16,8 +17,8 @@ function envelope(id) {
     payloadHash: id,
     source: 'cert',
     freshness: 'fresh',
-    generatedAt: 1,
-    fetchedAt: 1,
+    generatedAt: timestamp,
+    fetchedAt: timestamp,
     validation: { passed: true, errors: [], warnings: [] },
     slo: { passed: true, score: 100, reasons: [] },
     diagnostics: [],
@@ -61,7 +62,8 @@ describe('NW-DP-001 dataset policy propagation', () => {
     const loader = loaderWithSequence();
     vi.spyOn(datasetsIndex, 'getDatasetLoader').mockReturnValue(loader);
 
-    await loadDataset('market');
+    const first = await loadDataset('market');
+    expect(await loadDataset('market')).toBe(first);
     await loadDataset('market', { forceRefresh: true });
 
     expect(loader.load).toHaveBeenCalledTimes(2);
@@ -114,6 +116,17 @@ describe('NW-DP-001 dataset policy propagation', () => {
     expect(loader.load).toHaveBeenCalledTimes(2);
     expect(firstAgain).toBe(first);
     expect(second).not.toBe(first);
+  });
+
+  it('reloads a main envelope whose generation time is outside the cache window', async () => {
+    const expired = { ...envelope('expired'), generatedAt: Date.now() - 12 * 3_600_000 };
+    const fresh = envelope('fresh');
+    const loader = { load: vi.fn().mockResolvedValueOnce(expired).mockResolvedValueOnce(fresh) };
+    vi.spyOn(datasetsIndex, 'getDatasetLoader').mockReturnValue(loader);
+
+    expect(await loadDataset('main')).toBe(expired);
+    expect(await loadDataset('main')).toBe(fresh);
+    expect(loader.load).toHaveBeenCalledTimes(2);
   });
 
   it('reuses in-flight work for identical policy keys', async () => {

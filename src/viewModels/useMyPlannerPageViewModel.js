@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import plannerStorage, {
   getPlannerStorageError,
   isPlannerStorageSuccess,
+  getSavedPlanIdentity,
 } from '../utils/plannerStorage';
 import { useSettings } from '../context/SettingsContext';
 import { load as loadUpAhead } from '../data/datasets/upAheadDataset';
@@ -24,6 +25,8 @@ import {
 } from '../services/plannerAgendaExport';
 import { getPlannerInteractionQuality } from '../services/plannerInteractionQuality';
 import { getPlannerStateHygiene, reconcilePlannerSelection } from '../services/plannerStateHygiene';
+import { recoverLegacyPlannerSeed, getPlannerSeedRecovery, restorePlannerSeedRecovery, exportPlannerSeedRecovery } from '../utils/plannerSeedRecovery.js';
+import { useMountedRef } from '../hooks/useMountedRef.js';
 
 const DEFAULT_PLANNER_CONTROLS = Object.freeze({
   query: '',
@@ -96,8 +99,8 @@ function clearTimer(timerRef) {
   }
 }
 
-function getPlannerItemId(item) {
-  return item?.hiddenKey || item?.canonicalId || item?.id || item?.raw?.hiddenKey || item?.raw?.canonicalId || item?.raw?.id;
+function getPlannerItemId(item, dateKey) {
+  return getSavedPlanIdentity(item?.raw || item, item?.storageDateKey || dateKey || item?.dateKey);
 }
 
 function buildPlannerGroups(groupedDates, selectedKeys) {
@@ -132,6 +135,9 @@ export function useMyPlannerPageViewModel() {
   const [inspectedPlannerItem, setInspectedPlannerItem] = useState(null);
   const [plannerAgendaCopyStatus, setPlannerAgendaCopyStatus] = useState('');
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [plannerRecovery,setPlannerRecovery] = useState({archivedCount:0});
+  const [plannerRecoveryError,setPlannerRecoveryError] = useState('');
+  const mountedRef=useMountedRef();
 
   const plannerInspectorRef = useRef(null);
   const undoTimerRef = useRef(null);
@@ -141,26 +147,46 @@ export function useMyPlannerPageViewModel() {
     setPlanData(safeGetPlan());
   }, []);
 
+  const recoverOldPlannerEntries=useCallback(async()=>{
+    const result=await recoverLegacyPlannerSeed();
+    if(!mountedRef.current)return;
+    setPlannerRecoveryError(result.ok?'':result.error);
+    setPlannerRecovery(getPlannerSeedRecovery());
+    loadPlan();
+  },[loadPlan,mountedRef]);
+
+  const restoreRecoveredPlannerEntries=useCallback(async()=>{
+    const result=await restorePlannerSeedRecovery();
+    if(!mountedRef.current)return;
+    setPlannerRecoveryError(result.ok?'':result.error);
+    setPlannerRecovery(getPlannerSeedRecovery());loadPlan();
+  },[loadPlan,mountedRef]);
+
+  const downloadPlannerRecovery=useCallback(()=>{
+    try{downloadPlannerAgendaFile('nwv7_planner_recovery.json',exportPlannerSeedRecovery(),'application/json');}
+    catch(error){setPlannerRecoveryError(error.message||'The recovery copy could not be downloaded.');}
+  },[]);
+
   useEffect(() => {
     queueMicrotask(() => {
-      loadPlan();
+      recoverOldPlannerEntries();
     });
 
     return () => {
       clearTimer(undoTimerRef);
       clearTimer(copyStatusTimerRef);
     };
-  }, [loadPlan]);
+  }, [recoverOldPlannerEntries]);
 
   useEffect(() => {
     let active = true;
-    const readFeed = () => setUpAheadData(loadFromCache());
+    const readFeed = () => setUpAheadData(loadFromCache(settings?.upAhead));
     const onStorage = event => {
       if (event.key === CACHE_KEY || event.key === null) readFeed();
     };
     queueMicrotask(() => {
       if (!active) return;
-      const retained = loadFromCache();
+      const retained = loadFromCache(settings?.upAhead);
       setUpAheadData(retained);
       if (isUpAheadDataFresh(retained, UP_AHEAD_REFRESH_MAX_AGE_MS)) return;
       loadUpAhead({ policy: 'published', settings, syncPlanner: false })
@@ -301,7 +327,8 @@ export function useMyPlannerPageViewModel() {
   }, []);
 
   const removeWithUndo = useCallback((item, dateKey) => {
-    const id = getPlannerItemId(item);
+    dateKey = item?.storageDateKey || dateKey;
+    const id = getPlannerItemId(item, dateKey);
 
     if (!id) return false;
 
@@ -401,7 +428,7 @@ export function useMyPlannerPageViewModel() {
   }, []);
 
   const removeInspectedPlannerItem = useCallback((detail) => {
-    removeWithUndo(detail?.raw || detail, detail?.dateKey);
+    removeWithUndo(detail, detail?.storageDateKey || detail?.dateKey);
     setInspectedPlannerItem(null);
   }, [removeWithUndo]);
 
@@ -433,14 +460,12 @@ export function useMyPlannerPageViewModel() {
   const removeSelectedPlannerItems = useCallback(() => {
     if (plannerBulkSummary.selectedItems.length === 0) return;
 
-    const removedItems = plannerBulkSummary.selectedItems.map(item => ({
-      date: item.dateKey,
-      item: getRawPlannerItem(item),
-    }));
-
-    plannerBulkSummary.selectedItems.forEach(item => {
-      plannerStorage.removeItem?.(item.dateKey, getPlannerItemId(item));
+    const removedItems = plannerBulkSummary.selectedItems.flatMap(item => {
+      const date = item.storageDateKey || item.dateKey;
+      const removed = plannerStorage.removeItem?.(date, getPlannerItemId(item, date));
+      return isPlannerStorageSuccess(removed) ? [{ date, item: getRawPlannerItem(item) }] : [];
     });
+    if (!removedItems.length) return;
 
     setUndoWithTimeout({
       bulk: true,
@@ -461,6 +486,11 @@ export function useMyPlannerPageViewModel() {
 
   return {
     planData,
+    plannerRecovery,
+    plannerRecoveryError,
+    recoverOldPlannerEntries,
+    restoreRecoveredPlannerEntries,
+    downloadPlannerRecovery,
     undoItem,
     upAheadSuggestions,
     suggestionError,

@@ -8,12 +8,21 @@ import {
   mergeUpAheadItems,
   UP_AHEAD_SOURCE_LOOKBACK_MS,
   upAheadDateKey,
-  upAheadIdentityKeys,
+  upAheadIdentityKeys, sameUpAheadOccurrence, upAheadOccurrenceKey,
   upAheadTimeMs,
 } from './upAheadLifecycle.js';
 
 export const CACHE_KEY = 'upAhead_cache';
 export const UP_AHEAD_UPDATED_EVENT = 'upahead-updated';
+let currentRequest = null;
+let requestSerial = 0;
+export function beginUpAheadRequest(settings) {
+  const locations = [...(settings?.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai','Muscat'])];
+  const scope = JSON.stringify([locations.map(x=>String(x).toLowerCase().trim()).sort(), Object.entries(settings?.categories || {}).sort()]);
+  const request = { id: currentRequest?.scope === scope ? currentRequest.id : ++requestSerial, locations, scope };
+  currentRequest = request;
+  return request;
+}
 export const UP_AHEAD_REFRESH_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 const STATIC_UPAHEAD_MAX_AGE_MS = 12 * 60 * 60 * 1000;
@@ -33,7 +42,7 @@ function uniqByKey(items = []) {
   const seen = new Set();
   const output = [];
   for (const item of items || []) {
-    const key = getItemKey(item);
+    const key = item?.savedPlanId || upAheadOccurrenceKey(item);
     if (!key || seen.has(key)) continue;
     seen.add(key);
     output.push(item);
@@ -51,6 +60,7 @@ function filterPastDatedDisplayItems(items = [], now = Date.now()) {
 
 export function isUpAheadDataFresh(data, maxAgeMs = STATIC_UPAHEAD_MAX_AGE_MS) {
   if (!data || data.auditSummary?.fallback === 'festival_calendar') return false;
+  if (data.sourceMode === 'dataset-api' && data.datasetApiFreshness !== 'fresh') return false;
   const fetchedAt = upAheadTimeMs(data.fetchedAt || data.lastUpdated);
   if (!fetchedAt) return false;
   const age = Date.now() - fetchedAt;
@@ -140,11 +150,12 @@ function generateWeeklyPlan(timeline = []) {
     d.setDate(d.getDate() + i);
     const dateKey = normalizeDateKey(d);
     const timelineItems = (timelineByDate.get(dateKey) || [])
-      .filter(item => !blacklist.has(getItemKey(item)))
+      .filter(item => !blacklist.has(upAheadOccurrenceKey(item)) && (!blacklist.has(getItemKey(item)) || timeline.flatMap(day=>day.items||[]).filter(row=>getItemKey(row)===getItemKey(item)).some(row=>!sameUpAheadOccurrence(row,item))))
       .filter(item => item.plannerEligible !== false)
       .map(item => ({
         id: item.id || getItemKey(item),
         hiddenKey: getItemKey(item),
+        occurrenceKey: upAheadOccurrenceKey(item),
         title: item.title,
         type: item.type || getItemType(item.category),
         icon: item.icon || '📅',
@@ -154,10 +165,11 @@ function generateWeeklyPlan(timeline = []) {
       }));
 
     const savedItems = (persistedPlan[dateKey] || [])
-      .filter(item => !blacklist.has(getItemKey(item)))
       .map(item => ({
         id: item.id || getItemKey(item),
         hiddenKey: getItemKey(item),
+        savedPlanId: item.savedPlanId || item.id,
+        occurrenceKey: item.occurrenceKey,
         title: item.title,
         type: item.type || item.category || 'event',
         icon: item.icon || '📅',
@@ -166,7 +178,7 @@ function generateWeeklyPlan(timeline = []) {
         isOffer: Boolean(item.isOffer) || ['shopping', 'airline', 'airlines'].includes(String(item.type || item.category || '').toLowerCase())
       }));
 
-    const merged = uniqByKey([...savedItems, ...timelineItems]).slice(0, 10);
+    const merged = [...savedItems, ...uniqByKey(timelineItems).filter(item=>!savedItems.some(saved=>saved.occurrenceKey && saved.occurrenceKey===item.occurrenceKey)).slice(0, Math.max(0,10-savedItems.length))];
 
     plan.push({
       day: d.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -210,6 +222,7 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       planDate: eventDateKey,
       category: sectionKey,
       source: item.sourceDomain || item.source || sectionKey,
+      sourceMode: item.sourceMode || null,
       retailerId: item.retailerId || null,
       offerMarket: item.offerMarket || null,
       offerChannel: item.offerChannel || null,
@@ -226,10 +239,21 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       plannerEligible: Boolean(item.plannerEligible && eventDateKey),
       displayEligible: item.displayEligible !== false,
       publishedAt: item.publishedAt || item.publishDate || null,
+      observedAt: item.observedAt || null,
+      firstSeenAt: item.firstSeenAt || null,
+      venue: item.venue || item.originalItem?.venue || null,
       datePrecision: item.datePrecision || null,
+      eventEndPrecision: item.eventEndPrecision || null,
       eventStartAt: item.eventStartAt || item.originalItem?.eventStartAt || null,
       eventEndAt: item.eventEndAt || item.originalItem?.eventEndAt || null,
       eventDateEndKey: item.eventDateEndKey || null,
+      eventDateEndExclusiveKey: item.eventDateEndExclusiveKey || null,
+      occurrenceId: item.occurrenceId || null,
+      sessionId: item.sessionId || null,
+      revisionOf: item.revisionOf || null,
+      revisionAt: item.revisionAt || null,
+      publicationOnlyId: Boolean(item.publicationOnlyId),
+      dateSource: item.dateSource || null,
       expiryAt: item.expiryAt || item.originalItem?.expiryAt || null,
       lifecycle: item.lifecycle || null,
       suppressionReason: item.suppressionReason || null,
@@ -307,7 +331,7 @@ function transformPythonItemsToDisplay(items = []) {
     .filter(Boolean)
     .map(it => {
       const category = categorySectionKey(it.category);
-      const eventDateKey = upAheadDateKey(it);
+      const eventDateKey = upAheadDateKey({ ...it, publicationOnlyId: true });
       return {
         canonicalId:       it.id || it.url || it.title,
         rawSourceId:       it.id || it.url || it.title,
@@ -318,9 +342,21 @@ function transformPythonItemsToDisplay(items = []) {
         category,
         publishedAt:       it.publishedAt || null,
         datePrecision:     it.datePrecision || null,
+        eventEndPrecision: it.eventEndPrecision || null,
         posterUrl:         it.posterUrl || null,
         eventStartAt:      it.eventStartAt || null,
         eventEndAt:        it.eventEndAt || null,
+        eventDateEndKey:   it.eventDateEndKey || null,
+        eventDateEndExclusiveKey: it.eventDateEndExclusiveKey || null,
+        occurrenceId:     it.occurrenceId || null,
+        sessionId:        it.sessionId || null,
+        revisionOf:       it.revisionOf || null,
+        revisionAt:       it.revisionAt || null,
+        publicationOnlyId: true,
+        dateSource:       it.dateSource || null,
+        observedAt:       it.observedAt || null,
+        firstSeenAt:      it.firstSeenAt || null,
+        venue:            it.venue || null,
         expiryAt:          it.expiryAt || null,
         lifecycle:        it.lifecycle || null,
         suppressionReason: it.suppressionReason || null,
@@ -331,6 +367,7 @@ function transformPythonItemsToDisplay(items = []) {
         locationCanonical: it.city || it.region || null,
         sourceDomain:      it.source,
         source:            it.source,
+        sourceMode:        it.sourceMode || null,
         retailerId:        it.retailerId || null,
         offerMarket:       it.offerMarket || null,
         offerChannel:      it.offerChannel || null,
@@ -353,6 +390,7 @@ function prepareItem(item, observedAt, fallback = {}) {
   if (!row) return null;
   return {
     ...row,
+    sourceMode: row.sourceMode || fallback.sourceMode || 'unknown',
     category: row.category || fallback.category,
     date: upAheadDateKey(row) || fallback.date || null,
     observedAt: row.observedAt || observedAt || null,
@@ -386,25 +424,42 @@ function normalizeUpAheadData(data) {
   if (rawSnapshot) {
     const { items, ...metadata } = data;
     const display = transformPythonItemsToDisplay(items);
-    data = { ...display, lastUpdated: null, ...metadata };
+    data = { ...display, lastUpdated: null, sourceMode: 'snapshot', ...metadata };
   }
   const observedAt = data.fetchedAt || data.lastUpdated;
-  const timeline = timelineFromItems(mergeUpAheadItems(
-    (Array.isArray(data.timeline) ? data.timeline : []).flatMap(day => (
-      (day?.items || []).map(item => prepareItem(item, observedAt, { date: day.date }))
-    )), { preferEventCategory: true }
-  ));
+  const sourceMode = ['snapshot', 'static', 'dataset-api', 'calendar'].includes(data.sourceMode)
+    ? 'snapshot' : data.sourceMode || 'unknown';
+  const timelineRows = (Array.isArray(data.timeline) ? data.timeline : []).flatMap(day =>
+    (day?.items || []).map(item => prepareItem(item, observedAt, { date: day.date, sourceMode })).filter(Boolean));
   const sectionData = data.sections || {};
-  const sections = sectionsFromItems(Object.keys(sectionData), Object.entries(sectionData).flatMap(([key, items]) =>
-    (Array.isArray(items) ? items : []).map(item => prepareItem(item, observedAt, { category: key }))
-  ));
+  const sectionRows = Object.entries(sectionData).flatMap(([key, items]) =>
+    (Array.isArray(items) ? items : []).map(item => prepareItem(item, observedAt, { category: key, sourceMode })).filter(Boolean));
+  // Sections are the authoritative observation in the legacy payload; Timeline
+  // is a derived routing projection. Preserve timeline-only rows, but never let
+  // a stale projection of the same occurrence override the source row.
+  const rows = sectionRows.map(item => ({ ...item, _timelineEligible: item._timelineEligible || timelineRows.some(t => categorySectionKey(t.category) === categorySectionKey(item.category) && sameUpAheadOccurrence(t,item)) }));
+  for (const item of timelineRows) {
+    if (!rows.some(r => categorySectionKey(r.category) === categorySectionKey(item.category) && sameUpAheadOccurrence(r,item))) rows.push({ ...item, _timelineEligible: true });
+  }
+  const sections = sectionsFromItems(Object.keys(sectionData), rows);
+  const timeline = timelineFromItems(mergeUpAheadItems(Object.values(sections).flat().filter(x => x._timelineEligible || x.upAheadEligible), { preferEventCategory: true }));
   return { ...data, timeline, sections };
+}
+
+function publishedRetirements(data, now = Date.now()) {
+  const rows = Array.isArray(data?.retiredOccurrences) ? data.retiredOccurrences.slice(0, 4000) : [];
+  return rows.filter(row => row && row.source === 'oman-warnings' && row.category === 'weather_alerts'
+    && String(row.occurrenceId || '').startsWith('oman-warnings:')
+    && upAheadTimeMs(row.observedAt) > 0 && now >= upAheadTimeMs(row.observedAt)
+    && now - upAheadTimeMs(row.observedAt) <= UP_AHEAD_SOURCE_LOOKBACK_MS);
 }
 
 function pruneUpAheadData(data, retiredItems = new Map()) {
   if (!data) return null;
   const now = Date.now();
-  const isActive = item => isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
+  const retired = publishedRetirements(data, now);
+  const retiredOccurrences = new Set(retired.map(row => row.occurrenceId));
+  const isActive = item => !retiredOccurrences.has(item.occurrenceId) && isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
     [key, `${item.category}:${key}`].some(retiredKey =>
       retiredItems.has(retiredKey) && retiredItems.get(retiredKey) >= upAheadTimeMs(item.observedAt))
   );
@@ -425,7 +480,7 @@ function pruneUpAheadData(data, retiredItems = new Map()) {
   if (!timeline.length && !Object.values(sections).some(hasItems) && !weekly_plan.some(day => hasItems(day.items))) {
     return null;
   }
-  return { ...data, timeline, sections, weekly_plan };
+  return { ...data, retiredOccurrences: retired, timeline, sections, weekly_plan };
 }
 
 export function sanitizeUpAheadData(data) {
@@ -444,19 +499,25 @@ export function loadFromCache(upAheadSettings = null) {
   const cached = sanitizeUpAheadData(readStoredFeed());
   if (!upAheadSettings) return cached;
   const locations = upAheadSettings.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'];
-  return sanitizeUpAheadData(attachHolidayCalendar(
+  const selected = sanitizeUpAheadData(attachHolidayCalendar(
     cached || buildFestivalFallbackData(locations), locations
   ));
+  return selected ? { ...selected, selectedLocations: [...locations] } : selected;
 }
 
-export function saveToCache(incoming, fallback = null, upAheadSettings = null) {
+export function saveToCache(incoming, fallback = null, upAheadSettings = null, request = null) {
   // Read at commit time so concurrent loads merge with the latest saved list.
   const stored = readStoredFeed();
   const combined = mergeUpAheadFeed(stored || fallback, incoming);
+  if (request && currentRequest && request.id !== currentRequest.id) {
+    // A superseded request may render its own result, but cannot commit or
+    // publish a stale cache event. The current request owns persistence.
+    return pruneUpAheadData(attachHolidayCalendar(combined, request.locations));
+  }
+  const selectedLocations = request?.locations || fallback?.selectedLocations || stored?.selectedLocations || upAheadSettings?.locations;
   // A fresh dataset API can skip static/live acquisition. Reconcile the
   // independent calendar after every merge, including location changes.
-  const merged = upAheadSettings ? attachHolidayCalendar(combined,
-    upAheadSettings.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat']) : combined;
+  const merged = selectedLocations ? attachHolidayCalendar(combined, selectedLocations) : combined;
   const now = Date.now();
   const cutoff = now - UP_AHEAD_SOURCE_LOOKBACK_MS;
   const retiredItems = new Map(Object.entries(stored?.retiredItems || {}).filter(([, time]) => time >= cutoff));
@@ -475,9 +536,10 @@ export function saveToCache(incoming, fallback = null, upAheadSettings = null) {
     }
   }
   const updated = pruneUpAheadData(merged, retiredItems);
+  const retirements = merged?.retiredOccurrences || [];
   try {
-    if (updated || retiredItems.size) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ...updated, retiredItems: Object.fromEntries(retiredItems) }));
+    if (updated || retiredItems.size || retirements.length) {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ ...updated, retiredOccurrences: retirements, selectedLocations, retiredItems: Object.fromEntries(retiredItems) }));
     } else if (stored) {
       localStorage.removeItem(CACHE_KEY);
     }
@@ -585,10 +647,17 @@ function mergeUpAheadFeed(baseData, newData) {
 
   const basePublished = hasPublisherContent(base);
   const incomingPublished = hasPublisherContent(incoming);
+  const baseEpoch = upAheadTimeMs(base.fetchedAt || base.lastUpdated);
+  const incomingEpoch = upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated);
+  const sameApiEpoch = base.sourceMode === 'dataset-api' && incoming.sourceMode === 'dataset-api'
+    && baseEpoch === incomingEpoch;
+  const baseFresh = isUpAheadDataFresh(base);
+  const incomingFresh = isUpAheadDataFresh(incoming);
   const freshest = basePublished !== incomingPublished
     ? (incomingPublished ? incoming : base)
-    : upAheadTimeMs(incoming.fetchedAt || incoming.lastUpdated)
-      >= upAheadTimeMs(base.fetchedAt || base.lastUpdated) ? incoming : base;
+    : !sameApiEpoch && baseFresh !== incomingFresh
+      ? (incomingFresh ? incoming : base)
+      : incomingEpoch >= baseEpoch ? incoming : base;
   // Legacy calendar estimates only support a publisher outage. The new
   // source-backed bundled calendar is independent and survives recovery.
   const retainPublished = items => hasPublisherContent(freshest)
@@ -598,9 +667,7 @@ function mergeUpAheadFeed(baseData, newData) {
     [...new Set([...Object.keys(base.sections), ...Object.keys(incoming.sections)])],
     retainPublished([...Object.values(base.sections).flat(), ...Object.values(incoming.sections).flat()])
   );
-  const timeline = timelineFromItems(mergeUpAheadItems(
-    retainPublished([...base.timeline, ...incoming.timeline].flatMap(day => day.items)), { preferEventCategory: true }
-  ));
+  const timeline = timelineFromItems(mergeUpAheadItems(Object.values(sections).flat().filter(x => x._timelineEligible || x.upAheadEligible), { preferEventCategory: true }));
   return {
     ...base,
     ...incoming,
@@ -610,8 +677,16 @@ function mergeUpAheadFeed(baseData, newData) {
     lastUpdated: freshest.lastUpdated || freshest.fetchedAt || null,
     auditSummary: freshest.auditSummary || null,
     dropReport: incoming.dropReport || base.dropReport || [],
-    acquisitionSummary: incoming.acquisitionSummary || base.acquisitionSummary || null,
+    acquisitionSummary: freshest.acquisitionSummary || null,
+    retiredOccurrences: [...new Map([...publishedRetirements(base), ...publishedRetirements(incoming)]
+      .sort((a, b) => upAheadTimeMs(a.observedAt) - upAheadTimeMs(b.observedAt))
+      .map(row => [row.occurrenceId, row])).values()],
+    sourceStatuses: Object.fromEntries([...new Set([
+      ...Object.keys(base.sourceStatuses || {}), ...Object.keys(incoming.sourceStatuses || {}),
+    ])].map(key => [key, [base.sourceStatuses?.[key], incoming.sourceStatuses?.[key]].filter(Boolean)
+      .sort((a, b) => upAheadTimeMs(b.checkedAt) - upAheadTimeMs(a.checkedAt))[0]])),
     sourceMode: freshest.sourceMode || null,
+    datasetApiFreshness: freshest.datasetApiFreshness || null,
   };
 }
 

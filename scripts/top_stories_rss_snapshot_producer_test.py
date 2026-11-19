@@ -124,13 +124,16 @@ class TopStoriesRssSnapshotProducerTest(unittest.TestCase):
         rows, _ = producer.parse_feed_rows(FRESH_FEED, self.source("rank-source"), now_ms=NOW_MS)
         self.assertEqual([row["topFeedRank"] for row in rows], [1, 2])
 
-    def test_duplicate_story_identities_collapse_within_source(self) -> None:
+    def test_tracking_duplicates_collapse_but_semantic_urls_remain_distinct(self) -> None:
         duplicate_feed = f"""<rss><channel>
           <item><title>Same alert</title><link>https://example.com/same?x=1</link><pubDate>{rfc822(FRESH_MS)}</pubDate></item>
-          <item><title>Same alert updated</title><link>https://example.com/same?x=2</link><pubDate>{rfc822(FRESH_MS)}</pubDate></item>
+          <item><title>Same alert tracked</title><link>https://example.com/same?utm_source=rss&amp;x=1</link><pubDate>{rfc822(FRESH_MS)}</pubDate></item>
+          <item><title>Another alert</title><link>https://example.com/same?x=2</link><pubDate>{rfc822(FRESH_MS)}</pubDate></item>
+          <item><title>Case-sensitive alert</title><link>https://example.com/Same?x=1</link><pubDate>{rfc822(FRESH_MS)}</pubDate></item>
         </channel></rss>"""
         rows, diagnostics = producer.parse_feed_rows(duplicate_feed, self.source("dup-source"), now_ms=NOW_MS)
-        self.assertEqual(len(rows), 1)
+        self.assertEqual([row["title"] for row in rows], ["Same alert", "Another alert", "Case-sensitive alert"])
+        self.assertEqual(len({row["canonicalId"] for row in rows}), 3)
         self.assertEqual(diagnostics["duplicatesRejected"], 1)
 
     def test_stale_rows_are_rejected(self) -> None:

@@ -11,9 +11,21 @@ const removeDevScripts = () => {
   }
 }
 
+const appBuildMarker = () => ({
+  name: 'app-build-marker',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'post',
+    handler(_html, { chunk }) {
+      if (!chunk) return [];
+      return [{ tag: 'meta', attrs: { name: 'nw-app-build', content: chunk.fileName } }];
+    }
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), removeDevScripts()],
+  plugins: [react(), removeDevScripts(), appBuildMarker()],
   // Use relative base path for maximum compatibility on GitHub Pages
   base: './',
   build: {

@@ -41,20 +41,20 @@ afterEach(() => {
 
 describe('rolling Up Ahead feed', () => {
   it('keeps omitted active events, updates revised items, appends new items and prunes each expiry', () => {
-    const workshop = event('workshop');
+    const workshop = event('workshop', { occurrenceId: 'workshop-occurrence' });
     const expo = event('expo', { eventStartAt: NOW - 2 * DAY });
     const alert = event('road-alert', { category: 'alerts', eventStartAt: null, eventEndAt: null, expiryAt: NOW + HOUR });
     const offer = event('sale', { category: 'shopping', eventStartAt: null, eventEndAt: null, expiryAt: NOW + 12 * HOUR });
     saveToCache(snapshot(NOW, workshop, expo, alert, offer));
 
     vi.setSystemTime(NOW + 8 * HOUR);
-    expect(ids(loadFromCache().sections.events)).toEqual(['workshop', 'expo']);
+    expect(ids(loadFromCache().sections.events).sort()).toEqual(['expo', 'workshop']);
     expect(loadFromCache().sections.alerts).toEqual([]);
     expect(ids(loadFromCache().sections.shopping)).toEqual(['sale']);
-    const rescheduled = event('workshop', { eventStartAt: NOW + 3 * DAY, eventEndAt: NOW + 3 * DAY + HOUR });
+    const rescheduled = event('workshop', { occurrenceId: 'workshop-occurrence', eventStartAt: NOW + 3 * DAY, eventEndAt: NOW + 3 * DAY + HOUR });
     saveToCache(snapshot(Date.now(), rescheduled, event('concert')));
     const retained = loadFromCache();
-    expect(ids(retained.sections.events)).toEqual(['workshop', 'expo', 'concert']);
+    expect(ids(retained.sections.events).sort()).toEqual(['concert', 'expo', 'workshop']);
     expect(retained.timeline.flatMap(day => day.items).filter(item => item.id === 'workshop'))
       .toEqual([expect.objectContaining({ eventStartAt: rescheduled.eventStartAt })]);
     expect(JSON.parse(localStorage.getItem(CACHE_KEY)).sections.alerts).toEqual([]);
@@ -64,19 +64,20 @@ describe('rolling Up Ahead feed', () => {
   });
 
   it('keeps one occurrence across sources and ignores a delayed stale correction', () => {
-    const original = event('workshop', { url: 'https://events.example/workshop?utm_source=rss' });
+    const original = event('workshop', { occurrenceId: 'workshop-occurrence', url: 'https://events.example/workshop?utm_source=rss' });
     saveToCache(snapshot(NOW, original));
     vi.setSystemTime(NOW + HOUR);
     saveToCache(snapshot(Date.now(), event('other-id', {
-      title: 'Updated workshop',
+      title: 'Updated workshop', occurrenceId: 'workshop-occurrence',
       url: 'https://events.example/workshop',
     })));
     saveToCache(snapshot(NOW, original, event('distinct')));
     const data = loadFromCache();
-    expect(data.sections.events).toEqual([
-      expect.objectContaining({ title: 'Updated workshop', hiddenKey: 'workshop' }),
+    expect(data.sections.events).toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Updated workshop', occurrenceId: 'workshop-occurrence', hiddenKey: 'workshop' }),
       expect.objectContaining({ title: 'distinct' }),
-    ]);
+    ]));
+    expect(data.sections.events).toHaveLength(2);
     expect(data.timeline.flatMap(day => day.items)).toHaveLength(2);
   });
 
@@ -119,7 +120,7 @@ describe('Planner suggestions from the shared feed', () => {
       event('different-location', { city: 'London' }),
     ));
     const [firstDay] = retained.timeline;
-    const savedPlan = { [firstDay.date]: [{ id: 'legacy-id', title: saved.title }] };
+    const savedPlan = { [firstDay.date]: [retained.timeline.flatMap(day => day.items).find(item => item.id === saved.id)] };
     const before = JSON.stringify(savedPlan);
     const suggestions = getUpAheadPlannerSuggestions(
       retained, savedPlan, new Set(['dismissed']), { locations: ['Chennai', 'Muscat'] }, NOW

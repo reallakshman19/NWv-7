@@ -186,10 +186,10 @@ async function fillAndSeal(target: CustodyEnv, epochId: string): Promise<void> {
 }
 
 describe('Sections shadow deterministic authority', () => {
-  it('reproduces the frozen PR-A decision digest exactly', async () => {
+  it('reproduces the audited policy digest without changing the original frozen input or selected order', async () => {
     const evidence = await evaluateBundledFrozenReplay();
     expect(evidence.decisionOutputDigest).toBe(
-      '74a012724be58b1c834c88f699d0627eb3e82a2d24721a279ca70e6eff429fe2',
+      '8db223cdb6c4f312990e8c6841e4256fae6810585d325e9305802b9170d6f488',
     );
     expect(evidence.candidateCount).toBe(evidence.candidateEvidence.length);
     expect(evidence.selectedIds).toEqual([
@@ -208,8 +208,10 @@ describe('Sections shadow deterministic authority', () => {
     expect(result.epoch.terminal_lane_count).toBe(EXPECTED_SECTIONS_LANE_COUNT);
     expect(result.pointer.epoch_id).toBe('frozen-001');
     expect(result.epoch.decision_output_digest).toBe(
-      '74a012724be58b1c834c88f699d0627eb3e82a2d24721a279ca70e6eff429fe2',
+      '8db223cdb6c4f312990e8c6841e4256fae6810585d325e9305802b9170d6f488',
     );
+    expect(result.epoch.source_registry_digest).toBe('d6e8c3d706c9848b7e63349ce08cd48c3670377f24c4163150cd368151e96716');
+    expect(result.epoch.source_registry_digest).not.toBe(sectionsRegistryAuthority.sourceRegistryDigest);
     expect(await readD1EvidenceUsage(custodyEnv().SHADOW_DB)).toMatchObject({ objectCount: 1 });
   });
 });

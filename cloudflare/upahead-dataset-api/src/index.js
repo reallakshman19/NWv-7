@@ -10,6 +10,8 @@ const EXPOSED_DIAGNOSTIC_HEADERS = [
   AGE_SECONDS_HEADER,
 ].join(', ');
 const FRESHNESS_STALE_AFTER_MS = 12 * 60 * 60 * 1000;
+const DEFAULT_UPSTREAM_TIMEOUT_MS = 3500;
+const MAX_UPSTREAM_TIMEOUT_MS = 10000;
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -27,6 +29,17 @@ export function isObjectRecord(value) {
 
 export function isValidUpAheadPayload(payload) {
   if (!isObjectRecord(payload)) return false;
+  // Accept the canonical raw publication produced by scripts/fetch_upahead_events.py.
+  // Never discard lifecycle and original source metadata in the Worker.
+  if (Array.isArray(payload.items)) {
+    return Number(payload.schemaVersion) === 1
+      && Number.isFinite(Number(payload.fetchedAt))
+      && Number(payload.fetchedAt) > 0
+      && payload.items.length > 0
+      && payload.items.every(item => isObjectRecord(item)
+        && typeof item.title === 'string' && item.title.trim()
+        && typeof item.id === 'string' && item.id.trim());
+  }
   if (!Array.isArray(payload.timeline)) return false;
   if (!isObjectRecord(payload.sections)) return false;
   if (!Array.isArray(payload.weekly_plan)) return false;
@@ -45,7 +58,7 @@ export function parseLastUpdatedMillis(value) {
 }
 
 export function buildFreshnessDiagnostics(payload, nowMs = Date.now()) {
-  const lastUpdatedMs = parseLastUpdatedMillis(payload?.lastUpdated);
+  const lastUpdatedMs = parseLastUpdatedMillis(payload?.lastUpdated ?? payload?.fetchedAt);
   if (lastUpdatedMs === null || lastUpdatedMs > nowMs) {
     return { freshness: 'unknown', ageSeconds: 'unknown' };
   }
@@ -109,18 +122,48 @@ export async function fetchUpAheadPayloadResult(env = {}, fetchImpl = fetch) {
   const upstreamUrl = String(env.UP_AHEAD_DATASET_URL || '').trim();
   if (!upstreamUrl || typeof fetchImpl !== 'function') return buildFallbackResult('missing-url');
 
+  let deadlineExpired = false;
   try {
-    const response = await fetchImpl(upstreamUrl, { cache: 'no-cache' });
-    if (!response?.ok) return buildFallbackResult('upstream-non-ok');
-    const payload = await response.json();
+    const specifiedTimeout = Number(env.UP_AHEAD_UPSTREAM_TIMEOUT_MS);
+    const timeoutMs = Number.isFinite(specifiedTimeout) && specifiedTimeout > 0
+      ? Math.min(MAX_UPSTREAM_TIMEOUT_MS, Math.max(10, specifiedTimeout))
+      : DEFAULT_UPSTREAM_TIMEOUT_MS;
+    const controller = new AbortController();
+    let timeoutId;
+    const deadline = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        deadlineExpired = true;
+        controller.abort();
+        const error = new Error('Up Ahead upstream deadline exceeded');
+        error.code = 'upstream-timeout';
+        reject(error);
+      }, timeoutMs);
+    });
+    let payload;
+    try {
+      payload = await Promise.race([
+        (async () => {
+          const response = await fetchImpl(upstreamUrl, { cache: 'no-cache', signal: controller.signal });
+          if (!response?.ok) return { nonOk: true };
+          return { data: await response.json() };
+        })(),
+        deadline,
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (payload?.nonOk) return buildFallbackResult('upstream-non-ok');
+    payload = payload?.data;
     const selectedPayload = selectValidUpAheadPayload(payload);
     return selectedPayload === payload
       ? buildPayloadResult(payload, 'upstream', 'ok')
       : buildFallbackResult('invalid-shape');
   } catch (error) {
-    return error instanceof SyntaxError
-      ? buildFallbackResult('invalid-json')
-      : buildFallbackResult('fetch-error');
+    return deadlineExpired || error?.code === 'upstream-timeout'
+      ? buildFallbackResult('upstream-timeout')
+      : error instanceof SyntaxError
+        ? buildFallbackResult('invalid-json')
+        : buildFallbackResult('fetch-error');
   }
 }
 

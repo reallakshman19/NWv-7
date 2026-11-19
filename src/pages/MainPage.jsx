@@ -20,6 +20,7 @@ import { useDailyDigestSectionViewModel } from '../viewModels/useDailyDigestSect
 import SectionsDataSourceToggle from '../components/SectionsDataSourceToggle.jsx';
 
 const MainPage = () => {
+    const { isWebView } = useMediaQuery();
     const {
         envelope,
         settings,
@@ -33,6 +34,8 @@ const MainPage = () => {
         travelLocationProfile,
         prioritizedNewsData,
         latestStories,
+        topStoriesPresentation,
+        setTopStoriesPresentation,
         toplineContent,
         fallbackTopline,
         mainTabAudit,
@@ -46,11 +49,10 @@ const MainPage = () => {
         marketTickerProps,
         themeToggleProps,
         shellRuntimeProps,
-    } = useMainTabViewModel();
+    } = useMainTabViewModel({ isWebView });
     const dailyDigest = useDailyDigestSectionViewModel();
     const { refresh: refreshDailyDigest } = dailyDigest;
 
-    const { isWebView } = useMediaQuery();
     const refreshPage = useCallback(async () => {
         const results = await Promise.allSettled([refreshAll(), refreshDailyDigest()]);
         const mainResult = results[0];
@@ -216,6 +218,8 @@ const MainPage = () => {
                                                     colorClass="news-section__title--world"
                                                     news={latestStories}
                                                     maxDisplay={10}
+                                                    presentation={topStoriesPresentation}
+                                                    onPresentationChange={setTopStoriesPresentation}
                                                     healthSummary={getHealthSummary('topStories', 'top-stories', 'topstories', 'frontPage')}
                                                 />
                                             )}
@@ -295,6 +299,8 @@ const MainPage = () => {
                                                         colorClass="news-section__title--world"
                                                         news={latestStories}
                                                         maxDisplay={10}
+                                                        presentation={topStoriesPresentation}
+                                                        onPresentationChange={setTopStoriesPresentation}
                                                         healthSummary={getHealthSummary('topStories', 'top-stories', 'topstories', 'frontPage')}
                                                     />
                                                 )}

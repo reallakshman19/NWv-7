@@ -1,3 +1,4 @@
+import { publishPageProvenance } from '../data/pageProvenance.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useWeather } from '../context/WeatherContext';
 import { useNews } from '../context/NewsContext';
@@ -45,7 +46,7 @@ function filterLatestStories(frontPage = [], customSortTopStories = false) {
   const viewed = [];
 
   for (const item of ordered) {
-    if (item?.id && (isArticleRead(item.id) || getViewCount(item.id) > MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES)) {
+    if (item?.id && (isArticleRead(item) || getViewCount(item) > MAX_VIEW_COUNT_FOR_CUSTOM_TOP_STORIES)) {
       viewed.push(item);
     } else {
       preferred.push(item);
@@ -220,7 +221,7 @@ function makeMainBoundaryEnvelope({
       },
       validation: {
         ...existingValidation,
-        passed: Boolean(existingValidation.passed !== false && hasRenderableMain),
+        passed: Boolean(existingValidation.passed === true && hasRenderableMain),
         errors: hasRenderableMain
           ? (Array.isArray(existingValidation.errors) ? existingValidation.errors : [])
           : [
@@ -256,9 +257,11 @@ function makeMainBoundaryEnvelope({
       projectedHasRenderableMain: hasRenderableMain,
     },
     source: 'context',
-    freshness: hasRenderableMain ? 'fresh' : 'empty',
+    // A Context projection has no independent producer epoch. Content may
+    // render without a valid freshness or source authority receipt.
+    freshness: hasRenderableMain ? 'unknown' : 'empty',
     validation: {
-      passed: hasRenderableMain,
+      passed: hasRenderableMain ? null : false,
       errors: hasRenderableMain ? [] : (error ? [error] : []),
       warnings: [
         ...(isLoading ? ['main_loading_without_renderable_projection'] : []),
@@ -343,7 +346,7 @@ function getFirstNewsError(newsErrors) {
   return null;
 }
 
-export function useMainTabViewModel() {
+export function useMainTabViewModel({ isWebView = false } = {}) {
   const { settings, updateSettings } = useSettings();
   const { currentSegment } = useSegment();
 
@@ -369,6 +372,7 @@ export function useMainTabViewModel() {
   const [onThisDay, setOnThisDay] = useState(null);
   // Persists last non-null topline so it survives data refreshes
   const [toplineContent, setToplineContent] = useState(null);
+  const [topStoriesPresentation, setTopStoriesPresentation] = useState({ expanded: false, collapsed: false });
 
   const safeSettings = useMemo(() => (
     settings || {}
@@ -427,9 +431,9 @@ export function useMainTabViewModel() {
 
   const travelMergedNewsData = useMemo(() => (
     travelNewsPayload && travelLocationProfile?.prioritizeStories
-      ? mergeTravelNewsIntoNewsData(projectedNewsData, travelNewsPayload)
+      ? mergeTravelNewsIntoNewsData(projectedNewsData, travelNewsPayload, travelLocationProfile)
       : projectedNewsData
-  ), [projectedNewsData, travelNewsPayload, travelLocationProfile?.prioritizeStories]);
+  ), [projectedNewsData, travelNewsPayload, travelLocationProfile]);
 
   const prioritizedNewsData = useMemo(() => (
     applyTravelLocationPriority(travelMergedNewsData, travelLocationProfile)
@@ -450,6 +454,10 @@ export function useMainTabViewModel() {
 
   const isTimelineMode = uiMode === 'timeline';
   const isUrgentMode = currentSegment?.id === 'urgent_only';
+  const visibleTopStories = useMemo(() => {
+    if (topStoriesPresentation.collapsed || (!isWebView && isUrgentMode && projectedBreakingNews.length)) return [];
+    return topStoriesPresentation.expanded ? latestStories : latestStories.slice(0, 10);
+  }, [latestStories, topStoriesPresentation, isWebView, isUrgentMode, projectedBreakingNews]);
 
   const isLoading = Boolean(
     (weatherLoading && !projectedWeatherData) ||
@@ -548,19 +556,23 @@ export function useMainTabViewModel() {
   }, []);
 
   const mainTabAudit = useMemo(() => auditMainTabQuality({
-    newsData: projectedNewsData,
+    newsData: { ...projectedNewsData, frontPage: visibleTopStories },
+    topStoryDisplayLimit: visibleTopStories.length,
     weatherData: projectedWeatherData,
     breakingNews: projectedBreakingNews,
     settings: safeSettings,
     loading: newsLoading,
     errors: newsErrors,
+    envelope: datasetEnvelope,
   }), [
     projectedNewsData,
+    visibleTopStories,
     projectedWeatherData,
     projectedBreakingNews,
     safeSettings,
     newsLoading,
     newsErrors,
+    datasetEnvelope,
   ]);
 
   // --- Runtime capabilities (6H: shell runtime badge; computed once) ---
@@ -632,6 +644,16 @@ export function useMainTabViewModel() {
     error,
   ]);
 
+  // Route-local projection bypasses shared useDataset cache; publish a bounded
+  // read-only receipt for Data Health after settled loading.
+  useEffect(() => {
+    if (isLoading) return;
+    publishPageProvenance('main', boundaryEnvelope, {
+      transport: 'news-context-projection',
+      provider: boundaryEnvelope?.source || 'unknown',
+    });
+  }, [isLoading, boundaryEnvelope]);
+
   return {
     envelope: boundaryEnvelope,
     datasetEnvelope,
@@ -653,6 +675,8 @@ export function useMainTabViewModel() {
     travelMergedNewsData,
     prioritizedNewsData,
     latestStories,
+    topStoriesPresentation,
+    setTopStoriesPresentation,
     toplineContent,
     fallbackTopline,
     onThisDay,

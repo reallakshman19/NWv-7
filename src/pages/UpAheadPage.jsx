@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Header, { DataStatePill } from '../components/Header';
 import { ImageCard } from '../components/ImageCard';
 import { downloadCalendarEvent } from '../utils/calendar';
 import { useLongPress } from '../hooks/useLongPress';
 import ProgressBar from '../components/ProgressBar';
+import RetailOffersPanel from '../components/up-ahead/RetailOffersPanel.jsx';
+import { useRetailOffers } from '../hooks/useRetailOffers.js';
+import { selectRetailOffers } from '../services/retailOffers.js';
+import LocalCoverage from '../components/up-ahead/LocalCoverage.jsx';
 import { shortenSourceLabel } from '../utils/storyMeta';
 import { sanitizeHtmlText } from '../utils/htmlText.js';
 import DataStateBoundary from '../components/DataStateBoundary.jsx';
-import { getLocalSourceDirectory, matchesLocalAlert } from '../services/upAheadLocalPolicy.js';
+import { formatUpAheadItemDate } from '../services/upAheadProjection.js';
 import {
   useUpAheadPageViewModel,
   __upAheadPageViewModelInternalsForTest,
@@ -173,9 +177,9 @@ function GridSection({
   return (
     <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
       {items.map((item, i) => (
-        <div key={item.id || i} className="modern-card">
+        <div key={item.occurrenceKey || item.id || i} className="modern-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div className={`ua-badge ${colorClass}`}>{formatConciseDate(item.date || item.releaseDate, item.publishedAt, item.eventEndAt)}</div>
+            <div className={`ua-badge ${colorClass}`}>{formatUpAheadItemDate(item)}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               {item.groupedCount > 1 && (
                 <span className="ua-tab-count" title={(item.sources || []).join(', ')}>🔗 {item.groupedCount} sources</span>
@@ -187,8 +191,9 @@ function GridSection({
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '8px 0', flex: 1 }}>
             {sanitizeHtmlText(item.description || 'No description available.', { maxLength: 200 })}
           </p>
-          {(item.alertProvenance || item.retailerId) && <p className="ua-source-context">
-            {item.alertProvenance || `${item.offerMarket === 'oman' ? 'Oman' : 'India'} retailer offer`}
+          {(item.source || item.alertProvenance || item.retailerId) && <p className="ua-source-context">
+            {item.alertProvenance || (item.retailerId ? `${item.offerMarket === 'oman' ? 'Oman' : 'India'} retailer offer`
+              : item.sourceAuthority === 'official' ? 'Official calendar' : 'Event listing')}
             {item.source && ` · ${item.source}`}
             {item.city && ` · ${item.city}`}
           </p>}
@@ -198,8 +203,8 @@ function GridSection({
               className="ua-cal-btn"
               onClick={(event) => {
                 const button = event.currentTarget;
-                const result = onAddToPlan(item, item.date || item.releaseDate);
-                if (result?.ok === false) {
+                const result = onAddToPlan(item, item.eventDateKey || item.date || item.releaseDate);
+                if (result?.ok !== true) {
                   button.textContent = 'Save failed';
                   return;
                 }
@@ -223,28 +228,9 @@ function GridSection({
   );
 }
 
-export function UpAheadSourceDirectory({ locations = ['Chennai', 'Muscat'], channel, alerts = [] }) {
-  const directory = getLocalSourceDirectory(locations, channel);
-  const isAlerts = channel === 'alerts';
-  const rows = isAlerts ? directory.alerts : directory.retailers;
-  return (
-    <section className="ua-source-directory" aria-label={isAlerts ? 'Local alert sources' : 'Official retailer sources'}>
-      <h3>{isAlerts ? 'Chennai & Muscat alert coverage' : `${channel === 'offline' ? 'In-store' : 'Online'} retailer sources`}</h3>
-      <p>{isAlerts
-        ? 'Automatic cards are dated news reports discovered through Google News, filtered to the affected city. They are not a complete official alert feed. No cards does not mean no active warnings.'
-        : 'Open the official retailer to see current prices and leaflets. These source links are not verified offers and are not added to Planner. Dated matching offers appear below when available.'}</p>
-      {isAlerts && <p>{locations.map(city => `${city}: ${alerts.filter(item => matchesLocalAlert(item, [city])).length} matching card(s)`).join(' · ')}</p>}
-      <div className="ua-source-directory__grid">
-        {rows.map(row => <article key={row.id}>
-          <a href={row.url} target="_blank" rel="noopener noreferrer">{row.name} ↗</a>
-          <small>{row.city || row.cities.join(' / ')} · {row.kind || (row.market === 'oman' ? 'Oman' : 'India')}</small>
-          <p>{row.note}</p>
-        </article>)}
-      </div>
-      {!rows.length && <p>No official directory entries configured for the selected locations.</p>}
-      {isAlerts && <p>Use the official sources above for validity periods and affected areas before acting.</p>}
-    </section>
-  );
+export function UpAheadSourceDirectory({ locations = ['Chennai', 'Muscat'], channel, data, settings }) {
+  if (channel !== 'alerts') return null;
+  return <LocalCoverage data={data} settings={settings} locations={locations} categories={['alerts', 'weather_alerts', 'civic']} alerts />;
 }
 
 function EntertainmentStyleGrid({
@@ -263,7 +249,7 @@ function EntertainmentStyleGrid({
     <div className="masonry-grid">
       {items.map((item, idx) => (
         <ImageCard
-          key={item.id || idx}
+          key={item.occurrenceKey || item.id || idx}
           article={item}
           href={item.link}
           badge={shortenSourceLabel(item.source || item.platform || 'Up Ahead')}
@@ -309,7 +295,7 @@ function TimelineCard({
               onClick={(event) => {
                 const button = event.currentTarget;
                 const result = handleAddToPlan(item, dayDate);
-                if (result?.ok === false) {
+                if (result?.ok !== true) {
                   button.textContent = 'Save failed';
                   return;
                 }
@@ -392,7 +378,7 @@ function TimelineCard({
             <button className="btn btn--secondary" style={{ textAlign: 'left', padding: '12px' }} onClick={() => {
               const result = handleAddToPlan(actionSheetItem.item, actionSheetItem.dateKey);
               handleActionSheetClose();
-              alert(result?.ok === false ? 'Save failed' : 'Saved to Planner');
+              alert(result?.ok === true ? 'Saved to Planner' : 'Save failed');
             }}>
               📌 Save to Planner
             </button>
@@ -423,6 +409,7 @@ function TimelineCard({
 function UpAheadPage() {
   const shellRuntimeProps = useShellRuntimeProps();
   const [offerMode, setOfferMode] = useState('online');
+  const [retailRefreshKey, setRetailRefreshKey] = useState(0);
   const {
     data,
     envelope,
@@ -447,10 +434,6 @@ function UpAheadPage() {
     combinedAlerts,
     onlineOffers,
     offlineOffers,
-    onlineOffersCapability,
-    offlineOffersCapability,
-    onlineOffersEmptyMessage,
-    offlineOffersEmptyMessage,
     movieCards,
     festivalCards,
     eventItems,
@@ -467,8 +450,18 @@ function UpAheadPage() {
     watchlistError,
   } = useUpAheadPageViewModel();
 
-  const handleRefresh = () => loadData({ forceRefresh: false });
-  const handleForceRefresh = () => loadData({ forceRefresh: true });
+  const shoppingEnabled=upAheadSettings?.categories?.shopping!==false;
+  const retailState=useRetailOffers(retailRefreshKey,shoppingEnabled);
+  const retailCounts=useMemo(()=>{
+    if(!shoppingEnabled||!retailState.snapshot)return {online:0,offline:0};
+    try{return Object.fromEntries(['online','offline'].map(channel=>[channel,selectRetailOffers(retailState.snapshot,{locations:upAheadSettings?.locations,channel,now:retailState.now}).length]));}
+    catch{return {online:0,offline:0};}
+  },[shoppingEnabled,retailState.snapshot,retailState.now,upAheadSettings?.locations]);
+  const onlineOfferCount=onlineOffers.length+retailCounts.online;
+  const offlineOfferCount=offlineOffers.length+retailCounts.offline;
+
+  const handleRefresh = () => { setRetailRefreshKey(value => value + 1); return loadData({ forceRefresh: false }); };
+  const handleForceRefresh = () => { setRetailRefreshKey(value => value + 1); return loadData({ forceRefresh: true }); };
 
   if (loading && !data) {
     return (
@@ -546,7 +539,7 @@ function UpAheadPage() {
 
         <div className="ua-view-toggle scrollable-tabs">
           <button className={`ua-toggle-btn ${view === 'plan' ? 'active' : ''}`} onClick={() => setView('plan')} title="Suggested">✨ Suggested</button>
-          <button className={`ua-toggle-btn ${view === 'offers' ? 'active' : ''}`} onClick={() => setView('offers')} title="Offers">🏷️ Offers{(onlineOffers.length + offlineOffers.length) > 0 && <span className="ua-tab-count">{onlineOffers.length + offlineOffers.length}</span>}</button>
+          <button className={`ua-toggle-btn ${view === 'offers' ? 'active' : ''}`} onClick={() => setView('offers')} title="Offers">🏷️ Offers{(onlineOfferCount + offlineOfferCount) > 0 && <span className="ua-tab-count">{onlineOfferCount + offlineOfferCount}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'movies' ? 'active' : ''}`} onClick={() => setView('movies')} title="Releases">🎬 Release{movieCards.length > 0 && <span className="ua-tab-count">{movieCards.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'events' ? 'active' : ''}`} onClick={() => setView('events')} title="Events">{'🎫 Events'}{eventItems.length > 0 && <span className="ua-tab-count">{eventItems.length}</span>}</button>
           <button className={`ua-toggle-btn ${view === 'alerts' ? 'active' : ''}`} onClick={() => setView('alerts')} title="Alerts">🚨 Alerts{combinedAlerts.length > 0 && <span className="ua-tab-count">{combinedAlerts.length}</span>}</button>
@@ -633,36 +626,29 @@ function UpAheadPage() {
                 onClick={() => setOfferMode('online')}
                 title="Online offers (e-commerce & airlines)"
               >
-                🛒 Online{onlineOffers.length > 0 && <span className="ua-tab-count">{onlineOffers.length}</span>}
+                🛒 Online{onlineOfferCount > 0 && <span className="ua-tab-count">{onlineOfferCount}</span>}
               </button>
               <button
                 className={`ua-toggle-btn ${offerMode === 'offline' ? 'active' : ''}`}
                 onClick={() => setOfferMode('offline')}
                 title="Local offline offers near your locations"
               >
-                📍 Offline{offlineOffers.length > 0 && <span className="ua-tab-count">{offlineOffers.length}</span>}
+                📍 Offline{offlineOfferCount > 0 && <span className="ua-tab-count">{offlineOfferCount}</span>}
               </button>
             </div>
-            {offerMode === 'online' && onlineOffers.length === 0 && (
-              <div className="ua-capability-note" data-offer-capability={onlineOffersCapability?.status || 'unknown'} style={{ padding: '0 8px 10px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                Source status: {String(onlineOffersCapability?.status || 'unknown').replaceAll('_', ' ')}
-              </div>
-            )}
-            {offerMode === 'offline' && offlineOffers.length === 0 && (
-              <div className="ua-capability-note" data-offer-capability={offlineOffersCapability?.status || 'unknown'} style={{ padding: '0 8px 10px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                Source status: {String(offlineOffersCapability?.status || 'unknown').replaceAll('_', ' ')}
-              </div>
-            )}
-            <UpAheadSourceDirectory locations={upAheadSettings?.locations} channel={offerMode} />
-            {offerMode === 'online'
-              ? <GridSection items={onlineOffers} colorClass="type-shopping" emptyMessage={onlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />
-              : <GridSection items={offlineOffers} colorClass="type-shopping" emptyMessage={offlineOffersEmptyMessage} isOffer={true} onAddToPlan={handleAddToPlan} />}
+            <RetailOffersPanel enabled={shoppingEnabled} locations={upAheadSettings?.locations} channel={offerMode} state={retailState} onAddToPlan={handleAddToPlan} />
+            {(offerMode === 'online' ? onlineOffers : offlineOffers).length > 0 && <>
+              <h3>Reported sale events</h3>
+              <GridSection items={offerMode === 'online' ? onlineOffers : offlineOffers} colorClass="type-shopping" isOffer={true} onAddToPlan={handleAddToPlan} />
+            </>}
           </div>
         )}
-        {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} /><GridSection items={eventItems} colorClass="type-event" emptyMessage={emptyMessages.events} onAddToPlan={handleAddToPlan} /></div>}
+        {view === 'events' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} />
+          <LocalCoverage data={data} settings={upAheadSettings} locations={upAheadSettings?.locations} categories={['events', 'sports']} />
+          <GridSection items={eventItems} colorClass="type-event" emptyMessage={emptyMessages.events} onAddToPlan={handleAddToPlan} /></div>}
         {view === 'alerts' && <div className="ua-tab-view"><ProgressBar active={loading || isRefreshing} />
-          <UpAheadSourceDirectory locations={upAheadSettings?.locations} channel="alerts" alerts={combinedAlerts} />
-          <GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage={emptyMessages.alerts} onAddToPlan={handleAddToPlan} /></div>}
+          <GridSection items={combinedAlerts} colorClass="type-alert" emptyMessage={emptyMessages.alerts} onAddToPlan={handleAddToPlan} />
+          <UpAheadSourceDirectory data={data} settings={upAheadSettings} locations={upAheadSettings?.locations} channel="alerts" /></div>}
 
         {view === 'festivals' && (
           <div className="ua-tab-view">
@@ -725,6 +711,7 @@ function UpAheadPage() {
                 + Add
               </button>
             </div>
+            <LocalCoverage data={data} settings={upAheadSettings} locations={upAheadSettings?.locations} categories={['civic']} />
             <GridSection
               items={civicItems}
               colorClass="type-civic"

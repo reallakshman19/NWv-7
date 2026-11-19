@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { canonicalNewsUrl } from '../../src/services/newsStoryIdentity.js';
 import { digestCanonicalJson } from '../top-stories-shadow/canonicalJson.mjs';
 import {
   isTamilNaduStory,
@@ -92,7 +93,7 @@ function listEntryBlocks(xmlText) {
   return blocks;
 }
 
-function canonicalUrl(value) {
+function legacyCanonicalUrl(value) {
   let url = text(value);
   if (!url) return '';
   url = url.replace(/#.*$/, '').replace(/\?.*$/, '').replace('/amp/', '/');
@@ -116,7 +117,7 @@ function sha(value, algorithm = 'sha256') {
 }
 
 function makeStoryId(item) {
-  const urlKey = canonicalUrl(item.url);
+  const urlKey = canonicalNewsUrl(item.url);
   const base = urlKey || [
     titleFingerprint(item.title),
     item.sourceGroup || '',
@@ -230,6 +231,8 @@ export function parseLiveFeedText(xmlText, lane, nowMs, options = {}) {
       feedLength: blocks.length,
     };
     item.id = makeStoryId(item);
+    const legacyUrl = legacyCanonicalUrl(item.url);
+    if (legacyUrl) { const legacyId = sha(legacyUrl,'sha1').slice(0,16); if (legacyId !== item.id) item.legacyId = legacyId; }
     if (seen.has(item.id)) {
       diagnostics.duplicatesRejected += 1;
       continue;

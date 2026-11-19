@@ -2,6 +2,7 @@
 import React, { Suspense, useState, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
+import { loadLazyRoute } from './runtime/routeChunkRecovery.js';
 import BottomNav from './components/BottomNav';
 import ScrollToTop from './components/ScrollToTop';
 import DebugConsole from './components/DebugConsole';
@@ -18,20 +19,20 @@ import './styles/desktopRevamp.css';
 import './styles/desktopPolish.css';
 import './styles/weatherProfessionalTheme.css';
 
-const MainPage = React.lazy(() => import('./pages/MainPage'));
-const UpAheadPage = React.lazy(() => import('./pages/UpAheadPage'));
-const MyPlannerPage = React.lazy(() => import('./pages/MyPlannerPage'));
-const WeatherPage = React.lazy(() => import('./pages/WeatherPage'));
-const MarketPage = React.lazy(() => import('./pages/MarketPage'));
-const TechSocialPage = React.lazy(() => import('./pages/TechSocialPage'));
-const NewspaperPage = React.lazy(() => import('./pages/NewspaperPage'));
-const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
-const RefreshPage = React.lazy(() => import('./pages/RefreshPage'));
-const FollowingPage = React.lazy(() => import('./pages/FollowingPage'));
-const TopicDetail = React.lazy(() => import('./pages/TopicDetail'));
-const MorePage = React.lazy(() => import('./pages/MorePage'));
-const InsightPage = React.lazy(() => import('./pages/InsightPage'));
-const DataHealthPage = React.lazy(() => import('./pages/DataHealthPage'));
+const MainPage = React.lazy(() => loadLazyRoute(() => import('./pages/MainPage')));
+const UpAheadPage = React.lazy(() => loadLazyRoute(() => import('./pages/UpAheadPage')));
+const MyPlannerPage = React.lazy(() => loadLazyRoute(() => import('./pages/MyPlannerPage')));
+const WeatherPage = React.lazy(() => loadLazyRoute(() => import('./pages/WeatherPage')));
+const MarketPage = React.lazy(() => loadLazyRoute(() => import('./pages/MarketPage')));
+const TechSocialPage = React.lazy(() => loadLazyRoute(() => import('./pages/TechSocialPage')));
+const NewspaperPage = React.lazy(() => loadLazyRoute(() => import('./pages/NewspaperPage')));
+const SettingsPage = React.lazy(() => loadLazyRoute(() => import('./pages/SettingsPage')));
+const RefreshPage = React.lazy(() => loadLazyRoute(() => import('./pages/RefreshPage')));
+const FollowingPage = React.lazy(() => loadLazyRoute(() => import('./pages/FollowingPage')));
+const TopicDetail = React.lazy(() => loadLazyRoute(() => import('./pages/TopicDetail')));
+const MorePage = React.lazy(() => loadLazyRoute(() => import('./pages/MorePage')));
+const InsightPage = React.lazy(() => loadLazyRoute(() => import('./pages/InsightPage')));
+const DataHealthPage = React.lazy(() => loadLazyRoute(() => import('./pages/DataHealthPage')));
 
 /**
  * Global Progress Bar

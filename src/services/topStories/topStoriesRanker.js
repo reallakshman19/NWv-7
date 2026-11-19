@@ -5,10 +5,11 @@ import {
   TOP_STORY_EVENT_TYPES,
 } from './topStoriesEventClassifier.js';
 import {
-  buildTopFeedSignalMap,
   extractTopStorySignals,
+  isTopStoryTimeEligible,
 } from './topStoriesSignals.js';
 import { getSlotDecision } from './topStoriesEvidenceAdmission.js';
+import { buildClusteredTopFeedSignalMap, expandTopFeedEvidenceRows } from './topStoriesTopFeedSignals.js';
 import {
   buildTopStoryScoreBreakdown,
   getThresholdMargin,
@@ -117,6 +118,8 @@ export function scoreTopStoryCandidate(story, context = {}) {
 
   return {
     ...story,
+    sourceCount: signals.sourceCount,
+    allSources: signals.allSources,
     _topStoryRank: {
       score: rawScore,
       normalizedScore,
@@ -176,19 +179,23 @@ function withAuthoritativeRank(story, index) {
 export function evaluateTopStories(input = {}, options = {}) {
   const policy = getTopStoriesPolicy(options.policy || {});
   const nowMs = input.nowMs ?? options.nowMs ?? Date.now();
-  const topFeedSignalMap = buildTopFeedSignalMap(
-    input.topFeedItems || [],
-  );
+  const topFeedItems = expandTopFeedEvidenceRows(input.topFeedItems || []);
+  const candidateResult = buildTopStoryCandidatesWithTrace({
+    ...input,
+    topFeedItems,
+    policy,
+    nowMs,
+  });
+  const usableTopFeedRows = [
+    ...topFeedItems,
+    ...expandTopFeedEvidenceRows(input.topFeedEvidence || []),
+  ].filter(row => row && isTopStoryTimeEligible(row, nowMs, policy));
   const context = {
     policy,
     nowMs,
     settings: input.settings || {},
-    topFeedSignalMap,
+    topFeedSignalMap: buildClusteredTopFeedSignalMap(candidateResult.candidates, usableTopFeedRows),
   };
-  const candidateResult = buildTopStoryCandidatesWithTrace({
-    ...input,
-    nowMs,
-  });
   const scoredCandidates = candidateResult.candidates
     .map(story => scoreTopStoryCandidate(story, context))
     .sort(compareRankedTopStories)

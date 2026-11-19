@@ -6,9 +6,10 @@ function read(path) {
 }
 
 describe('NW-CF-HYBRID-002 failover liveness contract', () => {
-  it('keeps hourly shadow acquisition enabled without Browser Run as a hard dependency', () => {
+  it('keeps bounded three-hour shadow acquisition enabled without Browser Run as a hard dependency', () => {
     const config = JSON.parse(read('cloudflare/sections-shadow/wrangler.jsonc'));
-    expect(config.triggers.crons).toEqual(['0 * * * *']);
+    expect(config.triggers.crons).toEqual(['0 */3 * * *']);
+    expect(config.vars.SHADOW_MAX_EPOCHS_PER_DAY).toBe('8');
     expect(config.vars.SHADOW_SCHEDULE_ENABLED).toBe('true');
     expect(config.vars.SHADOW_LIVE_ACQUISITION_ENABLED).toBe('true');
     expect(config.vars.SHADOW_BROWSER_FALLBACK_ENABLED).toBe('false');
@@ -18,12 +19,13 @@ describe('NW-CF-HYBRID-002 failover liveness contract', () => {
 
   it('keeps the Cloudflare authority observable and surfaces the concrete fallback reason', () => {
     const source = read('src/components/SectionsDataSourceToggle.jsx');
+    const copy = read('src/components/sectionsStatusCopy.js');
     expect(source).toContain('Sections authority');
-    expect(source).toContain('Cloudflare authority active · committed epoch');
-    expect(source).toContain('runtimeStatus.fallbackReason');
-    expect(source).toContain('preview snapshot stale/incomplete');
-    expect(source).toContain('preview request timed out');
-    expect(source).toContain('showing GitHub');
+    expect(copy).toContain('Cloudflare authority active · committed epoch');
+    expect(copy).toContain('runtimeStatus.fallbackReason');
+    expect(copy).toContain('preview snapshot stale/incomplete');
+    expect(copy).toContain('preview request timed out');
+    expect(copy).toContain('showing GitHub');
   });
 
   it('does not change browser serving authority or add a public Worker write route', () => {

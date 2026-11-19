@@ -1,4 +1,5 @@
 import { InsightStory } from "../types";
+import { namedHazardIdentities } from "./eventOccurrenceIdentity";
 
 const TOPIC_STOP_WORDS = new Set([
   "about", "after", "again", "against", "ahead", "among", "around", "before",
@@ -13,6 +14,12 @@ const TOPIC_BOOST_PATTERNS = [
   /\b[A-Z]{2,}\b/g,
   /\b[A-Z][a-z]+\s+[A-Z][a-z]+\b/g,
 ];
+
+// Content-derived memo only: include every mutable input and bound memory.
+// A centroid comparison copies the story object, so object-identity caching
+// alone would still repeat this tokenization for every pair in the corpus.
+const topicTokenMemo = new Map<string, readonly string[]>();
+const MAX_TOPIC_MEMO_ENTRIES = 1024;
 
 function normalizeToken(value: string): string {
   return value
@@ -45,6 +52,13 @@ function boostedTopicPhrases(text: string): string[] {
 }
 
 export function getStoryTopicTokens(story: InsightStory): string[] {
+  const memoKey = JSON.stringify([
+    story.title, story.summary, story.category, story.region,
+    story.entities?.orgs, story.entities?.places, story.entities?.people,
+    story.entities?.products, story.keywords,
+  ]);
+  const cached = topicTokenMemo.get(memoKey);
+  if (cached) return [...cached];
   const text = [
     story.title,
     story.summary,
@@ -70,18 +84,79 @@ export function getStoryTopicTokens(story: InsightStory): string[] {
     counts.set(token, (counts.get(token) || 0) + 1);
   }
 
-  return [...counts.entries()]
+  const result = [...counts.entries()]
     .sort((a, b) => {
       if (b[1] !== a[1]) return b[1] - a[1];
       return a[0].localeCompare(b[0]);
     })
     .map(([token]) => token)
     .slice(0, 16);
+  if (memoKey.length <= 8192) {
+    if (topicTokenMemo.size >= MAX_TOPIC_MEMO_ENTRIES) {
+      topicTokenMemo.delete(topicTokenMemo.keys().next().value!);
+    }
+    topicTokenMemo.set(memoKey, [...result]);
+  }
+  return result;
 }
 
 // Generic geographic / filler tokens that appear across unrelated stories and must
 // NOT drive topic cohesion (kept in sync with hasSharedTopicSignature's exclusion).
 const GENERIC_TOPIC_TOKENS = /^(india|indian|world|global|country|countries|record|report|reports|people|year|years|national|international|news|update|updates|live|latest|today|breaking)$/;
+
+// Sparse browser embeddings can omit short names (for example a named cyclone
+// or a person's surname). Do not lower the general similarity threshold: use
+// names actually printed in BOTH headlines, backed by event-specific wording.
+const GENERIC_NAME_WORDS = new Set([
+  ...TOPIC_STOP_WORDS, "india", "indian", "world", "national", "international",
+  "minister", "ministry", "government", "court", "supreme", "high", "police",
+  "bank", "business", "market", "markets", "news", "day", "year", "state",
+  "city", "new", "live", "updates", "report", "reports", "today",
+  "cyclone", "hurricane", "typhoon", "storm", "warning", "alert", "threat",
+  "united", "states", "kingdom", "saudi", "arabia", "middle", "east",
+  "tamil", "nadu", "university", "college", "school", "hospital",
+]);
+
+function headlineNames(title: string): string[][] {
+  return [...String(title || "").matchAll(/\b(?:[A-Z][a-z]+\s+){1,3}[A-Z][a-z]+\b/g)]
+    .map(match => match[0].toLowerCase().split(/\s+/))
+    .filter(words => words.filter(word => !GENERIC_NAME_WORDS.has(word)).length >= 2);
+}
+
+const NAMED_INCIDENT_SIGNALS = [
+  /\b(?:kill(?:ed|ing)?|dead|death|terrorist|encounter)\b/i,
+  /\b(?:arrest(?:ed)?|detain(?:ed)?|custody)\b/i,
+  /\b(?:outage|blackout|disruption)\b/i,
+  /\b(?:demerg(?:e|es|ed|er)|merg(?:e|es|ed|er))\b/i,
+  /\b(?:fire|blaze|arson)\b/i,
+  /\b(?:crash|collision|derailment)\b/i,
+  /\b(?:protest|rally|march|sloganeering|adjourned)\b/i,
+];
+
+export function hasSharedNamedEventSignature(a: InsightStory, b: InsightStory): boolean {
+  const aHazards = namedHazardIdentities(a.title);
+  const bHazards = namedHazardIdentities(b.title);
+  // A multi-event roundup must not bridge two separately named hazards.
+  if (aHazards.length || bHazards.length) {
+    if (aHazards.length > 1 || bHazards.length > 1) return false;
+    if (aHazards.length === 1 && bHazards.length === 1) return aHazards[0] === bHazards[0];
+    const name = aHazards[0] || bHazards[0];
+    const otherTitle = aHazards.length ? b.title : a.title;
+    const words = new Set(String(otherTitle || "").toLowerCase().match(/[a-z-]+/g) || []);
+    return /\b(?:cyclone|hurricane|typhoon|storm)\b/i.test(otherTitle) && words.has(name);
+  }
+
+  // A brand, institution or venue is not an event. Shared names opt in only
+  // with the same explicit incident type, plus the separate wording test below.
+  // Product launches and loosely related controversies stay on the normal path.
+  if (!NAMED_INCIDENT_SIGNALS.some(pattern => pattern.test(a.title) && pattern.test(b.title))) return false;
+  const aNames = headlineNames(a.title);
+  const bNameKeys = new Set(headlineNames(b.title).map(words => words.join(" ")));
+  const aTokens = new Set(tokenize(a.title).filter(word => !GENERIC_NAME_WORDS.has(word)));
+  const bTokens = new Set(tokenize(b.title).filter(word => !GENERIC_NAME_WORDS.has(word)));
+  return aNames.some(words => bNameKeys.has(words.join(" ")) &&
+    [...aTokens].filter(word => !words.includes(word) && bTokens.has(word)).length >= 2);
+}
 
 export function topicTokenOverlap(a: InsightStory, b: InsightStory): number {
   const aTokens = new Set(getStoryTopicTokens(a));

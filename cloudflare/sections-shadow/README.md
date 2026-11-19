@@ -30,7 +30,7 @@ GitHub/static snapshot on failure or stale evidence.
 - Provides a qualification-only Browser Run transport for the 11 Google News
   lanes, guarded to `news.google.com`, with a separate D1 quota ledger and
   bounded 20-item field extraction.
-- Runs the explicitly authorized qualification acquisition hourly while keeping
+- The local repair candidate schedules qualification acquisition every three hours while keeping
   Cloudflare primary serving disabled.
 - Exposes only the verified current `SHADOW_COMMITTED` live epoch through the
   public, GET-only `/preview/sections/latest` projection. Staged, sealed,
@@ -41,21 +41,27 @@ GitHub/static snapshot on failure or stale evidence.
 One full 41-lane epoch reserves conservative worst-case capacity before it is
 staged:
 
-| Resource | Reservation per epoch | Daily internal ceiling | 48 epochs/day |
+| Resource | Reservation per epoch | Daily internal ceiling | 8 epochs/day |
 | --- | ---: | ---: | ---: |
-| Queue operations | 160 | 8,000 | 7,680 |
-| D1 rows read | 3,500 | 4,000,000 | 168,000 |
-| D1 writes | 600 | 80,000 | 28,800 |
-| Worker invocations | 60 | 80,000 | 2,880 |
-| Browser Run time | 20 seconds | 480,000 ms | 24 browser-assisted epochs/day |
+| Queue operations | 600 | 8,000 | 4,800 plus maintenance |
+| D1 rows read | 25,000 | 4,000,000 | 200,000 plus 200,000 for cleanup |
+| D1 writes | 3,500 | 80,000 | 28,000 plus 48,000 for cleanup |
+| Worker invocations | 180 | 80,000 | 1,440 plus maintenance |
+| Browser Run time | 20 seconds | 480,000 ms | At most 160,000 ms reserved |
 
 Queue reservations include the coordinator, 41 lane jobs, finalization, and
-bounded transient retries.
+bounded transient retries. Identical decision retries perform no row rewrite;
+persisted content is still compared to detect conflicts. Large decision batches
+use UTF-8-aware, one-megabyte bound strings in one atomic D1 transaction.
 The ceilings are deliberately below the corresponding Cloudflare Free limits.
 New epochs stop at 450 MB of reported D1 storage and the existing 350 MB
-limit on retained evidence bodies still applies. The hourly cron queues
-cleanup under the same daily quota as acquisition. Each run reserves up to
-2,500 estimated D1 writes, including indexes, and removes expired history in
+limit on retained JSON includes payloads, normalized snapshots and ranking
+decisions. Migration 0006 backfills a storage ledger once; transactional SQL
+triggers maintain it on insert, update and delete. Admission then reads one
+ledger row instead of scanning every retained payload for every feed. The
+database trigger also enforces the hard 350 MB body ceiling for concurrent writers.
+The three-hour cron queues cleanup under the same daily quota as acquisition.
+Each run reserves 6,000 estimated D1 writes, including ledger and index writes, and removes expired history in
 bounded batches. It expires abandoned incomplete epochs after 36 hours and
 retains seven days of history plus the current published epoch. The current
 epoch's lane payloads can be needed to serve its snapshot. Live feed bodies
@@ -63,7 +69,7 @@ are streamed through a 500 KB acquisition limit. D1 retains up to 20
 normalized items and 60 KB per lane, 1 MB per normalized snapshot, and
 64 KB per decision row.
 
-Apply the history-retention migration before deploying this Worker version.
+Apply migrations 0005 and 0006 before deploying this Worker version.
 An existing backlog drains over multiple days. Check D1's reported size
 after cleanup. If the database still reports 450 MB or more, new acquisition
 stays paused and a compact copy that preserves the current snapshot must be
@@ -72,9 +78,92 @@ The browser-assisted path has a stricter application ceiling of eight minutes
 per UTC day against the provider's ten-minute Free allowance. It transfers at
 most 20 entries per Google lane from the browser, and only the bounded title,
 summary, URL, and publication-time fields. Its maximum qualifying cadence is
-hourly, so 200 comparable browser-assisted epochs require at least nine days.
+every three hours, so 200 comparable browser-assisted epochs require at least 25 days.
 They protect this workload but cannot observe usage by unrelated Workers in the
 same Cloudflare account. Account-level usage alerts remain required.
+Environment values can reduce these ceilings, but cannot increase them.
+The eight epoch and cleanup reservations total 76,000 writes per UTC day, below
+the 80,000 internal limit. Retries and manual maintenance consume that same
+ledger and can stop further work. These are conservative estimates, not account
+usage measurements or a guarantee of provider availability.
+
+The authenticated status route reports publication age and storage; public
+`/health` explicitly reports configuration only. Neither a healthy configuration
+nor a local replay certifies a current production snapshot.
+
+### Production recovery verified on 18 November 2026
+
+The original database rejected the migration with Cloudflare error 7500,
+`Exceeded maximum DB size`. Its reported size was 542,056,448 bytes. A verified
+copy of the retained seven-day data and protected current epoch was restored to
+a new Free-plan D1 database before changing the Worker binding. All retained
+row hashes, 941 original body digests, foreign keys and storage accounting were
+checked independently after the remote restore. Migrations 0005/0006 applied
+successfully to that copy. Acquisition counters were carried forward, with
+additional conservative reservations for the account read budget and copy.
+
+Worker version `9451cc0c-9dbc-4b8c-b381-30dcf2484395` now uses the compact
+database. Queue delivery is resumed, the three-hour cron and eight-epoch daily
+ceiling are active, and Browser Run fallback remains disabled. A new live epoch
+committed at slot `2026-11-18T12:00:00Z`, advancing the pointer from generation
+840 to 841 with 41 terminal lanes and 228 decisions. Twenty-two lanes succeeded;
+sixteen returned HTTP errors and three returned parse errors. A committed epoch
+does not imply that every upstream feed is healthy.
+
+One bounded retention run removed 128 expired raw payloads and marked 32
+abandoned epochs. The protected pointer survived, the active database has zero
+epochs outside seven days, and its usage ledger matches the independently
+measured 7,559,518 JSON bytes. D1 reports 8,916,992 database bytes. After separate
+explicit Owner approval, the retired 542 MB database was permanently deleted
+on 18 November at 13:24 UTC. The native account list confirmed its absence and
+the active replacement's presence; public health and the fresh snapshot passed
+again with unchanged content. Verified local current/seven-day exports remain
+available for recovery. Do not rebind to the deleted original database. Local
+deployment configuration points at the verified replacement, while tracked
+configuration keeps its placeholder.
+
+Public health and the committed preview passed real HTTP checks. The published
+Main page displayed active Cloudflare authority and loaded stories in both
+Hybrid and Live. Fallback/source warnings remain, and Insight still reports
+degraded quality. This backend rollout does not certify the separate frontend
+audit candidate or Insight's editorial quality floor.
+
+### Production repair sequence
+
+The read-only check on 18 November found 542 MB reported D1 storage, 70,463,175
+payload bytes, 228,924 decision rows and 41,599 lane-evidence rows. Installed
+migrations stopped at 0004. The served pointer was still 16 November noon UTC.
+The subsequent Wrangler migration returned native Cloudflare error 7500,
+confirming that the original database had exceeded its size limit.
+
+1. Reconfirm usage, current pointer, deployed version and migration list. Save a
+   local verified export of the current epoch and its required child rows before
+   deleting expired history. The export must preserve its original digests.
+2. Apply 0005 then 0006 with acquisition paused for the change. Backfilling the
+   ledger scans the existing JSON once; budget its observed reads/writes.
+   If Cloudflare rejects writes with size error 7500, prepare and verify the
+   bounded copy in step 5 first, then apply the migrations on that copy. Do not
+   repeatedly retry writes against the full database.
+3. Deploy the tested candidate with three-hour cron, eight-epoch ceiling and
+   browser fallback disabled. Preserve the existing Queue identifier and set
+   the verified database binding in ignored local configuration. No paid plan
+   or resource upgrade is needed.
+4. Queue one `PRUNE_HISTORY` message at a time, reserving 6,000 writes per batch.
+   Check actual Cloudflare account usage as well as the application ledger;
+   stop before either free limit or the internal ceiling. Expired history is
+   deleted, but current-pointer and recent sealed evidence remain protected.
+5. Recheck database size. If it remains at or above 450 MB, acquisition stays
+   paused. Prepare a fresh D1 copy of the retained/current data, compare native
+   row counts and content digests, then switch the binding only after that copy
+   is verified. Keep the original database for rollback until a separate explicit
+   retirement decision. Do not delete the source during copy verification.
+6. Dispatch one new live epoch. Require 41 terminal lanes, verified committed
+   evidence, a forward-moving pointer and snapshot age below twelve hours.
+   Finally verify the deployed app in Hybrid/Live and recheck expired rows.
+
+This sequence changes production and deletes expired history. The completed
+rollout above has its own Owner approval and native receipts; this runbook does
+not authorize future production changes or deletion of the rollback database.
 
 If a reservation would cross a ceiling, the Worker records
 `FREE_TIER_CAPACITY_EXHAUSTED` or `FREE_TIER_STORAGE_CAPACITY_EXHAUSTED`,
@@ -93,6 +182,13 @@ npm run check
 The check runs TypeScript validation, Worker-runtime tests with a real local D1
 binding, and a Wrangler deployment dry run.
 
+The original PR-A frozen fixture remains unchanged. Its v1 hash predates the
+audited publisher identity and classifier policies. The bundled local replay
+uses separate, versioned audited-v2 expectations: the Reuters URL and its TOI
+wrapper count as one publisher, with zero independent corroboration. Original
+selected story order and date-boundary assertions remain pinned. This is a
+Coder reconciliation of reference output, not independent editorial review.
+
 ## Cloudflare resource setup
 
 Resource creation is intentionally separate from repository implementation.
@@ -109,7 +205,7 @@ tracked placeholder unchanged. Do not commit account credentials. Then apply
 migrations, certify, and deploy with the local deployment configuration:
 
 ```text
-npx wrangler d1 migrations apply nw-sections-shadow --remote -c wrangler.local.jsonc
+npx wrangler d1 migrations apply SHADOW_DB --remote -c wrangler.local.jsonc
 npm run check
 npx wrangler deploy -c wrangler.local.jsonc
 ```
@@ -172,7 +268,10 @@ npm run sections:qualification -- --input-dir <parity-report-directory> --output
 The browser toggle is an explicit user-selected Preview. It does not represent
 qualification, promotion, or a change to the saved default authority.
 
-## Current deployment status
+## Historical deployment and qualification receipt · August 2026
+
+This section preserves the earlier qualification evidence. It does not describe
+the current production freshness or approve the repair sequence above.
 
 The dedicated D1 database, producer Queue, consumer Queue, and dead-letter
 Queue are provisioned. Migrations `0001` through `0004` are applied, and the Worker

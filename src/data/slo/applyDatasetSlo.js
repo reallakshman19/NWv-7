@@ -102,7 +102,7 @@ export function applyDatasetSlo(envelope) {
       : envelope.error || null,
     validation: {
       ...existingValidation,
-      passed: !failEnvelope && existingValidation.passed !== false,
+      passed: !failEnvelope && existingValidation.passed === true,
       errors,
       warnings,
     },

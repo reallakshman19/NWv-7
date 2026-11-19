@@ -136,6 +136,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.items).toHaveLength(2);
     expect(result.items[0]._prefetchedSection).toBe(true);
     expect(result.stale).toBe(true);
+    expect(result.staleFallback).toBe(true);
     expect(result.staleReason).toBe('sections_snapshot_stale');
   });
 
@@ -166,7 +167,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.blockedBySnapshotStaleness).toBe(true);
   });
 
-  it('serves low-confidence Top Stories rows as labelled stale fallback', () => {
+  it('blocks Top Stories whose only timestamp is acquisition time', () => {
     const topStoriesSnapshot = {
       schemaVersion: 2,
       fetchedAt: Date.now(),
@@ -188,10 +189,9 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(topStoriesSnapshot, 'topStories', 10);
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0].publishedAtSource).toBe('fetch_time_fallback');
+    expect(result.items).toEqual([]);
     expect(result.stale).toBe(true);
-    expect(result.staleFallback).toBe(true);
+    expect(result.staleFallback).toBe(false);
     expect(result.staleReason).toBe('section_items_stale');
     expect(result.lowConfidenceTimestampCount).toBe(1);
   });
@@ -222,7 +222,7 @@ describe('Sections snapshot browser ingestion certification', () => {
     expect(result.items[0].section).toBe('local');
   });
 
-  it('serves stale normal-section rows as labelled fallback', () => {
+  it('does not use a refreshed snapshot epoch to revive a story outside the 36h horizon', () => {
     const oldItemsSnapshot = {
       ...snapshot,
       fetchedAt: Date.now(),
@@ -240,10 +240,20 @@ describe('Sections snapshot browser ingestion certification', () => {
 
     const result = selectPrefetchedSectionItems(oldItemsSnapshot, 'chennai', 10);
 
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0]._prefetchedSection).toBe(true);
+    expect(result.items).toEqual([]);
     expect(result.stale).toBe(true);
-    expect(result.staleFallback).toBe(true);
+    expect(result.staleFallback).toBe(false);
     expect(result.staleReason).toBe('section_items_stale');
+  });
+
+  it('does not offer retained display from an invalid or expired snapshot epoch', () => {
+    for (const [fetchedAt, reason] of [
+      [null, 'snapshot_missing_timestamp'],
+      [Date.now() + 10 * 60_000, 'snapshot_future_timestamp'],
+      [Date.now() - 40 * 60 * 60_000, 'snapshot_outside_retained_window'],
+    ]) {
+      const result = selectPrefetchedSectionItems({ ...snapshot, fetchedAt }, 'chennai');
+      expect(result).toMatchObject({ items: [], stale: true, staleReason: reason });
+    }
   });
 });

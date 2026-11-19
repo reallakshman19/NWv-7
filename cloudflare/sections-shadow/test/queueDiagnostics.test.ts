@@ -6,6 +6,19 @@ import {
 } from '../src/queueDiagnostics';
 
 describe('Cloudflare queue failure diagnostic privacy and accuracy', () => {
+  it.each([
+    ['D1_ERROR: database or disk is full: SQLITE_FULL', 'D1_STORAGE_FULL'],
+    ["Your account has exceeded D1's free tier daily row read limit.", 'D1_DAILY_READ_LIMIT'],
+    ["Your account has exceeded D1's free tier daily row write limit.", 'D1_DAILY_WRITE_LIMIT'],
+    ['SQLITE_TOOBIG: string or blob too big', 'D1_VALUE_TOO_LARGE'],
+  ])('classifies %s without exposing the database error text', (message, code) => {
+    const fields = queueFailureFields({ type: 'PRUNE_HISTORY', epochId: 'retention-1794960000000' },
+      new Error(`${message}; private credential value`));
+    expect(fields).toMatchObject({ code, messageType: 'PRUNE_HISTORY', epochId: 'retention-1794960000000' });
+    expect(JSON.stringify(fields)).not.toContain('private credential');
+    expect(JSON.stringify(fields)).not.toContain(message);
+  });
+
   it('identifies queue message and epoch for unexpected exceptions without exposing contents', () => {
     const fields = queueFailureFields({
       type: 'FINALIZE_LIVE_EPOCH',

@@ -17,8 +17,9 @@ export function getFetchMode() {
 export function setFetchMode(mode) {
   try {
     localStorage.setItem(STORAGE_KEY, mode === FETCH_MODES.LIVE ? FETCH_MODES.LIVE : FETCH_MODES.HYBRID);
+    return true;
   } catch {
-    // storage unavailable
+    return false;
   }
 }
 

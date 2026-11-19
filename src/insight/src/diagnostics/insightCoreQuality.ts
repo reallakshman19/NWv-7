@@ -1,3 +1,5 @@
+import { countPublisherEvidenceFamilies } from "../pipeline/publisherIdentity";
+
 import {
   InsightConfig,
   InsightParent,
@@ -37,13 +39,16 @@ function getInsightSourceLabel(source: string): string {
   return "Live";
 }
 
-function getVisibleChildStories(
+export function getVisibleChildStories(
   parent: InsightParent,
   storiesById: Map<string, InsightStory>
 ): InsightStory[] {
-  return safeArray(parent.childStoryIds)
+  const members = new Set(safeArray(parent.clusterStoryIds));
+  const hidden = new Set(safeArray(parent.hiddenDuplicateIds));
+  return [...new Set(safeArray(parent.childStoryIds))]
+    .filter(id => members.has(id) && !hidden.has(id))
     .map(id => storiesById.get(id))
-    .filter(Boolean) as InsightStory[];
+    .filter((story): story is InsightStory => Boolean(story && (!story.parentId || story.parentId === parent.parentId)));
 }
 
 export function getVisibleChildAngles(
@@ -65,6 +70,7 @@ export function getInsightCoreQualityDiagnostics(
   result: {
     parents?: InsightParent[];
     storiesById?: StoriesByIdInput;
+    hiddenIds?: Set<string>;
   } | null | undefined,
   source = "live",
   cfg: InsightConfig = DEFAULT_CONFIG
@@ -77,24 +83,23 @@ export function getInsightCoreQualityDiagnostics(
     return sum + safeArray(parent.clusterStoryIds).length;
   }, 0);
 
-  const childCounts = parents.map(parent => safeArray(parent.childStoryIds).length);
+  // Diagnostic quality is based on the actually visible child evidence.
+  // Eligible-but-unselected cluster members are reported separately, not
+  // credited as visible publisher independence or temporal development.
+  const eligibleSourceFamilyCounts = parents.map(parent => countPublisherEvidenceFamilies(
+    safeArray(parent.clusterStoryIds).map(id => storiesById.get(id)).filter(Boolean) as InsightStory[]
+  ));
+  const eligibleSnapshotCounts = parents.map(parent => new Set(
+    safeArray(parent.clusterStoryIds).map(id => storiesById.get(id)).filter(Boolean)
+      .map(story => story?.capturedAtSnapshot).filter(Boolean)
+  ).size);
+  const childCounts = parents.map(parent => getVisibleChildStories(parent, storiesById).length);
   const visibleAngleCounts = parents.map(parent => getVisibleChildAngles(parent, storiesById).length);
-  const sourceGroupCounts = parents.map(parent => {
-    const sourceGroups = new Set(
-      safeArray(parent.clusterStoryIds)
-        .map(id => storiesById.get(id))
-        .filter(Boolean)
-        .map(story => story?.sourceGroup || story?.source || "unknown")
-    );
-
-    return sourceGroups.size;
-  });
+  const sourceGroupCounts = parents.map(parent => countPublisherEvidenceFamilies(getVisibleChildStories(parent, storiesById)));
 
   const snapshotCounts = parents.map(parent => {
     const slots = new Set(
-      safeArray(parent.clusterStoryIds)
-        .map(id => storiesById.get(id))
-        .filter(Boolean)
+      getVisibleChildStories(parent, storiesById)
         .map(story => story?.capturedAtSnapshot)
         .filter(Boolean)
     );
@@ -124,9 +129,10 @@ export function getInsightCoreQualityDiagnostics(
 
   const sourceLabel = getInsightSourceLabel(source);
   const isStale = source === "stale-snapshot" || source === "cached";
-  const hiddenDuplicateCount = parents.reduce((sum, parent) => (
-    sum + safeArray(parent.hiddenDuplicateIds).length + asFiniteNumber(parent.debug?.hiddenCount)
-  ), 0);
+  const hiddenDuplicateCount = new Set([
+    ...(result?.hiddenIds instanceof Set ? result.hiddenIds : []),
+    ...parents.flatMap(parent => safeArray(parent.hiddenDuplicateIds)),
+  ]).size;
 
   const angleCoverageScore = rankedCount > 0 ? multiAngleCount / rankedCount : 0;
   const strongAngleScore = rankedCount > 0 ? strongAngleCount / rankedCount : 0;
@@ -186,6 +192,8 @@ export function getInsightCoreQualityDiagnostics(
   if (hiddenDuplicateCount > 0) warnings.push(`${hiddenDuplicateCount} duplicate/near-duplicate item(s) were hidden or downgraded.`);
   if (isStale) warnings.push(`Source is ${sourceLabel.toLowerCase()}.`);
 
+  if (rankedCount > 0 && signalScore === 0) title = "Weak insight signal";
+
   if (warnings.length === 0) warnings.push("No major diagnostic warnings.");
 
   return {
@@ -204,6 +212,10 @@ export function getInsightCoreQualityDiagnostics(
     avgAngles,
     avgChildren,
     avgScore,
+    eligibleSourceFamilyCounts,
+    eligibleSnapshotCounts,
+    visibleSourceFamilyCounts: sourceGroupCounts,
+    visibleSnapshotCounts: snapshotCounts,
     sourceDiversityCoverage: rankedCount > 0 ? sourceGroupCounts.filter(count => count >= cfg.MIN_SOURCES_PER_TREE).length : 0,
     snapshotCoverage: rankedCount > 0 ? snapshotCounts.filter(count => count >= 2).length : 0,
     coverageLabel: rankedCount > 0 ? `${multiAngleCount}/${rankedCount}` : 'none',

@@ -3,6 +3,8 @@ import {
   loadSectionsSnapshot,
 } from '../adapters/sectionsSnapshotFetcher.js';
 import { getSectionsDataSource } from '../utils/sectionsDataSource.js';
+import { digestPublishedAt, digestSnippet } from '../utils/digestCardContent.js';
+import { isLocalAppPreview, readPublishedSnapshot } from '../utils/publishedSnapshotFetch.js';
 
 const LIVE_DIGEST_MAX_AGE_MS = 12 * 60 * 60 * 1000;
 const LIVE_DIGEST_MIN_CARDS = 3;
@@ -33,6 +35,8 @@ function text(value, fallback = '') {
 }
 
 function timestampMs(item) {
+  const publication = digestPublishedAt(item);
+  if (publication) return publication;
   const raw = Number(item?.publishedAt || item?.pubDate || item?.date || 0);
   if (!Number.isFinite(raw) || raw <= 0) return 0;
   return raw < 10_000_000_000 ? raw * 1000 : raw;
@@ -73,7 +77,9 @@ function normalizeCandidate(item, section, rank, nowMs) {
   const ageMs = publishedAt > 0 ? Math.max(0, nowMs - publishedAt) : Infinity;
 
   const source = text(item.source) || text(item.publisher) || text(item.sourceGroup);
-  if (!title || !canonicalUrl || !publishedAt || !source || ageMs > LIVE_DIGEST_MAX_AGE_MS) return null;
+  const lowConfidence = String(item.timestampConfidence || '').toLowerCase() === 'low'
+    || ['fetch_time_fallback', 'missing', 'invalid', 'unknown'].includes(String(item.publishedAtSource || item.timestampSource || '').toLowerCase());
+  if (!title || !canonicalUrl || !publishedAt || !source || lowConfidence || publishedAt > nowMs + 300000 || ageMs > LIVE_DIGEST_MAX_AGE_MS) return null;
 
   return {
     canonicalId: text(item.canonicalId || item.id || canonicalKey(item)),
@@ -83,6 +89,8 @@ function normalizeCandidate(item, section, rank, nowMs) {
     sourceGroup: text(item.sourceGroup, source),
     section,
     publishedAt,
+    publicationTime: digestPublishedAt(item),
+    snippet: digestSnippet(item),
     rank,
     impactScore: Number(item.impactScore || item.score || 0),
   };
@@ -153,7 +161,8 @@ export function selectLiveDigestCards(snapshot, options = {}) {
       source: candidate.source,
       sourceGroup: candidate.sourceGroup,
       section: candidate.section,
-      publishedAt: candidate.publishedAt,
+      publishedAt: candidate.publicationTime,
+      snippet: candidate.snippet,
       selectionReason: 'sections_authority_ranked_live_digest',
       deliveryMode: 'LIVE',
     })),
@@ -201,7 +210,7 @@ async function loadCanonicalDigest(primary, nowMs) {
       signal: AbortSignal.timeout(CANONICAL_SNAPSHOT_TIMEOUT_MS),
     });
     if (!response.ok) return primary;
-    const snapshot = await response.json();
+    const snapshot = await readPublishedSnapshot(response);
     const digest = digestFromSnapshot({
       ...snapshot,
       runtimeDataSource: {
@@ -230,8 +239,31 @@ export async function loadDailyDigestLiveFallback({ force = true, nowMs } = {}) 
       summary: null,
     };
   }
-  if (primary.status === 'READY' || !isOfficialPagesDeployment()) return primary;
+  if (primary.status === 'READY' || !(isOfficialPagesDeployment() || isLocalAppPreview())) return primary;
   return loadCanonicalDigest(primary, nowMs);
+}
+
+// Snapshot-only means published data only. It does not require a curated API,
+// and must not request the Worker or browser feed/proxy acquisition paths.
+export async function loadDailyDigestPublishedFallback({ nowMs = Date.now(), fetchImpl = globalThis.fetch } = {}) {
+  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const local = `${base}/newsdata/sections_latest.json`;
+  const urls = isOfficialPagesDeployment() ? [CANONICAL_SNAPSHOT_URL, local]
+    : isLocalAppPreview() ? [local, CANONICAL_SNAPSHOT_URL] : [local];
+  let reason = 'sections_snapshot_unavailable';
+  for (const url of urls) {
+    try {
+      const response = await fetchImpl(url, { cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000) });
+      const snapshot = await readPublishedSnapshot(response);
+      const digest = digestFromSnapshot({ ...snapshot, runtimeDataSource: {
+        requested: 'published_snapshot', effective: url === CANONICAL_SNAPSHOT_URL ? 'github_main' : 'bundled_snapshot',
+        fallback: url === CANONICAL_SNAPSHOT_URL, fallbackReason: url === CANONICAL_SNAPSHOT_URL ? reason : null,
+      } }, nowMs);
+      if (digest.status !== 'READY') { reason = digest.reason; continue; }
+      return { ...digest, deliveryMode: 'SNAPSHOT', cards: digest.cards.map(card => ({ ...card, deliveryMode: 'SNAPSHOT' })) };
+    } catch { reason = 'sections_snapshot_unavailable'; }
+  }
+  return { status: 'UNAVAILABLE', cards: [], reason };
 }
 
 export const __dailyDigestLiveFallbackInternalsForTest = {

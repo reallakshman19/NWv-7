@@ -63,11 +63,14 @@ describe('NW-RANK-004 Top Stories audit harness', () => {
     expect(snapshot.penalizedIds).toContain('low-confidence-story');
   });
 
-  it('includes independent top-feed, rejected self-promotion, duplicate-cluster, and local alert evidence', () => {
+  it('includes verified reports, rejects self-promotion, and preserves cluster and local alert evidence', () => {
     const snapshot = buildTopStoriesAuditSnapshot();
     expect(snapshot.penalizedIds).toContain('god-of-war-promo');
-    expect(snapshot.topFeedBoostedIds).toContain('source-diverse-top-feed');
-    expect(snapshot.topFeedBoostedIds).not.toContain('same-source-top-feed-spam');
+    expect(snapshot.explanationRows[0]).toMatchObject({
+      id: 'source-diverse-top-feed', sourceCount: 4, independentEvidenceCount: 3,
+      topFeedCorroborationHits: 0,
+    });
+    expect(snapshot.topFeedBoostedIds).toEqual([]);
     expect(snapshot.rejectedExpiredIds).toContain('same-source-top-feed-spam');
     expect(snapshot.duplicateClusterRepresentatives).toEqual([
       {
@@ -77,7 +80,9 @@ describe('NW-RANK-004 Top Stories audit harness', () => {
       },
     ]);
     expect(snapshot.rankedIdsInOrder).toContain('local-public-alert');
-    expect(snapshot.rankedIdsInOrder).toContain('fallback-hard-news');
+    // The world acquisition region is not evidence of event geography.
+    // Without an explicit world event anchor the 10h fallback misses admission.
+    expect(snapshot.rankedIdsInOrder).not.toContain('fallback-hard-news');
   });
 
   it('does not mutate input fixtures', () => {

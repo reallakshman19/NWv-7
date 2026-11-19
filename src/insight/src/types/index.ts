@@ -149,6 +149,10 @@ export interface InsightStory extends RawStory {
   eventVerbs: string[];      // e.g. ["launches", "bans", "acquires"]
   numbers: string[];         // extracted numeric facts, e.g. ["₹4200Cr", "18%"]
 
+  /** A08: canonical publisher for independent evidence, independent of visible label. */
+  publisherFamily?: string;
+  /** Slot requested for acquisition, which may differ from actual publication window. */
+  requestedSnapshotSlot?: SnapshotSlot;
   sourceTier: SourceTier;
   sourceDistributionType: SourceDistributionType;
   sourceContentDomain: SourceContentDomain;

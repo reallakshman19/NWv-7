@@ -1,5 +1,6 @@
 import { analyzeDateText, classifyPlannerWindow } from '../intelligence/dateAware.js';
 import { annotateItemLocation } from '../intelligence/locationAware.js';
+import { upAheadOccurrenceKey, upAheadDateKey, upAheadPlannerDayKey } from '../services/upAheadLifecycle.js';
 import { toLocalDateKey } from './dateKey.js';
 
 function formatDateKey(input) {
@@ -12,16 +13,9 @@ export function enrichCanonicalItemForPlanner(item, options = {}) {
   const fullText = [item?.title, item?.description, item?.summary, item?.originalText].filter(Boolean).join(' • ');
   const publishDate = item?.pubDate || item?.publishDate || null;
 
-  const dateAnalysis = analyzeDateText(fullText, {
-    asOfDate: options.asOfDate,
-    publishDate,
-    plannerWindowDays: options.plannerWindowDays || 7
-  });
-
   const locationAnnotated = annotateItemLocation(
     {
       ...item,
-      eventDate: dateAnalysis.eventDate,
       category: item?.category,
       mode: options.mode || item?.mode || 'offline'
     },
@@ -33,8 +27,18 @@ export function enrichCanonicalItemForPlanner(item, options = {}) {
       category: item?.category
     }
   );
+  const dateAnalysis = analyzeDateText(fullText, {
+    asOfDate: options.asOfDate,
+    publishDate,
+    locationCanonical: locationAnnotated.locationCanonical,
+    requirePublicationAnchor: true,
+    plannerWindowDays: options.plannerWindowDays || 7
+  });
 
-  const windowing = classifyPlannerWindow(dateAnalysis, {
+  const windowing = classifyPlannerWindow({
+    ...dateAnalysis,
+    locationCanonical: locationAnnotated.locationCanonical,
+  }, {
     asOfDate: options.asOfDate,
     plannerWindowDays: options.plannerWindowDays || 7
   });
@@ -45,6 +49,7 @@ export function enrichCanonicalItemForPlanner(item, options = {}) {
     eventDateEnd: dateAnalysis.eventDateEnd,
     eventDateKey: dateAnalysis.eventDateKey,
     eventDateEndKey: dateAnalysis.eventDateEndKey,
+    eventDateEndExclusiveKey: dateAnalysis.eventDateEndExclusiveKey,
     dateConfidence: dateAnalysis.dateConfidence,
     temporalType: dateAnalysis.temporalType,
     matchedDateKeys: dateAnalysis.matchedDateKeys,
@@ -63,10 +68,13 @@ export function enrichCanonicalItemForPlanner(item, options = {}) {
 }
 
 export function buildPlannerMergePayload(item) {
-  const eventDateKey = item?.eventDateKey || item?.planDate || null;
-  if (!eventDateKey) return null;
+  if (!item) return null;
+  const eventDateKey = Object.hasOwn(item,'eventDateKey') ? item.eventDateKey : upAheadDateKey(item);
+  if (!eventDateKey && !item.planDate) return null;
 
   return {
+    ...item,
+    occurrenceKey: upAheadOccurrenceKey(item),
     hiddenKey: item.hiddenKey || item.canonicalId || item.id,
     canonicalId: item.canonicalId || item.hiddenKey || item.id,
     id: item.id || item.canonicalId || item.hiddenKey,
@@ -75,12 +83,30 @@ export function buildPlannerMergePayload(item) {
     type: item.type || item.category || 'event',
     link: item.link,
     description: item.description,
-    eventDate: item.eventDate ? new Date(item.eventDate).toISOString() : eventDateKey,
+    eventDate: item.eventDate || eventDateKey,
+    planDate: item.planDate || eventDateKey,
     eventDateKey,
+    ...(item.eventDateEndKey && { eventDateEndKey: item.eventDateEndKey }),
+    ...(item.eventDateEndExclusiveKey && { eventDateEndExclusiveKey: item.eventDateEndExclusiveKey }),
+    ...(item.eventStartAt && { eventStartAt: item.eventStartAt }),
+    ...(item.eventEndAt && { eventEndAt: item.eventEndAt }),
+    ...(item.datePrecision && { datePrecision: item.datePrecision }),
     dateConfidence: item.dateConfidence || 'inferred',
     locationCanonical: item.locationCanonical || null,
     isOffer: Boolean(item.isOffer),
     icon: item.icon,
     decisionTrace: item.decisionTrace || []
   };
+}
+
+// Shared explicit-save adapter for the routed +Plan action. A planned action
+// date does not change the advertised occurrence, including undated cards.
+export function buildExplicitPlannerSave(item, dateStr, now = Date.now()) {
+  if (!item) return null;
+  const eventDateKey = Object.hasOwn(item, 'eventDateKey') && item.eventDateKey === null ? null : upAheadDateKey(item);
+  const plannerDay = eventDateKey ? upAheadPlannerDayKey(item, now) : null;
+  const planDate = plannerDay && plannerDay !== eventDateKey ? plannerDay
+    : item.planDate || toLocalDateKey(dateStr) || eventDateKey || toLocalDateKey(now);
+  return buildPlannerMergePayload({ ...item, eventDateKey, planDate,
+    category: item.category || item.tags?.[0] || 'event' });
 }

@@ -48,8 +48,8 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇮🇳',
     lat: 13.0827,
     lon: 80.2707,
-    aliases: ['chennai', 'madras', 'tamil nadu', 'tn'],
-    storyKeywords: ['chennai', 'madras', 'tamil nadu', 'tn', 'india'],
+    aliases: ['chennai', 'madras', 'tamil nadu', 'tn', 'சென்னை'],
+    storyKeywords: ['chennai', 'madras', 'tamil nadu', 'tn', 'india', 'சென்னை', 'தமிழ்நாடு'],
     edition: {
       country: 'IN',
       lang: 'en',
@@ -84,8 +84,8 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇴🇲',
     lat: 23.5859,
     lon: 58.4059,
-    aliases: ['muscat', 'masqat', 'maskat', 'oman'],
-    storyKeywords: ['muscat', 'masqat', 'oman', 'omani'],
+    aliases: ['muscat', 'masqat', 'maskat', 'oman', 'مسقط'],
+    storyKeywords: ['muscat', 'masqat', 'oman', 'omani', 'مسقط', 'عمان'],
     edition: {
       country: 'OM',
       lang: 'en',
@@ -110,7 +110,8 @@ export function normalizeTravelLocation(value) {
     .trim()
     .toLowerCase()
     .replace(/[_-]+/g, ' ')
-    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/[\u064b-\u065f\u0670]/g, '')
+    .replace(/[^\p{L}\p{N}\p{M}\s]/gu, ' ')
     .replace(/\s+/g, ' ');
 }
 
@@ -125,7 +126,10 @@ export function resolveTravelLocationKey(value) {
       .map(normalizeTravelLocation);
 
     if (aliases.includes(normalized)) return key;
-    if (aliases.some(alias => normalized.includes(alias))) return key;
+    // Accept 'Muscat, Oman' but not substrings such as 'milk' -> 'lk'.
+    const parts = String(value || '').split(',').map(normalizeTravelLocation);
+    if (parts.length === 2 && aliases.includes(parts[0]) &&
+        [profile.countryLabel, profile.regionLabel].map(normalizeTravelLocation).includes(parts[1])) return key;
   }
 
   return null;

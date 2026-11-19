@@ -34,7 +34,7 @@ export async function pruneShadowHistory(env: CustodyEnv, nowMs = Date.now()): P
     epochs: 0,
     queueOperations: 0,
     d1Reads: 25_000,
-    d1Writes: 2_500,
+    d1Writes: 6_000,
     workerInvocations: 1,
   });
   const abandoned = await db.prepare(`
@@ -51,13 +51,13 @@ export async function pruneShadowHistory(env: CustodyEnv, nowMs = Date.now()): P
 
   const payloads = await pruneExpiredD1Evidence(db, nowMs);
   const history = await db.batch([
-    // One live epoch can produce up to 41 lanes × 20 ranking decisions.
-    deleteExpiredEpochRows(db, 'sections_shadow_decisions', cutoff, 960),
-    deleteExpiredEpochRows(db, 'sections_shadow_lane_evidence', cutoff, 48),
+    // Drain more than one maximum live epoch per run, including ledger/index writes.
+    deleteExpiredEpochRows(db, 'sections_shadow_decisions', cutoff, 1_440),
+    deleteExpiredEpochRows(db, 'sections_shadow_lane_evidence', cutoff, 96),
     db.prepare(`
       DELETE FROM sections_shadow_parity_results WHERE rowid IN (
         SELECT rowid FROM sections_shadow_parity_results
-        WHERE created_at_ms <= ? ORDER BY created_at_ms LIMIT 4
+        WHERE created_at_ms <= ? ORDER BY created_at_ms LIMIT 8
       )
     `).bind(cutoff),
     db.prepare(`
@@ -70,7 +70,7 @@ export async function pruneShadowHistory(env: CustodyEnv, nowMs = Date.now()): P
           AND NOT EXISTS (SELECT 1 FROM sections_shadow_lane_payloads WHERE epoch_id = e.epoch_id)
           AND NOT EXISTS (SELECT 1 FROM sections_shadow_evidence_objects WHERE epoch_id = e.epoch_id)
           AND NOT EXISTS (SELECT 1 FROM sections_shadow_parity_results WHERE shadow_epoch_id = e.epoch_id)
-        ORDER BY e.logical_slot, e.attempt LIMIT 12
+        ORDER BY e.logical_slot, e.attempt LIMIT 24
       )
     `).bind(cutoff),
     db.prepare(`

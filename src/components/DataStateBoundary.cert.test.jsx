@@ -67,6 +67,7 @@ describe('DataStateBoundary internals', () => {
       envelope: {
         ok: true,
         freshness: 'fresh',
+        validation: { passed: true, errors: [], warnings: [] },
         data: {
           frontPage: [{ title: 'A' }],
         },

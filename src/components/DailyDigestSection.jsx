@@ -1,4 +1,5 @@
 import React, { useId, useState } from 'react';
+import { digestPublishedAt, digestSnippet } from '../utils/digestCardContent.js';
 
 const PUBLISHER_LABELS = Object.freeze({
   AKASHVANI: 'Akashvani',
@@ -55,12 +56,12 @@ function sectionLabel(value) {
   return labels[value] || String(value || '').replaceAll('_', ' ');
 }
 
-function isLiveCard(card, deliveryMode) {
-  return deliveryMode === 'LIVE' || card?.deliveryMode === 'LIVE';
+function isAutoSelectedCard(card, deliveryMode) {
+  return ['LIVE', 'SNAPSHOT'].includes(deliveryMode) || ['LIVE', 'SNAPSHOT'].includes(card?.deliveryMode);
 }
 
 function cardSourceLabel(card, deliveryMode) {
-  if (!isLiveCard(card, deliveryMode)) return productLabel(card);
+  if (!isAutoSelectedCard(card, deliveryMode)) return productLabel(card);
   const source = String(card?.source || card?.sourceGroup || 'Sections authority').trim();
   const section = sectionLabel(card?.section);
   return section ? `${source} · ${section}` : source;
@@ -75,7 +76,25 @@ function freezeLabel(value) {
   }).format(date);
 }
 
+function DigestStoryDetails({ card }) {
+  const publishedAt = digestPublishedAt(card);
+  const snippet = digestSnippet(card);
+  const date = publishedAt ? new Date(publishedAt) : null;
+  const published = date ? new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+  }).format(date) : null;
+  return <>
+    <div className="daily-digest-published">
+      {date ? <time dateTime={date.toISOString()} title={date.toLocaleString('en-IN', {
+        year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'long',
+      })}>Published {published}</time> : <span>Publication time unavailable</span>}
+    </div>
+    {snippet && <p className="daily-digest-snippet">{snippet}</p>}
+  </>;
+}
+
 function compositionLabel(value, deliveryMode) {
+  if (deliveryMode === 'SNAPSHOT' || value === 'PUBLISHED_SECTIONS_AUTHORITY') return 'Digest · published snapshot';
   if (deliveryMode === 'LIVE' || value === 'LIVE_SECTIONS_AUTHORITY') {
     return 'Live digest · current Sections authority';
   }
@@ -111,7 +130,7 @@ function emptyStateCopy({ availability, loading, error }) {
 function groupDigestCards(cards, deliveryMode) {
   const groups = new Map();
   for (const card of cards) {
-    const live = isLiveCard(card, deliveryMode);
+    const live = isAutoSelectedCard(card, deliveryMode);
     const source = String(card.source || card.sourceGroup || 'Sections authority').trim();
     const key = live ? card.sourceGroup || source : card.publisherFamily || 'curated';
     const label = live ? source : publisherLabel(card.publisherFamily) || 'Publisher';
@@ -167,6 +186,7 @@ export function DailyDigestSection({
           {cards.length > 0 ? (
             <>
               {deliveryMode === 'LIVE' && <span className="mnc-badge">LIVE</span>}
+              {deliveryMode === 'SNAPSHOT' && <span className="mnc-badge">SNAPSHOT</span>}
               <span className="news-count">({cards.length})</span>
             </>
           ) : (
@@ -213,13 +233,14 @@ export function DailyDigestSection({
                 <div className="mnc-header">
                   <span className="mnc-source">{cardSourceLabel(card, deliveryMode)}</span>
                   <span className="mnc-badge">
-                    {isLiveCard(card, deliveryMode) ? sectionLabel(card.section) : card.slot}
+                    {isAutoSelectedCard(card, deliveryMode) ? sectionLabel(card.section) : card.slot}
                   </span>
                 </div>
                 <h3 className="mnc-headline">{card.title}</h3>
+                <DigestStoryDetails card={card} />
                 <div className="mnc-badges">
-                  {isLiveCard(card, deliveryMode)
-                    ? <span className="mnc-badge">Live · Auto-selected</span>
+                  {isAutoSelectedCard(card, deliveryMode)
+                    ? <span className="mnc-badge">{deliveryMode==='SNAPSHOT'||card.deliveryMode==='SNAPSHOT'?'Snapshot':'Live'} · Auto-selected</span>
                     : <span className="mnc-badge">Publisher-curated</span>}
                   {card.replacementReason && <span className="mnc-badge">Health failover</span>}
                 </div>

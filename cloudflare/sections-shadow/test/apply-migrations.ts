@@ -15,6 +15,7 @@ beforeEach(async () => {
     testEnv.SHADOW_DB.prepare('DROP TABLE sections_shadow_lane_evidence'),
     testEnv.SHADOW_DB.prepare('DROP TABLE sections_shadow_epochs'),
     testEnv.SHADOW_DB.prepare('DROP TABLE sections_shadow_quota_daily'),
+    testEnv.SHADOW_DB.prepare('DROP TABLE sections_shadow_storage_usage'),
     testEnv.SHADOW_DB.prepare('DROP TABLE d1_migrations'),
   ]);
   await applyD1Migrations(testEnv.SHADOW_DB, testEnv.TEST_MIGRATIONS);

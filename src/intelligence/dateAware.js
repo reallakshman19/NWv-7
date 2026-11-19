@@ -1,171 +1,32 @@
-import { extractDate, expandDateKeys } from '../utils/dateExtractor.js';
-import { toLocalDateKey } from '../utils/dateKey.js';
+import { extractDate, expandDateKeys, stripDatePublisherLabels } from '../utils/dateExtractor.js';
+import { parsePublicationDate } from '../utils/dateKey.js';
+import { getUpAheadWindowStatus, upAheadEventDayKey } from '../services/upAheadLifecycle.js';
 
-const DOW = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-
-function atStartOfDay(input) {
-  const d = new Date(input);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function addDays(input, days) {
-  const d = atStartOfDay(input);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function formatDateKey(input) {
-  return toLocalDateKey(atStartOfDay(input));
-}
-
-function safeDate(input) {
-  if (!input) return null;
-  const d = new Date(input);
-  return Number.isNaN(d.getTime()) ? null : atStartOfDay(d);
-}
-
-function chooseReferenceDate({ asOfDate, publishDate } = {}) {
-  return safeDate(asOfDate) || safeDate(publishDate) || atStartOfDay(new Date());
-}
-
-function inferYearForShortDate(day, month, refDate) {
-  const candidate = new Date(refDate.getFullYear(), month - 1, day);
-  candidate.setHours(0, 0, 0, 0);
-
-  const threshold = addDays(refDate, -30);
-  if (candidate < threshold) {
-    candidate.setFullYear(candidate.getFullYear() + 1);
+// Date extraction uses the publication instant, while eligibility uses the
+// observation clock. A supported venue sets the calendar for relative dates.
+function parseReference({ publishDate, asOfDate } = {}) {
+  for (const [source, value] of [['publication', publishDate], ['explicit_as_of', asOfDate]]) {
+    if (value == null || value === '') continue;
+    const date = parsePublicationDate(value);
+    if (date && Number.isFinite(+date)) return { date, source };
   }
-
-  return candidate;
+  return { date: new Date(), source: 'wall_clock_fallback' };
 }
-
-function parseShortNumericWithoutYear(text, refDate) {
-  const match = String(text || '').match(/\b(\d{1,2})[/-](\d{1,2})(?![/-]\d{2,4})\b/);
-  if (!match) return null;
-
-  const a = Number(match[1]);
-  const b = Number(match[2]);
-  if (a < 1 || a > 31 || b < 1 || b > 12) return null;
-
-  const date = inferYearForShortDate(a, b, refDate);
-  return {
-    eventDate: date,
-    eventDateEnd: null,
-    dateConfidence: 'inferred',
-    temporalType: 'single',
-    matchedText: match[0],
-    parser: 'short_numeric_without_year'
-  };
-}
-
-function parseRelativeWeekWindow(text, refDate) {
-  const lower = String(text || '').toLowerCase();
-
-  if (/\bthis week\b/.test(lower)) {
-    return {
-      eventDate: atStartOfDay(refDate),
-      eventDateEnd: addDays(refDate, 6 - refDate.getDay()),
-      dateConfidence: 'tentative',
-      temporalType: 'range',
-      matchedText: 'this week',
-      parser: 'relative_this_week'
-    };
-  }
-
-  if (/\bnext week\b/.test(lower)) {
-    const daysToNextMonday = ((8 - refDate.getDay()) % 7) || 7;
-    const start = addDays(refDate, daysToNextMonday);
-    return {
-      eventDate: start,
-      eventDateEnd: addDays(start, 6),
-      dateConfidence: 'tentative',
-      temporalType: 'range',
-      matchedText: 'next week',
-      parser: 'relative_next_week'
-    };
-  }
-
-  if (/\bthis weekend\b/.test(lower) || /\bcoming weekend\b/.test(lower)) {
-    const daysToSaturday = (6 - refDate.getDay() + 7) % 7;
-    const start = addDays(refDate, daysToSaturday);
-    return {
-      eventDate: start,
-      eventDateEnd: addDays(start, 1),
-      dateConfidence: 'inferred',
-      temporalType: 'range',
-      matchedText: /\bcoming weekend\b/.test(lower) ? 'coming weekend' : 'this weekend',
-      parser: 'relative_weekend'
-    };
-  }
-
-  return null;
-}
-
-function parseEndsTodayTomorrow(text, refDate) {
-  const lower = String(text || '').toLowerCase();
-
-  if (/\b(?:ends?|expires?|valid till|valid until|last date|book by)\s+today\b/.test(lower)) {
-    return {
-      eventDate: atStartOfDay(refDate),
-      eventDateEnd: atStartOfDay(refDate),
-      dateConfidence: 'inferred',
-      temporalType: 'deadline',
-      matchedText: 'today',
-      parser: 'deadline_today'
-    };
-  }
-
-  if (/\b(?:ends?|expires?|valid till|valid until|last date|book by)\s+tomorrow\b/.test(lower)) {
-    const next = addDays(refDate, 1);
-    return {
-      eventDate: atStartOfDay(refDate),
-      eventDateEnd: next,
-      dateConfidence: 'inferred',
-      temporalType: 'deadline',
-      matchedText: 'tomorrow',
-      parser: 'deadline_tomorrow'
-    };
-  }
-
-  return null;
-}
-
-function parseWeekdayDeadline(text, refDate) {
-  const lower = String(text || '').toLowerCase();
-  const deadlinePrefix = /\b(?:ends?|expires?|valid till|valid until|last date|book by|before)\b/;
-  if (!deadlinePrefix.test(lower)) return null;
-
-  for (let i = 0; i < DOW.length; i += 1) {
-    const day = DOW[i];
-    if (!new RegExp(`\\b${day}\\b`).test(lower)) continue;
-
-    const diff = ((i - refDate.getDay()) + 7) % 7;
-    const target = addDays(refDate, diff === 0 ? 7 : diff);
-    return {
-      eventDate: atStartOfDay(refDate),
-      eventDateEnd: target,
-      dateConfidence: 'tentative',
-      temporalType: 'deadline',
-      matchedText: day,
-      parser: 'deadline_weekday'
-    };
-  }
-
-  return null;
-}
-
-function parseWithLegacyExtractor(text, refDate) {
-  const result = extractDate(text, refDate);
+function parseWithLegacyExtractor(text, refDate, allowRelative) {
+  const result = extractDate(text, refDate, { allowRelative });
   if (!result?.start) return null;
-
   return {
-    eventDate: atStartOfDay(result.start),
-    eventDateEnd: result.end ? atStartOfDay(result.end) : null,
-    dateConfidence: ['iso', 'numeric', 'named'].includes(result.type) ? 'exact' : 'inferred',
-    temporalType: result.end ? 'range' : (result.type === 'deadline' ? 'deadline' : 'single'),
-    matchedText: null,
+    eventDate: result.start,
+    eventDateEnd: result.end,
+    eventDateKey: result.startKey,
+    eventDateEndKey: result.endKey,
+    eventDateEndExclusiveKey: result.endExclusiveKey,
+    // Python's legacy range confidence is a shape marker; JS consumers expect
+    // inferred/exact/tentative and temporalType to represent shape separately.
+    dateConfidence: result.confidence === 'range' ? 'inferred' : result.confidence,
+    contractConfidence: result.confidence,
+    temporalType: result.type === 'deadline' ? 'deadline' : result.end ? 'range' : 'single',
+    matchedText: result.matchedText,
     parser: `legacy_${result.type}`,
     legacyType: result.type
   };
@@ -176,8 +37,12 @@ function hasStrongTemporalSignal(text) {
 }
 
 export function analyzeDateText(text, options = {}) {
-  const refDate = chooseReferenceDate(options);
-  const candidateText = String(text || '').trim();
+  const {date: refDate, source: referenceSource} = parseReference(options);
+  const candidateText = stripDatePublisherLabels(text).trim();
+  const calendarRef = options.locationCanonical
+    ? upAheadEventDayKey(refDate, { locationCanonical: options.locationCanonical, datePrecision: 'day' }) || refDate
+    : refDate;
+  const allowRelative = !options.requirePublicationAnchor || referenceSource === 'publication';
   const decisionTrace = [];
 
   if (!candidateText) {
@@ -193,13 +58,7 @@ export function analyzeDateText(text, options = {}) {
     };
   }
 
-  const parsers = [
-    () => parseEndsTodayTomorrow(candidateText, refDate),
-    () => parseWeekdayDeadline(candidateText, refDate),
-    () => parseRelativeWeekWindow(candidateText, refDate),
-    () => parseShortNumericWithoutYear(candidateText, refDate),
-    () => parseWithLegacyExtractor(candidateText, refDate)
-  ];
+  const parsers = [() => parseWithLegacyExtractor(candidateText, calendarRef, allowRelative)];
 
   for (const parser of parsers) {
     const result = parser();
@@ -208,7 +67,8 @@ export function analyzeDateText(text, options = {}) {
     const dateKeys = expandDateKeys(
       {
         start: result.eventDate,
-        end: result.eventDateEnd
+        end: result.eventDateEnd,
+        startKey: result.eventDateKey, endKey: result.eventDateEndKey
       },
       options.maxExpandedDays || 14
     );
@@ -217,14 +77,17 @@ export function analyzeDateText(text, options = {}) {
 
     return {
       ...result,
-      eventDateKey: formatDateKey(result.eventDate),
-      eventDateEndKey: result.eventDateEnd ? formatDateKey(result.eventDateEnd) : null,
+      eventDateKey: result.eventDateKey,
+      eventDateEndKey: result.eventDateEndKey,
+      referenceSource,
       matchedDateKeys: dateKeys,
       routeHint: result.dateConfidence === 'tentative' ? 'upahead_possible' : 'eligible',
       parsedDateEvidence: {
         parser: result.parser,
         matchedText: result.matchedText,
-        legacyType: result.legacyType || null
+        legacyType: result.legacyType || null,
+        referenceSource,
+        contractConfidence: result.contractConfidence
       },
       dropReason: null,
       decisionTrace
@@ -245,12 +108,12 @@ export function analyzeDateText(text, options = {}) {
 }
 
 export function classifyPlannerWindow(dateAnalysis, options = {}) {
-  const asOfDate = chooseReferenceDate(options);
   const plannerWindowDays = Number.isFinite(options.plannerWindowDays) ? options.plannerWindowDays : 7;
-  const start = atStartOfDay(asOfDate);
-  const end = addDays(start, plannerWindowDays - 1);
-
-  if (!dateAnalysis?.eventDate) {
+  const windowStatus = getUpAheadWindowStatus(dateAnalysis, {
+    asOfDate: parsePublicationDate(options.asOfDate) ? options.asOfDate : options.publishDate,
+    plannerWindowDays,
+  });
+  if (windowStatus === 'missing_date') {
     return {
       windowStatus: 'missing_date',
       plannerEligible: false,
@@ -258,11 +121,10 @@ export function classifyPlannerWindow(dateAnalysis, options = {}) {
     };
   }
 
-  const eventDate = atStartOfDay(dateAnalysis.eventDate);
-  if (eventDate < start) {
+  if (windowStatus === 'before_window') {
     return { windowStatus: 'before_window', plannerEligible: false, upAheadEligible: false };
   }
-  if (eventDate > end) {
+  if (windowStatus === 'after_window') {
     return { windowStatus: 'after_window', plannerEligible: false, upAheadEligible: true };
   }
 

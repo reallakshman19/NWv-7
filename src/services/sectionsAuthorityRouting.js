@@ -6,16 +6,17 @@
  * runtime, Live mode means "refresh the selected authority", not "bypass the
  * authority and fan out through public CORS proxies".
  */
+function requiresSectionsAuthority(runtime) {
+  const allowed = runtime?.browserWideFeedFetchAllowed ?? runtime?.allowWideFeedFetch;
+  return allowed === false || Boolean(runtime?.isStaticHost && allowed !== true);
+}
+
 export function shouldUseSectionsAuthoritySnapshot({
   liveMode = false,
   runtime = {},
   usePrefetchedSections = true,
 } = {}) {
-  const staticHostRequiresAuthority = Boolean(
-    runtime?.isStaticHost && !runtime?.allowWideFeedFetch
-  );
-
-  if (staticHostRequiresAuthority) return true;
+  if (requiresSectionsAuthority(runtime)) return true;
 
   return !liveMode && usePrefetchedSections !== false;
 }
@@ -33,7 +34,6 @@ export function shouldForceSectionsAuthorityRefresh({
 
   return Boolean(
     liveMode &&
-    runtime?.isStaticHost &&
-    !runtime?.allowWideFeedFetch
+    requiresSectionsAuthority(runtime)
   );
 }

@@ -1,4 +1,4 @@
-import { normalizeTopStoryCanonicalUrl } from './topStories/topStoriesStudyIdentity.js';
+import { sameRegionalNewsStory } from './newsStoryIdentity.js';
 
 const TAMIL_SECTION_KEYS = new Set(['tn', 'chennai', 'tamilnadu', 'tamilNadu']);
 const TAMIL_NADU = /\b(?:tamil nadu|chennai|coimbatore|madurai|tiruchirappalli|trichy|tirunelveli|cuddalore|nagapattinam|nilgiris)\b/i;
@@ -45,29 +45,18 @@ export function belongsInRegionalSection(item, section) {
   return section === 'india' || item.backfilledFrom !== 'india' || TAMIL_NADU.test(text);
 }
 
-function storyKeys(item) {
-  const url = normalizeTopStoryCanonicalUrl(item.url || item.link || item.canonicalUrl);
-  const headline = (item.title || item.headline || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-  return [
-    item.id && `id:${item.id}`,
-    url && `url:${url}`,
-    headline.split(' ').length >= 5 && `headline:${headline}`,
-  ].filter(Boolean);
-}
-
 // The specific regional version wins. A national item copied to fill the
 // regional feed stays with India unless the regional version has local scope.
 export function removeRegionalSectionOverlap(items, section, otherItems = []) {
   const isIndia = section === 'india';
   if (!isIndia && !TAMIL_SECTION_KEYS.has(section)) return items;
   const otherSection = isIndia ? 'tn' : 'india';
-  const overlapping = new Set(otherItems
+  const overlapping = otherItems
     .filter(item => belongsInRegionalSection(item, otherSection))
-    .filter(item => !isIndia || isTamilNaduStory(item))
-    .flatMap(storyKeys));
+    .filter(item => !isIndia || isTamilNaduStory(item));
   return items.filter(item => {
     if (!belongsInRegionalSection(item, section)) return false;
     if (!isIndia && isTamilNaduStory(item)) return true;
-    return !storyKeys(item).some(key => overlapping.has(key));
+    return !overlapping.some(other=>sameRegionalNewsStory(item,other));
   });
 }

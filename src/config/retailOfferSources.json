@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "freshHours": 24,
+  "retentionDays": 7,
+  "maxOffersPerRetailer": 20,
+  "maxFlyersPerRetailer": 4,
+  "sources": [
+    {"id":"amazon-in","name":"Amazon India","market":"india","cities":["Chennai"],"currency":"INR","adapter":"amazon","mode":"browser","url":"https://www.amazon.in/gp/goldbox","domains":["amazon.in"],"channels":["online"]},
+    {"id":"flipkart-in","name":"Flipkart India","market":"india","cities":["Chennai"],"currency":"INR","adapter":"flipkart","mode":"http","url":"https://www.flipkart.com/search?q=offers","domains":["flipkart.com"],"channels":["online"]},
+    {"id":"lulu-oman","name":"LuLu Oman","market":"oman","cities":["Muscat"],"currency":"OMR","adapter":"lulu","mode":"http-python","url":"https://gcc.luluhypermarket.com/en-om/grocery-household-laundry-essentials/","domains":["luluhypermarket.com"],"channels":["online","offline"],"flyerListing":{"url":"https://www.clicoffer.com/en/oman/muscat/offers/lulu-hypermarket-791/","merchant":"lulu-hypermarket","city":"Muscat"}},
+    {"id":"hypermax-oman","name":"HyperMax Oman","market":"oman","cities":["Muscat"],"currency":"OMR","adapter":"hypermax","mode":"http","url":"https://www.hypermax.com.om/mafomn/en/shop/storespromotions","domains":["hypermax.com.om"],"channels":["online","offline"],"flyerListing":{"url":"https://www.clicoffer.com/en/oman/muscat/offers/hypermax-794/","merchant":"hypermax","city":"Muscat"}},
+    {"id":"sharaf-oman","name":"Sharaf DG Oman","market":"oman","cities":["Muscat"],"currency":"OMR","adapter":"sharaf","mode":"http","url":"https://oman.sharafdg.com/","domains":["oman.sharafdg.com"],"channels":["online","offline"],"flyerListing":{"url":"https://www.clicoffer.com/en/oman/muscat/offers/","merchant":"sharaf-dg","city":"Muscat","limitedListing":true}},
+    {"id":"extra-oman","name":"eXtra Oman","market":"oman","cities":["Muscat"],"currency":"OMR","adapter":"schema","mode":"http","url":"https://www.extra.com/en-om","domains":["extra.com"],"channels":["online","offline"],"flyerListing":{"url":"https://www.clicoffer.com/en/oman/muscat/offers/","merchant":"extra-stores","city":"Muscat","limitedListing":true}}
+  ]
+}

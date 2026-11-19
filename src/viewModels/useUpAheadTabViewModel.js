@@ -6,6 +6,7 @@ import plannerStorage, {
   isPlannerStorageSuccess,
 } from '../utils/plannerStorage';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities';
+import { buildCardArticle, formatConciseDate } from '../services/upAheadProjection.js';
 
 function toLocalDateKey(date) {
   const year = date.getFullYear();
@@ -29,34 +30,6 @@ function normalizePlanDate(dateStr) {
   }
 
   return dateStr;
-}
-
-function formatConciseDate(dateStr, publishedAt) {
-  if (!dateStr) {
-    // Fall back to relative time from publishedAt instead of 'Coming Soon'
-    if (publishedAt) {
-      const ms = typeof publishedAt === 'number'
-        ? (publishedAt < 10_000_000_000 ? publishedAt * 1000 : publishedAt)
-        : Date.parse(publishedAt);
-      if (ms > 0) {
-        const diffH = (Date.now() - ms) / 3600000;
-        if (diffH < 1) return 'Just now';
-        if (diffH < 24) return `${Math.floor(diffH)}h ago`;
-        if (diffH < 48) return 'Yesterday';
-        return `${Math.floor(diffH / 24)}d ago`;
-      }
-    }
-    return 'Coming Soon';
-  }
-
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-
-  const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const dayNum = d.getDate().toString().padStart(2, '0');
-  const month = d.toLocaleDateString('en-US', { month: 'short' });
-
-  return `${dayName}, ${dayNum} ${month}`;
 }
 
 // Tabloid/gossip patterns that should not appear in the Release section.
@@ -84,19 +57,6 @@ const RELEASE_GOSSIP_PATTERNS = [
 
 function isGossipTitle(title = '') {
   return RELEASE_GOSSIP_PATTERNS.some(pattern => pattern.test(title));
-}
-
-function buildCardArticle(item) {
-  return {
-    ...item,
-    time: formatConciseDate(
-      item?.date || item?.releaseDate,
-      item?.publishedAt || item?.timestamp
-    ),
-    summary: item?.description || item?.summary || '',
-    source: item?.source || item?.platform || item?.category || 'Up Ahead',
-    imageUrl: item?.posterUrl || item?.imageUrl || null,
-  };
 }
 
 function getRawData(data) {

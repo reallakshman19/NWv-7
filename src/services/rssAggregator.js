@@ -5,14 +5,17 @@
 
 import { GOOGLE_FEEDS } from './googleNewsService.js';
 import { getSettings, getViewCount } from '../utils/storage.js';
+import { MAX_NEWS_AGE_HOURS, resolveNewsAgeLimit } from '../config/settings_news.js';
+import { parsePublicationDate } from '../utils/dateKey.js';
 import { fetchAllEntertainment } from './entertainmentService.js';
 import { analyzeArticleSentiment } from '../utils/sentimentAnalyzer.js';
 import { deduplicateAndCluster } from '../utils/similarity.js';
+import { expandNewsEvidenceRows } from './newsClusterEvidence.js';
 import { breakingDetector } from '../utils/breakingNewsDetector.js';
 import { calculateSourceScore, getSourceWeightForCategory, SOURCE_METRICS } from '../data/sourceMetrics.js';
 import { calculateImpactScore, assessPublicImpact } from '../utils/impactScorer.js';
 import { calculateProximityScore } from '../utils/proximityScorer.js';
-import { calculateNoveltyScore } from '../utils/noveltyScorer.js';
+import { calculateNoveltyScore, createNoveltyCorpus } from '../utils/noveltyScorer.js';
 import { calculateCurrencyScore } from '../utils/currencyScorer.js';
 import { calculateHumanInterestScore } from '../utils/humanInterestScorer.js';
 import { calculateVisualScore } from '../utils/visualScorer.js';
@@ -20,7 +23,7 @@ import { classifySection } from '../utils/sectionClassifier.js';
 import { proxyManager } from './proxyManager.js';
 import logStore from '../utils/logStore.js';
 import { getSectionHealth, recordFetchCount, checkSingleSource } from '../utils/sectionHealth.js';
-import { fetchPrefetchedSectionNews } from '../adapters/sectionsSnapshotFetcher.js';
+import { fetchPrefetchedSectionNews, SECTION_SNAPSHOT_MAX_AGE_MS } from '../adapters/sectionsSnapshotFetcher.js';
 import * as sourceDominancePolicy from '../intelligence/sourceDominancePolicy.js';
 import * as staleStoryPolicy from '../intelligence/staleStoryPolicy.js';
 import { recordDiagnostic } from '../data/diagnosticsStore.js';
@@ -30,6 +33,7 @@ import { severityHits, matchesEntertainmentGuard, DEFAULT_RANKING_POLICY } from 
 import { temporalScore } from './temporalScorer.js';
 import { withInFlightCleanup } from './fetchLifecycleDiagnostics.js';
 import { belongsInRegionalSection } from './regionalSectionPolicy.js';
+import { getAgeHours } from './topStories/topStoriesSignals.js';
 import {
     shouldForceSectionsAuthorityRefresh,
     shouldUseSectionsAuthoritySnapshot
@@ -68,13 +72,13 @@ const SECTION_FEEDS = {
     ],
     trichy: [
         "https://www.thehindu.com/news/cities/Tiruchirapalli/feeder/default.rss",
-        "https://www.dtnext.in/rss",
+        "https://www.dtnext.in/feed",
         "https://news.google.com/rss/search?q=Trichy+OR+Tiruchirappalli+news&hl=en-IN&gl=IN&ceid=IN:en",
     ],
     local: [
         "https://timesofoman.com/feed",          // was /rss -> 404
         "https://www.muscatdaily.com/feed",
-        "https://www.omanobserver.om/rss",         // was /feed -> 404
+        "https://www.omanobserver.om/rssFeed/1",
         "https://news.google.com/rss/search?q=Muscat+Oman+news+today&hl=en-OM&gl=OM&ceid=OM:en",
         "https://news.google.com/rss/search?q=Oman+news&hl=en-IN&gl=IN&ceid=IN:en",
     ],
@@ -293,7 +297,7 @@ function generateCriticsOneLiner(title, description) {
     return null;
 }
 
-export function computeImpactScore(item, section, viewCount = 0, overrideSettings = null, rankingSection = section) {
+export function computeImpactScore(item, section, viewCount = 0, overrideSettings = null, rankingSection = section, noveltyCorpus) {
     const scoringSettings = overrideSettings || getSettings();
     const w = scoringSettings.rankingWeights || {};
     // Re-scoring cached items should replace its explanation, not accumulate
@@ -329,7 +333,7 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     const sourceComponent = sourceScore * categoryWeight;
 
     // 3. Keyword Context Boost
-    const kwMatchBoost = w.keyword?.matchBoost || 2;
+    const kwMatchBoost = w.keyword?.matchBoost ?? 2;
     const keywordBoost = checkKeywords(item.title, item.description) ? kwMatchBoost : 0;
 
     // 4. Section Priority
@@ -366,7 +370,7 @@ export function computeImpactScore(item, section, viewCount = 0, overrideSetting
     // Being in a familiar city establishes relevance, not statewide/national
     // importance. Retain a modest local preference after public consequences.
     const proximityMultiplier = regionalRanking ? Math.min(rawProximityMultiplier, 1.3) : rawProximityMultiplier;
-    const noveltyMultiplier = calculateNoveltyScore(item.title, item.description, section);
+    const noveltyMultiplier = calculateNoveltyScore(item.title, item.description, section, noveltyCorpus);
     // Note: passing null for keywords array as it's not currently extracted in normalizeItem
     const currencyMultiplier = calculateCurrencyScore(item.title, null);
     const humanInterestMultiplier = calculateHumanInterestScore(item.title, item.description);
@@ -539,6 +543,33 @@ function isSourceAllowed(sourceName, allowedSources) {
 
 /* ---------- Public API ---------- */
 
+function describeSnapshotRows(prefetched) {
+    return {
+        prefetched: true,
+        prefetchSourceSection: prefetched.sourceSection,
+        sectionQuality: prefetched.quality,
+        snapshotRuntimeSummary: prefetched.summary,
+        staleReason: prefetched.staleReason || null,
+    };
+}
+
+async function rankSectionRows(rows, section, limit, sources, snapshot = null, fromCache = false) {
+    const ranked = await rankAndFilter(rows, section, limit, sources);
+    if (snapshot) {
+        const runtime = snapshot.snapshotRuntimeSummary;
+        const ageMs = runtime?.fetchedAt ? Date.now() - runtime.fetchedAt : runtime?.ageMs;
+        const stale = runtime?.stale || !Number.isFinite(ageMs) || ageMs < -300_000 || ageMs > SECTION_SNAPSHOT_MAX_AGE_MS;
+        Object.assign(ranked, snapshot, {
+            snapshotRuntimeSummary: runtime ? { ...runtime, ageMs, stale } : null,
+            staleReason: snapshot.staleReason || (stale ? runtime ? 'snapshot-age' : 'snapshot-metadata-missing' : null),
+        });
+    }
+    ranked.health = getSectionHealth(section, ranked.length);
+    ranked.isSingleSource = checkSingleSource(ranked);
+    if (fromCache) ranked.delivery = 'memory-cache';
+    return ranked;
+}
+
 /**
  * Fetches news for a given section.
  */
@@ -566,14 +597,22 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
         force,
         runtime,
     });
+    const cacheProfile = JSON.stringify([useAuthoritySnapshot, runtime.allowWideFeedFetch, settings.sectionKeywords || {}]);
+    const readCache = () => {
+        const entry = memoryCache.get(cacheKey);
+        return entry?.profile === cacheProfile && Date.now() - entry.timestamp < CACHE_TTL_MS ? entry : null;
+    };
+    const writeCache = (data, snapshot = null) => {
+        if (cacheEnabled) memoryCache.set(cacheKey, { timestamp: Date.now(), profile: cacheProfile, data, snapshot });
+    };
 
     // Check cache first if enabled
     if (!force && cacheEnabled && !liveMode) {
-        const cached = memoryCache.get(cacheKey);
-        if (cached && (Date.now() - cached.timestamp) < CACHE_TTL_MS) {
+        const cached = readCache();
+        if (cached) {
             const ageSeconds = Math.round((Date.now() - cached.timestamp) / 1000);
             console.log(`[RSS] ✅ Cache HIT for ${section} (age: ${ageSeconds}s)`);
-            return rankAndFilter(cached.data, section, limit, allowedSources);
+            return rankSectionRows(cached.data, section, limit, allowedSources, cached.snapshot, true);
         }
         console.log(`[RSS] ⚠️ Cache MISS for ${section} - Fetching fresh data`);
     } else if (force) {
@@ -594,9 +633,9 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
         } catch {
             // ignore — we'll use the cache or return empty below
         }
-        const cached = memoryCache.get(cacheKey);
+        const cached = readCache();
         if (cached) {
-            return rankAndFilter(cached.data, section, limit, allowedSources);
+            return rankSectionRows(cached.data, section, limit, allowedSources, cached.snapshot, true);
         }
         return [];
     }
@@ -623,17 +662,9 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
                 if (prefetched.items.length > 0) {
                     // Stale but has data — show it with a stale marker rather than nothing.
                     console.warn(`[RSS] Prefetched sections STALE for ${section} (${prefetched.staleReason}) — serving stale data as fallback`);
-                    const stalePrefetched = await rankAndFilter(prefetched.items, section, limit, allowedSources);
-                    stalePrefetched.prefetched = true;
-                    stalePrefetched.prefetchSourceSection = prefetched.sourceSection;
-                    stalePrefetched.sectionQuality = prefetched.quality;
-                    stalePrefetched.snapshotRuntimeSummary = prefetched.summary;
-                    stalePrefetched.staleReason = prefetched.staleReason;
-                    stalePrefetched.health = getSectionHealth(section, stalePrefetched.length);
-                    stalePrefetched.isSingleSource = checkSingleSource(stalePrefetched);
-                    if (settings.enableCache !== false) {
-                        memoryCache.set(cacheKey, { timestamp: Date.now(), data: stalePrefetched });
-                    }
+                    const snapshot = describeSnapshotRows(prefetched);
+                    const stalePrefetched = await rankSectionRows(prefetched.items, section, limit, allowedSources, snapshot);
+                    writeCache(prefetched.items, snapshot);
                     return stalePrefetched;
                 }
                 if (!runtime.allowWideFeedFetch) {
@@ -651,28 +682,12 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
             } else if (prefetched.items.length > 0) {
                 console.log(`[RSS] ✅ Prefetched sections HIT for ${section} via ${prefetched.sourceSection}: ${prefetched.items.length} items`);
 
-                const rankedPrefetched = await rankAndFilter(
-                    prefetched.items,
-                    section,
-                    limit,
-                    allowedSources
-                );
-
-                rankedPrefetched.prefetched = true;
-                rankedPrefetched.prefetchSourceSection = prefetched.sourceSection;
-                rankedPrefetched.sectionQuality = prefetched.quality;
-                rankedPrefetched.snapshotRuntimeSummary = prefetched.summary;
-                rankedPrefetched.health = getSectionHealth(section, rankedPrefetched.length);
-                rankedPrefetched.isSingleSource = checkSingleSource(rankedPrefetched);
+                const snapshot = describeSnapshotRows(prefetched);
+                const rankedPrefetched = await rankSectionRows(prefetched.items, section, limit, allowedSources, snapshot);
 
                 recordFetchCount(section, rankedPrefetched.length);
 
-                if (settings.enableCache !== false) {
-                    memoryCache.set(cacheKey, {
-                        timestamp: Date.now(),
-                        data: rankedPrefetched
-                    });
-                }
+                writeCache(prefetched.items, snapshot);
 
                 return rankedPrefetched;
             }
@@ -778,11 +793,8 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
         logStore.success('rss', `${section}: ${items.length} items from ${successfulResults.length}/${feeds.length} feeds`, { durationMs: _dur });
 
         // Only cache if enabled (Phase 6)
-        if (settings.enableCache !== false) {
-            memoryCache.set(cacheKey, {
-                timestamp: Date.now(),
-                data: items
-            });
+        if (cacheEnabled) {
+            writeCache(items);
             console.log(`[RSS] 💾 Cached ${items.length} items for ${section}`);
         }
 
@@ -837,7 +849,7 @@ export async function fetchSectionNews(section, limit = 10, allowedSources = nul
     } catch (error) {
         console.error(`[RSS] Ranking failed for ${section}:`, error);
         // Fallback: return unsorted items rather than crashing
-        const fallbackItems = items.slice(0, limit);
+        const fallbackItems = filterEligibleSectionItems(items, section, settings, allowedSources).slice(0, limit);
 
         // Best effort health tracking for fallback
         recordFetchCount(section, fallbackItems.length);
@@ -861,8 +873,8 @@ export async function fetchAndParseFeed(feedUrl, section) {
 }
 
 function normalizeItem(item, feedSource, section = 'general') {
-    const pubDateStr = item.pubDate || item.created || new Date().toISOString();
-    const publishedAt = Date.parse(pubDateStr) || Date.now();
+    const publishedDate = parsePublicationDate(item.pubDate) || parsePublicationDate(item.created);
+    const publishedAt = publishedDate ? +publishedDate : null;
 
     let source = feedSource;
     if (item.author) source = item.author;
@@ -924,8 +936,9 @@ function normalizeItem(item, feedSource, section = 'general') {
         url: item.link,
         source: source,
         publishedAt: publishedAt,
+        publishedAtSource: publishedAt ? 'feed-published' : 'missing',
         fetchedAt: Date.now(),
-        time: new Date(publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: publishedDate?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || null,
         impactScore: 0,
         section: finalSection, // Use the classified section
         criticsView: generateCriticsOneLiner(item.title, cleanDescription(description), source),
@@ -942,16 +955,13 @@ function normalizeItem(item, feedSource, section = 'general') {
 // Shared eligibility for section widgets and the complete Top Stories pool.
 // Keep this independent of scoring, clustering and display limits.
 export function filterEligibleSectionItems(items, section, settings, allowedSources, now = Date.now()) {
-    const limitHours = settings.hideOlderThanHours || settings.freshnessLimitHours || 60;
-    const maxAgeMs = limitHours * 60 * 60 * 1000;
+    const maxAgeHours = settings.strictFreshness === false ? MAX_NEWS_AGE_HOURS : resolveNewsAgeLimit(settings);
     return items.filter(item => {
         if (!belongsInRegionalSection(item, section)) return false;
         const description = item.description || item.summary || '';
         const text = `${item.title || ''} ${description}`.toLowerCase();
         if ((settings.feedBlockedKeywords || []).some(keyword => text.includes(keyword.toLowerCase()))) return false;
-        const isLive = /^live\b|\b(live\s+blog|live\s+updates:|live\s+coverage)\b/i.test(item.title) ||
-            (item.url && item.url.includes('/live/'));
-        if (settings.strictFreshness !== false && now - item.publishedAt > maxAgeMs * (isLive ? 3 : 1)) return false;
+        if (getAgeHours(item, now) > maxAgeHours) return false;
         const source = normalizeSourceText(item.source);
         if (settings.filteringMode === 'keyword') return checkKeywords(item.title, description);
         if (settings.topWebsitesOnly) {
@@ -963,46 +973,41 @@ export function filterEligibleSectionItems(items, section, settings, allowedSour
 
 async function rankAndFilter(items, section, limit, allowedSources, overrideSettings = null) {
     try {
-        const seen = new Set();
         const now = Date.now();
 
         // Use override settings (e.g. for Buzz) if provided, else global settings
         const settings = overrideSettings || getSettings();
-        // Use new setting hideOlderThanHours, fallback to legacy freshnessLimitHours
-        const limitHours = settings.hideOlderThanHours || settings.freshnessLimitHours || 60;
+        const limitHours = resolveNewsAgeLimit(settings);
         const shouldScore = settings.rankingMode !== 'legacy'; // Optimization: Skip scoring in Legacy mode
 
         console.log(`[RSSDebug] filtering for ${section}: Limit=${limitHours}h. Items=${items.length}`);
 
-        const preProcessed = filterEligibleSectionItems(items, section, settings, allowedSources, now)
+        const eligible = filterEligibleSectionItems(expandNewsEvidenceRows(items), section, settings, allowedSources, now);
+        const noveltyCorpus = createNoveltyCorpus(eligible);
+        const preProcessed = eligible
             .map(item => {
                 // Use the item's section (which might have been re-classified)
                 // or fallback to the requested section if missing
                 const itemSection = item.section || section;
 
                 // Get view count for penalty calculation
-                const views = getViewCount(item.id);
+                const views = getViewCount(item);
 
                 // Optimization: In Legacy mode, skip expensive scoring
                 // Default to 0, sorting will rely on pubDate
                 // Pass settings explicitly to computeImpactScore
-                const score = shouldScore ? computeImpactScore(item, itemSection, views, settings, section) : 0;
+                const score = shouldScore ? computeImpactScore(item, itemSection, views, settings, section, noveltyCorpus) : 0;
 
                 return {
                     ...item,
                     section: itemSection,
                     impactScore: score
                 };
-            })
-            .filter(item => {
-                if (seen.has(item.id)) return false;
-                seen.add(item.id);
-                return true;
             });
 
         const clustered = deduplicateAndCluster(
             preProcessed,
-            settings.storyDeduplication || 0.75
+            settings.storyDeduplication ?? {}
         );
 
         // Ranking Mode

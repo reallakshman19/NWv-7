@@ -3,6 +3,7 @@ import { loadSectionsSnapshot } from '../adapters/sectionsSnapshotFetcher.js';
 import {
   buildLiveDigestCandidatePool,
   loadDailyDigestLiveFallback,
+  loadDailyDigestPublishedFallback,
   selectLiveDigestCards,
 } from './dailyDigestLiveFallback.js';
 
@@ -80,6 +81,7 @@ describe('Daily Digest Live fallback selector', () => {
     expect(result.sourceGroupCount).toBe(3);
     expect(new Set(result.cards.map(card => card.canonicalUrl)).size).toBe(30);
     expect(result.cards[0].deliveryMode).toBe('LIVE');
+    expect(result.cards[0]).toMatchObject({publishedAt:NOW-H,snippet:'india-pub-0 summary'});
     for (const source of ['india-pub', 'world-pub', 'biz-pub']) {
       expect(result.cards.filter(card => card.sourceGroup === source)).toHaveLength(10);
     }
@@ -150,6 +152,7 @@ describe('Daily Digest on the official Pages deployment', () => {
     { scenario: 'fresh authority', authority: fresh, canonical: fresh, ready: true, requests: 0 },
     { scenario: 'another repo', pathname: '/different-app/', authority: stale, canonical: fresh, ready: false, requests: 0 },
     { scenario: 'another Pages host', origin: 'https://example.github.io', authority: stale, canonical: fresh, ready: false, requests: 0 },
+    { scenario: 'localhost stale authority', pathname:'/', origin:'http://127.0.0.1:4173', authority:stale, canonical:fresh, ready:true, requests:1 },
   ])('checks the canonical snapshot only when eligible for $scenario', async ({
     pathname = '/NWv-7/', origin = 'https://reallakshman19.github.io',
     authority, authorityError, canonical, ready, requests,
@@ -177,5 +180,29 @@ describe('Daily Digest on the official Pages deployment', () => {
         fallbackReason: authorityError || 'sections_snapshot_stale',
       });
     }
+  });
+});
+
+describe('Daily Digest published-only recovery',()=>{
+  afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();vi.clearAllMocks();});
+  const snapshot={schemaVersion:2,fetchedAt:NOW,sections:{world:['one','two','three'].map(id=>story(id,1,id,'world'))}};
+  it.each([false,true])('uses local or canonical current publication (old bundle %s), without requesting the Worker',async oldBundle=>{
+    vi.spyOn(Date,'now').mockReturnValue(NOW);vi.stubGlobal('window',{location:new URL('http://127.0.0.1:4173/')});
+    loadSectionsSnapshot.mockClear();
+    const fetchImpl=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>oldBundle?{...snapshot,fetchedAt:NOW-13*H}:snapshot})
+      .mockResolvedValueOnce({ok:true,json:async()=>snapshot});
+    const result=await loadDailyDigestPublishedFallback({nowMs:NOW,fetchImpl});
+    expect(result).toMatchObject({status:'READY',deliveryMode:'SNAPSHOT',generatedAt:NOW});
+    expect(result.cards).toHaveLength(3);expect(result.cards.every(row=>row.deliveryMode==='SNAPSHOT')).toBe(true);
+    expect(loadSectionsSnapshot).not.toHaveBeenCalled();expect(fetchImpl).toHaveBeenCalledTimes(oldBundle?2:1);
+    if(oldBundle)expect(result.summary.dataSource.effective).toBe('github_main');
+    expect(result.cards[0].publishedAt).toBe(NOW-H);
+  });
+  it('rejects stale publications and future or acquisition-only story clocks without changing their ages',async()=>{
+    vi.spyOn(Date,'now').mockReturnValue(NOW);vi.stubGlobal('window',{location:new URL('http://localhost:4173/')});
+    const fetchImpl=vi.fn().mockResolvedValue({ok:true,json:async()=>({...snapshot,fetchedAt:NOW-13*H})});
+    expect((await loadDailyDigestPublishedFallback({nowMs:NOW,fetchImpl})).status).toBe('UNAVAILABLE');
+    expect(selectLiveDigestCards({...snapshot,sections:{world:snapshot.sections.world.map((row,index)=>({...row,publishedAt:NOW+H*(index+1)}))}},{nowMs:NOW}).cards).toEqual([]);
+    expect(selectLiveDigestCards({...snapshot,sections:{world:snapshot.sections.world.map(row=>({...row,publishedAtSource:'fetch_time_fallback'}))}},{nowMs:NOW}).cards).toEqual([]);
   });
 });

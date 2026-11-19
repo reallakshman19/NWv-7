@@ -59,7 +59,7 @@ describe('usePlannerTabViewModel static checks', () => {
   });
 
   it('uses canonical storage identity during bulk removal', () => {
-    expect(src).toContain('getPlannerStorageItemId(item.raw || item)');
+    expect(src).toContain('getPlannerStorageItemId(item, date)');
   });
 
   it('exposes UI action wrappers', () => {
@@ -128,10 +128,11 @@ describe('Planner ViewModel internals', () => {
   });
 
   it('gets storage item id safely', () => {
-    expect(getPlannerStorageItemId({ hiddenKey: 'h1' })).toBe('h1');
-    expect(getPlannerStorageItemId({ canonicalId: 'c1' })).toBe('c1');
-    expect(getPlannerStorageItemId({ id: 'i1' })).toBe('i1');
-    expect(getPlannerStorageItemId({ link: 'https://example.com' })).toBe('https://example.com');
+    expect(getPlannerStorageItemId({ hiddenKey: 'h1' })).toBe('legacy:["h1","nodate","",""]');
+    expect(getPlannerStorageItemId({ canonicalId: 'c1' })).toBe('legacy:["c1","nodate","",""]');
+    expect(getPlannerStorageItemId({ id: 'i1' })).toBe('legacy:["i1","nodate","",""]');
+    expect(getPlannerStorageItemId({ id: 'i1' }, '2026-11-20')).not.toBe(getPlannerStorageItemId({ id: 'i1' }, '2026-11-21'));
+    expect(getPlannerStorageItemId({ savedPlanId: 'explicit-save', id: 'i1' })).toBe('explicit-save');
   });
 
   it('builds undo payloads', () => {

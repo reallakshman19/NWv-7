@@ -1,6 +1,8 @@
 """Regression cases from the November live Up Ahead audit (no network)."""
 import unittest
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 
 from enrich_upahead_contract import DAY_MS, enrich_snapshot, merge_upahead_snapshot
 from validate_upahead_prefetch_output import validate_snapshot
@@ -21,6 +23,13 @@ def event(**changes):
 
 
 class UpAheadRecovery(unittest.TestCase):
+    def test_local_publisher_date_fixtures_match_browser(self):
+        path = Path(__file__).resolve().parents[1] / 'src' / 'intelligence' / 'relativeDates.fixture.json'
+        for case in json.loads(path.read_text(encoding='utf8')):
+            with self.subTest(case=case):
+                start, _end, _confidence = extract_event_dates(case['text'], ms(case['publishedAt']), case['location'])
+                self.assertEqual(start, ms(case['day']) if case['day'] else None)
+
     def test_common_dates_and_relative_dates_anchor_to_publication(self):
         for title in ('on November 15', 'on 15 Nov', 'on 2026-11-15',
                       'tomorrow', 'on 15th November 2026', 'this Sunday'):

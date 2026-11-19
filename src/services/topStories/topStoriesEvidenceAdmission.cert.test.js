@@ -85,14 +85,17 @@ describe('mature non-local critical-event evidence policy', () => {
   });
 
   it('keeps corroborated and authoritative Seattle variants eligible', () => {
-    const corroborated = scoreTopStoryCandidate(seattleStory({
-      sourceCount: 2,
-      allSources: ['Times of India', 'Reuters'],
-    }), { nowMs: NOW });
-    const authoritative = scoreTopStoryCandidate(seattleStory({
+    const firstReport = seattleStory({ url: 'https://timesofindia.indiatimes.com/world/seattle-fixture' });
+    const wireReport = seattleStory({
       source: 'Reuters',
       sourceGroup: 'Reuters',
-    }), { nowMs: NOW });
+      url: 'https://www.reuters.com/world/us/seattle-fixture',
+    });
+    const corroborated = scoreTopStoryCandidate({
+      ...firstReport,
+      newsEvidenceRows: [firstReport, wireReport],
+    }, { nowMs: NOW });
+    const authoritative = scoreTopStoryCandidate(wireReport, { nowMs: NOW });
 
     expect(corroborated._topStoryRank.slotBand).toBe('secondary');
     expect(authoritative._topStoryRank.slotBand).toBe('secondary');

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import { useShellRuntimeProps } from '../viewModels/useShellRuntimeProps';
 import Toggle from '../components/Toggle';
-import { DEFAULT_SETTINGS } from '../utils/storage';
+import { DEFAULT_SETTINGS, getDefaultSettings } from '../utils/storage';
 import { useSettingsPageViewModel } from '../viewModels/useSettingsPageViewModel';
 import { discoverFeeds } from '../utils/feedDiscovery';
 import { APP_VERSION } from '../utils/version';
@@ -15,29 +15,6 @@ import DisplayPreferencesPanel from '../components/settings/DisplayPreferencesPa
 import TravelLocationSettingsPanel from '../components/settings/TravelLocationSettingsPanel.jsx';
 import { useSettingsPreferenceViewModel } from '../viewModels/useSettingsPreferenceViewModel';
 import KeywordLibrary from '../components/settings/KeywordLibrary.jsx';
-
-/**
- * Helper to calculate a "Quality Rating" (1-5 stars) for the current ranking configuration.
- */
-const calculatePreviewStars = (weights) => {
-    const w = weights || {};
-    const fresh = w.freshness?.maxBoost || 3.0;
-    const source = w.source?.tier1Boost || 5.0;
-    const visual = w.visual?.videoBoost || 1.3;
-    const city = w.geo?.cityMatch || 1.5;
-
-    let score = 0;
-    if (fresh >= 2.5 && fresh <= 4.0) score += 1.5;
-    else if (fresh > 1.0) score += 1.0;
-    if (source >= 4.0 && source <= 7.0) score += 1.5;
-    else if (source >= 2.0) score += 1.0;
-    if (visual >= 1.2 && visual <= 1.5) score += 1.0;
-    else score += 0.5;
-    if (city >= 1.3 && city <= 2.0) score += 1.0;
-    else score += 0.5;
-
-    return Math.min(5, Math.max(1, Math.round(score)));
-};
 
 function MainRankingContent({ children }) {
     const [secKwTab, setSecKwTab] = useState('world');
@@ -54,7 +31,7 @@ function BuzzRankingContent({ children }) {
  */
 function SettingsPage() {
     const shellRuntimeProps = useShellRuntimeProps();
-    const { settings, updateSettings, reloadSettings, isStaticHost, getBackupData, applyImport } = useSettingsPageViewModel();
+    const { settings, settingsError, updateSettings, reloadSettings, isStaticHost, getBackupData, applyImport } = useSettingsPageViewModel();
     const {
         displayPreferencesProps,
         travelLocationSettingsProps,
@@ -120,8 +97,7 @@ function SettingsPage() {
 
     const handleReset = () => {
         if (window.confirm('Reset all settings to defaults?')) {
-            updateSettings({ ...DEFAULT_SETTINGS });
-            reloadSettings();
+            updateSettings(getDefaultSettings());
         }
     };
 
@@ -221,7 +197,7 @@ function SettingsPage() {
             try {
                 const imported = JSON.parse(e.target.result);
                 if (window.confirm('Replace current settings, hidden events, and watchlist with imported data?')) {
-                    applyImport(imported);
+                    if (!applyImport(imported)) alert('Settings could not be saved. Check available browser storage.');
                 }
             } catch {
                 alert('Invalid backup file');
@@ -533,12 +509,6 @@ function SettingsPage() {
                             <SettingItem label="Enable News Cache" subLabel="Faster loads, 5min TTL">
                                 <Toggle checked={settings.enableCache !== false} onChange={(val) => updateSettings({ ...settings, enableCache: val })} />
                             </SettingItem>
-                            <SettingItem label="Crawler Mode">
-                                <select value={settings.crawlerMode || 'auto'} onChange={(e) => updateSettings({ ...settings, crawlerMode: e.target.value })} className="settings-select">
-                                    <option value="auto">Auto</option>
-                                    <option value="manual">Manual</option>
-                                </select>
-                            </SettingItem>
                             <SettingItem label="Debug Logs">
                                 <Toggle checked={settings.debugLogs === true} onChange={(val) => updateSettings({ ...settings, debugLogs: val })} />
                             </SettingItem>
@@ -614,6 +584,7 @@ function SettingsPage() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             <Header title="Settings" showBack backTo="/" compact={true} style={{ flex: '0 0 auto' }} shellRuntimeProps={shellRuntimeProps} />
+            {settingsError && <p role="alert">{settingsError}</p>}
             <div className="settings-layout">
                 <div className="settings-sidebar">
                     {tabs.map(tab => (
@@ -674,7 +645,6 @@ const MergedRankingTab = ({ settings, updateNested, updateSettings, addToList, r
 
     // --- 1. MAIN TAB CONTENT ---
     const renderMainContent = (secKwTab, setSecKwTab) => {
-        const stars = calculatePreviewStars(settings.rankingWeights || {});
 
         const sectionList = [
             { id: 'world', label: 'World', icon: '🌍' },
@@ -695,20 +665,16 @@ const MergedRankingTab = ({ settings, updateNested, updateSettings, addToList, r
 
         return (
             <div>
-                <div className="modern-card" style={{ padding: '16px', marginBottom: '20px', background: 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(0,0,0,0))', border: '1px solid rgba(255,215,0,0.3)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div><div style={{ fontWeight: 600, color: '#FFD700' }}>★ Quality Rating</div></div>
-                        <div style={{ fontSize: '1.8rem', color: '#FFD700' }}>{'★'.repeat(stars)}{'☆'.repeat(5 - stars)}</div>
-                    </div>
-                </div>
-
-                <SectionTitle icon="🏆" title="Top Stories & Global" />
+                <SectionTitle icon="🏆" title="Section Ranking" />
                 <SettingCard>
                     <SettingItem label="🏆 Top Stories Boost" subLabel="Min Score for Top Stories">
                         <input type="range" min="8" max="30" step="1" value={settings.rankingWeights?.trending?.threshold || 12} onChange={(e) => updateNested('rankingWeights.trending.threshold', parseFloat(e.target.value))} style={{ width: '100%' }} />
                     </SettingItem>
-                    <SettingItem label="📌 Keyword Match" subLabel={`+${(settings.rankingWeights?.keyword?.matchBoost || 2.0).toFixed(1)} Points`}>
-                        <input type="range" min="0" max="5" step="0.5" value={settings.rankingWeights?.keyword?.matchBoost || 2.0} onChange={(e) => updateNested('rankingWeights.keyword.matchBoost', parseFloat(e.target.value))} style={{ width: '100%' }} />
+                    <SettingItem label="📌 Keyword Match" subLabel={`+${(settings.rankingWeights?.keyword?.matchBoost ?? 2.0).toFixed(1)} Points`}>
+                        <input type="range" min="0" max="5" step="0.5" value={settings.rankingWeights?.keyword?.matchBoost ?? 2.0} onChange={(e) => updateNested('rankingWeights.keyword.matchBoost', parseFloat(e.target.value))} style={{ width: '100%' }} />
+                    </SettingItem>
+                    <SettingItem label="📍 Boost nearby stories" subLabel="Applies the location multiplier in section ranking.">
+                        <Toggle checked={settings.enableProximityScoring === true} onChange={(value) => updateSettings({ ...settings, enableProximityScoring: value })} />
                     </SettingItem>
                     <SettingItem label="📍 Location Match" subLabel={`${(settings.rankingWeights?.geo?.cityMatch || 1.5).toFixed(1)}x Multiplier`}>
                         <input type="range" min="1" max="5" step="0.1" value={settings.rankingWeights?.geo?.cityMatch || 1.5} onChange={(e) => updateNested('rankingWeights.geo.cityMatch', parseFloat(e.target.value))} style={{ width: '100%' }} />
@@ -736,6 +702,28 @@ const MergedRankingTab = ({ settings, updateNested, updateSettings, addToList, r
                     </SettingItem>
                     <SettingItem label="📉 Hide Stale News" subLabel={`> ${settings.hideOlderThanHours || 60}h`}>
                         <input type="number" min={1} max={168} value={settings.hideOlderThanHours || 60} onChange={(e) => updateSettings({ ...settings, hideOlderThanHours: parseInt(e.target.value) || 60 })} className="settings-input-number" style={{ width: '60px' }} />
+                    </SettingItem>
+                </SettingCard>
+
+                <SectionTitle icon="🔗" title="News Deduplication" />
+                <SettingCard>
+                    <SettingItem label="Title similarity" subLabel="Higher values require closer headline matches.">
+                        <input
+                            aria-label="News title similarity"
+                            type="range" min="0.5" max="1" step="0.01"
+                            value={settings.storyDeduplication?.similarityThreshold ?? DEFAULT_SETTINGS.storyDeduplication.similarityThreshold}
+                            onChange={(event) => updateNested('storyDeduplication.similarityThreshold', Number(event.target.value))}
+                        />
+                        <output>{settings.storyDeduplication?.similarityThreshold ?? DEFAULT_SETTINGS.storyDeduplication.similarityThreshold}</output>
+                    </SettingItem>
+                    <SettingItem label="Shared words" subLabel="Minimum shared-word ratio for a supporting match.">
+                        <input
+                            aria-label="News shared word ratio"
+                            type="range" min="0.2" max="1" step="0.01"
+                            value={settings.storyDeduplication?.tokenOverlapThreshold ?? DEFAULT_SETTINGS.storyDeduplication.tokenOverlapThreshold}
+                            onChange={(event) => updateNested('storyDeduplication.tokenOverlapThreshold', Number(event.target.value))}
+                        />
+                        <output>{settings.storyDeduplication?.tokenOverlapThreshold ?? DEFAULT_SETTINGS.storyDeduplication.tokenOverlapThreshold}</output>
                     </SettingItem>
                 </SettingCard>
 

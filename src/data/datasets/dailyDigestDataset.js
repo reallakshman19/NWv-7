@@ -6,7 +6,8 @@ import {
 import { getRuntimeCapabilities } from '../../runtime/runtimeCapabilities.js';
 import { fetchDailyDigestDatasetApi } from './dailyDigestDatasetApiClient.js';
 import { isLiveMode } from '../../utils/fetchMode.js';
-import { loadDailyDigestLiveFallback } from '../dailyDigestLiveFallback.js';
+import { loadDailyDigestLiveFallback, loadDailyDigestPublishedFallback } from '../dailyDigestLiveFallback.js';
+import { digestPublishedAt, digestSnippet } from '../../utils/digestCardContent.js';
 
 const IST_TIMEZONE = 'Asia/Kolkata';
 const SNAPSHOT_SCHEMA = 'daily-digest-snapshot/v1';
@@ -75,6 +76,8 @@ function normalizeCard(card) {
     role: String(card.role || ''),
     title,
     canonicalUrl,
+    publishedAt: digestPublishedAt(card),
+    snippet: digestSnippet(card),
     selectionReason: card.selectionReason || null,
     replacementReason: card.replacementReason || null,
   });
@@ -127,6 +130,7 @@ function liveFallbackEnvelope(digestDate, fallback, curatedStatus) {
   const cards = Array.isArray(fallback?.cards) ? fallback.cards : [];
   if (fallback?.status !== 'READY' || cards.length === 0) return null;
 
+  const publishedOnly = fallback.deliveryMode === 'SNAPSHOT';
   return makeEnvelope({
     ok: true,
     datasetId: 'dailyDigest',
@@ -136,29 +140,29 @@ function liveFallbackEnvelope(digestDate, fallback, curatedStatus) {
       frozenAt: null,
       snapshotId: null,
       snapshotRevision: null,
-      compositionState: 'LIVE_SECTIONS_AUTHORITY',
+      compositionState: publishedOnly ? 'PUBLISHED_SECTIONS_AUTHORITY' : 'LIVE_SECTIONS_AUTHORITY',
       cards,
-      deliveryMode: 'LIVE',
+      deliveryMode: publishedOnly ? 'SNAPSHOT' : 'LIVE',
       liveGeneratedAt: fallback.generatedAt || null,
       liveFallbackReason: curatedStatus,
       authoritySummary: fallback.summary || null,
       liveSelection: fallback.selection || null,
     },
-    source: ENVELOPE_SOURCES.LIVE,
+    source: publishedOnly ? ENVELOPE_SOURCES.SNAPSHOT : ENVELOPE_SOURCES.LIVE,
     freshness: ENVELOPE_FRESHNESS.FRESH,
     generatedAt: fallback.generatedAt || null,
     validation: {
       passed: true,
       errors: [],
       warnings: [
-        'daily_digest_live_fallback',
+        publishedOnly ? 'daily_digest_published_fallback' : 'daily_digest_live_fallback',
         curatedStatus ? `daily_digest_curated_${String(curatedStatus).toLowerCase()}` : null,
       ].filter(Boolean),
     },
     diagnostics: [{
       event: 'dailyDigestDataset.live_fallback',
       severity: 'warn',
-      message: 'Daily Digest is using fresh ranked Sections authority stories because the curated edition is unavailable.',
+      message: 'Daily Digest is using current ranked Sections stories because the curated edition is unavailable.',
       details: {
         curatedStatus,
         cardCount: cards.length,
@@ -178,12 +182,10 @@ async function maybeLoadLiveFallback({
 }) {
   if (!allowFallback) return null;
 
-  const fallback = await liveFallbackLoader({
-    force: true,
-    nowMs: Number(now?.getTime?.() || Date.now()),
-  });
-
-  return liveFallbackEnvelope(digestDate, fallback, curatedStatus);
+  try {
+    const fallback = await liveFallbackLoader({ force: true, nowMs: Number(now?.getTime?.() || Date.now()) });
+    return liveFallbackEnvelope(digestDate, fallback, curatedStatus);
+  } catch { return null; }
 }
 
 export async function load(options = {}) {
@@ -193,11 +195,13 @@ export async function load(options = {}) {
   const digestDate = validDigestDate(options.asOfDate)
     ? options.asOfDate
     : today;
-  const canUseLiveFallback = digestDate === today && !runtime.forceSnapshots;
+  const canUseLiveFallback = digestDate === today;
   const liveMode = options.liveMode ?? isLiveMode();
-  const liveFallbackLoader = options.liveFallbackLoader || loadDailyDigestLiveFallback;
+  const liveFallbackLoader = runtime.forceSnapshots
+    ? options.publishedFallbackLoader || loadDailyDigestPublishedFallback
+    : options.liveFallbackLoader || loadDailyDigestLiveFallback;
 
-  const response = await fetchDailyDigestDatasetApi({
+  const response = runtime.forceSnapshots ? { status: 'SNAPSHOT_ONLY' } : await fetchDailyDigestDatasetApi({
     baseUrl: options.baseUrl !== undefined ? options.baseUrl : runtime.configuredBackendUrl,
     digestDate,
     fetchImpl: options.fetchImpl,
@@ -264,13 +268,15 @@ export async function load(options = {}) {
 
   const missingBackendInBrowser = response.status === 'BACKEND_NOT_CONFIGURED' && runtime.isBrowser;
   const liveEnvelope = await maybeLoadLiveFallback({
-    allowFallback: canUseLiveFallback && (liveMode || missingBackendInBrowser),
+    allowFallback: canUseLiveFallback && (runtime.forceSnapshots || liveMode || missingBackendInBrowser),
     digestDate,
     curatedStatus,
     now,
     liveFallbackLoader,
   });
   if (liveEnvelope) return liveEnvelope;
+
+  if (runtime.forceSnapshots) return failureEnvelope(digestDate, 'PUBLISHED_UNAVAILABLE');
 
   if (response.status === 'BACKEND_NOT_CONFIGURED') {
     return expectedEmptyEnvelope(digestDate, response.status);

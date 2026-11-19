@@ -42,7 +42,7 @@ export function getBoundaryState({
   if (error && !envelope) return 'error';
   if (!envelope) return 'empty';
 
-  if (envelope.ok === false) {
+  if (envelope.ok !== true) {
     if (allowDegraded && hasRenderableData(envelope)) return 'degraded';
     return 'error';
   }
@@ -55,7 +55,21 @@ export function getBoundaryState({
     return 'empty';
   }
 
+  // Content may remain readable after a failed refresh, failed quality check or
+  // stale handoff. That is *degraded*, not a successful current acquisition.
   if (loading && envelope) return 'refreshing';
+
+  const notTrusted = Boolean(
+    error ||
+    envelope.error ||
+    envelope.validation?.passed !== true ||
+    envelope.slo?.passed === false ||
+    !envelope.freshness ||
+    ['stale', 'expired', 'unknown'].includes(envelope.freshness)
+  );
+  if (notTrusted) {
+    return allowDegraded ? 'degraded' : 'error';
+  }
 
   return 'ready';
 }

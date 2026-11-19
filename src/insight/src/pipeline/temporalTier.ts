@@ -70,11 +70,11 @@ export function inferEvolutionRole(
     },
     {
       role: "cause_claim",
-      patterns: [/cause/i, /triggered by/i, /due to/i, /linked to/i, /blamed on/i],
+      patterns: [/\bcauses?\b/i, /triggered by/i, /due to/i, /linked to/i, /blamed on/i],
     },
     {
       role: "fact_update",
-      patterns: [/toll/i, /rises?/i, /climbs?/i, /updated/i, /latest/i, /new data/i, /\b\d+\s+(dead|killed|injured|missing|crore|million|billion)\b/i],
+      patterns: [/\btoll\b/i, /\brises?\b/i, /\bclimbs?\b/i, /\bupdated\b/i, /\blatest\b/i, /new data/i, /\b\d+\s+(dead|killed|injured|missing|crore|million|billion)\b/i],
     },
     {
       role: "official_response",
@@ -82,7 +82,11 @@ export function inferEvolutionRole(
     },
     {
       role: "market_reaction",
-      patterns: [/shares?/i, /stocks?/i, /market/i, /nifty/i, /sensex/i, /rupee/i, /investors?/i],
+      patterns: [
+        /\b(?:shares?|stocks?)\s+(?:rose|fell|rise|fall|jump\w*|gain\w*|drop\w*|rall\w*|slump\w*|climb\w*|up|down)\b/i,
+        /\b(?:share|stock)\s+prices?\b/i,
+        /\bmarket\b/i, /\bnifty\b/i, /\bsensex\b/i, /\brupee\b/i, /\binvestors?\b/i,
+      ],
     },
     {
       role: "investigation",

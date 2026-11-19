@@ -1,0 +1,83 @@
+name: Retail Offers Refresh
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '20 */6 * * *'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/retail_offers_refresh.yml'
+      - 'scripts/fetch_retail_offers.mjs'
+      - 'scripts/validate_retail_offers.mjs'
+      - 'scripts/retail-offers/**'
+      - 'src/config/retailOfferSources.json'
+      - 'src/utils/retailOfferContract.js'
+      - 'src/services/retailOffers*'
+      - 'src/services/retailFlyers*'
+      - 'src/hooks/useRetailOffers.js'
+      - 'src/components/up-ahead/RetailOffersPanel*'
+
+permissions:
+  contents: read
+concurrency:
+  group: retail-offers-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx vitest run src/services/retailOffers.cert.test.js src/services/retailFlyers.cert.test.js src/components/up-ahead/RetailOffersPanel.cert.test.jsx src/pages/UpAheadLocalSources.cert.test.jsx
+  refresh:
+    needs: certify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Collect bounded public retailer offers (no paid services)
+        run: node scripts/fetch_retail_offers.mjs
+      - name: Verify prices, source scope, expiry, deduplication and content digest
+        run: node scripts/validate_retail_offers.mjs
+      - name: Publish the qualified retail snapshot only
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/data/retail_offers.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "data(offers): refresh qualified retailer prices [skip ci]"
+          # A concurrent main update fails this push; it is never overwritten.
+          git push origin HEAD:main
+      - name: Retain the sanitized collection receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retail-offers-${{ github.run_id }}
+          path: public/data/retail_offers.json
+          retention-days: 7
+          if-no-files-found: warn

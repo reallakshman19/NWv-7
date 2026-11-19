@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
+import {readPublishedSnapshot} from '../utils/publishedSnapshotFetch.js';
 import { fetchCurrentNewspaperPublication, isPublisherArticle, normalizeNewspaperEdition, newspaperFromSections, newspaperPublicationUrls } from './newspaperEditionService';
 
 const now = Date.parse('2026-11-16T12:00:00Z');
@@ -70,5 +71,26 @@ describe('Newspaper publication freshness and publisher identity', () => {
     expect((await fetchCurrentNewspaperPublication({ fetchImpl, now })).sourceStatus.THE_HINDU.count).toBe(1);
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     expect(fetchImpl.mock.calls[0][1].cache).toBe('no-store');
+  });
+  it('recovers a stale localhost build from current main without changing article timestamps or publisher identity',async()=>{
+    vi.stubGlobal('window',{location:new URL('http://127.0.0.1:4173/#/newspaper')});
+    const fetchImpl=vi.fn().mockResolvedValueOnce({ok:true,json:async()=>({...edition(),lastUpdated:now-50*3600000})})
+      .mockResolvedValueOnce({ok:true,json:async()=>edition()});
+    const result=await fetchCurrentNewspaperPublication({fetchImpl,now});
+    expect(fetchImpl).toHaveBeenCalledTimes(2);expect(fetchImpl.mock.calls[1][0]).toContain('/main/public/data/epaper_data.json');
+    expect(result.lastUpdated).toBe(now);expect(result.sources.THE_HINDU[0].articles[0].publishedAt).toBe(article().publishedAt);
+    expect(result.sources.INDIAN_EXPRESS).toEqual([]);
+  });
+  it('keeps a fresh local edition usable offline and never fetches production data on an unrelated app host',async()=>{
+    vi.stubGlobal('window',{location:new URL('http://localhost:4173/')});
+    const fetchImpl=vi.fn().mockResolvedValue({ok:true,json:async()=>edition()});
+    await fetchCurrentNewspaperPublication({fetchImpl,now});expect(fetchImpl).toHaveBeenCalledTimes(1);
+    vi.stubGlobal('window',{location:new URL('https://another-app.test/')});
+    expect(newspaperPublicationUrls()).toHaveLength(1);
+  });
+  it('bounds published JSON responses, including chunked Unicode data without content-length',async()=>{
+    const response=new Response(JSON.stringify({text:'தமிழ்'.repeat(100)}));
+    await expect(readPublishedSnapshot(response,100)).rejects.toThrow('size limit');
+    await expect(readPublishedSnapshot(new Response('{}',{headers:{'content-length':'9999999'}}),100)).rejects.toThrow('size limit');
   });
 });

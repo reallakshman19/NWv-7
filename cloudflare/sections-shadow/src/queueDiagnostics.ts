@@ -6,6 +6,7 @@ const KNOWN_MESSAGE_TYPES = new Set([
   'ACQUIRE_LIVE_LANE',
   'ACQUIRE_LIVE_BROWSER_LANES',
   'FINALIZE_LIVE_EPOCH',
+  'PRUNE_HISTORY',
 ]);
 
 const KNOWN_ERROR_NAMES = new Set([
@@ -16,7 +17,7 @@ const KNOWN_ERROR_NAMES = new Set([
 function safeEpochId(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   // Match only the two issued epoch forms, never arbitrary queue-supplied text.
-  return /^(?:live-[0-9]{10,16}|frozen-(?:[0-9]{10,16}|[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{1,4}))$/.test(value)
+  return /^(?:(?:live|retention)-[0-9]{10,16}|frozen-(?:[0-9]{10,16}|[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{1,4}))$/.test(value)
     ? value : null;
 }
 
@@ -29,6 +30,16 @@ function safeLaneId(value: unknown): string | null {
 function exceptionType(error: unknown): string {
   if (!(error instanceof Error)) return 'NON_ERROR_THROW';
   return KNOWN_ERROR_NAMES.has(error.name) ? error.name : 'OTHER_ERROR';
+}
+
+function databaseFailureCode(error: unknown): string {
+  const message = error instanceof Error ? error.message : '';
+  if (/sections_shadow_storage_capacity_exhausted/.test(message)) return 'FREE_TIER_STORAGE_CAPACITY_EXHAUSTED';
+  if (/SQLITE_FULL|database or disk is full/i.test(message)) return 'D1_STORAGE_FULL';
+  if (/exceeded D1.*daily row read limit/i.test(message)) return 'D1_DAILY_READ_LIMIT';
+  if (/exceeded D1.*daily row write limit/i.test(message)) return 'D1_DAILY_WRITE_LIMIT';
+  if (/SQLITE_TOOBIG|string or blob too big/i.test(message)) return 'D1_VALUE_TOO_LARGE';
+  return 'UNEXPECTED_FAILURE';
 }
 
 /**
@@ -46,7 +57,7 @@ export function queueFailureFields(
     ? body?.type : 'UNRECOGNIZED';
   const code = error instanceof ShadowCustodyError &&
     /^[A-Z][A-Z0-9_]{1,63}$/.test(error.code)
-    ? error.code : 'UNEXPECTED_FAILURE';
+    ? error.code : databaseFailureCode(error);
   const laneId = 'laneId' in (body || {}) ? safeLaneId((body as { laneId?: unknown })?.laneId) : null;
   return {
     code,

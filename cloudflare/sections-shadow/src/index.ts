@@ -14,7 +14,8 @@ import {
   finalizeLiveEpoch,
   startLiveEpoch,
 } from './liveAcquisition';
-import { readQuotaDay } from './quota';
+import { quotaLimits, readQuotaDay } from './quota';
+import { readD1EvidenceUsage } from './evidenceStore';
 import { sectionsRegistryAuthority } from './registry';
 import { queueFailureFields } from './queueDiagnostics';
 import { readCommittedPreviewSnapshot } from './previewSnapshot';
@@ -71,6 +72,12 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
   if (url.pathname === '/health') {
     return json({
       status: 'ok',
+      healthScope: 'configuration_only',
+      requiredMigration: '0006_storage_usage.sql',
+      acquisitionIntervalHours: 3,
+      historyRetentionDays: 7,
+      rawRetentionHours: 36,
+      freeTierCeilings: quotaLimits(env),
       mode: env.SHADOW_MODE ?? SHADOW_MODE,
       servingAuthority: 'github_static',
       cloudflareBrowserServingAuthority: false,
@@ -108,9 +115,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
     if (!env.SHADOW_READ_TOKEN) return json({ error: 'shadow_read_not_configured' }, 503);
     if (!(await authorized(request, env))) return json({ error: 'unauthorized' }, 401);
     const nowMs = Date.now();
-    const [current, quota] = await Promise.all([
+    const [current, quota, storage] = await Promise.all([
       readCurrentShadow(env.SHADOW_DB),
       readQuotaDay(env, nowMs),
+      readD1EvidenceUsage(env.SHADOW_DB),
     ]);
     return json({
       mode: env.SHADOW_MODE ?? SHADOW_MODE,
@@ -118,6 +126,10 @@ export async function handleRequest(request: Request, env: Env): Promise<Respons
       cloudflareBrowserServingAuthority: false,
       current,
       quota,
+      storage,
+      publishedAgeHours: current ? (nowMs - current.pointer.logical_slot) / HOUR_MS : null,
+      publicationStatus: !current ? 'missing' :
+        nowMs - current.pointer.logical_slot > 12 * HOUR_MS ? 'stale' : 'fresh',
     });
   }
   return json({ error: 'not_found' }, 404);
@@ -265,7 +277,10 @@ async function consumeMessage(message: Message<ShadowQueueMessage>, env: Env): P
         return;
     }
     message.ack();
-  } catch (error) {
+  } catch (caught) {
+    const error = caught instanceof Error && /sections_shadow_storage_capacity_exhausted/.test(caught.message)
+      ? new ShadowCustodyError('FREE_TIER_STORAGE_CAPACITY_EXHAUSTED', 'Retained JSON reached the shared safety ceiling')
+      : caught;
     if (error instanceof ShadowCustodyError && error.code === 'RETRYABLE_SOURCE_RESPONSE') {
       console.warn('Sections shadow source response will receive one bounded retry', { code: error.code });
       message.retry({ delaySeconds: 20 });

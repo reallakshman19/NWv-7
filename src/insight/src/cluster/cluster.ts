@@ -16,6 +16,8 @@ import {
   cosineSimilarity,
 } from "../dedup/dedup";
 import { getTopicCohesionDiagnostics } from "./topicCohesion";
+import { countPublisherEvidenceFamilies } from "../pipeline/publisherIdentity";
+import { hasConflictingEventIdentity } from "./eventOccurrenceIdentity";
 
 // ── Cluster (internal working struct) ────────────────────────────────────────
 
@@ -104,6 +106,9 @@ export function clusterIntoParentEvents(
     let bestScore = -1;
 
     for (const cluster of clusters) {
+      // A centroid alone cannot protect against bridge-merging two distinct
+      // identified occurrences. A negative conflict with ANY member vetoes it.
+      if (cluster.stories.some(member => hasConflictingEventIdentity(story, member))) continue;
       // FIX M-1: compare against centroid story, not just the seeding representative
       const rep   = centroidStory(cluster);
       const raw   = eventSimilarity(story, rep);
@@ -234,11 +239,7 @@ export function createCanonicalParent(
   const allVerbs   = [...new Set(tagged.flatMap(s => s.eventVerbs))];
   const allNumbers = [...new Set(tagged.flatMap(s => s.numbers))];
 
-  const uniqueSources = new Set(
-    tagged
-      .filter(s => s.sourceTier === "A" || s.sourceTier === "B")
-      .map(s => s.sourceGroup)
-  );
+  const uniqueSources = countPublisherEvidenceFamilies(tagged.filter(s => s.sourceTier === "A" || s.sourceTier === "B"));
   const weightedDomainDiversity = tagged.reduce((sum, story) => {
     const domainWeight = cfg.DOMAIN_DIVERSITY_WEIGHT[story.sourceContentDomain || "unknown"] ?? 0.25;
     const wirePenalty = story.sourceDistributionType === "wire"
@@ -263,7 +264,7 @@ export function createCanonicalParent(
     snapshotPresence,
     impactScore:       0,
     persistenceScore:  computePersistenceScore(snapshotPresence),
-    sourceDiversityScore: Math.min(1, (uniqueSources.size / 3) + (weightedDomainDiversity / Math.max(1, tagged.length * 6))),
+    sourceDiversityScore: Math.min(1, (uniqueSources / 3) + (weightedDomainDiversity / Math.max(1, tagged.length * 6))),
     noveltyScore:      0,
     freshnessScore:    Math.max(...tagged.map(s => s.freshnessScore)),
     crossSnapshotMomentum: 0,

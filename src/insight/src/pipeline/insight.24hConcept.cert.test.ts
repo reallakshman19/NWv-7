@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { runInsightPipeline } from './pipeline';
 import { invalidateSlot } from '../cache/cacheManager';
 import { DEFAULT_CONFIG } from '../types';
@@ -54,11 +54,12 @@ function story(overrides: Partial<InsightStory>): InsightStory {
 }
 
 function topStorySet(slot: SnapshotSlot): InsightStory[] {
+  if (slot === "minus36h" || slot === "minus48h") return [];
   const slotOffset = {
     now: 0,
     minus4h: 4 * 60 * 60 * 1000,
     minus12h: 12 * 60 * 60 * 1000,
-    minus24h: 23 * 60 * 60 * 1000,
+    minus24h: 24 * 60 * 60 * 1000,
   }[slot];
 
   const publishedAt = BASE_TIME - slotOffset;
@@ -204,6 +205,9 @@ function resetInsightCache(): void {
   invalidateSlot('minus12h');
   invalidateSlot('minus24h');
 }
+
+beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(BASE_TIME); });
+afterEach(() => vi.useRealTimers());
 
 describe('24h multi-angle Insight concept', () => {
   it('top parent is the high-prominence multi-angle story', async () => {

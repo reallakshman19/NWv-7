@@ -8,6 +8,22 @@ import './MyPlanner.css';
 // usePlannerTabViewModel — Planner tab ViewModel pattern; page consumes useMyPlannerPageViewModel
 // DataStateBoundary integration: treatEmptyAsReady={true} for non-empty empty-state handling
 
+export function PlannerRecoveryNotice({recovery,error,onRestore,onDownload,onRetry}) {
+    const count=recovery?.archivedCount||0;
+    if(!count&&!error)return null;
+    return <section className="planner-controls" aria-label="Planner recovery">
+        {error?<p role="alert">{error}</p>:<>
+            <h2>Old app-provided entries moved out of Planner</h2>
+            <p>{count} old bundled item(s) are in a recovery archive. Your personal reminders and edited entries were kept.</p>
+        </>}
+        <div className="planner-bulk__actions">
+            {count>0&&<><button type="button" onClick={onRestore}>Restore archived entries</button>
+                <button type="button" onClick={onDownload}>Download recovery copy</button></>}
+            {error&&<button type="button" onClick={onRetry}>Retry cleanup</button>}
+        </div>
+    </section>;
+}
+
 function PlannerSuggestions({ items = [], error, onSave }) {
     if (!items.length && !error) return null;
     return (
@@ -16,7 +32,7 @@ function PlannerSuggestions({ items = [], error, onSave }) {
             {error && <p role="alert">{error}</p>}
             <ul>
                 {items.map(item => (
-                    <li key={item.hiddenKey || item.id}>
+                    <li key={item.occurrenceKey || item.hiddenKey || item.id}>
                         <div>
                             <strong>{item.title}</strong>
                             <p>{formatPlannerDateLabel(item.planDate)}{item.locationCanonical ? ` · ${item.locationCanonical}` : ''}</p>
@@ -520,6 +536,11 @@ function MyPlannerPage() {
         upAheadSuggestions,
         suggestionError,
         saveUpAheadSuggestion,
+        plannerRecovery,
+        plannerRecoveryError,
+        recoverOldPlannerEntries,
+        restoreRecoveredPlannerEntries,
+        downloadPlannerRecovery,
     } = useMyPlannerPageViewModel();
 
     const plannerHeaderActions = (
@@ -539,6 +560,8 @@ function MyPlannerPage() {
             <Header title="My Planner" actions={plannerHeaderActions} shellRuntimeProps={shellRuntimeProps} />
 
             <main className="main-content" style={{ padding: '16px', margin: '0 auto', maxWidth: '800px' }}>
+                <PlannerRecoveryNotice recovery={plannerRecovery} error={plannerRecoveryError}
+                    onRestore={restoreRecoveredPlannerEntries} onDownload={downloadPlannerRecovery} onRetry={recoverOldPlannerEntries}/>
                 <PlannerSuggestions items={upAheadSuggestions} error={suggestionError} onSave={saveUpAheadSuggestion} />
                 <PlannerControlsPanel
                     viewModel={plannerViewModel}

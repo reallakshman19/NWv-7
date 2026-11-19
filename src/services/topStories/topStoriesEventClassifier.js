@@ -16,7 +16,12 @@ export const TOP_STORY_EVENT_TYPES = Object.freeze({
   UNKNOWN: 'unknown',
 });
 
-const PROMO_RE = /\b(god of war|call of duty|gameplay|trailer|teaser|box office|ott release|web series|season premiere|movie)\b/i;
+const PROMO_RE = /\b(god of war|call of duty|gameplay|box office|ott release|web series|season premiere|movie (?:review|release|trailer|teaser)|(?:film|game|series|movie) trailer|trailer (?:released|revealed|unveiled|drops)|teaser (?:released|revealed|unveiled))\b/i;
+const ROAD_INCIDENT = /\b(?:crash(?:es|ed)?|collision|accident|hit by|run over|rammed)\b/i;
+const MASS_HARM = /\b(?:[2-9]|[1-9]\d+|two|three|four|five|six|seven|eight|nine|ten|dozens|scores|hundreds|multiple|several)\s+(?:(?:people|persons?|passengers?|workers?|residents?|children|men|women|civilians?|victims?)\s+)?(?:(?:were|are)\s+)?(?:killed|dead|injur\w*|casualt\w*|deaths?)\b|\b(?:kills?|toll (?:rises|climbs) to)\s+(?:[2-9]|[1-9]\d+|dozens|scores|hundreds)\b(?![-\s]*year[-\s]*old)/i;
+const TRANSPORT_EMERGENCY = /\b(?:train|bus|minibus|passengers?|airport|public transport|school bus)\b/i;
+const LEGAL_UPDATE = /\b(?:court|sc|judge|bench)\b.{0,70}\b(?:orders?|allows?|rules?|hears?|transfer|trial|appeal|verdict|hearing|petition|bail)\b/i;
+const MARKET_UPDATE = /\b(?:stocks?|shares?)\b.{0,55}\b(?:drop|fall|rise|jump|sink|decline|surge|gain|slump)\w*\b/i;
 
 const EVENT_RULES = Object.freeze([
   rule(TOP_STORY_EVENT_TYPES.WAR_CONFLICT,
@@ -27,7 +32,7 @@ const EVENT_RULES = Object.freeze([
     /\b(people|residents?|passengers?|workers?|police|hospital|casualt\w*|civilians?|victims?|deceased|toll|driver|truck|minibus|fire|building|train|bus|road|highway|public|station|transit)\b/i),
   rule(TOP_STORY_EVENT_TYPES.DISASTER,
     /\b(earthquake|tsunami|cyclone|flood|wildfire|landfall|storm surge|landslide|disaster)\b/i,
-    /\b(alert|warning|evacuat\w*|damage|rain|wind|coast\w*|districts?|rescue|people|homes?)\b/i),
+    /\b(alert|warning|evacuat\w*|damage|rescue|killed|dead|injur\w*|displaced|inundat\w*|landfall|emergency|intensif\w*|closures?)\b/i),
   rule(TOP_STORY_EVENT_TYPES.GOVERNANCE,
     /\b(election|parliament|minister|cabinet|policy|summit|treaty|resigns?|impeach(?:ment)?|government)\b/i,
     /\b(vot\w*|ballot|polling|turnout|candidate|constituency|campaign|assembly|commission|results?|coalition|bill|law|regulation|agreement|appointed|ousted|devolution)\b/i),
@@ -88,10 +93,23 @@ export function classifyTopStoryEvent(story = {}) {
     return makeEvent(TOP_STORY_EVENT_TYPES.ENTERTAINMENT_PROMO, 0.92, ['promo_guard']);
   }
 
+  const headline = String(story.title || story.headline || '');
+  if (LEGAL_UPDATE.test(headline)) {
+    return makeEvent(TOP_STORY_EVENT_TYPES.COURT_LEGAL, 0.8, ['legal_development']);
+  }
+  if (MARKET_UPDATE.test(headline) && !/\b(?:market crash|recession|central bank|inflation|systemic)\b/i.test(headline)) {
+    return makeEvent(TOP_STORY_EVENT_TYPES.ROUTINE_BUSINESS, 0.8, ['company_market_update']);
+  }
   const unqualified = [];
   for (const candidate of EVENT_RULES) {
     if (!candidate.anchor.test(text)) continue;
     if (candidate.context.test(text)) {
+      if (candidate.eventType === TOP_STORY_EVENT_TYPES.PUBLIC_SAFETY &&
+          ROAD_INCIDENT.test(headline) && !MASS_HARM.test(headline) &&
+          !TRANSPORT_EMERGENCY.test(text)) {
+        unqualified.push('bounded_road_incident');
+        continue;
+      }
       return makeEvent(candidate.eventType, 0.8, [candidate.eventType, 'context_qualified']);
     }
     unqualified.push(`unqualified_keyword:${candidate.eventType}`);

@@ -7,6 +7,7 @@ import {
   fetchLiveUpAheadData,
   loadFromCache,
   saveToCache,
+  beginUpAheadRequest,
   sanitizeUpAheadData,
   isUpAheadDataFresh,
   UP_AHEAD_REFRESH_MAX_AGE_MS,
@@ -41,8 +42,11 @@ function hasVisibleUpAheadContent(data) {
 
 function getSource(sourceMode) {
   if (sourceMode === 'cache') return ENVELOPE_SOURCES.CACHE;
-  if (sourceMode === 'snapshot' || sourceMode === 'static') return ENVELOPE_SOURCES.SNAPSHOT;
-  return ENVELOPE_SOURCES.LIVE;
+  if (['snapshot', 'static', 'dataset-api'].includes(sourceMode)) return ENVELOPE_SOURCES.SNAPSHOT;
+  if (sourceMode === 'calendar') return ENVELOPE_SOURCES.SEED;
+  if (sourceMode === 'failed') return ENVELOPE_SOURCES.FAILED;
+  if (sourceMode === 'live') return ENVELOPE_SOURCES.LIVE;
+  return ENVELOPE_SOURCES.UNKNOWN;
 }
 
 function buildVisible(data, settings) {
@@ -105,41 +109,48 @@ function pushDatasetApiEdgeDiagnostics(diagnostics, edgeDiagnostics) {
   });
 }
 
-async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics }) {
+async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics, request }) {
   diagnostics.push({ event: 'upAheadDataset.api_attempted', severity: 'info', message: 'Attempting Up Ahead dataset API' });
   const apiResponse = await fetchUpAheadDatasetApiResponse({ baseUrl: runtimeCapabilities.configuredBackendUrl });
   pushDatasetApiEdgeDiagnostics(diagnostics, apiResponse?.diagnostics);
-  const apiData = apiResponse?.data;
-  if (apiData) data = saveToCache(apiData, data, upAheadSettings);
+  const edgeFreshness = apiResponse?.diagnostics?.freshness;
+  const apiData = apiResponse?.data ? {
+    ...apiResponse.data,
+    sourceMode: 'dataset-api',
+    datasetApiFreshness: edgeFreshness === 'fresh' || edgeFreshness === 'stale' ? edgeFreshness : 'unknown',
+  } : null;
+  if (apiData) data = saveToCache(apiData, data, upAheadSettings, request);
   if (hasVisibleUpAheadContent(sanitizeUpAheadData(apiData))) {
     diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
     return {
       data,
-      sourceMode: apiData.sourceMode || 'dataset-api',
-      hasFreshApi: apiResponse.diagnostics?.freshness === 'fresh'
-        || (apiResponse.diagnostics?.freshness !== 'stale' && isUpAheadDataFresh(apiData)),
+      sourceMode: apiData.sourceMode,
+      // The Worker may answer HTTP 200 using a retained snapshot. Do not
+      // override a stale response header or a stale payload timestamp.
+      hasFreshApi: isUpAheadDataFresh(apiData),
     };
   }
   diagnostics.push({ event: 'upAheadDataset.api_empty', severity: 'warn', message: 'Dataset API returned no visible Up Ahead content' });
   return { data, sourceMode: null, hasFreshApi: false };
 }
 
-async function mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics }) {
+async function mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics, request }) {
   try {
-    return await loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics });
+    return await loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics, request });
   } catch (error) {
     diagnostics.push({ event: 'upAheadDataset.api_failed', severity: 'warn', message: error?.message || String(error) });
     return { data, sourceMode: null, hasFreshApi: false };
   }
 }
 
-async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
+async function mergeStaticData({ upAheadSettings, data, diagnostics, request }) {
   try {
-    const staticData = await fetchStaticUpAheadData(upAheadSettings);
-    if (staticData) data = saveToCache(staticData, data, upAheadSettings);
+    const snapshot = await fetchStaticUpAheadData(upAheadSettings);
+    const staticData = snapshot ? { ...snapshot, sourceMode: snapshot.sourceMode || 'snapshot' } : null;
+    if (staticData) data = saveToCache(staticData, data, upAheadSettings, request);
     if (hasVisibleUpAheadContent(sanitizeUpAheadData(staticData))) {
       diagnostics.push({ event: 'upAheadDataset.static_loaded', severity: 'info', message: 'Merged static Up Ahead data' });
-      return { data, sourceMode: staticData.sourceMode || 'snapshot', hasUsableStatic: isUpAheadDataFresh(staticData) };
+      return { data, sourceMode: staticData.sourceMode, hasUsableStatic: isUpAheadDataFresh(staticData) };
     }
     diagnostics.push({ event: 'upAheadDataset.static_empty', severity: 'warn', message: 'Static Up Ahead data was empty or not displayable' });
   } catch (error) {
@@ -148,13 +159,14 @@ async function mergeStaticData({ upAheadSettings, data, diagnostics }) {
   return { data, sourceMode: null, hasUsableStatic: false };
 }
 
-async function mergeLiveData({ upAheadSettings, data, diagnostics }) {
+async function mergeLiveData({ upAheadSettings, data, diagnostics, request }) {
   try {
-    const liveData = await fetchLiveUpAheadData(upAheadSettings);
-    if (liveData) data = saveToCache(liveData, data, upAheadSettings);
+    const result = await fetchLiveUpAheadData(upAheadSettings);
+    const liveData = result ? { ...result, sourceMode: result.sourceMode || 'live' } : null;
+    if (liveData) data = saveToCache(liveData, data, upAheadSettings, request);
     if (hasVisibleUpAheadContent(sanitizeUpAheadData(liveData))) {
       diagnostics.push({ event: 'upAheadDataset.live_loaded', severity: 'info', message: 'Merged live Up Ahead data' });
-      return { data, sourceMode: liveData.sourceMode || 'live', acquisitionSummary: liveData.acquisitionSummary };
+      return { data, sourceMode: liveData.sourceMode, acquisitionSummary: liveData.acquisitionSummary };
     }
     diagnostics.push({ event: 'upAheadDataset.live_empty', severity: data ? 'warn' : 'error', message: 'Live Up Ahead fetch returned no visible content' });
     return { data, sourceMode: null, acquisitionSummary: liveData?.acquisitionSummary };
@@ -167,6 +179,7 @@ async function mergeLiveData({ upAheadSettings, data, diagnostics }) {
 export async function load(options = {}) {
   const settings = options.settings || safeGetSettings();
   const upAheadSettings = settings.upAhead || DEFAULT_UP_AHEAD_SETTINGS;
+  const request = beginUpAheadRequest(upAheadSettings);
   const runtimeCapabilities = getRuntimeCapabilities();
   const diagnostics = [];
   let data = null;
@@ -191,7 +204,7 @@ export async function load(options = {}) {
   }
 
   if (initialPolicy.shouldAttemptDatasetApi) {
-    const result = await mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics });
+    const result = await mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics, request });
     data = result.data;
     hasFreshApi = result.hasFreshApi;
     if (result.sourceMode) sourceMode = result.sourceMode;
@@ -200,7 +213,7 @@ export async function load(options = {}) {
   }
 
   if (initialPolicy.shouldReadStatic && !hasFreshApi) {
-    const result = await mergeStaticData({ upAheadSettings, data, diagnostics });
+    const result = await mergeStaticData({ upAheadSettings, data, diagnostics, request });
     data = result.data;
     hasUsableStatic = result.hasUsableStatic;
     if (result.sourceMode) sourceMode = result.sourceMode;
@@ -212,7 +225,7 @@ export async function load(options = {}) {
   pushProviderDecision(diagnostics, providerDecision);
 
   if (providerDecision.shouldAttemptLive) {
-    const result = await mergeLiveData({ upAheadSettings, data, diagnostics });
+    const result = await mergeLiveData({ upAheadSettings, data, diagnostics, request });
     data = result.data;
     acquisitionSummary = result.acquisitionSummary;
     if (result.sourceMode) sourceMode = result.sourceMode;
@@ -223,12 +236,17 @@ export async function load(options = {}) {
     }
   }
 
+  // Cache merging may retain the timestamp and provenance of another publisher
+  // snapshot. Use the same retained record for both the source and freshness.
+  sourceMode = data?.sourceMode || sourceMode;
   const visible = buildVisible(data, settings);
   acquisitionSummary ||= data?.acquisitionSummary || null;
   const evidence = visible.projected.upAheadEvidence;
   const briefing = visible.projected.upAheadBriefing;
   const ok = visible.projected.hasVisibleContent;
-  const fresh = ok && (hasFreshApi || isUpAheadDataFresh(data));
+  const fresh = ok && data?.auditSummary?.fallback !== 'festival_calendar'
+    && sourceMode !== 'calendar' && sourceMode !== 'failed'
+    && isUpAheadDataFresh(data);
   const coverageError = !ok ? 'Current Up Ahead coverage is unavailable. Please refresh later.'
     : !fresh ? 'The publisher has not provided a fresh update. Showing retained active items only.' : null;
   if (!fresh) diagnostics.push({ event: 'upAheadDataset.coverage_not_fresh', severity: 'warn', message: coverageError });
@@ -255,4 +273,5 @@ export async function load(options = {}) {
 export const __upAheadDatasetInternalsForTest = {
   hasVisibleUpAheadContent,
   buildVisible,
+  getSource,
 };

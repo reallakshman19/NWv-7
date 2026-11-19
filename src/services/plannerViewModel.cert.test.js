@@ -39,9 +39,10 @@ describe('Planner view model certification', () => {
     const view = getPlannerViewModel(planData, { dateWindow: 'next7' }, { now: NOW });
 
     expect(view.filteredCount).toBe(3);
-    expect(view.filteredItems.map(item => item.id)).toContain('today-event');
-    expect(view.filteredItems.map(item => item.id)).toContain('movie-soon');
-    expect(view.filteredItems.map(item => item.id)).toContain('offer-soon');
+    expect(view.filteredItems.map(item => item.raw.id)).toContain('today-event');
+    expect(view.filteredItems.map(item => item.raw.id)).toContain('movie-soon');
+    expect(view.filteredItems.map(item => item.raw.id)).toContain('offer-soon');
+    expect(new Set(view.filteredItems.map(item => item.id)).size).toBe(3);
   });
 
   it('filters overdue and undated items separately', () => {
@@ -49,10 +50,10 @@ describe('Planner view model certification', () => {
     const undated = getPlannerViewModel(planData, { dateWindow: 'undated' }, { now: NOW });
 
     expect(overdue.filteredCount).toBe(1);
-    expect(overdue.filteredItems[0].id).toBe('old-alert');
+    expect(overdue.filteredItems[0].raw.id).toBe('old-alert');
 
     expect(undated.filteredCount).toBe(1);
-    expect(undated.filteredItems[0].id).toBe('undated-note');
+    expect(undated.filteredItems[0].raw.id).toBe('undated-note');
   });
 
   it('groups filtered planner items by date', () => {

@@ -4,10 +4,52 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, describe, expect, it } from 'vitest';
 
 import DailyDigestSection from './DailyDigestSection.jsx';
+import { digestPublishedAt, digestSnippet } from '../utils/digestCardContent.js';
 
 afterEach(() => cleanup());
 
 describe('DailyDigestSection availability states', () => {
+  it('renders snapshot-derived publisher tabs and source metadata without Live or curated claims',()=>{
+    render(<DailyDigestSection deliveryMode="SNAPSHOT" availability="READY" cards={[{slot:'L1',canonicalId:'published-1',
+      title:'Published city update',canonicalUrl:'https://example.com/story',source:'The Hindu',sourceGroup:'the_hindu',section:'tn',
+      publishedAt:'2026-11-18T13:20:00Z',snippet:'A genuine publisher excerpt.'}]}/>);
+    expect(screen.getByRole('tab',{name:/The Hindu/})).toBeTruthy();
+    expect(screen.getByText('The Hindu · Tamil Nadu')).toBeTruthy();
+    expect(screen.getByText('Snapshot · Auto-selected')).toBeTruthy();
+    expect(screen.queryByText('Publisher-curated')).toBeNull();expect(screen.queryByText('LIVE')).toBeNull();
+  });
+  it('shows the article publication time and plain-text snippet on the selected story', () => {
+    render(<DailyDigestSection deliveryMode="LIVE" cards={[{
+      slot:'L1',canonicalId:'oman-theatre',source:'Times of Oman',section:'muscat',
+      title:'Oman participates in Gulf Theatre Festival',canonicalUrl:'https://timesofoman.com/article/example',
+      publishedAt:'2026-11-18T13:20:00Z',
+      summary:'<p>Muscat: The delegation presents <strong>new theatre</strong> &amp; meets regional artists.</p><script>unwantedCode()</script>',
+    }]} />);
+    const time = screen.getByText(/^Published /);
+    expect(time.tagName).toBe('TIME');
+    expect(time.getAttribute('datetime')).toBe('2026-11-18T13:20:00.000Z');
+    expect(screen.getByText('Muscat: The delegation presents new theatre & meets regional artists.')).toBeTruthy();
+    expect(screen.queryByText(/unwantedCode/)).toBeNull();
+  });
+
+  it('does not invent a publication time from snapshot or freeze metadata', () => {
+    const card = {slot:'I1',canonicalId:'missing-meta',publisherFamily:'AKASHVANI',title:'Morning News',canonicalUrl:'https://newsonair.gov.in/example',fetchedAt:1795003200000};
+    render(<DailyDigestSection cards={[card]} frozenAt="2026-11-18T04:45:00Z"/>);
+    expect(screen.getByText('Publication time unavailable')).toBeTruthy();
+    expect(document.querySelector('time')).toBeNull();
+    expect(document.querySelector('.daily-digest-snippet')).toBeNull();
+  });
+
+  it('accepts publisher seconds/RFC timestamps and omits repeated-headline snippets', () => {
+    expect(digestPublishedAt({pubDate:'Wed, 18 Nov 2026 13:20:00 GMT'})).toBe(Date.parse('2026-11-18T13:20:00Z'));
+    expect(digestPublishedAt({publishedAt:1795008000})).toBe(1795008000000);
+    expect(digestPublishedAt({publishedAt:'invalid',fetchedAt:1795008000000})).toBeNull();
+    expect(digestPublishedAt({publishedAt:'2026-11-18'})).toBeNull();
+    expect(digestPublishedAt({publishedAt:'2026-11-18T13:20:00'})).toBeNull();
+    expect(digestSnippet({title:'Morning News',source:'Publisher',summary:'<a>Morning News</a> Publisher'})).toBe('');
+    expect(digestSnippet({title:'Morning News',summary:'Morning News',description:'A real summary of the stories in this edition.'})).toBe('A real summary of the stories in this edition.');
+    expect(digestSnippet({summary:'The source supplies a shortened introduction...'})).toBe('The source supplies a shortened introduction…');
+  });
   it('switches between source tabs by click and keyboard and displays ten stories per tab', () => {
     const cards = ['BBC', 'The Hindu', 'Times of Oman'].flatMap(source =>
       Array.from({ length: 10 }, (_, index) => ({

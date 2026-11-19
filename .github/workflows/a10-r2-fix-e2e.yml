@@ -1,0 +1,64 @@
+name: A10 R2 evidence-first correction — full tests and controlled browser
+on:
+  push:
+    branches: [fix/a10-provenance-consistency-r2-20261117]
+permissions:
+  contents: read
+jobs:
+  a10-r2:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install exact lockfile dependencies
+        run: npm ci
+      - name: Full Vitest regression
+        run: npx vitest run --config vitest.config.js
+      - name: Source/lint discipline
+        run: npm run lint
+      - name: Production Vite build
+        run: npm run build
+      - name: Install supported browser
+        run: npx playwright install --with-deps chromium
+      - name: Controlled candidate Chromium
+        run: node audit/evidence/a10_cloudflare_live_candidate_replay.mjs
+      - name: Export exact-head patch, native code and cryptographic custody
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import subprocess,hashlib,json,pathlib,zipfile
+          base='21cbab44e4277d0ae81151eea9ba843adb7f7cdf'
+          head=subprocess.check_output(['git','rev-parse','HEAD']).decode().strip()
+          out=pathlib.Path('artifacts/a10-fix')
+          out.mkdir(parents=True,exist_ok=True)
+          names=subprocess.check_output(['git','diff','--name-only',base,head]).decode().splitlines()
+          patch=subprocess.check_output(['git','diff','--binary','--full-index',base,head])
+          checks=[]
+          with zipfile.ZipFile(out/'A10_R2_exact_head_native_source_and_patch.zip','w',zipfile.ZIP_DEFLATED,compresslevel=8) as z:
+            for name in names:
+              data=pathlib.Path(name).read_bytes()
+              gitblob=subprocess.check_output(['git','rev-parse',f'HEAD:{name}']).decode().strip()
+              actual=hashlib.sha1(f'blob {len(data)}\0'.encode()+data).hexdigest()
+              assert gitblob==actual,(name,gitblob,actual)
+              checks.append({'path':name,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'gitBlob':gitblob})
+              z.writestr('native/'+name,data)
+            z.writestr('A10_R2_from_A06_R3.patch',patch)
+            z.writestr('A10_R2_native_manifest.json',json.dumps({'base':base,'head':head,'files':checks},indent=2))
+          (out/'A10_R2_native_manifest.json').write_text(json.dumps({'base':base,'head':head,'changed':checks,'release':'HOLD'},indent=2))
+          (out/'A10_R2_from_A06_R3.patch').write_bytes(patch)
+          print('A10 source custody',len(names),'files exact head',head)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a10-r2-fix-native-source-and-controlled-chromium
+          path: artifacts/a10-fix/
+          if-no-files-found: error
+          retention-days: 30

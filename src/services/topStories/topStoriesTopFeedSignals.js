@@ -1,3 +1,7 @@
+import { newsIdentityKey } from '../newsStoryIdentity.js';
+import { independentPublisherFamilies, clusterPublisherFamilies, expandNewsEvidenceRows } from '../newsClusterEvidence.js';
+import { getStorySourceFamily } from './topStoriesSourceIdentity.js';
+
 const DEFAULT_OPTIONS = Object.freeze({
   maxHits: 6,
   maxSources: 4,
@@ -18,21 +22,6 @@ function textValue(value) {
 
 function normalizeText(value) {
   return textValue(value).toLowerCase().replace(/\s+/g, ' ');
-}
-
-function normalizeTitle(value) {
-  return normalizeText(value).replace(/[^a-z0-9]+/g, ' ').trim();
-}
-
-function normalizeUrl(value) {
-  const raw = textValue(value);
-  if (!raw) return '';
-  try {
-    const parsed = new URL(raw);
-    return `${parsed.origin}${parsed.pathname}`.replace(/\/+$/, '').toLowerCase();
-  } catch {
-    return raw.replace(/[?#].*$/, '').replace(/\/+$/, '').toLowerCase();
-  }
 }
 
 function getOptions(options = {}) {
@@ -60,38 +49,12 @@ function clampScore(value) {
   return Math.min(1, Math.max(0, number));
 }
 
-function sourceKey(row = {}) {
-  const storyFamily = getStorySourceFamily(row);
-  if (storyFamily && storyFamily !== 'unknown') return storyFamily;
-  return getSourceFamily(row.topFeedSource) || 'unknown';
-}
-
 function feedSourceKey(row = {}) {
   return normalizeText(row.topFeedSource || row.sourceGroup || row.source || 'unknown');
 }
 
-function identityKeys(row = {}) {
-  return [
-    textValue(row.canonicalId),
-    textValue(row.id),
-    normalizeUrl(row.url),
-    normalizeUrl(row.link),
-    textValue(row.url),
-    textValue(row.link),
-    textValue(row.title),
-    normalizeTitle(row.title),
-    textValue(row.normalizedIdentity),
-  ].filter(Boolean);
-}
-
-export function getTopFeedIdentity(row = {}) {
-  if (!isRecord(row)) return '';
-  return textValue(row.canonicalId) ||
-    textValue(row.id) ||
-    normalizeUrl(row.url) ||
-    normalizeUrl(row.link) ||
-    normalizeTitle(row.title);
-}
+function identityKeys(row = {}) { return [getTopFeedIdentity(row), ...(!row.url && !row.link && !row.canonicalUrl && !row.id && !row.canonicalId ? [row.title] : [])].filter(Boolean); }
+export function getTopFeedIdentity(row = {}) { return isRecord(row) ? newsIdentityKey(row) : ''; }
 
 function createGroup(identity, row, index) {
   return {
@@ -102,14 +65,16 @@ function createGroup(identity, row, index) {
     sources: new Set(),
     feedSources: new Set(),
     ranks: [],
+    evidenceRows: [],
   };
 }
 
 function addEvidence(group, row, index) {
-  const source = sourceKey(row);
+  const source = getStorySourceFamily(row);
   const feedSource = feedSourceKey(row);
-  const rank = getRank(row.topFeedRank);
-  group.sources.add(source);
+  const rank = getRank(row.topFeedRank) || index + 1;
+  const { topFeedEvidenceRows: _nestedEvidence, ...raw } = row;
+  group.evidenceRows.push({ ...raw, topFeedRank: rank });
   group.feedSources.add(feedSource);
   if (rank) group.ranks.push(rank);
   group.evidenceKeys.add(`${source}|${feedSource}|${rank || index + 1}`);
@@ -127,10 +92,11 @@ function getHitCount(group, options) {
 // Independent corroboration starts only after the first publisher/source family.
 // Multiple rows or feed positions from the same publisher do not corroborate themselves.
 function getCorroborationHits(group, options) {
-  return Math.min(options.maxHits, Math.max(0, group.sources.size - 1));
+  return Math.min(options.maxHits, Math.max(0, independentPublisherFamilies([...group.sources]).length - 1));
 }
 
 function finalizeGroup(group, options) {
+  group.sources=new Set(clusterPublisherFamilies(group.evidenceRows));
   const topFeedHits = getHitCount(group, options);
   const topFeedSourceCount = Math.min(options.maxSources, Math.max(1, group.sources.size));
   const topFeedCorroborationHits = getCorroborationHits(group, options);
@@ -157,13 +123,19 @@ function finalizeGroup(group, options) {
     topFeedSources: [...group.sources].sort(),
     topFeedFeedSources: [...group.feedSources].sort(),
     topFeedBestRank: bestRank,
+    topFeedEvidenceRows: group.evidenceRows,
   };
+}
+
+export function expandTopFeedEvidenceRows(rows = []) {
+  return asArray(rows).flatMap(row => Array.isArray(row?.topFeedEvidenceRows)
+    ? row.topFeedEvidenceRows : [row]);
 }
 
 export function normalizeTopFeedSnapshotRows(rows = [], options = {}) {
   const opts = getOptions(options);
   const groups = new Map();
-  asArray(rows).forEach((row, index) => {
+  expandTopFeedEvidenceRows(rows).forEach((row, index) => {
     if (!isRecord(row)) return;
     const identity = getTopFeedIdentity(row);
     if (!identity) return;
@@ -181,17 +153,41 @@ export function buildTopFeedSnapshotSignalMap(rows = [], options = {}) {
   normalizeTopFeedSnapshotRows(rows, options).forEach(signal => {
     for (const key of new Set([getTopFeedIdentity(signal), ...identityKeys(signal)])) {
       if (key) map.set(String(key), signal);
-      if (key) map.set(normalizeText(key), signal);
+      // Canonical URL paths are case-sensitive. Never alias a key by lowercasing it.
     }
   });
   return map;
+}
+
+export function buildClusteredTopFeedSignalMap(candidates, rows, options = {}) {
+  const opts = getOptions(options);
+  const rowsByIdentity = new Map();
+  rows.forEach((row, index) => {
+    const identity = getTopFeedIdentity(row);
+    if (!identity) return;
+    if (!rowsByIdentity.has(identity)) rowsByIdentity.set(identity, []);
+    rowsByIdentity.get(identity).push({ row, index });
+  });
+
+  const signals = new Map();
+  for (const candidate of candidates) {
+    const identity = getTopFeedIdentity(candidate);
+    const memberIdentities = new Set([identity, ...expandNewsEvidenceRows([candidate]).map(getTopFeedIdentity)]);
+    const evidence = [...memberIdentities].flatMap(key => rowsByIdentity.get(key) || []);
+    if (!evidence.length) continue;
+
+    const group = createGroup(identity, candidate, Math.min(...evidence.map(entry => entry.index)));
+    evidence.forEach(({ row, index }) => addEvidence(group, row, index));
+    signals.set(identity, finalizeGroup(group, opts));
+  }
+  return signals;
 }
 
 export function mergeTopFeedSignalsIntoStories(stories = [], rows = [], options = {}) {
   const signalMap = buildTopFeedSnapshotSignalMap(rows, options);
   return asArray(stories).map(story => {
     if (!isRecord(story)) return story;
-    const signal = identityKeys(story).map(key => signalMap.get(key) || signalMap.get(normalizeText(key))).find(Boolean);
+    const signal = identityKeys(story).map(key => signalMap.get(key)).find(Boolean);
     if (!signal) return { ...story };
     return {
       ...story,
@@ -224,7 +220,3 @@ export function explainTopFeedSignal(signal = {}) {
     `sources=${Number(signal.topFeedSourceCount || 0)}`,
   ].join('; ');
 }
-import {
-  getSourceFamily,
-  getStorySourceFamily,
-} from './topStoriesSourceIdentity.js';

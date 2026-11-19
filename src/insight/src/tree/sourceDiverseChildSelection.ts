@@ -6,6 +6,7 @@ import {
   TemporalTier,
 } from "../types";
 import { classifyAngle } from "../dedup/dedup";
+import { canonicalPublisherFamily, publisherEvidenceFamily } from "../pipeline/publisherIdentity";
 
 const EVOLUTION_DISPLAY_ORDER: EvolutionRole[] = [
   "first_report",
@@ -139,7 +140,11 @@ function getDebug(parent: InsightParent): any {
 }
 
 function sourceGroup(story: InsightStory): string {
-  return story.sourceGroup || story.source || "unknown-source";
+  return canonicalPublisherFamily(story);
+}
+
+function evidenceGroup(story: InsightStory): string {
+  return publisherEvidenceFamily(story) || "";
 }
 
 function angleOf(story: InsightStory): string {
@@ -181,7 +186,7 @@ function finiteNumber(value: unknown): number {
 }
 
 function targetSourceGroupCount(clusterStories: InsightStory[], cfg: InsightConfig): number {
-  const availableSources = uniqueCount(clusterStories, sourceGroup);
+  const availableSources = uniqueCount(clusterStories, evidenceGroup);
   const maxByChildren = Math.min(cfg.MAX_CHILDREN_PER_PARENT, availableSources);
 
   return Math.min(
@@ -191,11 +196,11 @@ function targetSourceGroupCount(clusterStories: InsightStory[], cfg: InsightConf
 }
 
 function candidateScore(story: InsightStory, selected: InsightStory[]): number {
-  const selectedSources = new Set(selected.map(sourceGroup));
+  const selectedSources = new Set(selected.map(evidenceGroup).filter(Boolean));
   const selectedAngles = new Set(selected.map(angleOf));
   const selectedRoles = new Set(selected.map(item => item.evolutionRole).filter(Boolean));
 
-  const newSourceBonus = selectedSources.has(sourceGroup(story)) ? 0 : 0.38;
+  const newSourceBonus = !evidenceGroup(story) || selectedSources.has(evidenceGroup(story)) ? 0 : 0.38;
   const newAngleBonus = selectedAngles.has(angleOf(story)) ? 0 : 0.18;
   const newRoleBonus = story.evolutionRole && !selectedRoles.has(story.evolutionRole) ? 0.28 : 0;
   const protectedRoleBonus = story.evolutionRole && PROTECTED_SELECTION_ROLES.has(story.evolutionRole) ? 0.16 : 0;
@@ -231,7 +236,7 @@ function evaluateSourceCandidate(
   const reasons: string[] = [];
   const score = candidateScore(candidate, selected);
 
-  const selectedSources = new Set(selected.map(sourceGroup));
+  const selectedSources = new Set(selected.map(evidenceGroup).filter(Boolean));
   const selectedAngles = new Set(selected.map(angleOf));
 
   if (candidate.sourceTier === "D" && cfg.TIER_D_EXCLUDE) {
@@ -250,8 +255,8 @@ function evaluateSourceCandidate(
     };
   }
 
-  if (!selectedSources.has(sourceGroup(candidate))) {
-    reasons.push("adds new source group: " + sourceGroup(candidate));
+  if (evidenceGroup(candidate) && !selectedSources.has(evidenceGroup(candidate))) {
+    reasons.push("adds new source group: " + evidenceGroup(candidate));
   }
 
   if (!selectedAngles.has(angleOf(candidate))) {
@@ -309,14 +314,15 @@ function getReplaceableSourceDuplicate(
   selected: InsightStory[],
   incoming: InsightStory
 ): InsightStory | null {
-  const sourceCounts = countBy(selected, sourceGroup);
+  const sourceCounts = countBy(selected, evidenceGroup);
   const angleCounts = countBy(selected, angleOf);
-  const incomingSource = sourceGroup(incoming);
+  const incomingSource = evidenceGroup(incoming);
+  if (!incomingSource || sourceCounts.has(incomingSource)) return null;
 
   const candidates = selected
-    .filter(story => sourceGroup(story) !== incomingSource)
+    .filter(story => !evidenceGroup(story) || (sourceCounts.get(evidenceGroup(story)) || 0) > 1)
     .map(story => {
-      const sourceRepeatPenalty = (sourceCounts.get(sourceGroup(story)) || 0) > 1 ? 0.42 : 0;
+      const sourceRepeatPenalty = (sourceCounts.get(evidenceGroup(story)) || 0) > 1 ? 0.42 : 0;
       const angleRepeatPenalty = (angleCounts.get(angleOf(story)) || 0) > 1 ? 0.18 : 0;
 
       const quality =
@@ -472,7 +478,7 @@ function evaluateCoverageTopUpCandidate(
   const reasons = getCoverageTopUpReasons(story, selected);
   const sourceAuthority = finiteNumber(story.sourceAuthority);
   const informationDelta = finiteNumber(story.informationDeltaScore);
-  const selectedSources = new Set(selected.map(sourceGroup));
+  const selectedSources = new Set(selected.map(evidenceGroup).filter(Boolean));
   const selectedRoles = new Set(selected.map(item => item.evolutionRole).filter(Boolean));
   const hasAngleGain = reasons.some(reason => reason.startsWith("adds missing angle"));
   const hasTierGain = reasons.some(reason => reason.startsWith("adds missing temporal tier"));
@@ -482,7 +488,7 @@ function evaluateCoverageTopUpCandidate(
   if (reasons.some(reason => reason === "adds child depth")) score += 0.18;
   if (hasAngleGain) score += 0.34;
   if (hasTierGain) score += 0.28;
-  if (!selectedSources.has(sourceGroup(story))) score += 0.08;
+  if (evidenceGroup(story) && !selectedSources.has(evidenceGroup(story))) score += 0.08;
   if (story.evolutionRole && !selectedRoles.has(story.evolutionRole)) score += 0.08;
   score = round3(score);
 
@@ -718,7 +724,7 @@ function finalizeSelection(
   applyCoverageTopUpPass(selected, cluster, cfg, hiddenIds, debug);
 
   diagnostics.afterChildCount = selected.length;
-  diagnostics.afterSourceGroupCount = uniqueCount(selected, sourceGroup);
+  diagnostics.afterSourceGroupCount = uniqueCount(selected, evidenceGroup);
   diagnostics.afterAngleCount = uniqueCount(selected, angleOf);
   diagnostics.selectedIds = selected.map(story => story.id);
 
@@ -838,7 +844,7 @@ export function enforceSourceDiverseChildSelection(
   for (const story of cluster) angleOf(story);
 
   const target = targetSourceGroupCount(cluster, cfg);
-  const beforeSourceGroupCount = uniqueCount(selected, sourceGroup);
+  const beforeSourceGroupCount = uniqueCount(selected, evidenceGroup);
   const beforeAngleCount = uniqueCount(selected, angleOf);
 
   const diagnostics: SourceDiverseSelectionDiagnostic = {
@@ -863,7 +869,7 @@ export function enforceSourceDiverseChildSelection(
 
   applyEvolutionRoleCoveragePass(selected, cluster, cfg, hiddenIds, diagnostics, debug);
 
-  if (uniqueCount(selected, sourceGroup) >= target) {
+  if (uniqueCount(selected, evidenceGroup) >= target) {
     return finalizeSelection(parent, selected, cluster, cfg, hiddenIds, diagnostics, debug);
   }
 
@@ -878,9 +884,10 @@ export function enforceSourceDiverseChildSelection(
     .sort((a, b) => b.decision.score - a.decision.score);
 
   for (const item of remaining) {
-    if (uniqueCount(selected, sourceGroup) >= target) break;
+    if (uniqueCount(selected, evidenceGroup) >= target) break;
 
-    const { story, decision } = item;
+    const { story } = item;
+    const decision = evaluateSourceCandidate(story, selected, cfg);
 
     if (!decision.accept) {
       diagnostics.rejectedCount += 1;
