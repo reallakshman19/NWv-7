@@ -26,7 +26,7 @@ async function runViewport(width, height) {
   const external = [];
   let fxRequests = 0;
   let snapshotRequests = 0;
-  await page.route('**/data/market_snapshot.json', async route => {
+  await page.route(/\/data\/market_snapshot\.json(?:\?|$)/, async route => {
     snapshotRequests++;
     await route.fulfill({ status:503, contentType:'application/json', body:'{"error":"fixture source unavailable"}' });
   });
@@ -55,6 +55,14 @@ async function runViewport(width, height) {
   try {
     await page.goto(base + '/#/markets', { waitUntil:'domcontentloaded',timeout:20000 });
     await page.getByRole('heading',{name:'Markets',exact:true}).waitFor();
+    // The shell can be interactive before asynchronous Market boot. Explicitly
+    // exercise the actual failed publication request rather than assuming a
+    // heading means acquisition has already been attempted.
+    const quoteFailure = page.waitForResponse(response =>
+      /\/data\/market_snapshot\.json(?:\?|$)/.test(response.url()) && response.status() === 503,
+      { timeout:15000 });
+    await page.getByRole('button',{name:'Refresh indices'}).click();
+    await quoteFailure;
     check('four-workspace-tabs-' + width,
       await page.locator('.market-workspace__tabs button').count() === 4);
 
@@ -95,7 +103,7 @@ async function runViewport(width, height) {
     });
     check('no-workspace-overflow-' + width, size.scroll <= size.client+2, size);
     check('no-public-cors-waterfall-' + width, external.length===0, external);
-    check('quote-source-was-actually-failed-' + width, snapshotRequests>0);
+    check('quote-source-was-actually-failed-' + width, snapshotRequests>0, {snapshotRequests});
     const png = outputDir + '/market-' + width + '.png';
     await page.screenshot({ path:png, fullPage:true });
     report.screenshots.push(png);
