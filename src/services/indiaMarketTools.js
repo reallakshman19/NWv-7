@@ -1,4 +1,5 @@
 import { safeGetJson, safeSetJson } from '../data/safeStorage.js';
+import { boundedMarketJson } from './marketJsonRequest.js';
 
 export const INDIA_MARKET_SOURCES = {
   indices: 'https://www.nseindia.com/market-data/live-market-indices',
@@ -14,16 +15,8 @@ const DAY = 86400000;
 const FX_CACHE = 'nw7.omr-inr.v1';
 let fxPending = null;
 
-async function getJson(url, fetchImpl = fetch) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetchImpl(url, { signal: controller.signal });
-    if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
-    return await response.json();
-  } finally {
-    clearTimeout(timer);
-  }
+async function getJson(url, fetchImpl = fetch, { signal } = {}) {
+  return boundedMarketJson(url, { fetchImpl, signal, timeoutMs: 8000, maxBytes: 2 * 1024 * 1024 });
 }
 
 export function normalizeOmrRate(data, now = Date.now()) {
@@ -74,10 +67,10 @@ export function equityQuoteUrl(symbol) {
     ? `${INDIA_MARKET_SOURCES.equity}?symbol=${encodeURIComponent(normalized)}` : null;
 }
 
-export async function searchIndianFunds(query, { fetchImpl = fetch } = {}) {
+export async function searchIndianFunds(query, { fetchImpl = fetch, signal } = {}) {
   const cleaned = String(query || '').trim().slice(0, 120);
   if (cleaned.length < 3) throw new Error('Enter at least three characters');
-  const rows = await getJson(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(cleaned)}`, fetchImpl);
+  const rows = await getJson(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(cleaned)}`, fetchImpl, { signal });
   if (!Array.isArray(rows)) throw new Error('Fund search is unavailable');
   return rows.filter(row => /^\d+$/.test(String(row?.schemeCode)) && row?.schemeName).slice(0, 20);
 }
@@ -94,9 +87,9 @@ export function parseIndiaDate(value) {
     ? stamp - 19800000 : null;
 }
 
-export async function loadFundNav(code, { fetchImpl = fetch, now = Date.now() } = {}) {
+export async function loadFundNav(code, { fetchImpl = fetch, now = Date.now(), signal } = {}) {
   if (!/^\d{3,8}$/.test(String(code))) throw new Error('Invalid fund scheme code');
-  const payload = await getJson(`https://api.mfapi.in/mf/${code}/latest`, fetchImpl);
+  const payload = await getJson(`https://api.mfapi.in/mf/${code}/latest`, fetchImpl, { signal });
   const row = payload?.data?.[0];
   const asOf = parseIndiaDate(row?.date);
   const nav = Number(row?.nav);
