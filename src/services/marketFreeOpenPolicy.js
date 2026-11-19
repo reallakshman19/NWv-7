@@ -25,7 +25,7 @@ export function freeOpenMarketPayload() {
     indices: [], globalIndices: [], sectorals: [], equities: [],
     commodities: [], currencies: [], mutualFunds: [],
     movers: {gainers:[],losers:[]}, equityCoverage: {
-      universeSize:16, quotedCount:0, unavailableSymbols:[],
+      universeSize:16, quotedCount:0, unavailableSymbols:null, coverageStatus:'not-published',
       sourceAcquiredCount:0, retainedCount:0,
     },
     ipo:{live:[],upcoming:[],recent:[]}, ipoLastCheckedAt:null,
