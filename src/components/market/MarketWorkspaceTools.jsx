@@ -6,6 +6,7 @@ import {
 } from '../../services/indiaMarketTools.js';
 import { canonicalEquitySymbol, TRACKED_EQUITY_SYMBOLS, qualifyTrackedEquities } from '../../services/marketEquityPolicy.js';
 import { createMarketFundNavStore, normalizeSavedFundCodes } from '../../services/marketFundRequests.js';
+import { assessMarketIpo } from '../../services/marketIpoPolicy.js';
 
 const WATCHLIST_KEY = 'nw7.india-watchlist.v1';
 const SAVED_FUNDS_KEY = 'nw7.market-saved-funds.v1';
@@ -21,6 +22,23 @@ function PriceRow({ row }) {
       <span className="market-workspace__muted">{row.sourceProvider || row.source || 'Provider unavailable'} · Tracked NSE shares</span></div>
     <div className="market-workspace__numbers"><strong>{rupees(Number(row.value))}</strong><span className={validChange && change > 0 ? 'text-success' : validChange && change < 0 ? 'text-danger' : ''}>{validChange ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : 'Change unavailable'}</span></div>
   </li>;
+}
+
+function IpoEvidencePanel({ data }) {
+  const evidence = assessMarketIpo(data);
+  return <div className="market-workspace__ipo-evidence" data-ipo-state={evidence.state}>
+    <p className="market-workspace__muted">IPO schedules are separate from share prices. A failed source does not mean zero public issues.</p>
+    <p role="status">{evidence.message}{evidence.checkedAt != null
+      ? ' · Source checked ' + new Date(evidence.checkedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST' : ''}</p>
+    {evidence.state === 'available' && <ul className="market-workspace__list">
+      {['live','upcoming','recent'].flatMap(group => evidence.rows[group].map((row,index) =>
+        <li className="market-workspace__row" key={group+'-'+row.name+'-'+index}>
+          <div><strong>{row.name}</strong><p>{group} · {row.openDate} – {row.closeDate}</p></div>
+        </li>
+      ))}
+    </ul>}
+    {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
+  </div>;
 }
 
 export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
@@ -65,12 +83,9 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
       })}</ul> : <p className="market-workspace__empty">No saved shares. Add a symbol above or browse the tracked universe.</p>}
     </>}
     {section === 'all' && (quotes.length ? <ul className="market-workspace__list">{quotes.map(row => <PriceRow key={row.id} row={row} />)}</ul> : <p role="status">No qualified tracked equity quotes available. Saved symbols remain preserved.</p>)}
-    {section === 'offers' && (settings.showIPO === false ? <p>IPO/FPO is hidden in Market settings.</p> : <>
-      <p className="market-workspace__muted">IPO schedules are separate from share prices. Provider failures are not evidence of zero issues.</p>
-      {['live','upcoming','recent'].some(group => (data.ipo?.[group] || []).length) ? <ul className="market-workspace__list">{['live','upcoming','recent'].flatMap(group => (data.ipo?.[group] || []).map((row,index) => <li className="market-workspace__row" key={`${group}-${row.name}-${index}`}><div><strong>{row.name}</strong><p>{group} · {row.openDate || 'Opening unknown'} – {row.closeDate || 'Closing unknown'}</p></div></li>))}</ul>
-      : <p role="status">{data.sourceHealth?.ipo?.status === 'failed' ? 'IPO/FPO source unavailable.' : 'No verified current issue rows in this publication.'}</p>}
-      {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
-    </>)}
+    {section === 'offers' && (settings.showIPO === false
+      ? <p>IPO/FPO is hidden in Market settings.</p>
+      : <IpoEvidencePanel data={data} />)}
   </section>;
 }
 
