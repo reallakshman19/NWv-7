@@ -134,6 +134,7 @@ describe('IPO source evidence is separate from empty or cached schedules', () =>
     expect(panel.dataset.ipoState).toBe('unavailable');
     expect(within(panel).getByText(/source unavailable/i)).toBeTruthy();
     expect(within(panel).getByRole('link',{name:/Verify current public issues/})).toBeTruthy();
+    expect(within(panel).getByRole('link',{name:/BSE public issues/}).getAttribute('href')).toContain('bseindia.com/markets/PublicIssues/IPOIssues_new.aspx');
     expect(panel.textContent).not.toMatch(/no qualifying current ipo/i);
   });
   it('does not display old issue rows after an unsuccessful refresh',()=>{
