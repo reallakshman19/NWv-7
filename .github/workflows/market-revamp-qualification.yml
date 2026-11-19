@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/market-slice5-qualification-20261119
+      - release/market-slice8a-integrated-20261119
     paths:
       - 'src/**'
       - 'public/sw.js'
@@ -41,9 +42,9 @@ jobs:
       - name: Deterministic market policies
         if: steps.install.outcome == 'success'
         run: |
-          node --test scripts/test_market_quote_policy.mjs scripts/test_market_service_integration.mjs scripts/test_market_equity_policy.mjs scripts/test_market_equity_service.mjs scripts/test_market_workspace_route.mjs scripts/test_market_fund_requests.mjs scripts/test_market_json_request.mjs scripts/test_market_settings_migration.mjs scripts/test_market_sw_contract.mjs
+          node --test scripts/test_market_quote_policy.mjs scripts/test_market_service_integration.mjs scripts/test_market_equity_policy.mjs scripts/test_market_equity_service.mjs scripts/test_market_workspace_route.mjs scripts/test_market_fund_requests.mjs scripts/test_market_json_request.mjs scripts/test_market_settings_migration.mjs scripts/test_market_sw_contract.mjs scripts/test_market_ipo_policy.mjs scripts/test_market_publication_readiness.mjs
       - name: Publisher regression
-        run: python -m pytest -q scripts/test_refresh_india_market.py
+        run: python -m pytest -q scripts/test_refresh_india_market.py scripts/test_market_live_dryrun.py
       - name: Market Vitest certification
         if: steps.install.outcome == 'success'
         run: npx vitest run --config vitest.config.js src/pages/MarketPage.workspaces.cert.test.jsx src/pages/MarketPage.partialFeed.cert.test.jsx src/pages/MarketPage.release6J.cert.test.jsx src/components/market/IndiaMarketTools.cert.test.jsx src/services/indiaMarketTools.cert.test.js src/services/indianMarketStableService.cert.test.js src/context/MarketContext.cert.test.jsx src/services/marketTrust.delivery.cert.test.js src/utils/storage.market.cert.test.js
