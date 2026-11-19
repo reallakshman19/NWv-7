@@ -287,7 +287,7 @@ export function CurrencyWorkspace({ settings = {} }) {
       <output className="market-workspace__result">{amount === '' ? '' : converted == null ? 'Result unavailable' : base === 'OMR' ? rupees(converted) : `${converted.toFixed(3)} OMR`}</output>
       {rate ? <p>1 OMR = {rate.rate.toPrecision(8)} INR · {rate.stale ? 'Stale reference' : 'Daily reference'} · As of {new Date(rate.asOf).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{rate.warning ? ` · ${rate.warning}` : ''}</p> : <p role="status">{loading ? 'Loading daily reference rate…' : 'No rate available.'}</p>}
       {error && <p role="alert">{error}</p>}
-      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rate provider')} · Transfer fees and spreads excluded.</p>
+      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rates By Exchange Rate API')} · Transfer fees and spreads excluded.</p>
       {!loading && error && <button type="button" onClick={() => void reload()}>Retry rate acquisition</button>}
     </>}
   </section>;
