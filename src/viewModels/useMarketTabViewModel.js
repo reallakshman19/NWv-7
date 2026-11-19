@@ -126,6 +126,8 @@ export function projectMarketData(marketData) {
   return {
     indices: asArray(safeMarketData.indices),
     globalIndices: asArray(safeMarketData.globalIndices),
+    equities: asArray(safeMarketData.equities),
+    equityCoverage: asRecord(safeMarketData.equityCoverage),
     commodities: asArray(safeMarketData.commodities),
     currencies: asArray(safeMarketData.currencies),
     ipo: asRecord(safeMarketData.ipo),

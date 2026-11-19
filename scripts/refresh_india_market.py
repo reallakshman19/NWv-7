@@ -22,8 +22,11 @@ from bs4 import BeautifulSoup
 
 INDICES = {"NIFTY 50": "^NSEI", "SENSEX": "^BSESN", "BANK NIFTY": "^NSEBANK",
            "NIFTY IT": "^CNXIT", "NIFTY AUTO": "^CNXAUTO", "NIFTY PHARMA": "^CNXPHARMA"}
-STOCKS = ["RELIANCE", "TCS", "HDFCBANK", "INFY", "ICICIBANK", "SBIN", "ITC", "BHARTIARTL",
-          "KOTAKBANK", "LT", "HINDUNILVR", "AXISBANK", "BAJFINANCE", "MARUTI", "WIPRO", "SUNPHARMA"]
+# One tracked universe for the publisher and browser adapters; no additional requests.
+UNIVERSE = json.loads((Path(__file__).resolve().parent.parent / "src/config/marketEquityUniverse.json").read_text(encoding="utf-8"))
+STOCKS = UNIVERSE["symbols"]
+if len(STOCKS) != 16 or len(STOCKS) != len(set(STOCKS)) or any(not re.fullmatch(r"[A-Z0-9&-]{1,20}", symbol) for symbol in STOCKS):
+    raise ValueError("The tracked NSE equity universe must contain 16 distinct symbols")
 BSE = "https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P"
 NAV = "https://portal.amfiindia.com/spages/NAVAll.txt"
 NFO = "https://portal.amfiindia.com/rssNAV.aspx?nfo=y"
@@ -222,12 +225,37 @@ def acquire(now, getter=get):
     ipo = {"upcoming": [], "live": [], "recent": []}
     for row in extras["ipo"]:
         ipo[row["status"]].append(row)
-    stocks.sort(key=lambda row: float(row["changePercent"]), reverse=True)
+    # Preserve the source quote time for every qualifying tracked share. The
+    # publication has a bounded 16-symbol universe, not NSE-wide movers.
+    equities = [{**row,
+                 "id": f"equity:NSE:{row['name']}", "symbol": row["name"],
+                 "providerSymbol": row["symbol"], "exchange": "NSE", "region": "IN",
+                 "value": float(row["value"]), "price": float(row["price"]),
+                 "change": float(row["change"]), "changePercent": float(row["changePercent"]),
+                 "currency": "INR", "unit": "currency", "cadence": "daily",
+                 "sourceProvider": "Yahoo Finance", "sourceAuthority": "third-party",
+                 "sourceUrl": health[row["name"]]["sourceUrl"]}
+                for row in stocks]
+    # Gainers and losers must share one observed India session date.
+    newest_day = max((datetime.fromisoformat(row["quoteAt"].replace("Z", "+00:00")).astimezone(IST).date()
+                      for row in equities), default=None)
+    same_session = [row for row in equities
+                    if datetime.fromisoformat(row["quoteAt"].replace("Z", "+00:00")).astimezone(IST).date() == newest_day]
+    gainers = sorted((row for row in same_session if row["changePercent"] > 0),
+                     key=lambda row: row["changePercent"], reverse=True)[:5]
+    losers = sorted((row for row in same_session if row["changePercent"] < 0),
+                    key=lambda row: row["changePercent"])[:5]
+    health["equities"] = {"status": "snapshot" if len(equities) == len(STOCKS) else ("partial" if equities else "failed"),
+                          "provider": "Yahoo Finance", "count": len(equities), "universeSize": len(STOCKS),
+                          "message": "Tracked NSE shares; not exchange-wide movers"}
     snapshot = {"schemaVersion": "market-india-1", "generatedAt": iso(now), "fetchedAt": int(now.timestamp() * 1000),
                 "sourceMode": "snapshot", "indices": indices, "globalIndices": [], "commodities": [], "currencies": [],
+                "equities": equities,
+                "equityCoverage": {"universeSize": len(STOCKS), "quotedCount": len(equities),
+                                   "unavailableSymbols": [symbol for symbol in STOCKS if not any(row["symbol"] == symbol for row in equities)]},
                 "sectorals": [row for row in indices if row["name"] not in {"NIFTY 50", "SENSEX"}],
-                "movers": {"gainers": [row for row in stocks if float(row["changePercent"]) > 0][:5],
-                           "losers": sorted([row for row in stocks if float(row["changePercent"]) < 0], key=lambda row: float(row["changePercent"]))[:5]},
+                "movers": {"gainers": gainers, "losers": losers,
+                           "scope": "tracked-universe", "sessionDate": newest_day.isoformat() if newest_day else None},
                 "mutualFunds": extras["mutualFunds"], "ipo": ipo, "nfo": extras["nfo"], "ipoLastCheckedAt": iso(now),
                 "fiidii": {}, "sourceHealth": health,
                 "errors": {key: receipt["message"] for key, receipt in health.items() if receipt["status"] == "failed"}}
@@ -245,7 +273,23 @@ def validate(snapshot, now):
         stamp = datetime.fromisoformat(row["quoteAt"].replace("Z", "+00:00"))
         if number(row.get("value")) is None or number(row.get("value")) <= 0 or stamp > now + timedelta(minutes=5) or now - stamp > timedelta(days=5):
             raise ValueError("Unqualified index value or source quote timestamp")
-    return {"status": "WARN" if snapshot.get("errors") else "PASS", "indices": len(rows), "failures": snapshot.get("errors", {})}
+    # Optional additive equities collection; older snapshots need not carry it.
+    equities = snapshot.get("equities", [])
+    if not isinstance(equities, list) or len(equities) > len(STOCKS):
+        raise ValueError("Invalid tracked equity collection")
+    seen = set()
+    for row in equities:
+        symbol = row.get("symbol")
+        if symbol not in STOCKS or row.get("id") != f"equity:NSE:{symbol}" or symbol in seen:
+            raise ValueError("Unqualified or duplicate NSE equity identity")
+        seen.add(symbol)
+        stamp = datetime.fromisoformat(str(row.get("quoteAt", "")).replace("Z", "+00:00"))
+        if stamp.tzinfo is None or stamp > now + timedelta(minutes=5) or now - stamp > timedelta(days=5):
+            raise ValueError("Unqualified equity quote timestamp")
+        if number(row.get("value")) is None or number(row["value"]) <= 0 or row.get("currency") != "INR" or row.get("sourceAuthority") != "third-party":
+            raise ValueError("Unqualified equity price/provenance")
+    return {"status": "WARN" if snapshot.get("errors") else "PASS", "indices": len(rows),
+            "equities": len(equities), "failures": snapshot.get("errors", {})}
 
 
 def main():
