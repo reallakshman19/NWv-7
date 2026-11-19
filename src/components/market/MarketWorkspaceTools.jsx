@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { safeGetJson, safeSetJson } from '../../data/safeStorage.js';
 import {
   INDIA_MARKET_SOURCES, equityQuoteUrl, loadOmrRate, convertOmrInr,
-  searchIndianFunds, loadFundNav, calculateSip, currentNfoRows,
+  searchIndianFunds, loadFundNav, calculateSip, currentNfoRows, parseIndiaDate,
 } from '../../services/indiaMarketTools.js';
 import { canonicalEquitySymbol, TRACKED_EQUITY_SYMBOLS, qualifyTrackedEquities } from '../../services/marketEquityPolicy.js';
 import { createMarketFundNavStore, normalizeSavedFundCodes } from '../../services/marketFundRequests.js';
@@ -41,10 +41,11 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
     if (!symbol || !equityQuoteUrl(symbol)) { setMessage('Enter a valid NSE ticker symbol.'); return; }
     if (saved.includes(symbol)) { setMessage(`${symbol} is already saved.`); return; }
     if (saved.length >= 12) { setMessage('The 12-symbol watchlist is full. Remove a symbol first.'); return; }
-    const next = [...saved, symbol]; setSaved(next); safeSetJson(WATCHLIST_KEY, next);
-    setInput(''); setMessage(`${symbol} saved. Quotes are available only within the tracked universe.`);
+    const next = [...saved, symbol]; setSaved(next);
+    const persisted = safeSetJson(WATCHLIST_KEY, next);
+    setInput(''); setMessage(persisted ? `${symbol} saved. Quotes are available only within the tracked universe.` : 'Saved for this visit only. Browser storage is unavailable.');
   };
-  const removeSymbol = symbol => { const next = saved.filter(item => item !== symbol); setSaved(next); safeSetJson(WATCHLIST_KEY, next); };
+  const removeSymbol = symbol => { const next = saved.filter(item => item !== symbol); setSaved(next); if (!safeSetJson(WATCHLIST_KEY, next)) setMessage('Change applies to this visit only. Browser storage is unavailable.'); };
   return <section id="market-equity" aria-labelledby="equity-heading" className="market-workspace__panel">
     <div className="market-workspace__panel-header"><div><h2 id="equity-heading">Equity</h2><p>16 tracked NSE symbols; source-dated observations, not an exchange-wide quote service.</p></div><button type="button" onClick={onRefresh} disabled={loading}>Refresh tracked shares</button></div>
     <p className="market-workspace__muted">Qualified quotes: {quotes.length}/{TRACKED_EQUITY_SYMBOLS.length} · Acquired this publication: {sourceCount} · Retained: {coverage.retainedCount ?? 'Unknown'}</p>
@@ -58,7 +59,7 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
         const quote = bySymbol.get(symbol);
         return <li className="market-workspace__row" key={symbol}>
         <div className="market-workspace__name"><strong>{symbol}</strong>
-          {quote ? <><span>{rupees(quote.value)} · {quote.changePercent ?? 'Change unavailable'}%</span><span className="market-workspace__muted">Quote as of {new Date(quote.quoteAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · {quote.sourceProvider || quote.source || 'Source unavailable'}</span></> : <span className="market-workspace__muted">{TRACKED_EQUITY_SYMBOLS.includes(symbol) ? 'No qualified quote in this publication.' : 'Outside the free tracked quote universe.'}</span>}</div>
+          {quote ? <><span>{rupees(quote.value)} · {quote.changePercent == null ? 'Change unavailable' : `${quote.changePercent}%`}</span><span className="market-workspace__muted">Quote as of {new Date(quote.quoteAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST · {quote.sourceProvider || quote.source || 'Source unavailable'}</span></> : <span className="market-workspace__muted">{TRACKED_EQUITY_SYMBOLS.includes(symbol) ? 'No qualified quote in this publication.' : 'Outside the free tracked quote universe.'}</span>}</div>
         <div className="market-workspace__field-row">{external(equityQuoteUrl(symbol), `Verify ${symbol} on NSE`)}<button type="button" onClick={() => removeSymbol(symbol)}>Remove</button></div>
       </li>;
       })}</ul> : <p className="market-workspace__empty">No saved shares. Add a symbol above or browse the tracked universe.</p>}
@@ -93,7 +94,10 @@ export function FundsWorkspace({ data, settings = {} }) {
   const latestSelection = useRef(0);
   const savedKey = saved.join('|');
   const publicationNav = useMemo(() => new Map(
-    (data.mutualFunds || []).filter(row => /^\d{3,8}$/.test(String(row.code || row.schemeCode))).map(row => [String(row.code || row.schemeCode), row])
+    (data.mutualFunds || []).filter(row => /^\d{3,8}$/.test(String(row.code || row.schemeCode)) &&
+      Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 &&
+      parseIndiaDate(row.navDate) != null && parseIndiaDate(row.navDate) <= Date.now() + 5 * 60_000)
+      .map(row => [String(row.code || row.schemeCode), row])
   ), [data.mutualFunds]);
 
   // The Funds panel is the first request boundary: no saved NAV fetch on Market boot.
