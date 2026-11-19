@@ -45,7 +45,12 @@ export function MarketProvider({ children }) {
             setMarketData(data);
         };
 
-        const previousData = lastData.current || await readContextCache();
+        const prior = lastData.current || await readContextCache();
+        const previousData = shouldRejectMarketPayload(prior, {
+            maxAgeMs: 24 * 60 * 60 * 1000,
+            allowSeed: false,
+        }).reject ? null : prior;
+        if (prior && !previousData) showData(null);
         try {
             if (!forceRefresh && !isLiveMode() &&
                 getMarketPayloadAgeMs(previousData) < MARKET_FRESH_CACHE_TTL_MS) {
@@ -71,7 +76,8 @@ export function MarketProvider({ children }) {
             }
         } catch (err) {
             const message = err?.message || 'Market refresh failed.';
-            if (isMarketPayloadUsable(previousData) &&
+            if (previousData &&
+                !shouldRejectMarketPayload(previousData, { maxAgeMs: 24 * 60 * 60 * 1000, allowSeed: false }).reject &&
                 (lastData.current === previousData || !isMarketPayloadUsable(lastData.current))) {
                 showData(sanitizeMarketPayload(previousData, 'stale-cache', {
                     sourceHealth: { cache: 'stale-cache' },
