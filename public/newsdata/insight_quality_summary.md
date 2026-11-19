@@ -3,34 +3,34 @@
 - Status: **PASS**
 - Schema: `3`
 - Collector: `insight-collector-json-v5`
-- Content hash: `51a55bfed02eef48`
-- Stories: `552`
-- Usable 36h stories: `552`
+- Content hash: `01f8232300428293`
+- Stories: `817`
+- Usable 36h stories: `817`
 - Source groups: `15`
 - Angle hint coverage: `100%`
-- Non-base angle stories: `354`
-- Event sketches: `11`
-- Multi-source sketches: `6`
+- Non-base angle stories: `535`
+- Event sketches: `12`
+- Multi-source sketches: `9`
 
 ## Slot health
 
 | Slot | Story IDs | Linked | Sources | Thin |
 |---|---:|---:|---:|---|
-| now | 161 | 161 | 5 | False |
-| minus4h | 119 | 119 | 4 | False |
-| minus12h | 259 | 259 | 8 | False |
-| minus24h | 103 | 103 | 4 | False |
+| now | 164 | 164 | 5 | False |
+| minus4h | 120 | 120 | 4 | False |
+| minus12h | 203 | 203 | 7 | False |
+| minus24h | 99 | 99 | 3 | False |
 
 ## Top angles
 
-- base_report: 198
-- official_response: 105
-- fact_update: 104
-- regional_followup: 46
-- market_reaction: 43
-- investigative_detail: 21
-- reaction_public: 16
-- expert_analysis: 13
-- background_context: 4
+- base_report: 282
+- official_response: 168
+- fact_update: 124
+- market_reaction: 83
+- regional_followup: 73
+- investigative_detail: 33
+- reaction_public: 21
+- expert_analysis: 21
+- background_context: 6
+- correction: 5
 - opinion_editorial: 1
-- correction: 1
