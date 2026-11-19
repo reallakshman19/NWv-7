@@ -55,6 +55,30 @@ class BoundedGetter:
         return self.getter(url)
 
 
+def classify_failure(message):
+    """Classify failures without retaining URL, exception body, or quote values."""
+    text = str(message or "").lower()
+    if "429" in text or "too many requests" in text:
+        return "HTTP_429"
+    if "403" in text or "forbidden" in text:
+        return "HTTP_403"
+    if "401" in text or "unauthorized" in text:
+        return "HTTP_401"
+    if "404" in text or "not found" in text:
+        return "HTTP_404"
+    if any(word in text for word in ("timeout", "timed out", "readtimeout")):
+        return "TIMEOUT"
+    if any(word in text for word in ("ssl", "certificate", "proxyerror", "connectionerror", "connection aborted")):
+        return "TRANSPORT_FAILURE"
+    if any(word in text for word in ("timestamp", "older than five", "future-dated", "previous daily close")):
+        return "SOURCE_CLOCK_OR_CLOSE"
+    if any(word in text for word in ("json", "expecting value", "parse", "headings", "not aligned", "supported table", "xml")):
+        return "PARSE_OR_SCHEMA"
+    if "4 mb" in text or "four mb" in text:
+        return "BODY_LIMIT"
+    return "OTHER_SOURCE_FAILURE"
+
+
 def clock_range(rows):
     clocks = sorted(row.get("quoteAt") for row in rows if isinstance(row.get("quoteAt"), str))
     return {"oldestAt": clocks[0] if clocks else None,
@@ -112,7 +136,9 @@ def run(now=None, getter=get, node="node"):
     raw = json.dumps(candidate, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     readiness = read_only_readiness(candidate, now, node)
     by_source = {key: {"status": str(value.get("status", "unknown")).lower(),
-                       "provider": str(value.get("provider", "unknown"))}
+                       "provider": str(value.get("provider", "unknown")),
+                       "failureClass": classify_failure(value.get("message"))
+                       if str(value.get("status", "")).lower() == "failed" else None}
                  for key, value in candidate.get("sourceHealth", {}).items()
                  if key not in {"equities"} and isinstance(value, dict)}
     statuses = Counter(item["status"] for item in by_source.values())
