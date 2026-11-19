@@ -9,7 +9,8 @@ import {
   getMarketPayloadAgeMs,
   isMarketPayloadUsable,
   isMarketPayloadFresh,
-  markMarketPayload,
+  normalizeSourceHealth,
+  parseMarketTimestamp,
   shouldRejectMarketPayload
 } from './marketTrust.js';
 
@@ -18,7 +19,6 @@ const CACHE_TTL = MARKET_SERVICE_CACHE_TTL_MS;
 const STALE_CACHE_MAX_AGE = MARKET_STALE_CACHE_MAX_AGE_MS;
 const SNAPSHOT_FRESH_MS = MARKET_SNAPSHOT_FRESH_MS;
 const INDIA_PUBLICATION_SCHEMA = 'market-india-1';
-const STALE_SNAPSHOT_MAX_AGE = 24 * 60 * 60 * 1000;
 const MUTUAL_FUND_SNAPSHOT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const MARKET_SIDECAR_MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000;
 const LIVE_MARKET_BUNDLE_TIMEOUT_MS = 12 * 1000;
@@ -56,54 +56,19 @@ const TOP_STOCKS = [
   'KOTAKBANK.NS', 'MARUTI.NS', 'BAJFINANCE.NS', 'HINDUNILVR.NS', 'SUNPHARMA.NS',
 ];
 
+// The ticker also uses this when no market data is available.
 export const MARKET_SEED = {
-  indices: [
-    { name: 'NIFTY 50', symbol: '^NSEI', value: '22,340.55', change: '124.30', changePercent: '0.56', direction: 'up', currency: '₹', sourceMode: 'seed' },
-    { name: 'SENSEX', symbol: '^BSESN', value: '73,745.35', change: '350.20', changePercent: '0.48', direction: 'up', currency: '₹', sourceMode: 'seed' },
-    { name: 'BANK NIFTY', symbol: '^NSEBANK', value: '48,060.80', change: '210.10', changePercent: '0.44', direction: 'up', currency: '₹', sourceMode: 'seed' },
-    { name: 'NIFTY IT', symbol: '^CNXIT', value: '33,210.40', change: '-85.50', changePercent: '-0.26', direction: 'down', currency: '₹', sourceMode: 'seed' },
-  ],
-  movers: {
-    gainers: [
-      { symbol: 'RELIANCE', price: '2,835.20', change: '34.10', changePercent: '1.22', direction: 'up', sourceMode: 'seed' },
-      { symbol: 'ICICIBANK', price: '1,108.40', change: '12.30', changePercent: '1.12', direction: 'up', sourceMode: 'seed' },
-      { symbol: 'BHARTIARTL', price: '1,321.00', change: '13.80', changePercent: '1.06', direction: 'up', sourceMode: 'seed' },
-    ],
-    losers: [
-      { symbol: 'INFY', price: '1,445.30', change: '-18.20', changePercent: '-1.24', direction: 'down', sourceMode: 'seed' },
-      { symbol: 'TCS', price: '3,890.10', change: '-32.40', changePercent: '-0.83', direction: 'down', sourceMode: 'seed' },
-      { symbol: 'HINDUNILVR', price: '2,310.75', change: '-12.10', changePercent: '-0.52', direction: 'down', sourceMode: 'seed' },
-    ],
-  },
-  sectorals: [
-    { name: 'BANK NIFTY', value: '48,060.80', change: '210.10', changePercent: '0.44', direction: 'up', sourceMode: 'seed' },
-    { name: 'NIFTY IT', value: '33,210.40', change: '-85.50', changePercent: '-0.26', direction: 'down', sourceMode: 'seed' },
-  ],
-  commodities: [
-    { name: 'Gold', value: '$2,330.00', unit: '$/oz', changePercent: '0.18', direction: 'up', source: 'seed' },
-    { name: 'Silver', value: '$27.40', unit: '$/oz', changePercent: '-0.12', direction: 'down', source: 'seed' },
-    { name: 'Crude Oil', value: '$82.10', unit: '$/bbl', changePercent: '0.35', direction: 'up', source: 'seed' },
-  ],
-  currencies: [
-    { name: 'USD/INR', value: '₹83.45', changePercent: '0.05', direction: 'up', source: 'seed' },
-    { name: 'EUR/INR', value: '₹89.30', changePercent: '-0.10', direction: 'down', source: 'seed' },
-    { name: 'GBP/INR', value: '₹104.20', changePercent: '0.08', direction: 'up', source: 'seed' },
-  ],
+  indices: [],
+  movers: { gainers: [], losers: [] },
+  sectorals: [],
+  commodities: [],
+  currencies: [],
   mutualFunds: [],
   ipo: { upcoming: [], live: [], recent: [] },
   nfo: [],
   stockCategories: { highs: [], lows: [], all: [] },
   fiidii: { fii: {}, dii: {}, date: '' },
-  sourceHealth: {
-    indices: 'seed',
-    movers: 'seed',
-    sectorals: 'seed',
-    commodities: 'seed',
-    currencies: 'seed',
-    mutualFunds: 'empty',
-    ipo: 'empty',
-    fiidii: 'empty',
-  },
+  sourceHealth: {},
   errors: {},
 };
 
@@ -112,31 +77,17 @@ function publicDataUrl(path) {
   return `${base}${String(path).replace(/^\//, '')}`;
 }
 
-function isUsableMarketPayload(data) {
-  return isMarketPayloadUsable(data);
-}
-
 function getPayloadTimestamp(data) {
-  const candidates = [
-    Number(data?.fetchedAt || 0),
-    Date.parse(data?.generatedAt || ''),
-    Date.parse(data?.generated_at || ''),
-  ].filter((ts) => Number.isFinite(ts) && ts > 0 && ts <= Date.now() + 5 * 60 * 1000);
-  return candidates.length ? Math.max(...candidates) : 0;
+  const ts = parseMarketTimestamp(data);
+  return ts && ts <= Date.now() + 5 * 60 * 1000 ? ts : null;
 }
 
 function getPayloadAgeMs(data) {
   return getMarketPayloadAgeMs(data);
 }
 
-function isFreshPayload(data, ttlMs) {
-  return isMarketPayloadFresh(data, ttlMs);
-}
-
-async function fetchPublicJson(path) {
-  const resp = await fetch(publicDataUrl(path), { cache: 'no-cache' });
-  if (!resp.ok) return null;
-  return resp.json();
+async function fetchPublicJson(path, signal) {
+  return fetchJsonWithTimeout(publicDataUrl(path), 8000, signal);
 }
 
 function isSidecarFresh(payload, maxAgeMs) {
@@ -168,132 +119,95 @@ function hasFIIDIIRows(data = {}) {
   );
 }
 
-async function resolveWithTimeout(promise, timeoutMs) {
-  let timer;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise((resolve) => {
-        timer = setTimeout(() => resolve(null), timeoutMs);
-      }),
-    ]);
-  } finally {
-    clearTimeout(timer);
-  }
+function quoteRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row) => row && ![row.sourceMode, row.source].some(
+    (source) => String(source).toLowerCase() === 'seed'
+  ));
 }
 
-async function fetchMarketSidecars() {
-  const [mutualFunds, ipo, nfo, fiidii] = await Promise.allSettled([
-    fetchMutualFunds(),
-    fetchIPOData(),
-    fetchNFOData(),
-    fetchFIIDII(),
-  ]);
+export function sanitizeMarketPayload(data, sourceMode = data?.sourceMode, extra = {}) {
+  if (!data || String(data.sourceMode).toLowerCase() === 'seed') return null;
 
-  const resolvedMutualFunds = mutualFunds.status === 'fulfilled' ? mutualFunds.value : [];
-  const resolvedIPO = ipo.status === 'fulfilled' ? ipo.value : MARKET_SEED.ipo;
-  const resolvedNFO = nfo.status === 'fulfilled' ? nfo.value : [];
-  const resolvedFIIDII = fiidii.status === 'fulfilled' ? fiidii.value : MARKET_SEED.fiidii;
+  const timestamp = getPayloadTimestamp(data);
+  if (!timestamp) return null;
 
-  return {
-    mutualFunds: resolvedMutualFunds,
-    ipo: resolvedIPO,
-    nfo: resolvedNFO,
-    fiidii: resolvedFIIDII,
-    sourceHealth: {
-      mutualFunds: resolvedMutualFunds.length ? 'official-daily-sidecar' : 'empty',
-      ipo: hasIPOCalendarRows(resolvedIPO) ? 'snapshot-sidecar' : 'empty',
-      nfo: resolvedNFO.length ? 'snapshot-sidecar' : 'empty',
-      fiidii: hasFIIDIIRows(resolvedFIIDII) ? 'snapshot-sidecar' : 'empty',
-    },
-  };
-}
-
-async function buildSeedWithSidecars(reason) {
-  const sidecars = await fetchMarketSidecars();
-
-  return {
-    ...MARKET_SEED,
-    ...sidecars,
-    fetchedAt: Date.now(),
-    generatedAt: new Date().toISOString(),
-    schemaVersion: MARKET_CACHE_SCHEMA_VERSION,
-    sourceHealth: {
-      ...MARKET_SEED.sourceHealth,
-      ...sidecars.sourceHealth,
-      seed: {
-        status: 'seed',
-        provider: 'bundled-seed',
-        mode: 'seed',
-        message: reason,
-      },
-    },
-    errors: {
-      indices: reason,
-    },
-  };
-}
-
-function withMeta(data, sourceMode, extra = {}) {
-  const timestamp = getPayloadTimestamp(data) || (sourceMode === 'seed' ? Date.now() : Date.now());
   return {
     ...MARKET_SEED,
     ...data,
-    indices: Array.isArray(data?.indices) && data.indices.length ? data.indices : MARKET_SEED.indices,
-    movers: data?.movers || MARKET_SEED.movers,
-    sectorals: Array.isArray(data?.sectorals) ? data.sectorals : sourceMode === 'seed' ? MARKET_SEED.sectorals : [],
-    commodities: Array.isArray(data?.commodities) ? data.commodities : sourceMode === 'seed' ? MARKET_SEED.commodities : [],
-    currencies: Array.isArray(data?.currencies) ? data.currencies : sourceMode === 'seed' ? MARKET_SEED.currencies : [],
+    indices: quoteRows(data.indices),
+    globalIndices: quoteRows(data.globalIndices),
+    movers: {
+      ...data.movers,
+      gainers: quoteRows(data.movers?.gainers),
+      losers: quoteRows(data.movers?.losers),
+    },
+    sectorals: quoteRows(data.sectorals),
+    commodities: quoteRows(data.commodities),
+    currencies: quoteRows(data.currencies),
     schemaVersion: MARKET_CACHE_SCHEMA_VERSION,
     fetchedAt: timestamp,
-    generatedAt: data?.generatedAt || data?.generated_at || new Date(timestamp).toISOString(),
+    generatedAt: data.generatedAt || data.generated_at || new Date(timestamp).toISOString(),
     sourceMode,
-    sourceHealth: markMarketPayload(
-      {
-        sourceHealth: {
-          ...(sourceMode === 'seed' ? MARKET_SEED.sourceHealth : {}),
-          ...(data?.sourceHealth || {}),
-          ...(extra.sourceHealth || {})
-        }
-      },
-      sourceMode
-    ).sourceHealth,
-    errors: { ...(data?.errors || {}), ...(extra.errors || {}) },
+    sourceHealth: normalizeSourceHealth({
+      ...data.sourceHealth,
+      ...extra.sourceHealth,
+    }, sourceMode),
+    errors: { ...data.errors, ...extra.errors },
   };
 }
 
-async function fetchWithTimeout(url, timeoutMs = 8000) {
+async function fetchJsonWithTimeout(url, timeoutMs, signal) {
+  if (signal?.aborted) return null;
+
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const abort = () => controller.abort();
+  signal?.addEventListener('abort', abort, { once: true });
+  let timer;
   try {
-    return await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+    const cancelled = new Promise((resolve) => {
+      controller.signal.addEventListener('abort', () => resolve(null), { once: true });
+      timer = setTimeout(abort, timeoutMs);
+    });
+    const request = (async () => {
+      const response = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+      return response.ok ? response.json() : null;
+    })();
+    return await Promise.race([request, cancelled]);
+  } catch {
+    return null;
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
   }
 }
 
-export async function fetchJsonDirectOrProxy(url, timeoutMs = 8000) {
+export async function fetchJsonDirectOrProxy(url, timeoutMs = 8000, signal) {
   const candidates = [url, ...PROXIES.map((proxy) => proxy(url))];
 
   for (const candidate of candidates) {
-    try {
-      const response = await fetchWithTimeout(candidate, timeoutMs);
-      if (!response.ok) throw new Error(`${response.status} ${candidate}`);
-      return { data: await response.json(), transport: candidate === url ? 'direct' : 'proxy' };
-    } catch {
-      // Try the next transport. The caller decides whether the overall feed failed.
-    }
+    if (signal?.aborted) return null;
+    const data = await fetchJsonWithTimeout(candidate, timeoutMs, signal);
+    if (data) return { data, transport: candidate === url ? 'direct' : 'proxy' };
   }
 
   return null;
+}
+
+function yahooQuoteTimestamp(regularMarketTime) {
+  const timestamp = Number(regularMarketTime) * 1000;
+  return Number.isFinite(timestamp) && timestamp > 0 && timestamp <= Date.now() + 5 * 60 * 1000
+    ? timestamp
+    : null;
 }
 
 function parseYahooChart(payload, provider = 'yahoo-chart') {
   const data = payload?.data || payload;
   const result = data?.chart?.result?.[0];
   const meta = result?.meta;
-  if (!meta || !Number.isFinite(Number(meta.regularMarketPrice))) return null;
-  const price = Number(meta.regularMarketPrice);
+  const price = Number(meta?.regularMarketPrice);
+  const timestamp = yahooQuoteTimestamp(meta?.regularMarketTime);
+  if (!Number.isFinite(price) || price <= 0 || !timestamp) return null;
   const prev = Number(meta.chartPreviousClose ?? meta.previousClose ?? price);
   const change = price - prev;
   const changePercent = prev ? (change / prev) * 100 : 0;
@@ -309,20 +223,21 @@ function parseYahooChart(payload, provider = 'yahoo-chart') {
       low: Number(quote.low?.[i] ?? close),
     };
   }).filter(Boolean);
-  return { price, change, changePercent, timestamp: (meta.regularMarketTime || Date.now() / 1000) * 1000, series, provider: `${provider}-${payload?.transport || 'direct'}` };
+  return { price, change, changePercent, timestamp, series, provider: `${provider}-${payload?.transport || 'direct'}` };
 }
 
 function parseYahooQuote(payload, provider = 'yahoo-quote') {
   const item = payload?.data?.quoteResponse?.result?.[0] || payload?.quoteResponse?.result?.[0] || payload;
-  if (!item || !Number.isFinite(Number(item.regularMarketPrice))) return null;
-  const price = Number(item.regularMarketPrice);
+  const price = Number(item?.regularMarketPrice);
+  const timestamp = yahooQuoteTimestamp(item?.regularMarketTime);
+  if (!Number.isFinite(price) || price <= 0 || !timestamp) return null;
   const change = Number(item.regularMarketChange ?? 0);
   const changePercent = Number(item.regularMarketChangePercent ?? 0);
   return {
     price,
     change,
     changePercent,
-    timestamp: (item.regularMarketTime || Date.now() / 1000) * 1000,
+    timestamp,
     series: [],
     provider: `${provider}-${payload?.transport || 'direct'}`,
   };
@@ -339,7 +254,7 @@ async function fetchYahooChartQuote(symbol, opts = {}) {
 
   for (const base of YAHOO_CHART_BASES) {
     const url = `${base}${encodeURIComponent(symbol)}?interval=${interval}&range=${range}`;
-    const payload = await fetchJsonDirectOrProxy(url, 8000);
+    const payload = await fetchJsonDirectOrProxy(url, 8000, opts.signal);
     const parsed = payload ? parseYahooChart(payload, providerLabelFromBase(base, 'chart')) : null;
     if (parsed) return parsed;
   }
@@ -347,10 +262,10 @@ async function fetchYahooChartQuote(symbol, opts = {}) {
   return null;
 }
 
-async function fetchYahooQuoteApi(symbol) {
+async function fetchYahooQuoteApi(symbol, signal) {
   for (const base of YAHOO_QUOTE_BASES) {
     const url = `${base}?symbols=${encodeURIComponent(symbol)}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketTime`;
-    const payload = await fetchJsonDirectOrProxy(url, 8000);
+    const payload = await fetchJsonDirectOrProxy(url, 8000, signal);
     const parsed = payload ? parseYahooQuote(payload, providerLabelFromBase(base, 'quote')) : null;
     if (parsed) return parsed;
   }
@@ -359,7 +274,7 @@ async function fetchYahooQuoteApi(symbol) {
 }
 
 async function fetchBestYahooQuote(symbol, opts = {}) {
-  return await fetchYahooChartQuote(symbol, opts) || await fetchYahooQuoteApi(symbol);
+  return await fetchYahooChartQuote(symbol, opts) || await fetchYahooQuoteApi(symbol, opts.signal);
 }
 
 function formatIndex({ name, symbol }, priceData) {
@@ -373,6 +288,7 @@ function formatIndex({ name, symbol }, priceData) {
     direction: priceData.change >= 0 ? 'up' : 'down',
     currency: name.includes('NIFTY') || name === 'SENSEX' ? '₹' : '',
     timestamp: priceData.timestamp,
+    quoteAt: new Date(priceData.timestamp).toISOString(),
     history: series.map((p) => p.close),
     series,
     dayOpen: series[0]?.open ?? priceData.price,
@@ -382,85 +298,55 @@ function formatIndex({ name, symbol }, priceData) {
   };
 }
 
+function normalizeSnapshot(snapshot) {
+  const normalized = sanitizeMarketPayload(snapshot, 'snapshot');
+  if (shouldRejectMarketPayload(normalized, { allowSeed: false }).reject) return null;
+
+  const publicationSchema = snapshot.schemaVersion;
+  const maxAgeMs = publicationSchema === INDIA_PUBLICATION_SCHEMA
+    ? MARKET_EXPIRED_DISPLAY_MAX_AGE_MS : SNAPSHOT_FRESH_MS;
+  const fresh = isMarketPayloadFresh(normalized, maxAgeMs);
+
+  return {
+    ...normalized,
+    sourceMode: fresh ? 'snapshot' : 'stale-snapshot',
+    publicationSchema,
+    sourceHealth: {
+      ...normalized.sourceHealth,
+      snapshot: {
+        status: fresh ? 'snapshot' : 'stale',
+        mode: fresh ? 'snapshot' : 'stale-snapshot',
+        provider: 'market_snapshot.json',
+        freshnessMs: getPayloadAgeMs(normalized),
+        message: fresh ? 'Current daily snapshot' : 'Stale daily snapshot',
+      },
+    },
+  };
+}
+
 export async function fetchStaticSnapshot() {
-  try {
-    const resp = await fetch(publicDataUrl('data/market_snapshot.json'), { cache: 'no-cache' });
-    if (!resp.ok) return null;
-
-    const snapshot = await resp.json();
-    if (!isUsableMarketPayload(snapshot)) return null;
-
-    const reject = shouldRejectMarketPayload(
-      {
-        ...snapshot,
-        sourceMode: snapshot.sourceMode || 'snapshot'
-      },
-      {
-        maxAgeMs: MARKET_EXPIRED_DISPLAY_MAX_AGE_MS,
-        allowSeed: false
-      }
-    );
-
-    if (reject.reject) {
-      console.warn('[MarketStableService] Ignoring stale market snapshot:', reject.reason);
-      return null;
-    }
-
-    const publicationSchema = snapshot.schemaVersion;
-    const maxAgeMs = publicationSchema === INDIA_PUBLICATION_SCHEMA
-      ? MARKET_EXPIRED_DISPLAY_MAX_AGE_MS : SNAPSHOT_FRESH_MS;
-    const fresh = isFreshPayload(snapshot, maxAgeMs);
-    return markMarketPayload({
-      ...snapshot,
-      publicationSchema,
-      sourceHealth: {
-        ...snapshot.sourceHealth,
-        snapshot: {
-          status: fresh ? 'snapshot' : 'stale-snapshot',
-          provider: 'market_snapshot.json',
-          freshnessMs: getPayloadAgeMs(snapshot),
-          message: fresh ? 'Current daily snapshot' : 'Stale daily snapshot',
-        },
-      },
-    }, snapshot.sourceMode || 'snapshot');
-  } catch {
-    return null;
-  }
+  return normalizeSnapshot(await fetchPublicJson('data/market_snapshot.json'));
 }
 
 async function readMarketCache({ allowStale = false } = {}) {
   try {
     const cached = await getIdbCache(CACHE_KEY);
-    if (!isUsableMarketPayload(cached)) return null;
+    if (cached?.schemaVersion !== MARKET_CACHE_SCHEMA_VERSION) return null;
 
-    // Reject old cache schema immediately. This prevents old 900h payloads
-    // from surviving after service contract changes.
-    if (cached.schemaVersion !== MARKET_CACHE_SCHEMA_VERSION) {
-      return null;
-    }
-
-    const age = getPayloadAgeMs(cached);
-    if (!allowStale && age > CACHE_TTL) return null;
-    if (allowStale && age > STALE_CACHE_MAX_AGE) return null;
-
-    const reject = shouldRejectMarketPayload(cached, {
-      maxAgeMs: allowStale ? STALE_CACHE_MAX_AGE : CACHE_TTL
+    const data = sanitizeMarketPayload(cached);
+    const reject = shouldRejectMarketPayload(data, {
+      maxAgeMs: allowStale ? STALE_CACHE_MAX_AGE : CACHE_TTL,
+      allowSeed: false,
     });
-
-    if (reject.reject) {
-      console.warn('[MarketStableService] Ignoring cached market payload:', reject.reason);
-      return null;
-    }
-
-    return cached;
+    return reject.reject ? null : data;
   } catch {
     return null;
   }
 }
 
-export async function fetchIndices() {
+export async function fetchIndices(signal) {
   const results = await Promise.allSettled(CORE_INDICES.map(async (index) => {
-    const quote = await fetchBestYahooQuote(index.symbol, { range: '5d', interval: '1d' });
+    const quote = await fetchBestYahooQuote(index.symbol, { range: '5d', interval: '1d', signal });
     return quote ? formatIndex(index, quote) : null;
   }));
   return results.filter((r) => r.status === 'fulfilled' && r.value).map((r) => r.value);
@@ -474,11 +360,11 @@ export async function fetchSectoralIndices() {
 function getSectoralIndicesFrom(indices = []) {
   const sectorNames = new Set(['BANK NIFTY', 'NIFTY IT', 'NIFTY AUTO', 'NIFTY PHARMA']);
   const sectorals = indices.filter((index) => sectorNames.has(index.name));
-  return sectorals.length ? sectorals : MARKET_SEED.sectorals;
+  return sectorals;
 }
 
-async function fetchStockQuote(symbol) {
-  const quote = await fetchBestYahooQuote(symbol, { range: '5d', interval: '1d' });
+async function fetchStockQuote(symbol, signal) {
+  const quote = await fetchBestYahooQuote(symbol, { range: '5d', interval: '1d', signal });
   if (!quote) return null;
   return {
     symbol: symbol.replace('.NS', '').replace('.BO', ''),
@@ -487,12 +373,13 @@ async function fetchStockQuote(symbol) {
     changePercent: quote.changePercent.toFixed(2),
     direction: quote.change >= 0 ? 'up' : 'down',
     timestamp: quote.timestamp,
+    quoteAt: new Date(quote.timestamp).toISOString(),
     sourceProvider: quote.provider,
   };
 }
 
-export async function fetchTopMovers() {
-  const quotes = await Promise.allSettled(TOP_STOCKS.map(fetchStockQuote));
+export async function fetchTopMovers(signal) {
+  const quotes = await Promise.allSettled(TOP_STOCKS.map((symbol) => fetchStockQuote(symbol, signal)));
   const valid = quotes.filter((r) => r.status === 'fulfilled' && r.value).map((r) => r.value);
   if (!valid.length) return MARKET_SEED.movers;
   return {
@@ -502,14 +389,14 @@ export async function fetchTopMovers() {
   };
 }
 
-export async function fetchCommodities() {
+export async function fetchCommodities(signal) {
   const symbols = [
     { symbol: 'GC=F', name: 'Gold', unit: '$/oz' },
     { symbol: 'SI=F', name: 'Silver', unit: '$/oz' },
     { symbol: 'CL=F', name: 'Crude Oil', unit: '$/bbl' },
   ];
   const results = await Promise.allSettled(symbols.map(async (item) => {
-    const quote = await fetchBestYahooQuote(item.symbol, { range: '5d', interval: '1d' });
+    const quote = await fetchBestYahooQuote(item.symbol, { range: '5d', interval: '1d', signal });
     if (!quote) return null;
     return {
       name: item.name,
@@ -518,20 +405,22 @@ export async function fetchCommodities() {
       changePercent: quote.changePercent.toFixed(2),
       direction: quote.change >= 0 ? 'up' : 'down',
       source: quote.provider,
+      timestamp: quote.timestamp,
+      quoteAt: new Date(quote.timestamp).toISOString(),
     };
   }));
   const valid = results.filter((r) => r.status === 'fulfilled' && r.value).map((r) => r.value);
-  return valid.length ? valid : MARKET_SEED.commodities;
+  return valid;
 }
 
-export async function fetchCurrencyRates() {
+export async function fetchCurrencyRates(signal) {
   const symbols = [
     { symbol: 'USDINR=X', name: 'USD/INR' },
     { symbol: 'EURINR=X', name: 'EUR/INR' },
     { symbol: 'GBPINR=X', name: 'GBP/INR' },
   ];
   const results = await Promise.allSettled(symbols.map(async (item) => {
-    const quote = await fetchBestYahooQuote(item.symbol, { range: '5d', interval: '1d' });
+    const quote = await fetchBestYahooQuote(item.symbol, { range: '5d', interval: '1d', signal });
     if (!quote) return null;
     return {
       name: item.name,
@@ -539,15 +428,17 @@ export async function fetchCurrencyRates() {
       changePercent: quote.changePercent.toFixed(2),
       direction: quote.change >= 0 ? 'up' : 'down',
       source: quote.provider,
+      timestamp: quote.timestamp,
+      quoteAt: new Date(quote.timestamp).toISOString(),
     };
   }));
   const valid = results.filter((r) => r.status === 'fulfilled' && r.value).map((r) => r.value);
-  return valid.length ? valid : MARKET_SEED.currencies;
+  return valid;
 }
 
-export async function fetchMutualFunds() {
+export async function fetchMutualFunds(signal) {
   try {
-    const snapshot = await fetchPublicJson('data/mutual_fund_snapshot.json');
+    const snapshot = await fetchPublicJson('data/mutual_fund_snapshot.json', signal);
     if (!snapshot || !isSidecarFresh(snapshot, MUTUAL_FUND_SNAPSHOT_MAX_AGE_MS)) return [];
     return normalizeMutualFundRows(snapshot.mutualFunds).slice(0, 50);
   } catch {
@@ -555,132 +446,166 @@ export async function fetchMutualFunds() {
   }
 }
 
+function getSnapshotSidecars(snapshot) {
+  if (!isSidecarFresh(snapshot, MARKET_SIDECAR_MAX_AGE_MS) ||
+      String(snapshot.sourceMode).toLowerCase() === 'seed') return MARKET_SEED;
+
+  return {
+    ipo: hasIPOCalendarRows(snapshot.ipo) ? snapshot.ipo : MARKET_SEED.ipo,
+    nfo: Array.isArray(snapshot.nfo) ? snapshot.nfo : MARKET_SEED.nfo,
+    fiidii: hasFIIDIIRows(snapshot.fiidii) ? snapshot.fiidii : MARKET_SEED.fiidii,
+  };
+}
+
 export async function fetchIPOData() {
-  try {
-    const snapshot = await fetchPublicJson('data/market_snapshot.json');
-    if (!snapshot || !isSidecarFresh(snapshot, MARKET_SIDECAR_MAX_AGE_MS)) return MARKET_SEED.ipo;
-    return hasIPOCalendarRows(snapshot.ipo) ? snapshot.ipo : MARKET_SEED.ipo;
-  } catch {
-    return MARKET_SEED.ipo;
-  }
+  return getSnapshotSidecars(await fetchPublicJson('data/market_snapshot.json')).ipo;
 }
 
 export async function fetchNFOData() {
-  try {
-    const snapshot = await fetchPublicJson('data/market_snapshot.json');
-    if (!snapshot || !isSidecarFresh(snapshot, MARKET_SIDECAR_MAX_AGE_MS)) return [];
-    return Array.isArray(snapshot.nfo) ? snapshot.nfo : [];
-  } catch {
-    return [];
-  }
+  return getSnapshotSidecars(await fetchPublicJson('data/market_snapshot.json')).nfo;
 }
+
 export async function fetchStockCategories() { return MARKET_SEED.stockCategories; }
+
 export async function fetchFIIDII() {
+  return getSnapshotSidecars(await fetchPublicJson('data/market_snapshot.json')).fiidii;
+}
+
+async function fetchLiveMarketBundle(snapshot) {
+  const controller = new AbortController();
+  const { signal } = controller;
+  const timer = setTimeout(() => controller.abort(), LIVE_MARKET_BUNDLE_TIMEOUT_MS);
   try {
-    const snapshot = await fetchPublicJson('data/market_snapshot.json');
-    if (!snapshot || !isSidecarFresh(snapshot, MARKET_SIDECAR_MAX_AGE_MS)) return MARKET_SEED.fiidii;
-    return hasFIIDIIRows(snapshot.fiidii) ? snapshot.fiidii : MARKET_SEED.fiidii;
+    const [indices, movers, commodities, currencies, mutualFunds] = await Promise.all([
+      fetchIndices(signal),
+      fetchTopMovers(signal),
+      fetchCommodities(signal),
+      fetchCurrencyRates(signal),
+      fetchMutualFunds(signal),
+    ]);
+    const { ipo, nfo, fiidii } = getSnapshotSidecars(snapshot);
+    const sectorals = getSectoralIndicesFrom(indices);
+    const fetchedAt = indices.length ? Math.max(...indices.map((index) => index.timestamp)) : null;
+
+    return {
+      indices,
+      movers,
+      sectorals,
+      commodities,
+      currencies,
+      mutualFunds,
+      ipo,
+      nfo,
+      fiidii,
+      fetchedAt,
+      sourceHealth: {
+        indices: indices.length ? 'live-query-fallback' : 'failed',
+        movers: movers.source ? 'live-query-fallback' : 'empty',
+        sectorals: sectorals.length ? 'derived-from-indices' : 'empty',
+        commodities: commodities.length ? 'live-query-fallback' : 'empty',
+        currencies: currencies.length ? 'live-query-fallback' : 'empty',
+        mutualFunds: mutualFunds.length ? 'official-daily-sidecar' : 'empty',
+        ipo: hasIPOCalendarRows(ipo) ? 'snapshot-sidecar' : 'empty',
+        nfo: nfo.length ? 'snapshot-sidecar' : 'empty',
+        fiidii: hasFIIDIIRows(fiidii) ? 'snapshot-sidecar' : 'empty',
+      },
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function getQuoteTimestamp(data) {
+  const timestamps = (data?.indices || []).map((row) => (
+    Date.parse(row.quoteAt) || Number(row.timestamp)
+  )).filter((ts) => Number.isFinite(ts) && ts > 0 && ts <= Date.now() + 5 * 60 * 1000);
+  return timestamps.length ? Math.max(...timestamps) : null;
+}
+
+function compareMarketQuotes(candidate, previous) {
+  const candidateQuoteAt = getQuoteTimestamp(candidate);
+  const previousQuoteAt = getQuoteTimestamp(previous);
+  if (candidateQuoteAt && previousQuoteAt) return candidateQuoteAt - previousQuoteAt;
+  return candidate.fetchedAt - previous.fetchedAt;
+}
+
+function latestMarketData(...candidates) {
+  return candidates.filter(Boolean).reduce((latest, candidate) => (
+    !latest || compareMarketQuotes(candidate, latest) > 0 ? candidate : latest
+  ), null);
+}
+
+async function storeMarketData(data) {
+  try {
+    await setIdbCache(CACHE_KEY, data);
   } catch {
-    return MARKET_SEED.fiidii;
+    // A storage error must not undo a successful revalidation.
   }
+  return data;
 }
 
-async function fetchLiveMarketBundle() {
-  const [indices, movers, commodities, currencies, mutualFunds, ipo, nfo, fiidii] = await Promise.allSettled([
-    fetchIndices(),
-    fetchTopMovers(),
-    fetchCommodities(),
-    fetchCurrencyRates(),
-    fetchMutualFunds(),
-    fetchIPOData(),
-    fetchNFOData(),
-    fetchFIIDII(),
+export async function fetchAllMarketData({ forceRefresh = false, previousData = null } = {}) {
+  if (!forceRefresh) {
+    const freshCache = await readMarketCache();
+    if (freshCache) return sanitizeMarketPayload(freshCache, 'cache', { sourceHealth: { cache: 'cache' } });
+  }
+
+  const [rawSnapshot, staleCache] = await Promise.all([
+    fetchPublicJson('data/market_snapshot.json'),
+    readMarketCache({ allowStale: true }),
   ]);
-
-  const resolvedIndices = indices.status === 'fulfilled' ? indices.value : [];
-  const resolvedMutualFunds = mutualFunds.status === 'fulfilled' ? mutualFunds.value : [];
-  const resolvedIPO = ipo.status === 'fulfilled' ? ipo.value : MARKET_SEED.ipo;
-  const resolvedFIIDII = fiidii.status === 'fulfilled' ? fiidii.value : MARKET_SEED.fiidii;
-
-  const live = {
-    indices: resolvedIndices,
-    movers: movers.status === 'fulfilled' ? movers.value : MARKET_SEED.movers,
-    sectorals: getSectoralIndicesFrom(resolvedIndices),
-    commodities: commodities.status === 'fulfilled' ? commodities.value : MARKET_SEED.commodities,
-    currencies: currencies.status === 'fulfilled' ? currencies.value : MARKET_SEED.currencies,
-    mutualFunds: resolvedMutualFunds,
-    ipo: resolvedIPO,
-    nfo: nfo.status === 'fulfilled' ? nfo.value : [],
-    fiidii: resolvedFIIDII,
-    fetchedAt: Date.now(),
-    generatedAt: new Date().toISOString(),
-    sourceHealth: {
-      indices: indices.status === 'fulfilled' && indices.value.length ? 'live-query-fallback' : 'failed',
-      movers: movers.status === 'fulfilled' ? 'live-query-fallback' : 'seed',
-      sectorals: resolvedIndices.length ? 'derived-from-indices' : 'seed',
-      commodities: commodities.status === 'fulfilled' ? 'live-query-fallback' : 'seed',
-      currencies: currencies.status === 'fulfilled' ? 'live-query-fallback' : 'seed',
-      mutualFunds: resolvedMutualFunds.length ? 'official-daily-sidecar' : 'empty',
-      ipo: hasIPOCalendarRows(resolvedIPO) ? 'snapshot-sidecar' : 'empty',
-      nfo: nfo.status === 'fulfilled' && nfo.value.length ? 'snapshot-sidecar' : 'empty',
-      fiidii: hasFIIDIIRows(resolvedFIIDII) ? 'snapshot-sidecar' : 'empty',
-    },
-    providerPlan: ['cache', 'snapshot', 'stale-cache', 'yahoo-chart-query1', 'yahoo-chart-query2', 'yahoo-quote-query1', 'yahoo-quote-query2', 'sequential-proxy-fallback', 'stale-snapshot', 'seed'],
-  };
-
-  return isUsableMarketPayload(live) ? live : null;
-}
-
-export async function fetchAllMarketData() {
-  const freshCache = await readMarketCache({ allowStale: false });
-  if (freshCache) return withMeta(freshCache, 'cache', { sourceHealth: { cache: 'fresh' } });
-
-  const snapshot = await fetchStaticSnapshot();
-  const snapshotTtl = snapshot?.publicationSchema === INDIA_PUBLICATION_SCHEMA
-    ? MARKET_EXPIRED_DISPLAY_MAX_AGE_MS : SNAPSHOT_FRESH_MS;
-  if (isFreshPayload(snapshot, snapshotTtl)) {
-    const normalized = withMeta(snapshot, 'snapshot', { sourceHealth: { indices: 'snapshot' } });
-    try { await setIdbCache(CACHE_KEY, normalized); } catch { /* ignore */ }
-    return normalized;
-  }
-
-  const staleCache = await readMarketCache({ allowStale: true });
-  if (isUsableMarketPayload(staleCache)) {
-    return withMeta(staleCache, 'stale-cache', {
-      sourceHealth: { cache: 'stale-before-live-refresh' },
-      errors: { feed: 'Live refresh pending; showing stale cache.' },
-    });
-  }
-
-  let live = null;
-  try {
-    live = await resolveWithTimeout(fetchLiveMarketBundle(), LIVE_MARKET_BUNDLE_TIMEOUT_MS);
-    if (!live) {
-      console.warn('[MarketStableService] Live market bundle timed out; using seed plus sidecar snapshots.');
-    }
-  } catch (error) {
-    console.warn('[MarketStableService] Live market bundle failed:', error?.message || String(error));
-    live = null;
-  }
-  if (isUsableMarketPayload(live)) {
-    const normalized = withMeta(live, 'live', { sourceHealth: { provider: 'sequential-live-query-fallback' } });
-    try { await setIdbCache(CACHE_KEY, normalized); } catch { /* ignore */ }
-    return normalized;
-  }
-
-  if (isUsableMarketPayload(snapshot) && getPayloadAgeMs(snapshot) <= STALE_SNAPSHOT_MAX_AGE) {
-    return withMeta(snapshot, 'stale-snapshot', {
-      sourceHealth: { indices: 'stale-snapshot-after-live-failure' },
-      errors: { feed: 'Live feeds failed; showing stale snapshot.' },
-    });
-  }
-
-  const seed = withMeta(
-    await buildSeedWithSidecars('Live feed, snapshot, and cache unavailable; showing bundled seed plus available sidecar snapshots.'),
-    'seed'
+  const snapshot = normalizeSnapshot(rawSnapshot);
+  const previous = sanitizeMarketPayload(previousData);
+  const baseline = latestMarketData(
+    isMarketPayloadUsable(previous) ? previous : null,
+    staleCache,
   );
 
-  // Do not cache seed as a normal market feed.
-  // Seed is display fallback only.
-  return seed;
+  const snapshotComparison = snapshot && baseline ? compareMarketQuotes(snapshot, baseline) : 0;
+  if (snapshot?.sourceMode === 'snapshot' && (!forceRefresh || !baseline ||
+    snapshotComparison > 0 || (snapshotComparison === 0 && snapshot.fetchedAt > baseline.fetchedAt))) {
+    return storeMarketData(snapshot);
+  }
+
+  const fallback = latestMarketData(baseline, snapshot);
+  const failure = 'Market refresh failed. Showing the last available market data.';
+  if (!forceRefresh && fallback && fallback !== snapshot) {
+    return sanitizeMarketPayload(fallback, 'stale-cache', {
+      sourceHealth: { cache: 'stale-cache' },
+      errors: { feed: 'Showing previously collected market data.' },
+    });
+  }
+
+  const live = await fetchLiveMarketBundle(rawSnapshot);
+  const normalized = sanitizeMarketPayload(live, 'live');
+  if (!shouldRejectMarketPayload(normalized, { allowSeed: false }).reject &&
+      (!fallback || compareMarketQuotes(normalized, fallback) >= 0)) {
+    return storeMarketData(normalized);
+  }
+
+  if (fallback) {
+    const mode = fallback === snapshot ? 'stale-snapshot' : 'stale-cache';
+    return sanitizeMarketPayload(fallback, mode, {
+      sourceHealth: { [mode === 'stale-snapshot' ? 'snapshot' : 'cache']: mode },
+      errors: { feed: failure },
+    });
+  }
+
+  return {
+    ...MARKET_SEED,
+    mutualFunds: live.mutualFunds,
+    ipo: live.ipo,
+    nfo: live.nfo,
+    fiidii: live.fiidii,
+    sourceMode: 'failed',
+    sourceHealth: normalizeSourceHealth({
+      ...live.sourceHealth,
+      indices: 'failed',
+      movers: 'empty',
+      sectorals: 'empty',
+      commodities: 'empty',
+      currencies: 'empty',
+    }, 'failed'),
+    errors: { feed: 'Market quotes are currently unavailable.' },
+  };
 }

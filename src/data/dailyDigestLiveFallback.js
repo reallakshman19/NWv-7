@@ -11,7 +11,9 @@ const LIVE_DIGEST_MIN_CARDS = 3;
 const LIVE_DIGEST_MIN_SOURCE_GROUPS = 3;
 const STORIES_PER_SOURCE = 10;
 const CANONICAL_SNAPSHOT_URL = 'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/sections_latest.json';
-const CANONICAL_SNAPSHOT_TIMEOUT_MS = 2000;
+// This is the recovery path after the short foreground Sections budget failed.
+// Allow cold connections and the response body to finish before giving up.
+const CANONICAL_SNAPSHOT_TIMEOUT_MS = 8000;
 
 const PRIMARY_SECTION_ORDER = Object.freeze([
   'topStories',
@@ -267,6 +269,7 @@ export async function loadDailyDigestPublishedFallback({ nowMs = Date.now(), fet
 }
 
 export const __dailyDigestLiveFallbackInternalsForTest = {
+  CANONICAL_SNAPSHOT_TIMEOUT_MS,
   LIVE_DIGEST_MAX_AGE_MS,
   LIVE_DIGEST_MIN_CARDS,
   LIVE_DIGEST_MIN_SOURCE_GROUPS,

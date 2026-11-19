@@ -111,6 +111,7 @@ const MainPage = () => {
             availability={dailyDigest.availability}
             loading={dailyDigest.loading}
             error={dailyDigest.error}
+            onRefresh={refreshDailyDigest}
         />
     ) : null;
 

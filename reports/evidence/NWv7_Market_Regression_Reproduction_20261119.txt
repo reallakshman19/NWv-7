@@ -1,0 +1,112 @@
+
+ RUN  v4.1.7 D:/CodeD/NWv-7/.audit-integration/release-20261119
+
+········xxxxxx····x
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/context/MarketContext.cert.test.jsx > MarketProvider refresh > expires in-memory quotes after a long-open tab, even if the next refresh throws
+AssertionError: expected last "vi.fn()" call to have been called with [ { forceRefresh: true, …(1) } ]
+
+- Expected
++ Received
+
+  [
+    {
+      "forceRefresh": true,
+-     "previousData": null,
++     "previousData": {
++       "fetchedAt": 1795091154783,
++       "indices": [
++         {
++           "name": "NIFTY 50",
++           "value": "25,227.95",
++         },
++       ],
++       "schemaVersion": "market-v3",
++       "sourceMode": "snapshot",
++     },
+    },
+  ]
+
+ ❯ src/context/MarketContext.cert.test.jsx:128:36
+    126|             await expect(result.current.refreshMarket()).rejects.toThr…
+    127|         });
+    128|         expect(fetchAllMarketData).toHaveBeenLastCalledWith({ forceRef…
+       |                                    ^
+    129|         expect(result.current.marketData).toBeNull();
+    130|         expect(result.current.lastFetch).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > keeps the full India snapshot instead of accepting newer global quote
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > keeps the full India snapshot instead of accepting newer publication with partial coverage
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > keeps the full India snapshot instead of accepting mixed India quote ages
+AssertionError: expected 'snapshot' to be 'stale-cache' // Object.is equality
+
+Expected: "stale-cache"
+Received: "snapshot"
+
+ ❯ src/services/indianMarketStableService.cert.test.js:260:31
+    258|
+    259|       const data = await fetchAllMarketData({ forceRefresh: true, prev…
+    260|       expect(data.sourceMode).toBe('stale-cache');
+       |                               ^
+    261|       expect(data.indices).toEqual(previous.indices);
+    262|       expect(data.fetchedAt).toBe(previous.fetchedAt);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > does not replace a fuller snapshot with a partial live quote advanced by 0 ms
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > does not replace a fuller snapshot with a partial live quote advanced by 60000 ms
+AssertionError: expected 'live' to be 'stale-cache' // Object.is equality
+
+Expected: "stale-cache"
+Received: "live"
+
+ ❯ src/services/indianMarketStableService.cert.test.js:279:29
+    277|     }));
+    278|     const data = await fetchAllMarketData({ forceRefresh: true, previo…
+    279|     expect(data.sourceMode).toBe('stale-cache');
+       |                             ^
+    280|     expect(data.indices).toEqual(previous.indices);
+    281|     expect(setIdbCache).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  src/services/indianMarketStableService.cert.test.js > manual market revalidation > applies the same 24-hour expiry to in-memory data as persisted cache data
+AssertionError: expected { indices: [ { …(4) } ], …(16) } to match object { sourceMode: 'failed', indices: [] }
+(29 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "indices": [],
+-   "sourceMode": "failed",
++   "indices": [
++     {
++       "name": "NIFTY 50",
++       "quoteAt": "2026-11-18T11:28:44.700Z",
++       "symbol": "^NSEI",
++       "value": "25227.95",
++     },
++   ],
++   "sourceMode": "stale-cache",
+  }
+
+ ❯ src/services/indianMarketStableService.cert.test.js:288:18
+    286|     vi.stubGlobal('fetch', vi.fn(() => mockJsonResponse(null, false)));
+    287|     const data = await fetchAllMarketData({ forceRefresh: true, previo…
+    288|     expect(data).toMatchObject({ sourceMode: 'failed', indices: [] });
+       |                  ^
+    289|     expect(data.fetchedAt).toBeUndefined();
+    290|     expect(setIdbCache).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  7 failed | 12 passed (19)
+   Start at  16:28:43
+   Duration  11.52s (transform 1.10s, setup 0ms, import 2.64s, tests 537ms, environment 8.63s)

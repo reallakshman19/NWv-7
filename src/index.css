@@ -1472,6 +1472,22 @@ html[data-layout-mode='mobile'] .bottom-nav__label {
   overflow-wrap: anywhere;
 }
 
+.daily-digest-retry {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent-color, #00c9a7);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.daily-digest-retry:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .daily-digest-snippet {
   margin-top: 8px;
   color: var(--text-secondary);

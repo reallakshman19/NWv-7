@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useMarket } from '../context/MarketContext';
 import { useSettings } from '../context/SettingsContext';
-import { getMarketSessionState } from '../utils/marketSession';
+import {
+  getMarketSessionState,
+  getOldestMarketQuoteAt,
+  isUsableMarketQuoteRow,
+} from '../utils/marketSession';
 import { auditMarketTabQuality } from '../services/pageAuditGrading.js';
 
 const PRIMARY_INDEX_NAMES = ['NIFTY 50', 'SENSEX', 'BANK NIFTY', 'MIDCAP 150'];
@@ -59,6 +63,33 @@ function getIndexByAliases(indices, map, names) {
       ));
     })
     .filter(Boolean);
+}
+
+function getIndiaIndices(indices, globalIndices) {
+  const globalIdentifiers = new Set([
+    ...Object.values(GLOBAL_INDEX_ALIAS_MAP).flat(),
+    ...globalIndices.flatMap(item => [item?.name, item?.symbol]).filter(Boolean),
+  ]);
+  return indices.filter(item => (
+    typeof item?.name === 'string' && item.name.trim() &&
+    !globalIdentifiers.has(item.name) && !globalIdentifiers.has(item.symbol)
+  ));
+}
+
+function getTrackedIndexBreadth(indices) {
+  const counts = { rising: 0, falling: 0, flat: 0, unknown: 0 };
+  for (const item of indices) {
+    const value = item.change;
+    const numeric = typeof value === 'number' ||
+      (typeof value === 'string' && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value.trim()));
+    const change = numeric ? Number(value) : NaN;
+
+    if (!Number.isFinite(change)) counts.unknown++;
+    else if (change > 0) counts.rising++;
+    else if (change < 0) counts.falling++;
+    else counts.flat++;
+  }
+  return counts;
 }
 
 function getMarketMood(indices) {
@@ -139,27 +170,36 @@ export function useMarketTabViewModel() {
   ), [marketData]);
 
   const indices = projectedMarketData.indices;
+  const indiaIndices = useMemo(() => (
+    getIndiaIndices(indices, projectedMarketData.globalIndices)
+  ), [indices, projectedMarketData.globalIndices]);
+  const usableIndiaIndices = useMemo(() => (
+    indiaIndices.filter(isUsableMarketQuoteRow)
+  ), [indiaIndices]);
 
   const primaryIndices = useMemo(() => (
-    getIndexByAliases(indices, INDEX_ALIAS_MAP, PRIMARY_INDEX_NAMES)
-  ), [indices]);
+    getIndexByAliases(usableIndiaIndices, INDEX_ALIAS_MAP, PRIMARY_INDEX_NAMES)
+  ), [usableIndiaIndices]);
 
   const globalIndices = useMemo(() => {
-    const dedicated = projectedMarketData.globalIndices;
+    const dedicated = projectedMarketData.globalIndices.filter(isUsableMarketQuoteRow);
     if (dedicated.length > 0) return dedicated;
-    return getIndexByAliases(indices, GLOBAL_INDEX_ALIAS_MAP, GLOBAL_INDEX_NAMES);
+    return getIndexByAliases(
+      indices.filter(isUsableMarketQuoteRow), GLOBAL_INDEX_ALIAS_MAP, GLOBAL_INDEX_NAMES,
+    );
   }, [projectedMarketData.globalIndices, indices]);
 
-  const displayedPrimaryIndices = primaryIndices.length
+  const displayedPrimaryIndices = useMemo(() => (primaryIndices.length
     ? primaryIndices
-    : indices.slice(0, 4);
+    : usableIndiaIndices.slice(0, 4)
+  ), [primaryIndices, usableIndiaIndices]);
 
-  const heroIndex = displayedPrimaryIndices[0] || indices[0] || null;
+  const heroIndex = displayedPrimaryIndices[0] || null;
   const heroSeries = heroIndex?.series || heroIndex?.history || [];
 
   const mood = useMemo(() => (
-    getMarketMood(primaryIndices.length ? primaryIndices : indices.slice(0, 3))
-  ), [primaryIndices, indices]);
+    getMarketMood(displayedPrimaryIndices)
+  ), [displayedPrimaryIndices]);
 
   const sourceHealth = useMemo(() => (
     projectedMarketData.sourceHealth || {}
@@ -167,28 +207,25 @@ export function useMarketTabViewModel() {
 
   const sessionState = useMemo(() => (
     getMarketSessionState({
-      lastUpdated: projectedMarketData.fetchedAt || lastFetch,
+      quoteAt: getOldestMarketQuoteAt(displayedPrimaryIndices),
       tradingHolidays: marketSettings.tradingHolidays || [],
     })
-  ), [lastFetch, projectedMarketData.fetchedAt, marketSettings.tradingHolidays]);
+  ), [displayedPrimaryIndices, marketSettings.tradingHolidays]);
 
   const moverGainers = asArray(projectedMarketData.movers?.gainers);
   const moverLosers = asArray(projectedMarketData.movers?.losers);
 
-  const marketBreath = {
-    up: indices.filter(item => getFloat(item.change) >= 0).length,
-    down: indices.filter(item => getFloat(item.change) < 0).length,
-  };
+  const trackedIndexBreadth = useMemo(() => getTrackedIndexBreadth(indiaIndices), [indiaIndices]);
 
   const sectoralIndices = useMemo(() => (
     (
       projectedMarketData.sectorals.length
-        ? projectedMarketData.sectorals
-        : getIndexByName(indices, ['BANK NIFTY', 'NIFTY IT', 'NIFTY PHARMA', 'NIFTY AUTO'])
+        ? projectedMarketData.sectorals.filter(isUsableMarketQuoteRow)
+        : getIndexByName(usableIndiaIndices, ['BANK NIFTY', 'NIFTY IT', 'NIFTY PHARMA', 'NIFTY AUTO'])
     ).filter((item, idx, arr) => (
       arr.findIndex(candidate => candidate.name === item.name) === idx
     ))
-  ), [projectedMarketData.sectorals, indices]);
+  ), [projectedMarketData.sectorals, usableIndiaIndices]);
 
   const marketTabAudit = useMemo(() => (
     auditMarketTabQuality({
@@ -295,7 +332,7 @@ export function useMarketTabViewModel() {
     sessionState,
     moverGainers,
     moverLosers,
-    marketBreath,
+    trackedIndexBreadth,
     sectoralIndices,
     marketTabAudit,
     navSections,
@@ -324,6 +361,8 @@ export const __marketTabViewModelInternalsForTest = {
   hasUsableSectionData,
   getIndexByName,
   getIndexByAliases,
+  getIndiaIndices,
+  getTrackedIndexBreadth,
   getMarketMood,
   getMarketTone,
   getMarketToneClass,

@@ -1,16 +1,8 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useMarket } from '../context/MarketContext';
 import './MarketTicker.css';
-import { MARKET_SEED } from '../services/indianMarketStableService.js';
 import { summarizeMarketSourceHealth } from '../services/marketTrust.js';
-import { getMarketSessionState } from '../utils/marketSession.js';
-
-const MARKET_TICKER_SEED_FALLBACK = {
-    ...MARKET_SEED,
-    sourceMode: 'seed',
-    fetchedAt: 0,
-    generatedAt: ''
-};
+import { formatMarketQuote, formatMarketTimestamp, getMarketQuoteAt, isMarketSeedRow, isUsableMarketQuoteRow } from '../utils/marketSession.js';
 
 function DataStatePill({ mode, label }) {
     const bgColors = {
@@ -40,7 +32,7 @@ function DataStatePill({ mode, label }) {
 }
 
 const MarketTicker = ({ loadingPhase }) => {
-    const { marketData, loading, lastFetch, ensureBoot } = useMarket();
+    const { marketData, ensureBoot } = useMarket();
     const scrollRef = useRef(null);
     const isPaused = useRef(false);
     const [currentTime, setCurrentTime] = React.useState(() => Date.now());
@@ -49,24 +41,17 @@ const MarketTicker = ({ loadingPhase }) => {
         ensureBoot?.();
     }, [ensureBoot]);
 
-    const displayData = marketData || MARKET_TICKER_SEED_FALLBACK;
     const sourceSummary = useMemo(() => (
-        summarizeMarketSourceHealth(displayData)
-    ), [displayData]);
+        summarizeMarketSourceHealth(marketData)
+    ), [marketData]);
 
-    const session = useMemo(() => getMarketSessionState({
-        now: new Date(currentTime),
-        lastUpdated: displayData.fetchedAt
-    }), [currentTime, displayData.fetchedAt]);
-
-    const pillMode = session.isOpen ? sourceSummary.modeStr : 'closed';
-    const pillLabel = session.isOpen ? sourceSummary.modeLabel : session.label;
+    const sourceTime = formatMarketTimestamp(marketData?.fetchedAt);
 
     const markets = useMemo(() => {
-        if (!displayData) return [];
+        if (!marketData || isMarketSeedRow(marketData)) return [];
 
-        const { indices = [], commodities = [] } = displayData;
-        const allItems = [...indices, ...commodities];
+        const allItems = [marketData.indices, marketData.globalIndices, marketData.commodities]
+            .flatMap(section => Array.isArray(section) ? section : []);
 
         const allowedNames = [
             'NIFTY 50',
@@ -82,9 +67,9 @@ const MarketTicker = ({ loadingPhase }) => {
         ];
 
         return allowedNames
-            .map((name) => allItems.find((item) => item.name === name))
+            .map((name) => allItems.find((item) => item?.name === name && isUsableMarketQuoteRow(item)))
             .filter(Boolean);
-    }, [displayData]);
+    }, [marketData]);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(Date.now()), 60000);
@@ -134,18 +119,13 @@ const MarketTicker = ({ loadingPhase }) => {
     }, [markets]);
 
     const isItemStale = (item) => {
-        if (displayData?.sourceMode === 'seed') return false;
-        if (!item.timestamp) return true;
-        const diff = currentTime - item.timestamp;
+        const quoteAt = getMarketQuoteAt(item);
+        if (quoteAt === null) return true;
+        const diff = currentTime - quoteAt;
         const isCommodity = ['Gold', 'Silver', 'Crude Oil'].includes(item.name);
         const isGlobalIndex = ['DOW', 'NASDAQ', 'S&P 500', 'FTSE 100', 'NIKKEI 225', 'HANG SENG'].includes(item.name);
         const threshold = isCommodity ? 60 * 60 * 1000 : isGlobalIndex ? 30 * 60 * 1000 : 15 * 60 * 1000;
         return diff > threshold;
-    };
-
-    const formatTime = (ts) => {
-        if (!ts) return '';
-        return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
 
     const getDisplayName = (name) => {
@@ -181,13 +161,13 @@ const MarketTicker = ({ loadingPhase }) => {
         };
     };
 
-    if ((loading && markets.length === 0) || markets.length === 0) return null;
+    if (markets.length === 0) return null;
 
     return (
         <div className="market-ticker-container market-ticker-container--sleek" style={getPhaseStyle()}>
             <div className="ticker-label">
                 Markets
-                <DataStatePill mode={pillMode} label={pillLabel} />
+                <DataStatePill mode={sourceSummary.modeStr} label={sourceSummary.modeLabel} />
             </div>
 
             <div
@@ -204,7 +184,7 @@ const MarketTicker = ({ loadingPhase }) => {
                         const changePercent = getChangePercent(item);
                         const isUp = isPositiveMove(item);
                         return (
-                            <div key={`${item.name}-${index}`} className={`ticker-item ${stale ? 'stale-data' : ''}`}>
+                            <div key={`${item.name}-${index}`} className={`ticker-item ${stale ? 'stale-data' : ''}`} title={formatMarketQuote(item, marketData?.sourceMode)}>
                                 <span className="ticker-name">{getDisplayName(item.name)}</span>
                                 <span className="ticker-price">
                                     {item.name === 'Gold' || item.name === 'Silver'
@@ -221,9 +201,9 @@ const MarketTicker = ({ loadingPhase }) => {
                 </div>
             </div>
 
-            {lastFetch && (
+            {sourceTime && (
                 <div className="ticker-updated">
-                    <span style={{ marginRight: '4px' }}>•</span> {formatTime(lastFetch)}
+                    Feed timestamp {sourceTime}
                 </div>
             )}
         </div>

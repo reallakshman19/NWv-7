@@ -6,9 +6,12 @@ from refresh_india_market import acquire, parse_chart, parse_nav, parse_bse, par
 NOW = datetime(2026, 11, 16, 10, tzinfo=timezone.utc)
 
 
-def chart(quote_at=NOW, price=102):
+def chart(quote_at=NOW, price=102, bars=None):
+    if bars is None:
+        bars = [(quote_at - timedelta(days=2), 99), (quote_at - timedelta(days=1), 100), (quote_at, price)]
     return {"chart": {"result": [{"meta": {"regularMarketTime": quote_at.timestamp(), "regularMarketPrice": price},
-                                  "indicators": {"quote": [{"close": [99, 100, price]}]}}]}}
+                                  "timestamp": [day.timestamp() for day, _ in bars],
+                                  "indicators": {"quote": [{"close": [close for _, close in bars]}]}}]}}
 
 
 def test_quote_keeps_actual_provider_clock_and_daily_change():
@@ -16,6 +19,38 @@ def test_quote_keeps_actual_provider_clock_and_daily_change():
     assert row["quoteAt"] == "2026-11-14T10:00:00Z"
     assert row["change"] == "2.00"
     assert row["changePercent"] == "2.00"
+
+
+@pytest.mark.parametrize("current_bar", [[], [(NOW, None)], [(NOW, 101)]])
+def test_quote_uses_latest_earlier_session_with_or_without_a_current_bar(current_bar):
+    bars = [(NOW - timedelta(days=4), 99), (NOW - timedelta(days=3), 100), *current_bar]
+    row = parse_chart(chart(bars=bars), "NIFTY 50", "^NSEI", NOW)
+    assert row["change"] == "2.00"
+    assert row["changePercent"] == "2.00"
+
+
+def test_quote_excludes_current_ist_day_and_later_bars():
+    # This current-session bar begins on the previous UTC date.
+    current_bar = datetime(2026, 11, 15, 18, 30, tzinfo=timezone.utc)
+    bars = [(NOW + timedelta(days=1), 900), (NOW - timedelta(days=3), 100), (current_bar, 900)]
+    row = parse_chart(chart(bars=bars), "NIFTY 50", "^NSEI", NOW)
+    assert row["change"] == "2.00"
+
+
+@pytest.mark.parametrize("bars", [
+    [(NOW, 102)],
+    [(NOW - timedelta(days=4), 99), (NOW - timedelta(days=3), None), (NOW, 102)],
+])
+def test_quote_rejects_missing_prior_session_close(bars):
+    with pytest.raises(ValueError, match="previous daily close"):
+        parse_chart(chart(bars=bars), "NIFTY 50", "^NSEI", NOW)
+
+
+def test_quote_rejects_unaligned_daily_bars():
+    payload = chart()
+    payload["chart"]["result"][0]["timestamp"].pop()
+    with pytest.raises(ValueError, match="not aligned"):
+        parse_chart(payload, "NIFTY 50", "^NSEI", NOW)
 
 
 @pytest.mark.parametrize("payload", [chart(NOW - timedelta(days=6)), chart(NOW + timedelta(hours=1)), chart(price=-1)])

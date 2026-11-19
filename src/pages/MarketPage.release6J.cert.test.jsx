@@ -4,7 +4,11 @@ import {
   __marketTabViewModelInternalsForTest,
 } from '../viewModels/useMarketTabViewModel.js';
 
-const { projectMarketData } = __marketTabViewModelInternalsForTest;
+const {
+  getIndiaIndices,
+  getTrackedIndexBreadth,
+  projectMarketData,
+} = __marketTabViewModelInternalsForTest;
 
 describe('Release 6J Market surface binding', () => {
   const marketPage = fs.readFileSync('src/pages/MarketPage.jsx', 'utf8');
@@ -64,7 +68,7 @@ describe('Release 6J Market surface binding', () => {
       'sessionState',
       'moverGainers',
       'moverLosers',
-      'marketBreath',
+      'trackedIndexBreadth',
       'sectoralIndices',
       'marketTabAudit',
       'navSections',
@@ -113,4 +117,37 @@ describe('Release 6J Market surface binding', () => {
     const nfo = [{ name: 'Fixture new fund', openDate: '2026-11-16', closeDate: '2026-11-30' }];
     expect(projectMarketData({ nfo }).nfo).toEqual(nfo);
   });
+
+  it('counts tracked India indices while excluding global and unnamed rows', () => {
+    const indices = [
+      { name: 'NIFTY 50', change: '+0.01', changePercent: '0.00' },
+      { name: 'SENSEX', change: -12.2 },
+      { name: 'BANK NIFTY', change: '0.00' },
+      { name: 'NIFTY IT' },
+      { name: 'S&P 500', change: 9 },
+      { name: 'Nasdaq Composite', symbol: '^IXIC', change: 9 },
+      { name: 'DAX', symbol: '^GDAXI', change: 9 },
+      null,
+      { name: ' ', change: 9 },
+    ];
+    const indiaIndices = getIndiaIndices(indices, [{ name: 'DAX', symbol: '^GDAXI' }]);
+    expect(getTrackedIndexBreadth(indiaIndices)).toEqual({
+      rising: 1,
+      falling: 1,
+      flat: 1,
+      unknown: 1,
+    });
+  });
+
+  it.each([null, false, '', ' ', 'unavailable', NaN, Infinity])(
+    'counts invalid index change %s as unknown',
+    (change) => {
+      expect(getTrackedIndexBreadth([{ name: 'NIFTY 50', change }])).toEqual({
+        rising: 0,
+        falling: 0,
+        flat: 0,
+        unknown: 1,
+      });
+    },
+  );
 });

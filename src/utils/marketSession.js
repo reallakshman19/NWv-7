@@ -30,7 +30,7 @@ function buildIstDateKey(parts) {
 }
 
 function normalizeHolidayList(tradingHolidays = []) {
-    const holidays = tradingHolidays
+    const holidays = (Array.isArray(tradingHolidays) ? tradingHolidays : [])
         .map((value) => String(value || '').trim())
         .filter(Boolean);
 
@@ -44,9 +44,63 @@ function normalizeHolidayList(tradingHolidays = []) {
     };
 }
 
+function parseTimestamp(value) {
+    const timestamp = typeof value === 'number' ? value : typeof value === 'string' ? Date.parse(value) : NaN;
+    return Number.isFinite(timestamp) && timestamp > 0 && timestamp <= 8.64e15 ? timestamp : null;
+}
+
+export function getMarketQuoteAt(row) {
+    if (isMarketSeedRow(row)) return null;
+    const quoteAt = parseTimestamp(row?.quoteAt);
+    // Older Yahoo client rows used collection time when the provider omitted its quote time.
+    if (String(row?.sourceProvider || '').startsWith('yahoo-')) return quoteAt;
+    return quoteAt ?? parseTimestamp(row?.timestamp);
+}
+
+export function getOldestMarketQuoteAt(rows) {
+    const timestamps = (Array.isArray(rows) ? rows : []).map(getMarketQuoteAt).filter(timestamp => timestamp !== null);
+    return timestamps.length > 0 ? Math.min(...timestamps) : null;
+}
+
+export function formatMarketTimestamp(value) {
+    const timestamp = parseTimestamp(value);
+    if (timestamp === null) return null;
+
+    return `${new Date(timestamp).toLocaleString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: MARKET_TIME_ZONE,
+    })} IST`;
+}
+
+export function isUsableMarketQuoteRow(row) {
+    if (typeof row?.name !== 'string' || !row.name.trim() || isMarketSeedRow(row)) return false;
+    const { value } = row;
+    if (typeof value === 'number') return Number.isFinite(value) && value > 0;
+    if (typeof value !== 'string') return false;
+    const digits = value.trim().replace(/^[$₹]\s*/, '');
+    if (!/^(?:\d+|\d{1,3}(?:,\d{2,3})*,\d{3})(?:\.\d+)?$/.test(digits)) return false;
+    const price = Number(digits.replaceAll(',', ''));
+    return Number.isFinite(price) && price > 0;
+}
+
+export function isMarketSeedRow(row) {
+    return [row?.sourceMode, row?.source, row?.sourceProvider].some(source => (
+        typeof source === 'string' && source.toLowerCase() === 'seed'
+    ));
+}
+
+export function formatMarketQuote(row, sourceMode) {
+    const rowSource = String(row?.sourceMode || row?.sourceProvider || row?.source || '').toLowerCase();
+    const timestamp = formatMarketTimestamp(getMarketQuoteAt(row));
+    if (isMarketSeedRow(row) || sourceMode === 'seed') return 'Seed data';
+    if (rowSource.includes('daily') || rowSource.startsWith('yahoo-chart') || rowSource === 'yahoo-yfinance') {
+        return timestamp ? `Daily · ${timestamp}` : 'Daily · quote time unavailable';
+    }
+    return timestamp ? `Quote as of ${timestamp}` : 'Quote time unavailable';
+}
+
 export function getMarketSessionState({
     now = new Date(),
-    lastUpdated = null,
+    quoteAt = null,
     tradingHolidays = []
 } = {}) {
     const parts = getIstParts(now);
@@ -57,8 +111,10 @@ export function getMarketSessionState({
     const hasHolidayCalendarForYear = holidayYears.has(parts.year);
     const isHoliday = hasHolidayCalendarForYear && holidaySet.has(todayKey);
 
-    const ageMs = lastUpdated ? Math.max(0, now.getTime() - lastUpdated) : Infinity;
-    const ageMinutes = Number.isFinite(ageMs) ? Math.round(ageMs / 60000) : null;
+    const timestamp = parseTimestamp(quoteAt);
+    const ageMinutes = timestamp !== null && timestamp <= now.getTime()
+        ? Math.floor((now.getTime() - timestamp) / 60000)
+        : null;
 
     const ageLabel = ageMinutes === null
         ? '--'
@@ -66,7 +122,7 @@ export function getMarketSessionState({
             ? `${ageMinutes}m ago`
             : `${Math.round(ageMinutes / 60)}h ago`;
     const holidayCalendarStatus = hasHolidayCalendarForYear
-        ? 'known_year'
+        ? 'listed_year_completeness_unverified'
         : 'unknown_year_weekday_rules';
     const baseState = {
         ageLabel,
@@ -95,41 +151,11 @@ export function getMarketSessionState({
         };
     }
 
-    if (!Number.isFinite(ageMs)) {
-        return {
-            ...baseState,
-            label: 'Delayed',
-            tone: 'warning',
-            reason: 'No freshness timestamp',
-            isOpen: true,
-        };
-    }
-
-    if (ageMs <= 15 * 60 * 1000) {
-        return {
-            ...baseState,
-            label: 'Live',
-            tone: 'success',
-            reason: 'Fresh market feed',
-            isOpen: true,
-        };
-    }
-
-    if (ageMs <= 4 * 60 * 60 * 1000) {
-        return {
-            ...baseState,
-            label: 'Delayed',
-            tone: 'warning',
-            reason: 'Older than 15 minutes',
-            isOpen: true,
-        };
-    }
-
     return {
         ...baseState,
-        label: 'Expired',
-        tone: 'danger',
-        reason: 'Older than 4 hours',
+        label: 'Regular NSE Hours',
+        tone: 'success',
+        reason: 'Within regular NSE hours. Holiday calendar may be incomplete.',
         isOpen: true,
     };
 }

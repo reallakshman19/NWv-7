@@ -9,19 +9,10 @@ import EmptyState from '../components/EmptyState';
 import GradeBadge from '../components/audit/GradeBadge.jsx';
 import IndiaMarketTools, { NewFundOffers } from '../components/market/IndiaMarketTools.jsx';
 import { INDIA_MARKET_SOURCES } from '../services/indiaMarketTools.js';
+import { summarizeMarketSourceHealth } from '../services/marketTrust.js';
+import { formatMarketQuote, formatMarketTimestamp, isMarketSeedRow, isUsableMarketQuoteRow } from '../utils/marketSession.js';
 // useMarketTabViewModel — consumed via page-scoped alias useMarketPageViewModel
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
-
-function formatUpdated(timestamp) {
-    if (!timestamp) return '--';
-    return new Date(timestamp).toLocaleString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        day: '2-digit',
-        month: 'short',
-        timeZone: 'Asia/Kolkata',
-    });
-}
 
 function getSourceHealthIcon(section) {
     const s = String(section || '').toLowerCase();
@@ -49,26 +40,23 @@ function MarketStat({ label, value, hint, tone = 'neutral', icon }) {
 
 function MarketPage() {
     const {
-        marketData,
+        marketData: projectedMarketData,
         rawMarketData,
         marketSettings,
-        indices,
-        primaryIndices,
         globalIndices,
         displayedPrimaryIndices,
         heroSeries,
         mood,
         sourceHealth,
         sessionState,
-        moverGainers,
-        moverLosers,
-        marketBreath,
+        moverGainers = [],
+        moverLosers = [],
+        trackedIndexBreadth,
         sectoralIndices,
         marketTabAudit,
         navSections,
         loading,
         error,
-        lastFetch,
         refreshMarket,
         helpers,
     } = useMarketPageViewModel();
@@ -79,8 +67,9 @@ function MarketPage() {
         hasUsableSectionData,
     } = helpers;
 
-    const hasCommodityData = hasUsableSectionData(marketData?.commodities);
-    const hasCurrencyData = hasUsableSectionData(marketData?.currencies);
+    const marketData = isMarketSeedRow(projectedMarketData) ? null : projectedMarketData;
+    const commodities = (marketData?.commodities || []).filter(row => row?.name && !isMarketSeedRow(row));
+    const currencies = (marketData?.currencies || []).filter(row => row?.name && !isMarketSeedRow(row));
     const hasFIIDIIData =
         hasUsableSectionData(marketData?.fiidii?.fii) ||
         hasUsableSectionData(marketData?.fiidii?.dii);
@@ -88,7 +77,16 @@ function MarketPage() {
         hasUsableSectionData(marketData?.ipo?.upcoming) ||
         hasUsableSectionData(marketData?.ipo?.live) ||
         hasUsableSectionData(marketData?.ipo?.recent);
-    const indexQuoteAt = (marketData?.indices || []).map(row => Date.parse(row.quoteAt || '')).filter(Number.isFinite);
+    const indiaRows = marketData ? displayedPrimaryIndices.filter(isUsableMarketQuoteRow) : [];
+    const globalRows = marketData ? globalIndices.filter(isUsableMarketQuoteRow) : [];
+    const sectorRows = marketData ? sectoralIndices.filter(isUsableMarketQuoteRow) : [];
+    const gainers = marketData ? moverGainers.filter(row => row?.symbol && !isMarketSeedRow(row)) : [];
+    const losers = marketData ? moverLosers.filter(row => row?.symbol && !isMarketSeedRow(row)) : [];
+    const showIndia = marketSettings.showIndices !== false && indiaRows.length > 0;
+    const showGlobal = marketSettings.showGlobalIndices !== false;
+    const { modeLabel, modeStr } = summarizeMarketSourceHealth(projectedMarketData);
+    const sourceMode = marketData?.sourceMode;
+    const sourceTime = formatMarketTimestamp(marketData?.fetchedAt);
 
     const [showBackToTop, setShowBackToTop] = useState(false);
 
@@ -109,7 +107,7 @@ function MarketPage() {
 
       console.log({
         page: 'market',
-        mode: marketData?.isSnapshot ? 'snapshot' : marketData?.isStale ? 'cache' : 'live',
+        mode: modeStr,
         availability: {
           indices: hasUsableSectionData(marketData.indices),
           mutualFunds: hasUsableSectionData(marketData.mutualFunds),
@@ -124,7 +122,7 @@ function MarketPage() {
             hasUsableSectionData(marketData.fiidii?.dii)
         }
       });
-    }, [hasUsableSectionData, marketData]);
+    }, [hasUsableSectionData, marketData, modeStr]);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -168,10 +166,10 @@ function MarketPage() {
             
             <MarketStickyHeader
                 marketData={rawMarketData || marketData}
-                indices={primaryIndices.length ? primaryIndices : indices.slice(0, 4)}
+                indices={showIndia ? indiaRows : []}
                 onRefresh={refreshMarket}
                 loading={loading}
-                lastUpdated={lastFetch}
+                sessionState={sessionState}
                 tradingHolidays={marketSettings.tradingHolidays || []}
             />
 
@@ -184,11 +182,9 @@ function MarketPage() {
                 )}
 
                 <IndiaMarketTools showCurrency={marketSettings.showCurrency !== false} showMutualFunds={marketSettings.showMutualFunds !== false} />
-                {indexQuoteAt.length > 0 && <p className="market-section__subtitle">Index quotes as of {new Date(Math.min(...indexQuoteAt)).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST. Daily / delayed data; refresh time is collection time.</p>}
-
-                {marketSettings.showIndices !== false && displayedPrimaryIndices.length > 0 && (
-                    <section className="market-hero-grid">
-                        <div className="market-hero-panel modern-card">
+                {(showIndia || showGlobal) && (
+                    <section className="market-hero-grid" style={showIndia && showGlobal ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
+                        {showIndia && <div className="market-hero-panel modern-card">
                             <div className="market-hero-panel__top">
                                 <div>
                                     <div className="market-hero-panel__eyebrow">India-first market board</div>
@@ -197,14 +193,14 @@ function MarketPage() {
                                         {mood.label}
                                     </div>
                                 </div>
-                                <div className={`market-status-pill market-status-pill--${sessionState.tone}`}>
-                                    {sessionState.label} · {sessionState.ageLabel}
+                                <div className={`market-status-pill market-status-pill--${sessionState.tone}`} title={sessionState.reason}>
+                                    {sessionState.label}
                                 </div>
                             </div>
 
                             <div className="market-hero-panel__body">
                                 <div className="market-hero-board">
-                                    {displayedPrimaryIndices.map((index, idx) => {
+                                    {indiaRows.map((index, idx) => {
                                         const isUp = getFloat(index.change) >= 0;
                                         return (
                                             <div key={`${index.name}-${idx}`} className={`market-hero-board__tile ${getMarketToneClass(index.change)}`}>
@@ -216,57 +212,57 @@ function MarketPage() {
                                                 <div className="market-hero-board__range">
                                                     {index.dayLow ? Number(index.dayLow).toLocaleString('en-IN') : '--'} - {index.dayHigh ? Number(index.dayHigh).toLocaleString('en-IN') : '--'}
                                                 </div>
-                                                {index.quoteAt && <div className="market-section__subtitle">Daily · {formatUpdated(index.quoteAt)} IST</div>}
+                                                <div className="market-section__subtitle">{formatMarketQuote(index, sourceMode)}</div>
                                             </div>
                                         );
                                     })}
                                 </div>
                                 <div className="market-hero-panel__spark">
-                                    <MarketSparkline series={heroSeries} positive={getFloat(displayedPrimaryIndices[0]?.change) >= 0} />
-                                    <div className="market-hero-panel__timestamp">Collected {formatUpdated(lastFetch || marketData?.fetchedAt)} IST</div>
+                                    <MarketSparkline series={heroSeries} positive={getFloat(indiaRows[0].change) >= 0} />
                                 </div>
                             </div>
 
                             <div className="market-stat-grid">
                                 <MarketStat
-                                    label="Breadth"
-                                    value={`${marketBreath.up}/${marketBreath.down}`}
-                                    hint="advancers / decliners"
-                                    tone={marketBreath.up >= marketBreath.down ? 'positive' : 'negative'}
+                                    label="Tracked index breadth"
+                                    value={`${trackedIndexBreadth.rising} rising · ${trackedIndexBreadth.falling} falling · ${trackedIndexBreadth.flat} flat · ${trackedIndexBreadth.unknown} unknown`}
+                                    hint="Index changes from the previous close"
                                     icon="⚖️"
                                 />
                                 <MarketStat
-                                    label="Last Fetch"
-                                    value={lastFetch ? new Date(lastFetch).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '--'}
-                                    hint="local cache or live"
+                                    label="Feed timestamp"
+                                    value={sourceTime || 'Unavailable'}
+                                    hint="Timestamp reported by the feed"
                                     icon="🕒"
                                 />
                                 <MarketStat
-                                    label="Feed Age"
-                                    value={sessionState.ageLabel}
-                                    hint={sessionState.reason}
+                                    label="Oldest quote age"
+                                    value={sessionState.ageMinutes === null ? 'Unavailable' : sessionState.ageLabel}
+                                    hint="Age of the oldest displayed India index quote with a timestamp"
                                     icon="⏳"
                                 />
                                 <MarketStat
                                     label="Source Mode"
-                                    value={sessionState.label}
-                                    hint={sessionState.reason}
-                                    tone={sessionState.tone === 'success' ? 'positive' : sessionState.tone === 'warning' ? 'warning' : 'neutral'}
+                                    value={modeLabel}
+                                    hint="Feed source and delivery status"
                                     icon="⚙️"
                                 />
                             </div>
-                        </div>
+                        </div>}
 
-                        <div className="market-hero-side">
-                            {marketSettings.showGlobalIndices !== false && (
+                        {showGlobal && (
+                            <div className="market-hero-side">
                                 <div className="market-side-panel modern-card">
                                     <div className="market-side-panel__title">Global context</div>
                                     <div className="market-global-rail">
-                                        {globalIndices.length > 0 ? globalIndices.map((item) => {
+                                        {globalRows.length > 0 ? globalRows.map((item, idx) => {
                                             const isUp = getFloat(item.change) >= 0;
                                             return (
-                                                <div key={item.name} className={`market-global-rail__item ${getMarketToneClass(item.change)}`}>
-                                                    <div className="market-global-rail__name">{item.name}</div>
+                                                <div key={`${item.name}-${idx}`} className={`market-global-rail__item ${getMarketToneClass(item.change)}`}>
+                                                    <div>
+                                                        <div className="market-global-rail__name">{item.name}</div>
+                                                        <div className="market-section__subtitle">{formatMarketQuote(item, sourceMode)}</div>
+                                                    </div>
                                                     <div className="market-global-rail__value">{item.value}</div>
                                                     <div className={`market-global-rail__change ${isUp ? 'text-success' : 'text-danger'}`}>
                                                         {isUp ? '▲' : '▼'} {Math.abs(getFloat(item.changePercent)).toFixed(2)}%
@@ -278,9 +274,8 @@ function MarketPage() {
                                         )}
                                     </div>
                                 </div>
-                            )}
-
-                        </div>
+                            </div>
+                        )}
                     </section>
                 )}
 
@@ -299,11 +294,11 @@ function MarketPage() {
                                 <div className="market-movers-column">
                                     <div className="market-column-title text-success">Top Gainers</div>
                                     <div className="market-table">
-                                        {moverGainers.length > 0 ? moverGainers.slice(0, 5).map((stock, idx) => (
+                                        {gainers.length > 0 ? gainers.slice(0, 5).map((stock, idx) => (
                                             <div key={`${stock.symbol}-${idx}`} className={`market-table__row ${getMarketToneClass(stock.changePercent)}`}>
                                                 <div>
                                                     <div className="market-table__symbol">{stock.symbol}</div>
-                                                    <div className="market-table__meta">{stock.quoteAt ? `Daily · ${formatUpdated(stock.quoteAt)} IST` : stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Quote time unavailable'}</div>
+                                                    <div className="market-table__meta">{formatMarketQuote(stock, sourceMode)}</div>
                                                 </div>
                                                 <div className="market-table__value">
                                                     <div>{stock.price}</div>
@@ -319,11 +314,11 @@ function MarketPage() {
                                 <div className="market-movers-column">
                                     <div className="market-column-title text-danger">Top Losers</div>
                                     <div className="market-table">
-                                        {moverLosers.length > 0 ? moverLosers.slice(0, 5).map((stock, idx) => (
+                                        {losers.length > 0 ? losers.slice(0, 5).map((stock, idx) => (
                                             <div key={`${stock.symbol}-${idx}`} className={`market-table__row ${getMarketToneClass(stock.changePercent)}`}>
                                                 <div>
                                                     <div className="market-table__symbol">{stock.symbol}</div>
-                                                    <div className="market-table__meta">{stock.quoteAt ? `Daily · ${formatUpdated(stock.quoteAt)} IST` : stock.action || stock.volume ? `Vol ${stock.volume || '--'}` : 'Quote time unavailable'}</div>
+                                                    <div className="market-table__meta">{formatMarketQuote(stock, sourceMode)}</div>
                                                 </div>
                                                 <div className="market-table__value">
                                                     <div>{stock.price}</div>
@@ -349,13 +344,13 @@ function MarketPage() {
                         </div>
 
                         <div className="market-heatmap">
-                            {sectoralIndices.length > 0 ? sectoralIndices.map((sector) => {
+                            {sectorRows.length > 0 ? sectorRows.map((sector) => {
                                 const isUp = getFloat(sector.changePercent) >= 0;
                                 return (
                                     <div key={sector.name} className={`market-heatmap__tile ${isUp ? 'market-heatmap__tile--up' : 'market-heatmap__tile--down'} ${getMarketToneClass(sector.changePercent)}`}>
                                         <div className="market-heatmap__name">{sector.name}</div>
                                         <div className="market-heatmap__value">{sector.value}</div>
-                                        {sector.quoteAt && <small>Daily · {formatUpdated(sector.quoteAt)} IST</small>}
+                                        <small>{formatMarketQuote(sector, sourceMode)}</small>
                                         <div className={isUp ? 'text-success' : 'text-danger'}>
                                             {isUp ? '▲' : '▼'} {Math.abs(getFloat(sector.changePercent)).toFixed(2)}%
                                         </div>
@@ -367,7 +362,7 @@ function MarketPage() {
                 )}
 
                 <section className="market-macro-grid">
-                    {marketSettings.showCommodities !== false && hasCommodityData && (
+                    {marketSettings.showCommodities !== false && commodities.length > 0 && (
                         <div id="commodities" className="market-section modern-card">
                             <div className="modern-card__header">
                                 <div>
@@ -378,7 +373,7 @@ function MarketPage() {
                             </div>
 
                             <div className="market-macro-list">
-                                {(marketData?.commodities || []).map((commodity) => {
+                                {commodities.map((commodity) => {
                                     const isUp = getFloat(commodity.changePercent) >= 0;
                                     return (
                                         <div key={commodity.name} className={`market-macro-item ${getMarketToneClass(commodity.changePercent)}`}>
@@ -399,7 +394,7 @@ function MarketPage() {
                         </div>
                     )}
 
-                    {marketSettings.showCurrency !== false && hasCurrencyData && (
+                    {marketSettings.showCurrency !== false && currencies.length > 0 && (
                         <div id="currency" className="market-section modern-card">
                             <div className="modern-card__header">
                                 <div>
@@ -410,13 +405,13 @@ function MarketPage() {
                             </div>
 
                             <div className="market-macro-list">
-                                {(marketData?.currencies || []).map((currency) => {
+                                {currencies.map((currency) => {
                                     const isUp = getFloat(currency.changePercent) >= 0;
                                     return (
                                         <div key={currency.name} className={`market-macro-item ${getMarketToneClass(currency.changePercent)}`}>
                                             <div>
                                                 <div className="market-macro-item__name">{currency.name}</div>
-                                                <div className="market-macro-item__meta">{currency.source || 'live'}</div>
+                                                <div className="market-macro-item__meta">{currency.source}</div>
                                             </div>
                                             <div className="market-macro-item__value">
                                                 <div>{currency.value}</div>
@@ -470,7 +465,7 @@ function MarketPage() {
                                 </div>
                                 <div className="market-section__subtitle">Tracked funds with latest NAV movement</div>
                             </div>
-                            <MutualFundCard funds={marketData.mutualFunds} />
+                            <MutualFundCard funds={marketData?.mutualFunds} />
                         </div>
                     )}
 
@@ -489,7 +484,7 @@ function MarketPage() {
                     )}
                 </section>
 
-                {marketSettings.showMutualFunds !== false && <NewFundOffers rows={marketData.nfo} sourceStatus={sourceHealth.nfo?.status} />}
+                {marketSettings.showMutualFunds !== false && <NewFundOffers rows={marketData?.nfo} sourceStatus={sourceHealth.nfo?.status} />}
 
                 
 
@@ -533,20 +528,21 @@ function MarketPage() {
                                 <div className="market-section__eyebrow">Reliability</div>
                                 <h2 className="modern-card__title">Source health</h2>
                             </div>
-                            <div className="market-section__subtitle">Live, snapshot, or failed status by feed</div>
+                            <div className="market-section__subtitle">Collection status by feed</div>
                         </div>
 
                         <div className="market-health-row-flow">
                             {Object.entries(sourceHealth).length > 0 ? Object.entries(sourceHealth).map(([section, statusObj]) => {
-                                const statusStr = typeof statusObj === 'object' && statusObj !== null ? statusObj.status : statusObj;
+                                const statusStr = String(statusObj?.status || (typeof statusObj === 'string' && statusObj) || 'unknown');
+                                const statusLabel = statusStr === 'live' ? 'Updated' : statusStr;
                                 const icon = getSourceHealthIcon(section);
                                 const label = section.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
                                 return (
-                                <div key={section} className="market-health-badge" title={`${label}: ${statusStr}`}>
+                                <div key={section} className="market-health-badge" title={`${label}: ${statusLabel}`}>
                                     <span className="mhb-icon">{icon}</span>
                                     <span className="mhb-label">{label}</span>
                                     <span className={`mhb-status mhb-status--${statusStr === 'live' ? 'success' : statusStr === 'snapshot' ? 'warning' : statusStr === 'failed' ? 'danger' : 'empty'}`}>
-                                        {statusStr.toUpperCase()}
+                                        {statusLabel.toUpperCase()}
                                     </span>
                                 </div>
                                 );
@@ -560,7 +556,7 @@ function MarketPage() {
                 <div className="market-disclaimer market-disclaimer--revamp">
                     <div>* Data is for informational purposes only. Not investment advice.</div>
                     <div className="market-disclaimer__meta">
-                        Collected: {marketData?.fetchedAt ? new Date(marketData.fetchedAt).toLocaleString() : 'N/A'}
+                        Feed timestamp {sourceTime || 'unavailable'}
                     </div>
                 </div>
             </main>

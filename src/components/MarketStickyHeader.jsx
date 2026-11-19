@@ -1,16 +1,8 @@
 import React from 'react';
 import { DataStatePill } from './Header';
 import MarketTicker from './MarketTicker';
-import { getMarketSessionState } from '../utils/marketSession';
+import { formatMarketTimestamp, getMarketSessionState, isMarketSeedRow, isUsableMarketQuoteRow } from '../utils/marketSession';
 import { summarizeMarketSourceHealth } from '../services/marketTrust';
-
-function formatTime(timestamp) {
-    if (!timestamp) return '--';
-    return new Date(timestamp).toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
 
 function getToneClass(value) {
     const parsed = Number(value);
@@ -18,12 +10,10 @@ function getToneClass(value) {
     return parsed > 0 ? 'market-tone--positive' : 'market-tone--negative';
 }
 
-const MarketStickyHeader = ({ marketData, indices = [], onRefresh, loading, lastUpdated, tradingHolidays = [] }) => {
-    const displayIndices = (indices || []).slice(0, 4);
-    const session = getMarketSessionState({
-        lastUpdated: lastUpdated || marketData?.fetchedAt,
-        tradingHolidays
-    });
+const MarketStickyHeader = ({ marketData, indices = [], onRefresh, loading, sessionState, tradingHolidays = [] }) => {
+    const displayIndices = (Array.isArray(indices) ? indices : []).filter(isUsableMarketQuoteRow).slice(0, 4);
+    const session = sessionState || getMarketSessionState({ tradingHolidays });
+    const sourceTime = isMarketSeedRow(marketData) ? null : formatMarketTimestamp(marketData?.fetchedAt);
     const sourceSummary = summarizeMarketSourceHealth(marketData || {});
     const { modeStr, modeLabel } = sourceSummary;
     const counts = sourceSummary.counts;
@@ -37,18 +27,18 @@ const MarketStickyHeader = ({ marketData, indices = [], onRefresh, loading, last
                     <div className="market-sticky-header__title-row">
                         <h2 className="market-sticky-header__title">Markets</h2>
                         <DataStatePill mode={modeStr} label={modeLabel} />
-                        <span className={`market-status-pill market-status-pill--${session.tone}`}>
+                        <span className={`market-status-pill market-status-pill--${session.tone}`} title={session.reason}>
                             {loading ? 'Refreshing' : session.label}
                         </span>
                     </div>
                     <div className="market-sticky-header__meta">
-                        Updated {lastUpdated ? formatTime(lastUpdated) : '--'} · {session.ageLabel}
+                        Feed timestamp {sourceTime || 'unavailable'}
                     </div>
                 </div>
 
                 <div className="market-sticky-header__actions">
                     <div className="market-source-summary">
-                        <span>{counts.live || 0} live</span>
+                        <span>{counts.live || 0} updated</span>
                         <span>{counts.snapshot || 0} snapshot</span>
                         <span>{counts.stale || 0} stale</span>
                         <span>{counts.seed || 0} seed</span>
@@ -56,7 +46,9 @@ const MarketStickyHeader = ({ marketData, indices = [], onRefresh, loading, last
                     </div>
                     <button
                         onClick={onRefresh}
+                        disabled={loading}
                         className={`market-refresh-btn ${loading ? 'is-loading' : ''}`}
+                        aria-label="Refresh market data"
                         title="Refresh market data"
                     >
                         {loading ? '↻' : '⟳'}
