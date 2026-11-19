@@ -88,7 +88,7 @@ describe('Indian market stable sidecar feeds', () => {
       fetchedAt: publishedAt,
       commodities: [],
       currencies: [],
-      sectorals: [],
+      sectorals: [{ name: 'BANK NIFTY', value: '100', quoteAt }],
       sourceHealth: { nfo: { status: 'failed', provider: 'AMFI' } },
     });
     expect(data.indices[0].quoteAt).toBe(quoteAt);
