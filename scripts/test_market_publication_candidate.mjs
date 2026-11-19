@@ -50,6 +50,24 @@ function temp(fn){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'nw7-rights-test-'));
  try {return fn(dir);} finally{fs.rmSync(dir,{recursive:true,force:true});}
 }
+function sidecars(candidate){
+  const copy={...candidate,mutualFunds:[],nfo:[],ipo:{live:[],upcoming:[],recent:[]},
+    sourceHealth:{...candidate.sourceHealth,mutualFunds:{status:'empty',provider:'AMFI'}}};
+  const nav=Buffer.from(JSON.stringify({generatedAt:copy.generatedAt,mutualFunds:[],sourceHealth:copy.sourceHealth.mutualFunds}));
+  const health=Buffer.from(JSON.stringify({generatedAt:copy.generatedAt,validation:{status:'WARN'},sources:copy.sourceHealth}));
+  return {copy,nav,health};
+}
+function boundRights(candidateBytes, nav, health, dir){
+  const rights=fixtureRights(candidateBytes,dir);
+  const assets=[
+    ['market_snapshot.json',candidateBytes],
+    ['mutual_fund_snapshot.json',nav],
+    ['market_source_health.json',health],
+  ];
+  rights.bundleSha256=hash(Buffer.from(assets.map(([name,bytes])=>name+':'+hash(bytes)).join('\n')+'\n'));
+  return rights;
+}
+
 test('without rights evidence, valid technical rows remain release HOLD',()=>{
  const bytes=buffer(sample());
  const r=assessCandidateCustody(bytes,{nowMs:now,symbols:SYMBOLS});
@@ -141,4 +159,79 @@ test('candidate output paths inside tracked repository are forbidden',()=>temp(d
  assert.throws(()=>prepareCandidate(['--candidate',candidate,'--out-dir',path.join(ROOT,'public/data','test-candidate'),'--now',new Date(now).toISOString()]),
   /PRIVATE_OUTSIDE_REPO_REQUIRED/);
  assert.ok(!fs.existsSync(path.join(ROOT,'public/data','test-candidate')));
+}));
+
+
+test('sidecar absence prevents staging even with valid fictional grant hashes',()=>temp(dir=>{
+  const bytes=buffer({...sample(),fixtureOnly:false});
+  const grants=fixtureRights(bytes,dir);
+  const r=assessCandidateCustody(bytes,{
+    nowMs:now,symbols:SYMBOLS,rightsManifest:grants,evidenceDir:dir,stageRequested:true,
+  });
+  assert.equal(r.technicalStatus,'PASS');
+  assert.equal(r.sidecarStatus,'INCOMPLETE');
+  assert.ok(r.sidecarBlocks.includes('SOURCE_SIDECARS_REQUIRED'));
+  assert.equal(r.stageEligible,false);
+}));
+test('three-asset bundle binding detects altered NAV sidecar independently of quote hash',()=>temp(dir=>{
+  const {copy,nav,health}=sidecars({...sample(),fixtureOnly:false});
+  const bytes=buffer(copy),grants=boundRights(bytes,nav,health,dir);
+  const altered=Buffer.from(JSON.stringify({...JSON.parse(nav.toString()),generatedAt:'2026-11-18T00:00:00Z'}));
+  const r=assessCandidateCustody(bytes,{
+    navSidecarBytes:altered,healthSidecarBytes:health,
+    nowMs:now,symbols:SYMBOLS,rightsManifest:grants,evidenceDir:dir,stageRequested:true,
+  });
+  assert.ok(r.rightsBlocks.includes('RIGHTS_BUNDLE_BINDING_INVALID'));
+  assert.ok(r.sidecarBlocks.includes('SIDECAR_COLLECTION_CLOCK_CONFLICT'));
+  assert.equal(r.stageEligible,false);
+}));
+test('publisher source-health sidecar mismatch is a technical block',()=>temp(dir=>{
+  const {copy,nav,health}=sidecars({...sample(),fixtureOnly:false});
+  const bytes=buffer(copy),grants=boundRights(bytes,nav,health,dir);
+  const tampered=Buffer.from(JSON.stringify({...JSON.parse(health.toString()),sources:{}}));
+  grants.bundleSha256=hash(Buffer.from([
+    'market_snapshot.json:'+hash(bytes),
+    'mutual_fund_snapshot.json:'+hash(nav),
+    'market_source_health.json:'+hash(tampered)
+  ].join('\n')+'\n'));
+  const r=assessCandidateCustody(bytes,{
+    navSidecarBytes:nav,healthSidecarBytes:tampered,
+    nowMs:now,symbols:SYMBOLS,rightsManifest:grants,evidenceDir:dir,stageRequested:true,
+  });
+  assert.ok(r.sidecarBlocks.includes('SOURCE_HEALTH_SIDECAR_MISMATCH'));
+  assert.equal(r.stageEligible,false);
+}));
+test('hypothetical complete bundle can be PRIVATE staged with independently rehashed bytes; release stays HOLD',()=>temp(dir=>{
+  const {copy,nav,health}=sidecars({...sample(),fixtureOnly:false});
+  const bytes=buffer(copy),grants=boundRights(bytes,nav,health,dir);
+  const candidate=path.join(dir,'source.json');
+  const navInput=path.join(dir,'nav.json'),healthInput=path.join(dir,'health.json');
+  const rights=path.join(dir,'rights.json');
+  fs.writeFileSync(candidate,bytes);
+  fs.writeFileSync(navInput,nav);
+  fs.writeFileSync(healthInput,health);
+  fs.writeFileSync(rights,JSON.stringify(grants));
+  const out=path.join(dir,'private');
+  const {result}=prepareCandidate([
+    '--candidate',candidate,'--nav-sidecar',navInput,'--health-sidecar',healthInput,
+    '--rights',rights,'--evidence-dir',dir,'--out-dir',out,
+    '--now',new Date(now).toISOString(),'--stage'
+  ]);
+  assert.equal(result.technicalStatus,'PASS');
+  assert.equal(result.rightsEvidenceStatus,'HASHES_MATCHED_PENDING_HUMAN_REVIEW');
+  assert.equal(result.sidecarStatus,'MATCHED');
+  assert.equal(result.stageEligible,true);
+  assert.equal(result.publicationAuthorized,false);
+  assert.equal(result.releaseStatus,'HOLD_FOR_LEGAL_AND_OWNER_APPROVAL');
+  assert.equal(result.staged.length,3);
+  for(const [name,source] of [
+    ['market_snapshot.json',bytes],['mutual_fund_snapshot.json',nav],
+    ['market_source_health.json',health]
+  ]){
+    const actual=fs.readFileSync(path.join(out,name));
+    assert.equal(hash(actual),hash(source));
+    assert.equal(fs.statSync(path.join(out,name)).mode & 0o077,0);
+  }
+  const second=()=>prepareCandidate(['--candidate',candidate,'--out-dir',out,'--now',new Date(now).toISOString()]);
+  assert.throws(second,/CUSTODY_RECEIPT_ALREADY_EXISTS/);
 }));
