@@ -53,8 +53,35 @@ jobs:
         if: always() && steps.install.outcome == 'success'
         run: npm run lint
       - name: Production Vite build (no deployment)
+        id: build
         if: always() && steps.install.outcome == 'success'
         run: npm run build
+      - name: Install Chromium for isolated built-browser certification
+        if: always() && steps.install.outcome == 'success' && steps.build.outcome == 'success'
+        run: npx playwright install --with-deps chromium
+      - name: Real browser smoke at desktop and mobile widths
+        if: always() && steps.install.outcome == 'success' && steps.build.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/market-browser
+          npm run preview -- --host 127.0.0.1 --port 4173 --strictPort > reports/market-browser/preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in {1..40}; do
+            if curl -fsS -o /dev/null http://127.0.0.1:4173/; then ready=1; break; fi
+            sleep 1
+          done
+          if [ "$ready" != "1" ]; then echo 'Preview server did not start'; exit 1; fi
+          node scripts/test_market_browser_smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-revamp-browser-evidence
+          path: reports/market-browser/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Publish branch-only certification status
         if: always()
         env:
