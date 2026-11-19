@@ -172,6 +172,8 @@ async function runIpoReceiptScenario(status, expectedState) {
     check('ipo-publication-request-'+status,requests>=1);
     check('ipo-official-verification-'+status,
       (await evidence.getByRole('link',{name:/Verify current public issues/}).count())===1);
+    check('ipo-bse-manual-verification-'+status,
+      (await evidence.getByRole('link',{name:/BSE public issues/}).count())===1);
     const text=await evidence.textContent();
     check('ipo-observations-not-fabricated-'+status,
       status==='snapshot' ? text.includes('Fixture Authorized Issue') :
