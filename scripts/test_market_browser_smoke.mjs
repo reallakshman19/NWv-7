@@ -101,14 +101,27 @@ async function runViewport(width, height) {
 
     const size = await page.evaluate(() => {
       const shell = document.querySelector('#market-workspace');
-      return {client:shell?.clientWidth, scroll:shell?.scrollWidth, viewport:document.documentElement.clientWidth};
+      const edge = shell.getBoundingClientRect().right;
+      const overflowing = [...shell.querySelectorAll('*')].map(node => {
+        const box = node.getBoundingClientRect();
+        return {
+          selector: node.tagName.toLowerCase() + (typeof node.className === 'string' ? '.' + node.className.trim().split(/\s+/).slice(0,2).join('.') : ''),
+          text: node.textContent?.replace(/\s+/g,' ').slice(0,55),
+          left: Math.round(box.left), right: Math.round(box.right),
+          client: node.clientWidth, scroll: node.scrollWidth,
+        };
+      }).filter(item => item.right > edge + 2 || item.scroll > item.client + 2)
+        .sort((a,b) => b.right-a.right).slice(0,12);
+      return {client:shell?.clientWidth, scroll:shell?.scrollWidth, viewport:document.documentElement.clientWidth, overflowing};
     });
-    check('no-workspace-overflow-' + width, size.scroll <= size.client+2, size);
-    check('no-public-cors-waterfall-' + width, external.length===0, external);
-    check('quote-source-was-actually-failed-' + width, snapshotRequests>0, {snapshotRequests});
+    // Keep the failing viewport screenshot and element dimensions as evidence,
+    // rather than stopping before its artifacts can be inspected.
     const png = outputDir + '/market-' + width + '.png';
     await page.screenshot({ path:png, fullPage:true });
     report.screenshots.push(png);
+    check('no-workspace-overflow-' + width, size.scroll <= size.client+2, size);
+    check('no-public-cors-waterfall-' + width, external.length===0, external);
+    check('quote-source-was-actually-failed-' + width, snapshotRequests>0, {snapshotRequests});
     await page.emulateMedia({media:'print'});
     check('print-hides-workspace-navigation-' + width,
       await page.locator('.market-workspace__tabs').evaluate(node=>getComputedStyle(node).display)==='none');
