@@ -83,7 +83,7 @@ test('an old public snapshot fails technical qualification without inventing new
  const old=JSON.parse(fs.readFileSync(path.join(ROOT,'public/data/market_snapshot.json'),'utf8'));
  const r=assessCandidateCustody(buffer(old),{nowMs:now,symbols:SYMBOLS});
  assert.equal(r.technicalStatus,'HOLD');
- assert.ok(r.technicalBlocks.includes('EQUITIES_MISSING'));
+ assert.ok(r.technicalBlocks.includes('SCHEMA_UNKNOWN'));
  assert.ok(r.technicalBlocks.includes('NO_EQUITY_COVERAGE'));
 });
 test('rights manifest must be bound to exact candidate SHA',()=>temp(dir=>{
