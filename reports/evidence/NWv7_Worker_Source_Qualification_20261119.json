@@ -1,0 +1,729 @@
+{
+  "scope": "Author verification; ephemeral Cloudflare execution plus isolated local application checks. Production rollout and independent acceptance are not claimed.",
+  "registry": {
+    "scope": "ephemeral-cloudflare-origin-source-probe",
+    "registry": "section-source-policy-v4-direct-publishers",
+    "digest": "7436c30294908cbe49f10e3cb03d00c981de9d381b1c572e21eab030f87af774",
+    "lanes": 41,
+    "databaseWrites": 0,
+    "queueDispatches": 0,
+    "browserSessions": 0
+  },
+  "sourceProbeCompletedAt": "2026-11-19T06:25:17.899Z",
+  "sourceLanes": [
+    {
+      "laneId": "topStories:01:34a340f22867",
+      "section": "topStories",
+      "source": "The Hindu",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/news/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795066499000,
+      "newestPublication": 1795069326000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "topStories:02:0f9740c1e1a2",
+      "section": "topStories",
+      "source": "NDTV",
+      "sourceGroup": "ndtv",
+      "url": "https://feeds.feedburner.com/ndtvnews-top-stories",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795055265000,
+      "newestPublication": 1795066841000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "topStories:03:b495bf84fdea",
+      "section": "topStories",
+      "source": "Hindustan Times",
+      "sourceGroup": "hindustan_times",
+      "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795058220000,
+      "newestPublication": 1795068965000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "topStories:04:89c025ffa1c7",
+      "section": "topStories",
+      "source": "Economic Times",
+      "sourceGroup": "economic_times",
+      "url": "https://economictimes.indiatimes.com/rssfeeds/1977021501.cms",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795057505000,
+      "newestPublication": 1795067921000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "topStories:05:e6c162f95fc5",
+      "section": "topStories",
+      "source": "Indian Express Latest",
+      "sourceGroup": "indian_express",
+      "url": "https://indianexpress.com/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795065630000,
+      "newestPublication": 1795069178000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "india:01:f733cf90a1a0",
+      "section": "india",
+      "source": "The Hindu National",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/news/national/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795061466000,
+      "newestPublication": 1795068647000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "india:02:d91d3e453bf2",
+      "section": "india",
+      "source": "NDTV India",
+      "sourceGroup": "ndtv",
+      "url": "https://feeds.feedburner.com/ndtvnews-india-news",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 19,
+      "oldestPublication": 1795028658000,
+      "newestPublication": 1795069295000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "india:03:c59be43c0f92",
+      "section": "india",
+      "source": "Times of India",
+      "sourceGroup": "times_of_india",
+      "url": "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795038045000,
+      "newestPublication": 1795066200000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "india:04:b495bf84fdea",
+      "section": "india",
+      "source": "Hindustan Times India",
+      "sourceGroup": "hindustan_times",
+      "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795058220000,
+      "newestPublication": 1795068965000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "tn:01:1f254f991498",
+      "section": "tn",
+      "source": "The Hindu Chennai",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/news/cities/chennai/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794999911000,
+      "newestPublication": 1795046211000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "tn:02:bf111625b697",
+      "section": "tn",
+      "source": "DT Next",
+      "sourceGroup": "dtnext",
+      "url": "https://www.dtnext.in/feed",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795055992000,
+      "newestPublication": 1795067577000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "tn:03:ab17502fc448",
+      "section": "tn",
+      "source": "Indian Express Chennai",
+      "sourceGroup": "indian_express",
+      "url": "https://indianexpress.com/section/cities/chennai/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 1,
+      "oldestPublication": 1795008072000,
+      "newestPublication": 1795008072000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "trichy:01:47756cafedf6",
+      "section": "trichy",
+      "source": "The Hindu Trichy",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/news/cities/Tiruchirapalli/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 8,
+      "oldestPublication": 1795006859000,
+      "newestPublication": 1795019711000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "trichy:02:bf111625b697",
+      "section": "trichy",
+      "source": "DT Next",
+      "sourceGroup": "dtnext",
+      "url": "https://www.dtnext.in/feed",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795056483000,
+      "newestPublication": 1795068389000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "trichy:03:296eb823d0f4",
+      "section": "trichy",
+      "source": "Times of India Trichy",
+      "sourceGroup": "times_of_india",
+      "url": "https://timesofindia.indiatimes.com/rssfeeds/22778270.cms",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 7,
+      "oldestPublication": 1795007057000,
+      "newestPublication": 1795027859000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "muscat:01:196a7600cb21",
+      "section": "muscat",
+      "source": "Times of Oman",
+      "sourceGroup": "times_of_oman",
+      "url": "https://timesofoman.com/feed",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795006109000,
+      "newestPublication": 1795068278000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "muscat:02:64ac6d813654",
+      "section": "muscat",
+      "source": "The Arabian Stories Oman",
+      "sourceGroup": "the_arabian_stories",
+      "url": "https://www.thearabianstories.com/category/oman-news/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 10,
+      "oldestPublication": 1794994761000,
+      "newestPublication": 1795066157000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "muscat:03:a64787806875",
+      "section": "muscat",
+      "source": "Oman Observer",
+      "sourceGroup": "oman_observer",
+      "url": "https://www.omanobserver.om/rssFeed/1",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794973630000,
+      "newestPublication": 1795052447000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "muscat:04:45b5ec40467f",
+      "section": "muscat",
+      "source": "Oman Observer Governorates",
+      "sourceGroup": "oman_observer",
+      "url": "https://www.omanobserver.om/rssFeed/1/44",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 1,
+      "oldestPublication": 1794988243000,
+      "newestPublication": 1794988243000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "muscat:05:44562e75ea22",
+      "section": "muscat",
+      "source": "Oman Observer Community",
+      "sourceGroup": "oman_observer",
+      "url": "https://www.omanobserver.om/rssFeed/1/53",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 6,
+      "oldestPublication": 1794972911000,
+      "newestPublication": 1795002787000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "world:01:1796df62c4a2",
+      "section": "world",
+      "source": "BBC World",
+      "sourceGroup": "bbc",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794964698000,
+      "newestPublication": 1795063372000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "world:02:8453e2a872e7",
+      "section": "world",
+      "source": "BBC",
+      "sourceGroup": "bbc",
+      "url": "https://feeds.bbci.co.uk/news/rss.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794999201000,
+      "newestPublication": 1795067665000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "world:03:fea6b74165b0",
+      "section": "world",
+      "source": "The Hindu International",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/news/international/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795022174000,
+      "newestPublication": 1795069074000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "world:04:fa080031bb9f",
+      "section": "world",
+      "source": "Al Jazeera",
+      "sourceGroup": "al_jazeera",
+      "url": "https://www.aljazeera.com/xml/rss/all.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795047280000,
+      "newestPublication": 1795065193000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "world:05:14dda539770f",
+      "section": "world",
+      "source": "DW English",
+      "sourceGroup": "dw",
+      "url": "https://rss.dw.com/rdf/rss-en-all",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794998700000,
+      "newestPublication": 1795067880000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "business:01:89c025ffa1c7",
+      "section": "business",
+      "source": "Economic Times",
+      "sourceGroup": "economic_times",
+      "url": "https://economictimes.indiatimes.com/rssfeeds/1977021501.cms",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795057505000,
+      "newestPublication": 1795067921000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "business:02:9cc37220feec",
+      "section": "business",
+      "source": "Mint Markets",
+      "sourceGroup": "mint",
+      "url": "https://www.livemint.com/rss/markets",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795033160000,
+      "newestPublication": 1795069330000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "business:03:f4568a36de99",
+      "section": "business",
+      "source": "Business Line",
+      "sourceGroup": "business_line",
+      "url": "https://www.thehindubusinessline.com/news/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795014695000,
+      "newestPublication": 1795069197000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "business:04:7f27c1a7667a",
+      "section": "business",
+      "source": "Indian Express Business",
+      "sourceGroup": "indian_express",
+      "url": "https://indianexpress.com/section/business/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 6,
+      "oldestPublication": 1794953115000,
+      "newestPublication": 1795054422000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "business:05:94537534d0ee",
+      "section": "business",
+      "source": "BBC Business",
+      "sourceGroup": "bbc",
+      "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794940985000,
+      "newestPublication": 1795069402000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "technology:01:6266d79492a6",
+      "section": "technology",
+      "source": "Gadgets360",
+      "sourceGroup": "gadgets360",
+      "url": "https://feeds.feedburner.com/gadgets360-latest",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794999463000,
+      "newestPublication": 1795066213000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "technology:02:406a767d28d4",
+      "section": "technology",
+      "source": "The Hindu Tech",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/sci-tech/technology/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 9,
+      "oldestPublication": 1794962037000,
+      "newestPublication": 1795065792000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "technology:03:7170fc473d11",
+      "section": "technology",
+      "source": "Ars Technica",
+      "sourceGroup": "ars_technica",
+      "url": "https://feeds.arstechnica.com/arstechnica/index",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794954736000,
+      "newestPublication": 1795044304000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "sports:01:7f131d83bebe",
+      "section": "sports",
+      "source": "NDTV Sports",
+      "sourceGroup": "ndtv",
+      "url": "https://feeds.feedburner.com/ndtvsports-latest",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795059110000,
+      "newestPublication": 1795066489000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "sports:02:27cd6b4dd0e9",
+      "section": "sports",
+      "source": "The Hindu Sport",
+      "sourceGroup": "the_hindu",
+      "url": "https://www.thehindu.com/sport/feeder/default.rss",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795003682000,
+      "newestPublication": 1795067266000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "sports:03:4265059e11db",
+      "section": "sports",
+      "source": "BBC Sport",
+      "sourceGroup": "bbc",
+      "url": "https://feeds.bbci.co.uk/sport/rss.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794952564000,
+      "newestPublication": 1795069055000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "sports:04:e76f509362f8",
+      "section": "sports",
+      "source": "Indian Express Sports",
+      "sourceGroup": "indian_express",
+      "url": "https://indianexpress.com/section/sports/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1794983588000,
+      "newestPublication": 1795068712000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "entertainment:01:ee145b1c73b6",
+      "section": "entertainment",
+      "source": "Hindustan Times Entertainment",
+      "sourceGroup": "hindustan_times",
+      "url": "https://www.hindustantimes.com/feeds/rss/entertainment/rssfeed.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795011438000,
+      "newestPublication": 1795068414000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "entertainment:02:9b5c9888e886",
+      "section": "entertainment",
+      "source": "Hindustan Times Tamil Cinema",
+      "sourceGroup": "hindustan_times",
+      "url": "https://www.hindustantimes.com/feeds/rss/entertainment/tamil-cinema/rssfeed.xml",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 2,
+      "oldestPublication": 1794972055000,
+      "newestPublication": 1795015819000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "entertainment:03:32dcdab09096",
+      "section": "entertainment",
+      "source": "NDTV Movies",
+      "sourceGroup": "ndtv",
+      "url": "https://feeds.feedburner.com/ndtvmovies-latest",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795005125000,
+      "newestPublication": 1795065703000,
+      "cloudflareColo": "MCT"
+    },
+    {
+      "laneId": "entertainment:04:9b17cad22c44",
+      "section": "entertainment",
+      "source": "Indian Express Entertainment",
+      "sourceGroup": "indian_express",
+      "url": "https://indianexpress.com/section/entertainment/feed/",
+      "status": 200,
+      "disposition": "OK",
+      "currentItems": 20,
+      "oldestPublication": 1795005882000,
+      "newestPublication": 1795068291000,
+      "cloudflareColo": "MCT"
+    }
+  ],
+  "insight": {
+    "capturedAt": "2026-11-19T06:32:29.581Z",
+    "sha256": "2a10deffd1e6a410203ff505775e1f4fb3fbe29d537f71af37b2efc203ce301d",
+    "rawStories": 552,
+    "sourceGroups": 15,
+    "networkRequests": 22,
+    "before": {
+      "admitted": 300,
+      "eligible": 275,
+      "grade": "D",
+      "parents": 10,
+      "multiAngleParents": 1,
+      "averageAngles": 1.2,
+      "signalScore": 19
+    },
+    "after": {
+      "admitted": 552,
+      "eligible": 477,
+      "grade": "C",
+      "parents": 10,
+      "multiAngleParents": 9,
+      "averageAngles": 2.4,
+      "signalScore": 54
+    },
+    "qualityThresholdsChanged": false,
+    "benchmarkTimeoutChanged": false,
+    "publicationValidation": {
+      "status": "PASS",
+      "generatedAt": 1795069949581,
+      "scope": "Original captured publication clock, not a present-time freshness assertion"
+    }
+  },
+  "checks": {
+    "app": {
+      "passed": 1847,
+      "failed": 0,
+      "skipped": 8
+    },
+    "worker": {
+      "passed": 54,
+      "failed": 0,
+      "skipped": 0
+    },
+    "historical": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    "currentStrictBenchmark": {
+      "status": "PASS",
+      "ratchet": {
+        "status": "PASS",
+        "gateVersion": "real-insight-snapshot-ratchet-v1",
+        "grade": "B",
+        "score": 100,
+        "passed": [
+          {
+            "id": "grade-floor",
+            "label": "Real snapshot grade floor",
+            "actual": "B",
+            "required": "A/B/C"
+          },
+          {
+            "id": "parent-count",
+            "label": "Parent cluster count",
+            "actual": 10,
+            "required": ">= 3"
+          },
+          {
+            "id": "avg-angle-count",
+            "label": "Average visible angle count",
+            "actual": 2.3,
+            "required": ">= 1.4"
+          },
+          {
+            "id": "avg-temporal-tier-count",
+            "label": "Average temporal tier count",
+            "actual": 2.1,
+            "required": ">= 1.8"
+          },
+          {
+            "id": "avg-evolution-role-count",
+            "label": "Average evolution role count",
+            "actual": 2.2,
+            "required": ">= 1.6"
+          },
+          {
+            "id": "base-report-share",
+            "label": "Base report share",
+            "actual": 0.161,
+            "required": "<= 0.55"
+          },
+          {
+            "id": "multi-angle-parent-count",
+            "label": "Multi-angle parent count",
+            "actual": 8,
+            "required": ">= 1"
+          },
+          {
+            "id": "top-parent-angle-count",
+            "label": "Top parent angle count",
+            "actual": 3,
+            "required": ">= 2"
+          },
+          {
+            "id": "top-parent-child-depth",
+            "label": "Top parent child depth",
+            "actual": 7,
+            "required": ">= 2"
+          },
+          {
+            "id": "weak-parent-ratio",
+            "label": "Weak parent ratio",
+            "actual": 0.2,
+            "required": "<= 0.5"
+          }
+        ],
+        "failed": [],
+        "summary": {
+          "parentCount": 10,
+          "avgAngles": 2.3,
+          "avgTemporalTiers": 2.1,
+          "avgEvolutionRoles": 2.2,
+          "baseReportShare": 0.161,
+          "multiAngleCount": 8,
+          "weakParentCount": 2,
+          "weakParentRatio": 0.2,
+          "topParentAngles": 3,
+          "topParentChildren": 7,
+          "storyCount": 552,
+          "sourceGroupCount": 15
+        }
+      },
+      "configuration": "Existing benchmark configuration, distinct from normal application DEFAULT_CONFIG"
+    },
+    "publisher": {
+      "passed": 38,
+      "failed": 0,
+      "scope": "Acquisition, contract, source policy, finite URL-specific backoff and separate Insight health diagnostics"
+    }
+  },
+  "browser": {
+    "entry": "assets/index-qz2aWSF4.js",
+    "retentionTransitions": 3,
+    "runs": [
+      {
+        "width": 1366,
+        "cards": 10,
+        "errors": [],
+        "sourceStories": 477,
+        "multiAngleParents": 9,
+        "signalScore": 54,
+        "visibleQualityTitle": "Thin but usable signal",
+        "elapsedMs": 20931,
+        "oldCacheEvicted": true,
+        "isolatedRecoverySentinelPreserved": true
+      },
+      {
+        "width": 390,
+        "cards": 10,
+        "errors": [],
+        "sourceStories": 477,
+        "multiAngleParents": 9,
+        "signalScore": 54,
+        "visibleQualityTitle": "Thin but usable signal",
+        "elapsedMs": 22218,
+        "oldCacheEvicted": true,
+        "isolatedRecoverySentinelPreserved": true
+      }
+    ]
+  },
+  "production": {
+    "workerDeployed": false,
+    "d1WritesByThisWork": 0,
+    "queueDispatchesByThisWork": 0,
+    "paidBrowserFallbackEnabled": false,
+    "databasePhysicalBytesAtRead": 9420800,
+    "retainedJsonBytesAtRead": 7118335,
+    "unfinishedRegistryV1EpochsAtRead": 10,
+    "wholeAccountQuotaTelemetry": "UNKNOWN"
+  }
+}

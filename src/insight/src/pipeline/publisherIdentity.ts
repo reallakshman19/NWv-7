@@ -27,6 +27,9 @@ const FAMILY_ALIASES: Record<string,string> = {
   aljazeera: "al_jazeera", aljazeera_com: "al_jazeera",
   indianexpress: "indian_express", indianexpress_com: "indian_express",
   livemint: "mint", livemint_com: "mint", mint_markets: "mint",
+  dw_english: "dw", deutsche_welle: "dw", dw_com: "dw",
+  arstechnica: "ars_technica", arstechnica_com: "ars_technica",
+  the_arabian_stories_oman: "the_arabian_stories", thearabianstories_com: "the_arabian_stories",
 };
 
 /** A family key; unknown sources remain unknown, never promoted to a known outlet. */

@@ -1,5 +1,10 @@
 # Up Ahead retention and Insight publication repair — 19 November 2026
 
+Later qualification and the additional intake/cache correction are recorded in
+[the Worker qualification follow-up](NWv7_Worker_Rollout_Qualification_20261119.md).
+Its verified 552-record result supersedes the current-state 300-row/D limitation
+below; the earlier 516-record evidence remains a historical receipt.
+
 Implementation/reproduction by the current Coder; this is author verification,
 not independent acceptance. Base main: `077c1e5cbb25336d537076b50d8ee9509371e002`.
 Branch: `fix/upahead-retention-followup-20261119`. No Worker deployment, database

@@ -228,7 +228,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int, *, require_acquisit
     try:
         sys.path.insert(0, os.path.dirname(__file__))
         from source_health import zero_item_warnings
-        sh_path = 'public/newsdata/source_health.json'
+        sh_path = 'public/newsdata/insight_source_health.json'
         if os.path.exists(sh_path):
             with open(sh_path, 'r', encoding='utf-8') as fh:
                 sh_doc = json.load(fh)

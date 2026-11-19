@@ -85,6 +85,46 @@ def test_source_health_policy_report_shape():
     assert_true(report["slotReports"]["now"]["feedCount"] >= 1, "feed count missing")
 
 
+def test_empty_feed_backoff_uses_observed_clock_and_eventually_ends():
+    ts = 1_795_064_540_172
+    health = {"ok": True, "items": 0, "checkedAt": ts}
+    assert source_backoff_reason("economic_times", health, ts + 3_600_000)
+    assert source_backoff_reason("economic_times", health, ts + 6 * 3_600_000) == ""
+    assert source_backoff_reason("economic_times", {"ok": True, "items": 0}, ts) == ""
+
+
+def test_current_zero_item_observation_is_not_replaced_by_old_success_clock():
+    ts = 1_795_064_540_172
+    health = {"ok": True, "items": 0, "lastZeroItemAt": ts, "lastSuccess": ts - 48 * 3_600_000}
+    assert source_backoff_reason("economic_times", health, ts + 3_600_000)
+
+
+def test_one_publisher_feed_cannot_disable_another_feed_from_that_publisher():
+    ts = 1_795_064_540_172
+    feeds = [
+        {"url": "https://publisher.example/national", "source": "National", "sourceGroup": "same_publisher", "tier": "A", "topic": "national"},
+        {"url": "https://publisher.example/markets", "source": "Markets", "sourceGroup": "same_publisher", "tier": "A", "topic": "markets"},
+    ]
+    rows = rank_slot_feeds_by_health(feeds, {"same_publisher": {
+        "ok": False, "items": 0, "feedUrl": feeds[1]["url"], "lastChecked": ts,
+    }}, ts)
+    by_url = {row["url"]: row for row in rows}
+    assert by_url[feeds[0]["url"]]["backoffReason"] == ""
+    assert by_url[feeds[1]["url"]]["backoffReason"]
+
+
+def test_failure_backoff_reads_native_collector_and_merged_health_clocks():
+    ts = 1_795_064_540_172
+    for field in ["checkedAt", "lastCheckedAt"]:
+        assert source_backoff_reason("publisher", {"ok": False, field: ts}, ts + 1000)
+
+
+def test_invalid_and_future_health_clocks_cannot_create_permanent_suppression():
+    ts = 1_795_064_540_172
+    for clock in [None, "bad", float("inf"), ts + 3_600_000, -1]:
+        assert source_backoff_reason("publisher", {"ok": False, "lastChecked": clock}, ts) == ""
+
+
 if __name__ == "__main__":
     test_source_health_score_prefers_successful_item_yield()
     test_source_backoff_reason_for_recent_failure()

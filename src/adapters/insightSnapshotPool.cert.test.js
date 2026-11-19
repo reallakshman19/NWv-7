@@ -19,13 +19,20 @@ it('keeps publication slots honest rather than borrowing reports into empty olde
   expect(await fetcher('minus48h')).toEqual([]);
 });
 
-it('bounds total work while preserving a sparse older source window', () => {
+it('keeps every valid report below the publisher bound, including a sparse older source window', () => {
   const snapshot = { stories: [...Array.from({ length: 600 }, (_, i) => story(`new-${i}`, 2)), story('older', 30),
     story('future', -1), story('expired', 50)] };
   const { pool } = buildInsightSnapshotPool(snapshot, NOW);
-  expect(pool).toHaveLength(300);
+  expect(pool).toHaveLength(601);
   expect(pool.some(row => row.id === 'older')).toBe(true);
   expect(pool.some(row => ['future', 'expired'].includes(row.id))).toBe(false);
+});
+
+it('bounds scanning and admission to the publisher maximum of one thousand stories', () => {
+  const snapshot = { stories: Array.from({ length: 1200 }, (_, i) => story(`bounded-${i}`, 2)) };
+  const { pool } = buildInsightSnapshotPool(snapshot, NOW);
+  expect(pool).toHaveLength(1000);
+  expect(pool.some(row => row.id === 'bounded-1000')).toBe(false);
 });
 
 it('deduplicates canonical URLs across slots and rejects weak publication evidence', () => {

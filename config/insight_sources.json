@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policyVersion": "insight-source-policy-v2-free-publishers",
+  "policyVersion": "insight-source-policy-v3-direct-publishers",
   "slots": {
     "now": [
       {
@@ -70,6 +70,27 @@
       }
     ],
     "minus12h": [
+      {
+        "url": "https://rss.dw.com/rdf/rss-en-all",
+        "source": "DW English",
+        "sourceGroup": "dw",
+        "tier": "A",
+        "topic": "world"
+      },
+      {
+        "url": "https://feeds.arstechnica.com/arstechnica/index",
+        "source": "Ars Technica",
+        "sourceGroup": "ars_technica",
+        "tier": "B",
+        "topic": "tech"
+      },
+      {
+        "url": "https://www.thearabianstories.com/category/oman-news/feed/",
+        "source": "The Arabian Stories Oman",
+        "sourceGroup": "the_arabian_stories",
+        "tier": "B",
+        "topic": "regional"
+      },
       {
         "url": "https://indianexpress.com/section/explained/feed/",
         "source": "Indian Express Explained",

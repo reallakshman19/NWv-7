@@ -37,7 +37,7 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
     expect(frozen.shadowOutputUsedToChooseExpected).toBe(false);
     expect(frozen.sourceRegistryVersion).toBe('section-source-policy-v1');
     expect(frozen.sourceRegistryDigest).toBe('d6e8c3d706c9848b7e63349ce08cd48c3670377f24c4163150cd368151e96716');
-    const current = readJson('../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v3-authority.json');
+    const current = readJson('../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v4-authority.json');
     expect(authority.sourceRegistryVersion).toBe(current.sourceRegistryVersion);
     expect(authority.sourceRegistryDigest).toBe(current.sourceRegistryDigest);
     expect(authority.sectionCount).toBe(frozen.sectionCount);
@@ -56,6 +56,20 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
       .toBeGreaterThanOrEqual(registry.requiredCoverage.minSourceGroups);
     expect(authority.tierACount)
       .toBeGreaterThanOrEqual(registry.requiredCoverage.minTierAFeeds);
+  });
+
+  it('uses the qualified city endpoint and direct publishers without relabelling duplicated Oman lanes', () => {
+    const registry = readRegistry();
+    const feeds = Object.values(registry.sections).flat();
+    expect(feeds).toHaveLength(41);
+    expect(feeds.every(feed => new URL(feed.url).protocol === 'https:')).toBe(true);
+    expect(feeds.some(feed => new URL(feed.url).hostname === 'news.google.com')).toBe(false);
+    expect(registry.sections.trichy).toContainEqual(expect.objectContaining({
+      url: 'https://timesofindia.indiatimes.com/rssfeeds/22778270.cms', sourceGroup: 'times_of_india',
+    }));
+    const observer = registry.sections.muscat.filter(feed => new URL(feed.url).hostname === 'www.omanobserver.om');
+    expect(observer).toHaveLength(3);
+    expect(new Set(observer.map(feed => feed.sourceGroup))).toEqual(new Set(['oman_observer']));
   });
 
   it('fails closed when a section is silently narrowed below required coverage', () => {

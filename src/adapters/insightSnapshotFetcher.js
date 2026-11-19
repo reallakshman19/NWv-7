@@ -108,13 +108,17 @@ export function createSnapshotRawFetcher(snapshot) {
   };
 }
 
-export const MAX_INSIGHT_SNAPSHOT_STORIES = 300;
+// Match the bounded publisher contract. A second 300-row cap discarded related
+// reports before clustering: the same genuine 552-row capture fell from nine
+// multi-angle parents to one. Quality thresholds and publication-age slots stay
+// independent of this acquisition budget.
+export const MAX_INSIGHT_SNAPSHOT_STORIES = 1000;
 
 export function buildInsightSnapshotPool(snapshot, nowMs = Date.now()) {
-  // Match the Sections fallback's global bound, rather than silently losing
-  // corroborating reports at forty per slot. Input scanning is bounded too.
+  // The publisher already limits output to 1,000 stories / 3 MB. Keep all usable
+  // reports within that bound rather than trimming away event corroboration.
   const health = getSnapshotPoolHealth({ ...snapshot,
-    stories: Array.isArray(snapshot?.stories) ? snapshot.stories.slice(0, 1000) : [] }, nowMs);
+    stories: Array.isArray(snapshot?.stories) ? snapshot.stories.slice(0, MAX_INSIGHT_SNAPSHOT_STORIES) : [] }, nowMs);
   const slots = ['now', 'minus4h', 'minus12h', 'minus24h', 'minus36h'];
   const buckets = slots.map(slot => {
     const bySource = new Map();

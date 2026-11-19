@@ -19,6 +19,7 @@ import {
   type DecisionEvidenceRow,
   type FinalizeLiveEpochQueueMessage,
   type ShadowQueueMessage,
+  type ShadowEpochRow,
   type StartLiveEpochQueueMessage,
 } from './contracts';
 import { recordBrowserUsage, reserveBrowserCapacity } from './browserQuota';
@@ -97,6 +98,26 @@ function isBrowserLane(sourceGroup: string): boolean {
   return sourceGroup.startsWith('google_news');
 }
 
+function assertLiveEpochContract(
+  epoch: ShadowEpochRow,
+  input: { logicalSlot: number; attempt?: number; evaluationNowMs?: number },
+): void {
+  if (epoch.acquisition_mode !== 'INDEPENDENT_LIVE') {
+    throw new ShadowCustodyError('ACQUISITION_MODE_MISMATCH', `${epoch.epoch_id} is not a live epoch`);
+  }
+  if (epoch.logical_slot !== input.logicalSlot || epoch.attempt !== (input.attempt ?? 1) ||
+      (input.evaluationNowMs !== undefined && epoch.evaluation_now_ms !== input.evaluationNowMs)) {
+    throw new ShadowCustodyError('EPOCH_RETRY_CONFLICT', 'Live message changed the immutable epoch contract');
+  }
+  if (epoch.source_registry_version !== sectionsRegistryAuthority.sourceRegistryVersion ||
+      epoch.source_registry_digest !== sectionsRegistryAuthority.sourceRegistryDigest) {
+    throw new ShadowCustodyError(
+      'EPOCH_REGISTRY_MISMATCH',
+      'The deployed source registry cannot acquire or finalize this earlier epoch',
+    );
+  }
+}
+
 export async function startLiveEpoch(
   env: LiveAcquisitionEnv,
   input: StartLiveEpochQueueMessage,
@@ -106,6 +127,7 @@ export async function startLiveEpoch(
   if (existing?.state === 'SHADOW_COMMITTED' || existing?.state === 'ABORTED' || existing?.state === 'REJECTED') {
     return { status: existing.state, enqueuedLanes: 0 };
   }
+  if (existing) assertLiveEpochContract(existing, { ...input, evaluationNowMs: input.logicalSlot });
   if (existing?.state === 'SEALED') {
     await env.SHADOW_QUEUE.send({
       type: 'FINALIZE_LIVE_EPOCH',
@@ -115,7 +137,9 @@ export async function startLiveEpoch(
     });
     return { status: 'FINALIZER_REENQUEUED', enqueuedLanes: 0 };
   }
-  const useBrowserFallback = env.SHADOW_BROWSER_FALLBACK_ENABLED === 'true';
+  const lanes = await buildShadowLaneDefinitions();
+  const useBrowserFallback = env.SHADOW_BROWSER_FALLBACK_ENABLED === 'true' &&
+    lanes.some(lane => isBrowserLane(lane.sourceGroup));
   if (useBrowserFallback && !env.SHADOW_BROWSER) {
     throw new ShadowCustodyError('BROWSER_BINDING_MISSING', 'Browser fallback is enabled without a binding');
   }
@@ -133,7 +157,6 @@ export async function startLiveEpoch(
     sourceRegistryDigest: sectionsRegistryAuthority.sourceRegistryDigest,
     nowMs,
   });
-  const lanes = await buildShadowLaneDefinitions();
   const directLanes = useBrowserFallback ? lanes.filter(lane => !isBrowserLane(lane.sourceGroup)) : lanes;
   let googleLaneOrdinal = 0;
   const requests: MessageSendRequest<ShadowQueueMessage>[] = directLanes.map(lane => {
@@ -177,14 +200,7 @@ export async function acquireAndStageLiveBrowserLanes(
   if (!env.SHADOW_BROWSER) throw new ShadowCustodyError('BROWSER_BINDING_MISSING', 'Browser binding is unavailable');
   const epoch = await readEpoch(env.SHADOW_DB, input.epochId);
   if (!epoch) throw new ShadowCustodyError('EPOCH_NOT_FOUND', `Unknown epoch ${input.epochId}`);
-  if (
-    epoch.acquisition_mode !== 'INDEPENDENT_LIVE' ||
-    epoch.logical_slot !== input.logicalSlot ||
-    epoch.evaluation_now_ms !== input.evaluationNowMs ||
-    epoch.attempt !== (input.attempt ?? 1)
-  ) {
-    throw new ShadowCustodyError('EPOCH_RETRY_CONFLICT', 'Browser lane message changed epoch contract');
-  }
+  assertLiveEpochContract(epoch, input);
   if (epoch.state !== 'STAGED') {
     return { laneCount: 0, terminalLaneCount: epoch.terminal_lane_count, durationMs: 0 };
   }
@@ -268,15 +284,9 @@ export async function acquireAndStageLiveLane(
 ): Promise<StoredLiveLaneResult> {
   const epoch = await readEpoch(env.SHADOW_DB, input.epochId);
   if (!epoch) throw new ShadowCustodyError('EPOCH_NOT_FOUND', `Unknown epoch ${input.epochId}`);
-  if (epoch.acquisition_mode !== 'INDEPENDENT_LIVE') {
-    throw new ShadowCustodyError('ACQUISITION_MODE_MISMATCH', `${input.epochId} is not a live epoch`);
-  }
-  if (
-    epoch.logical_slot !== input.logicalSlot ||
-    epoch.evaluation_now_ms !== input.evaluationNowMs ||
-    epoch.attempt !== (input.attempt ?? 1)
-  ) {
-    throw new ShadowCustodyError('EPOCH_RETRY_CONFLICT', `Live lane message changed epoch contract`);
+  assertLiveEpochContract(epoch, input);
+  if (epoch.state !== 'STAGED') {
+    throw new ShadowCustodyError('EPOCH_NOT_ACQUIRABLE', `Epoch ${epoch.epoch_id} is ${epoch.state}`);
   }
   const definitions = await buildShadowLaneDefinitions();
   const lane = definitions.find(candidate => candidate.laneId === input.laneId);
@@ -321,11 +331,15 @@ export async function finalizeLiveEpoch(
   if (epoch.acquisition_mode !== 'INDEPENDENT_LIVE') {
     throw new ShadowCustodyError('ACQUISITION_MODE_MISMATCH', `${input.epochId} is not a live epoch`);
   }
+  if (epoch.logical_slot !== input.logicalSlot || epoch.attempt !== (input.attempt ?? 1)) {
+    throw new ShadowCustodyError('EPOCH_RETRY_CONFLICT', 'Finalizer changed the immutable epoch contract');
+  }
   if (epoch.state === 'SHADOW_COMMITTED') {
     const current = await readCurrentShadow(env.SHADOW_DB);
     if (!current) throw new ShadowCustodyError('COMMITTED_POINTER_MISSING', 'No current shadow pointer exists');
     return { epoch, pointer: current.pointer };
   }
+  assertLiveEpochContract(epoch, input);
   if (epoch.state === 'SEALED') return commitEpoch(env, epoch.epoch_id, nowMs);
   if (epoch.state !== 'STAGED') {
     throw new ShadowCustodyError('EPOCH_NOT_SEALABLE', `Epoch ${epoch.epoch_id} is ${epoch.state}`);

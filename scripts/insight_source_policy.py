@@ -146,6 +146,17 @@ def get_slot_feeds_map(path: Path = SOURCE_POLICY_PATH) -> dict[str, list[tuple[
     }
 
 
+def _observed_health_clock(health: dict[str, Any], ts: int, *fields: str) -> int:
+    for field in fields:
+        try:
+            observed = int(health.get(field) or 0)
+        except (ValueError, TypeError, OverflowError):
+            continue
+        if 0 < observed <= ts:
+            return observed
+    return 0
+
+
 def source_health_score(health: dict[str, Any] | None, ts: int | None = None) -> float:
     """Return 0..1 feed health score from previous source_health.json entry."""
     if not health:
@@ -157,8 +168,8 @@ def source_health_score(health: dict[str, Any] | None, ts: int | None = None) ->
     items = int(health.get("items", 0) or 0)
     if items == 0:
         return 0.2
-    last_success = int(health.get("lastSuccess", 0) or 0)
     ts = int(ts or time.time() * 1000)
+    last_success = _observed_health_clock(health, ts, "lastSuccess", "lastNonZeroSuccess")
 
     item_score = min(1.0, items / max(1, SOURCE_HEALTH_DEFAULTS["minItemsForHealthy"]))
     age_hours = max(0.0, (ts - last_success) / 3_600_000) if last_success else 24.0
@@ -176,16 +187,16 @@ def source_backoff_reason(
         return ""
 
     ts = int(ts or time.time() * 1000)
-    last_success = int(health.get("lastSuccess", 0) or 0)
-    last_checked = int(health.get("lastChecked", health.get("lastFailure", 0)) or 0)
+    last_checked = _observed_health_clock(health, ts, "lastCheckedAt", "lastChecked", "checkedAt", "lastFailure")
 
-    if health.get("ok") is False:
-        age_hours = (ts - last_checked) / 3_600_000 if last_checked else 999
+    if health.get("ok") is False and last_checked:
+        age_hours = (ts - last_checked) / 3_600_000
         if age_hours < SOURCE_HEALTH_DEFAULTS["failedBackoffHours"]:
             return f"recent failure backoff for {source_group}"
 
     if health.get("ok") is True and int(health.get("items", 0) or 0) == 0:
-        age_hours = (ts - last_success) / 3_600_000 if last_success else 0
+        observed = _observed_health_clock(health, ts, "lastZeroItemAt", "lastCheckedAt", "checkedAt", "lastChecked", "lastSuccess")
+        age_hours = (ts - observed) / 3_600_000 if observed else 999
         if age_hours < SOURCE_HEALTH_DEFAULTS["zeroItemBackoffHours"]:
             return f"zero-item backoff for {source_group}"
 
@@ -204,6 +215,10 @@ def rank_slot_feeds_by_health(
     for index, feed in enumerate(feeds):
         group = feed["sourceGroup"]
         health = source_health.get(group, {})
+        # A publisher can have several independent feed endpoints. Evidence
+        # about an empty/retired URL cannot suppress a repaired or different URL.
+        if health.get("feedUrl") and health["feedUrl"] != feed["url"]:
+            health = {}
         score = source_health_score(health, ts)
         backoff = source_backoff_reason(group, health, ts)
 

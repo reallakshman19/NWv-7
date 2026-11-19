@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policyVersion": "section-source-policy-v3-free-publishers",
+  "policyVersion": "section-source-policy-v4-direct-publishers",
   "sections": {
     "topStories": [
       {
@@ -32,11 +32,11 @@
         "source": "Economic Times"
       },
       {
-        "url": "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
-        "tier": "B",
+        "url": "https://indianexpress.com/feed/",
+        "sourceGroup": "indian_express",
+        "tier": "A",
         "topic": "top",
-        "source": "Google News Top"
+        "source": "Indian Express Latest"
       }
     ],
     "india": [
@@ -85,11 +85,11 @@
         "source": "DT Next"
       },
       {
-        "url": "https://news.google.com/rss/search?q=Tamil+Nadu+news+today&hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
-        "tier": "B",
+        "url": "https://indianexpress.com/section/cities/chennai/feed/",
+        "sourceGroup": "indian_express",
+        "tier": "A",
         "topic": "tamil_nadu",
-        "source": "Google News TN"
+        "source": "Indian Express Chennai"
       }
     ],
     "trichy": [
@@ -108,18 +108,11 @@
         "source": "DT Next"
       },
       {
-        "url": "https://news.google.com/rss/search?q=Trichy+OR+Tiruchirappalli+news&hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
+        "url": "https://timesofindia.indiatimes.com/rssfeeds/22778270.cms",
+        "sourceGroup": "times_of_india",
         "tier": "B",
         "topic": "trichy",
-        "source": "Google News Trichy"
-      },
-      {
-        "url": "https://news.google.com/rss/search?q=Trichy+Tamil+Nadu+today&hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news_alt",
-        "tier": "B",
-        "topic": "trichy",
-        "source": "Google News Trichy Alt"
+        "source": "Times of India Trichy"
       }
     ],
     "muscat": [
@@ -131,11 +124,11 @@
         "source": "Times of Oman"
       },
       {
-        "url": "https://www.muscatdaily.com/feed",
-        "sourceGroup": "muscat_daily",
-        "tier": "A",
+        "url": "https://www.thearabianstories.com/category/oman-news/feed/",
+        "sourceGroup": "the_arabian_stories",
+        "tier": "B",
         "topic": "muscat",
-        "source": "Muscat Daily"
+        "source": "The Arabian Stories Oman"
       },
       {
         "url": "https://www.omanobserver.om/rssFeed/1",
@@ -145,18 +138,18 @@
         "source": "Oman Observer"
       },
       {
-        "url": "https://news.google.com/rss/search?q=Muscat+Oman+news+today&hl=en-OM&gl=OM&ceid=OM:en",
-        "sourceGroup": "google_news",
+        "url": "https://www.omanobserver.om/rssFeed/1/44",
+        "sourceGroup": "oman_observer",
         "tier": "B",
         "topic": "muscat",
-        "source": "Google News Muscat"
+        "source": "Oman Observer Governorates"
       },
       {
-        "url": "https://news.google.com/rss/search?q=Oman+news&hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news_oman",
+        "url": "https://www.omanobserver.om/rssFeed/1/53",
+        "sourceGroup": "oman_observer",
         "tier": "B",
         "topic": "muscat",
-        "source": "Google News Oman IN"
+        "source": "Oman Observer Community"
       }
     ],
     "world": [
@@ -187,6 +180,13 @@
         "tier": "B",
         "topic": "world",
         "source": "Al Jazeera"
+      },
+      {
+        "url": "https://rss.dw.com/rdf/rss-en-all",
+        "sourceGroup": "dw",
+        "tier": "A",
+        "topic": "world",
+        "source": "DW English"
       }
     ],
     "business": [
@@ -219,11 +219,11 @@
         "source": "Indian Express Business"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
-        "tier": "B",
+        "url": "https://feeds.bbci.co.uk/news/business/rss.xml",
+        "sourceGroup": "bbc",
+        "tier": "A",
         "topic": "business",
-        "source": "Google News Business"
+        "source": "BBC Business"
       }
     ],
     "technology": [
@@ -242,11 +242,11 @@
         "source": "The Hindu Tech"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
+        "url": "https://feeds.arstechnica.com/arstechnica/index",
+        "sourceGroup": "ars_technica",
         "tier": "B",
         "topic": "technology",
-        "source": "Google News Tech"
+        "source": "Ars Technica"
       }
     ],
     "sports": [
@@ -272,11 +272,11 @@
         "source": "BBC Sport"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/SPORTS?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
-        "tier": "B",
+        "url": "https://indianexpress.com/section/sports/feed/",
+        "sourceGroup": "indian_express",
+        "tier": "A",
         "topic": "sports",
-        "source": "Google News Sports"
+        "source": "Indian Express Sports"
       }
     ],
     "entertainment": [
@@ -302,11 +302,11 @@
         "source": "NDTV Movies"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/ENTERTAINMENT?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
-        "tier": "B",
+        "url": "https://indianexpress.com/section/entertainment/feed/",
+        "sourceGroup": "indian_express",
+        "tier": "A",
         "topic": "entertainment",
-        "source": "Google News Entertainment"
+        "source": "Indian Express Entertainment"
       }
     ]
   },

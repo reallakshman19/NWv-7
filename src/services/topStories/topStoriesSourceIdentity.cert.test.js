@@ -35,6 +35,15 @@ function candidate(id, sourceGroup) {
 }
 
 describe('NW-RANK-SRC-001 canonical publisher-family identity', () => {
+  it.each([
+    ['dw', 'https://www.dw.com/en/current-report/a-123'],
+    ['ars_technica', 'https://arstechnica.com/tech-policy/current-report/'],
+    ['the_arabian_stories', 'https://www.thearabianstories.com/2026/11/19/oman-report/'],
+  ])('requires the actual domain for direct publisher %s', (sourceGroup, url) => {
+    expect(getStorySourceFamily({ sourceGroup, url })).toBe(sourceGroup);
+    expect(getStorySourceFamily({ sourceGroup, url: 'https://unrelated.example/report' })).toBe('unknown');
+    expect(getStorySourceFamily({ sourceGroup, url: `https://${new URL(url).hostname}.example/report` })).toBe('unknown');
+  });
   it('canonicalizes common Live and Hybrid aliases without changing display fields', () => {
     expect(getSourceFamily('TOI')).toBe('times_of_india');
     expect(getSourceFamily('Times of India')).toBe('times_of_india');

@@ -342,7 +342,7 @@ describe('Sections independent live acquisition', () => {
     expect((await readEpoch(target.SHADOW_DB, 'live-fanout'))?.state).toBe('STAGED');
   });
 
-  it('uses one budgeted Browser Run job for Google lanes when the disabled fallback is explicitly enabled', async () => {
+  it('does not reserve or open a browser when the direct registry has no Google lanes', async () => {
     const queue = new RecordingQueue();
     const target: LiveAcquisitionEnv = {
       ...liveEnv(queue),
@@ -357,14 +357,13 @@ describe('Sections independent live acquisition', () => {
       logicalSlot: NOW_MS,
       attempt: 1,
     })).resolves.toEqual({ status: 'LIVE_LANES_ENQUEUED', enqueuedLanes: 41 });
-    // Registry v3 replaces the former Google World lane with Al Jazeera.
-    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_LANE')).toHaveLength(31);
-    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_BROWSER_LANES')).toHaveLength(1);
+    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_LANE')).toHaveLength(41);
+    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_BROWSER_LANES')).toHaveLength(0);
     const quota = await target.SHADOW_DB.prepare(`
       SELECT epochs_reserved, browser_ms_reserved
       FROM sections_shadow_browser_quota_daily
     `).first<{ epochs_reserved: number; browser_ms_reserved: number }>();
-    expect(quota).toMatchObject({ epochs_reserved: 1, browser_ms_reserved: 20_000 });
+    expect(quota).toBeNull();
   });
 
   it('retries a transient source once before recording its terminal disposition', async () => {
