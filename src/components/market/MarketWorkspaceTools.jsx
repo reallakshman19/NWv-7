@@ -52,7 +52,8 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
     const stored = safeGetJson(WATCHLIST_KEY, []);
     return Array.isArray(stored) ? [...new Set(stored.map(canonicalEquitySymbol).filter(Boolean))].slice(0, 12) : [];
   });
-  const quotes = qualifyTrackedEquities(data.equities || []);
+  const freeOnly = data?.sourceMode === 'free-open-only';
+  const quotes = freeOnly ? [] : qualifyTrackedEquities(data.equities || []);
   const bySymbol = new Map(quotes.map(row => [row.symbol, row]));
   const coverage = data.equityCoverage || {};
   const sourceCount = typeof coverage.sourceAcquiredCount === 'number' ? coverage.sourceAcquiredCount : quotes.length;
@@ -68,7 +69,7 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
   };
   const removeSymbol = symbol => { const next = saved.filter(item => item !== symbol); setSaved(next); if (!safeSetJson(WATCHLIST_KEY, next)) setMessage('Change applies to this visit only. Browser storage is unavailable.'); };
   return <section id="market-equity" aria-labelledby="equity-heading" className="market-workspace__panel">
-    <div className="market-workspace__panel-header"><div><h2 id="equity-heading">Equity</h2><p>16 tracked NSE symbols; source-dated observations, not an exchange-wide quote service.</p></div><button type="button" onClick={onRefresh} disabled={loading}>Refresh tracked shares</button></div>
+    <div className="market-workspace__panel-header"><div><h2 id="equity-heading">Equity</h2><p>{freeOnly ? 'Free/open mode: 16 watchlist symbols and official NSE verification, no republished quote prices.' : '16 tracked NSE symbols; source-dated observations, not an exchange-wide quote service.'}</p></div><button type="button" onClick={onRefresh} disabled={loading || freeOnly}>Refresh tracked shares</button></div>
     <p className="market-workspace__muted">Qualified quotes: {quotes.length}/{TRACKED_EQUITY_SYMBOLS.length} · Acquired this publication: {sourceCount} · Retained: {coverage.retainedCount ?? 'Unknown'}</p>
     <div className="market-workspace__section-switch" aria-label="Equity sections">
       {[['saved','My shares'],['all','Tracked universe'],['offers','IPO / FPO']].map(([id,title]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{title}</button>)}
@@ -85,7 +86,7 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
       </li>;
       })}</ul> : <p className="market-workspace__empty">No saved shares. Add a symbol above or browse the tracked universe.</p>}
     </>}
-    {section === 'all' && (quotes.length ? <ul className="market-workspace__list">{quotes.map(row => <PriceRow key={row.id} row={row} />)}</ul> : <p role="status">No qualified tracked equity quotes available. Saved symbols remain preserved.</p>)}
+    {section === 'all' && (freeOnly ? <><p role="status">Free/open-only: these 16 tracked symbols have official source links; no quote prices are republished.</p><ul className="market-workspace__list">{TRACKED_EQUITY_SYMBOLS.map(symbol => <li className="market-workspace__row" key={symbol}><strong>{symbol}</strong>{external(equityQuoteUrl(symbol), `Verify ${symbol} on NSE`)}</li>)}</ul></> : quotes.length ? <ul className="market-workspace__list">{quotes.map(row => <PriceRow key={row.id} row={row} />)}</ul> : <p role="status">No qualified tracked equity quotes available. Saved symbols remain preserved.</p>)}
     {section === 'offers' && (settings.showIPO === false
       ? <p>IPO/FPO is hidden in Market settings.</p>
       : <IpoEvidencePanel data={data} />)}
@@ -303,9 +304,9 @@ export function CurrencyWorkspace({ settings = {} }) {
       <div className="market-workspace__filters"><label>From<select value={base} onChange={event => setBase(event.target.value)}><option value="OMR">OMR</option><option value="INR">INR</option></select></label><label>Amount<input inputMode="decimal" type="number" min="0" value={amount} onChange={event => setAmount(event.target.value)} /></label><label>To<input value={base === 'OMR' ? 'INR' : 'OMR'} readOnly aria-label="Conversion destination" /></label></div>
       <button type="button" onClick={() => setBase(value => value === 'OMR' ? 'INR' : 'OMR')}>Swap pair</button>
       <output className="market-workspace__result">{amount === '' ? '' : converted == null ? 'Result unavailable' : base === 'OMR' ? rupees(converted) : `${converted.toFixed(3)} OMR`}</output>
-      {rate ? <p>1 OMR = {rate.rate.toPrecision(8)} INR · {rate.stale ? 'Stale reference' : 'Daily reference'} · As of {new Date(rate.asOf).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{rate.warning ? ` · ${rate.warning}` : ''}</p> : <p role="status">{loading ? 'Loading daily reference rate…' : 'No rate available.'}</p>}
+      {rate ? <p>1 OMR = {rate.rate.toPrecision(8)} INR · {rate.stale ? 'Stale reference' : 'Daily reference'} · Reference date {rate.rateDate || new Date(rate.asOf).toISOString().slice(0,10)}{rate.warning ? ` · ${rate.warning}` : ''}</p> : <p role="status">{loading ? 'Loading daily reference rate…' : 'No rate available.'}</p>}
       {error && <p role="alert">{error}</p>}
-      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rates By Exchange Rate API')} · Transfer fees and spreads excluded.</p>
+      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Frankfurter — open-source FX reference')} · Transfer fees and spreads excluded.</p>
       {!loading && error && <button type="button" onClick={() => void reload()}>Retry rate acquisition</button>}
     </>}
   </section>;
