@@ -1,5 +1,7 @@
 /** Source-first index reconciliation. No quote date or value is ever synthesized. */
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
+// Existing producer's conservative source-quote hard ceiling, not a cache TTL.
+const MAX_INDEX_QUOTE_AGE_MS = 5 * 24 * 60 * 60 * 1000;
 const INDEX_ALIASES = new Map([
   ['^NSEI', 'NSE:NIFTY50'], ['NIFTY50', 'NSE:NIFTY50'], ['NIFTY', 'NSE:NIFTY50'],
   ['^BSESN', 'BSE:SENSEX'], ['SENSEX', 'BSE:SENSEX'],
@@ -55,7 +57,7 @@ export function indexQuoteTime(row, nowMs = Date.now()) {
     const value = Date.parse(raw);
     if (Number.isFinite(value)) ms = value;
   }
-  return ms && ms <= nowMs + FIVE_MINUTES_MS ? ms : null;
+  return ms && ms <= nowMs + FIVE_MINUTES_MS && ms >= nowMs - MAX_INDEX_QUOTE_AGE_MS ? ms : null;
 }
 
 function sourceKey(row) {
