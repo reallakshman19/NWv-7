@@ -1,3 +1,4 @@
+import { MARKET_FREE_OPEN_ONLY, freeOpenMarketPayload } from '../services/marketFreeOpenPolicy.js';
 import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { getIdbCache, setIdbCache } from '../services/indexedDbCache.js';
 import { fetchAllMarketData, sanitizeMarketPayload } from '../services/indianMarketStableService.js';
@@ -39,6 +40,15 @@ export function MarketProvider({ children }) {
     const loadMarketData = useCallback(async (forceRefresh) => {
         setLoading(true);
         setError(null);
+        // The normal stored/cache branch can contain former Yahoo/AMFI quotes.
+        // In public free/open mode never rehydrate or show those historic values.
+        if (MARKET_FREE_OPEN_ONLY && import.meta.env?.PROD === true) {
+            const empty = freeOpenMarketPayload();
+            lastData.current = empty;
+            setMarketData(empty);
+            setLoading(false);
+            return;
+        }
 
         const showData = (data) => {
             lastData.current = data;
