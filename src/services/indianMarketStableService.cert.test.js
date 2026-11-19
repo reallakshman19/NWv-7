@@ -75,7 +75,7 @@ describe('Indian market stable sidecar feeds', () => {
       indices: ['NIFTY 50', 'SENSEX', 'BANK NIFTY'].map(name => ({ name, value: '100', quoteAt })),
       commodities: [],
       currencies: [],
-      sectorals: [],
+      sectorals: [{ name: 'BANK NIFTY', value: '100', quoteAt }],
       sourceHealth: { nfo: { status: 'failed', provider: 'AMFI' } },
     }));
     vi.stubGlobal('fetch', read);
@@ -241,7 +241,7 @@ describe('manual market revalidation', () => {
   });
 
   it.each(['newer global quote', 'newer publication with partial coverage', 'mixed India quote ages'])(
-    'keeps the full India snapshot instead of accepting %s', async scenario => {
+    'reconciles %s by instrument without losing eligible India observations', async scenario => {
       const now = Date.now();
       const previous = datedMarketData(now - 120_000, now - 180_000);
       previous.indices.push({ name: 'SENSEX', symbol: '^BSESN', value: '82000', quoteAt: previous.indices[0].quoteAt });
@@ -251,20 +251,31 @@ describe('manual market revalidation', () => {
         candidate.indices.push({ name: 'S&P 500', symbol: '^GSPC', value: '6000', quoteAt: new Date(now - 1000).toISOString() });
       }
       if (scenario === 'mixed India quote ages') {
-        candidate.indices[0].quoteAt = new Date(now - 1000).toISOString();
-        candidate.indices.push({ ...previous.indices[1], quoteAt: new Date(now - 3600_000).toISOString() });
+        candidate.indices[0] = { ...candidate.indices[0], value: '25300', quoteAt: new Date(now - 1000).toISOString() };
+        candidate.indices.push({ ...previous.indices[1], value: '81000', quoteAt: new Date(now - 3600_000).toISOString() });
       }
       vi.stubGlobal('fetch', vi.fn(url => mockJsonResponse(url.endsWith('market_snapshot.json') ? candidate : null)));
 
       const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
-      expect(data.sourceMode).toBe('stale-cache');
-      expect(data.indices).toEqual(previous.indices);
-      expect(data.fetchedAt).toBe(previous.fetchedAt);
-      expect(setIdbCache).not.toHaveBeenCalled();
+      expect(data.sourceMode).toBe('snapshot');
+      expect(data.fetchedAt).toBe(candidate.fetchedAt); // Publication clock; not a quote timestamp.
+      const sensex = data.indices.find(row => row.symbol === '^BSESN');
+      expect(sensex).toEqual(previous.indices[1]);
+      if (scenario === 'newer global quote') {
+        expect(data.indices).toHaveLength(3);
+        expect(data.globalIndices.map(row => row.symbol)).toEqual(['^GSPC']);
+        expect(data.indices.find(row => row.symbol === '^NSEI')).toEqual(previous.indices[0]);
+      } else {
+        expect(data.indices).toHaveLength(2);
+        expect(data.indices.find(row => row.symbol === '^NSEI')).toEqual(
+          scenario === 'mixed India quote ages' ? candidate.indices[0] : previous.indices[0]
+        );
+      }
+      expect(setIdbCache).toHaveBeenCalledTimes(1);
     },
   );
 
-  it.each([0, 60_000])('does not replace a fuller snapshot with a partial live quote advanced by %s ms', async advanceMs => {
+  it.each([0, 60_000])('retains omitted SENSEX when a partial live quote advances by %s ms', async advanceMs => {
     const now = Math.floor(Date.now() / 1000) * 1000;
     const previous = datedMarketData(now - 120_000, now - 180_000);
     previous.indices.push({ name: 'SENSEX', symbol: '^BSESN', value: '82000', quoteAt: previous.indices[0].quoteAt });
@@ -276,9 +287,20 @@ describe('manual market revalidation', () => {
       return mockJsonResponse(null, false);
     }));
     const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
-    expect(data.sourceMode).toBe('stale-cache');
-    expect(data.indices).toEqual(previous.indices);
-    expect(setIdbCache).not.toHaveBeenCalled();
+    expect(data.indices).toHaveLength(2);
+    expect(data.indices.find(row => row.symbol === '^BSESN')).toEqual(previous.indices[1]);
+    if (advanceMs === 0) {
+      expect(data.sourceMode).toBe('stale-cache');
+      expect(data.indices.find(row => row.symbol === '^NSEI')).toEqual(previous.indices[0]);
+      expect(setIdbCache).not.toHaveBeenCalled();
+    } else {
+      expect(data.sourceMode).toBe('live');
+      expect(data.indices.find(row => row.symbol === '^NSEI')).toMatchObject({
+        symbol: '^NSEI', value: expect.any(String),
+        quoteAt: new Date(now - 180_000 + advanceMs).toISOString(),
+      });
+      expect(setIdbCache).toHaveBeenCalledTimes(1);
+    }
   });
 
   it('applies the same 24-hour expiry to in-memory data as persisted cache data', async () => {
