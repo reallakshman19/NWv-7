@@ -33,6 +33,7 @@ jobs:
         run: python -m pytest -q scripts/test_market_live_dryrun.py scripts/test_refresh_india_market.py
       - name: Certify independent release audit without live feed
         run: node --test scripts/test_market_publication_readiness.mjs
+  # Single explicitly authorized diagnostic acquisition on the marked push.
   dryrun:
     name: One-time private 25-request source probe - NO publication
     needs: contracts
