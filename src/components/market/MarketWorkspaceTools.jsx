@@ -37,7 +37,10 @@ function IpoEvidencePanel({ data }) {
         </li>
       ))}
     </ul>}
-    {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
+    <div className="market-workspace__field-row">
+      {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
+      {external(INDIA_MARKET_SOURCES.ipoBse, 'BSE public issues')}
+    </div>
   </div>;
 }
 
