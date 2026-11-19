@@ -9,7 +9,6 @@ import {
   MARKET_SNAPSHOT_FRESH_MS,
   MARKET_EXPIRED_DISPLAY_MAX_AGE_MS,
   getMarketPayloadAgeMs,
-  isMarketPayloadUsable,
   isMarketPayloadFresh,
   normalizeSourceHealth,
   parseMarketTimestamp,
