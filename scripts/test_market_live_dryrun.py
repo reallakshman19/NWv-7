@@ -143,3 +143,18 @@ def test_subprocess_readiness_does_not_write_public_artifact():
     after=set(mod.ROOT.glob("public/data/*"))
     assert before==after
     assert report["readiness"]["manualBlocks"][0]["code"]=="RIGHTS_UNVERIFIED"
+
+
+@pytest.mark.parametrize(("message","expected"),[
+    ("429 Client Error: Too Many Requests for url:https://unsafe/data?price=102", "HTTP_429"),
+    ("403 Client Error: Forbidden for url:https://unsafe/data?price=102", "HTTP_403"),
+    ("HTTPSConnectionPool(host='unsafe'): ReadTimeout", "TIMEOUT"),
+    ("Quote timestamp is future-dated or older than five days", "SOURCE_CLOCK_OR_CLOSE"),
+    ("Unrecognized AMFI NAV column headings", "PARSE_OR_SCHEMA"),
+    ("Source body exceeds four MB", "BODY_LIMIT"),
+    ("502 unexplained", "OTHER_SOURCE_FAILURE"),
+])
+def test_failure_classifier_never_retains_provider_message(message,expected):
+    result=mod.classify_failure(message)
+    assert result==expected
+    assert "unsafe" not in result and "price" not in result.lower()
