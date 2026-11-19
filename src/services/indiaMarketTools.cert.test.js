@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { normalizeOmrRate, loadOmrRate, convertOmrInr, equityQuoteUrl, searchIndianFunds, loadFundNav, calculateSip, currentNfoRows } from './indiaMarketTools.js';
 
 const NOW = Date.parse('2026-11-16T10:00:00Z');
-const fxPayload = { result: 'success', base_code: 'OMR', time_last_update_unix: NOW / 1000 - 3600, rates: { INR: 225 } };
+const fxPayload = { date: '2026-11-16', base: 'OMR', quote: 'INR', rate: 225 };
 const ok = value => ({ ok: true, json: async () => value });
 
 describe('India Market free-source tools', () => {
@@ -14,12 +14,12 @@ describe('India Market free-source tools', () => {
     expect(convertOmrInr(100, undefined)).toBeNull();
   });
   it('rejects incorrect base, negative, undated, future and expired rates', () => {
-    expect(normalizeOmrRate(fxPayload, NOW)).toEqual({ rate: 225, asOf: NOW - 3600000, stale: false });
+    expect(normalizeOmrRate(fxPayload, NOW)).toEqual({ rate: 225, asOf: Date.parse('2026-11-16T00:00:00Z'), rateDate:'2026-11-16', stale: false });
     [
-      { ...fxPayload, base_code: 'USD' }, { ...fxPayload, rates: { INR: -225 } },
-      { ...fxPayload, time_last_update_unix: 0 },
-      { ...fxPayload, time_last_update_unix: NOW / 1000 + 3600 },
-      { ...fxPayload, time_last_update_unix: NOW / 1000 - 4 * 86400 },
+      { ...fxPayload, base: 'USD' }, { ...fxPayload, quote:'USD' }, { ...fxPayload, rate:-225 },
+      { ...fxPayload, date: 'invalid' },
+      { ...fxPayload, date: '2026-11-17' },
+      { ...fxPayload, date: '2026-11-12' },
     ].forEach(value => expect(() => normalizeOmrRate(value, NOW)).toThrow());
   });
   it('uses the daily browser cache without extra provider calls', async () => {
@@ -30,9 +30,9 @@ describe('India Market free-source tools', () => {
   it('records provider time and caches a successful response', async () => {
     const write = vi.fn(), fetchImpl = vi.fn().mockResolvedValue(ok(fxPayload));
     const result = await loadOmrRate({ now: NOW, fetchImpl, read: () => null, write });
-    expect(result.asOf).toBe(NOW - 3600000);
-    expect(write).toHaveBeenCalledWith('nw7.omr-inr.v1', { payload: fxPayload, checkedAt: NOW });
-    expect(fetchImpl.mock.calls[0][0]).toBe('https://open.er-api.com/v6/latest/OMR');
+    expect(result.asOf).toBe(Date.parse('2026-11-16T00:00:00Z'));
+    expect(write).toHaveBeenCalledWith('nw7.omr-inr.frankfurter.v1', { payload: fxPayload, checkedAt: NOW });
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://api.frankfurter.dev/v2/rate/omr/inr');
   });
   it('labels retained data stale on source failure and rejects unusably old fallback', async () => {
     const fetchImpl = vi.fn().mockRejectedValue(new Error('offline'));

@@ -1,3 +1,4 @@
+import { MARKET_FREE_OPEN_ONLY, freeOpenMarketPayload } from './marketFreeOpenPolicy.js';
 import { getIdbCache, setIdbCache } from './indexedDbCache.js';
 import { mergeQualifiedIndices } from './marketQuotePolicy.js';
 import { TRACKED_EQUITY_SYMBOLS, mergeQualifiedEquities, qualifyTrackedEquities, deriveTrackedMovers } from './marketEquityPolicy.js';
@@ -593,6 +594,9 @@ async function storeMarketData(data) {
 }
 
 export async function fetchAllMarketData({ forceRefresh = false, previousData = null, allowLegacyLive = false } = {}) {
+  // Production has no public quote redistribution license. Reject even valid
+  // previous IndexedDB quote caches and never fetch the old Yahoo/AMFI snapshot.
+  if (MARKET_FREE_OPEN_ONLY && import.meta.env?.PROD === true) return freeOpenMarketPayload();
   if (!forceRefresh) {
     const freshCache = await readMarketCache();
     if (freshCache) return sanitizeMarketPayload(freshCache, 'cache', { sourceHealth: { cache: 'cache' } });

@@ -83,7 +83,7 @@ test('an old public snapshot fails technical qualification without inventing new
  const old=JSON.parse(fs.readFileSync(path.join(ROOT,'public/data/market_snapshot.json'),'utf8'));
  const r=assessCandidateCustody(buffer(old),{nowMs:now,symbols:SYMBOLS});
  assert.equal(r.technicalStatus,'HOLD');
- assert.ok(r.technicalBlocks.includes('EQUITIES_MISSING'));
+ assert.ok(r.technicalBlocks.includes('SCHEMA_UNKNOWN'));
  assert.ok(r.technicalBlocks.includes('NO_EQUITY_COVERAGE'));
 });
 test('rights manifest must be bound to exact candidate SHA',()=>temp(dir=>{
@@ -236,10 +236,10 @@ test('hypothetical complete bundle can be PRIVATE staged with independently reha
   assert.throws(second,/CUSTODY_RECEIPT_ALREADY_EXISTS/);
 }));
 
-test('production scheduled Market publication is disabled by default until licensed source switch is explicitly set',()=>{
+test('free/open-only no longer contains any scheduled public quote writer',()=>{
   const workflow=fs.readFileSync(path.join(ROOT,'.github/workflows/market_refresh.yml'),'utf8');
-  assert.match(workflow,/vars\.MARKET_LICENSED_PUBLICATION_ENABLED == 'true'/);
-  assert.match(workflow,/github\.ref == 'refs\/heads\/main'/);
+  assert.doesNotMatch(workflow,/^\\s*schedule:/m);
+  assert.doesNotMatch(workflow,/^\\s*refresh:/m);
+  assert.doesNotMatch(workflow,/git push origin HEAD:main/);
   assert.match(workflow,/persist-credentials: false/);
-  assert.match(workflow,/git push origin HEAD:main/);
 });

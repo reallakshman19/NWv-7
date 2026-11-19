@@ -71,7 +71,7 @@ export default function IndiaMarketTools({ showCurrency = true, showMutualFunds 
         {converted != null && <output>{direction === 'OMR' ? rupees(converted) : `${converted.toFixed(3)} OMR`}</output>}
         {fx && <p>{fx.stale ? 'Stale reference' : 'Daily reference'} · 1 OMR = {rupees(fx.rate)}<br />As of {new Date(fx.asOf).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{fx.warning && <><br />{fx.warning}</>}</p>}
         {!fx && <p role="status">{fxError || 'Loading reference rate…'}</p>}
-        <small>Indicative rate. Bank spreads and transfer fees excluded. <External href={SOURCES.fx}>Rates by Exchange Rate API</External></small>
+        <small>Indicative rate. Bank spreads and transfer fees excluded. <External href={SOURCES.fx}>Frankfurter open-source FX</External></small>
       </div>}
       <div>
         <h3>Indices & equity watchlist</h3>

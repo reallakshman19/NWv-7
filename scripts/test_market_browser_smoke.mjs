@@ -33,11 +33,11 @@ async function runViewport(width, height) {
     snapshotRequests++;
     await route.fulfill({ status:503, contentType:'application/json', body:'{"error":"fixture source unavailable"}' });
   });
-  await page.route('https://open.er-api.com/v6/latest/OMR', async route => {
+  await page.route('https://api.frankfurter.dev/v2/rate/omr/inr', async route => {
     fxRequests++;
     await route.fulfill({
       status:200, contentType:'application/json',
-      body:JSON.stringify({result:'success',base_code:'OMR',rates:{INR:235.123456789},time_last_update_unix:Math.floor((now-3600000)/1000)})
+      body:JSON.stringify({date:new Date(now-3600000).toISOString().slice(0,10),base:'OMR',quote:'INR',rate:235.123456789})
     });
   });
   await page.route('https://api.mfapi.in/mf/search**', async route => {
@@ -68,11 +68,15 @@ async function runViewport(width, height) {
     // The shell can be interactive before asynchronous Market boot. Explicitly
     // exercise the actual failed publication request rather than assuming a
     // heading means acquisition has already been attempted.
-    const quoteFailure = page.waitForResponse(response =>
-      /\/data\/market_snapshot\.json(?:\?|$)/.test(response.url()) && response.status() === 503,
-      { timeout:15000 });
-    await page.getByRole('button',{name:'Refresh indices'}).click();
-    await quoteFailure;
+    // In the built free/open-only product, even the former static quote
+    // publication must not be requested or rehydrated from an old cache.
+    await page.waitForFunction(() =>
+      document.querySelector('#market-indices .market-workspace__panel-header button')?.disabled === true
+    );
+    check('free-only-source-status-'+width,
+      (await page.locator('#market-workspace').textContent()).includes('no redistributed quotes'));
+    check('free-only-official-index-link-'+width,
+      (await page.getByRole('link',{name:'NSE indices'}).count())===1);
     check('four-workspace-tabs-' + width,
       await page.locator('.market-workspace__tabs button').count() === 4);
 
@@ -129,7 +133,7 @@ async function runViewport(width, height) {
     report.screenshots.push(png);
     check('no-workspace-overflow-' + width, size.scroll <= size.client+2, size);
     check('no-public-cors-waterfall-' + width, external.length===0, external);
-    check('quote-source-was-actually-failed-' + width, snapshotRequests>0, {snapshotRequests});
+    check('no-static-licensed-source-request-' + width, snapshotRequests===0, {snapshotRequests});
     await page.emulateMedia({media:'print'});
     check('print-hides-workspace-navigation-' + width,
       await page.locator('.market-workspace__tabs').evaluate(node=>getComputedStyle(node).display)==='none');
@@ -140,69 +144,39 @@ async function runViewport(width, height) {
   }
 }
 
-async function runIpoReceiptScenario(status, expectedState) {
-  const context = await browser.newContext({
-    viewport:{width:390,height:844}, serviceWorkers:'block', colorScheme:'dark',
-  });
+async function runFreeOpenIpoScenario() {
+  const context = await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
   const page = await context.newPage();
-  const quoteAt = new Date(now - 120000).toISOString();
-  const checkedAt = new Date(now - 60000).toISOString();
-  const day = n => new Date(now + n*86400000).toISOString().slice(0,10);
-  const issue = {name:'Fixture Authorized Issue',openDate:day(-1),closeDate:day(6)};
-  const ipo = {live:status === 'snapshot' ? [issue] : [],upcoming:[],recent:[]};
-  const publication = {
-    schemaVersion:'market-india-1', sourceMode:'snapshot',
-    generatedAt:checkedAt, fetchedAt:now-60000, ipoLastCheckedAt:checkedAt,
-    indices:[
-      {name:'NIFTY 50',symbol:'^NSEI',value:'25000',quoteAt,sourceMode:'yahoo-free-daily'},
-      {name:'SENSEX',symbol:'^BSESN',value:'82000',quoteAt,sourceMode:'yahoo-free-daily'},
-      {name:'BANK NIFTY',symbol:'^NSEBANK',value:'56000',quoteAt,sourceMode:'yahoo-free-daily'},
-    ],
-    equities:[],ipo,
-    sourceHealth:{ipo:{status,provider:'BSE'}},
-  };
-  let requests=0;
+  let marketRequests=0;
   await page.route(/\/data\/market_snapshot\.json(?:\?|$)/,async route=>{
-    requests++;
-    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publication)});
+    marketRequests++;
+    await route.abort();
   });
   try {
-    await page.goto(base+'/#/markets',{waitUntil:'domcontentloaded',timeout:20000});
+    await page.goto(base+'/#/markets',{waitUntil:'domcontentloaded'});
     await page.getByRole('heading',{name:'Markets',exact:true}).waitFor();
     await page.getByRole('button',{name:'Equity',exact:true}).click();
     await page.getByRole('button',{name:'IPO / FPO'}).click();
     const evidence=page.locator('.market-workspace__ipo-evidence');
     await evidence.waitFor();
-    await page.waitForFunction(state=>{
-      return document.querySelector('.market-workspace__ipo-evidence')?.dataset.ipoState === state;
-    },expectedState,{timeout:15000});
-    check('ipo-source-'+status,await evidence.getAttribute('data-ipo-state')===expectedState);
-    check('ipo-publication-request-'+status,requests>=1);
-    check('ipo-official-verification-'+status,
-      (await evidence.getByRole('link',{name:/Verify current public issues/}).count())===1);
-    check('ipo-bse-manual-verification-'+status,
-      (await evidence.getByRole('link',{name:/BSE public issues/}).count())===1);
-    const text=await evidence.textContent();
-    check('ipo-observations-not-fabricated-'+status,
-      status==='snapshot' ? text.includes('Fixture Authorized Issue') :
-        (!text.includes('Fixture Authorized Issue') && (
-          status==='failed' ? text.includes('source unavailable') : text.includes('no qualifying current IPO')
-        )));
-    const png=outputDir+'/market-ipo-'+status+'.png';
-    await page.screenshot({path:png,fullPage:true});
-    report.screenshots.push(png);
-  } finally {
-    await context.close();
-  }
+    await page.waitForFunction(()=>
+      document.querySelector('.market-workspace__ipo-evidence')?.dataset.ipoState === 'unverified'
+    );
+    check('ipo-free-only-unverified',await evidence.getAttribute('data-ipo-state')==='unverified');
+    check('ipo-free-only-not-empty',!(await evidence.textContent()).includes('no qualifying current IPO'));
+    check('ipo-free-only-NSE-link',await evidence.getByRole('link',{name:/Verify current public issues/}).count()===1);
+    check('ipo-free-only-BSE-link',await evidence.getByRole('link',{name:/BSE public issues/}).count()===1);
+    check('ipo-free-only-no-published-feed',marketRequests===0,{marketRequests});
+    const png=outputDir+'/market-ipo-free-open.png';
+    await page.screenshot({path:png,fullPage:true});report.screenshots.push(png);
+  }finally{await context.close();}
 }
 
 try {
   await runViewport(1366, 768);
   await runViewport(390, 844);
   await runViewport(320, 640);
-  await runIpoReceiptScenario('failed', 'unavailable');
-  await runIpoReceiptScenario('empty', 'verified-empty');
-  await runIpoReceiptScenario('snapshot', 'available');
+  await runFreeOpenIpoScenario();
 } catch(error) {
   report.errors.push({critical:error.message});
 } finally {

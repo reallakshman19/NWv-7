@@ -45,6 +45,9 @@ test('Market publication bypasses the app shell SW at root and GitHub Pages pref
     'https://nwv.example/data/market_snapshot.json',
     'https://nwv.example/NWv-7/data/market_snapshot.json',
     'https://nwv.example/data/market_snapshot.json?version=1',
+    'https://nwv.example/data/mutual_fund_snapshot.json',
+    'https://nwv.example/NWv-7/data/market_source_health.json',
+    'https://nwv.example/data/market_metrics.json',
   ]) assert.equal(worker.request(u),undefined,'Market publication passed into SW cache: '+u);
   assert.deepEqual(worker.counts(),{openedCaches:0,upstreamCalls:0});
 });
@@ -69,6 +72,13 @@ test('normal static app-shell assets remain service-worker managed',async()=>{
 
 test('cross-origin market provider requests never pass through the shell cache',()=>{
   const worker=workerFixture();
-  assert.equal(worker.request('https://open.er-api.com/v6/latest/OMR'),undefined);
+  assert.equal(worker.request('https://api.frankfurter.dev/v2/rate/omr/inr'),undefined);
   assert.deepEqual(worker.counts(),{openedCaches:0,upstreamCalls:0});
+});
+
+
+test('free/open-only cache namespace invalidates older cache families',()=>{
+  const source=fs.readFileSync('public/sw.js','utf8');
+  assert.match(source,/news-weather-app-v4-free-open-market/);
+  assert.match(source,/cacheName\.startsWith\(CACHE_PREFIX\) && cacheName !== CACHE_NAME/);
 });

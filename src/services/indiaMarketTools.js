@@ -9,11 +9,11 @@ export const INDIA_MARKET_SOURCES = {
   issueDocuments: 'https://www.nseindia.com/companies-listing/corporate-public-issue-advertisements',
   nfo: 'https://www.amfiindia.com/new-fund-offer',
   nav: 'https://www.amfiindia.com/net-asset-value/nav-download',
-  fx: 'https://www.exchangerate-api.com',
+  fx: 'https://frankfurter.dev/',
   funds: 'https://www.mfapi.in',
 };
 const DAY = 86400000;
-const FX_CACHE = 'nw7.omr-inr.v1';
+const FX_CACHE = 'nw7.omr-inr.frankfurter.v1';
 let fxPending = null;
 
 async function getJson(url, fetchImpl = fetch, { signal } = {}) {
@@ -21,13 +21,19 @@ async function getJson(url, fetchImpl = fetch, { signal } = {}) {
 }
 
 export function normalizeOmrRate(data, now = Date.now()) {
-  const rate = Number(data?.rates?.INR);
-  const asOf = Number(data?.time_last_update_unix) * 1000;
-  if (data?.result !== 'success' || data?.base_code !== 'OMR' || !Number.isFinite(rate) || rate <= 0 ||
-      !Number.isFinite(asOf) || asOf <= 0 || asOf > now + 300000 || now - asOf > 3 * DAY) {
+  // Frankfurter v2: free MIT-licensed API code. Reference rate ownership
+  // remains with original central bank(s); use direct browser conversion only.
+  const rate = Number(data?.rate);
+  const date = data?.date;
+  const asOf = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? Date.parse(date + 'T00:00:00Z') : NaN;
+  if (data?.base !== 'OMR' || data?.quote !== 'INR' ||
+      !Number.isFinite(rate) || rate <= 0 ||
+      !Number.isFinite(asOf) || new Date(asOf).toISOString().slice(0, 10) !== date ||
+      asOf > now + 300000 || now - asOf > 3 * DAY) {
     throw new Error('No recent, valid OMR/INR reference rate is available');
   }
-  return { rate, asOf, stale: now - asOf > 36 * 3600000 };
+  return { rate, asOf, rateDate:date, stale: now - asOf > 36 * 3600000 };
 }
 
 export async function loadOmrRate({ now = Date.now(), fetchImpl = fetch, read = safeGetJson, write = safeSetJson } = {}) {
@@ -39,7 +45,7 @@ export async function loadOmrRate({ now = Date.now(), fetchImpl = fetch, read = 
   if (fxPending) return fxPending;
   fxPending = (async () => {
     try {
-      const payload = await getJson('https://open.er-api.com/v6/latest/OMR', fetchImpl);
+      const payload = await getJson('https://api.frankfurter.dev/v2/rate/omr/inr', fetchImpl);
       const result = normalizeOmrRate(payload, now);
       write(FX_CACHE, { payload, checkedAt: now });
       return result;
