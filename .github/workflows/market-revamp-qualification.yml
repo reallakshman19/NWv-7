@@ -40,7 +40,7 @@ jobs:
       - name: Deterministic market policies
         if: steps.install.outcome == 'success'
         run: |
-          node --test scripts/test_market_quote_policy.mjs scripts/test_market_service_integration.mjs scripts/test_market_equity_policy.mjs scripts/test_market_equity_service.mjs scripts/test_market_workspace_route.mjs scripts/test_market_fund_requests.mjs scripts/test_market_json_request.mjs scripts/test_market_settings_migration.mjs
+          node --test scripts/test_market_quote_policy.mjs scripts/test_market_service_integration.mjs scripts/test_market_equity_policy.mjs scripts/test_market_equity_service.mjs scripts/test_market_workspace_route.mjs scripts/test_market_fund_requests.mjs scripts/test_market_json_request.mjs scripts/test_market_settings_migration.mjs scripts/test_market_sw_contract.mjs
       - name: Publisher regression
         run: python -m pytest -q scripts/test_refresh_india_market.py
       - name: Market Vitest certification
