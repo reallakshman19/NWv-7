@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 concurrency:
   group: market-revamp-branch-${{ github.ref }}
@@ -54,3 +55,36 @@ jobs:
       - name: Production Vite build (no deployment)
         if: always() && steps.install.outcome == 'success'
         run: npm run build
+      - name: Publish branch-only certification status
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.sha }}
+          JOB_OUTCOME: ${{ job.status }}
+          ACTIONS_RUN_ID: ${{ github.run_id }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          repo, sha = os.environ['REPOSITORY'], os.environ['HEAD_SHA']
+          passed = os.environ['JOB_OUTCOME'] == 'success'
+          body = {
+              'state': 'success' if passed else 'failure',
+              'context': 'market-revamp/branch-qualification',
+              'description': 'Full branch tests, lint and build passed' if passed else 'Branch qualification failed; inspect the workflow run',
+              'target_url': f"https://github.com/{repo}/actions/runs/{os.environ['ACTIONS_RUN_ID']}",
+          }
+          request = urllib.request.Request(
+              f'https://api.github.com/repos/{repo}/statuses/{sha}',
+              data=json.dumps(body).encode(),
+              headers={
+                  'Authorization': f"Bearer {os.environ['GH_TOKEN']}",
+                  'Accept': 'application/vnd.github+json',
+                  'Content-Type': 'application/json',
+              },
+              method='POST',
+          )
+          with urllib.request.urlopen(request, timeout=10) as response:
+              print('Published branch-only commit status', response.status, body['state'])
+          PY
