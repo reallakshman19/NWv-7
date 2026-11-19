@@ -1,0 +1,100 @@
+name: Market Live Dry Run - NO PUBLICATION
+on:
+  push:
+    branches: [audit/market-live-dryrun-20261119]
+    paths:
+      - '.github/workflows/market-live-dryrun.yml'
+      - 'scripts/market_live_dryrun.py'
+      - 'scripts/test_market_live_dryrun.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: market-live-dryrun-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    name: Deterministic dry-run contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install bounded collector test dependencies
+        run: python -m pip install --disable-pip-version-check pytest requests beautifulsoup4
+      - name: Certify budget and privacy with NO live requests
+        run: python -m pytest -q scripts/test_market_live_dryrun.py scripts/test_refresh_india_market.py
+      - name: Certify independent release audit without live feed
+        run: node --test scripts/test_market_publication_readiness.mjs
+  # Single explicitly authorized diagnostic acquisition on the marked push.
+  dryrun:
+    name: One-time private 25-request source probe - NO publication
+    needs: contracts
+    # External acquisition only with an explicitly marked commit or manual dispatch.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[market-live-dryrun]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - run: python -m pip install --disable-pip-version-check requests beautifulsoup4
+      - name: Single capped upstream acquisition in ephemeral memory
+        run: python scripts/market_live_dryrun.py --report reports/market-live-dryrun.json
+      - name: Verify NO raw quote data or public file mutation
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- public/data docs/data
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          file=Path('reports/market-live-dryrun.json')
+          report=json.loads(file.read_text())
+          assert report['dryRun'] and not report['published'] and not report['candidateRetained']
+          assert report['releaseStatus']=='HOLD'
+          assert not report.get('rawQuotesInReport',False)
+          assert report['requestContract']['attempted'] <= 25
+          assert report['requestContract']['denied']==0
+          receipt=file.read_text()
+          assert '"price":' not in receipt and '"value":' not in receipt
+          assert 'finance.yahoo.com/v8/finance/chart' not in receipt
+          print('VERIFIED: read-only dry run; no raw provider responses or prices retained')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-live-dryrun-METADATA-ONLY
+          path: reports/market-live-dryrun.json
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Release HOLD annotation
+        if: always()
+        run: |
+          echo '### Live Market dry run — NO PUBLICATION' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No merge, data publication, Cloudflare write, or rights approval.' >> "$GITHUB_STEP_SUMMARY"
+          if test -f reports/market-live-dryrun.json; then
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          r=json.loads(Path('reports/market-live-dryrun.json').read_text())
+          print('Technical status:',r.get('technicalStatus','UNKNOWN'))
+          print('Release status: HOLD (source permissions and Owner approval required)')
+          print('Requests:',r.get('requestContract',{}).get('attempted','?'),'/25')
+          print('Equities:',r.get('coverage',{}).get('equityObserved','?'),'/16')
+          PY
+          fi
