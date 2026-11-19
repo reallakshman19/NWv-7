@@ -55,8 +55,10 @@ function IndexWorkspace({ data, settings, loading, onRefresh }) {
   const rows = merged.indices.filter(row => {
     const id = canonicalIndexId(row);
     if ((globalIds.has(id) ? 'global' : 'india') !== region) return false;
-    if (scope === 'sector' && !['^NSEBANK', '^CNXIT', '^CNXAUTO', '^CNXPHARMA'].includes(row.symbol)) return false;
-    if (scope === 'broad' && ['^NSEBANK', '^CNXIT', '^CNXAUTO', '^CNXPHARMA'].includes(row.symbol)) return false;
+    const sector = ['^NSEBANK', '^CNXIT', '^CNXAUTO', '^CNXPHARMA'].includes(row.symbol);
+    if (sector && settings.showSectorals === false) return false;
+    if (scope === 'sector' && !sector) return false;
+    if (scope === 'broad' && sector) return false;
     return `${row.name} ${row.symbol}`.toLowerCase().includes(search.trim().toLowerCase());
   }).sort((a, b) => Number(pins.includes(canonicalIndexId(b))) - Number(pins.includes(canonicalIndexId(a))));
   const regionAllowed = region === 'global' ? settings.showGlobalIndices !== false : settings.showIndices !== false;
@@ -72,7 +74,7 @@ function IndexWorkspace({ data, settings, loading, onRefresh }) {
   return <section aria-labelledby="indices-heading" className="market-workspace__panel" id="market-indices">
     <div className="market-workspace__panel-header"><div><h2 id="indices-heading">Indices</h2><p>Source-dated index points. One row per index.</p></div><button type="button" onClick={onRefresh} disabled={loading}>Refresh indices</button></div>
     <div className="market-workspace__filters">
-      <label>Market<select aria-label="Market region" value={region} onChange={event => setRegion(event.target.value)}><option value="india">India</option><option value="global">Global</option></select></label>
+      <label>Market<select aria-label="Market region" value={region} onChange={event => { setRegion(event.target.value); setScope('all'); }}><option value="india">India</option><option value="global">Global</option></select></label>
       <label>Coverage<select aria-label="Index coverage" value={scope} onChange={event => setScope(event.target.value)}><option value="all">All indices</option><option value="broad">Broad indices</option><option value="sector">Sector indices</option></select></label>
       <label>Find an index<input type="search" aria-label="Find an index" value={search} onChange={event => setSearch(event.target.value)} placeholder="NIFTY, SENSEX…" /></label>
     </div>
@@ -107,6 +109,7 @@ export default function MarketPage() {
   const viewModel = useMarketPageViewModel();
   const { marketData, rawMarketData, marketSettings = {}, sourceHealth = {}, sessionState, loading, error, refreshMarket } = viewModel;
   const [view, setView] = useState(() => getMarketWorkspaceFromHash(typeof window === 'undefined' ? '' : window.location.hash));
+  const [refreshResult, setRefreshResult] = useState('');
   useEffect(() => {
     const onLocation = () => setView(getMarketWorkspaceFromHash(window.location.hash));
     window.addEventListener('hashchange', onLocation);
@@ -121,7 +124,12 @@ export default function MarketPage() {
       if (window.location.hash !== nextHash) window.location.hash = nextHash;
     }
   };
-  const refresh = () => { void Promise.resolve(refreshMarket?.(true)).catch(() => {}); };
+  const refresh = () => {
+    setRefreshResult('Checking the quote publication…');
+    void Promise.resolve(refreshMarket?.(true))
+      .then(result => setRefreshResult(result?.ok === false ? `Refresh failed: ${result.error || 'Source unavailable'}` : 'Refresh check finished. Individual quotes retain their original source times.'))
+      .catch(failure => setRefreshResult(`Refresh failed: ${failure?.message || 'Source unavailable'}`));
+  };
   const data = rawMarketData || marketData || null;
   return <div className="page-container market-page-shell market-workspace" id="market-workspace">
     <header className="market-workspace__header">
@@ -131,6 +139,8 @@ export default function MarketPage() {
       </nav>
     </header>
     <main className="market-workspace__body" id={`market-${view}-content`}>
+      {error && <p role="alert" className="market-workspace__empty">Market publication: {String(error)}</p>}
+      {refreshResult && <p role="status" className="market-workspace__muted">{refreshResult}</p>}
       {view === 'indices' && <IndexWorkspace data={marketData || {}} settings={marketSettings} loading={loading} onRefresh={refresh} />}
       {view === 'equity' && <EquityWorkspace data={marketData || {}} settings={marketSettings} loading={loading} onRefresh={refresh} />}
       {view === 'funds' && <FundsWorkspace data={marketData || {}} settings={marketSettings} />}
