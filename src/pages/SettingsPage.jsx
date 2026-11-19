@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import { useShellRuntimeProps } from '../viewModels/useShellRuntimeProps';
 import Toggle from '../components/Toggle';
 import { DEFAULT_SETTINGS, getDefaultSettings } from '../utils/storage';
+import { MARKET_VISIBILITY_CONTROLS } from '../config/settings_market.js';
 import { useSettingsPageViewModel } from '../viewModels/useSettingsPageViewModel';
 import { discoverFeeds } from '../utils/feedDiscovery';
 import { APP_VERSION } from '../utils/version';
@@ -393,8 +394,8 @@ function SettingsPage() {
                     <div className="settings-tab-content">
                         <SectionTitle icon="📈" title="Market Display" />
                         <SettingCard>
-                            {Object.keys(settings.market || {}).filter(k => k.startsWith('show')).map(key => (
-                                <SettingItem key={key} label={key.replace('show', '')}>
+                            {MARKET_VISIBILITY_CONTROLS.map(({ key, label }) => (
+                                <SettingItem key={key} label={label}>
                                     <Toggle checked={settings.market?.[key] !== false} onChange={(val) => updateNested(`market.${key}`, val)} />
                                 </SettingItem>
                             ))}

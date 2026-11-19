@@ -2,7 +2,7 @@ import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 import { hasLegacyNewsIdAmbiguity, newsUrl } from '../services/newsStoryIdentity.js';
 import { DEFAULT_NEWS_SETTINGS, DEFAULT_NEWSPAPER_SETTINGS, resolveNewsAgeLimit } from '../config/settings_news.js';
 import { DEFAULT_WEATHER_SETTINGS } from '../config/settings_weather.js';
-import { DEFAULT_MARKET_SETTINGS } from '../config/settings_market.js';
+import { DEFAULT_MARKET_SETTINGS, normalizeMarketSettings } from '../config/settings_market.js';
 import { DEFAULT_UPAHEAD_SETTINGS } from '../config/settings_upahead.js';
 import {
     makeStorageWriteFailure,
@@ -171,6 +171,7 @@ function normalizeSettings(stored) {
     const defaults = getDefaultSettings();
     if (!isSettingRecord(stored)) return defaults;
     const merged = deepMerge(defaults, migrateSettings(stored));
+    merged.market = normalizeMarketSettings(merged.market);
     merged.hideOlderThanHours = resolveNewsAgeLimit({ hideOlderThanHours: merged.hideOlderThanHours });
     return merged;
 }

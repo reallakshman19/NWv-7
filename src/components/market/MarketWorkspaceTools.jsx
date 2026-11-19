@@ -92,7 +92,6 @@ export function FundsWorkspace({ data, settings = {} }) {
   const selectionAbort = useRef(null);
   const latestSearch = useRef(0);
   const latestSelection = useRef(0);
-  const savedKey = saved.join('|');
   const publicationNav = useMemo(() => new Map(
     (data.mutualFunds || []).filter(row => /^\d{3,8}$/.test(String(row.code || row.schemeCode)) &&
       Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 &&
@@ -111,7 +110,7 @@ export function FundsWorkspace({ data, settings = {} }) {
     };
     void navStore.batch(saved, { signal: controller.signal, onItem: update });
     return () => controller.abort();
-  }, [navStore, savedKey, settings.showMutualFunds]); // savedKey is a stable serialized bounded code list
+  }, [navStore, saved, settings.showMutualFunds]); // stable saved array changes only when the watchlist changes
 
   useEffect(() => () => {
     latestSearch.current += 1;

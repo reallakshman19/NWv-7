@@ -149,7 +149,7 @@ describe('manual market revalidation', () => {
     expect(setIdbCache).toHaveBeenCalledWith(MARKET_SERVICE_CACHE_KEY, data);
   });
 
-  it('moves past an unchanged publication and accepts only quotes with provider timestamps', async () => {
+  it('permits the legacy quote diagnostic only with explicit opt-in and real provider timestamps', async () => {
     const now = Date.now();
     const previous = datedMarketData(now - 120_000, now - 180_000);
     const latestSeconds = Math.floor((now - 30_000) / 1000);
@@ -165,7 +165,7 @@ describe('manual market revalidation', () => {
     });
     vi.stubGlobal('fetch', read);
 
-    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous });
+    const data = await fetchAllMarketData({ forceRefresh: true, previousData: previous, allowLegacyLive: true });
 
     expect(data).toMatchObject({
       sourceMode: 'live',
@@ -211,7 +211,7 @@ describe('manual market revalidation', () => {
       sectorals: [],
       commodities: [],
       currencies: [],
-      errors: { feed: expect.stringContaining('refresh failed') },
+      errors: { feed: expect.stringContaining('Market publication unavailable') },
     });
     expect(setIdbCache).not.toHaveBeenCalled();
   });

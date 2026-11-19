@@ -121,7 +121,7 @@ export default function MarketPage() {
     setView(next);
     if (typeof window !== 'undefined') {
       const nextHash = withMarketWorkspaceHash(window.location.hash, next);
-      if (window.location.hash !== nextHash) window.location.hash = nextHash;
+      if (window.location.hash !== nextHash) window.history.pushState(null, '', nextHash);
     }
   };
   const refresh = () => {

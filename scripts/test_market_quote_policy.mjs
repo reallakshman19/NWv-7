@@ -58,3 +58,12 @@ test('the same source time never changes when it is retained', () => {
   const merged = mergeQualifiedIndices(previous, {indices:[row('NIFTY 50','^NSEI','20000',-3600000)]}, now);
   assert.equal(get(merged,'^NSEI').quoteAt,previous.indices[0].quoteAt);
 });
+
+test('a 6-day old quote cannot become current when its publication clock is new', () => {
+  const sixDays = 6 * 24 * 60 * 60 * 1000;
+  const stale = row('NIFTY 50','^NSEI','26000',-sixDays);
+  assert.equal(indexQuoteTime(stale,now),null);
+  const actual = mergeQualifiedIndices(null,{indices:[stale]},now);
+  assert.equal(actual.indices.length,0);
+  assert.equal(actual.summary.invalid,1);
+});
