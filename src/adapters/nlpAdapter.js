@@ -116,7 +116,7 @@ function extractSymbolsFromText(text) {
     return [...String(text || '').matchAll(SYMBOL_RE)].map(match => normalizeSymbol(match[0]));
 }
 
-export async function extractEntities(text) {
+export function extractLocalEntities(text) {
     const safeText = String(text || '');
 
     const places = getKnownPhraseMatches(safeText, KNOWN_PLACES);
@@ -149,7 +149,11 @@ export async function extractEntities(text) {
     };
 }
 
-export async function extractVerbs(text) {
+export async function extractEntities(text) {
+    return extractLocalEntities(text);
+}
+
+export function extractLocalVerbs(text) {
     const lowerText = String(text || '').toLowerCase();
     const verbs = [];
 
@@ -159,6 +163,10 @@ export async function extractVerbs(text) {
     }
 
     return unique(verbs.map(verb => verb.toLowerCase()));
+}
+
+export async function extractVerbs(text) {
+    return extractLocalVerbs(text);
 }
 
 export async function extractNumbers(text) {

@@ -11,7 +11,10 @@ import argparse
 from collections import Counter
 from pathlib import Path
 from typing import Any
-from enrich_upahead_contract import lifecycle_for_item
+from enrich_upahead_contract import (
+    DAY_MS, MAX_PENDING_BYTES, MAX_PENDING_ITEMS, PENDING_LOOKAHEAD_DAYS,
+    lifecycle_for_item,
+)
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
 REPORT_PATH = Path("public/data/up_ahead_quality_report.json")
@@ -57,6 +60,22 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
         errors.append("contentHash is missing")
     if snapshot.get("contractVersion") != EXPECTED_CONTRACT_VERSION:
         errors.append(f"contractVersion must be {EXPECTED_CONTRACT_VERSION}")
+    pending = snapshot.get('pendingItems', [])
+    if not isinstance(pending, list):
+        errors.append('pendingItems must be an array')
+        pending = []
+    if len(pending) > MAX_PENDING_ITEMS or sum(len(json.dumps(row, ensure_ascii=False).encode('utf8')) for row in pending) > MAX_PENDING_BYTES:
+        errors.append('Pending future pool exceeds bounded storage policy')
+    for row in pending:
+        if not isinstance(row, dict):
+            errors.append('Invalid pending occurrence')
+            continue
+        current = lifecycle_for_item(row, ts)
+        start = row.get('eventStartAt')
+        if not current['isActionValid'] or current['isVisible'] or not isinstance(start, (int, float)) or not ts < start <= ts + PENDING_LOOKAHEAD_DAYS * DAY_MS:
+            errors.append('Pending occurrence is expired, visible or outside its admission horizon')
+    if snapshot.get('retention', {}).get('rejectedFutureCount'):
+        warnings.append(f"{snapshot['retention']['rejectedFutureCount']} future occurrences rejected by storage limits")
     if not items:
         warnings.append("items[] is empty or missing")
 
@@ -128,6 +147,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
         "fetchedAt": snapshot.get("fetchedAt", 0),
         "contentHash": snapshot.get("contentHash", ""),
         "itemCount": len(items),
+        "pendingItemCount": len(pending),
         "visibleItemCount": visible_count,
         "plannerEligibleByLifecycleCount": planner_lifecycle_count,
         "categoryCounts": dict(sorted(category_counts.items())),

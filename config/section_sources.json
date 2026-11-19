@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "policyVersion": "section-source-policy-v2-rss-endpoints",
+  "policyVersion": "section-source-policy-v3-free-publishers",
   "sections": {
     "topStories": [
       {
@@ -32,7 +32,7 @@
         "source": "Economic Times"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/TOP_STORIES?hl=en-IN&gl=IN&ceid=IN:en",
+        "url": "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en",
         "sourceGroup": "google_news",
         "tier": "B",
         "topic": "top",
@@ -182,11 +182,11 @@
         "source": "The Hindu International"
       },
       {
-        "url": "https://news.google.com/rss/headlines/section/topic/WORLD_NEWS?hl=en-IN&gl=IN&ceid=IN:en",
-        "sourceGroup": "google_news",
+        "url": "https://www.aljazeera.com/xml/rss/all.xml",
+        "sourceGroup": "al_jazeera",
         "tier": "B",
         "topic": "world",
-        "source": "Google News World"
+        "source": "Al Jazeera"
       }
     ],
     "business": [
@@ -198,11 +198,11 @@
         "source": "Economic Times"
       },
       {
-        "url": "https://www.moneycontrol.com/rss/latestnews.xml",
-        "sourceGroup": "moneycontrol",
-        "tier": "B",
+        "url": "https://www.livemint.com/rss/markets",
+        "sourceGroup": "mint",
+        "tier": "A",
         "topic": "markets",
-        "source": "Moneycontrol"
+        "source": "Mint Markets"
       },
       {
         "url": "https://www.thehindubusinessline.com/news/feeder/default.rss",
@@ -212,11 +212,11 @@
         "source": "Business Line"
       },
       {
-        "url": "https://www.financialexpress.com/feed/",
-        "sourceGroup": "financial_express",
+        "url": "https://indianexpress.com/section/business/feed/",
+        "sourceGroup": "indian_express",
         "tier": "A",
         "topic": "business",
-        "source": "Financial Express"
+        "source": "Indian Express Business"
       },
       {
         "url": "https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-IN&gl=IN&ceid=IN:en",

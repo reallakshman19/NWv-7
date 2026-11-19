@@ -141,9 +141,9 @@ export function upAheadExpiryMs(item) {
   if (end) return end;
 
   const timestamp = upAheadTimeMs(item.publishedAt || item.publishDate || item.firstSeenAt || item.observedAt);
-  // Legacy records without a usable timestamp are still readable. Newly acquired
-  // undated cards carry the acquisition time and can age out.
-  if (!timestamp) return Infinity;
+  // A missing source/event clock cannot grant indefinite feed eligibility.
+  // Cache maintenance keeps such legacy rows in a bounded recovery quarantine.
+  if (!timestamp) return 0;
   const category = String(item.category || '').toLowerCase();
   if (['offer', 'shopping', 'airline_offer', 'airlines'].includes(category)) {
     return timestamp + 48 * HOUR_MS;

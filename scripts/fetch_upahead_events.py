@@ -387,8 +387,9 @@ def main():
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
     # Reapply corrected public-service intent to retained publisher records too.
     # This never touches the user's independently saved Planner reminders.
-    existing['items'] = [item for item in existing.get('items', []) if item.get('category') not in ('alerts', 'civic')
-                         or has_category_intent(item['category'], f"{item.get('title', '')} {item.get('summary', '')}")]
+    for pool in ('items', 'pendingItems'):
+        existing[pool] = [item for item in existing.get(pool, []) if item.get('category') not in ('alerts', 'civic')
+                          or has_category_intent(item['category'], f"{item.get('title', '')} {item.get('summary', '')}")]
     all_health = {}
     new_items = []
 

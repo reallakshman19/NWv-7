@@ -13,7 +13,7 @@
  *  - Stale snapshot is used as-is (no live fallback on static host).
  */
 
-import { getSnapshotIntakeSummary, selectSnapshotStoriesForSlot, getSnapshotPoolHealth } from './insightSnapshotIntake.js';
+import { getSnapshotStorySlot, getSnapshotPoolHealth } from './insightSnapshotIntake.js';
 import {
   enrichRawStoryWithSnapshotSignals,
   getInsightSnapshotRuntimeSummary,
@@ -88,18 +88,63 @@ export async function loadInsightSnapshot({ allowStale = false } = {}) {
 export function createSnapshotRawFetcher(snapshot) {
   return async (slot) => {
     const referenceMs = Date.now();
-    const intakeSummary = getSnapshotIntakeSummary(snapshot, {
-      minStoriesPerSlot: 12, nowMs: referenceMs,
-    });
-    const selected = selectSnapshotStoriesForSlot(snapshot, slot, {
-      minStoriesPerSlot: 12,
-      nowMs: referenceMs,
-    });
+    const { pool, health } = buildInsightSnapshotPool(snapshot, referenceMs);
+    const selected = pool.filter(story => getSnapshotStorySlot(story, referenceMs) === slot);
+    const intakeSummary = {
+      totalStories: health.totalStories, sourceGroupCount: health.sourceGroupCount,
+      categoryCount: health.categoryCount, directSlots: health.slots,
+      selectedBySlot: Object.fromEntries(Object.keys(health.slots).map(key => [key,
+        pool.filter(story => getSnapshotStorySlot(story, referenceMs) === key).length])),
+      maxTotalStories: MAX_INSIGHT_SNAPSHOT_STORIES,
+      crossSlotFallback: false,
+    };
 
     return selected.map(story => ({
       ...story,
+      _snapshotIntake: { requestedSlot: slot, selectedFromSlot: slot, fallback: false },
       _snapshotIntakeSummary: intakeSummary,
       _snapshotObservedAt: referenceMs,
     }));
   };
+}
+
+export const MAX_INSIGHT_SNAPSHOT_STORIES = 300;
+
+export function buildInsightSnapshotPool(snapshot, nowMs = Date.now()) {
+  // Match the Sections fallback's global bound, rather than silently losing
+  // corroborating reports at forty per slot. Input scanning is bounded too.
+  const health = getSnapshotPoolHealth({ ...snapshot,
+    stories: Array.isArray(snapshot?.stories) ? snapshot.stories.slice(0, 1000) : [] }, nowMs);
+  const slots = ['now', 'minus4h', 'minus12h', 'minus24h', 'minus36h'];
+  const buckets = slots.map(slot => {
+    const bySource = new Map();
+    for (const story of (health.bySlot[slot] || [])
+      .sort((a, b) => b.publishedAt - a.publishedAt || String(a.id).localeCompare(String(b.id)))) {
+      const group = story.sourceGroup || 'unknown_source';
+      if (!bySource.has(group)) bySource.set(group, []);
+      bySource.get(group).push(story);
+    }
+    // Several large business feeds must not crowd out smaller independent
+    // publishers before the event pipeline can inspect their evidence.
+    const sources = [...bySource.values()], balanced = [];
+    for (let index = 0; sources.some(rows => rows[index]); index++) {
+      for (const rows of sources) if (rows[index]) balanced.push(rows[index]);
+    }
+    return balanced;
+  });
+  const pool = [], seen = new Set();
+  for (let index = 0; pool.length < MAX_INSIGHT_SNAPSHOT_STORIES; index++) {
+    let available = false;
+    for (const bucket of buckets) {
+      const story = bucket[index];
+      if (!story) continue;
+      available = true;
+      const key = String(story.url || story.id);
+      if (seen.has(key) || pool.length >= MAX_INSIGHT_SNAPSHOT_STORIES) continue;
+      seen.add(key);
+      pool.push(story);
+    }
+    if (!available) break;
+  }
+  return { pool, health };
 }

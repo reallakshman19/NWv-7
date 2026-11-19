@@ -37,14 +37,14 @@ describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
     expect(frozen.shadowOutputUsedToChooseExpected).toBe(false);
     expect(frozen.sourceRegistryVersion).toBe('section-source-policy-v1');
     expect(frozen.sourceRegistryDigest).toBe('d6e8c3d706c9848b7e63349ce08cd48c3670377f24c4163150cd368151e96716');
-    const current = readJson('../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v2-authority.json');
+    const current = readJson('../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v3-authority.json');
     expect(authority.sourceRegistryVersion).toBe(current.sourceRegistryVersion);
     expect(authority.sourceRegistryDigest).toBe(current.sourceRegistryDigest);
     expect(authority.sectionCount).toBe(frozen.sectionCount);
     expect(authority.laneCount).toBe(frozen.laneCount);
     expect(authority.minFeedsInSection).toBe(frozen.minFeedsInSection);
-    expect(authority.sourceGroupCount).toBe(frozen.sourceGroupCount);
-    expect(authority.tierACount).toBe(frozen.tierACount);
+    expect(authority.sourceGroupCount).toBeGreaterThanOrEqual(frozen.sourceGroupCount);
+    expect(authority.tierACount).toBeGreaterThanOrEqual(frozen.tierACount);
   });
 
   it('meets the registry-declared coverage without narrowing acquisition lanes', () => {

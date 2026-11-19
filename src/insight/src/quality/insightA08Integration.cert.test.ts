@@ -6,6 +6,16 @@ import { recoverInsightRuntimeQuality } from '../diagnostics/insightRuntimeQuali
 import { canonicalPublisherFamily, publisherEvidenceFamily } from '../pipeline/publisherIdentity';
 import { isGenericPublisherPage } from '../cluster/eventOccurrenceIdentity';
 
+it('excludes multi-event roundups and empty price trackers while keeping dedicated event updates', () => {
+  expect(isGenericPublisherPage({ title: 'India news Live Updates, 19 November 2026: Cyclone Akvan nears coast', summary: '' })).toBe(true);
+  expect(isGenericPublisherPage({ title: 'HT Morning News Brief: Summit, cyclone and more', summary: 'Several separate news developments.' })).toBe(true);
+  expect(isGenericPublisherPage({ title: 'Letters to the Editor — November 17, 2026', summary: 'Several unrelated letters.' })).toBe(true);
+  expect(isGenericPublisherPage({ title: 'India News, 18 November 2026: School closure updates', summary: '' })).toBe(true);
+  expect(isGenericPublisherPage({ title: "L&T Share Price Live Updates: L&T's Market Update", summary: '' })).toBe(true);
+  expect(isGenericPublisherPage({ title: 'Cyclone Akvan live updates: Schools close as storm nears coast', summary: 'Odisha authorities order local evacuations.' })).toBe(false);
+  expect(isGenericPublisherPage({ title: 'L&T shares gain as company wins bridge contract', summary: 'The company disclosed the contract value.' })).toBe(false);
+});
+
 const now = Date.parse('2026-11-16T12:00:00Z');
 function story(id: string, extra: Partial<InsightStory> = {}): InsightStory {
   return {

@@ -14,7 +14,7 @@ import re
 from collections import Counter, defaultdict
 from typing import Any
 
-COLLECTOR_VERSION = "insight-collector-json-v4"
+COLLECTOR_VERSION = "insight-collector-json-v5"
 
 SLOT_ORDER = ["now", "minus4h", "minus12h", "minus24h"]
 
@@ -146,6 +146,11 @@ def infer_angle_hints(story: dict[str, Any]) -> list[dict[str, Any]]:
     hints = []
 
     for angle, patterns in ANGLE_PATTERNS.items():
+        if angle == 'market_reaction' and not re.search(
+            r'\b(?:stocks?|investors?|trading|bonds?|yields?|rupee|nifty|sensex|nasdaq|dow|inflation|gdp|cpi|wpi|repo|ipo|fii|dii|fpi)\b'
+            r'|\bshares?\s+(?:price|prices|fell|fall|falls|rose|rise|rises|surged|surge|tumbled|rally|gain|gains|drop|slid|jumped)\b'
+            r'|\b(?:mutual funds?|crude oil|gold price|silver price|quarterly results|quarterly earnings|quarterly profit)\b', text):
+            continue
         matches = [pattern for pattern in patterns if re.search(pattern, text, re.I)]
         if matches:
             hints.append({
@@ -167,10 +172,14 @@ def build_story_signals(story: dict[str, Any]) -> dict[str, Any]:
     text = _text(story)
     tokens = _tokens(text)
     token_counts = Counter(tokens)
+    # Repetition in a short reaction summary must not displace the event's
+    # headline subject (e.g. "Acme Bank outage" with repeated "shares fell").
+    headline_tokens = list(dict.fromkeys(_tokens(str(story.get('title') or ''))))
+    topic_tokens = list(dict.fromkeys([*headline_tokens, *(token for token, _ in token_counts.most_common(12))]))
     numbers = list(dict.fromkeys(match.group(0).strip() for match in NUMBER_RE.finditer(text)))
 
     return {
-        "topicTokens": [token for token, _ in token_counts.most_common(12)],
+        "topicTokens": topic_tokens[:12],
         "numbers": numbers[:12],
         "angleHints": infer_angle_hints(story),
         "textLength": len(text),

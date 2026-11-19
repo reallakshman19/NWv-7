@@ -24,6 +24,9 @@ const FAMILY_ALIASES: Record<string,string> = {
   timesofindia_indiatimes_com: "times_of_india", economictimes_indiatimes_com: "economic_times",
   the_hindu_businessline: "business_line", timesofoman: "times_of_oman", timesofoman_com: "times_of_oman",
   muscatdaily: "muscat_daily", muscatdaily_com: "muscat_daily", omanobserver_om: "oman_observer",
+  aljazeera: "al_jazeera", aljazeera_com: "al_jazeera",
+  indianexpress: "indian_express", indianexpress_com: "indian_express",
+  livemint: "mint", livemint_com: "mint", mint_markets: "mint",
 };
 
 /** A family key; unknown sources remain unknown, never promoted to a known outlet. */

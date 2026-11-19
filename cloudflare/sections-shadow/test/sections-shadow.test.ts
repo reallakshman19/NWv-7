@@ -357,7 +357,8 @@ describe('Sections independent live acquisition', () => {
       logicalSlot: NOW_MS,
       attempt: 1,
     })).resolves.toEqual({ status: 'LIVE_LANES_ENQUEUED', enqueuedLanes: 41 });
-    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_LANE')).toHaveLength(30);
+    // Registry v3 replaces the former Google World lane with Al Jazeera.
+    expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_LANE')).toHaveLength(31);
     expect(queue.sent.filter(message => message.type === 'ACQUIRE_LIVE_BROWSER_LANES')).toHaveLength(1);
     const quota = await target.SHADOW_DB.prepare(`
       SELECT epochs_reserved, browser_ms_reserved

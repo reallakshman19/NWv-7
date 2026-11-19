@@ -1,0 +1,558 @@
+{
+  "generatedAt": 1795064861511,
+  "policyVersion": "insight-source-policy-v2-free-publishers",
+  "reportVersion": "insight-source-policy-report-v1",
+  "schemaVersion": 1,
+  "slotSummary": {
+    "minus12h": {
+      "feedCount": 8,
+      "sourceGroups": [
+        "al_jazeera",
+        "bbc",
+        "gadgets360",
+        "google_news",
+        "indian_express",
+        "the_hindu"
+      ],
+      "tierCounts": {
+        "A": 5,
+        "B": 3
+      },
+      "topicCounts": {
+        "analysis": 1,
+        "india": 3,
+        "international": 1,
+        "opinion": 1,
+        "tech": 1,
+        "world": 1
+      }
+    },
+    "minus24h": {
+      "feedCount": 5,
+      "sourceGroups": [
+        "business_line",
+        "economic_times",
+        "espn",
+        "indian_express",
+        "mint"
+      ],
+      "tierCounts": {
+        "A": 4,
+        "B": 1
+      },
+      "topicCounts": {
+        "business": 2,
+        "markets": 2,
+        "sports": 1
+      }
+    },
+    "minus4h": {
+      "feedCount": 4,
+      "sourceGroups": [
+        "hindustan_times",
+        "ndtv",
+        "the_hindu",
+        "times_of_india"
+      ],
+      "tierCounts": {
+        "A": 1,
+        "B": 3
+      },
+      "topicCounts": {
+        "india": 1,
+        "national": 3
+      }
+    },
+    "now": {
+      "feedCount": 5,
+      "sourceGroups": [
+        "economic_times",
+        "google_news",
+        "hindustan_times",
+        "ndtv",
+        "the_hindu"
+      ],
+      "tierCounts": {
+        "A": 2,
+        "B": 3
+      },
+      "topicCounts": {
+        "breaking": 1,
+        "business": 1,
+        "national": 2,
+        "top": 1
+      }
+    }
+  },
+  "sourceCount": 13,
+  "sourceHealthPolicy": {
+    "generatedAt": 1795064861512,
+    "policyVersion": "insight-source-health-policy-v1",
+    "schemaVersion": 1,
+    "slotReports": {
+      "minus12h": {
+        "activeCount": 8,
+        "feedCount": 8,
+        "feeds": [
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Indian Express Explained",
+            "sourceGroup": "indian_express",
+            "tier": "A",
+            "topic": "analysis"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "The Hindu Opinion",
+            "sourceGroup": "the_hindu",
+            "tier": "A",
+            "topic": "opinion"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "BBC World",
+            "sourceGroup": "bbc",
+            "tier": "A",
+            "topic": "world"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Indian Express India",
+            "sourceGroup": "indian_express",
+            "tier": "A",
+            "topic": "india"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "The Hindu Intl",
+            "sourceGroup": "the_hindu",
+            "tier": "A",
+            "topic": "international"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Al Jazeera",
+            "sourceGroup": "al_jazeera",
+            "tier": "B",
+            "topic": "india"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Google News Reuters search",
+            "sourceGroup": "google_news",
+            "tier": "B",
+            "topic": "india"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Gadgets 360",
+            "sourceGroup": "gadgets360",
+            "tier": "B",
+            "topic": "tech"
+          }
+        ],
+        "suppressedCount": 0
+      },
+      "minus24h": {
+        "activeCount": 4,
+        "feedCount": 5,
+        "feeds": [
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Mint Markets",
+            "sourceGroup": "mint",
+            "tier": "A",
+            "topic": "markets"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Business Line",
+            "sourceGroup": "business_line",
+            "tier": "A",
+            "topic": "business"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Indian Express Business",
+            "sourceGroup": "indian_express",
+            "tier": "A",
+            "topic": "business"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "ESPNcricinfo",
+            "sourceGroup": "espn",
+            "tier": "B",
+            "topic": "sports"
+          },
+          {
+            "backoffReason": "zero-item backoff for economic_times",
+            "healthScore": 0.2,
+            "source": "ET Markets",
+            "sourceGroup": "economic_times",
+            "tier": "A",
+            "topic": "markets"
+          }
+        ],
+        "suppressedCount": 1
+      },
+      "minus4h": {
+        "activeCount": 4,
+        "feedCount": 4,
+        "feeds": [
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "The Hindu",
+            "sourceGroup": "the_hindu",
+            "tier": "A",
+            "topic": "national"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Times of India",
+            "sourceGroup": "times_of_india",
+            "tier": "B",
+            "topic": "national"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Hindustan Times",
+            "sourceGroup": "hindustan_times",
+            "tier": "B",
+            "topic": "national"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "NDTV India",
+            "sourceGroup": "ndtv",
+            "tier": "B",
+            "topic": "india"
+          }
+        ],
+        "suppressedCount": 0
+      },
+      "now": {
+        "activeCount": 4,
+        "feedCount": 5,
+        "feeds": [
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "The Hindu",
+            "sourceGroup": "the_hindu",
+            "tier": "A",
+            "topic": "national"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "NDTV",
+            "sourceGroup": "ndtv",
+            "tier": "B",
+            "topic": "top"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Hindustan Times",
+            "sourceGroup": "hindustan_times",
+            "tier": "B",
+            "topic": "national"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
+            "source": "Google News",
+            "sourceGroup": "google_news",
+            "tier": "B",
+            "topic": "breaking"
+          },
+          {
+            "backoffReason": "zero-item backoff for economic_times",
+            "healthScore": 0.2,
+            "source": "Economic Times",
+            "sourceGroup": "economic_times",
+            "tier": "A",
+            "topic": "business"
+          }
+        ],
+        "suppressedCount": 1
+      }
+    }
+  },
+  "sources": [
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://feeds.bbci.co.uk/news/world/rss.xml",
+        "items": 33,
+        "ok": true
+      },
+      "slots": [
+        "minus12h"
+      ],
+      "source": "BBC World",
+      "sourceGroup": "bbc",
+      "tier": "A",
+      "topics": [
+        "world"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.thehindubusinessline.com/news/feeder/default.rss",
+        "items": 40,
+        "ok": true
+      },
+      "slots": [
+        "minus24h"
+      ],
+      "source": "Business Line",
+      "sourceGroup": "business_line",
+      "tier": "A",
+      "topics": [
+        "business"
+      ]
+    },
+    {
+      "configuredFeeds": 2,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://economictimes.indiatimes.com/rssfeeds/1368519714.cms",
+        "items": 0,
+        "ok": true
+      },
+      "slots": [
+        "minus24h",
+        "now"
+      ],
+      "source": "Economic Times",
+      "sourceGroup": "economic_times",
+      "tier": "A",
+      "topics": [
+        "business",
+        "markets"
+      ]
+    },
+    {
+      "configuredFeeds": 3,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://indianexpress.com/section/business/feed/",
+        "items": 6,
+        "ok": true
+      },
+      "slots": [
+        "minus12h",
+        "minus24h"
+      ],
+      "source": "Indian Express Explained",
+      "sourceGroup": "indian_express",
+      "tier": "A",
+      "topics": [
+        "analysis",
+        "business",
+        "india"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.livemint.com/rss/markets",
+        "items": 35,
+        "ok": true
+      },
+      "slots": [
+        "minus24h"
+      ],
+      "source": "Mint Markets",
+      "sourceGroup": "mint",
+      "tier": "A",
+      "topics": [
+        "markets"
+      ]
+    },
+    {
+      "configuredFeeds": 4,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.thehindu.com/news/international/feeder/default.rss",
+        "items": 40,
+        "ok": true
+      },
+      "slots": [
+        "minus12h",
+        "minus4h",
+        "now"
+      ],
+      "source": "The Hindu",
+      "sourceGroup": "the_hindu",
+      "tier": "A",
+      "topics": [
+        "international",
+        "national",
+        "opinion"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.aljazeera.com/xml/rss/all.xml",
+        "items": 25,
+        "ok": true
+      },
+      "slots": [
+        "minus12h"
+      ],
+      "source": "Al Jazeera",
+      "sourceGroup": "al_jazeera",
+      "tier": "B",
+      "topics": [
+        "india"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
+        "items": 23,
+        "ok": true
+      },
+      "slots": [
+        "minus24h"
+      ],
+      "source": "ESPNcricinfo",
+      "sourceGroup": "espn",
+      "tier": "B",
+      "topics": [
+        "sports"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://feeds.feedburner.com/gadgets360-latest",
+        "items": 39,
+        "ok": true
+      },
+      "slots": [
+        "minus12h"
+      ],
+      "source": "Gadgets 360",
+      "sourceGroup": "gadgets360",
+      "tier": "B",
+      "topics": [
+        "tech"
+      ]
+    },
+    {
+      "configuredFeeds": 2,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://news.google.com/rss/search?q=site:reuters.com+India&hl=en-IN&gl=IN&ceid=IN:en",
+        "items": 16,
+        "ok": true
+      },
+      "slots": [
+        "minus12h",
+        "now"
+      ],
+      "source": "Google News",
+      "sourceGroup": "google_news",
+      "tier": "B",
+      "topics": [
+        "breaking",
+        "india"
+      ]
+    },
+    {
+      "configuredFeeds": 2,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
+        "items": 40,
+        "ok": true
+      },
+      "slots": [
+        "minus4h",
+        "now"
+      ],
+      "source": "Hindustan Times",
+      "sourceGroup": "hindustan_times",
+      "tier": "B",
+      "topics": [
+        "national"
+      ]
+    },
+    {
+      "configuredFeeds": 2,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://feeds.feedburner.com/ndtvnews-india-news",
+        "items": 20,
+        "ok": true
+      },
+      "slots": [
+        "minus4h",
+        "now"
+      ],
+      "source": "NDTV",
+      "sourceGroup": "ndtv",
+      "tier": "B",
+      "topics": [
+        "india",
+        "top"
+      ]
+    },
+    {
+      "configuredFeeds": 1,
+      "health": {
+        "checkedAt": 1795064540172,
+        "feedUrl": "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms",
+        "items": 20,
+        "ok": true
+      },
+      "slots": [
+        "minus4h"
+      ],
+      "source": "Times of India",
+      "sourceGroup": "times_of_india",
+      "tier": "B",
+      "topics": [
+        "national"
+      ]
+    }
+  ],
+  "validation": {
+    "errors": [],
+    "feedCount": 22,
+    "sourceGroupCount": 13,
+    "status": "PASS",
+    "tierACount": 12,
+    "topicCount": 12,
+    "warnings": []
+  }
+}

@@ -35,7 +35,7 @@ jobs:
       - name: Install bounded publisher dependencies
         run: python -m pip install --disable-pip-version-check requests feedparser pypdf pytest
       - name: Check stale, expired, date-range and rolling-merge regressions
-        run: python -m pytest scripts/test_upahead_recovery.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_acquisition.py scripts/test_upahead_local_collectors.py -q
+        run: python -m pytest scripts/test_upahead_recovery.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_retention.py scripts/test_upahead_acquisition.py scripts/test_upahead_local_collectors.py -q
 
   refresh:
     name: Publish qualified rolling Up Ahead snapshot

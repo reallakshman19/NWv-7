@@ -1,5 +1,6 @@
 import { InsightStory } from "../types";
 import { namedHazardIdentities } from "./eventOccurrenceIdentity";
+import { hasSharedMeetingIdentity } from "./meetingIdentity";
 
 const TOPIC_STOP_WORDS = new Set([
   "about", "after", "again", "against", "ahead", "among", "around", "before",
@@ -134,6 +135,7 @@ const NAMED_INCIDENT_SIGNALS = [
 ];
 
 export function hasSharedNamedEventSignature(a: InsightStory, b: InsightStory): boolean {
+  if (hasSharedMeetingIdentity(a, b)) return true;
   const aHazards = namedHazardIdentities(a.title);
   const bHazards = namedHazardIdentities(b.title);
   // A multi-event roundup must not bridge two separately named hazards.

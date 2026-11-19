@@ -32,7 +32,28 @@ describe('Insight browser JSON v3 signal ingestion certification', () => {
     expect(signals.keywords).toContain('acme');
     expect(signals.numbers).toContain('4 percent');
     expect(signals.angleHints[0].angle).toBe('market_reaction');
-    expect(signals.entities.orgs).toContain('bank');
+    expect(signals.entities.orgs).toContain('Acme Bank');
+    expect(signals.entities.orgs).not.toContain('bank');
+    expect(signals.verbs).toContain('fell');
+    expect(signals.verbs).not.toContain('reaction');
+  });
+
+  it('collector hints do not suppress the real named entities and event actions', () => {
+    const signals = getInsightSnapshotSignals({
+      title: 'President Hakeem Jeffries confirms policy in India',
+      storySignals: { topicTokens: ['confirms', 'policy'], angleHints: [{ angle: 'official_response' }] },
+    });
+    expect(signals.entities.people).toContain('Hakeem Jeffries');
+    expect(signals.entities.places).toContain('India');
+    expect(signals.verbs).toContain('confirms');
+    expect(signals.verbs).not.toContain('official');
+  });
+
+  it('angle labels are not evidence of a shared event topic', () => {
+    const signals = getInsightSnapshotSignals({ title: 'Unrelated subject',
+      storySignals: { topicTokens: ['unrelated', 'subject'], angleHints: [{ angle: 'official_response' }] } });
+    expect(signals.keywords).toEqual(['unrelated', 'subject']);
+    expect(signals.verbs).not.toContain('response');
   });
 
   it('enriches raw stories with snapshot diagnostics and collector signal status', () => {

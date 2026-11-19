@@ -5,14 +5,22 @@ import { toDateKey } from '../utils/dateDisplay.js';
 import { getHolidayCalendarItems, isBundledHoliday } from './holidayCalendar.js';
 import {
   isUpAheadItemActive,
+  getUpAheadWindowStatus,
   mergeUpAheadItems,
   UP_AHEAD_SOURCE_LOOKBACK_MS,
   upAheadDateKey,
   upAheadIdentityKeys, sameUpAheadOccurrence, upAheadOccurrenceKey,
   upAheadTimeMs,
+  upAheadExpiryMs,
+  upAheadEventBounds,
 } from './upAheadLifecycle.js';
 
 export const CACHE_KEY = 'upAhead_cache';
+const MAX_PENDING_ITEMS = 500;
+const MAX_PENDING_BYTES = 1_000_000;
+const FUTURE_ADMISSION_MS = 180 * 86_400_000;
+const MAX_QUARANTINE_ITEMS = 100;
+const MAX_QUARANTINE_BYTES = 256_000;
 export const UP_AHEAD_UPDATED_EVENT = 'upahead-updated';
 let currentRequest = null;
 let requestSerial = 0;
@@ -422,8 +430,8 @@ function normalizeUpAheadData(data) {
   if (!data || typeof data !== 'object') return null;
   const rawSnapshot = Array.isArray(data.items) && !data.timeline && !data.sections;
   if (rawSnapshot) {
-    const { items, ...metadata } = data;
-    const display = transformPythonItemsToDisplay(items);
+    const { items, pendingItems = [], ...metadata } = data;
+    const display = transformPythonItemsToDisplay([...items, ...pendingItems]);
     data = { ...display, lastUpdated: null, sourceMode: 'snapshot', ...metadata };
   }
   const observedAt = data.fetchedAt || data.lastUpdated;
@@ -434,6 +442,8 @@ function normalizeUpAheadData(data) {
   const sectionData = data.sections || {};
   const sectionRows = Object.entries(sectionData).flatMap(([key, items]) =>
     (Array.isArray(items) ? items : []).map(item => prepareItem(item, observedAt, { category: key, sourceMode })).filter(Boolean));
+  sectionRows.push(...(Array.isArray(data.pendingItems) ? data.pendingItems : [])
+    .map(item => prepareItem(item, observedAt, { sourceMode })).filter(Boolean));
   // Sections are the authoritative observation in the legacy payload; Timeline
   // is a derived routing projection. Preserve timeline-only rows, but never let
   // a stale projection of the same occurrence override the source row.
@@ -443,7 +453,7 @@ function normalizeUpAheadData(data) {
   }
   const sections = sectionsFromItems(Object.keys(sectionData), rows);
   const timeline = timelineFromItems(mergeUpAheadItems(Object.values(sections).flat().filter(x => x._timelineEligible || x.upAheadEligible), { preferEventCategory: true }));
-  return { ...data, timeline, sections };
+  return { ...data, pendingItems: [], timeline, sections };
 }
 
 function publishedRetirements(data, now = Date.now()) {
@@ -454,22 +464,69 @@ function publishedRetirements(data, now = Date.now()) {
     && now - upAheadTimeMs(row.observedAt) <= UP_AHEAD_SOURCE_LOOKBACK_MS);
 }
 
+function publishedRevisionRetirements(data, now = Date.now()) {
+  const unique = new Map();
+  for (const row of (Array.isArray(data?.retiredRevisions) ? data.retiredRevisions : [])) {
+    if (!Array.isArray(row?.identity) || row.identity.length !== 2
+      || !row.identity.every(value => typeof value === 'string' && value.length > 0)) continue;
+    const retiredAt = upAheadTimeMs(row.retiredAt), revisionAt = upAheadTimeMs(row.revisionAt);
+    if (!retiredAt || !revisionAt || retiredAt > now || retiredAt <= now - UP_AHEAD_SOURCE_LOOKBACK_MS) continue;
+    const key = JSON.stringify(row.identity), previous = unique.get(key);
+    if (!previous || revisionAt > previous.revisionAt) unique.set(key, { ...row, retiredAt, revisionAt });
+  }
+  return [...unique.values()].sort((a, b) => b.retiredAt - a.retiredAt).slice(0, 2000);
+}
+
 function pruneUpAheadData(data, retiredItems = new Map()) {
   if (!data) return null;
   const now = Date.now();
   const retired = publishedRetirements(data, now);
   const retiredOccurrences = new Set(retired.map(row => row.occurrenceId));
-  const isActive = item => !retiredOccurrences.has(item.occurrenceId) && isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
+  const publishedRevisions = publishedRevisionRetirements(data, now);
+  const isActive = item => !publishedRevisions.some(row => row.identity[0] === item.category
+    && [item.revisionOf, item.occurrenceId, item.id, item.canonicalId].includes(row.identity[1])
+    && row.revisionAt >= upAheadTimeMs(item.revisionAt || item.updatedAt || item.observedAt || item.publishedAt))
+    && !retiredOccurrences.has(item.occurrenceId) && isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
     [key, `${item.category}:${key}`].some(retiredKey =>
-      retiredItems.has(retiredKey) && retiredItems.get(retiredKey) >= upAheadTimeMs(item.observedAt))
+      retiredItems.has(retiredKey) && retiredItems.get(retiredKey).revisionAt >= upAheadTimeMs(item.revisionAt || item.updatedAt || item.observedAt))
   );
+  const quarantine = new Map();
+  for (const row of (Array.isArray(data.quarantinedItems) ? data.quarantinedItems : [])) {
+    const captured = upAheadTimeMs(row?.quarantinedAt);
+    if (!row?.item || row.reason !== 'missing_clock' || !captured || captured > now || captured <= now - UP_AHEAD_SOURCE_LOOKBACK_MS) continue;
+    const key = upAheadOccurrenceKey(row.item), previous = quarantine.get(key);
+    if (!previous || captured < previous.quarantinedAt) quarantine.set(key, { ...row, quarantinedAt: captured });
+  }
+  const allRows = Object.values(data.sections).flat();
+  for (const item of allRows) {
+    if (upAheadExpiryMs(item) === 0 && !item.suppressionReason && item.displayEligible !== false) {
+      const key = upAheadOccurrenceKey(item);
+      if (!quarantine.has(key)) quarantine.set(key, { item, reason: 'missing_clock', quarantinedAt: now });
+    }
+  }
+  let quarantineBytes = 0;
+  const quarantinedItems = [...quarantine.values()].slice(0, MAX_QUARANTINE_ITEMS).filter(row => {
+    quarantineBytes += new TextEncoder().encode(JSON.stringify(row)).length;
+    return quarantineBytes <= MAX_QUARANTINE_BYTES;
+  });
+  const withinView = item => isBundledHoliday(item)
+    || getUpAheadWindowStatus(item, { asOfDate: now }) !== 'after_window';
+  let pendingBytes = 0;
+  const futureRows = mergeUpAheadItems(allRows.filter(item => isActive(item) && !withinView(item)));
+  const pendingItems = futureRows
+    .filter(item => upAheadEventBounds(item).start <= now + FUTURE_ADMISSION_MS)
+    .slice(0, MAX_PENDING_ITEMS).filter(item => {
+      pendingBytes += new TextEncoder().encode(JSON.stringify(item)).length;
+      return pendingBytes <= MAX_PENDING_BYTES;
+    });
+  const isVisible = item => isActive(item) && withinView(item);
   const hasFeedRows = data.timeline.length > 0 || Object.values(data.sections).some(hasItems);
   const timeline = data.timeline
-    .map(day => ({ ...day, items: day.items.filter(isActive) }))
+    .map(day => ({ ...day, items: day.items.filter(isVisible) }))
     .filter(day => day.items.length > 0);
   const sections = Object.fromEntries(Object.entries(data.sections).map(([key, items]) => [
     key,
-    items.filter(isActive),
+    items.filter(isVisible),
   ]));
   const weekly_plan = !hasFeedRows && Array.isArray(data.weekly_plan)
     ? data.weekly_plan.map(day => ({
@@ -477,10 +534,13 @@ function pruneUpAheadData(data, retiredItems = new Map()) {
       items: filterPastDatedDisplayItems(day.items || [], now),
     }))
     : generateWeeklyPlan(timeline);
-  if (!timeline.length && !Object.values(sections).some(hasItems) && !weekly_plan.some(day => hasItems(day.items))) {
+  if (!timeline.length && !Object.values(sections).some(hasItems) && !weekly_plan.some(day => hasItems(day.items)) && !pendingItems.length && !quarantinedItems.length) {
     return null;
   }
-  return { ...data, retiredOccurrences: retired, timeline, sections, weekly_plan };
+  return { ...data, retiredOccurrences: retired, retiredRevisions: publishedRevisions,
+    timeline, sections, weekly_plan, pendingItems, quarantinedItems,
+    cacheRetention: { pendingCount: pendingItems.length, rejectedFutureCount: futureRows.length - pendingItems.length,
+      futureAdmissionDays: 180, maxPendingItems: MAX_PENDING_ITEMS, maxPendingBytes: MAX_PENDING_BYTES, historyDays: 7 } };
 }
 
 export function sanitizeUpAheadData(data) {
@@ -496,7 +556,10 @@ function readStoredFeed() {
 }
 
 export function loadFromCache(upAheadSettings = null) {
-  const cached = sanitizeUpAheadData(readStoredFeed());
+  const stored = readStoredFeed();
+  // One atomic cache write also preserves the recovery quarantine and revision
+  // tombstones. No user Planner or recovery-archive key is changed here.
+  const cached = maintainCache(stored, normalizeUpAheadData(stored));
   if (!upAheadSettings) return cached;
   const locations = upAheadSettings.locations || DEFAULT_SETTINGS.upAhead.locations || ['Chennai', 'Muscat'];
   const selected = sanitizeUpAheadData(attachHolidayCalendar(
@@ -518,9 +581,17 @@ export function saveToCache(incoming, fallback = null, upAheadSettings = null, r
   // A fresh dataset API can skip static/live acquisition. Reconcile the
   // independent calendar after every merge, including location changes.
   const merged = selectedLocations ? attachHolidayCalendar(combined, selectedLocations) : combined;
+  const updated = maintainCache(stored, merged, selectedLocations);
+  if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(UP_AHEAD_UPDATED_EVENT));
+  return updated;
+}
+
+function maintainCache(stored, merged, selectedLocations = stored?.selectedLocations) {
   const now = Date.now();
   const cutoff = now - UP_AHEAD_SOURCE_LOOKBACK_MS;
-  const retiredItems = new Map(Object.entries(stored?.retiredItems || {}).filter(([, time]) => time >= cutoff));
+  const retiredItems = new Map(Object.entries(stored?.retiredItems || {})
+    .map(([key, value]) => [key, typeof value === 'number' ? { revisionAt: value, retiredAt: value } : value])
+    .filter(([, value]) => value && value.retiredAt > cutoff && value.retiredAt <= now && Number.isFinite(value.revisionAt)));
   // Keep only the identities of recent expired revisions. A late snapshot can
   // still add a different event, but cannot revive an older version of one.
   const items = [
@@ -528,25 +599,31 @@ export function saveToCache(incoming, fallback = null, upAheadSettings = null, r
     ...(merged?.timeline || []).flatMap(day => day.items),
   ];
   for (const item of items) {
-    const observed = upAheadTimeMs(item.observedAt);
-    if (observed < cutoff || isUpAheadItemActive(item, now)) continue;
+    const observed = upAheadTimeMs(item.revisionAt || item.updatedAt || item.observedAt);
+    if (!observed || isUpAheadItemActive(item, now) || !upAheadExpiryMs(item)) continue;
     for (const key of upAheadIdentityKeys(item)) {
       const retiredKey = `${item.category}:${key}`;
-      retiredItems.set(retiredKey, Math.max(observed, retiredItems.get(retiredKey) || 0));
+      const previous = retiredItems.get(retiredKey);
+      if (!previous || observed > previous.revisionAt) retiredItems.set(retiredKey, { revisionAt: observed, retiredAt: now });
     }
   }
   const updated = pruneUpAheadData(merged, retiredItems);
-  const retirements = merged?.retiredOccurrences || [];
+  const retirements = publishedRetirements(merged, now);
+  const retiredRevisions = publishedRevisionRetirements(merged, now);
   try {
-    if (updated || retiredItems.size || retirements.length) {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ ...updated, retiredOccurrences: retirements, selectedLocations, retiredItems: Object.fromEntries(retiredItems) }));
+    // A storage read racing this maintenance must not be overwritten.
+    if (JSON.stringify(readStoredFeed()) !== JSON.stringify(stored)) return updated;
+    if (updated || retiredItems.size || retirements.length || retiredRevisions.length) {
+      const value = JSON.stringify({ ...updated, retiredOccurrences: retirements, selectedLocations,
+        retiredRevisions,
+        retiredItems: Object.fromEntries([...retiredItems].sort((a, b) => b[1].retiredAt - a[1].retiredAt).slice(0, 4000)) });
+      if (JSON.stringify(stored) !== value) localStorage.setItem(CACHE_KEY, value);
     } else if (stored) {
       localStorage.removeItem(CACHE_KEY);
     }
   } catch {
     // The current request can still show the merged data.
   }
-  if (typeof window !== 'undefined') window.dispatchEvent?.(new Event(UP_AHEAD_UPDATED_EVENT));
   return updated;
 }
 
@@ -678,6 +755,8 @@ function mergeUpAheadFeed(baseData, newData) {
     auditSummary: freshest.auditSummary || null,
     dropReport: incoming.dropReport || base.dropReport || [],
     acquisitionSummary: freshest.acquisitionSummary || null,
+    quarantinedItems: [...(base.quarantinedItems || []), ...(incoming.quarantinedItems || [])],
+    retiredRevisions: [...(base.retiredRevisions || []), ...(incoming.retiredRevisions || [])],
     retiredOccurrences: [...new Map([...publishedRetirements(base), ...publishedRetirements(incoming)]
       .sort((a, b) => upAheadTimeMs(a.observedAt) - upAheadTimeMs(b.observedAt))
       .map(row => [row.occurrenceId, row])).values()],
