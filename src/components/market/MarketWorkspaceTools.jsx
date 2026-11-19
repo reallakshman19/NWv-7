@@ -11,7 +11,7 @@ import { assessMarketIpo } from '../../services/marketIpoPolicy.js';
 const WATCHLIST_KEY = 'nw7.india-watchlist.v1';
 const SAVED_FUNDS_KEY = 'nw7.market-saved-funds.v1';
 const rupees = number => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(number);
-const external = (url, label) => <a href={url} target="_blank" rel="noopener noreferrer">{label} ↗</a>;
+const external = (url, label) => <a href={url} target="_blank" rel="noopener noreferrer">{label} <span aria-hidden="true">↗</span></a>;
 
 function PriceRow({ row }) {
   const change = Number(row.changePercent);
