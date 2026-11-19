@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -57,10 +57,11 @@ jobs:
         if: always() && steps.install.outcome == 'success'
         run: npm run build
       - name: Install Chromium for isolated built-browser certification
+        id: chromium
         if: always() && steps.install.outcome == 'success' && steps.build.outcome == 'success'
         run: npx playwright install --with-deps chromium
       - name: Real browser smoke at desktop and mobile widths
-        if: always() && steps.install.outcome == 'success' && steps.build.outcome == 'success'
+        if: always() && steps.install.outcome == 'success' && steps.build.outcome == 'success' && steps.chromium.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
