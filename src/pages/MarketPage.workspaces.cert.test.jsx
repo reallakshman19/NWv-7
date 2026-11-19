@@ -114,3 +114,47 @@ describe('Saved NAV loading and independent user tasks', () => {
     expect(JSON.parse(localStorage.getItem('nw7.market-saved-funds.v1'))).toEqual(['100002']);
   });
 });
+
+
+describe('IPO source evidence is separate from empty or cached schedules', () => {
+  const fresh = () => new Date(Date.now()-60_000).toISOString();
+  const due = days => new Date(Date.now()+days*86400000).toISOString().slice(0,10);
+  const issue = () => ({ name:'Fixture Verified Issue', openDate:due(-1), closeDate:due(5) });
+  const calendar = (status, rows=[]) => ({
+    equities:[], sourceMode:'snapshot', generatedAt:fresh(), ipoLastCheckedAt:fresh(),
+    ipo:{ live:rows, upcoming:[],recent:[] }, sourceHealth:{ ipo:{status,provider:'BSE'} }
+  });
+  const open = data => {
+    render(<EquityWorkspace data={data} onRefresh={()=>{}} />);
+    fireEvent.click(screen.getByRole('button',{name:'IPO / FPO'}));
+    return document.querySelector('.market-workspace__ipo-evidence');
+  };
+  it('reports BSE 403 failure as unavailable, not no active IPOs',()=>{
+    const panel=open(calendar('failed'));
+    expect(panel.dataset.ipoState).toBe('unavailable');
+    expect(within(panel).getByText(/source unavailable/i)).toBeTruthy();
+    expect(within(panel).getByRole('link',{name:/Verify current public issues/})).toBeTruthy();
+    expect(panel.textContent).not.toMatch(/no qualifying current ipo/i);
+  });
+  it('does not display old issue rows after an unsuccessful refresh',()=>{
+    const panel=open(calendar('failed',[issue()]));
+    expect(panel.dataset.ipoState).toBe('unavailable');
+    expect(panel.textContent).not.toContain('Fixture Verified Issue');
+  });
+  it('uses verified-empty only with explicit fresh source-empty receipt',()=>{
+    const panel=open(calendar('empty'));
+    expect(panel.dataset.ipoState).toBe('verified-empty');
+    expect(panel.textContent).toMatch(/no qualifying current ipo/i);
+  });
+  it('renders dated issues only with fresh successful receipt',()=>{
+    const panel=open(calendar('snapshot',[issue()]));
+    expect(panel.dataset.ipoState).toBe('available');
+    expect(within(panel).getByText('Fixture Verified Issue')).toBeTruthy();
+  });
+  it('source receipt omitted in a newly dated publication is unverified',()=>{
+    const data=calendar('empty');delete data.sourceHealth.ipo;
+    const panel=open(data);
+    expect(panel.dataset.ipoState).toBe('unverified');
+    expect(panel.textContent).toMatch(/not.*confirm/i);
+  });
+});
