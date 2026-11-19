@@ -132,10 +132,67 @@ async function runViewport(width, height) {
   }
 }
 
+async function runIpoReceiptScenario(status, expectedState) {
+  const context = await browser.newContext({
+    viewport:{width:390,height:844}, serviceWorkers:'block', colorScheme:'dark',
+  });
+  const page = await context.newPage();
+  const quoteAt = new Date(now - 120000).toISOString();
+  const checkedAt = new Date(now - 60000).toISOString();
+  const day = n => new Date(now + n*86400000).toISOString().slice(0,10);
+  const issue = {name:'Fixture Authorized Issue',openDate:day(-1),closeDate:day(6)};
+  const ipo = {live:status === 'snapshot' ? [issue] : [],upcoming:[],recent:[]};
+  const publication = {
+    schemaVersion:'market-india-1', sourceMode:'snapshot',
+    generatedAt:checkedAt, fetchedAt:now-60000, ipoLastCheckedAt:checkedAt,
+    indices:[
+      {name:'NIFTY 50',symbol:'^NSEI',value:'25000',quoteAt,sourceMode:'yahoo-free-daily'},
+      {name:'SENSEX',symbol:'^BSESN',value:'82000',quoteAt,sourceMode:'yahoo-free-daily'},
+      {name:'BANK NIFTY',symbol:'^NSEBANK',value:'56000',quoteAt,sourceMode:'yahoo-free-daily'},
+    ],
+    equities:[],ipo,
+    sourceHealth:{ipo:{status,provider:'BSE'}},
+  };
+  let requests=0;
+  await page.route(/\/data\/market_snapshot\.json(?:\?|$)/,async route=>{
+    requests++;
+    await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(publication)});
+  });
+  try {
+    await page.goto(base+'/#/markets',{waitUntil:'domcontentloaded',timeout:20000});
+    await page.getByRole('heading',{name:'Markets',exact:true}).waitFor();
+    await page.getByRole('button',{name:'Equity',exact:true}).click();
+    await page.getByRole('button',{name:'IPO / FPO'}).click();
+    const evidence=page.locator('.market-workspace__ipo-evidence');
+    await evidence.waitFor();
+    await page.waitForFunction(state=>{
+      return document.querySelector('.market-workspace__ipo-evidence')?.dataset.ipoState === state;
+    },expectedState,{timeout:15000});
+    check('ipo-source-'+status,await evidence.getAttribute('data-ipo-state')===expectedState);
+    check('ipo-publication-request-'+status,requests>=1);
+    check('ipo-official-verification-'+status,
+      (await evidence.getByRole('link',{name:/Verify current public issues/}).count())===1);
+    const text=await evidence.textContent();
+    check('ipo-observations-not-fabricated-'+status,
+      status==='snapshot' ? text.includes('Fixture Authorized Issue') :
+        (!text.includes('Fixture Authorized Issue') && (
+          status==='failed' ? text.includes('source unavailable') : text.includes('no qualifying current IPO')
+        )));
+    const png=outputDir+'/market-ipo-'+status+'.png';
+    await page.screenshot({path:png,fullPage:true});
+    report.screenshots.push(png);
+  } finally {
+    await context.close();
+  }
+}
+
 try {
   await runViewport(1366, 768);
   await runViewport(390, 844);
   await runViewport(320, 640);
+  await runIpoReceiptScenario('failed', 'unavailable');
+  await runIpoReceiptScenario('empty', 'verified-empty');
+  await runIpoReceiptScenario('snapshot', 'available');
 } catch(error) {
   report.errors.push({critical:error.message});
 } finally {
