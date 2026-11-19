@@ -343,3 +343,43 @@ describe('no implicit browser proxy waterfall', () => {
     expect(String(fetcher.mock.calls[0][0])).toContain('market_snapshot.json');
   });
 });
+
+
+describe('independent IPO source receipt reconciliation', () => {
+  beforeEach(() => {
+    getIdbCache.mockReset().mockResolvedValue(null);
+    setIdbCache.mockClear();
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  const prior = (now) => ({
+    ...datedMarketData(now-120_000, now-180_000),
+    ipo: { live: [{name:'Previous Issue',openDate:'2026-11-19',closeDate:'2026-11-25'}],upcoming:[],recent:[] },
+    sourceHealth: {ipo:{status:'snapshot',provider:'BSE'}},
+    ipoLastCheckedAt:new Date(now-120_000).toISOString()
+  });
+
+  it('newer market publication with no IPO receipt cannot inherit previous success', async () => {
+    const now=Date.now();
+    const incoming={...datedMarketData(now-60_000, now-80_000),schemaVersion:'market-india-1',
+      ipo: {live:[],upcoming:[],recent:[]},sourceHealth:{}};
+    vi.stubGlobal('fetch',vi.fn(() => mockJsonResponse(incoming)));
+    const next=await fetchAllMarketData({forceRefresh:true,previousData:prior(now)});
+    expect(next.sourceHealth.ipo.status).toBe('unknown');
+    expect(next.ipoLastCheckedAt).toBeNull();
+    expect(next.ipo.live).toHaveLength(0);
+  });
+
+  it('fresh failed IPO source overrides prior success without claiming zero current issues', async () => {
+    const now=Date.now();
+    const incoming={...datedMarketData(now-60_000, now-80_000),schemaVersion:'market-india-1',
+      ipo: {live:[],upcoming:[],recent:[]},
+      sourceHealth:{ipo:{status:'failed',provider:'BSE'}},
+      ipoLastCheckedAt:new Date(now-60_000).toISOString()};
+    vi.stubGlobal('fetch',vi.fn(() => mockJsonResponse(incoming)));
+    const next=await fetchAllMarketData({forceRefresh:true,previousData:prior(now)});
+    expect(next.sourceHealth.ipo.status).toBe('failed');
+    expect(next.ipoLastCheckedAt).toBe(incoming.ipoLastCheckedAt);
+    expect(next.ipo.live).toHaveLength(0);
+  });
+});
