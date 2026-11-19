@@ -35,9 +35,8 @@ export function assessMarketIpo(data, nowMs = Date.now()) {
   const rawStatus = typeof rawReceipt === 'string'
     ? rawReceipt.toLowerCase()
     : String(rawReceipt?.status || '').toLowerCase();
-  const checkedAt = parseClock(data?.ipoLastCheckedAt) ??
-    parseClock(data?.generatedAt) ??
-    parseClock(data?.fetchedAt);
+  // A newer index collection clock is NOT evidence of a fresh IPO-source check.
+  const checkedAt = parseClock(data?.ipoLastCheckedAt);
   const provider = typeof rawReceipt === 'object' && rawReceipt?.provider
     ? String(rawReceipt.provider) : 'IPO source';
   const none = {live: [], upcoming: [], recent: []};
