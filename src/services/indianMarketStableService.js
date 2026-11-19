@@ -547,7 +547,13 @@ function reconcilePayloads(previous, incoming) {
     sectorals: merged.sectorals,
     equities: equityMerge.equities,
     equityCoverage: (Array.isArray(updated.equities) || Array.isArray(retain.equities))
-      ? equityMerge.coverage : null,
+      ? {
+        ...equityMerge.coverage,
+        // Displayable includes eligible retained shares; source acquired is only this publication.
+        sourceAcquiredCount: Array.isArray(updated.equities) ? qualifyTrackedEquities(updated.equities).length : null,
+        retainedCount: equityMerge.equities.filter((row) => !qualifyTrackedEquities(updated.equities)
+          .some((fresh) => fresh.id === row.id && fresh.value === row.value && fresh.quoteAt === row.quoteAt)).length,
+      } : null,
     equityMerge: equityMerge.summary,
     movers,
     commodities: arrayFrom('commodities'),
