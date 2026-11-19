@@ -6,10 +6,13 @@ import {
 } from "../types";
 import {
   comparePostTreeParentQuality,
+  computePostTreeQualityScore,
   selectChildStoriesForParent,
 } from "../pipeline/pipeline";
 import { getInsightCoreQualityDiagnostics, getVisibleChildAngles } from "./insightCoreQuality";
 import { repairInsightResult } from "./insightResultRepair";
+import { applyPostClusterDeltaDedup } from "../dedup/dedup";
+import { isWeakTree } from "../tree/treeBuilder";
 
 const RECOVERY_CONFIG_OVERRIDES: Partial<InsightConfig> = {
   MIN_CHILD_INFO_GAIN: 0.08,
@@ -62,6 +65,8 @@ function cloneParent(parent: InsightParent): InsightParent {
     snapshotPresence: { ...parent.snapshotPresence },
     debug: {
       ...(parent.debug || {}),
+      clusterSize: parent.debug?.clusterSize ?? parent.clusterStoryIds.length,
+      hiddenCount: parent.debug?.hiddenCount ?? 0,
       matchedSnapshots: [...safeArray(parent.debug?.matchedSnapshots)],
       scoreBreakdown: { ...(parent.debug?.scoreBreakdown || {}) },
       replacements: [...safeArray(parent.debug?.replacements)],
@@ -110,15 +115,32 @@ export function makeInsightRecoveryConfig(cfg: InsightConfig = DEFAULT_CONFIG): 
 function rebuildParentTreeForRecovery(
   parent: InsightParent,
   storiesById: Map<string, InsightStory>,
-  cfg: InsightConfig
+  cfg: InsightConfig,
+  excludedEvidence: Map<string, { reason: string; parentId: string | null }>,
+  eligibleStoryIds: Set<string> | null,
+  preHiddenIds: Set<string>,
+  originalCfg: InsightConfig
 ): InsightParent {
-  const clusterStories = safeArray(parent.clusterStoryIds)
+  const admittedIds = [...new Set(safeArray(parent.clusterStoryIds))].filter(id => {
+    const story = storiesById.get(id);
+    if (!story || (story.parentId && story.parentId !== parent.parentId) || excludedEvidence.has(id) ||
+      (eligibleStoryIds !== null && !eligibleStoryIds.has(id)) || (story as any).postClusterDeltaDedup?.hidden) return false;
+    // Soft selection/cap omissions may be reconsidered only when they already
+    // meet the original information-gain floor. Hard repeats never return.
+    return !preHiddenIds.has(id) || (story.informationDeltaScore ?? 0) >= originalCfg.MIN_CHILD_INFO_GAIN;
+  });
+  parent.clusterStoryIds = admittedIds;
+  parent.childStoryIds = safeArray(parent.childStoryIds).filter(id => admittedIds.includes(id));
+  const clusterStories = admittedIds
     .map(id => storiesById.get(id))
     .filter(Boolean)
     .map(story => cloneStory(story as InsightStory));
 
-  const hiddenIds = new Set<string>();
-  const children = selectChildStoriesForParent(parent, clusterStories, storiesById, cfg, hiddenIds);
+  const hiddenIds = new Set<string>(preHiddenIds);
+  const deduped = applyPostClusterDeltaDedup(clusterStories, hiddenIds, originalCfg);
+  const children = selectChildStoriesForParent(parent, deduped, storiesById, cfg, hiddenIds);
+  for (const id of hiddenIds) preHiddenIds.add(id);
+  for (const child of children) preHiddenIds.delete(child.id);
 
   (parent.debug as any).runtimeQualityRecovery = {
     attempted: true,
@@ -164,19 +186,28 @@ export function recoverInsightRuntimeQuality(
   const recovered = cloneResult(firstPass);
   const storiesById = normalizeStoriesById(recovered.storiesById);
 
+  const rejected = recovered.excludedEvidence instanceof Map
+    ? recovered.excludedEvidence : new Map<string, { reason: string; parentId: string | null }>();
+  const eligibleIds = recovered.eligibleStoryIds instanceof Set ? recovered.eligibleStoryIds as Set<string> : null;
+  const preHidden = recovered.hiddenIds instanceof Set ? recovered.hiddenIds as Set<string> : new Set<string>();
   recovered.parents = safeArray<InsightParent>(recovered.parents).map(parent => (
-    rebuildParentTreeForRecovery(parent, storiesById, recoveryConfig)
+    rebuildParentTreeForRecovery(parent, storiesById, recoveryConfig, rejected, eligibleIds, preHidden, cfg)
   ));
 
-  recovered.parents.sort((a: InsightParent, b: InsightParent) => {
-    return comparePostTreeParentQuality(a, b, storiesById, recoveryConfig);
-  });
-
-  recovered.parents = recovered.parents.slice(0, recoveryConfig.TOP_PARENTS);
+  recovered.parents = recovered.parents.filter(parent => parent.clusterStoryIds.length > 0);
+  // Recompute weak flags against the original contract after relaxed selection.
+  for (const parent of recovered.parents) {
+    const children = parent.childStoryIds.map(id => storiesById.get(id)).filter(Boolean) as InsightStory[];
+    parent.weakTree = isWeakTree(children, cfg);
+    computePostTreeQualityScore(parent, storiesById, cfg);
+  }
+  recovered.parents.sort((a: InsightParent, b: InsightParent) => comparePostTreeParentQuality(a,b,storiesById,cfg));
+  recovered.parents = recovered.parents.slice(0, cfg.TOP_PARENTS);
   recovered.storiesById = storiesById;
 
   const repairedRecovered = repairInsightResult(recovered);
-  const afterDiagnostics = getInsightCoreQualityDiagnostics(repairedRecovered, source, recoveryConfig);
+  // Relax selection only, not the quality contract against which it is judged.
+  const afterDiagnostics = getInsightCoreQualityDiagnostics(repairedRecovered, source, cfg);
   const recoveredOk = isInsightQualityAcceptable(afterDiagnostics);
 
   const runtimeQualityGate = {

@@ -201,7 +201,9 @@ function getInsightSourceLabel(source) {
   if (source === 'dataset') return 'Dataset';
   if (source === 'unavailable') return 'Unavailable';
   if (source === 'failed') return 'Failed';
-  return 'Live';
+  if (source === 'live') return 'Live';
+  if (source === 'live-sections') return 'Snapshot (Sections)';
+  return 'Unknown';
 }
 
 function formatInsightAge(timestamp) {
@@ -426,7 +428,7 @@ export function useInsightTabViewModel() {
   const [result, setResult] = useState(null);
   const [pendingResult, setPendingResult] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [source, setSource] = useState('live');
+  const [source, setSource] = useState('unknown');
   const [pipelineError, setPipelineError] = useState(null);
 
   const datasetResult = useMemo(
@@ -440,8 +442,10 @@ export function useInsightTabViewModel() {
 
   const resultToRender = renderableDatasetResult || result;
 
+  // The envelope source is a coarse transport family. Preserve the winning
+  // fetcher's more specific source (including stale-snapshot) for the visible UI.
   const effectiveSource = renderableDatasetResult
-    ? (datasetEnvelope?.source || 'dataset')
+    ? (datasetEnvelope?.data?.source || datasetEnvelope?.source || 'unknown')
     : source;
 
   const emptyReason = getInsightEmptyStateMessage(resultToRender, effectiveSource);
@@ -585,9 +589,9 @@ export function useInsightTabViewModel() {
     if (!renderableDatasetResult) return;
 
     setResult(renderableDatasetResult);
-    setSource(datasetEnvelope?.source || 'dataset');
+    setSource(datasetEnvelope?.data?.source || datasetEnvelope?.source || 'unknown');
     setLoading(false);
-  }, [datasetEnvelope?.source, renderableDatasetResult]);
+  }, [datasetEnvelope?.source, datasetEnvelope?.data?.source, renderableDatasetResult]);
 
   useEffect(() => {
     const timer = setInterval(() => {

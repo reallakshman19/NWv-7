@@ -9,7 +9,9 @@ import {
   withInFlightCleanup,
 } from './fetchLifecycleDiagnostics.js';
 import {
+  SECTION_ITEM_MAX_AGE_MS,
   SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS,
+  SECTION_SNAPSHOT_MAX_AGE_MS,
   SECTION_SNAPSHOT_RETRY_BACKOFF_MS,
   selectPrefetchedSectionItems,
 } from '../adapters/sectionsSnapshotFetcher.js';
@@ -52,19 +54,29 @@ async function testCleanupOnFailure() {
 }
 
 function testStaleFallbackKeepsRows() {
-  const old = Date.now() - 72 * 60 * 60 * 1000;
+  const now = Date.now();
+  const hour = 60 * 60 * 1000;
+  const stale = now - SECTION_SNAPSHOT_MAX_AGE_MS - hour;
+  const expired = now - SECTION_ITEM_MAX_AGE_MS - hour;
   const snapshot = {
     schemaVersion: 2,
-    fetchedAt: old,
+    fetchedAt: stale,
     sections: {
-      india: [{ title: 'Old but usable', id: 'a', publishedAt: old }],
+      india: [
+        { title: 'Old but usable', id: 'a', url: 'https://example.org/retained', publishedAt: stale },
+        { title: 'Expired', id: 'b', url: 'https://example.org/expired', publishedAt: expired },
+      ],
     },
     sectionQuality: { india: { status: 'stale' } },
   };
   const result = selectPrefetchedSectionItems(snapshot, 'india', 5);
-  assert.equal(result.items.length, 1);
+  assert.deepEqual(result.items.map(item => item.id), ['a']);
   assert.equal(result.stale, true);
   assert.equal(result.staleReason, 'sections_snapshot_stale');
+
+  const expiredResult = selectPrefetchedSectionItems({ ...snapshot, fetchedAt: expired }, 'india', 5);
+  assert.deepEqual(expiredResult.items, []);
+  assert.equal(expiredResult.staleReason, 'snapshot_outside_retained_window');
 }
 
 function testDiagnostics() {
@@ -108,10 +120,13 @@ function testSectionsDatasetCanonicalPath() {
   assert.doesNotMatch(src, /rssSectionLifecycleFetcher/);
 }
 
-function testDirectCallersUseCanonicalAggregator() {
+function testNewsConsumersUseCanonicalLifecycle() {
   const newsContext = readRepoFile('src/context/NewsContext.jsx');
+  const sectionsDataset = readRepoFile('src/data/datasets/sectionsDataset.js');
   const virtualPaper = readRepoFile('src/services/virtualPaperService.js');
-  assert.match(newsContext, /from '..\/services\/rssAggregator'/);
+  assert.match(newsContext, /import \{ load as loadSectionsDataset \} from '..\/data\/datasets\/sectionsDataset\.js'/);
+  assert.match(newsContext, /loadSectionsDataset\(\{/);
+  assert.match(sectionsDataset, /await fetchSectionNews\(/);
   assert.match(virtualPaper, /from '.\/rssAggregator'/);
 }
 
@@ -127,7 +142,7 @@ function testNoLifecycleFetcherReferencesRemain() {
 function testForegroundSnapshotBudgetIsBounded() {
   assert.equal(SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS, 1500);
   assert.ok(SECTION_SNAPSHOT_RETRY_BACKOFF_MS.reduce((sum, ms) => sum + ms, 0) < SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS);
-  const src = readRepoFile('src/adapters/sectionsSnapshotFetcher.js');
+  const src = readRepoFile('src/adapters/sectionsSnapshotLoader.js');
   assert.match(src, /budgetMs = SECTION_SNAPSHOT_FOREGROUND_BUDGET_MS/);
   assert.match(src, /AbortController/);
   assert.match(src, /snapshot-budget-exceeded/);
@@ -235,7 +250,7 @@ testStaleFallbackKeepsRows();
 testDiagnostics();
 testAggregatorPostMarkerCleanupWrapper();
 testSectionsDatasetCanonicalPath();
-testDirectCallersUseCanonicalAggregator();
+testNewsConsumersUseCanonicalLifecycle();
 testNoLifecycleFetcherReferencesRemain();
 testForegroundSnapshotBudgetIsBounded();
 testLiveRssProxyBudgetIsBounded();

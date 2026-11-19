@@ -3,7 +3,7 @@ import { useSettings } from '../context/SettingsContext';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities';
 
 export function useSettingsPageViewModel() {
-  const { settings, updateSettings, reloadSettings } = useSettings();
+  const { settings, updateSettings, reloadSettings, settingsError } = useSettings();
   const runtime = getRuntimeCapabilities();
 
   const getBackupData = useCallback(() => ({
@@ -14,18 +14,17 @@ export function useSettingsPageViewModel() {
   }), [settings]);
 
   const applyImport = useCallback((imported) => {
+    if (!updateSettings(imported?.settings ?? imported)) return false;
     if (imported.settings) {
-      updateSettings(imported.settings);
       if (imported.hiddenEvents) localStorage.setItem('upAhead_hiddenEvents', JSON.stringify(imported.hiddenEvents));
       if (imported.watchlist) localStorage.setItem('upAhead_watchlist', JSON.stringify(imported.watchlist));
-    } else {
-      updateSettings(imported);
     }
-    reloadSettings();
-  }, [updateSettings, reloadSettings]);
+    return true;
+  }, [updateSettings]);
 
   return {
     settings,
+    settingsError,
     updateSettings,
     reloadSettings,
     isStaticHost: Boolean(runtime.isStaticHost),

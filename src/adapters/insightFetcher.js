@@ -3,6 +3,8 @@ import { fetchStoriesForSlot as fetchRawStoriesForSlot } from './newsFetcher.js'
 import { getEmbeddings } from './embeddingsAdapter.js';
 import { extractEntities, extractVerbs, extractNumbers, extractKeywords } from './nlpAdapter.js';
 import { loadInsightSnapshot, createSnapshotRawFetcher } from './insightSnapshotFetcher.js';
+import { isValidSnapshotStory } from './insightSnapshotIntake.js';
+import INSIGHT_POLICY from '../../config/insight_policy.json';
 import { getInsightSnapshotSignals } from './insightSnapshotSignalAdapter.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 import { isLiveMode } from '../utils/fetchMode.js';
@@ -14,6 +16,7 @@ import {
 async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, referenceTime = undefined) {
   if (!Array.isArray(rawStories) || rawStories.length === 0) return [];
 
+  const observedAt = referenceTime ?? Date.now();
   const validRawStories = rawStories
     .map((story) => ({
       ...story,
@@ -22,7 +25,7 @@ async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, refer
       summary: story?.summary || story?.description || '',
       url: story?.url || story?.link || '',
     }))
-    .filter((story) => story.title && story.url && Number.isFinite(story.publishedAt) && story.publishedAt > 0);
+    .filter((story) => story.title && story.url && isValidSnapshotStory(story) && story.publishedAt <= observedAt && observedAt - story.publishedAt <= (INSIGHT_POLICY.staleMaxAgeHours || 48) * 3_600_000);
 
   if (validRawStories.length === 0) return [];
 
@@ -76,7 +79,7 @@ async function normalizeRawStories(rawStories, slot, cfg = DEFAULT_CONFIG, refer
         keywords,
         verbs,
         numbers,
-        referenceTime,
+        observedAt,
       );
     } catch (error) {
       console.warn(`[InsightFetcher] Skipping story during normalization (${raw?.id || raw?.url || 'unknown'}):`, error?.message || error);
@@ -94,12 +97,18 @@ export async function slotFetcher(slot) {
 
 function createNormalizedSnapshotFetcher(snapshot, cfg = DEFAULT_CONFIG) {
   const rawFetcher = createSnapshotRawFetcher(snapshot);
-  return async (slot) => normalizeRawStories(await rawFetcher(slot), slot, cfg, snapshot.fetchedAt);
+  return async (slot) => {
+    const rows = await rawFetcher(slot);
+    return normalizeRawStories(rows, slot, cfg, rows[0]?._snapshotObservedAt ?? Date.now());
+  };
 }
 
 function createNormalizedSectionsAuthorityFetcher(snapshot, cfg = DEFAULT_CONFIG) {
   const rawFetcher = createSectionsAuthorityInsightRawFetcher(snapshot);
-  return async (slot) => normalizeRawStories(await rawFetcher(slot), slot, cfg, snapshot.fetchedAt);
+  return async (slot) => {
+    const rows = await rawFetcher(slot);
+    return normalizeRawStories(rows, slot, cfg, rows[0]?._snapshotObservedAt ?? Date.now());
+  };
 }
 
 export { runInsightPipeline, applyIncrementalUpdate, DEFAULT_CONFIG };
@@ -178,18 +187,22 @@ function withSnapshotFallback(primary, fallback, minPerSlot = MIN_LIVE_PER_SLOT)
  * @returns {Promise<{ fetcher: Function, source: string, snapshotTs: number, contentHash: string }>}
  */
 export async function createInsightFetcher() {
-  const { preferSnapshots } = getRuntimeCapabilities();
+  const { preferSnapshots, browserWideFeedFetchAllowed } = getRuntimeCapabilities();
+  const snapshotOnly = preferSnapshots || browserWideFeedFetchAllowed === false;
   const liveMode = isLiveMode();
   let fresh = liveMode ? null : await loadInsightSnapshot({ allowStale: false });
 
-  if (!fresh?.stories.length && (!liveMode || preferSnapshots)) {
+  if (!fresh?.stories.length && (!liveMode || snapshotOnly)) {
     const authorityFallback = await loadSectionsAuthorityInsightFallback({ force: liveMode });
 
     if (authorityFallback) {
       const { snapshot, runtimeSummary } = authorityFallback;
       return {
-        fetcher: createNormalizedSectionsAuthorityFetcher(snapshot, DEFAULT_CONFIG),
-        source: liveMode ? 'live-sections' : 'snapshot',
+        // The Sections epoch passed its acquisition freshness checks. Article
+        // age determines Insight's slots, including the normal 24–36h slot.
+        fetcher: createNormalizedSectionsAuthorityFetcher(snapshot),
+        source: 'snapshot',
+        requestedMode: liveMode ? 'live' : 'hybrid',
         snapshotTs: snapshot.fetchedAt,
         contentHash: snapshot.contentHash || '',
         sectionsRuntimeSummary: runtimeSummary,
@@ -212,7 +225,7 @@ export async function createInsightFetcher() {
     };
   }
 
-  if (preferSnapshots) {
+  if (snapshotOnly) {
     const stale = await loadInsightSnapshot({ allowStale: true });
     const staleAgeMs = stale ? Date.now() - Number(stale.fetchedAt || 0) : Infinity;
     if (stale && staleAgeMs <= MAX_STALE_SNAPSHOT_AGE_MS) {
@@ -232,8 +245,11 @@ export async function createInsightFetcher() {
       console.warn(`[InsightFetcher] Stale snapshot too old (${Math.round(staleAgeMs / 3_600_000)}h) — not serving it`);
     }
 
-    // No usable snapshot — best-effort live as a last resort (proxies may work even on
-    // static hosts). Guarded to this branch only, so it never floods on the happy path.
+    // A static runtime may not fan out to browser RSS/proxies.
+    if (browserWideFeedFetchAllowed === false) {
+      return { fetcher: async () => [], source: 'unavailable', snapshotTs: null, contentHash: '' };
+    }
+    // Explicitly allowed wide-feed hosts retain the legacy last-resort live path.
     return {
       fetcher:     slotFetcher,
       source:      'live',

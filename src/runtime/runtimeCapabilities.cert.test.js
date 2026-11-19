@@ -63,6 +63,8 @@ describe('NW-DP-002 runtime capability split', () => {
     expect(caps.browserWideFeedFetchAllowed).toBe(false);
     expect(caps.allowWideFeedFetch).toBe(false);
     expect(caps.runtimeKind).toBe('static-with-dataset-api');
+    expect(caps.allowRemoteSettingsSync).toBe(false);
+    expect(caps.featureStatus.settings).toBe('local-only');
   });
 
   it('classifies Netlify with API as static-with-dataset-api', () => {
@@ -94,6 +96,7 @@ describe('NW-DP-002 runtime capability split', () => {
     expect(caps.browserWideFeedFetchAllowed).toBe(true);
     expect(caps.allowWideFeedFetch).toBe(true);
     expect(caps.runtimeKind).toBe('browser-runtime');
+    expect(caps.allowRemoteSettingsSync).toBe(true);
   });
 
   it('lets snapshot override win on static host even when API is configured', () => {

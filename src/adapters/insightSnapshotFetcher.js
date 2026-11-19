@@ -13,7 +13,7 @@
  *  - Stale snapshot is used as-is (no live fallback on static host).
  */
 
-import { getSnapshotIntakeSummary, selectSnapshotStoriesForSlot } from './insightSnapshotIntake.js';
+import { getSnapshotIntakeSummary, selectSnapshotStoriesForSlot, getSnapshotPoolHealth } from './insightSnapshotIntake.js';
 import {
   enrichRawStoryWithSnapshotSignals,
   getInsightSnapshotRuntimeSummary,
@@ -43,14 +43,23 @@ export async function loadInsightSnapshot({ allowStale = false } = {}) {
     const snapshot = await res.json();
     if (!isSupportedInsightSnapshotSchema(snapshot)) return null;
     if (!Array.isArray(snapshot?.stories)) return null;
-    // INS-3 fix: use story-based freshness — fresh if EITHER the file OR the newest story is recent
+    // Transport age is not editorial age. Reject malformed/future artifacts and
+    // calculate editorial freshness from usable publication evidence only.
     const nowMs = Date.now();
-    const fileAge = nowMs - Number(snapshot.fetchedAt || 0);
-    const newestStoryTs = Math.max(0, ...(snapshot.stories || []).map(s => Number(s.publishedAt || 0)));
-    const storyAge = newestStoryTs > 0 ? nowMs - newestStoryTs : fileAge;
-    const effectiveAge = Math.min(fileAge, storyAge);
-    if (!allowStale && effectiveAge > FRESH_MAX_AGE_MS) return null;
-    snapshot.freshnessMs = effectiveAge;
+    const fetchedAt = Number(snapshot.fetchedAt);
+    if (!Number.isFinite(fetchedAt) || fetchedAt <= 0 || fetchedAt > nowMs + 5 * 60_000) return null;
+    const fileAge = Math.max(0, nowMs - fetchedAt);
+    const health = getSnapshotPoolHealth(snapshot, nowMs);
+    const eligible = Object.entries(health.bySlot).filter(([slot]) => slot !== 'future').flatMap(([, rows]) => rows);
+    const newestStoryTs = eligible.reduce((latest, row) => Math.max(latest, row.publishedAt), 0);
+    if (!newestStoryTs) return null;
+    const storyAge = nowMs - newestStoryTs;
+    const staleLimit = (INSIGHT_POLICY.staleMaxAgeHours || 48) * H;
+    if (fileAge > staleLimit || storyAge > staleLimit) return null;
+    if (!allowStale && storyAge > FRESH_MAX_AGE_MS) return null;
+    snapshot.freshnessMs = storyAge;
+    snapshot.artifactAgeMs = fileAge;
+    snapshot.heartbeatStale = fileAge > (INSIGHT_POLICY.heartbeatMaxAgeHours || 3) * H;
     const pool = (snapshot?.stories ?? []).map((story, index) => (
       enrichRawStoryWithSnapshotSignals({
         ...story,
@@ -77,19 +86,11 @@ export async function loadInsightSnapshot({ allowStale = false } = {}) {
  * @returns {(slot: string) => Promise<object[]>}
  */
 export function createSnapshotRawFetcher(snapshot) {
-  // Use the snapshot's own fetch time as the reference clock so that slot
-  // assignment (now / minus4h / minus12h / minus24h) is stable regardless of
-  // how much time has elapsed since the snapshot was generated.  Without this,
-  // a snapshot fetched at 3 pm would have all its stories classified as "older"
-  // by midnight the same day, producing 0 usable stories even though the data
-  // is perfectly valid.
-  const referenceMs = Number(snapshot.fetchedAt || 0) || Date.now();
-  const intakeSummary = getSnapshotIntakeSummary(snapshot, {
-    minStoriesPerSlot: 12,
-    nowMs: referenceMs,
-  });
-
   return async (slot) => {
+    const referenceMs = Date.now();
+    const intakeSummary = getSnapshotIntakeSummary(snapshot, {
+      minStoriesPerSlot: 12, nowMs: referenceMs,
+    });
     const selected = selectSnapshotStoriesForSlot(snapshot, slot, {
       minStoriesPerSlot: 12,
       nowMs: referenceMs,
@@ -98,6 +99,7 @@ export function createSnapshotRawFetcher(snapshot) {
     return selected.map(story => ({
       ...story,
       _snapshotIntakeSummary: intakeSummary,
+      _snapshotObservedAt: referenceMs,
     }));
   };
 }

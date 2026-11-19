@@ -15,6 +15,7 @@ from urllib.parse import urlsplit
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+from sections_news_identity import section_story_id
 import feedparser
 import requests
 from prefetch_common import (
@@ -180,6 +181,10 @@ def fetch_section(section: str, feeds: list, ts: int) -> tuple[list, dict]:
                     source_group,
                     allow_fetch_time_fallback=False,
                 )
+                legacy_id = item.get('id')
+                item['id'] = section_story_id(item)
+                if legacy_id and item['id'] != legacy_id:
+                    item['legacyId'] = legacy_id
                 if not is_suppressed(item, 'any'):
                     feed_items.append(item)
 

@@ -1,7 +1,7 @@
 import calendar
 import time
 import pytest
-from daily_brief import build_publication, qualify_entries
+from daily_brief import build_publication, qualify_entries, collect_publication
 
 NOW = calendar.timegm(time.strptime('2026-11-16', '%Y-%m-%d'))
 
@@ -40,3 +40,21 @@ def test_partial_source_failure_is_explicit_and_never_relabelled():
     assert result['sources']['DAILY_THANTHI'] == []
     assert result['sourceStatus']['DAILY_THANTHI']['currentCount'] == 0
     assert result['lastUpdated'].endswith('+00:00')
+
+
+@pytest.mark.parametrize('direct_available', [True, False])
+def test_publisher_recovery_runs_only_when_its_direct_feeds_have_no_qualified_articles(direct_available):
+    calls = []
+    def fetcher(task, now):
+        key, domain, page, url = task
+        calls.append(url)
+        is_discovery = 'news.google.com' in url
+        rows = qualify_entries([entry(link='https://' + domain + '/current-story')], domain, now)
+        if key == 'INDIAN_EXPRESS' and not direct_available and not is_discovery:
+            rows = []
+        return {'sourceId': key, 'page': page, 'url': url, 'ok': bool(rows), 'articles': rows, 'currentCount': len(rows)}
+    result = collect_publication(NOW, fetcher)
+    recovery = [url for url in calls if 'site:indianexpress.com' in url]
+    assert len(recovery) == (0 if direct_available else 1)
+    assert result['sourceStatus']['INDIAN_EXPRESS']['currentCount'] == 1
+    assert result['sources']['INDIAN_EXPRESS'][0]['articles'][0]['publishedAt'] == (NOW - 3600) * 1000

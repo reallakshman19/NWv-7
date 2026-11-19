@@ -3,14 +3,16 @@ name: UpAhead Refresh
 on:
   workflow_dispatch:
   schedule:
-    # Five bounded runs daily: 04:00/10:00/14:00/18:00/20:00 India time.
-    - cron: '30 4,8,12,14,22 * * *'
+    # Eight bounded public-source runs daily, aligned with three-hour bulletins.
+    # Runs on GitHub; no paid Cloudflare acquisition/browser services.
+    - cron: '15 */3 * * *'
   pull_request:
     branches: [main]
     paths:
       - '.github/workflows/upahead_refresh.yml'
       - 'scripts/*upahead*'
       - 'scripts/fetch_festivals.py'
+      - 'src/config/upAheadLocalSources.json'
 
 permissions:
   contents: read
@@ -31,9 +33,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install bounded publisher dependencies
-        run: python -m pip install --disable-pip-version-check requests feedparser pytest
+        run: python -m pip install --disable-pip-version-check requests feedparser pypdf pytest
       - name: Check stale, expired, date-range and rolling-merge regressions
-        run: python -m pytest scripts/test_upahead_recovery.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_acquisition.py -q
+        run: python -m pytest scripts/test_upahead_recovery.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_acquisition.py scripts/test_upahead_local_collectors.py -q
 
   refresh:
     name: Publish qualified rolling Up Ahead snapshot
@@ -52,7 +54,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install collector dependencies
-        run: python -m pip install --disable-pip-version-check requests feedparser
+        run: python -m pip install --disable-pip-version-check requests feedparser pypdf
       - name: Acquire seven days of source-dated entries and retain active occurrences
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}

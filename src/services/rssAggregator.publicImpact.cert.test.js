@@ -18,7 +18,8 @@ vi.mock('../utils/storage.js', async importOriginal => ({
     getViewCount: () => 0,
 }));
 
-import { clearNewsCache, fetchSectionNews } from './rssAggregator.js';
+import { clearNewsCache, fetchAndParseFeed, fetchSectionNews, filterEligibleSectionItems } from './rssAggregator.js';
+import { proxyManager } from './proxyManager.js';
 
 const NOW = Date.parse('2026-11-14T17:01:00Z');
 const item = (id, title, section, ageHours = 1, description = '') => ({
@@ -41,7 +42,7 @@ describe('public-impact ranking on the served section paths', () => {
         readSnapshot.mockReset();
         clearNewsCache();
     });
-    afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+    afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
     it('ranks snapshot candidates before the visible limit and retains reasoning on memory-cache reads', async () => {
         readSnapshot.mockResolvedValue({
@@ -78,5 +79,46 @@ describe('public-impact ranking on the served section paths', () => {
         const ranked = await fetchSectionNews('chennai', 3);
         expect(new Set(ranked.map(row => row.id))).toEqual(new Set(['rain', 'policy', 'drain']));
         expect(ranked.every(row => row._publicImpact.priority >= 2)).toBe(true);
+    });
+
+    it('keeps snapshot epoch and source age on a warm read and retains unseen candidates', async () => {
+        const summary = {
+            contentHash: 'fixed-epoch', fetchedAt: NOW - 12 * 3_600_000 + 60_000,
+            stale: false, dataSource: { effective: 'cloudflare_preview' },
+        };
+        readSnapshot.mockResolvedValue({
+            stale: false, sourceSection: 'india', summary,
+            items: [
+                item('policy', 'Supreme Court orders national pension reforms', 'india'),
+                item('trade', 'India-US trade deal negotiations near finishing line', 'india'),
+            ],
+        });
+        await fetchSectionNews('india', 1);
+        vi.setSystemTime(NOW + 120_000);
+        const cached = await fetchSectionNews('india', 4);
+        expect(cached).toHaveLength(2);
+        expect(cached.prefetched).toBe(true);
+        expect(cached.snapshotRuntimeSummary.contentHash).toBe('fixed-epoch');
+        expect(cached.snapshotRuntimeSummary.dataSource.effective).toBe('cloudflare_preview');
+        expect(cached.snapshotRuntimeSummary.stale).toBe(true);
+        expect(cached.staleReason).toBe('snapshot-age');
+        expect(readSnapshot).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps missing publication dates missing on actual feed normalization and rejects invalid dates', async () => {
+        vi.spyOn(proxyManager, 'fetchViaProxy').mockResolvedValue({
+            title: 'BBC',
+            items: [
+                { title: 'Published report', link: 'https://bbc.com/a', pubDate: new Date(NOW - 60_000).toISOString() },
+                { title: 'Undated report', link: 'https://bbc.com/b' },
+                { title: 'Invalid report', link: 'https://bbc.com/c', pubDate: 'not-a-date' },
+                { title: 'Future report', link: 'https://bbc.com/d', pubDate: new Date(NOW + 86_400_000).toISOString() },
+            ],
+        });
+        const rows = await fetchAndParseFeed('https://bbc.com/rss', 'world');
+        expect(rows[1].publishedAt).toBeNull();
+        expect(rows[2].publishedAtSource).toBe('missing');
+        expect(filterEligibleSectionItems(rows, 'world', settings, null, NOW).map(row => row.url))
+            .toEqual(['https://bbc.com/a']);
     });
 });

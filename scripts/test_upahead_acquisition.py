@@ -21,7 +21,8 @@ class AcquisitionRecovery(unittest.TestCase):
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0]['publishedAt'], timegm(entry['published_parsed']) * 1000)
         self.assertEqual(items[0]['eventEndAt'] - items[0]['eventStartAt'], 3 * DAY_MS)
-        self.assertEqual(items[0]['expiryAt'], items[0]['eventEndAt'])
+        # The day keys stay UTC carriers. Expiry is midnight in Chennai.
+        self.assertEqual(items[0]['expiryAt'], items[0]['eventEndAt'] - int(5.5 * 3_600_000))
         self.assertEqual(collector.acquisition_summary(health, NOW)['byCategory']['events']['successfulSources'], 1)
 
     def test_old_missing_and_future_publication_times_are_not_invented(self):

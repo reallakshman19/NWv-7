@@ -64,17 +64,51 @@ describe('NW-RANK-SRC-001 canonical publisher-family identity', () => {
     expect(signals.independentEvidenceCount).toBe(0);
   });
 
-  it('retains genuinely independent publisher evidence', () => {
+  it('retains independent, distinctly dated publisher rows from genuine origins', () => {
     const story = {
       source: 'TOI',
       sourceGroup: 'toi',
-      allSources: ['Times of India', 'Reuters'],
-      sourceCount: 2,
+      url: 'https://timesofindia.indiatimes.com/india/shelter-closures',
       publishedAt: NOW - (5 * 60 * 60 * 1000),
     };
-    const signals = extractTopStorySignals(story, context());
+    const other = {
+      source: 'Reuters',
+      url: 'https://www.reuters.com/world/evacuation-closures',
+      publishedAt: NOW - (4 * 60 * 60 * 1000),
+    };
+    const signals = extractTopStorySignals({ ...story, newsEvidenceRows: [story, other] }, context());
     expect(signals.sourceCount).toBe(2);
     expect(signals.independentEvidenceCount).toBe(1);
+  });
+
+  it('requires a publisher domain boundary for evidence and source-quality credit', () => {
+    const reutersLookalike = {
+      id: 'reuters-lookalike', source: 'Reuters', url: 'https://reuters.example.test/news',
+      publishedAt: NOW - 60_000,
+    };
+    const bbcLookalike = {
+      id: 'bbc-lookalike', source: 'BBC News', url: 'https://bbc.co.uk.example.test/news',
+      publishedAt: NOW - 60_000,
+    };
+
+    expect(getStorySourceFamily(reutersLookalike)).toBe('unknown');
+    expect(getStorySourceFamily(bbcLookalike)).toBe('unknown');
+    expect(getStorySourceFamily({ source: 'Reuters', canonicalUrl: reutersLookalike.url })).toBe('unknown');
+    expect(getSourceQualityScore(reutersLookalike)).toBe(0.48);
+    const signals = extractTopStorySignals({
+      ...reutersLookalike, newsEvidenceRows: [reutersLookalike, bbcLookalike],
+    }, context());
+    expect(signals.independentEvidenceCount).toBe(0);
+
+    expect(getStorySourceFamily({ source: 'Unknown', url: 'https://feeds.reuters.com/world' })).toBe('reuters');
+    expect(getStorySourceFamily({ source: 'Unknown', url: 'https://www.bbc.co.uk/news' })).toBe('bbc');
+    expect(getStorySourceFamily({
+      source: 'Google News', url: 'https://news.google.com/rss/articles/opaque',
+      title: 'An article - Reuters',
+    })).toBe('google_news');
+    expect(getStorySourceFamily({
+      source: 'Google News', url: 'https://news.google.com/rss?url=https%3A%2F%2Fwww.bbc.co.uk%2Fnews',
+    })).toBe('bbc');
   });
 
   it('resolves existing source-quality tiers across source-group forms', () => {

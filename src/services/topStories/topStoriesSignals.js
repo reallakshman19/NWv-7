@@ -1,4 +1,6 @@
 import { isBreakingStory } from '../breakingNewsService.js';
+import { newsIdentityKey } from '../newsStoryIdentity.js';
+import { independentPublisherFamilies, clusterPublisherFamilies, expandNewsEvidenceRows } from '../newsClusterEvidence.js';
 import { HOURS_MS, clampScore } from './topStoriesPolicy.js';
 import { buildTopFeedSnapshotSignalMap, getTopFeedIdentity } from './topStoriesTopFeedSignals.js';
 import {
@@ -6,7 +8,6 @@ import {
   getLocationRelevanceSignal,
 } from './topStoriesLocationSignals.js';
 import {
-  getStorySourceFamilies,
   getStorySourceFamily,
   isAggregatorSourceFamily,
 } from './topStoriesSourceIdentity.js';
@@ -14,7 +15,7 @@ import {
 export { getLocationRelevanceScore, getLocationRelevanceSignal };
 
 const LOW_TS = new Set(['low', 'fallback', 'unknown']);
-const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback']);
+const FALLBACK_SOURCES = new Set(['fetch_time_fallback', 'fetchedat', 'fetch_fallback', 'missing', 'invalid', 'unknown', 'updated_parsed']);
 const TOP_TIER_SOURCE_FAMILIES = new Set([
   'reuters',
   'associated_press',
@@ -42,35 +43,13 @@ function toTimestamp(value) {
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-function uniqueSources(story = {}) {
-  return getStorySourceFamilies(story);
-}
-
-function declaredSourceCount(story = {}) {
-  return Math.max(0, Number(story.sourceCount || 0));
-}
-
 function isAggregatorSource(story = {}) {
   return isAggregatorSourceFamily(getStorySourceFamily(story));
 }
 
 function getTopFeedSignal(story = {}, context = {}) {
-  const map = context.topFeedSignalMap || new Map();
-  const keys = [
-    story.id,
-    story.canonicalId,
-    story.url,
-    story.link,
-    story.title,
-    getTopFeedIdentity(story),
-    textValue(story.url || story.link),
-    textValue(story.title),
-  ].filter(Boolean);
-  for (const key of keys) {
-    const signal = map.get(String(key)) || map.get(textValue(key));
-    if (signal) return signal;
-  }
-  return {};
+  const map=context.topFeedSignalMap || new Map();
+  return map.get(getTopFeedIdentity(story)) || {};
 }
 
 function pickTopFeedSignals(signal = {}) {
@@ -95,38 +74,40 @@ function looksLikeFetchTimeFallback(story = {}) {
   return Math.abs(publishedAt - fetchedAt) <= 30_000;
 }
 
-export function getTimestampConfidence(story = {}) {
+export function getTimestampConfidence(story = {}, nowMs = Date.now()) {
+  const timestampMs = toTimestamp(story.publishedAt);
+  if (timestampMs <= 0 || timestampMs > nowMs + 5 * 60_000) return 'low';
   const raw = textValue(story.timestampConfidence || story.publishedAtConfidence);
   const source = textValue(story.publishedAtSource || story.timestampSource);
   if (LOW_TS.has(raw) || FALLBACK_SOURCES.has(source)) return 'low';
   if (looksLikeFetchTimeFallback(story) && !raw && !source) return 'low';
-  return toTimestamp(story.publishedAt || story.updatedAt) ? (raw || 'high') : 'low';
+  return toTimestamp(story.publishedAt) ? (raw || 'high') : 'low';
 }
 
 export function getAgeHours(story = {}, nowMs = Date.now()) {
-  const timestampMs = toTimestamp(story.publishedAt || story.updatedAt);
-  if (!timestampMs) return Infinity;
+  const timestampMs = toTimestamp(story.publishedAt);
+  if (timestampMs <= 0 || timestampMs > nowMs + 5 * 60_000) return Infinity;
   return Math.max(0, (nowMs - timestampMs) / HOURS_MS);
+}
+
+export function isTopStoryTimeEligible(story, nowMs, policy) {
+  return getTimestampConfidence(story, nowMs) !== 'low' &&
+    getAgeHours(story, nowMs) <= policy.fallbackWindowHours;
 }
 
 export function hasFreshLiveEvidence(story = {}, context = {}) {
   const nowMs = context.nowMs ?? Date.now();
   const updateMs = toTimestamp(story.updatedAt || story.lastUpdatedAt || story.liveUpdatedAt);
-  const topFeed = getTopFeedSignal(story, context);
-  if (Number(topFeed.topFeedConsensusScore || 0) > 0) return true;
+  if (context.policy && getCorroborationParts(story,context,context.policy).independentEvidenceCount > 0) return true;
   if (!updateMs) return getAgeHours(story, nowMs) <= 2;
-  return ((nowMs - updateMs) / HOURS_MS) <= 2;
+  return updateMs <= nowMs + 5 * 60_000 && ((nowMs - updateMs) / HOURS_MS) <= 2;
 }
 
 export function buildTopFeedSignalMap(topFeedItems = []) {
   return buildTopFeedSnapshotSignalMap(topFeedItems);
 }
 
-export function getClusterKey(story = {}) {
-  const explicit = story.clusterId || story.canonicalId || story.id || story.url || story.link;
-  if (explicit) return String(explicit);
-  return textValue(story.title || story.headline).replace(/[^a-z0-9]+/g, ' ').trim();
-}
+export function getClusterKey(story = {}) { return String(story.clusterId || newsIdentityKey(story)); }
 
 export function getSourceQualityScore(story = {}) {
   const family = getStorySourceFamily(story);
@@ -140,30 +121,20 @@ export function getFreshnessScore(ageHours, policy) {
   return clampScore(1 - (ageHours / policy.fallbackWindowHours));
 }
 
-function getSourceCount(story = {}) {
-  const canonicalCount = uniqueSources(story).length;
-  if (Array.isArray(story.allSources) && story.allSources.length > 0) {
-    return Math.max(canonicalCount, 1);
-  }
-  return Math.max(canonicalCount, declaredSourceCount(story), 1);
-}
-
-function getCorroborationParts(story = {}, context = {}, policy) {
-  const sourceCount = getSourceCount(story);
-  const corroboratingSources = Math.max(0, sourceCount - 1);
-  const clusteredItems = Math.max(1, Number(story.clusteredItems || 1));
-  const extraClusterEvidence = sourceCount > 1
-    ? Math.max(0, clusteredItems - sourceCount) * policy.consensus.clusterWeight
-    : 0;
-  const topFeed = getTopFeedSignal(story, context);
-  const topFeedCorroboration = Number(topFeed.topFeedCorroborationHits || 0) * policy.consensus.topFeedWeight;
-  return {
-    sourceCount,
-    corroboratingSources,
-    extraClusterEvidence,
-    topFeedCorroboration,
-    independentEvidenceCount: corroboratingSources + Number(topFeed.topFeedCorroborationHits || 0),
-  };
+export function getCorroborationParts(story = {}, context = {}, policy) {
+  const nowMs=context.nowMs ?? Date.now();
+  const rows=expandNewsEvidenceRows([story]).filter(row=>isTopStoryTimeEligible(row,nowMs,policy));
+  const named=independentPublisherFamilies(clusterPublisherFamilies(rows));
+  const topFeed=getTopFeedSignal(story,context);
+  const feedRows=(topFeed.topFeedEvidenceRows || []).filter(row=>isTopStoryTimeEligible(row,nowMs,policy));
+  const union=independentPublisherFamilies(clusterPublisherFamilies([...rows,...feedRows]));
+  const corroboratingSources=Math.max(0,named.length-1);
+  const total=Math.max(0,union.length-1);
+  // Each family contributes once across all lanes; repetition is not additional corroboration.
+  const additional=Math.max(0,total-corroboratingSources);
+  return {sourceCount:Math.max(1,union.length),corroboratingSources,extraClusterEvidence:0,
+    topFeedCorroboration:additional*policy.consensus.topFeedWeight,
+    independentEvidenceCount:total, allSources:union.length?union:clusterPublisherFamilies(rows)};
 }
 
 export function getConsensusScore(story = {}, context = {}, policy) {
@@ -177,7 +148,7 @@ export function extractTopStorySignals(story = {}, context = {}) {
   const policy = context.policy;
   const nowMs = context.nowMs ?? Date.now();
   const ageHours = getAgeHours(story, nowMs);
-  const timestampConfidence = getTimestampConfidence(story);
+  const timestampConfidence = getTimestampConfidence(story, nowMs);
   const topFeed = pickTopFeedSignals(getTopFeedSignal(story, context));
   const isLiveLike = /\b(live|updates|developing|ongoing)\b/i.test(`${story.title || ''} ${story.url || ''}`);
   const corroboration = getCorroborationParts(story, context, policy);
@@ -197,8 +168,10 @@ export function extractTopStorySignals(story = {}, context = {}) {
     hasIndependentEvidence: corroboration.independentEvidenceCount > 0,
     isAggregatorSource: isAggregatorSource(story),
     clusteredItems: Number(story.clusteredItems || 1),
-    allSources: uniqueSources(story),
+    allSources: corroboration.allSources,
     ...topFeed,
+    topFeedCorroborationHits: Math.max(0,corroboration.independentEvidenceCount-corroboration.corroboratingSources),
+    topFeedNewFamilyCount: Math.max(0,corroboration.independentEvidenceCount-corroboration.corroboratingSources),
     sourceQualityScore: getSourceQualityScore(story),
     locationRelevanceScore: locationRelevance.score,
     locationRelevanceTarget: locationRelevance.target,

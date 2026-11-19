@@ -1,4 +1,5 @@
 import { loadSectionsSnapshot } from '../adapters/sectionsSnapshotFetcher.js';
+import { isLocalAppPreview, readPublishedSnapshot } from '../utils/publishedSnapshotFetch.js';
 
 export const NEWSPAPER_MAX_AGE_MS = 48 * 60 * 60 * 1000;
 export const PAPER_SOURCES = Object.freeze({
@@ -81,7 +82,9 @@ export function newspaperPublicationUrls() {
   return location?.origin === 'https://reallakshman19.github.io'
     && (location.pathname === '/NWv-7' || location.pathname.startsWith('/NWv-7/'))
     ? ['https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/data/epaper_data.json', deployed]
-    : [deployed];
+    : isLocalAppPreview()
+      ? [deployed, 'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/data/epaper_data.json']
+      : [deployed];
 }
 
 export async function fetchCurrentNewspaperPublication({ fetchImpl = fetch, now = Date.now() } = {}) {
@@ -90,9 +93,9 @@ export async function fetchCurrentNewspaperPublication({ fetchImpl = fetch, now 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
     try {
-      const response = await fetchImpl(url, { cache: 'no-store', signal: controller.signal });
-      if (!response.ok) throw new Error(`Newspaper HTTP ${response.status}`);
-      return normalizeNewspaperEdition(await response.json(), now);
+      const response = await fetchImpl(url, { cache: 'no-store', redirect: 'error', signal: controller.signal });
+      const edition = normalizeNewspaperEdition(await readPublishedSnapshot(response), now);
+      return { ...edition, publicationUrl: url };
     } catch (error) { lastError = error; } finally { clearTimeout(timer); }
   }
   throw lastError;

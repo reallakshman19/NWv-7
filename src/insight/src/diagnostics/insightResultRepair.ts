@@ -7,7 +7,7 @@ import {
 
 type StoriesByIdLike = Map<string, InsightStory> | Record<string, InsightStory> | undefined | null;
 
-export const INSIGHT_OUTPUT_CONTRACT_VERSION = "insight-output-contract-v4-angle-persisted";
+export const INSIGHT_OUTPUT_CONTRACT_VERSION = "insight-output-contract-v5-eligible-child-links";
 
 function safeArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
@@ -96,8 +96,25 @@ export function repairInsightResult(result: any) {
     }>,
   };
 
+  const membership = new Map<string, Set<string>>();
   for (const parent of parents) {
-    const childIds = safeArray(parent.childStoryIds);
+    for (const id of safeArray(parent.clusterStoryIds)) {
+      if (!membership.has(id)) membership.set(id, new Set());
+      membership.get(id)!.add(parent.parentId);
+    }
+  }
+  const excluded = result.excludedEvidence instanceof Map ? result.excludedEvidence : new Map();
+  const eligible = result.eligibleStoryIds instanceof Set ? result.eligibleStoryIds : null;
+  for (const parent of parents) {
+    const hidden = new Set(safeArray(parent.hiddenDuplicateIds));
+    const childIds = [...new Set(safeArray(parent.childStoryIds))].filter(id => {
+      const story = storiesById.get(id);
+      if (!story) { repairDiagnostics.missingStoryLinks += 1; return false; }
+      return membership.get(id)?.has(parent.parentId) && !hidden.has(id) && !excluded.has(id) &&
+        (!eligible || eligible.has(id)) &&
+        (story.parentId ? story.parentId === parent.parentId : membership.get(id)?.size === 1);
+    });
+    parent.childStoryIds = childIds;
 
     for (const childId of childIds) {
       repairDiagnostics.childLinksChecked += 1;

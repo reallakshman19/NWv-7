@@ -1,6 +1,6 @@
 const H = 3_600_000;
 
-export const INSIGHT_SNAPSHOT_SLOT_NAMES = ['now', 'minus4h', 'minus12h', 'minus24h'];
+export const INSIGHT_SNAPSHOT_SLOT_NAMES = ['now', 'minus4h', 'minus12h', 'minus24h', 'minus36h', 'minus48h'];
 export const INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT = 40;
 
 const SLOT_WINDOWS = {
@@ -8,6 +8,8 @@ const SLOT_WINDOWS = {
   minus4h:  { min: 4  * H, max: 12 * H, center: 8  * H },
   minus12h: { min: 12 * H, max: 24 * H, center: 18 * H },
   minus24h: { min: 24 * H, max: 36 * H, center: 30 * H },
+  minus36h: { min: 36 * H, max: 48 * H, center: 42 * H },
+  minus48h: { min: 48 * H, max: 60 * H, center: 54 * H },
 };
 
 const DEFAULT_INTAKE_OPTIONS = {
@@ -74,7 +76,7 @@ export function normalizeSnapshotStory(story, index = 0) {
 }
 
 export function getSnapshotStoryAgeMs(story, nowMs = Date.now()) {
-  return Math.max(0, nowMs - asNumber(story?.publishedAt));
+  return nowMs - asNumber(story?.publishedAt);
 }
 
 export function getSnapshotStorySlot(story, nowMs = Date.now()) {
@@ -85,10 +87,14 @@ export function getSnapshotStorySlot(story, nowMs = Date.now()) {
     if (ageMs >= win.min && ageMs < win.max) return slot;
   }
 
-  return ageMs >= SLOT_WINDOWS.minus24h.max ? 'older' : 'future';
+  return ageMs >= SLOT_WINDOWS.minus48h.max ? 'older' : 'future';
 }
 
-function isValidSnapshotStory(story) {
+export function isValidSnapshotStory(story) {
+  const confidence = normalizeText(story?.timestampConfidence || story?.publishedAtConfidence).toLowerCase();
+  const source = normalizeText(story?.publishedAtSource || story?.timestampSource).toLowerCase();
+  if (['low', 'unknown', 'fallback'].includes(confidence) ||
+      ['missing', 'invalid', 'unknown', 'fetch_time_fallback', 'fetch_fallback', 'fetchedat', 'updated_parsed'].includes(source)) return false;
   return Boolean(
     normalizeText(story?.title || story?.headline) &&
     normalizeText(story?.url || story?.link || story?.guid || story?.id) &&
@@ -139,6 +145,8 @@ export function getSnapshotPoolHealth(snapshot, nowMs = Date.now()) {
     minus4h: [],
     minus12h: [],
     minus24h: [],
+    minus36h: [],
+    minus48h: [],
     older: [],
     future: [],
   };
@@ -174,15 +182,19 @@ export function selectSnapshotStoriesForSlot(snapshot, slot, options = {}) {
   };
 
   const nowMs = asNumber(opts.nowMs, Date.now());
+  if (!INSIGHT_SNAPSHOT_SLOT_NAMES.includes(slot)) return [];
   const health = getSnapshotPoolHealth(snapshot, nowMs);
-  const direct = health.bySlot[slot] || [];
-
   const maxFallbackAgeMs = opts.maxFallbackAgeHours * H;
+  const withinRetention = story => getSnapshotStoryAgeMs(story, nowMs) <= maxFallbackAgeMs;
+  const direct = (health.bySlot[slot] || []).filter(withinRetention);
   const fallbackPool = health.bySlot.now
     .concat(health.bySlot.minus4h)
     .concat(health.bySlot.minus12h)
     .concat(health.bySlot.minus24h)
-    .concat(health.bySlot.older.filter(story => getSnapshotStoryAgeMs(story, nowMs) <= maxFallbackAgeMs));
+    .concat(health.bySlot.minus36h)
+    .concat(health.bySlot.minus48h)
+    .concat(health.bySlot.older)
+    .filter(withinRetention);
 
   const directSorted = sortBySlotFit(direct, slot, nowMs);
   const selected = uniqueStories(directSorted).slice(0, opts.maxStoriesPerSlot);

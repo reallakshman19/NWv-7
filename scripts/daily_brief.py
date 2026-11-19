@@ -11,13 +11,16 @@ import feedparser
 import requests
 
 MAX_AGE_SECONDS = 48 * 60 * 60
+MAX_FEED_BYTES = 1000000
 SOURCES = {
     "THE_HINDU": {"domain": "thehindu.com", "feeds": [
         ("Front Page", "https://www.thehindu.com/news/national/feeder/default.rss"),
         ("Tamil Nadu", "https://www.thehindu.com/news/national/tamil-nadu/feeder/default.rss"),
         ("Business", "https://www.thehindu.com/business/feeder/default.rss"),
     ]},
-    "INDIAN_EXPRESS": {"domain": "indianexpress.com", "feeds": [
+    "INDIAN_EXPRESS": {"domain": "indianexpress.com", "fallbackFeeds": [
+        ("Latest News", "https://news.google.com/rss/search?q=site:indianexpress.com+when:2d&hl=en-IN&gl=IN&ceid=IN:en"),
+    ], "feeds": [
         ("Front Page", "https://indianexpress.com/section/india/feed/"),
         ("Chennai", "https://indianexpress.com/section/cities/chennai/feed/"),
         ("Business", "https://indianexpress.com/section/business/feed/"),
@@ -64,9 +67,15 @@ def qualify_entries(entries, domain, now_seconds):
 def acquire_feed(task, now_seconds):
     source_id, domain, page, url = task
     try:
-        response = requests.get(url, timeout=(4, 8), headers={"User-Agent": "NWv7-Personal-Headlines/1.0"})
-        response.raise_for_status()
-        parsed = feedparser.parse(response.content)
+        with requests.get(url, timeout=(4, 8), stream=True, headers={"User-Agent": "NWv7-Personal-Headlines/1.0"}) as response:
+            response.raise_for_status()
+            chunks, size = [], 0
+            for chunk in response.iter_content(16384):
+                size += len(chunk)
+                if size > MAX_FEED_BYTES:
+                    raise ValueError("RSS response exceeds size limit")
+                chunks.append(chunk)
+        parsed = feedparser.parse(b"".join(chunks))
         if not parsed.entries:
             raise ValueError("No RSS entries returned")
         articles = qualify_entries(parsed.entries, domain, now_seconds)
@@ -102,16 +111,27 @@ def build_publication(results, now_seconds):
             "sources": sources, "sourceStatus": status}
 
 
+def collect_publication(now, fetcher=acquire_feed):
+    tasks = [(key, config["domain"], page, url) for key, config in SOURCES.items()
+             for page, url in config["feeds"]]
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(lambda task: fetcher(task, now), tasks))
+    # Discovery is a source-specific recovery, never permission to substitute a
+    # different publisher or infer a publication date from the acquisition clock.
+    for key, config in SOURCES.items():
+        if any(row["sourceId"] == key and row["articles"] for row in results):
+            continue
+        for page, url in config.get("fallbackFeeds", []):
+            results.append(fetcher((key, config["domain"], page, url), now))
+    return build_publication(results, now)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="public/data/epaper_data.json")
     args = parser.parse_args()
     now = datetime.now(timezone.utc).timestamp()
-    tasks = [(key, config["domain"], page, url) for key, config in SOURCES.items()
-             for page, url in config["feeds"]]
-    with ThreadPoolExecutor(max_workers=4) as pool:
-        results = list(pool.map(lambda task: acquire_feed(task, now), tasks))
-    publication = build_publication(results, now)
+    publication = collect_publication(now)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes((json.dumps(publication, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))

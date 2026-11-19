@@ -1,3 +1,8 @@
+import { isTopStoryTimeEligible, getAgeHours } from './topStoriesSignals.js';
+import { getTopStoriesPolicy } from './topStoriesPolicy.js';
+import { newsIdentityKey, disambiguateNewsIds, stableNewsRowKey } from '../newsStoryIdentity.js';
+import { clusterPublisherFamilies, captureNewsEvidenceRows } from '../newsClusterEvidence.js';
+
 const SOURCE_ROW_UNIT = 'SOURCE_ROW';
 const CANDIDATE_UNIT = 'RANKING_CANDIDATE';
 
@@ -39,36 +44,21 @@ export function listTopStorySourceRows({
       sourceRow,
     })),
   ];
-  return rows.map((row, sourceRowIndex) => ({ ...row, sourceRowIndex }));
+  const disambiguated=disambiguateNewsIds(rows.map(row=>row.sourceRow));
+  return rows.map((row, sourceRowIndex) => ({ ...row, sourceRow:disambiguated[sourceRowIndex], sourceRowIndex }));
 }
 
-export function getTopStoryDedupeKey(story = {}) {
-  return String(
-    story.id ||
-    story.canonicalId ||
-    story.url ||
-    story.link ||
-    story.title ||
-    '',
-  ).trim().toLowerCase();
-}
+export function getTopStoryDedupeKey(story = {}) { return newsIdentityKey(story); }
 
-function mergeDuplicate(existing, next) {
-  const sourceCount = Math.max(
-    Number(existing.sourceCount || 1),
-    Number(next.sourceCount || 1),
-  );
-  const clusteredItems = Math.max(
-    Number(existing.clusteredItems || 1),
-    Number(next.clusteredItems || 1),
-  );
-  const allSources = [...new Set([
-    ...(existing.allSources || []),
-    ...(next.allSources || []),
-    existing.source,
-    next.source,
-  ].filter(Boolean))];
-  return { ...existing, sourceCount, clusteredItems, allSources };
+function mergeDuplicate(existing, next, nowMs, policy) {
+  const existingValid = isTopStoryTimeEligible(existing, nowMs, policy);
+  const nextValid = isTopStoryTimeEligible(next, nowMs, policy);
+  if (!existingValid || !nextValid) return nextValid ? next : existing;
+  const nextAge=getAgeHours(next,nowMs), existingAge=getAgeHours(existing,nowMs);
+  const representative = nextAge < existingAge || (nextAge===existingAge && stableNewsRowKey(next).localeCompare(stableNewsRowKey(existing))<0) ? next : existing;
+  const evidence = captureNewsEvidenceRows([existing,next]).filter(row=>isTopStoryTimeEligible(row,nowMs,policy));
+  const allSources = clusterPublisherFamilies(evidence);
+  return {...representative,sourceCount:Math.max(1,allSources.length),allSources,clusteredItems:evidence.length,newsEvidenceRows:evidence};
 }
 
 function makeBuildTrace({
@@ -95,6 +85,7 @@ export function buildTopStoryCandidatesWithTrace({
   sectionItems = {},
   topFeedItems = [],
   nowMs = Date.now(),
+  policy = getTopStoriesPolicy(),
 } = {}) {
   const rows = listTopStorySourceRows({ sectionItems, topFeedItems });
   const merged = new Map();
@@ -122,7 +113,7 @@ export function buildTopStoryCandidatesWithTrace({
 
     const enriched = { ...item, _candidateSeenAt: nowMs };
     if (merged.has(key)) {
-      merged.set(key, mergeDuplicate(merged.get(key), enriched));
+      merged.set(key, mergeDuplicate(merged.get(key), enriched, nowMs, policy));
       candidateBuildTrace.push(makeBuildTrace({
         index,
         key,

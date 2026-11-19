@@ -200,7 +200,17 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
     # a revision still supersedes the same occurrence within that category.
     by_id = {(item.get("category"), item["id"]): item
              for item in [*existing.get("items", []), *incoming] if item.get("id")}
-    active = enrich_items(list(by_id.values()), ts)
+    # CAP identifiers name unique messages. Preserve explicit cancellations for
+    # seven days so a browser holding an older snapshot cannot revive them.
+    retired = {row['occurrenceId']: row for row in existing.get('retiredOccurrences', [])
+               if row.get('source') == 'oman-warnings' and row.get('category') == 'weather_alerts'
+               and str(row.get('occurrenceId', '')).startswith('oman-warnings:')
+               and ts-7*DAY_MS <= (_ms(row.get('observedAt')) or 0) <= ts}
+    for item in incoming:
+        identity = item.get('retireOccurrenceId')
+        if item.get('category') == 'weather_alerts' and str(identity or '').startswith('oman-warnings:'):
+            retired[identity] = dict(occurrenceId=identity, category='weather_alerts', source='oman-warnings', observedAt=ts)
+    active = enrich_items([row for row in by_id.values() if row.get('occurrenceId') not in retired], ts)
     unique = {}
     for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):
         event_start = _ms(item.get("eventStartAt"))
@@ -220,6 +230,8 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
         "items": items,
     }, ts)
     snapshot["lifecyclePrunedCount"] = len(by_id) - len(active)
+    if retired:
+        snapshot['retiredOccurrences'] = list(retired.values())
     return snapshot
 
 

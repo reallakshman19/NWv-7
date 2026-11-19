@@ -1,3 +1,4 @@
+import { getSavedPlanIdentity } from '../utils/plannerStorage.js';
 import { toDateKey, formatPlannerCompactDateLabel } from '../utils/dateDisplay';
 
 function safeArray(value) {
@@ -35,13 +36,14 @@ function normalizeCategory(item) {
 function normalizePlannerItem(item, dateKey, index) {
   // If the item carries its own date field, convert it; otherwise preserve the
   // bucket dateKey string as-is so we don't introduce a UTC off-by-one shift.
-  const itemOwnDate = item?.eventDateKey || item?.eventDate || item?.planDate || item?.date || item?.releaseDate;
+  const itemOwnDate = item?.planDate || dateKey || item?.eventDateKey || item?.eventDate || item?.date || item?.releaseDate;
   const resolvedDateKey = itemOwnDate
     ? toDateKey(itemOwnDate)
     : (typeof dateKey === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateKey) ? dateKey : toDateKey(dateKey));
 
   return {
-    id: item?.hiddenKey || item?.canonicalId || item?.id || `${resolvedDateKey}-${index}`,
+    id: getSavedPlanIdentity(item,dateKey) || `${resolvedDateKey}-${index}`,
+    storageDateKey: dateKey,
     title: item?.title || 'Untitled planner item',
     description: item?.description || item?.summary || '',
     category: normalizeCategory(item),

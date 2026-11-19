@@ -7,7 +7,7 @@
   "workers_dev": true,
   "preview_urls": false,
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["0 */3 * * *"]
   },
   "observability": {
     "enabled": true,
@@ -20,7 +20,7 @@
     "SHADOW_LIVE_ACQUISITION_ENABLED": "true",
     "SHADOW_BROWSER_FALLBACK_ENABLED": "false",
     "SHADOW_PREVIEW_READ_ENABLED": "true",
-    "SHADOW_MAX_EPOCHS_PER_DAY": "48",
+    "SHADOW_MAX_EPOCHS_PER_DAY": "8",
     "SHADOW_MAX_QUEUE_OPERATIONS_PER_DAY": "8000",
     "SHADOW_MAX_D1_READS_PER_DAY": "4000000",
     "SHADOW_MAX_D1_WRITES_PER_DAY": "80000",

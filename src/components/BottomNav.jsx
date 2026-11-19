@@ -9,9 +9,9 @@ const ALL_NAV_ITEMS = [
   { path: '/my-planner', label: 'Planner', icon: '📌' },
   { path: '/markets', label: 'Market', icon: '📈' },
   { path: '/weather', label: 'Weather', icon: '☁️' },
-  { path: '/settings', label: 'Settings', icon: '⚙️' },
   { path: '/newspaper', label: 'Newspaper', icon: '📰' },
   { path: '/tech-social', label: 'Buzz', icon: '🎭' },
+  { path: '/settings', label: 'Settings', icon: '⚙️' },
   { path: '/following', label: 'Following', icon: '⭐' },
   { path: '/refresh', label: 'Refresh', icon: '🔄' },
   { path: '/more', label: 'More', icon: '⋯' }

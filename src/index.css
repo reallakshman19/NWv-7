@@ -1464,6 +1464,26 @@ html[data-layout-mode='mobile'] .bottom-nav__label {
   font-variant-numeric: tabular-nums;
 }
 
+.daily-digest-published {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.daily-digest-snippet {
+  margin-top: 8px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
 .news-list-modern {
   display: flex;
   flex-direction: column;
@@ -2498,6 +2518,7 @@ html[data-layout-mode='mobile'] .bottom-nav__label {
 
 /* Mobile shell — constrains content to 480px on desktop, fills screen on mobile */
 .app-shell {
+    width: 100%;
     max-width: 480px;
     margin: 0 auto;
     min-height: 100dvh;          /* dvh: accounts for mobile browser chrome */

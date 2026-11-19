@@ -3,11 +3,10 @@ import { __dataStateBoundaryInternalsForTest } from './DataStateBoundary.interna
 
 const { getBoundaryState } = __dataStateBoundaryInternalsForTest;
 
-// Mirrors the Buzz Hub fix: the page synthesizes a "ready" envelope from
-// displayData (NewsContext/cache) so it is not blanked just because the buzz
-// dataset envelope came back empty.
+// Buzz Hub may synthesize a content-only envelope from NewsContext/cache.
+// Preserve the display while withholding "Ready" until validation is proven.
 describe('DataStateBoundary — Buzz synthesized envelope renders when content exists', () => {
-  it('renders (ready) when a synthesized envelope carries display content', () => {
+  it('renders degraded retained content when synthesized envelope lacks validation evidence', () => {
     const synthesized = {
       ok: true,
       freshness: 'fresh',
@@ -21,7 +20,7 @@ describe('DataStateBoundary — Buzz synthesized envelope renders when content e
       allowDegraded: true,
       treatEmptyAsReady: false,
     });
-    expect(state).toBe('ready');
+    expect(state).toBe('degraded');
   });
 
   it('still shows empty when there is genuinely no content anywhere', () => {

@@ -1,0 +1,74 @@
+name: A06 Provider Browser Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/data/upAheadDirectPageEvidence.js'
+      - 'src/viewModels/useUpAheadPageViewModel.js'
+      - 'src/components/DataHealthPanel.jsx'
+      - 'src/data/datasets/upAheadDatasetApiClient.js'
+      - 'src/data/datasets/upAheadDataset.js'
+      - 'cloudflare/upahead-dataset-api/src/index.js'
+      - 'scripts/verify_a06_provider_ui.mjs'
+      - 'scripts/verify_a06_sections_authority.mjs'
+      - 'src/adapters/sectionsSnapshotAuthority.js'
+      - 'src/adapters/sectionsSnapshotLoader.js'
+      - 'src/components/SectionsDataSourceToggle.jsx'
+      - '.github/workflows/a06-provider-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: a06-provider-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22.x'
+          cache: npm
+      - name: Install exact repository dependencies
+        run: npm ci
+      - name: Install Chromium runtime
+        run: npx playwright install --with-deps chromium
+      - name: Build with synthetic A06 Worker authority
+        env:
+          VITE_API_BASE_URL: https://a06-edge.example.test
+          VITE_SECTIONS_AUTHORITY: cloudflare
+          VITE_SECTIONS_AUTHORITY_URL: https://a06-sections.example.test/preview/sections/latest
+        run: npm run build
+      - name: Test real pages in desktop and portrait Chromium
+        run: node scripts/verify_a06_provider_ui.mjs
+      - name: Test real Main page with Cloudflare/GitHub authority failure and recovery
+        run: node scripts/verify_a06_sections_authority.mjs
+      - name: Probe deployed Up Ahead Worker when base URL is configured
+        if: always()
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+        shell: bash
+        run: |
+          if [ -z "${VITE_API_BASE_URL:-}" ]; then
+            echo "Deployed Cloudflare smoke: NOT_RUN (repository VITE_API_BASE_URL not configured)" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Deployed Cloudflare smoke: attempting read-only /api/datasets/upAhead" | tee -a "$GITHUB_STEP_SUMMARY"
+            npm run test:upahead-edge-readiness -- --require-config --smoke
+            echo "Deployed Cloudflare smoke: PASS" | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Preserve browser receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: a06-browser-evidence
+          path: artifacts/a06/
+          if-no-files-found: warn
+          retention-days: 14

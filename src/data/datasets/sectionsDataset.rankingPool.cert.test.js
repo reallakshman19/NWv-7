@@ -14,6 +14,7 @@ vi.mock('../../adapters/sectionsSnapshotFetcher.js', async importOriginal => ({
 vi.mock('../../services/topStories/topStoriesRanker.js', () => ({ rankTopStories: vi.fn(() => []) }));
 
 const NOW = Date.parse('2026-11-14T17:01:00Z');
+const { evaluateTopStories } = await vi.importActual('../../services/topStories/topStoriesRanker.js');
 const story = (id, title) => ({
   id, title, url: `https://www.bbc.com/news/${id}`, source: 'BBC',
   publishedAt: NOW - 60 * 60 * 1000, timestampConfidence: 'high',
@@ -29,7 +30,7 @@ describe('Sections Top Stories candidate pool', () => {
     testSettings.value = { sections: { world: { count: 1 } } };
     displayed = [story('widget', 'Local arts programme opens')];
     displayed.prefetched = true;
-    displayed.snapshotRuntimeSummary = { contentHash: 'same-epoch', stale: false };
+    displayed.snapshotRuntimeSummary = { contentHash: 'same-epoch', stale: false, fetchedAt: NOW - 60_000, dataSource: { effective: 'github_static' } };
     snapshot = {
       schemaVersion: 1, contentHash: 'same-epoch', fetchedAt: NOW - 60_000,
       sections: {
@@ -52,7 +53,7 @@ describe('Sections Top Stories candidate pool', () => {
     const { envelope, input } = await loadPool();
     expect(envelope.data.sections.world.map(item => item.id)).toEqual(['widget']);
     expect(input.sectionItems.__all.map(item => item.id)).toEqual(expect.arrayContaining(['beyond-widget', 'top-feed']));
-    expect(input.topFeedItems).toEqual([expect.objectContaining({ id: 'top-feed', topFeedPresent: true })]);
+    expect(input.topFeedEvidence).toEqual([expect.objectContaining({ id: 'top-feed' })]);
     expect(loadSectionsSnapshot).toHaveBeenCalledWith();
   });
 
@@ -60,14 +61,27 @@ describe('Sections Top Stories candidate pool', () => {
     snapshot.fetchedAt = NOW - 13 * 60 * 60 * 1000;
     const { input } = await loadPool();
     expect(input.sectionItems.__all.map(item => item.id)).toEqual(['widget']);
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 
   it('does not reintroduce a clustered story through its top-feed identity', async () => {
     snapshot.sections.topStories = [story('duplicate-top-feed', displayed[0].title)];
     const { input } = await loadPool();
-    const candidates = [...Object.values(input.sectionItems).flat(), ...input.topFeedItems];
-    expect(candidates.filter(item => item.title === displayed[0].title)).toHaveLength(1);
+    const result = evaluateTopStories(input);
+    const matches = result.scoredCandidates.filter(item => item.title === displayed[0].title);
+    expect(matches).toHaveLength(1);
+    expect(matches[0]._topStoryRank.topFeedPresent).toBe(true);
+    expect(matches[0]._topStoryRank.independentEvidenceCount).toBe(0);
+  });
+
+  it('retains two dated events that happen to have the same headline', async () => {
+    displayed[0].eventDate = '2026-11-14';
+    snapshot.sections.topStories = [
+      { ...story('other-event', displayed[0].title), eventDate: '2026-11-15' },
+    ];
+    const { input } = await loadPool();
+    const matches = evaluateTopStories(input).scoredCandidates.filter(item => item.title === displayed[0].title);
+    expect(matches.map(item => item.eventDate).sort()).toEqual(['2026-11-14', '2026-11-15']);
   });
 
   it('does not let an expired high-scoring widget suppress a fresh update', async () => {
@@ -90,6 +104,50 @@ describe('Sections Top Stories candidate pool', () => {
     expect(loadSectionsSnapshot).not.toHaveBeenCalled();
   });
 
+  it('isolates foreign or unproven snapshot lanes even when they precede the valid lane', async () => {
+    fetchSectionNews.mockImplementation(async section => {
+      if (section === 'world') return displayed;
+      const rows = [story(section, 'Headline for ' + section)];
+      rows.prefetched = true;
+      rows.snapshotRuntimeSummary = section === 'local' ? {
+        contentHash: 'same-epoch', stale: false, fetchedAt: NOW - 120_000, dataSource: { effective: 'cloudflare_preview' },
+      } : null;
+      return rows;
+    });
+    const envelope = await load({ sections: ['local', 'business', 'world'] });
+    const ids = rankTopStories.mock.calls[0][0].sectionItems.__all.map(item => item.id);
+    expect(ids).toEqual(expect.arrayContaining(['widget', 'beyond-widget']));
+    expect(ids).not.toEqual(expect.arrayContaining(['local']));
+    expect(ids).not.toEqual(expect.arrayContaining(['business']));
+    expect(envelope.diagnostics).toContainEqual(expect.objectContaining({
+      event: 'sectionsDataset.top_stories_snapshot_lane_excluded',
+    }));
+    expect(envelope.freshness).toBe('stale');
+    expect(envelope.data.authority.effective).toBe('unknown');
+  });
+
+  it('does not mix separate acquisitions just because their content hashes match', async () => {
+    snapshot.fetchedAt -= 30_000;
+    const { input } = await loadPool();
+    expect(input.sectionItems.__all.map(row => row.id)).toEqual(['widget']);
+  });
+
+  it('keeps the Live ranking pool when the widget count changes', async () => {
+    fetchSectionNews.mockImplementation(async (_section, limit) =>
+      Array.from({ length: limit }, (_, i) => story('story-' + i,
+        i === 29 ? 'President signs emergency ceasefire treaty' : 'Independent report number ' + i)));
+    testSettings.value.sections = { world: { count: 1 } };
+    const first = await load({ sections: ['world'] });
+    testSettings.value.sections.world.count = 12;
+    const second = await load({ sections: ['world'] });
+    expect(first.data.sections.world).toHaveLength(6);
+    expect(second.data.sections.world).toHaveLength(17);
+    const rankedIds = rankTopStories.mock.calls.map(([input]) => input.sectionItems.__all.map(item => item.id));
+    expect(rankedIds[0]).toEqual(rankedIds[1]);
+    expect(rankedIds[0]).toContain('story-29');
+    expect(loadSectionsSnapshot).not.toHaveBeenCalled();
+  });
+
   it('applies blocked keywords to the expanded pool', async () => {
     testSettings.value.feedBlockedKeywords = ['emergency'];
     const { input } = await loadPool();
@@ -99,15 +157,15 @@ describe('Sections Top Stories candidate pool', () => {
   it('applies publisher choices to the expanded pool', async () => {
     testSettings.value.newsSources = { bbc: false };
     const { input } = await loadPool();
-    expect(input.sectionItems.__all.map(item => item.id)).toEqual(['widget']);
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.sectionItems.__all).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 
   it('applies strict keyword mode to the expanded pool', async () => {
     testSettings.value.filteringMode = 'keyword';
     const { input } = await loadPool();
-    expect(input.sectionItems.__all.map(item => item.id)).toEqual(['widget']);
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.sectionItems.__all).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 
   it('applies top-website mode to the expanded pool', async () => {
@@ -115,14 +173,14 @@ describe('Sections Top Stories candidate pool', () => {
     snapshot.sections.topStories[0].source = 'Unlisted Bulletin';
     const { input } = await loadPool();
     expect(input.sectionItems.__all.some(item => item.id === 'top-feed')).toBe(false);
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 
   it('applies the user age cutoff before Top Stories admission', async () => {
     testSettings.value.hideOlderThanHours = 0.5;
     const { input } = await loadPool();
-    expect(input.sectionItems.__all.map(item => item.id)).toEqual(['widget']);
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.sectionItems.__all).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 
   it('keeps the top-feed twelve-hour timestamp guard', async () => {
@@ -130,6 +188,6 @@ describe('Sections Top Stories candidate pool', () => {
     const { input } = await loadPool();
     // The selector can provide regional stale fallback; admission remains owned
     // by the ranker. Stale publisher-top rows must never become top-feed evidence.
-    expect(input.topFeedItems).toEqual([]);
+    expect(input.topFeedEvidence).toEqual([]);
   });
 });

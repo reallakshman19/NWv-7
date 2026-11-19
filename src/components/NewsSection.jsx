@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { addReadArticle, getSettings } from '../utils/storage';
 import { useNews } from '../context/NewsContext';
 import ProgressBar from './ProgressBar';
@@ -146,14 +146,25 @@ function NewsSection({
     onArticleClick = null,
     showCritics = true,
     loading = false,
-    healthSummary = null
+    healthSummary = null,
+    presentation = null,
+    onPresentationChange = null,
 }) {
-    const [expanded, setExpanded] = useState(false);
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [localExpanded, setLocalExpanded] = useState(false);
+    const [localCollapsed, setLocalCollapsed] = useState(false);
+    const expanded = presentation?.expanded ?? localExpanded;
+    const isCollapsed = presentation?.collapsed ?? localCollapsed;
+    const setExpanded = value => onPresentationChange
+        ? onPresentationChange({ expanded: value, collapsed: isCollapsed })
+        : setLocalExpanded(value);
+    const setIsCollapsed = value => onPresentationChange
+        ? onPresentationChange({ expanded, collapsed: value })
+        : setLocalCollapsed(value);
     const [infoText, setInfoText] = useState('');
     const [copyStatus, setCopyStatus] = useState('idle');
     const [showHealthPopover, setShowHealthPopover] = useState(false);
-    const { auditResults } = useNews();
+    const { auditResults, recordStoryImpressions } = useNews();
+    const sectionRef = useRef(null);
     const effectiveHealthSummary = useMemo(() => resolveSectionHealthSummary({
         healthSummary,
         sectionId: id,
@@ -168,6 +179,28 @@ function NewsSection({
     const hasMore = news.length > maxDisplay;
     const healthStatus = effectiveHealthSummary?.status || 'unknown';
     const isTopStories = title === 'Top Stories';
+
+    useEffect(() => {
+        const section = sectionRef.current;
+        if (!isTopStories || isCollapsed || loading || error || !section ||
+            !recordStoryImpressions || typeof IntersectionObserver !== 'function') return;
+
+        const storiesById = new Map(news.map(story => [String(story.id), story]));
+        let mounted = true;
+        const observer = new IntersectionObserver(entries => {
+            if (!mounted || document.visibilityState === 'hidden') return;
+            const visibleStories = entries
+                .filter(entry => entry.isIntersecting && entry.intersectionRatio >= 0.25)
+                .map(entry => storiesById.get(entry.target.dataset.topStoryId))
+                .filter(Boolean);
+            if (visibleStories.length) recordStoryImpressions(visibleStories);
+        }, { threshold: 0.25 });
+        section.querySelectorAll('[data-top-story-id]').forEach(card => observer.observe(card));
+        return () => {
+            mounted = false;
+            observer.disconnect();
+        };
+    }, [isTopStories, isCollapsed, loading, error, news, displayCount, recordStoryImpressions]);
 
     const getTimeAgo = (timestamp) => {
         if (!timestamp) return '';
@@ -258,6 +291,7 @@ function NewsSection({
                         return (
                             <article
                                 key={item.id || idx}
+                                data-top-story-id={isTopStories && item.id ? item.id : undefined}
                                 className={`modern-news-card ${item.imageUrl ? 'modern-news-card--with-image' : ''}`}
                                 onClick={() => handleStoryClick(item)}
                                 style={{ cursor: storyUrl ? 'pointer' : 'default' }}
@@ -362,7 +396,7 @@ function NewsSection({
     };
 
     return (
-        <section className="news-section" id={id}>
+        <section className="news-section" id={id} ref={sectionRef}>
             <h2
                 className={`news-section__title ${colorClass}`}
                 onClick={() => setIsCollapsed(!isCollapsed)}

@@ -1,19 +1,8 @@
-function atStartOfDay(input) {
-  const d = new Date(input);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
+import { getUpAheadWindowStatus, upAheadDateKey } from '../services/upAheadLifecycle.js';
 
-function addDays(input, days) {
-  const d = atStartOfDay(input);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function safeDate(input) {
-  if (!input) return null;
-  const d = new Date(input);
-  return Number.isNaN(d.getTime()) ? null : atStartOfDay(d);
+function occurrenceDay(item) {
+  const key = upAheadDateKey(item);
+  return key ? Date.parse(`${key}T00:00:00Z`) : Number.MAX_SAFE_INTEGER;
 }
 
 function severityBoost(category) {
@@ -24,10 +13,8 @@ function severityBoost(category) {
 }
 
 export function evaluateEligibility(item, options = {}) {
-  const asOfDate = safeDate(options.asOfDate) || atStartOfDay(new Date());
   const plannerWindowDays = Number.isFinite(options.plannerWindowDays) ? options.plannerWindowDays : 7;
-  const plannerEnd = addDays(asOfDate, plannerWindowDays - 1);
-  const eventDate = safeDate(item?.eventDate || item?.eventDateKey || item?.date);
+  const windowStatus = getUpAheadWindowStatus(item, { asOfDate: options.asOfDate, plannerWindowDays });
   const locationEligible = item?.locationEligible !== false;
   const classificationConfidence = Number(item?.classificationConfidence || 0);
   const dateConfidence = String(item?.dateConfidence || 'none');
@@ -46,7 +33,7 @@ export function evaluateEligibility(item, options = {}) {
     };
   }
 
-  if (!eventDate) {
+  if (windowStatus === 'missing_date') {
     const possible = item.routeHint === 'upahead_possible' || (sourceTrust === 'high' && classificationConfidence >= 0.3);
     return {
       ...item,
@@ -81,7 +68,7 @@ export function evaluateEligibility(item, options = {}) {
     }
   }
 
-  if (eventDate < asOfDate) {
+  if (windowStatus === 'before_window') {
     return {
       ...item,
       plannerEligible: false,
@@ -93,7 +80,7 @@ export function evaluateEligibility(item, options = {}) {
     };
   }
 
-  if (eventDate > plannerEnd) {
+  if (windowStatus === 'after_window') {
     return {
       ...item,
       plannerEligible: false,
@@ -147,10 +134,8 @@ export function evaluateEligibilityBatch(items = [], options = {}) {
 
 export function rankEligibleItems(items = []) {
   return [...(items || [])].sort((a, b) => {
-    const aDate = safeDate(a?.eventDate || a?.date);
-    const bDate = safeDate(b?.eventDate || b?.date);
-    const aTime = aDate ? aDate.getTime() : Number.MAX_SAFE_INTEGER;
-    const bTime = bDate ? bDate.getTime() : Number.MAX_SAFE_INTEGER;
+    const aTime = occurrenceDay(a);
+    const bTime = occurrenceDay(b);
     if (aTime !== bTime) return aTime - bTime;
 
     const aSeverity = severityBoost(a?.category);

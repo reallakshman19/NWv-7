@@ -19,7 +19,15 @@ function collectEntities(story: InsightStory): string[] {
 }
 
 function unseenValues(values: string[], baselineValues: Set<string>): string[] {
-  return values.filter(value => !baselineValues.has(value.toLowerCase().trim()));
+  const unique = new Set<string>();
+  const out: string[] = [];
+  for (const value of values) {
+    const key = String(value || "").toLowerCase().trim();
+    if (!key || baselineValues.has(key) || unique.has(key)) continue;
+    unique.add(key);
+    out.push(value.trim());
+  }
+  return out;
 }
 
 function textTokens(story: InsightStory): string[] {

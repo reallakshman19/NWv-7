@@ -30,13 +30,16 @@ function expectErrorCode(action, code) {
 }
 
 describe('NW-CF-HYBRID-001A source registry coverage authority', () => {
-  it('matches the pre-shadow frozen registry authority exactly', () => {
+  it('matches the verified current registry while preserving the original frozen authority', () => {
     const authority = buildSectionsSourceRegistryAuthority(readRegistry());
     const frozen = readFrozenAuthority();
     expect(frozen.frozenBeforeShadowObservation).toBe(true);
     expect(frozen.shadowOutputUsedToChooseExpected).toBe(false);
-    expect(authority.sourceRegistryVersion).toBe(frozen.sourceRegistryVersion);
-    expect(authority.sourceRegistryDigest).toBe(frozen.sourceRegistryDigest);
+    expect(frozen.sourceRegistryVersion).toBe('section-source-policy-v1');
+    expect(frozen.sourceRegistryDigest).toBe('d6e8c3d706c9848b7e63349ce08cd48c3670377f24c4163150cd368151e96716');
+    const current = readJson('../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v2-authority.json');
+    expect(authority.sourceRegistryVersion).toBe(current.sourceRegistryVersion);
+    expect(authority.sourceRegistryDigest).toBe(current.sourceRegistryDigest);
     expect(authority.sectionCount).toBe(frozen.sectionCount);
     expect(authority.laneCount).toBe(frozen.laneCount);
     expect(authority.minFeedsInSection).toBe(frozen.minFeedsInSection);

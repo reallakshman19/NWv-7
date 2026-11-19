@@ -40,7 +40,9 @@ function getInsightSourceLabel(source) {
   if (source === 'dataset') return 'Dataset';
   if (source === 'unavailable') return 'Unavailable';
   if (source === 'failed') return 'Failed';
-  return 'Live';
+  if (source === 'live') return 'Live';
+  if (source === 'live-sections') return 'Snapshot (Sections)';
+  return 'Unknown';
 }
 
 function formatInsightAge(timestamp) {
@@ -172,7 +174,7 @@ function getStoryPublishedAtMs(story) {
 function getStoryTimeLabel(story) {
   const publishedAt = getStoryPublishedAtMs(story);
 
-  if (!publishedAt) return 'Live';
+  if (!publishedAt) return 'Time unknown';
 
   const minutes = Math.max(0, Math.round((Date.now() - publishedAt) / 60000));
 
@@ -531,7 +533,7 @@ function getInsightDiagnostics(result, source) {
   return getInsightCoreQualityDiagnostics(result, source, DEFAULT_CONFIG);
 }
 
-function ICard({ story, index, storiesById = new Map() }) {
+export function ICard({ story, index, storiesById = new Map(), source = 'unknown' }) {
   const [open, setOpen] = useState(false);
   const pct = Math.min(Math.round((story.finalParentScore || 0) * 100), 100);
 
@@ -539,8 +541,11 @@ function ICard({ story, index, storiesById = new Map() }) {
   const childStoryIds = safeArray(story.childStoryIds);
   const isBreaking = story.isRising || false;
   const srcCount = clusterStoryIds.length || childStoryIds.length || 1;
-  const timeAgo = 'Live';
-  const sources = [...new Set(clusterStoryIds.map(id => String(id).split('-')[0] || 'Unknown'))].slice(0, 3);
+  const timeAgo = getStoryTimeLabel({ publishedAt: story.latestSeenAt });
+  const sources = [...new Set(clusterStoryIds
+    .map(id => getStoryFromMap(storiesById, id))
+    .filter(Boolean)
+    .map(getStorySourceLabel))].slice(0, 3);
 
   return (
     <div className={`icard ${open ? 'open' : ''}`} data-top="true">
@@ -548,7 +553,7 @@ function ICard({ story, index, storiesById = new Map() }) {
         <div className="irank">{String(index + 1).padStart(2, '0')}</div>
         <div className="ibody">
           <div className="imeta-row">
-            <span className="isource">Cluster</span><span className="idot" />
+            <span className="isource">{getInsightSourceLabel(source)}</span><span className="idot" />
             <span className="itime">{timeAgo}</span>
             {isBreaking && <span className="itag breaking">🔥 Rising</span>}
             {srcCount > 1 && <span className="itag multi">{srcCount} stories</span>}
@@ -1377,7 +1382,7 @@ function InsightTab({ result, source }) {
 
       {parents.map((p, i) => (
         <ErrorBoundary key={p.parentId} label={`Cluster ${i + 1}`} resetKeys={[p.parentId]}>
-          <ICard story={p} index={i} storiesById={storiesById} />
+          <ICard story={p} index={i} storiesById={storiesById} source={source} />
         </ErrorBoundary>
       ))}
 
@@ -1629,6 +1634,7 @@ export default function InsightPage() {
     loading,
     source,
     staleLabel,
+    sourceLabel,
     emptyReason,
     error,
     refresh,
@@ -1640,10 +1646,14 @@ export default function InsightPage() {
     rawResult,
   } = useInsightTabViewModel();
 
-  // On static hosts surface "Pre-generated · Nh ago" to set correct user expectations
-  const displayStaleLabel = isStaticHost && staleLabel
-    ? `Pre-generated · ${staleLabel}`
-    : staleLabel;
+  // Mode buttons indicate requested fetching mode; the status pill below must
+  // describe the *winning* feed, never the selected mode or the host capability.
+  const verifiedSourceLabel = sourceLabel || getInsightSourceLabel(source);
+  const headerStateLabel = !hasResult
+    ? `${verifiedSourceLabel} · Unavailable`
+    : degraded ? `${verifiedSourceLabel} · Degraded` : verifiedSourceLabel;
+  const headerStateType = source === 'live' && !degraded ? 'live'
+    : (source === 'snapshot' || source === 'stale-snapshot' || source === 'cached') ? 'stale' : 'degraded';
 
   const handleRefresh = () => refresh(false);
 
@@ -1670,8 +1680,8 @@ export default function InsightPage() {
       <div className="page-container insight-page">
         <Header
           title="Insight"
-          stateLabel={displayStaleLabel || (source === 'failed' || source === 'unavailable' ? 'Unavailable' : 'Live · Degraded')}
-          stateType={staleLabel ? 'stale' : 'live'}
+          stateLabel={headerStateLabel}
+          stateType={headerStateType}
           onRefresh={handleRefresh}
           shellRuntimeProps={shellRuntimeProps}
         />
@@ -1715,8 +1725,8 @@ export default function InsightPage() {
     <div className="page-container">
       <Header
         title="Insight"
-        stateLabel={displayStaleLabel || (degraded ? 'Live · Degraded' : 'Live')}
-        stateType={staleLabel ? 'stale' : 'live'}
+        stateLabel={headerStateLabel}
+        stateType={headerStateType}
         onRefresh={handleRefresh}
         shellRuntimeProps={shellRuntimeProps}
       />

@@ -36,8 +36,33 @@ describe('NW-DP-004 Up Ahead dataset API client', () => {
     expect(result).toBe(payload);
     expect(fetchImpl).toHaveBeenCalledWith(
       'https://api.example.com/api/datasets/upAhead',
-      { cache: 'no-cache', signal: undefined }
+      expect.objectContaining({ cache: 'no-cache', signal: expect.any(AbortSignal) })
     );
+  });
+
+  it('bounds a never-resolving Worker fetch and preserves timeout cause', async () => {
+    const fetchImpl = vi.fn(() => new Promise(() => {}));
+    const result = await fetchUpAheadDatasetApiResponse({
+      baseUrl: 'https://api.example.com', fetchImpl, timeoutMs: 25,
+    });
+    expect(result.data).toBeNull();
+    expect(result.diagnostics.reason).toBe('dataset-api-timeout');
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://api.example.com/api/datasets/upAhead',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
+  });
+
+  it('bounds slow JSON parsing after an immediate successful response', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true, headers: new Headers(),
+      json: () => new Promise(() => {}),
+    }));
+    const result = await fetchUpAheadDatasetApiResponse({
+      baseUrl: 'https://api.example.com', fetchImpl, timeoutMs: 25,
+    });
+    expect(result.data).toBeNull();
+    expect(result.diagnostics.reason).toBe('dataset-api-timeout');
   });
 
   it('returns null on non-OK response', async () => {

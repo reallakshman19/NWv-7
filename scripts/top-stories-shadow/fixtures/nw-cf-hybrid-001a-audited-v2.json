@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "nw-sections-shadow-audited-expectations/v1",
+  "benchmarkId": "NW-CF-HYBRID-001A-audited-v2",
+  "inputFixture": "nw-cf-hybrid-001a-benchmark.json",
+  "expectationBasis": "Reference evaluation of the unchanged frozen input, reconciled against source-identity v2. The Reuters URL is one publisher even when the wrapper says TOI. The three selected stories and their order are unchanged. The original v1 receipt is preserved, including its obsolete digest.",
+  "reviewStatus": "Coder source reconciliation; no independent editorial signoff or live Cloudflare qualification",
+  "executableVersions": {
+    "sourceIdentityVersion": "nw-top-stories-source-identity-v2",
+    "normalizationVersion": "nw-top-stories-normalization-v1",
+    "eventClassifierVersion": "nw-top-stories-event-classifier-v2",
+    "rankerVersion": "nw-top-stories-ranker-observed-v1"
+  },
+  "decisionOutputDigest": "8db223cdb6c4f312990e8c6841e4256fae6810585d325e9305802b9170d6f488",
+  "selectedIds": ["case-j-trichy-backfill", "case-c-google-alias", "case-g-exact-12h"],
+  "candidateExpectations": {
+    "case-d-wrapper-original": {
+      "sourceFamilies": ["reuters"],
+      "sourceCount": 1,
+      "independentEvidenceCount": 0,
+      "corroboratingSourceCount": 0,
+      "consensusScore": 0
+    },
+    "case-e-missing-ts": {"admissionReason": "low_confidence_timestamp"},
+    "case-f-malformed-ts": {"admissionReason": "low_confidence_timestamp"},
+    "case-g-exact-12h": {"ageBand": "fallback", "admissionReason": "admitted"},
+    "case-h-exact-36h": {"ageBand": "expired"}
+  }
+}

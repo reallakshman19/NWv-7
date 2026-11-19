@@ -2,7 +2,8 @@ import { classifyItemCategory } from './classification.js';
 import { analyzeDateText } from './dateAware.js';
 import { annotateItemLocation } from './locationAware.js';
 import { evaluateEligibility } from './eligibilityWindowing.js';
-import { toLocalDateKey } from '../utils/dateKey.js';
+import { parsePublicationDate, toUtcCalendarDateKey } from '../utils/dateKey.js';
+import { upAheadDateKey } from '../services/upAheadLifecycle.js';
 
 function normalizeText(value) {
   return String(value || '')
@@ -22,13 +23,11 @@ function hash(value) {
 }
 
 function safeDate(input) {
-  if (!input) return null;
-  const d = new Date(input);
-  return Number.isNaN(d.getTime()) ? null : d;
+  return parsePublicationDate(input);
 }
 
 function toDateKey(input) {
-  return toLocalDateKey(input);
+  return toUtcCalendarDateKey(input);
 }
 
 function normalizeLink(link) {
@@ -89,13 +88,6 @@ export function buildCanonicalItem(rawItem, options = {}) {
     }
   );
 
-  const dateAnalysis = analyzeDateText(baseText, {
-    asOfDate: options.asOfDate,
-    publishDate,
-    plannerWindowDays: options.plannerWindowDays || 7,
-    maxExpandedDays: options.maxExpandedDays || 14
-  });
-
   const locationAnnotated = annotateItemLocation(
     {
       ...classified,
@@ -103,7 +95,6 @@ export function buildCanonicalItem(rawItem, options = {}) {
       summary,
       description,
       link,
-      eventDate: dateAnalysis.eventDate,
       mode
     },
     {
@@ -115,10 +106,38 @@ export function buildCanonicalItem(rawItem, options = {}) {
     }
   );
 
-  const canonicalId = raw.canonicalId || buildCanonicalId(raw, dateAnalysis.eventDateKey || toDateKey(publishDate));
+  const locationCanonical = locationAnnotated.locationCanonical || null;
+  const dateAnalysis = analyzeDateText(baseText, {
+    asOfDate: options.asOfDate,
+    publishDate,
+    locationCanonical,
+    requirePublicationAnchor: true,
+    plannerWindowDays: options.plannerWindowDays || 7,
+    maxExpandedDays: options.maxExpandedDays || 14
+  });
+  const explicitDateKey = upAheadDateKey({
+    eventDateKey: raw.eventDateKey,
+    eventStartAt: raw.eventStartAt,
+    datePrecision: raw.datePrecision,
+    locationCanonical,
+  });
+  const eventDateKey = explicitDateKey || dateAnalysis.eventDateKey || null;
+  const parsedDateMatches = eventDateKey === dateAnalysis.eventDateKey;
+  const canonicalId = raw.canonicalId || buildCanonicalId(raw, eventDateKey || toDateKey(publishDate));
 
   const canonical = {
     canonicalId,
+    occurrenceId: raw.occurrenceId || null,
+    sessionId: raw.sessionId || null,
+    revisionOf: raw.revisionOf || null,
+    revisionAt: raw.revisionAt || null,
+    observedAt: raw.observedAt || options.asOfDate || null,
+    firstSeenAt: raw.firstSeenAt || null,
+    venue: raw.venue || null,
+    dateSource: raw.dateSource || null,
+    retailerId: raw.retailerId || null,
+    offerMarket: raw.offerMarket || null,
+    offerChannel: raw.offerChannel || null,
     rawSourceId: raw.guid || raw.id || raw.link || raw.url || title,
     title,
     summary,
@@ -133,25 +152,33 @@ export function buildCanonicalItem(rawItem, options = {}) {
     feedPack: deriveFeedPack(raw, options),
     category: classified.category,
     classificationConfidence: classified.classificationConfidence || 0,
-    eventDate: dateAnalysis.eventDate,
-    eventDateEnd: dateAnalysis.eventDateEnd,
-    eventDateKey: dateAnalysis.eventDateKey || null,
-    eventDateEndKey: dateAnalysis.eventDateEndKey || null,
-    matchedDateKeys: dateAnalysis.matchedDateKeys || [],
+    eventDate: parsedDateMatches ? dateAnalysis.eventDate : null,
+    eventDateEnd: parsedDateMatches ? dateAnalysis.eventDateEnd : null,
+    eventDateKey,
+    eventDateEndKey: raw.eventDateEndKey || (parsedDateMatches ? dateAnalysis.eventDateEndKey : null),
+    eventDateEndExclusiveKey: raw.eventDateEndExclusiveKey || (parsedDateMatches ? dateAnalysis.eventDateEndExclusiveKey : null),
+    eventStartAt: raw.eventStartAt || null,
+    eventEndAt: raw.eventEndAt || null,
+    expiryAt: raw.expiryAt || null,
+    lifecycle: raw.lifecycle || null,
+    datePrecision: raw.datePrecision || (eventDateKey && !raw.eventStartAt ? 'day' : null),
+    matchedDateKeys: parsedDateMatches ? dateAnalysis.matchedDateKeys || [] : eventDateKey ? [eventDateKey] : [],
     parsedDateEvidence: dateAnalysis.parsedDateEvidence || null,
-    dateConfidence: dateAnalysis.dateConfidence || 'none',
+    dateConfidence: raw.dateConfidence || (explicitDateKey ? 'exact' : dateAnalysis.dateConfidence || 'none'),
     temporalType: dateAnalysis.temporalType || 'none',
     publishDate,
     publishTs: publishDate ? publishDate.getTime() : null,
-    locationCanonical: locationAnnotated.locationCanonical || null,
+    locationCanonical,
     locationAliasesMatched: locationAnnotated.locationMatchedAlias ? [locationAnnotated.locationMatchedAlias] : [],
     locationConfidence: locationAnnotated.locationConfidence || 0,
     locationEligible: locationAnnotated.locationEligible !== false,
     mode,
     priority: Number(raw.priority || 0),
     status: raw.status || 'new',
-    routeHint: dateAnalysis.routeHint || null,
-    dropReason: raw.dropReason || dateAnalysis.dropReason || locationAnnotated.dropReason || null,
+    routeHint: explicitDateKey ? 'eligible' : dateAnalysis.routeHint || null,
+    dropReason: raw.dropReason || (!explicitDateKey && dateAnalysis.dropReason) || locationAnnotated.dropReason || null,
+    suppressionReason: raw.suppressionReason || null,
+    displayEligible: raw.displayEligible !== false,
     decisionTrace: mergeDecisionTrace(raw.decisionTrace, classified.decisionTrace, dateAnalysis.decisionTrace, locationAnnotated.locationDecisionTrace),
     mergedWith: raw.mergedWith || [],
     routedTo: null,

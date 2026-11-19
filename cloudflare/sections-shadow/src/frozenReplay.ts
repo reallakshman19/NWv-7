@@ -1,4 +1,8 @@
 import benchmark from '../../../scripts/top-stories-shadow/fixtures/nw-cf-hybrid-001a-benchmark.json';
+import auditedExpectations from '../../../scripts/top-stories-shadow/fixtures/nw-cf-hybrid-001a-audited-v2.json';
+import frozenSourceRegistry from '../../../scripts/top-stories-shadow/fixtures/nw-cf-hybrid-001a-source-registry-v1.json';
+import { buildSectionsSourceRegistryAuthority } from '../../../scripts/top-stories-shadow/sectionsShadowSourceRegistry.mjs';
+import { buildLiveLaneDefinitions } from '../../../scripts/sections-live/sectionsLiveAuthority.mjs';
 import { evaluateFrozenSectionsEpoch } from '../../../scripts/top-stories-shadow/sectionsShadowEvaluator.mjs';
 import { createSectionsShadowInputEpoch } from '../../../scripts/top-stories-shadow/sectionsShadowInputEpoch.mjs';
 import {
@@ -20,7 +24,7 @@ import {
 } from './custody';
 import { digestValue, sha256Text } from './crypto';
 import { putImmutableD1EvidenceObject } from './evidenceStore';
-import { buildShadowLaneDefinitions, sectionsRegistryAuthority } from './registry';
+import type { ShadowLaneDefinition } from './registry';
 
 interface BenchmarkFixture {
   capturedAt: string;
@@ -42,13 +46,16 @@ interface BenchmarkFixture {
 }
 
 const fixture = benchmark as unknown as BenchmarkFixture;
+// Historical certification must keep its own original feed URLs and digest.
+// Live endpoint maintenance must never rewrite the frozen benchmark contract.
+const frozenRegistryAuthority = buildSectionsSourceRegistryAuthority(frozenSourceRegistry);
 
 function buildFrozenEpoch(): Record<string, unknown> {
   return createSectionsShadowInputEpoch({
     capturedAt: fixture.capturedAt,
     nowMs: fixture.nowMs,
-    sourceRegistryVersion: sectionsRegistryAuthority.sourceRegistryVersion,
-    sourceRegistryDigest: sectionsRegistryAuthority.sourceRegistryDigest,
+    sourceRegistryVersion: frozenRegistryAuthority.sourceRegistryVersion,
+    sourceRegistryDigest: frozenRegistryAuthority.sourceRegistryDigest,
     inputSource: fixture.inputSource,
     sectionItems: fixture.epochTemplate.sectionItems,
     topFeedItems: fixture.epochTemplate.topFeedItems,
@@ -56,11 +63,21 @@ function buildFrozenEpoch(): Record<string, unknown> {
     sourceHealth: fixture.epochTemplate.sourceHealth,
     frozenBeforeShadowObservation: fixture.frozenBeforeShadowObservation,
     shadowOutputUsedToChooseExpected: fixture.shadowOutputUsedToChooseExpected,
-  }, { expectedRegistryAuthority: sectionsRegistryAuthority }) as Record<string, unknown>;
+  }, { expectedRegistryAuthority: frozenRegistryAuthority }) as Record<string, unknown>;
 }
 
 function assertBenchmarkExpectation(evidence: FrozenDecisionEvidence): void {
-  const expectedDigest = fixture.expected?.decisionOutputDigest;
+  if (JSON.stringify(evidence.executableVersions) !== JSON.stringify(auditedExpectations.executableVersions) ||
+      JSON.stringify(evidence.selectedIds) !== JSON.stringify(auditedExpectations.selectedIds)) {
+    throw new Error('Frozen benchmark executable versions or selected story order changed');
+  }
+  for (const [identity, expected] of Object.entries(auditedExpectations.candidateExpectations)) {
+    const row = evidence.candidateEvidence.find(candidate => candidate.identity === identity);
+    if (!row || Object.entries(expected).some(([field, value]) => JSON.stringify(row[field]) !== JSON.stringify(value))) {
+      throw new Error(`Frozen benchmark semantic expectation changed: ${identity}`);
+    }
+  }
+  const expectedDigest = auditedExpectations.decisionOutputDigest;
   if (expectedDigest && evidence.decisionOutputDigest !== expectedDigest) {
     throw new Error(
       `Frozen benchmark decision digest changed: ${evidence.decisionOutputDigest} != ${expectedDigest}`,
@@ -70,7 +87,7 @@ function assertBenchmarkExpectation(evidence: FrozenDecisionEvidence): void {
 
 export async function evaluateBundledFrozenReplay(): Promise<FrozenDecisionEvidence> {
   const evidence = evaluateFrozenSectionsEpoch(buildFrozenEpoch(), {
-    expectedRegistryAuthority: sectionsRegistryAuthority,
+    expectedRegistryAuthority: frozenRegistryAuthority,
   }) as FrozenDecisionEvidence;
   assertBenchmarkExpectation(evidence);
   return evidence;
@@ -101,13 +118,13 @@ export async function runBundledFrozenReplay(
     attempt: input.attempt ?? 1,
     acquisitionMode: 'FROZEN_REPLAY',
     expectedLaneCount: EXPECTED_SECTIONS_LANE_COUNT,
-    sourceRegistryVersion: sectionsRegistryAuthority.sourceRegistryVersion,
-    sourceRegistryDigest: sectionsRegistryAuthority.sourceRegistryDigest,
+    sourceRegistryVersion: frozenRegistryAuthority.sourceRegistryVersion,
+    sourceRegistryDigest: frozenRegistryAuthority.sourceRegistryDigest,
     inputEvidenceDigest: evidence.inputEvidenceDigest,
     nowMs,
   });
 
-  const lanes = await buildShadowLaneDefinitions();
+  const lanes = buildLiveLaneDefinitions(frozenRegistryAuthority) as ShadowLaneDefinition[];
   const firstLaneBySection = new Set<string>();
   const laneEvidence: LaneEvidence[] = [];
   for (const lane of lanes) {

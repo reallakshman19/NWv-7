@@ -20,6 +20,8 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Callable, Iterable
 
+from sections_news_identity import canonical_news_url
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = REPO_ROOT / "config" / "top_stories_rss_sources.json"
 DEFAULT_MAX_PER_SOURCE = 12
@@ -49,33 +51,18 @@ def _normalize_identity_text(value: object) -> str:
     return re.sub(r"[^a-z0-9]+", " ", _normalize_text(value).lower()).strip()
 
 
-def _normalize_url(value: object) -> str:
-    raw = _text(value)
-    if not raw:
-        return ""
-    base = raw.split("#", 1)[0].split("?", 1)[0]
-    return base.rstrip("/").lower()
-
-
 def _sha_identity(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:16]
 
 
 def _stable_identity(title: str, url: str, guid: str = "") -> str:
-    normalized_url = _normalize_url(url)
+    normalized_url = canonical_news_url(url)
     if normalized_url:
         return normalized_url
     normalized_guid = _normalize_text(guid)
     if normalized_guid:
         return normalized_guid.lower()
     return _normalize_identity_text(title)
-
-
-def _canonical_id(title: str, url: str, guid: str = "") -> str:
-    identity = _stable_identity(title, url, guid)
-    if not identity:
-        return ""
-    return f"topfeed:{_sha_identity(identity)}"
 
 
 def _parse_date_ms(value: str | None) -> int | None:
@@ -172,9 +159,11 @@ def parse_feed_rows(
             diagnostics["duplicatesRejected"] += 1
             continue
         seen_in_source.add(source_identity)
+        digest = _sha_identity(identity)
+        story_id = f"topfeed:{digest}"
         rows.append({
-            "id": _canonical_id(title, url, guid),
-            "canonicalId": _canonical_id(title, url, guid),
+            "id": story_id,
+            "canonicalId": story_id,
             "title": title,
             "url": url,
             "link": url,
@@ -184,7 +173,7 @@ def parse_feed_rows(
             "observedAt": _format_ms(now_ms),
             "topFeedRank": feed_rank,
             "topFeedSource": source.id,
-            "clusterKey": _sha_identity(identity),
+            "clusterKey": digest,
         })
 
     diagnostics["items"] = len(rows)

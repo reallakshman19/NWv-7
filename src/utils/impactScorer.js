@@ -7,7 +7,7 @@ const CONSERVATION = /\b(?:mass (?:deaths?|die[- ]off)|die[- ]off|extinction|poa
 const BROAD_REACH = /\b(?:nationwide|national|across india|across the country|pan[- ]india|multiple states|several states|statewide|across (?:the )?state|across tamil nadu|tamil nadu|t\.?n\.? government|state government|supreme court|union cabinet|parliament|central government|rbi|reserve bank|election commission)\b/i;
 const NATIONAL_REACH = /\b(?:nationwide|across india|across the country|pan[- ]india|multiple states|several states|supreme court|union cabinet|parliament|central government|rbi|reserve bank|india[-– ](?:us|u\.s\.)|india['’]s)\b/i;
 const DISASTER = /\b(?:cyclone|earthquake|tsunami|flood(?:s|ing)?|landslide|wildfire|outbreak|epidemic|pandemic|storm surge)\b/i;
-const DANGER_CONTEXT = /\b(?:warning|alert|evacuat\w*|threat|braces?|intensif\w*|rain|coast|boats?|rescue|killed|dead|injur\w*|homes?|residents?|cases?|spreads?|emergency)\b/i;
+const DANGER_CONTEXT = /\b(?:warning|alert|evacuat\w*|threat|braces?|intensif\w*|rescue|killed|dead|injur\w*|displaced|inundat\w*|damage|landfall|emergency|closures?|spreads?)\b/i;
 const PUBLIC_SERVICE = /\b(?:water|power|electricity|schools?|hospitals?|roads?|bridges?|drains?|swd|transport|trains?|rail|metro|buses|commuters?|residents?|public health|biomedical waste|air quality)\b/i;
 const CIVIC_HAZARD = /\b(?:alert|warning|closure|closed|outage|disrupt\w*|contaminat\w*|unsafe|broken|open (?:drain|swd)|dumped|sewage|collapsed|collapse|suspend\w*|cancel\w*|toxic|hazard\w*)\b/i;
 const POLICY_DOMAIN = /\b(?:stock limits?|paddy|pulses|prices?|tax(?:es)?|tariffs?|subsid(?:y|ies)|pensions?|wages?|education|admissions?|healthcare|health care|employment|labour|labor|land rights|water (?:rights|sharing)|electoral rolls?|voters?|voting|ballots?|budget|spending|regulations?|legislation|law|bill|procurement|scholarship|public funds|sub[- ]plan funds|sanitation)\b/i;
@@ -72,7 +72,7 @@ export function assessPublicImpact(title, description = '') {
     }
     if (civicAlert) return result(broad ? 3 : 2, 'civic_alert', ['public service with concrete hazard or disruption']);
 
-    const massHarm = /\b(?:[5-9]|[1-9]\d+|five|six|seven|eight|nine|ten|eleven|twelve|dozens|scores|hundreds)\b.{0,30}\b(?:killed|dead|deaths?|injured|toll)\b|\b(?:toll (?:rises|climbs|increases) to|kills?)\s+(?:[5-9]|[1-9]\d+|dozens|scores|hundreds)\b/i.test(headline);
+    const massHarm = /\b(?:[5-9]|[1-9]\d+|five|six|seven|eight|nine|ten|eleven|twelve|dozens|scores|hundreds)\s+(?:(?:people|persons?|passengers?|workers?|residents?|children|men|women|civilians?|victims?)\s+)?(?:(?:were|are)\s+)?(?:killed|dead|deaths?|injur\w*|casualt\w*)\b|\b(?:toll (?:rises|climbs|increases) to|kills?)\s+(?:[5-9]|[1-9]\d+|dozens|scores|hundreds)\b(?![-\s]*year[-\s]*old)/i.test(headline);
     const transportCrash = /\b(?:collision|crash|derail\w*|stampede|explosion|blast|shooting)\b/i.test(headline);
     if ((massHarm && !animalMortality) || (transportCrash && /\b(?:train|bus|minibus|passengers?|crowd|airport)\b/i.test(text))) {
         return result(3, 'public_safety', ['mass harm or public transport emergency']);

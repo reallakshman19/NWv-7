@@ -32,20 +32,20 @@ export interface QuotaDailyRow {
 
 export const CONSERVATIVE_EPOCH_RESERVATION: Readonly<QuotaReservation> = Object.freeze({
   epochs: 1,
-  queueOperations: 160,
-  d1Reads: 3_500,
-  d1Writes: 600,
-  workerInvocations: 60,
+  queueOperations: 600,
+  d1Reads: 25_000,
+  d1Writes: 3_500,
+  workerInvocations: 180,
 });
 
 function positiveInteger(raw: string | undefined, fallback: number): number {
   const value = Number(raw);
-  return Number.isInteger(value) && value > 0 ? value : fallback;
+  return Number.isInteger(value) && value > 0 ? Math.min(value, fallback) : fallback;
 }
 
 export function quotaLimits(env: QuotaEnv): QuotaLimits {
   return {
-    epochs: positiveInteger(env.SHADOW_MAX_EPOCHS_PER_DAY, 48),
+    epochs: positiveInteger(env.SHADOW_MAX_EPOCHS_PER_DAY, 8),
     queueOperations: positiveInteger(env.SHADOW_MAX_QUEUE_OPERATIONS_PER_DAY, 8_000),
     d1Reads: positiveInteger(env.SHADOW_MAX_D1_READS_PER_DAY, 4_000_000),
     d1Writes: positiveInteger(env.SHADOW_MAX_D1_WRITES_PER_DAY, 80_000),

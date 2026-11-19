@@ -10,6 +10,7 @@ import {
   ChildCandidate,
 } from "../types";
 import { cosineSimilarity, getAngleVariantDecision, classifyAngle } from "../dedup/dedup";
+import { canonicalPublisherFamily, countPublisherEvidenceFamilies } from "../pipeline/publisherIdentity";
 import { recoverAngleDiversity } from "./angleDiversityRecovery";
 
 // ── Angle display order ───────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ function initChildSelectionDiagnostics(
     duplicateDowngrades: [],
     duplicateReasonCounts: {},
     duplicateDecisionSamples: [],
+    angleRecovery: { targetAngleCount: 0, beforeAngleCount: 0, afterAngleCount: 0, recoveredCount: 0, recoveredCandidates: [] },
     diversityTieBreaks: [],
     weakTreeCauses: [],
     weakTreeMetrics: {
@@ -213,7 +215,7 @@ function getCandidateRejectionDetails(
   }
 
   const sourceGroupCount = selected.filter(
-    s => s.sourceGroup === candidate.story.sourceGroup
+    s => canonicalPublisherFamily(s) === canonicalPublisherFamily(candidate.story)
   ).length;
   if (sourceGroupCount >= cfg.MAX_PER_SOURCE_GROUP) {
     reasons.push("MAX_SOURCE_GROUP");
@@ -298,7 +300,7 @@ function hasNewAngle(candidate: ChildCandidate, selected: InsightStory[]): boole
 }
 
 function hasNewSourceGroup(candidate: ChildCandidate, selected: InsightStory[]): boolean {
-  return !selected.some(s => s.sourceGroup === candidate.story.sourceGroup);
+  return !selected.some(s => canonicalPublisherFamily(s) === canonicalPublisherFamily(candidate.story));
 }
 
 export function getCandidateDiversityScore(
@@ -428,7 +430,7 @@ function getWeakTreeCause(
     return s.freshnessScore >= 0.45 && s.sourceAuthority >= 0.45;
   });
 
-  const sourceGroupCount = new Set(children.map(s => s.sourceGroup)).size;
+  const sourceGroupCount = countPublisherEvidenceFamilies(children);
   const angleCount = new Set(children.map(s => s.angle ?? "unknown")).size;
   const causes: string[] = [];
 
@@ -489,8 +491,8 @@ export function computeInformationGain(
   const newAngleScore = angleSeen ? 0.0 : 1.0;
 
   // New source perspective: 1.0 if sourceGroup not yet in selected
-  const sourcesSeen       = new Set(selected.map(s => s.sourceGroup));
-  const newSourceScore    = sourcesSeen.has(candidate.sourceGroup) ? 0.0 : 0.8;
+  const sourcesSeen       = new Set(selected.map(s => canonicalPublisherFamily(s)));
+  const newSourceScore    = sourcesSeen.has(canonicalPublisherFamily(candidate)) ? 0.0 : 0.8;
 
   // Redundancy penalty: semantic similarity to most similar selected child
   const maxSim          = selected.reduce((max, s) => {
@@ -522,8 +524,8 @@ function computeChildScore(
   const relevanceToParent = candidate.relevanceToParent;
 
   // Source diversity bonus: how much adding this source improves diversity
-  const existingGroups = new Set(selected.map(s => s.sourceGroup));
-  const sourceDiversityBonus = existingGroups.has(candidate.story.sourceGroup) ? 0.0 : 0.5;
+  const existingGroups = new Set(selected.map(s => canonicalPublisherFamily(s)));
+  const sourceDiversityBonus = existingGroups.has(canonicalPublisherFamily(candidate.story)) ? 0.0 : 0.5;
 
   // Angle uniqueness: higher if this angle is not yet in selected
   const angleSeen      = selected.some(s => s.angle === candidate.angle);
@@ -574,7 +576,7 @@ function passesConstraints(
   selected: InsightStory[],
   cfg: InsightConfig
 ): boolean {
-  const sourceGroupCount = selected.filter(s => s.sourceGroup === candidate.story.sourceGroup).length;
+  const sourceGroupCount = selected.filter(s => canonicalPublisherFamily(s) === canonicalPublisherFamily(candidate.story)).length;
   if (sourceGroupCount >= cfg.MAX_PER_SOURCE_GROUP) return false;
 
   const angleCount = selected.filter(s => s.angle === candidate.angle).length;
@@ -782,7 +784,7 @@ export function tryReplaceWeakestChild(
     candCandidate.childScore > weakest.childScore + cfg.REPLACE_MARGIN &&
     candCandidate.informationGain >= cfg.MIN_CHILD_INFO_GAIN &&
     (candidate.angle !== weakest.story.angle ||
-     candCandidate.story.sourceGroup !== weakest.story.sourceGroup)
+     canonicalPublisherFamily(candCandidate.story) !== canonicalPublisherFamily(weakest.story))
   ) {
     hiddenIds.add(weakest.story.id);
 
@@ -842,7 +844,7 @@ function buildAdmitReason(c: ChildCandidate, selected: InsightStory[]): string[]
   if (!existingAngles.has(c.angle)) reasons.push(`new angle: ${c.angle}`);
   if (c.informationGain >= 0.5)     reasons.push("high information gain");
   if (c.story.numbers.length > 0)   reasons.push("contains new numbers/facts");
-  if (!selected.some(s => s.sourceGroup === c.story.sourceGroup))
+  if (!selected.some(s => canonicalPublisherFamily(s) === canonicalPublisherFamily(c.story)))
     reasons.push("new source group");
   return reasons.length > 0 ? reasons : ["best available candidate"];
 }

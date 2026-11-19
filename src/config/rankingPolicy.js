@@ -8,7 +8,11 @@ export function getRankingPolicy(settings = {}) {
   return {
     ...DEFAULT_RANKING_POLICY,
     freshness: { ...DEFAULT_RANKING_POLICY.freshness, ...(w.freshness || {}) },
-    trending: { ...DEFAULT_RANKING_POLICY.trending, ...(w.trending || {}) },
+    trending: {
+      ...DEFAULT_RANKING_POLICY.trending,
+      ...(w.trending || {}),
+      minDecayedScore: w.trending?.threshold ?? w.trending?.minDecayedScore ?? DEFAULT_RANKING_POLICY.trending.minDecayedScore,
+    },
     weights: { ...DEFAULT_RANKING_POLICY.weights },
   };
 }

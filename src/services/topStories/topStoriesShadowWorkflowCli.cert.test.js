@@ -6,12 +6,13 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { sha256Text } from '../../../scripts/top-stories-shadow/canonicalJson.mjs';
 
-const ROOT = path.resolve(new URL('../../..', import.meta.url).pathname);
+const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const WORKFLOW = path.join(ROOT, '.github/workflows/top_stories_shadow.yml');
 const RUN_AT = '2026-07-16T18:22:30.000Z';
 const RUN_MS = Date.parse(RUN_AT);

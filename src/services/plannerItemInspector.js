@@ -38,8 +38,8 @@ export function getPlannerItemInspector(item, fallbackDateKey = 'undated') {
   const raw = item.raw || item;
   const dateKey = toDateKey(
     item.dateKey ||
-    raw.eventDateKey ||
     raw.planDate ||
+    raw.eventDateKey ||
     raw.date ||
     raw.eventDate ||
     raw.releaseDate ||
@@ -73,7 +73,8 @@ export function getPlannerItemInspector(item, fallbackDateKey = 'undated') {
   ];
 
   return {
-    id: asText(item.hiddenKey || item.canonicalId || item.id || raw.hiddenKey || raw.canonicalId || raw.id || title),
+    id: asText(item.id || raw.savedPlanId || raw.id || title),
+    storageDateKey: item.storageDateKey || fallbackDateKey,
     title,
     description,
     category,

@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { load as loadSectionsDataset } from '../data/datasets/sectionsDataset.js';
 import { getSettings, incrementViewCount } from '../utils/storage';
+import { newsIdentityKey } from '../services/newsStoryIdentity.js';
 import { useSettings } from './SettingsContext';
 import { runFullAudit } from '../utils/newsAudit';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities';
@@ -69,6 +70,7 @@ export function NewsProvider({ children }) {
     const newsDataRef = useRef({});
     const lastFetchRef = useRef(0);
     const inFlightRef = useRef(null);
+    const seenStoryIds = useRef(new Set());
 
     const [envelope, setEnvelope] = useState(null);
     const [newsData, setNewsData] = useState({});
@@ -116,14 +118,22 @@ export function NewsProvider({ children }) {
         setErrors(nextErrors);
         setLoadedSections(SECTION_IDS.filter(section => Object.prototype.hasOwnProperty.call(projected, section)));
 
-        const frontPageIds = asArray(projected.frontPage).map(item => item?.id).filter(Boolean);
-        if (frontPageIds.length > 0) incrementViewCount(frontPageIds);
-
         const completedAt = Date.now();
         setLastFetch(completedAt);
         lastFetchRef.current = completedAt;
         setLastSyncReason(reason);
         return nextEnvelope;
+    }, []);
+
+    const recordStoryImpressions = useCallback((stories) => {
+        const firstViews = [];
+        for (const story of stories) {
+            const key = newsIdentityKey(story);
+            if (!key || seenStoryIds.current.has(key)) continue;
+            seenStoryIds.current.add(key);
+            firstViews.push(story);
+        }
+        if (firstViews.length) incrementViewCount(firstViews);
     }, []);
 
     const refreshNews = useCallback((specificSections = null, options = {}) => {
@@ -264,6 +274,7 @@ export function NewsProvider({ children }) {
         loading,
         errors,
         refreshNews,
+        recordStoryImpressions,
         breakingNews,
         lastFetch,
         lastSyncReason,
@@ -276,6 +287,7 @@ export function NewsProvider({ children }) {
         loading,
         errors,
         refreshNews,
+        recordStoryImpressions,
         breakingNews,
         lastFetch,
         lastSyncReason,

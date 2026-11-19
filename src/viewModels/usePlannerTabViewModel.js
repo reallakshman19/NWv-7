@@ -4,6 +4,7 @@ import { useMountedRef } from '../hooks/useMountedRef.js';
 import plannerStorage, {
   getPlannerStorageError,
   isPlannerStorageSuccess,
+  getSavedPlanIdentity,
 } from '../utils/plannerStorage';
 import { downloadCalendarEvent, downloadCalendarEvents } from '../utils/calendar';
 import { getPlannerEvidence } from '../services/plannerEvidence';
@@ -75,8 +76,8 @@ function getPlanDataFromEnvelope(envelope) {
   return {};
 }
 
-function getPlannerStorageItemId(item = {}) {
-  return item.hiddenKey || item.canonicalId || item.id || item.link;
+function getPlannerStorageItemId(item = {}, dateKey) {
+  return getSavedPlanIdentity(item.raw || item, item.storageDateKey || dateKey || item.dateKey);
 }
 
 function makeUndoPayloadForSingle(item, dateKey) {
@@ -91,7 +92,7 @@ function makeUndoPayloadForBulk(selectedItems = []) {
   return {
     bulk: true,
     items: selectedItems.map(item => ({
-      date: item.dateKey,
+      date: item.storageDateKey || item.dateKey,
       item: item.raw || item,
     })),
   };
@@ -243,7 +244,8 @@ export function usePlannerTabViewModel() {
   }, [mountedRef]);
 
   const removeWithUndo = useCallback(async (item, dateKey) => {
-    const id = getPlannerStorageItemId(item);
+    dateKey = item.storageDateKey || dateKey;
+    const id = getPlannerStorageItemId(item, dateKey);
 
     if (!id || !plannerStorage.removeItem) {
       return {
@@ -423,7 +425,7 @@ export function usePlannerTabViewModel() {
   }, []);
 
   const removeInspectedPlannerItem = useCallback(async (detail) => {
-    const result = await removeWithUndo(detail.raw || detail, detail.dateKey);
+    const result = await removeWithUndo(detail, detail.storageDateKey || detail.dateKey);
 
     if (result.ok) {
       closePlannerInspector();
@@ -484,24 +486,16 @@ export function usePlannerTabViewModel() {
     }
 
     try {
-      const undoPayload = makeUndoPayloadForBulk(plannerBulkSummary.selectedItems);
-      const failures = [];
-
+      const removedItems = [];
       plannerBulkSummary.selectedItems.forEach(item => {
-        const id = getPlannerStorageItemId(item.raw || item);
-        const removed = plannerStorage.removeItem?.(item.dateKey, id);
-
-        if (!removed) {
-          failures.push(item);
-        }
+        const date = item.storageDateKey || item.dateKey;
+        const id = getPlannerStorageItemId(item, date);
+        const removed = plannerStorage.removeItem?.(date, id);
+        if (isPlannerStorageSuccess(removed)) removedItems.push(item);
       });
-
-      if (failures.length > 0) {
-        return {
-          ok: false,
-          error: `${failures.length} planner item(s) were not removed`,
-        };
-      }
+      if (!removedItems.length) return { ok: false, error: 'No selected planner items were removed' };
+      const undoPayload = makeUndoPayloadForBulk(removedItems);
+      // Preserve undo for every successfully removed row, including partial bulk success.
 
       if (mountedRef.current) {
         setUndoItem(undoPayload);

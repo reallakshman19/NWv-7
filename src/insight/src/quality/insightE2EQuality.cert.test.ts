@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import {
   DEFAULT_CONFIG,
   InsightConfig,
@@ -193,6 +193,9 @@ async function fetchFixture(slot: SnapshotSlot): Promise<InsightStory[]> {
 function getGradeRank(grade: string): number {
   return ["F", "D", "C", "B", "A"].indexOf(grade);
 }
+
+beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(NOW); });
+afterEach(() => vi.useRealTimers());
 
 describe("Insight E2E quality certification", () => {
   it("produces a C-or-better multi-angle Insight result through the full pipeline", async () => {

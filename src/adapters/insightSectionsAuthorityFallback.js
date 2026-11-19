@@ -2,21 +2,29 @@ import {
   getSectionsSnapshotRuntimeSummary,
   loadSectionsSnapshot,
 } from './sectionsSnapshotFetcher.js';
-import { INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT } from './insightSnapshotIntake.js';
+import { isAuthorityStoryUsable } from './sectionsSnapshotAuthority.js';
 
 const HOUR_MS = 60 * 60 * 1000;
+// Sections publication is already bounded to ten sections of thirty stories.
+// A second forty-story slot cap used to discard older corroborating reports
+// merely because many newer headlines shared the same acquisition window.
+const MAX_AUTHORITY_STORIES = 300;
+const MAX_INPUT_ROWS_PER_SECTION = 300;
 
 const SLOT_WINDOWS = Object.freeze({
   now: { minAgeMs: 0, maxAgeMs: 4 * HOUR_MS },
   minus4h: { minAgeMs: 4 * HOUR_MS, maxAgeMs: 12 * HOUR_MS },
   minus12h: { minAgeMs: 12 * HOUR_MS, maxAgeMs: 24 * HOUR_MS },
   minus24h: { minAgeMs: 24 * HOUR_MS, maxAgeMs: 36 * HOUR_MS },
+  minus36h: { minAgeMs: 36 * HOUR_MS, maxAgeMs: 48 * HOUR_MS },
+  minus48h: { minAgeMs: 48 * HOUR_MS, maxAgeMs: 60 * HOUR_MS },
 });
 
 const SECTION_PRIORITY = Object.freeze([
   'topStories',
   'india',
   'tn',
+  'trichy',
   'muscat',
   'world',
   'business',
@@ -52,7 +60,7 @@ function canonicalStoryKey(story) {
   ).toLowerCase();
 }
 
-export function buildSectionsAuthorityInsightPool(snapshot) {
+export function buildSectionsAuthorityInsightPool(snapshot, nowMs = Date.now()) {
   const sections = snapshot?.sections && typeof snapshot.sections === 'object'
     ? snapshot.sections
     : {};
@@ -61,13 +69,15 @@ export function buildSectionsAuthorityInsightPool(snapshot) {
   const stories = [];
 
   for (const sectionKey of SECTION_PRIORITY) {
-    for (const item of asArray(sections?.[sectionKey])) {
+    for (const item of asArray(sections?.[sectionKey]).slice(0, MAX_INPUT_ROWS_PER_SECTION)) {
       const publishedAt = storyTimestampMs(item);
       const title = normalizeText(item?.title || item?.headline);
       const url = normalizeText(item?.url || item?.link || item?.guid);
       const key = canonicalStoryKey(item);
 
-      if (!key || !title || !url || publishedAt <= 0 || seen.has(key)) continue;
+      // Insight has a 36h horizon independent of Top Stories ranking.
+      if (!key || !title || !url || publishedAt <= 0 || publishedAt > nowMs ||
+          !isAuthorityStoryUsable(item, 'insight', nowMs) || seen.has(key)) continue;
       seen.add(key);
 
       const source = normalizeText(item?.source || item?.publisher || item?.sourceGroup, 'Unknown');
@@ -91,22 +101,41 @@ export function buildSectionsAuthorityInsightPool(snapshot) {
     }
   }
 
-  return stories.sort((a, b) => Number(b.publishedAt || 0) - Number(a.publishedAt || 0));
+  stories.sort((a, b) => b.publishedAt - a.publishedAt || a.id.localeCompare(b.id));
+  if (stories.length <= MAX_AUTHORITY_STORIES) return stories;
+
+  // Oversized authorities retain evidence from every usable time window.
+  // Total normalization work stays bounded, with no publisher-credit change.
+  const buckets = Object.values(SLOT_WINDOWS).map(window => stories.filter(story => {
+    const age = nowMs - story.publishedAt;
+    return age >= window.minAgeMs && age < window.maxAgeMs;
+  }));
+  const selected = [];
+  for (let index = 0; selected.length < MAX_AUTHORITY_STORIES; index += 1) {
+    let added = false;
+    for (const bucket of buckets) {
+      if (bucket[index] && selected.length < MAX_AUTHORITY_STORIES) {
+        selected.push(bucket[index]);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return selected.sort((a, b) => b.publishedAt - a.publishedAt || a.id.localeCompare(b.id));
 }
 
 export function createSectionsAuthorityInsightRawFetcher(snapshot) {
-  const pool = buildSectionsAuthorityInsightPool(snapshot);
-  const referenceMs = Number(snapshot?.fetchedAt || 0) || Date.now();
-
   return async (slot) => {
+    const referenceMs = Date.now();
+    const pool = buildSectionsAuthorityInsightPool(snapshot, referenceMs);
     const window = SLOT_WINDOWS[slot];
     if (!window) return [];
 
     const inWindow = pool.filter(story => {
-      const ageMs = Math.max(0, referenceMs - Number(story.publishedAt || 0));
+      const ageMs = referenceMs - Number(story.publishedAt || 0);
       return ageMs >= window.minAgeMs && ageMs < window.maxAgeMs;
     });
-    return inWindow.slice(0, INSIGHT_SNAPSHOT_MAX_STORIES_PER_SLOT);
+    return inWindow.map(story => ({ ...story, _snapshotObservedAt: referenceMs }));
   };
 }
 
@@ -117,8 +146,8 @@ export async function loadSectionsAuthorityInsightFallback({ force = true } = {}
 
     if (runtimeSummary.stale || runtimeSummary.totalStories <= 0) return null;
 
-    const pool = buildSectionsAuthorityInsightPool(snapshot);
-    const referenceMs = Number(snapshot.fetchedAt) || Date.now();
+    const referenceMs = Date.now();
+    const pool = buildSectionsAuthorityInsightPool(snapshot, referenceMs);
     if (!pool.some(story => referenceMs - story.publishedAt < SLOT_WINDOWS.minus24h.maxAgeMs)) return null;
 
     return {
@@ -141,4 +170,6 @@ export const __insightSectionsAuthorityFallbackInternalsForTest = {
   SECTION_PRIORITY,
   storyTimestampMs,
   canonicalStoryKey,
+  MAX_AUTHORITY_STORIES,
+  MAX_INPUT_ROWS_PER_SECTION,
 };

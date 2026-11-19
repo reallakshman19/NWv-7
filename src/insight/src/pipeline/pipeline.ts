@@ -1,10 +1,12 @@
+import { hasConflictingEventIdentity, isGenericPublisherPage } from "../cluster/eventOccurrenceIdentity";
+import { countPublisherEvidenceFamilies } from "./publisherIdentity";
 // ─────────────────────────────────────────────
 //  INSIGHT TAB — Main Pipeline Orchestrator
 // ─────────────────────────────────────────────
 
 import {
   InsightStory, InsightParent, InsightConfig,
-  DEFAULT_CONFIG, PREWARM_SLOTS, SnapshotSlot,
+  DEFAULT_CONFIG, PREWARM_SLOTS, SNAPSHOT_SLOTS, SnapshotSlot,
 } from "../types";
 import {
   getCachedSlot, setCachedSlot, mergeSlotStories,
@@ -40,6 +42,9 @@ export interface InsightRunResult {
   parents:       InsightParent[];
   storiesById:   Map<string, InsightStory>;
   hiddenIds:     Set<string>;
+  /** Hard-ineligible evidence never participates in ranking, child selection or recovery. */
+  excludedEvidence?: Map<string, { reason: string; parentId: string | null }>;
+  eligibleStoryIds?: Set<string>;
   slotsRefetched: SnapshotSlot[];
   cacheStatus:   ReturnType<typeof cacheStatus>;
   ranAt:         number;
@@ -89,21 +94,41 @@ export async function runInsightPipeline(
   const deduped   = removeHardDuplicates(allStories, cfg, hiddenIds);
 
   // ── Step 5: Event clustering ────────────────────────────────────────────────
-  const clusters = clusterIntoParentEvents(deduped, cfg);
+  const excludedEvidence = new Map<string, { reason: string; parentId: string | null }>();
+  const eventReports = deduped.filter(story => {
+    if (!isGenericPublisherPage(story)) return true;
+    excludedEvidence.set(story.id, { reason: "GENERIC_PUBLISHER_PAGE", parentId: null });
+    return false;
+  });
+  const rawClusters = clusterIntoParentEvents(eventReports, cfg);
 
-  // ── Step 6: Create canonical parents ───────────────────────────────────────
-  const parents = clusters.map(c => createCanonicalParent(c, cfg));
+  // ── Step 6: Enforce event-specific evidence eligibility BEFORE parent
+  // construction. Cluster member copies carry the real parentId; the deduped
+  // input list does not. Retain a reason ledger, never the excluded rows in a
+  // visible parent or its story lookup map.
+  const tagged = rawClusters.flatMap(cluster => cluster.stories);
+  const admitted = applyTierCFallback(
+    tagged.filter(story => !cfg.TIER_D_EXCLUDE || story.sourceTier !== "D"), cfg
+  );
+  const eligibleStoryIds = new Set(admitted.map(story => story.id));
+  for (const story of tagged) {
+    if (!eligibleStoryIds.has(story.id)) {
+      excludedEvidence.set(story.id, {
+        reason: story.sourceTier === "D" ? "TIER_D_EXCLUDED" : "TIER_C_FALLBACK_SUPPRESSED",
+        parentId: story.parentId || null,
+      });
+    }
+  }
+  const clusters = rawClusters
+    .map(cluster => ({ ...cluster, stories: cluster.stories.filter(story => eligibleStoryIds.has(story.id)) }))
+    .filter(cluster => cluster.stories.length > 0);
 
-  // Tag stories with their parentId on the deduped list
+  // ── Step 7: Parents and story lookup describe the SAME eligible population.
+  const parents = clusters.map(cluster => createCanonicalParent(cluster, cfg));
   const storiesById = new Map<string, InsightStory>();
   for (const cluster of clusters) {
-    for (const s of cluster.stories) storiesById.set(s.id, s);
+    for (const story of cluster.stories) storiesById.set(story.id, story);
   }
-
-  // ── Step 7: Apply Tier C fallback ───────────────────────────────────────────
-  const tierFiltered = applyTierCFallback(deduped, cfg);
-  for (const s of tierFiltered) storiesById.set(s.id, s); // refresh map
-
   for (const parent of parents) {
     enrichParentClusterForCE(parent, storiesById, cfg);
   }
@@ -124,6 +149,8 @@ export async function runInsightPipeline(
     parents:        topParents,
     storiesById,
     hiddenIds,
+    excludedEvidence,
+    eligibleStoryIds,
     slotsRefetched: slotsToFetch,
     cacheStatus:    cacheStatus(cfg),
     ranAt:          Date.now(),
@@ -165,12 +192,7 @@ function getChildSourceGroupCount(
   parent: InsightParent,
   storiesById: Map<string, InsightStory>
 ): number {
-  const sourceGroups = new Set(
-    getParentChildStories(parent, storiesById)
-      .map(story => story.sourceGroup || story.source || "unknown")
-  );
-
-  return sourceGroups.size;
+  return countPublisherEvidenceFamilies(getParentChildStories(parent, storiesById));
 }
 
 function getChildTemporalTierCount(
@@ -204,7 +226,7 @@ function getClusterSnapshotCount(
   storiesById: Map<string, InsightStory>
 ): number {
   const snapshots = new Set(
-    safeArray(parent.clusterStoryIds)
+    safeArray(parent.childStoryIds)
       .map(id => storiesById.get(id))
       .filter(Boolean)
       .map(story => story?.capturedAtSnapshot)
@@ -227,12 +249,13 @@ function enrichParentClusterForCE(
   const clusterStories = parent.clusterStoryIds
     .map(id => storiesById.get(id))
     .filter(Boolean) as InsightStory[];
-  const sortedByTime = enrichClusterEvolution(parent, clusterStories, cfg);
+  const sortedByTime = enrichClusterEvolution(parent, clusterStories, cfg)
+    .sort((a,b) => a.publishedAt - b.publishedAt || b.sourceAuthority - a.sourceAuthority || String(a.id).localeCompare(String(b.id)));
 
-  for (const story of sortedByTime) {
-    const baseline = sortedByTime
-      .filter(candidate => candidate.publishedAt < story.publishedAt)
-      .slice(-cfg.MAX_BASELINE_STORIES_FOR_DELTA);
+  for (const [index, story] of sortedByTime.entries()) {
+    // Simultaneous records are not temporal progression, but can repeat the
+    // same content. Stable authority/ID order establishes the comparison only.
+    const baseline = sortedByTime.slice(0, index).slice(-cfg.MAX_BASELINE_STORIES_FOR_DELTA);
     const delta = extractInformationDelta(story, baseline);
     story.informationDelta = delta;
     story.informationDeltaScore = delta.deltaScore;
@@ -446,10 +469,12 @@ export function selectChildStoriesForParent(
 
   for (const child of sourceDiversityChildren) {
     storiesById.set(child.id, child);
+    hiddenIds.delete(child.id);
   }
 
   const clusterIdSet = new Set(parent.clusterStoryIds);
   parent.hiddenDuplicateIds = [...hiddenIds].filter(id => clusterIdSet.has(id));
+  parent.debug.hiddenCount = parent.hiddenDuplicateIds.length;
 
   parent.weakTree = isWeakTree(sourceDiversityChildren, cfg);
   computePostTreeQualityScore(parent, storiesById, cfg);
@@ -513,85 +538,92 @@ export function applyIncrementalUpdate(
   cfg: InsightConfig
 ): InsightRunResult {
   const { parents, storiesById, hiddenIds } = existingResult;
+  const excludedEvidence = existingResult.excludedEvidence instanceof Map
+    ? new Map(existingResult.excludedEvidence)
+    : new Map<string, { reason: string; parentId: string | null }>();
+  const eligibleStoryIds = existingResult.eligibleStoryIds instanceof Set
+    ? new Set(existingResult.eligibleStoryIds)
+    : new Set(storiesById.keys());
+  const trulyNew = newStories.filter(story =>
+    !storiesById.has(story.id) && !excludedEvidence.has(story.id)
+  );
+  if (trulyNew.length === 0) return existingResult;
 
-  // Only process genuinely new stories
-  const truly_new = newStories.filter(s => !storiesById.has(s.id));
-  if (truly_new.length === 0) return existingResult;
-
-  // For each new story, find which parent it belongs to (or flag as new parent candidate)
-
-  for (const story of truly_new) {
-    storiesById.set(story.id, story);
-
-    // Try to match to an existing parent
+  for (const incoming of trulyNew) {
+    if (isGenericPublisherPage(incoming)) {
+      excludedEvidence.set(incoming.id, { reason: "GENERIC_PUBLISHER_PAGE", parentId: null });
+      continue;
+    }
     let matched = false;
     for (const parent of parents) {
       const rep = getClusterRepStory(parent, storiesById);
       if (!rep) continue;
-
-      const rawSim = eventSimilarity(story, rep);
-      const rule   = applyClusterOverrides(story, rep, rawSim, cfg);
-
-      const sim = rule === "SAME" ? 1.0 : rule === "DIFFERENT" ? 0.0 : rawSim;
-
-      if (sim >= cfg.SAME_EVENT_THRESHOLD) {
-        // Belongs to this parent — try to update its tree
-        parent.clusterStoryIds.push(story.id);
-        parent.latestSeenAt = Math.max(parent.latestSeenAt, story.publishedAt);
-        parent.snapshotPresence.now = true;
-
-        const existingClusterStories = parent.clusterStoryIds
-          .map(id => storiesById.get(id))
-          .filter(Boolean)
-          .filter(existing => existing?.id !== story.id) as InsightStory[];
-        const anchor = computeEventAnchor(parent, cfg.MAX_STORY_AGE_HOURS);
-        story.temporalTier = computeTemporalTier(story.publishedAt, anchor);
-        story.temporalTierConfidence = 0.9;
-        story.evolutionRole = inferEvolutionRole(
-          story,
-          story.temporalTier,
-          existingClusterStories.filter(existing => existing.publishedAt < story.publishedAt)
-        );
-        const baseline = existingClusterStories
-          .sort((a, b) => a.publishedAt - b.publishedAt)
-          .slice(-cfg.MAX_BASELINE_STORIES_FOR_DELTA);
-        const delta = extractInformationDelta(story, baseline);
-        story.informationDelta = delta;
-        story.informationDeltaScore = delta.deltaScore;
-        story.repeatedFactPenalty = delta.repeatedFactPenalty;
-        storiesById.set(story.id, story);
-
-        const currentChildren = parent.childStoryIds
-          .map(id => storiesById.get(id))
-          .filter(Boolean) as InsightStory[];
-
-        const updated = tryReplaceWeakestChild(parent, currentChildren, story, cfg, hiddenIds);
-        parent.childStoryIds = updated.map(c => c.id);
-
-        // FIX H-4: keep per-parent hidden list in sync after incremental replacement
-        const clusterIdSet = new Set(parent.clusterStoryIds);
-        parent.hiddenDuplicateIds = [...hiddenIds].filter(id => clusterIdSet.has(id));
-
-        matched = true;
+      // A candidate must be compatible with the WHOLE event, not just one
+      // authoritative representative. Prevent a bridge between occurrences.
+      const previous = getParentClusterStories(parent, storiesById);
+      if (previous.some(member => hasConflictingEventIdentity(member, incoming))) continue;
+      const rawSimilarity = eventSimilarity(incoming, rep);
+      const rule = applyClusterOverrides(incoming, rep, rawSimilarity, cfg);
+      const sim = rule === "SAME" ? 1 : rule === "DIFFERENT" ? 0 : rawSimilarity;
+      if (sim < cfg.SAME_EVENT_THRESHOLD) continue;
+      matched = true;
+      const story = { ...incoming, parentId: parent.parentId };
+      if (cfg.TIER_D_EXCLUDE && story.sourceTier === "D") {
+        excludedEvidence.set(story.id, { reason: "TIER_D_EXCLUDED", parentId: parent.parentId });
         break;
       }
-    }
 
-    // Not matched: new parent candidate (re-run full pipeline at next cycle)
-    if (!matched) {
-      // Tag for next full run — do not disrupt current output
+      // Existing and arriving evidence go through the SAME deterministic
+      // hard-duplicate and Tier-C policy as the initial pipeline. A later
+      // high-authority duplicate can replace its lower-authority predecessor.
+      const duplicateHidden = new Set<string>();
+      const deduped = removeHardDuplicates([...previous, story], cfg, duplicateHidden);
+      const admitted = applyTierCFallback(
+        deduped.map(member => ({ ...member, parentId: parent.parentId })), cfg
+      );
+      const admittedIds = new Set(admitted.map(member => member.id));
+      for (const member of [...previous, story]) {
+        if (admittedIds.has(member.id)) continue;
+        const reason = duplicateHidden.has(member.id)
+          ? "INCREMENTAL_HARD_DUPLICATE"
+          : member.sourceTier === "D" ? "TIER_D_EXCLUDED" : "TIER_C_FALLBACK_SUPPRESSED";
+        excludedEvidence.set(member.id, { reason, parentId: parent.parentId });
+        eligibleStoryIds.delete(member.id);
+        storiesById.delete(member.id);
+        hiddenIds.add(member.id);
+      }
+      if (!admittedIds.has(story.id)) break;
+
+      for (const member of admitted) {
+        storiesById.set(member.id, member);
+        eligibleStoryIds.add(member.id);
+        excludedEvidence.delete(member.id);
+      }
+      // Rebuild canonical metadata and score from the new admitted population;
+      // a replaced representative must not remain the headline/diagnostic ID.
+      Object.assign(parent, createCanonicalParent({ id: parent.parentId, stories: admitted, centroidEmbedding: [] }, cfg));
+      for (const member of admitted) hiddenIds.delete(member.id);
+      // Rebuild using only admitted members. Never preserve an earlier child
+      // that policy just removed, or add excluded rows during the recovery pass.
+      enrichParentClusterForCE(parent, storiesById, cfg);
+      const freshCluster = getParentClusterStories(parent, storiesById);
+      scoreAndRankParents([parent], storiesById, cfg);
+      const dedupedCluster = applyPostClusterDeltaDedup(freshCluster, hiddenIds, cfg);
+      selectChildStoriesForParent(parent, dedupedCluster, storiesById, cfg, hiddenIds);
+      parent.hiddenDuplicateIds = [...hiddenIds].filter(id => parent.clusterStoryIds.includes(id));
+      break;
     }
+    // Unmatched news is a candidate for the next complete run, not an
+    // orphan record pretending to be an eligible visible parent member.
+    if (!matched) continue;
   }
 
-  // Check for rising badge updates
   for (const parent of parents) {
     const nowCount = parent.clusterStoryIds
-      .filter(id => storiesById.get(id)?.capturedAtSnapshot === "now")
-      .length;
+      .filter(id => storiesById.get(id)?.capturedAtSnapshot === "now").length;
     parent.isRising = nowCount >= cfg.RISING_THRESHOLD;
   }
-
-  return { ...existingResult, parents, storiesById, hiddenIds };
+  return { ...existingResult, parents, storiesById, hiddenIds, excludedEvidence, eligibleStoryIds };
 }
 
 function getClusterRepStory(

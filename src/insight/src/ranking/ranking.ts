@@ -2,6 +2,8 @@
 //  INSIGHT TAB — Parent Ranking
 // ─────────────────────────────────────────────
 
+import { countPublisherEvidenceFamilies } from "../pipeline/publisherIdentity";
+
 import { InsightParent, InsightStory, InsightConfig, SnapshotSlot } from "../types";
 
 // ── Ranking reason diagnostics ────────────────────────────────────────────────
@@ -211,9 +213,7 @@ export function computeImpactScore(
   // 5. Source diversity — log-scaled so the first multi-outlet confirmation
   //    matters most and further sources have diminishing returns:
   //      1 source → 0.33, 3 → 0.60, 7 → 0.94, 8+ → 1.00 (clamped).
-  const distinctSourceGroups = new Set(
-    clusterStories.map(s => s.sourceGroup ?? s.source ?? '')
-  ).size;
+  const distinctSourceGroups = countPublisherEvidenceFamilies(clusterStories);
   const divScore = clamp01(Math.log1p(distinctSourceGroups) / Math.log1p(8));
 
   // 6. Top-story anchoring from source placement/headline rank.
@@ -265,29 +265,37 @@ export function computeNoveltyScore(
     s => s.capturedAtSnapshot === "minus36h" || s.capturedAtSnapshot === "minus48h"
   );
 
-  const baseline = older.length > 0 ? older : middle;
+  const baseline = [...older, ...middle];
 
-  if (baseline.length === 0) return 0.8; // newly emerged = high novelty
   if (recent.length === 0) return 0.1;
+  if (baseline.length === 0) return 0.8; // newly emerged = high novelty
 
-  const oldEntities = new Set(baseline.flatMap(s => [...s.entities.orgs, ...s.entities.places]));
-  const oldNumbers  = new Set(baseline.flatMap(s => s.numbers));
-  const oldVerbs    = new Set(baseline.flatMap(s => s.eventVerbs));
-
-  let newSignals = 0;
-  for (const s of recent) {
-    for (const e of [...s.entities.orgs, ...s.entities.places]) {
-      if (!oldEntities.has(e)) newSignals++;
+  // A single newly published atom contributes once, even if ten outlets repeat
+  // it or the collector accidentally repeats the same atom in one article.
+  const canon = (atom: string) => String(atom || "").trim().toLowerCase();
+  const historical = new Set<string>();
+  const additions = new Set<string>();
+  for (const story of baseline) {
+    for (const value of [...(story.entities?.orgs || []), ...(story.entities?.places || [])]) historical.add(`entity:${canon(value)}`);
+    for (const value of story.numbers || []) historical.add(`number:${canon(value)}`);
+    for (const value of story.eventVerbs || []) historical.add(`verb:${canon(value)}`);
+  }
+  for (const story of recent) {
+    for (const value of [...(story.entities?.orgs || []), ...(story.entities?.places || [])]) {
+      const key = `entity:${canon(value)}`;
+      if (canon(value) && !historical.has(key)) additions.add(key);
     }
-    for (const n of s.numbers) {
-      if (!oldNumbers.has(n)) newSignals++;
+    for (const value of story.numbers || []) {
+      const key = `number:${canon(value)}`;
+      if (canon(value) && !historical.has(key)) additions.add(key);
     }
-    for (const v of s.eventVerbs) {
-      if (!oldVerbs.has(v)) newSignals++;
+    for (const value of story.eventVerbs || []) {
+      const key = `verb:${canon(value)}`;
+      if (canon(value) && !historical.has(key)) additions.add(key);
     }
   }
 
-  return Math.min(1, newSignals / 10);
+  return Math.min(1, additions.size / 10);
 }
 
 // ── Cross-snapshot momentum ───────────────────────────────────────────────────

@@ -1,9 +1,11 @@
 import { isActualWeatherAlertText, isActualOfferText, isUpAheadDataFresh } from './upAheadService.js';
-import { isUpAheadItemActive } from './upAheadLifecycle.js';
+import { isUpAheadItemActive, upAheadDateKey, upAheadEventBounds, upAheadEventDayKey } from './upAheadLifecycle.js';
+import { toLocalDateKey } from '../utils/dateKey.js';
+import { upAheadOccurrenceKey, sameUpAheadDisplayOccurrence } from './upAheadLifecycle.js';
 import { getUpAheadEvidence } from './upAheadEvidence.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
 import { matchesUpAheadLocation } from './upAheadLocation.js';
-import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday } from './upAheadLocalPolicy.js';
+import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday, isActionableCivicNotice } from './upAheadLocalPolicy.js';
 
 const DEFAULT_UPAHEAD_SETTINGS = {
   categories: {
@@ -36,21 +38,24 @@ function publishedMs(item) {
   return getEventDateMs(item?.publishedAt || item?.eventStartAt || item?.date || item?.timestamp);
 }
 
+export function formatUpAheadItemDate(item) {
+  const date = upAheadDateKey(item);
+  const { end } = upAheadEventBounds(item);
+  const endDay = end ? upAheadEventDayKey(end - 1, item) : null;
+  return formatConciseDate(date || item?.date || item?.releaseDate, item?.publishedAt || item?.timestamp, item?.eventEndAt, endDay);
+}
+
 function buildCardArticle(item) {
   return {
     ...item,
-    time: formatConciseDate(
-      item?.date || item?.releaseDate,
-      item?.publishedAt || item?.timestamp,
-      item?.eventEndAt
-    ),
+    time: formatUpAheadItemDate(item),
     summary: item?.description || item?.summary || '',
     source: item?.source || item?.platform || item?.category || 'Up Ahead',
     imageUrl: item?.posterUrl || item?.imageUrl || null,
   };
 }
 
-function formatConciseDate(dateStr, publishedAt, eventEndAt) {
+function formatConciseDate(dateStr, publishedAt, eventEndAt, endDay) {
   if (!dateStr) {
     if (publishedAt) {
       const ms = typeof publishedAt === 'number'
@@ -67,20 +72,17 @@ function formatConciseDate(dateStr, publishedAt, eventEndAt) {
     return 'Coming Soon';
   }
 
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-
-  const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const dayNum = d.getDate().toString().padStart(2, '0');
-  const month = d.toLocaleDateString('en-US', { month: 'short' });
+  const dayKey = toLocalDateKey(dateStr);
+  if (!dayKey) return dateStr;
+  const d = new Date(`${dayKey}T00:00:00Z`);
+  const dayName = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+  const dayNum = d.getUTCDate().toString().padStart(2, '0');
+  const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
 
   const label = `${dayName}, ${dayNum} ${month}`;
   const endMs = getEventDateMs(eventEndAt);
-  if (endMs > d.getTime()) {
-    // Publisher range ends are exclusive UTC calendar boundaries.
-    const endKey = new Date(endMs - 1).toISOString().slice(0, 10);
-    if (endKey !== d.toISOString().slice(0, 10)) return `${label} – ${formatConciseDate(endKey)}`;
-  }
+  const endKey = endDay || (endMs ? new Date(endMs - 1).toISOString().slice(0, 10) : null);
+  if (endKey > dayKey) return `${label} – ${formatConciseDate(endKey)}`;
   return label;
 }
 
@@ -206,8 +208,8 @@ function buildSuggestedItems({ movieCards, festivalCards, eventItems, onlineOffe
   const seen = new Set();
   const deduped = [];
   for (const item of tagged) {
-    const key = String(item?.id || item?.link || item?.url || item?.title || '').trim().toLowerCase();
-    if (!key || seen.has(key)) continue;
+    const key = upAheadOccurrenceKey(item);
+    if (!key || deduped.some(existing => sameUpAheadDisplayOccurrence(existing,item))) continue;
     seen.add(key);
     deduped.push(item);
   }
@@ -245,6 +247,7 @@ function getVisibleUpAheadProjection({ data, settings }) {
 
   // This feeds both the Civics tab and the civic portion of the Alerts badge.
   const civicItems = asArray(sections.civic)
+    .filter(isActionableCivicNotice)
     .filter(item => matchesLocalAlert(item, locations))
     .map(alertCard)
     .sort((a, b) => publishedMs(b) - publishedMs(a))

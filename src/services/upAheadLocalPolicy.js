@@ -38,6 +38,14 @@ export function getAlertProvenance(item) {
   return official ? 'Official notice' : 'News report · verify with authority';
 }
 
+// Retained public records are subject to the same current admission rules.
+// Neither court notices nor long-term water-supply projects are civic actions.
+export function isActionableCivicNotice(item) {
+  const text = itemText(item);
+  const utility = /\bwater supply\b.{0,60}\b(interrupt\w*|suspend\w*|cut|disrupt\w*|halt\w*|reduc\w*|restor\w*|notice|advisory)\b|\b(interrupt\w*|suspend\w*|cut|disrupt\w*|halt\w*|reduc\w*|restor\w*|notice|advisory)\b.{0,60}\bwater supply\b/i;
+  return utility.test(text) || /\b(power (cut|shutdown)|shutdown|water interruption|traffic (diversion|restriction|ban)|truck (traffic|movement).{0,40}(restrict\w*|suspend\w*|ban)|road (closure|closed)|service disruption|(property|municipal|water) tax|(public|civic|municipal) (notice|advisory)|(apply|application|registration|payment).{0,35}deadline|deadline.{0,35}(apply|application|registration|payment))\b/i.test(text);
+}
+
 export function isLocalHoliday(item, locations = ['Chennai', 'Muscat']) {
   if (item?.calendarDataset) return true;
   // News discovery also returns elections and generic state closure roundups.

@@ -1,4 +1,6 @@
 import stringSimilarity from 'string-similarity';
+import { newsIdentityConflict, sameNewsArticle, stableNewsRowKey, disambiguateNewsIds } from '../services/newsStoryIdentity.js';
+import { captureNewsEvidenceRows, clusterPublisherFamilies, expandNewsEvidenceRows } from '../services/newsClusterEvidence.js';
 
 export const DEFAULT_STORY_DEDUPE_OPTIONS = {
     similarityThreshold: 0.82,
@@ -163,8 +165,9 @@ export function compareStorySimilarity(leftItem, rightItem, options = {}) {
     const left = prepareStory(leftItem, config);
     const right = prepareStory(rightItem, config);
 
-    const sameIdentity = Boolean(left.identity) && left.identity === right.identity;
-    const sameLink = Boolean(leftItem?.link && rightItem?.link) && leftItem.link === rightItem.link;
+    const sameIdentity = config.newsIdentity ? sameNewsArticle(leftItem,rightItem) : Boolean(left.identity) && left.identity === right.identity;
+    const sameLink = !config.newsIdentity && Boolean(leftItem?.link && rightItem?.link) && leftItem.link === rightItem.link;
+    const conflict = config.newsIdentity ? newsIdentityConflict(leftItem,rightItem) : '';
 
     const sharedTokens = [...left.tokenSet].filter(token => right.tokenSet.has(token));
     const sharedTokenCount = sharedTokens.length;
@@ -196,9 +199,12 @@ export function compareStorySimilarity(leftItem, rightItem, options = {}) {
     else if (strongTokenMatch) reason = 'token_overlap';
     else if (balancedMatch) reason = 'hybrid_match';
 
+    const strictnessOverride = config.newsIdentity && config.similarityThreshold > DEFAULT_STORY_DEDUPE_OPTIONS.similarityThreshold;
+    const fuzzyAllowed = !config.newsIdentity || sameIdentity || sameLink ||
+        (strictnessOverride ? titleSimilarity >= config.similarityThreshold : titleSimilarity >= Math.min(config.similarityThreshold,config.secondarySimilarityThreshold));
     return {
-        isDuplicate,
-        reason,
+        isDuplicate: !conflict && fuzzyAllowed && isDuplicate,
+        reason: conflict || (!fuzzyAllowed ? 'below_effective_similarity' : reason),
         titleSimilarity,
         tokenOverlap,
         sharedTokenCount,
@@ -220,11 +226,13 @@ export const clusterSimilarArticles = (articles, options = {}) => {
     const config = resolveDedupeOptions(options);
     const clusters = [];
 
-    for (const article of articles) {
+    const ordered = config.newsIdentity ? [...articles].sort((a,b)=>stableNewsRowKey(a).localeCompare(stableNewsRowKey(b))) : articles;
+    for (const article of ordered) {
         let matchedCluster = null;
 
         for (const cluster of clusters) {
-            if (cluster.some(existing => isLikelyDuplicateStory(existing, article, config))) {
+            const matches = existing => isLikelyDuplicateStory(existing, article, config);
+            if (config.newsIdentity ? cluster.every(matches) : cluster.some(matches)) {
                 matchedCluster = cluster;
                 break;
             }
@@ -240,8 +248,12 @@ export const clusterSimilarArticles = (articles, options = {}) => {
     return clusters;
 };
 
-function selectRepresentative(cluster) {
+function selectRepresentative(cluster, options = {}) {
     return [...cluster].sort((left, right) => {
+        if (options.freshnessFirst) {
+            const freshDelta = getStoryTimestamp(right) - getStoryTimestamp(left);
+            if (freshDelta) return freshDelta;
+        }
         const scoreDiff = getStoryScore(right) - getStoryScore(left);
         if (scoreDiff !== 0) return scoreDiff;
 
@@ -251,7 +263,7 @@ function selectRepresentative(cluster) {
         const timeDiff = getStoryTimestamp(right) - getStoryTimestamp(left);
         if (timeDiff !== 0) return timeDiff;
 
-        return (getItemTitle(left).length || Infinity) - (getItemTitle(right).length || Infinity);
+        return ((getItemTitle(left).length || Infinity) - (getItemTitle(right).length || Infinity)) || (options.newsIdentity ? stableNewsRowKey(left).localeCompare(stableNewsRowKey(right)) : 0);
     })[0];
 }
 
@@ -287,21 +299,25 @@ function getConsensusAdjustedScore(representative, sourceCount) {
  * Keeps the strongest article, aggregates source info, and applies
  * a consensus boost based on the total source union.
  */
-export const mergeCluster = (cluster) => {
+export const mergeCluster = (cluster, options = {}) => {
     if (!cluster || cluster.length === 0) return null;
 
-    const representative = selectRepresentative(cluster);
+    const representative = selectRepresentative(cluster, options);
     const sources = getUnionSources(cluster);
-    const sourceCount = Math.max(1, sources.length);
-    const description = pickBestDescription(cluster, representative);
+    const familySources = options.newsIdentity ? clusterPublisherFamilies(cluster) : sources;
+    const sourceCount = Math.max(1, familySources.length);
+    const description = options.freshnessFirst || options.newsIdentity
+        ? (representative.description || representative.summary || '')
+        : pickBestDescription(cluster, representative);
 
     return {
         ...representative,
         description,
         summary: representative?.summary || description,
         sourceCount,
-        allSources: sources,
-        clusteredItems: cluster.length,
+        allSources: familySources,
+        ...(options.newsIdentity ? { newsEvidenceRows: captureNewsEvidenceRows(cluster) } : {}),
+        clusteredItems: options.newsIdentity ? captureNewsEvidenceRows(cluster).length : cluster.length,
         impactScore: getConsensusAdjustedScore(representative, sourceCount),
         clusterRepresentative: true
     };
@@ -343,11 +359,11 @@ function exactDeduplicate(items) {
  * Deduplicate articles by exact identity first, then cluster related headlines.
  */
 export const deduplicateAndCluster = (articles, options = {}) => {
-    const exactDeduped = exactDeduplicate(articles);
-
-    return clusterSimilarArticles(exactDeduped, options)
-        .map(mergeCluster)
-        .filter(Boolean);
+    const config = { ...resolveDedupeOptions(options), newsIdentity: true };
+    // Keep exact duplicates until their evidence is merged. Exact ID drops
+    // before clustering used to lose the newer article and the publisher family.
+    const rows = disambiguateNewsIds(expandNewsEvidenceRows(articles || []).filter(item=>item && (getItemTitle(item)||getItemIdentity(item))));
+    return clusterSimilarArticles(rows, config).map(cluster => mergeCluster(cluster, config)).filter(Boolean);
 };
 
 /**

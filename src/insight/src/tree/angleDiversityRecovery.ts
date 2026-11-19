@@ -1,3 +1,4 @@
+import { canonicalPublisherFamily } from "../pipeline/publisherIdentity";
 import {
   AngleLabel,
   ChildCandidate,
@@ -42,11 +43,11 @@ function getSelectedAngles(selected: InsightStory[]): Set<AngleLabel> {
 }
 
 function getSelectedSourceGroups(selected: InsightStory[]): Set<string> {
-  return new Set(selected.map(story => story.sourceGroup || story.source || "unknown"));
+  return new Set(selected.map(story => canonicalPublisherFamily(story)));
 }
 
 function countSelectedBySourceGroup(selected: InsightStory[], sourceGroup: string): number {
-  return selected.filter(story => story.sourceGroup === sourceGroup).length;
+  return selected.filter(story => canonicalPublisherFamily(story) === canonicalPublisherFamily(sourceGroup)).length;
 }
 
 function hasUsefulNumericSignal(candidate: ChildCandidate): boolean {
@@ -97,7 +98,7 @@ export function scoreAngleRecoveryCandidate(
     reasons.push(`new source group: ${candidate.story.sourceGroup}`);
   }
 
-  const sourceGroupCount = countSelectedBySourceGroup(selected, candidate.story.sourceGroup);
+  const sourceGroupCount = countSelectedBySourceGroup(selected, canonicalPublisherFamily(candidate.story));
   if (sourceGroupCount >= cfg.MAX_PER_SOURCE_GROUP) {
     score -= 1.5;
     reasons.push("source group is already saturated");

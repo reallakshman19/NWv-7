@@ -1,3 +1,4 @@
+import { canonicalPublisherFamily } from "../pipeline/publisherIdentity";
 import { InsightStory, InsightConfig } from "../types";
 
 export interface VariantRescueResult {
@@ -23,7 +24,7 @@ export function rescueUsefulVariantsBeforeDuplicateFreeze(
   for (const id of currentChildIds) {
     const s = storiesById.get(id);
     if (s?.angle) currentAngles.add(s.angle);
-    if (s?.sourceGroup) currentSources.add(s.sourceGroup);
+    if (s?.sourceGroup) currentSources.add(canonicalPublisherFamily(s));
   }
 
   for (const candidate of remainingCandidates) {
@@ -32,7 +33,7 @@ export function rescueUsefulVariantsBeforeDuplicateFreeze(
 
     const reasons: string[] = [];
     const angle = candidate.angle ?? 'unknown';
-    const sourceGroup = candidate.sourceGroup ?? 'unknown';
+    const sourceGroup = canonicalPublisherFamily(candidate);
 
     if (!currentAngles.has(angle)) reasons.push('NEW_ANGLE');
     if (!currentSources.has(sourceGroup)) reasons.push('NEW_SOURCE');

@@ -127,13 +127,22 @@ describe('NW-RANK-012C compatibility and publication', () => {
     expect(arrayRows[0].sourceLane).toBe(TOP_STORY_SOURCE_LANES.SECTION_ITEMS_ARRAY);
   });
 
-  it('preserves legacy candidate output and trace deeply', () => {
+  it('preserves legacy trace and candidates while retaining the dated source row', () => {
     const input = {
       sectionItems: { world: [story('same'), story('same'), null, {}] },
       topFeedItems: [story('top')],
       nowMs: NOW,
     };
-    expect(buildTopStoryCandidatesWithTrace(input)).toEqual(legacyBuild(input));
+    const { candidates, ...trace } = buildTopStoryCandidatesWithTrace(input);
+    const { candidates: legacyCandidates, ...legacyTrace } = legacyBuild(input);
+    expect(trace).toEqual(legacyTrace);
+    expect(candidates[1]).toEqual(legacyCandidates[1]);
+    expect(candidates[0]).toMatchObject({
+      id: 'same',
+      sourceCount: 1,
+      clusteredItems: 1,
+      newsEvidenceRows: [expect.objectContaining({ id: 'same', publishedAt: NOW - 60 * 60 * 1000 })],
+    });
   });
 
   it('is deterministic under source permutation when evaluation is unchanged', () => {

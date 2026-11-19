@@ -2,9 +2,9 @@ import { LIVE_MAX_LANE_PAYLOAD_BYTES } from '../../../scripts/sections-live/sect
 import { ShadowCustodyError, type LaneEvidence, type ShadowEpochRow } from './contracts';
 import { sha256Text } from './crypto';
 import type { CustodyEnv } from './custody';
+import { configuredEvidenceCap } from './evidenceStore';
 
 const HOUR_MS = 60 * 60 * 1_000;
-const DEFAULT_STORAGE_CAP_BYTES = 350_000_000;
 
 export interface StoredLiveLaneResult {
   lane: {
@@ -26,13 +26,6 @@ export interface StoredLiveLaneResult {
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
-}
-
-function storageCap(env: CustodyEnv): number {
-  const configured = Number(env.SHADOW_MAX_D1_EVIDENCE_BYTES);
-  return Number.isInteger(configured) && configured > 0
-    ? Math.min(configured, DEFAULT_STORAGE_CAP_BYTES)
-    : DEFAULT_STORAGE_CAP_BYTES;
 }
 
 function changes(result: D1Result): number {
@@ -103,9 +96,7 @@ export async function stageLiveLaneResult(
       )
       SELECT ?, ?, ?, ?, ?, ?, ?, ?
       WHERE (
-        SELECT
-          (SELECT COALESCE(SUM(byte_length), 0) FROM sections_shadow_evidence_objects) +
-          (SELECT COALESCE(SUM(byte_length), 0) FROM sections_shadow_lane_payloads)
+        SELECT retained_bytes FROM sections_shadow_storage_usage WHERE singleton = 1
       ) + ? <= ?
     `).bind(
       epoch.epoch_id,
@@ -117,7 +108,7 @@ export async function stageLiveLaneResult(
       result.observedAtMs,
       result.observedAtMs + 36 * HOUR_MS,
       payloadBytes,
-      storageCap(env),
+      configuredEvidenceCap(env),
     ),
     env.SHADOW_DB.prepare(`
       INSERT INTO sections_shadow_lane_evidence (
@@ -159,9 +150,10 @@ export async function stageLiveLaneResult(
     }
     throw error;
   }
-  if (changes(stored[0]) !== 1 || changes(stored[1]) !== 1 || changes(stored[2]) !== 1) {
+  // Each statement addresses one direct row. D1 also counts ledger-trigger writes.
+  if (changes(stored[0]) < 1 || changes(stored[1]) < 1 || changes(stored[2]) < 1) {
     throw new ShadowCustodyError(
-      changes(stored[0]) !== 1 ? 'FREE_TIER_STORAGE_CAPACITY_EXHAUSTED' : 'LIVE_LANE_STAGE_FAILED',
+      changes(stored[0]) < 1 ? 'FREE_TIER_STORAGE_CAPACITY_EXHAUSTED' : 'LIVE_LANE_STAGE_FAILED',
       `Could not atomically stage live lane ${result.lane.laneId}`,
     );
   }

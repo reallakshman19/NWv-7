@@ -67,9 +67,9 @@ function getRuntimeLabel({ runtimeKind, preferStaticSnapshots }) {
   return runtimeKind === 'browser-runtime' ? 'full-runtime' : 'server-or-test';
 }
 
-function getFeatureStatus(preferStaticSnapshots, canUseDatasetApi, datasetRuntimeMode) {
+function getFeatureStatus(preferStaticSnapshots, canUseDatasetApi, datasetRuntimeMode, canUseLocalRuntimeApi) {
   return {
-    settings: preferStaticSnapshots ? 'local-only' : 'remote-capable',
+    settings: canUseLocalRuntimeApi ? 'remote-capable' : 'local-only',
     planner: preferStaticSnapshots ? 'local-only' : 'remote-capable',
     weather: preferStaticSnapshots ? 'snapshot-or-cache' : 'live',
     market: preferStaticSnapshots ? 'snapshot-or-cache' : 'live',
@@ -86,7 +86,7 @@ function getApiCapabilityFields(values) {
     canUseConfiguredDatasetApi: values.canUseConfiguredDatasetApi,
     canUseLocalRuntimeApi: values.canUseLocalRuntimeApi,
     datasetRuntimeMode: values.datasetRuntimeMode,
-    allowRemoteSettingsSync: values.backendConfigured,
+    allowRemoteSettingsSync: values.canUseLocalRuntimeApi,
     canUseApi: values.backendConfigured,
     canUseRemoteStorage: values.backendConfigured,
     canUseLocalStorage: values.isBrowser,
@@ -148,7 +148,7 @@ export function resolveRuntimeCapabilities(input = {}) {
     ...getApiCapabilityFields(values),
     ...getDatasetModeFields(values.preferStaticSnapshots),
     featureStatus: getFeatureStatus(
-      values.preferStaticSnapshots, values.canUseDatasetApi, values.datasetRuntimeMode
+      values.preferStaticSnapshots, values.canUseDatasetApi, values.datasetRuntimeMode, values.canUseLocalRuntimeApi
     ),
     runtimeLabel,
   };

@@ -3,6 +3,21 @@ export const TOP_STORIES_FIXTURE_NOW = Date.UTC(2026, 6, 9, 8, 0, 0);
 const hour = 60 * 60 * 1000;
 const publishedHoursAgo = hours => TOP_STORIES_FIXTURE_NOW - hours * hour;
 
+const cycloneReports = Object.freeze([
+  ['source-diverse-top-feed', 'AP News', 'https://apnews.com/article/cyclone-fixture'],
+  ['cyclone-reuters', 'Reuters', 'https://www.reuters.com/world/cyclone-fixture'],
+  ['cyclone-bbc', 'BBC', 'https://www.bbc.com/news/cyclone-fixture'],
+  ['cyclone-hindu', 'The Hindu', 'https://www.thehindu.com/news/cyclone-fixture'],
+].map(([id, source, url]) => Object.freeze({
+  id,
+  source,
+  url,
+  title: 'Government cyclone alert confirmed by multiple agencies',
+  section: 'world',
+  publishedAt: publishedHoursAgo(1),
+  timestampConfidence: 'high',
+})));
+
 export const TOP_STORIES_REGRESSION_STORIES = Object.freeze([
   Object.freeze({
     id: 'fresh-hard-alert',
@@ -83,13 +98,8 @@ export const TOP_STORIES_REGRESSION_STORIES = Object.freeze([
     sourceCount: 2,
   }),
   Object.freeze({
-    id: 'source-diverse-top-feed',
-    title: 'Government cyclone alert confirmed by multiple agencies',
-    section: 'world',
-    source: 'AP',
-    sourceGroup: 'ap',
-    publishedAt: publishedHoursAgo(1),
-    timestampConfidence: 'high',
+    ...cycloneReports[0],
+    newsEvidenceRows: cycloneReports,
   }),
   Object.freeze({
     id: 'same-source-top-feed-spam',
@@ -112,18 +122,20 @@ export const TOP_STORIES_REGRESSION_STORIES = Object.freeze([
 ]);
 
 export const TOP_STORIES_REGRESSION_TOP_FEED = Object.freeze([
-  Object.freeze({ id: 'source-diverse-top-feed', sourceGroup: 'agency-a', topFeedSource: 'snapshot-a', topFeedRank: 1 }),
-  Object.freeze({ id: 'source-diverse-top-feed', sourceGroup: 'agency-b', topFeedSource: 'snapshot-b', topFeedRank: 2 }),
-  Object.freeze({ id: 'source-diverse-top-feed', sourceGroup: 'agency-c', topFeedSource: 'snapshot-c', topFeedRank: 3 }),
-  Object.freeze({ id: 'source-diverse-top-feed', sourceGroup: 'agency-d', topFeedSource: 'snapshot-d', topFeedRank: 4 }),
-  Object.freeze({ id: 'same-source-top-feed-spam', sourceGroup: 'same-feed', topFeedSource: 'same-snapshot', topFeedRank: 1 }),
-  Object.freeze({ id: 'same-source-top-feed-spam', sourceGroup: 'same-feed', topFeedSource: 'same-snapshot', topFeedRank: 1 }),
-  Object.freeze({ id: 'same-source-top-feed-spam', sourceGroup: 'same-feed', topFeedSource: 'same-snapshot', topFeedRank: 1 }),
-  Object.freeze({ id: 'god-of-war-promo', sourceGroup: 'entertainment-feed', topFeedSource: 'promo-snapshot', topFeedRank: 1 }),
+  ...cycloneReports.map((report, index) => Object.freeze({
+    ...report,
+    topFeedSource: report.source,
+    topFeedRank: index + 1,
+  })),
+  ...[1, 1, 1].map(topFeedRank => Object.freeze({
+    ...TOP_STORIES_REGRESSION_STORIES.find(row => row.id === 'same-source-top-feed-spam'),
+    topFeedSource: 'same-snapshot',
+    topFeedRank,
+  })),
 ]);
 
 export const TOP_STORIES_REGRESSION_INPUT = Object.freeze({
   sectionItems: Object.freeze({ world: TOP_STORIES_REGRESSION_STORIES }),
-  topFeedItems: TOP_STORIES_REGRESSION_TOP_FEED,
+  topFeedEvidence: TOP_STORIES_REGRESSION_TOP_FEED,
   nowMs: TOP_STORIES_FIXTURE_NOW,
 });

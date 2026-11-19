@@ -5,6 +5,8 @@ import {
   subscribeDiagnostics,
 } from '../data/diagnosticsStore.js';
 import { listDatasetCache } from '../data/orchestrator/useDataset.js';
+import { combineDatasetHealthEntries } from '../data/upAheadDirectPageEvidence.js';
+import { combinePageProvenanceEntries } from '../data/pageProvenance.js';
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities.js';
 
 const EDGE_DIAGNOSTIC_EVENT = 'upAheadDataset.api_edge_diagnostics';
@@ -12,6 +14,11 @@ const EDGE_DIAGNOSTIC_FIELDS = ['source', 'reason', 'freshness', 'ageSeconds'];
 const ACTIVATION_STATUS_LABELS = ['configured', 'not configured', 'missing', 'unknown'];
 const READINESS_COMMAND = 'npm run test:upahead-edge-readiness';
 const SMOKE_COMMAND = 'VITE_API_BASE_URL=https://<worker-host> npm run test:upahead-edge-readiness -- --require-config --smoke';
+
+// Only user click handlers call this helper; do not read a clock during render.
+function getExportTimestamp() {
+  return Date.now();
+}
 
 function formatTime(value) {
   if (!value) return '--';
@@ -28,8 +35,30 @@ function formatTime(value) {
   }
 }
 
-function getCacheSnapshot() {
-  return listDatasetCache();
+function getCacheSnapshot(diagnostics = []) {
+  return combinePageProvenanceEntries(
+    combineDatasetHealthEntries(listDatasetCache(), diagnostics), diagnostics
+  );
+}
+
+const PAGE_COVERAGE_IDS = ['main', 'upAhead', 'insight', 'newspaper'];
+function getPageCoverage(entries) {
+  return PAGE_COVERAGE_IDS.map(page => {
+    const direct = entries.find(row => row.datasetId === page + ' (page)');
+    const shared = entries.find(row => row.datasetId === page);
+    const entry = direct || shared;
+    return {
+      page,
+      observed: Boolean(entry),
+      source: entry?.envelope?.source || 'not observed',
+      freshness: entry?.envelope?.freshness || 'unknown',
+      origin: entry?.origin || (shared ? 'shared-cache' : 'not observed'),
+    };
+  });
+}
+function validationLabel(envelope) {
+  return envelope?.validation?.passed === true ? 'passed'
+    : envelope?.validation?.passed === false ? 'failed' : 'unknown / not evaluated';
 }
 
 function isObjectRecord(value) {
@@ -246,14 +275,17 @@ export default function DataHealthPanel() {
     return unsubscribe;
   }, []);
 
-  const cachedEnvelopes = getCacheSnapshot();
+  const cachedEnvelopes = getCacheSnapshot(diagnostics);
+  const pageCoverage = getPageCoverage(cachedEnvelopes);
   const runtimeCapabilities = readRuntimeCapabilities();
-  const latestUpAheadEdgeDiagnosticEvent = getLatestUpAheadEdgeDiagnosticEvent(diagnostics);
-  const latestUpAheadEdgeDiagnostics = getLatestUpAheadEdgeDiagnostics(diagnostics);
+  // Raw edge observations are still useful, but are NOT matched to a
+  // different cached payload or reused as proof of its effective provider.
+  const rawUnlinkedEdgeDetails = getLatestUpAheadEdgeDiagnostics(diagnostics);
 
   const exportPayload = () => {
+    const exportTimestamp = getExportTimestamp();
     const payload = {
-      exportedAt: Date.now(),
+      exportedAt: exportTimestamp,
       diagnostics,
       datasets: cachedEnvelopes.map(({ datasetId, envelope }) => ({
         datasetId,
@@ -267,9 +299,14 @@ export default function DataHealthPanel() {
         validation: envelope?.validation,
         slo: envelope?.slo,
         error: envelope?.error,
-        edgeApiDiagnostics: datasetId === 'upAhead'
-          ? buildEdgeApiDiagnosticsExport(latestUpAheadEdgeDiagnostics)
+        edgeApiDiagnostics: datasetId === 'upAhead (page)'
+          ? buildEdgeApiDiagnosticsExport(envelope?.edgeApiDiagnostics)
           : null,
+        providerProvenance: envelope?.providerProvenance || null,
+        attemptId: envelope?.attemptId || null,
+        validationState: validationLabel(envelope),
+        evidenceClass: envelope?.providerProvenance ? 'direct-page-receipt'
+          : 'local-envelope-cache',
       })),
     };
 
@@ -289,7 +326,7 @@ export default function DataHealthPanel() {
       const anchor = document.createElement('a');
 
       anchor.href = url;
-      anchor.download = `data-health-${Date.now()}.json`;
+      anchor.download = `data-health-${exportTimestamp}.json`;
       anchor.click();
 
       URL.revokeObjectURL(url);
@@ -322,6 +359,30 @@ export default function DataHealthPanel() {
         </div>
       </div>
 
+      <div style={{ marginTop: '14px' }} aria-label="Page coverage in this browser session">
+        <h3>Page coverage (this browser session)</h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+          Not observed means no current-session receipt; it does not prove a route failed.
+          An envelope or receipt is not proof of a fresh Cloudflare epoch.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {pageCoverage.map(row => (
+            <span key={row.page} className="data-state-badge" data-testid={`a10-coverage-${row.page}`}>
+              {row.page}: {row.observed
+                ? `${row.source} · ${row.freshness} · ${row.origin}`
+                : 'not observed'}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {rawUnlinkedEdgeDetails && (
+        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          Unlinked historical Up Ahead edge telemetry is available in Recent diagnostics.
+          It is not proof of the selected page or cached dataset source.
+        </p>
+      )}
+
       <div style={{ display: 'grid', gap: '12px', marginTop: '16px' }}>
         {cachedEnvelopes.length === 0 ? (
           <div className="empty-state" style={{ padding: '16px' }}>
@@ -333,23 +394,30 @@ export default function DataHealthPanel() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
               <div><strong>Status:</strong> {envelope?.ok ? 'ok' : 'degraded'}</div>
-              <div><strong>Source:</strong> {envelope?.source || '--'}</div>
+              <div><strong>Source:</strong> {(envelope?.sourceMode === 'dataset-api' || envelope?.data?.sourceMode === 'dataset-api') ? 'Worker API (snapshot-backed)' : (envelope?.source || '--')}</div>
+              {envelope?.providerProvenance && (
+                <div><strong>Effective provider:</strong> {envelope.providerProvenance.effectiveProvider || '--'}</div>
+              )}
               <div><strong>Freshness:</strong> {envelope?.freshness || '--'}</div>
               <div><strong>Fallback:</strong> {envelope?.fallbackUsed ? 'yes' : 'no'}</div>
-              <div><strong>Payload hash:</strong> {envelope?.payloadHash || '--'}</div>
+              <div><strong>Local payload checksum:</strong> {envelope?.payloadHash || '--'}</div>
               <div><strong>Last good:</strong> {formatTime(envelope?.lastGoodAt)}</div>
-              <div><strong>Validation:</strong> {envelope?.validation?.passed === false ? 'failed' : 'passed'}</div>
+              <div><strong>Validation:</strong> {validationLabel(envelope)}</div>
               <div><strong>SLO score:</strong> {envelope?.slo?.score ?? '--'}</div>
             </div>
 
-            {datasetId === 'upAhead' && (
+            {(datasetId === 'upAhead' || datasetId === 'upAhead (page)') && (
               <>
                 <UpAheadEdgeActivationStatus
                   envelope={envelope}
-                  diagnosticEvent={latestUpAheadEdgeDiagnosticEvent}
+                  diagnosticEvent={datasetId === 'upAhead (page)'
+                    ? diagnostics.find(event => event.id === envelope?.edgeDiagnosticEventId) || null
+                    : null}
                   runtimeCapabilities={runtimeCapabilities}
                 />
-                <EdgeApiSummary details={latestUpAheadEdgeDiagnostics} />
+                <EdgeApiSummary details={datasetId === 'upAhead (page)'
+                  ? envelope?.edgeApiDiagnostics
+                  : null} />
               </>
             )}
 

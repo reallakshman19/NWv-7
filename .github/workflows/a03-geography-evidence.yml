@@ -1,0 +1,60 @@
+name: A03 geographic repair — scoped evidence
+on:
+  push:
+    branches:
+      - fix/a03-geography-source-confidence-20261117
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scoped-source-and-build:
+    name: Targeted Vitest and Vite build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Compare A03 Top Stories actual versus preserved golden
+        run: node audit/evidence/a03_top_golden_diff.mjs
+      - name: Run A03 and inherited regional/travel/Top Stories contracts
+        run: |
+          npx vitest run --config vitest.config.js \
+            src/services/a03GeographySourceConfidence.cert.test.js \
+            src/components/travel/a03GeographyVisibleMarkup.cert.test.jsx \
+            src/services/areaRelevanceScorer.cert.test.js \
+            src/services/storyLocationPriority.cert.test.js \
+            src/services/travelLocationProfile.cert.test.js \
+            src/services/travelNewsIngestion.cert.test.js \
+            src/services/travelLocalUiQuality.cert.test.js \
+            src/services/topStories/topStoriesLocationSignals.cert.test.js \
+            src/services/topStories/topStoriesGeography.cert.test.js
+      - name: Build production app without deployment
+        run: npm run build
+  cloudflare-read-only:
+    name: Real Cloudflare GET snapshot and source replay
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Read public Cloudflare Preview without fallback or D1 writes
+        run: node audit/evidence/a03_cloudflare_live_e2e.mjs
+      - name: Preserve raw response and counterfactual output, including failures
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a03-cloudflare-read-only-source-replay
+          path: artifacts/a03/
+          retention-days: 30
+          if-no-files-found: error

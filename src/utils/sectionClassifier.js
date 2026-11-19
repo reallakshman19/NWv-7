@@ -15,9 +15,10 @@ function getEffectiveKeywords(settingsObj) {
     const merged = {};
     for (const [section, defaults] of Object.entries(SECTION_KEYWORDS)) {
         const userAdded = userOverrides[section];
-        merged[section] = Array.isArray(userAdded) && userAdded.length > 0
-            ? [...defaults, ...userAdded.filter(k => !defaults.includes(k))]
-            : defaults;
+        const additions = Array.isArray(userAdded)
+            ? userAdded.filter(value => typeof value === 'string').map(value => value.trim().toLowerCase()).filter(Boolean)
+            : [];
+        merged[section] = additions.length ? [...new Set([...defaults, ...additions])] : defaults;
     }
     return merged;
 }
@@ -75,8 +76,8 @@ export function classifySection(title, description, source = '', settingsOverrid
             const useRegex = kLower.length <= 3 || strictWords.includes(kLower);
 
             if (useRegex) {
-                 // Regex boundary check
-                 const regex = new RegExp(`\\b${kLower}\\b`, 'i');
+                 const escaped = kLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                 const regex = new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`, 'iu');
                  if (regex.test(text)) {
                      scores[section]++;
                  }

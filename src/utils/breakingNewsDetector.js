@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { getStorySourceFamily } from '../services/topStories/topStoriesSourceIdentity.js';
 /**
  * Detect breaking news based on:
  * 1. Multiple sources reporting same story within short timeframe
@@ -31,6 +32,8 @@ export class BreakingNewsDetector {
 
         const titleNormalized = normalizeTitle(article.title);
         const timeSincePubMinutes = (currentTime - article.publishedAt) / 1000 / 60;
+        if (timeSincePubMinutes < -5) return { isBreaking: false, breakingScore: 0, multiplier: 1.0 };
+        const sourceFamily = getStorySourceFamily(article);
 
         let isBreaking = false;
         let breakingScore = 0;
@@ -44,8 +47,8 @@ export class BreakingNewsDetector {
                 const timeSinceFirstMinutes = (currentTime - newsData.firstSeen) / 1000 / 60;
 
                 // Add new source if not yet reported
-                if (timeSinceFirstMinutes < 60 && !newsData.sources.has(article.source)) {
-                    newsData.sources.add(article.source);
+                if (timeSinceFirstMinutes < 60 && sourceFamily !== 'unknown' && !newsData.sources.has(sourceFamily)) {
+                    newsData.sources.add(sourceFamily);
                     newsData.count++;
                 }
 
@@ -72,8 +75,8 @@ export class BreakingNewsDetector {
         if (!this.newsMap.has(titleNormalized)) {
             this.newsMap.set(titleNormalized, {
                 firstSeen: article.publishedAt,
-                sources: new Set([article.source]),
-                count: 1,
+                sources: new Set(sourceFamily === 'unknown' ? [] : [sourceFamily]),
+                count: sourceFamily === 'unknown' ? 0 : 1,
                 title: article.title
             });
         }
@@ -81,7 +84,7 @@ export class BreakingNewsDetector {
         return {
             isBreaking,
             breakingScore,
-            multiplier: isBreaking ? breakingScore : 1.0
+            multiplier: isBreaking ? Math.max(1, breakingScore) : 1.0
         };
     }
 

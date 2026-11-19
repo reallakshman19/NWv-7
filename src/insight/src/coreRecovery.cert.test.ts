@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_CONFIG,
   InsightConfig,
@@ -149,6 +149,8 @@ function resetInsightCache() {
 }
 
 describe("Insight core recovery certification", () => {
+  beforeEach(() => { vi.spyOn(Date, "now").mockReturnValue(NOW); });
+  afterEach(() => { vi.restoreAllMocks(); });
   it("classifies real story-angle variants beyond base_report", () => {
     const angles = fixtureStories.map(story => classifyAngle(story));
 

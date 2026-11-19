@@ -8,6 +8,7 @@ import {
   sanitizeUpAheadData,
 } from '../services/upAheadService';
 import { load as loadUpAhead } from '../data/datasets/upAheadDataset';
+import { publishDirectUpAheadEnvelope } from '../data/upAheadDirectPageEvidence.js';
 import plannerStorage, {
   getPlannerStorageError,
   isPlannerStorageSuccess,
@@ -15,7 +16,8 @@ import plannerStorage, {
 import { getRuntimeCapabilities } from '../runtime/runtimeCapabilities';
 import { DEFAULT_UPAHEAD_SETTINGS, getVisibleUpAheadProjection, buildSuggestedItems, buildCardArticle, formatConciseDate, getEventDateMs } from '../services/upAheadProjection.js';
 import { toLocalDateKey } from '../utils/dateKey';
-import { upAheadTimeMs } from '../services/upAheadLifecycle.js';
+import { upAheadOccurrenceKey } from '../services/upAheadLifecycle.js';
+import { buildExplicitPlannerSave } from '../utils/plannerIntelligenceBridge.js';
 
 function normalizePlanDate(dateStr) {
   // Local-calendar keys, consistent with dateAware/plannerStorage; UTC
@@ -37,6 +39,31 @@ function getSourceModeState({ data, runtime, envelope }) {
     || (envelope && envelope.freshness !== 'fresh')) {
     return { modeStr: 'degraded', modeLabel: data?.auditSummary?.fallback === 'festival_calendar' ? 'Calendar fallback' : 'Limited' };
   }
+  // The selected envelope is the canonical source family. Payload sourceMode
+  // may describe an older retained response and must never promote it to Live.
+  if (envelope?.source === 'failed' || envelope?.source === 'unknown') {
+    return { modeStr: 'degraded', modeLabel: 'Source unverified' };
+  }
+  if (envelope?.source === 'seed') {
+    return { modeStr: 'degraded', modeLabel: 'Calendar fallback' };
+  }
+  if (envelope?.source === 'cache') {
+    return { modeStr: 'cached', modeLabel: 'Cached' };
+  }
+  if (envelope?.source === 'snapshot'
+      && !['snapshot', 'static', 'dataset-api'].includes(data?.sourceMode)) {
+    return { modeStr: 'snapshot', modeLabel: 'Snapshot' };
+  }
+  if (envelope?.source === 'live'
+      && ['snapshot', 'static', 'dataset-api'].includes(data?.sourceMode)) {
+    return { modeStr: 'degraded', modeLabel: 'Source mismatch' };
+  }
+
+  // A Worker-backed snapshot is a successful dataset API response, not a
+  // degraded feed merely because the frontend is hosted on GitHub Pages.
+  if (data?.sourceMode === 'dataset-api') {
+    return { modeStr: 'snapshot', modeLabel: 'Worker API' };
+  }
   if (data?.sourceMode === 'snapshot' || data?.sourceMode === 'static') {
     return { modeStr: 'snapshot', modeLabel: 'Snapshot' };
   }
@@ -49,8 +76,10 @@ function getSourceModeState({ data, runtime, envelope }) {
   }
 
   return {
-    modeStr: data?.sourceMode === 'cache' ? 'cached' : 'live',
-    modeLabel: data?.sourceMode === 'cache' ? 'Cached' : 'Live',
+    modeStr: data?.sourceMode === 'cache' ? 'cached'
+      : data?.sourceMode === 'live' ? 'live' : 'degraded',
+    modeLabel: data?.sourceMode === 'cache' ? 'Cached'
+      : data?.sourceMode === 'live' ? 'Live' : 'Source unverified',
   };
 }
 
@@ -80,21 +109,22 @@ function deriveOfferCapability({
   sourceMode = null,
   freshness = 'fresh',
 } = {}) {
-  if (Array.isArray(offers) && offers.length > 0) {
-    return {
-      status: 'ready',
-      verified: true,
-      reason: 'results',
-      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
-    };
+  // Configuration authority and offer availability are separate. Preserve
+  // retained cards but never call them verified without fresh successful sources.
+  const counts = categoryAcquisitionTotals(acquisitionSummary, categories);
+  if (!enabled) {
+    return { status: 'disabled', verified: false, reason: 'category_disabled', counts };
   }
 
-  if (!enabled) {
+  if (Array.isArray(offers) && offers.length > 0) {
+    const verified = freshness === 'fresh' && counts.successfulSources > 0
+      && counts.failedSources === 0;
     return {
-      status: 'disabled',
-      verified: true,
-      reason: 'category_disabled',
-      counts: categoryAcquisitionTotals(acquisitionSummary, categories),
+      status: 'ready',
+      verified,
+      reason: verified ? 'verified_acquired_results'
+        : freshness !== 'fresh' ? 'retained_results_stale' : 'unverified_acquired_results',
+      counts,
     };
   }
 
@@ -111,8 +141,6 @@ function deriveOfferCapability({
       counts: categoryAcquisitionTotals(acquisitionSummary, categories),
     };
   }
-
-  const counts = categoryAcquisitionTotals(acquisitionSummary, categories);
 
   if (acquisitionSummary && counts.attemptedSources > 0) {
     if (counts.successfulSources === 0 && counts.failedSources > 0) {
@@ -247,6 +275,7 @@ export function useUpAheadPageViewModel() {
       });
       if (request !== latestLoad.current) return;
       setEnvelope(nextEnvelope);
+      publishDirectUpAheadEnvelope(nextEnvelope, { requestedPagePolicy: forceRefresh ? 'refresh-now' : 'smart' });
       setError(nextEnvelope.error || null);
       const { raw, sourceMode, acquisitionSummary } = nextEnvelope.data || {};
       lastData.current = raw && { ...raw, sourceMode };
@@ -255,6 +284,11 @@ export function useUpAheadPageViewModel() {
       setLoadingPhase(acquisitionSummary && acquisitionSummary.status !== 'blocked' ? 3 : 2);
     } catch (error) {
       if (request !== latestLoad.current) return;
+      publishDirectUpAheadEnvelope({
+        ok: false, source: 'failed', freshness: 'unknown',
+        error: error?.message || 'Up Ahead refresh failed',
+        data: { sourceMode: 'failed' },
+      }, { requestedPagePolicy: forceRefresh ? 'refresh-now' : 'smart' });
       setError(error?.message || 'Up Ahead refresh failed. Showing retained active items if available.');
       setLiveAcquisition({ status: 'failed', reason: error?.message || 'refresh_failed', byCategory: {} });
     } finally {
@@ -282,7 +316,7 @@ export function useUpAheadPageViewModel() {
   useUpAheadExpiry(data, showRetained);
 
   const handleRemoveFromPlan = useCallback((item) => {
-    const id = item?.hiddenKey || item?.canonicalId || item?.id;
+    const id = item && upAheadOccurrenceKey(item);
 
     if (!id) return;
 
@@ -290,7 +324,7 @@ export function useUpAheadPageViewModel() {
       const result = plannerStorage.addToBlacklist(id);
       if (!isPlannerStorageSuccess(result)) {
         if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-          window.alert(getPlannerStorageError(result, 'Planner item was not removed'));
+          window.alert(getPlannerStorageError(result, 'Suggestion was not dismissed'));
         }
         return result;
       }
@@ -300,26 +334,9 @@ export function useUpAheadPageViewModel() {
   }, [showRetained]);
 
   const handleAddToPlan = useCallback((item, dateStr) => {
-    const hiddenKey = item?.hiddenKey || item?.canonicalId || item?.id;
-    const today = toLocalDateKey(new Date());
-    const ongoing = upAheadTimeMs(item?.eventEndAt) > Date.now();
-    const eventDate = normalizePlanDate(dateStr);
-    const normalizedDate = ongoing && eventDate < today ? today : item?.planDate || eventDate;
-
-    const result = plannerStorage.addItem(normalizedDate, {
-      id: hiddenKey || item?.id,
-      hiddenKey,
-      upAheadIds: item?.upAheadIds,
-      title: item?.title,
-      category: item?.category || item?.tags?.[0] || 'event',
-      type: item?.type || item?.category || item?.tags?.[0] || 'event',
-      link: item?.link,
-      description: item?.description,
-      icon: item?.icon,
-      planDate: normalizedDate,
-      eventDateKey: eventDate,
-      eventDate,
-    });
+    const payload = buildExplicitPlannerSave(item, dateStr);
+    if (!payload) return { ok: false, error: 'Planner item is invalid' };
+    const result = plannerStorage.addItem(payload.planDate, payload);
 
     if (!isPlannerStorageSuccess(result)) {
       if (typeof window !== 'undefined' && typeof window.alert === 'function') {

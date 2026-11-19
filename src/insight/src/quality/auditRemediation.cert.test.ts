@@ -7,7 +7,11 @@ import { isWeakTree } from "../tree/treeBuilder";
 import { computeEventAnchor } from "../pipeline/temporalTier";
 import { cosineSimilarity } from "../dedup/dedup";
 import { getEmbeddings } from "../../../adapters/embeddingsAdapter.js";
-import { selectPrefetchedSectionItems } from "../../../adapters/sectionsSnapshotFetcher.js";
+import {
+  SECTION_ITEM_MAX_AGE_MS,
+  SECTION_SNAPSHOT_MAX_AGE_MS,
+  selectPrefetchedSectionItems,
+} from "../../../adapters/sectionsSnapshotFetcher.js";
 
 // Minimal InsightStory factory (mirrors existing cert fixtures).
 function story(partial: Partial<InsightStory> & { id: string; angle?: any }): InsightStory {
@@ -116,19 +120,28 @@ describe("Audit remediation regression locks (I001, I002, I004, I007, I008, I010
     expect(Math.abs(diag.formulaDelta)).toBeLessThan(1e-3);
   });
 
-  // ── I002: stale sections snapshot serves labelled rows, not a silent empty Main ──
-  it("I002: an all-stale sections snapshot yields stale-flagged rows, not empty", () => {
-    const old = Date.now() - 40 * 60 * 60 * 1000; // 40h old → snapshot stale AND item past the 36h item gate
+  it("I002: a retained sections snapshot serves eligible rows with a stale status", () => {
+    const now = Date.now();
+    const hour = 60 * 60 * 1000;
+    const stale = now - SECTION_SNAPSHOT_MAX_AGE_MS - hour;
+    const expired = now - SECTION_ITEM_MAX_AGE_MS - hour;
     const snapshot = {
       schemaVersion: 2,
-      fetchedAt: old,
+      fetchedAt: stale,
       contentHash: "test",
-      sections: { world: [{ id: "w1", title: "Stale story", url: "https://e/w1", source: "X", publishedAt: old }] },
+      sections: {
+        world: [
+          { id: "w1", title: "Retained story", url: "https://example.org/w1", source: "X", publishedAt: stale },
+          { id: "w2", title: "Expired story", url: "https://example.org/w2", source: "X", publishedAt: expired },
+        ],
+      },
     };
-    const res = selectPrefetchedSectionItems(snapshot, "world", 5);
-    expect(res.items.length).toBeGreaterThan(0); // not silently empty (the fix)
-    expect(res.stale).toBe(true);                // surfaced as stale so UI labels it
-    expect(res.staleFallback).toBe(true);        // served via stale fallback, not the fresh path
+    const retained = selectPrefetchedSectionItems(snapshot, "world", 5);
+    expect(retained.items.map(item => item.id)).toEqual(["w1"]);
+    expect(retained).toMatchObject({ stale: true, staleFallback: true, staleReason: "sections_snapshot_stale" });
+
+    const beyondRetention = selectPrefetchedSectionItems({ ...snapshot, fetchedAt: expired }, "world", 5);
+    expect(beyondRetention).toMatchObject({ items: [], stale: true, staleReason: "snapshot_outside_retained_window" });
   });
 
   // ── I001: deploy publishes on data-workflow completion (GITHUB_TOKEN-safe) ──

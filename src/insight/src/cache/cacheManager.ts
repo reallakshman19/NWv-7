@@ -108,22 +108,34 @@ export function needsPrewarm(slot: SnapshotSlot, cfg: InsightConfig): boolean {
  * accepting fresh-fetched stories for expired slots.
  * Stories are tagged with their capturedAtSnapshot.
  */
+export function getPublicationSlot(publishedAt: number, now: number = Date.now()): SnapshotSlot | null {
+  const age = (now - publishedAt) / 3_600_000;
+  if (!Number.isFinite(age) || publishedAt <= 0 || age < 0 || age >= 60) return null;
+  return age < 4 ? "now" : age < 12 ? "minus4h" : age < 24 ? "minus12h" : age < 36 ? "minus24h" : age < 48 ? "minus36h" : "minus48h";
+}
+
 export function mergeSlotStories(
   freshBySlot: Partial<Record<SnapshotSlot, InsightStory[]>>,
   cfg: InsightConfig
 ): InsightStory[] {
   const all: InsightStory[] = [];
+  const now = Date.now();
+  const tag = (stories: InsightStory[], requested: SnapshotSlot): InsightStory[] => stories.flatMap(story => {
+    const actual = getPublicationSlot(story.publishedAt, now);
+    if (!actual || now - story.publishedAt > cfg.MAX_STORY_AGE_HOURS * 3_600_000) return [];
+    return [{ ...story, requestedSnapshotSlot: requested, capturedAtSnapshot: actual }];
+  });
 
   for (const slot of SNAPSHOT_SLOTS) {
     if (freshBySlot[slot]) {
       // Fresh fetch result — tag and store
-      const tagged = freshBySlot[slot]!.map(s => ({ ...s, capturedAtSnapshot: slot }));
+      const tagged = tag(freshBySlot[slot]!, slot);
       if (slot !== "now") setCachedSlot(slot, tagged, cfg);
       all.push(...tagged);
     } else {
       // Use cache
       const cached = getCachedSlot(slot, cfg);
-      if (cached) all.push(...cached.stories);
+      if (cached) all.push(...tag(cached.stories, slot));
     }
   }
 

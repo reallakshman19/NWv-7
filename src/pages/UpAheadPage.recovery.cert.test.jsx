@@ -56,8 +56,8 @@ describe('Actual Up Ahead page recovery wiring', () => {
     expect(screen.getByText('Publisher snapshot unavailable')).toBeTruthy();
     expect(screen.queryByText('No upcoming events found.')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Alerts/ }));
-    expect(screen.getByRole('link', { name: /IMD Chennai weather warnings/ })).toBeTruthy();
-    expect(screen.getByRole('link', { name: /Oman CAA Meteorology/ })).toBeTruthy();
+    expect(screen.getByLabelText('Local source coverage').textContent).toContain('Chennai: coverage unverified');
+    expect(screen.getByLabelText('Local source coverage').textContent).toContain('Muscat: coverage unverified');
   });
 
   it('keeps retained cards with a visible stale warning and safely resets saved-button feedback', async () => {
@@ -73,5 +73,6 @@ describe('Actual Up Ahead page recovery wiring', () => {
     act(() => vi.advanceTimersByTime(2000));
     expect(button.textContent).toBe('+ Plan');
     expect(mocks.addItem).toHaveBeenCalled();
+    expect(mocks.addItem.mock.calls.at(-1)[1].sourceMode).toBe('snapshot');
   });
 });

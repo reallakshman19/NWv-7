@@ -1,4 +1,5 @@
 import React from 'react';
+import { recoverOutdatedAppBuild, RouteChunkLoadError } from '../runtime/routeChunkRecovery.js';
 
 function areArraysDifferent(a = [], b = []) {
   if (a.length !== b.length) return true;
@@ -34,6 +35,7 @@ export default class ErrorBoundary extends React.Component {
       stack: error?.stack,
       componentStack: errorInfo?.componentStack,
     });
+    if (error instanceof RouteChunkLoadError) void recoverOutdatedAppBuild();
   }
 
   componentDidUpdate(prevProps) {
@@ -63,7 +65,10 @@ export default class ErrorBoundary extends React.Component {
     }
 
     const label = this.props.label || 'Page';
-    const errorMessage = this.state.error?.message || 'Unknown error';
+    const chunkLoadFailed = this.state.error instanceof RouteChunkLoadError;
+    const errorMessage = chunkLoadFailed
+      ? 'Reload this page to try again. If you are offline, reconnect first.'
+      : this.state.error?.message || 'Unknown error';
 
     return (
       <div
@@ -88,7 +93,7 @@ export default class ErrorBoundary extends React.Component {
 
         <button
           type="button"
-          onClick={this.reset}
+          onClick={chunkLoadFailed ? () => window.location.reload() : this.reset}
           style={{
             marginTop: '12px',
             padding: '6px 16px',
@@ -100,7 +105,7 @@ export default class ErrorBoundary extends React.Component {
             fontSize: '0.82rem',
           }}
         >
-          Retry
+          {chunkLoadFailed ? 'Reload page' : 'Retry'}
         </button>
       </div>
     );

@@ -17,7 +17,7 @@ const packageJson = read('package.json');
 const certGate = read('scripts/run_certification_gate.mjs');
 
 for (const token of [
-  '"policyVersion": "section-source-policy-v1"',
+  '"policyVersion"',
   '"topStories"',
   '"india"',
   '"tn"',

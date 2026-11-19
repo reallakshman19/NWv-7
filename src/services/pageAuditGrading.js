@@ -71,8 +71,8 @@ function snapshotStale(newsData, envelope) {
   return Boolean(envelope?.freshness === 'stale' || envelope?.data?.raw?.sections?.freshness === 'stale' || envelope?.data?.raw?.sections?.data?.sectionSnapshotStaleness?.stale || n?.sectionSnapshotStaleness?.stale || n?._snapshotStale || n?.snapshotRuntimeSummary?.stale);
 }
 
-function topStats(frontPage, now) {
-  const top10 = A(frontPage).slice(0, 10);
+function topStats(frontPage, now, limit) {
+  const top10 = A(frontPage).slice(0, limit);
   const ages = top10.map(s => { const t = timeMs(s); return t ? Math.max(0, Math.round((now - t) / 60000)) : null; });
   const freshCount = ages.filter((age, i) => age != null && (liveLike(top10[i]) ? age < 36 * 60 : age < 6 * 60)).length;
   return {
@@ -86,7 +86,7 @@ function topStats(frontPage, now) {
   };
 }
 
-export function auditMainTabQuality({ newsData = {}, weatherData = {}, breakingNews = [], settings = {}, loading = false, errors = {}, envelope = null, now = Date.now() } = {}) {
+export function auditMainTabQuality({ newsData = {}, weatherData = {}, breakingNews = [], settings = {}, loading = false, errors = {}, envelope = null, now = Date.now(), topStoryDisplayLimit = 10 } = {}) {
   const news = O(newsData);
   const weather = O(weatherData);
   const sectionSettings = O(settings.sections);
@@ -113,7 +113,7 @@ export function auditMainTabQuality({ newsData = {}, weatherData = {}, breakingN
   const healthySectionCount = sectionHealth.filter(x => x.status === 'PASS').length;
   const nonEmptySectionCount = sectionHealth.filter(x => x.storyCount > 0).length;
   const expectedSourceGroups = Math.max(3, Math.min(6, enabledSections.length + 2));
-  const ts = topStats(frontPage, now);
+  const ts = topStats(frontPage, now, topStoryDisplayLimit);
   const ss = snapshotStale(news, envelope);
   const topStoryGate = ts.topStoryAgeMinutes == null ? 'FAIL' : ts.topStoryAgeMinutes >= 1440 ? 'FAIL' : ts.topStoryAgeMinutes >= 360 ? 'WARN' : 'PASS';
   const ratioGate = ts.top10.length === 0 ? 'FAIL' : ts.freshRatio >= 0.7 ? 'PASS' : ts.freshRatio >= 0.5 ? 'WARN' : 'FAIL';
@@ -124,8 +124,8 @@ export function auditMainTabQuality({ newsData = {}, weatherData = {}, breakingN
     gate('duplicate-rate', 'Duplicate story control', duplicateRate <= 0.08 ? 'PASS' : duplicateRate <= 0.18 ? 'WARN' : 'FAIL', `${duplicateCount} duplicate-like story keys from ${keys.length || 0} keyed stories.`),
     gate('freshness', 'Freshness', !stale ? 'PASS' : newestAgeMinutes == null ? 'WARN' : 'FAIL', newestAgeMinutes == null ? 'No usable story timestamp found.' : `Newest visible story is about ${newestAgeMinutes} minutes old.`),
     gate('top-story-currentness', 'Top story currentness', topStoryGate, ts.topStoryAgeMinutes == null ? 'Top story has no trusted timestamp.' : `Top story age is about ${ts.topStoryAgeMinutes} minutes.`),
-    gate('top-10-fresh-ratio', 'Top-10 freshness ratio', ratioGate, `${ts.freshCount}/${ts.top10.length} top stories are within the strict current-news window.`),
-    gate('top-10-timestamp-confidence', 'Top-10 timestamp confidence', ts.lowConfidenceCount === 0 ? 'PASS' : 'WARN', ts.lowConfidenceCount === 0 ? 'No fallback/missing timestamps detected in top stories.' : `${ts.lowConfidenceCount} top story/stories use fallback or missing timestamps.`),
+    gate('top-10-fresh-ratio', 'Visible Top Stories freshness', ratioGate, `${ts.freshCount}/${ts.top10.length} top stories are within the strict current-news window.`),
+    gate('top-10-timestamp-confidence', 'Visible Top Stories timestamps', ts.lowConfidenceCount === 0 ? 'PASS' : 'WARN', ts.lowConfidenceCount === 0 ? 'No fallback/missing timestamps detected in top stories.' : `${ts.lowConfidenceCount} top story/stories use fallback or missing timestamps.`),
     gate('top-stories-snapshot-staleness', 'Top Stories snapshot staleness', ss ? 'FAIL' : 'PASS', ss ? 'Main/sections snapshot is stale or degraded.' : 'No stale snapshot marker detected.'),
     gate('weather-availability', 'Weather availability', weatherReadyCount >= 3 ? 'PASS' : weatherReadyCount >= 1 ? 'WARN' : 'FAIL', `${weatherReadyCount} weather locations ready from ${weatherCities.length} loaded locations.`),
     gate('error-state', 'Runtime error state', Object.keys(O(errors)).length === 0 ? 'PASS' : 'FAIL', Object.keys(O(errors)).length === 0 ? 'No active error object from news context.' : `Errors present: ${Object.keys(O(errors)).join(', ')}.`),

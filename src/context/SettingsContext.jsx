@@ -1,7 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { getSettings, saveSettings, fetchSettingsFromApi } from '../utils/storage';
+import { getSettings, saveSettings, fetchSettingsFromApi, acceptRemoteSettings } from '../utils/storage';
 import { getRuntimeCapabilities } from "../runtime/runtimeCapabilities.js";
+import { STORAGE_WRITE_FAILURE_MESSAGE } from '../data/safeStorage.js';
 
 const SettingsContext = createContext();
 
@@ -9,27 +10,20 @@ function canUseRemoteSettingsSync() {
     return getRuntimeCapabilities().allowRemoteSettingsSync;
 }
 
-function safeSetLocalStorage(key, value) {
-    try {
-        localStorage.setItem(key, value);
-        return true;
-    } catch (error) {
-        console.warn('[SettingsContext] localStorage write failed', {
-            key,
-            message: error?.message || String(error),
-        });
-        return false;
-    }
-}
-
 export function SettingsProvider({ children }) {
     const [settings, setSettingsState] = useState(() => getSettings());
     const [settingsVersion, setSettingsVersion] = useState(0);
+    const [settingsError, setSettingsError] = useState(null);
 
     const updateSettings = useCallback((newSettings) => {
-        saveSettings(newSettings);
-        setSettingsState(newSettings);
+        if (!saveSettings(newSettings)) {
+            setSettingsError(STORAGE_WRITE_FAILURE_MESSAGE);
+            return false;
+        }
+        setSettingsError(null);
+        setSettingsState(getSettings());
         setSettingsVersion(v => v + 1);
+        return true;
     }, []);
 
     const reloadSettings = useCallback(() => {
@@ -43,34 +37,18 @@ export function SettingsProvider({ children }) {
             return;
         }
 
+        let active = true;
         const syncWithServer = async () => {
             try {
                 const remoteSettings = await fetchSettingsFromApi();
-                if (remoteSettings) {
-                    const currentSettings = getSettings();
-                    const remoteTime = remoteSettings.lastUpdated || 0;
-                    const localTime = currentSettings.lastUpdated || 0;
-
-                    if (remoteTime > localTime) {
-                        console.log('[Settings] Syncing from server (Remote is newer)...');
-                        if (safeSetLocalStorage('dailyEventAI_settings', JSON.stringify(remoteSettings))) {
-                            reloadSettings();
-                        }
-                    } else if (!currentSettings.upAhead?.keywords?.shopping) {
-                        console.log('[Settings] Patching missing keywords from remote...');
-                        const merged = { ...remoteSettings, ...currentSettings, upAhead: { ...remoteSettings.upAhead, ...currentSettings.upAhead } };
-                        if (!merged.upAhead.keywords) merged.upAhead.keywords = remoteSettings.upAhead.keywords;
-                        if (safeSetLocalStorage('dailyEventAI_settings', JSON.stringify(merged))) {
-                            reloadSettings();
-                        }
-                    }
-                }
+                if (active && acceptRemoteSettings(remoteSettings)) reloadSettings();
             } catch (err) {
                 console.warn('[Settings] Failed to sync with server', err);
             }
         };
 
         syncWithServer();
+        return () => { active = false; };
     }, [reloadSettings]);
 
     useEffect(() => {
@@ -96,7 +74,7 @@ export function SettingsProvider({ children }) {
     }, [settings.theme]);
 
     return (
-        <SettingsContext.Provider value={{ settings, updateSettings, reloadSettings, settingsVersion }}>
+        <SettingsContext.Provider value={{ settings, updateSettings, reloadSettings, settingsVersion, settingsError }}>
             {children}
         </SettingsContext.Provider>
     );

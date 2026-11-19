@@ -1,3 +1,4 @@
+import { canonicalPublisherFamily } from "../pipeline/publisherIdentity";
 import { InsightStory, InsightParent, InsightConfig } from "../types";
 
 export interface DiversityAdjustedScore {
@@ -21,7 +22,7 @@ export function computeDiversityAdjustedParentScore(
   for (const id of childIds) {
     const s = storiesById.get(id);
     if (s?.angle) angles.add(s.angle);
-    if (s?.sourceGroup) sources.add(s.sourceGroup);
+    if (s?.sourceGroup) sources.add(canonicalPublisherFamily(s));
   }
 
   const weakTreeChildMin = (cfg as any).weakTreeChildMin ?? cfg.WEAK_TREE_CHILD_MIN ?? 2;

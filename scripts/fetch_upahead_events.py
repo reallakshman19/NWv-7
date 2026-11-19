@@ -1,7 +1,7 @@
 """
 fetch_upahead_events.py — UpAhead events / offers / alerts pre-fetch.
 
-Runs 5× per day (IST 4am, 10am, 2pm, 6pm, 8pm) via upahead_refresh.yml.
+Runs at most 8× per day (three-hour UTC cadence) via upahead_refresh.yml.
 Festivals / holidays are collected in the same bounded publication run.
 
 Every item in the output MUST have:
@@ -23,6 +23,7 @@ import os
 import re
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from calendar import timegm
 from datetime import datetime, timezone
 
@@ -35,6 +36,7 @@ from urllib.parse import urlencode
 from fetch_tmdb_releases import fetch_tmdb_releases
 from enrich_upahead_contract import merge_upahead_snapshot
 from upahead_local_policy import classify_retail_offer, explicit_city, source_authority
+from upahead_local_collectors import SOURCES as LOCAL_SOURCES, collect_local_source
 from prefetch_common import (
     H_MS, DAY_MS, now_ms, read_json, write_json,
     make_story_id, is_suppressed,
@@ -103,9 +105,20 @@ CATEGORY_FEEDS = {
                                         'Google News Airline Offers')]},
     'sports': {city: [google_feed(f'{city} (fixture OR tournament OR "match schedule")',
                                  f'Google News {city} Sports', city)] for city in ('Chennai', 'Muscat')},
-    'civic': {city: [google_feed(f'{city} (notice OR deadline OR shutdown OR "traffic diversion" OR "water supply")',
+    'civic': {city: [google_feed(f'{city} (shutdown OR "traffic diversion" OR "traffic restriction" OR "truck traffic" OR "traffic ban" OR "water interruption" OR "public notice" OR deadline)',
                                 f'Google News {city} Civic', city)] for city in ('Chennai', 'Muscat', 'Trichy')},
 }
+
+# Direct city publishers remain usable when search discovery fails. Their city
+# section is acquisition scope only: every notice still needs affected-city and
+# public-service intent evidence in its own text.
+for _category in ('alerts', 'weather_alerts', 'civic'):
+    CATEGORY_FEEDS[_category]['Chennai'].append((
+        'https://timesofindia.indiatimes.com/rssfeeds/2950623.cms', 'Times of India Chennai', 'times_of_india'))
+    CATEGORY_FEEDS[_category]['Muscat'].append((
+        'https://timesofoman.com/feed', 'Times of Oman', 'times_of_oman'))
+CATEGORY_FEEDS['civic']['Muscat'].append((
+    'https://www.omanobserver.om/rssFeed/1/47', 'Oman Observer ROP', 'oman_observer'))
 
 # ── Locality config ───────────────────────────────────────────────────────────
 LOCATION_LOCALITY = {
@@ -120,19 +133,16 @@ LOCATION_LOCALITY = {
 
 
 # ── Date extraction ───────────────────────────────────────────────────────────
-from upahead_dates import extract_event_date, extract_event_dates
+from upahead_dates import event_day_boundary, extract_event_date, extract_event_dates
 
 
 # ── Expiry derivation ─────────────────────────────────────────────────────────
-def derive_expiry(event_start_ms, event_end_ms, published_ms, category):
-    """Return expiryAt ms or None."""
-    if event_end_ms:
-        return event_end_ms
+def derive_expiry(event_start_ms, event_end_ms, published_ms, category, location=None):
+    """Return the expiry instant after the final advertised day."""
     if event_start_ms:
-        # Expire event at end of day it starts
-        dt = datetime.fromtimestamp(event_start_ms / 1000, tz=timezone.utc)
-        end_of_day = dt.replace(hour=23, minute=59, second=59, microsecond=0)
-        return int(end_of_day.timestamp() * 1000)
+        return event_day_boundary(event_end_ms or event_start_ms + DAY_MS, location)
+    if event_end_ms:
+        return event_day_boundary(event_end_ms, location)
     if category in ('shopping', 'airlines'):
         return published_ms + 48 * H_MS
     if category in ('alerts', 'weather_alerts', 'civic'):
@@ -153,7 +163,7 @@ def is_planner_eligible(item: dict, ts: int) -> bool:
     category = item.get('category', '')
     if item.get('suppressionReason'):
         return False
-    if item.get('expiryAt') and item['expiryAt'] < ts:
+    if item.get('expiryAt') and item['expiryAt'] <= ts:
         return False
     event_start = item.get('eventStartAt')
     if event_start:
@@ -204,7 +214,7 @@ def estimate_actionability(item: dict) -> float:
 
 # ── Feed parse ────────────────────────────────────────────────────────────────
 INTENT = {
-    'alerts': r'\b(power cut|power shutdown|outage|water supply|road closure|traffic diversion|advisory|warning|disruption|evacuat\w*|suspend\w*|cancel\w*|closed|closure)\b',
+    'alerts': r'\b(power cut|power shutdown|outage|water interruption|road closure|traffic diversion|traffic restriction|traffic ban|advisory|warning|disruption|evacuat\w*|suspend\w*|cancel\w*|closed|closure)\b',
     'weather_alerts': r'\b(weather|rain|cyclone|storm|flood|heatwave|imd|met)\b.*\b(warn\w*|alert|heavy|severe|red|orange)\b|\b(warn\w*|alert|heavy|severe)\b.*\b(rain|cyclone|storm|flood|heatwave)\b',
     'civic': r'\b(notice|advisory|deadline|apply|registration|power cut|shutdown|water supply|interruption|traffic diversion|road closure|road work|closed|closure|service disruption)\b',
     'shopping': r'\b(sale|discount|coupon|offer|deal|off)\b',
@@ -216,6 +226,15 @@ INTENT = {
 
 
 def has_category_intent(category, text):
+    if category == 'civic':
+        # A court issuing a notice, a political registration or a retrospective
+        # road project is not a current service notice for residents.
+        utility = r'\bwater supply\b.{0,60}\b(?:interrupt\w*|suspend\w*|cut|disrupt\w*|halt\w*|reduc\w*|restor\w*|notice|advisory)\b|\b(?:interrupt\w*|suspend\w*|cut|disrupt\w*|halt\w*|reduc\w*|restor\w*|notice|advisory)\b.{0,60}\bwater supply\b'
+        return bool(re.search(utility, text, re.I) or re.search(r'\b(power (?:cut|shutdown)|shutdown|water interruption|'
+                              r'traffic (?:diversion|restriction|ban)|truck (?:traffic|movement).{0,40}(?:restrict\w*|suspend\w*|ban)|road (?:closure|closed)|service disruption|'
+                              r'(?:property|municipal|water) tax|(?:public|civic|municipal) (?:notice|advisory)|'
+                              r'(?:apply|application|registration|payment).{0,35}deadline|'
+                              r'deadline.{0,35}(?:apply|application|registration|payment))\b', text, re.I))
     if category in ('shopping', 'airlines') and re.search(r'\b(sold out|unavailable|vanished|sale ended|offer expired)\b', text, re.IGNORECASE):
         return False
     if category == 'shopping' and not re.search(
@@ -249,6 +268,15 @@ def acquisition_summary(health, ts):
         totals['successfulSources'] += int(row['ok'])
         totals['failedSources'] += int(not row['ok'])
         totals['returnedItems'] += row.get('items', 0)
+        totals['checkedAt'] = ts
+        city = row.get('city')
+        if city:
+            local = totals.setdefault('byLocation', {}).setdefault(city, dict(
+                attemptedSources=0, successfulSources=0, failedSources=0, returnedItems=0, checkedAt=ts))
+            local['attemptedSources'] += 1
+            local['successfulSources'] += int(row['ok'])
+            local['failedSources'] += int(not row['ok'])
+            local['returnedItems'] += row.get('items', 0)
     totals = {key: sum(row[key] for row in by_category.values())
               for key in ('attemptedSources', 'successfulSources', 'failedSources', 'returnedItems')}
     return dict(**totals, byCategory=by_category, checkedAt=ts,
@@ -277,18 +305,37 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                 entry_source = entry.get('source') or {}
                 publisher_name = entry_source.get('title') or source
                 publisher_url = entry_source.get('href') or link
+                # Google appends the publisher to the headline. It is provenance,
+                # not event identity or an event-date token.
+                title = re.sub(r'\s+-\s+' + re.escape(publisher_name) + r'\s*$', '', title, flags=re.I)
                 retail_scope = classify_retail_offer(raw_text, publisher_url, location) if category == 'shopping' else None
                 if category == 'shopping' and not retail_scope:
                     continue
                 if category in ('alerts', 'weather_alerts', 'civic') and not explicit_city(raw_text, location):
                     continue
-                event_start_ms, event_end_ms, date_conf = extract_event_dates(raw_text, pub_ms)
                 locality_meta = item_locality(raw_text, location)
                 if retail_scope:
                     locality_meta.update(city=retail_scope['city'], region=retail_scope['offerMarket'])
                 elif category in ('alerts', 'weather_alerts', 'civic'):
                     locality_meta['city'] = explicit_city(raw_text, location)
-                expiry_ms      = derive_expiry(event_start_ms, event_end_ms, pub_ms, category)
+                venue = locality_meta.get('city')
+                date_text = ' • '.join(filter(None, (title, summary)))
+                event_start_ms, event_end_ms, date_conf = extract_event_dates(date_text, pub_ms, venue)
+                expiry_ms = derive_expiry(event_start_ms, event_end_ms, pub_ms, category, venue)
+                event_day = event_start_ms
+                precision = 'day' if event_start_ms else None
+                if category in ('alerts', 'weather_alerts', 'civic') and event_start_ms and event_end_ms is None:
+                    clocks = re.search(r'\bfrom\s+(\d{1,2})(?:[.:](\d{2}))?\s*([ap])\.?m\.?\s*(?:to|until|[–-])\s*(\d{1,2})(?:[.:](\d{2}))?\s*([ap])\.?m\.?', date_text, re.I)
+                    if clocks:
+                        a, b, c, d, e, f = clocks.groups()
+                        if 1 <= int(a) <= 12 and 1 <= int(d) <= 12 and int(b or 0) < 60 and int(e or 0) < 60:
+                            start_minutes = (int(a) % 12 + (12 if c.lower() == 'p' else 0))*60 + int(b or 0)
+                            end_minutes = (int(d) % 12 + (12 if f.lower() == 'p' else 0))*60 + int(e or 0)
+                            if start_minutes < end_minutes:
+                                midnight = event_day_boundary(event_day, venue)
+                                event_start_ms = midnight + start_minutes*60_000
+                                event_end_ms = expiry_ms = midnight + end_minutes*60_000
+                                precision = 'time'
 
                 item = {
                     'title':        title,
@@ -305,7 +352,8 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                     'expiryAt':     expiry_ms,
                     'dateConfidence': date_conf,
                     'dateSource':   'title_or_summary' if event_start_ms else 'none',
-                    'datePrecision': 'day' if event_start_ms else None,
+                    'datePrecision': precision,
+                    'eventDateKey': datetime.fromtimestamp(event_day/1000, timezone.utc).date().isoformat() if event_day else None,
                     'acquisitionLocation': location,
                     'city':         locality_meta['city'],
                     'region':       locality_meta['region'],
@@ -322,9 +370,11 @@ def fetch_category_items(category: str, location: str, feeds: list, ts: int) -> 
                 results.append(item)
 
             source_health[f'{category}:{location}:{url}'] = {'category': category, 'source': source,
+                'city': location, 'url': url, 'checkedAt': ts,
                 'ok': True, 'items': len(results) - before, 'lastSuccess': ts}
         except Exception as e:
             source_health[f'{category}:{location}:{url}'] = {'category': category, 'source': source,
+                'city': location, 'url': url, 'checkedAt': ts,
                 'ok': False, 'error': str(e), 'items': 0}
 
     return results, source_health
@@ -335,12 +385,22 @@ def main():
     from fetch_festivals import fetch_festival_items
     ts = now_ms()
     existing = read_json(UP_AHEAD_PATH, {'schemaVersion': 1, 'fetchedAt': 0, 'contentHash': '', 'items': []})
+    # Reapply corrected public-service intent to retained publisher records too.
+    # This never touches the user's independently saved Planner reminders.
+    existing['items'] = [item for item in existing.get('items', []) if item.get('category') not in ('alerts', 'civic')
+                         or has_category_intent(item['category'], f"{item.get('title', '')} {item.get('summary', '')}")]
     all_health = {}
     new_items = []
 
-    for category, location_map in CATEGORY_FEEDS.items():
-        for location, feeds in location_map.items():
-            items, health = fetch_category_items(category, location, feeds, ts)
+    jobs = [(category, location, feeds) for category, location_map in CATEGORY_FEEDS.items()
+            for location, feeds in location_map.items()]
+    # Fixed public-source set, at most four concurrent requests and no browser
+    # service. One slow city/category cannot starve the other categories.
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        for items, health in pool.map(lambda args: fetch_category_items(*args, ts), jobs):
+            all_health.update(health)
+            new_items.extend(items)
+        for items, health in pool.map(lambda source_id: collect_local_source(source_id, ts), LOCAL_SOURCES):
             all_health.update(health)
             new_items.extend(items)
 
@@ -357,6 +417,7 @@ def main():
 
     snapshot = merge_upahead_snapshot(existing, new_items, ts, fetched=any(row['ok'] for row in all_health.values()))
     snapshot['acquisitionSummary'] = acquisition_summary(all_health, ts)
+    snapshot['sourceStatuses'] = {key: value for key, value in all_health.items() if key in LOCAL_SOURCES}
     for category, row in snapshot['acquisitionSummary']['byCategory'].items():
         row['activeItems'] = snapshot['lifecycleSummary']['categoryCounts'].get(category, 0)
     deduped = snapshot['items']

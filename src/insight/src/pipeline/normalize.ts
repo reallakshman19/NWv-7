@@ -12,20 +12,22 @@ import {
   SourceTier,
 } from "../types";
 
+import { canonicalPublisherFamily } from "./publisherIdentity";
+
 // ── Source tier registry ──────────────────────────────────────────────────────
 
 const TIER_MAP: Record<string, SourceTier> = {
   // Tier A - highest authority, including business sources that add domain perspective.
   reuters:             "A", ap:                "A", bbc:              "A",
   bloomberg:           "A", ft:                "A", "financial express": "A",
-  "the hindu":         "A", hindu:             "A",
+  "the hindu":         "A", hindu:             "A", the_hindu: "A",
   economic_times:      "A", business_line:     "A", ndtv_profit:      "A",
   financial_express:   "A", mint:              "A",
 
   // Tier B
-  ndtv:                "B", toi:               "B", "times of india": "B",
+  ndtv:                "B", toi:               "B", "times of india": "B", times_of_india: "B",
   moneycontrol:        "B", cnbc:              "B", "oman observer":  "B",
-  hindustan_times:     "B", india_today:       "B",
+  hindustan_times:     "B", india_today:       "B", oman_observer: "B",
 
   // Tier C — admitted only as fallback
   // (everything else defaults to C)
@@ -81,12 +83,12 @@ const SECTION_DOMAIN_MAP: Record<string, SourceContentDomain> = {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 export function getSourceTier(sourceGroup: string): SourceTier {
-  const key = sourceGroup.toLowerCase().trim();
-  return TIER_MAP[key] ?? "C";
+  const key = canonicalPublisherFamily(sourceGroup);
+  return TIER_MAP[key] ?? TIER_MAP[sourceGroup.toLowerCase().trim()] ?? "C";
 }
 
 export function getSourceDistributionType(sourceGroup: string): SourceDistributionType {
-  return SOURCE_DISTRIBUTION_MAP[sourceGroup.toLowerCase().trim()] ?? "unknown";
+  return SOURCE_DISTRIBUTION_MAP[canonicalPublisherFamily(sourceGroup)] ?? "unknown";
 }
 
 export function getSourceContentDomain(
@@ -100,7 +102,7 @@ export function getSourceContentDomain(
     if (fromCategory) return fromCategory;
   }
 
-  const sourceKey = sourceGroup.toLowerCase().trim();
+  const sourceKey = canonicalPublisherFamily(sourceGroup);
   const fromSource = SOURCE_CONTENT_DOMAIN_MAP[sourceKey];
   if (fromSource) return fromSource;
 
@@ -124,6 +126,8 @@ export function isDiversityProtectedTierC(
   higherTierStories: InsightStory[]
 ): boolean {
   if (story.sourceTier !== "C") return false;
+  // Another label for the same origin is not an independent angle.
+  if (higherTierStories.some(item => canonicalPublisherFamily(item) === canonicalPublisherFamily(story))) return false;
 
   if (["business", "regional", "tech", "legal", "official"].includes(story.sourceContentDomain)) {
     return true;
@@ -167,14 +171,22 @@ export function computeRawProminence(raw: RawStory): number {
 export function canonicalizeUrl(url: string): string {
   try {
     const u = new URL(url);
-    const TRACKING_PARAMS = [
-      "utm_source","utm_medium","utm_campaign","utm_content","utm_term",
-      "ref","source","cid","fbclid","gclid","msclkid","_ga",
-    ];
-    TRACKING_PARAMS.forEach(p => u.searchParams.delete(p));
-    return u.toString().replace(/\/$/, "").toLowerCase();
+    if (!["http:", "https:"].includes(u.protocol) || u.username || u.password) return "";
+    if (u.hostname === "news.google.com" && u.searchParams.has("url")) {
+      const target = new URL(u.searchParams.get("url")!);
+      if (target.hostname !== "news.google.com" && ["http:", "https:"].includes(target.protocol)) return canonicalizeUrl(target.href);
+    }
+    u.hash = "";
+    u.hostname = u.hostname.toLowerCase().replace(/^www\./, "");
+    const tracking = new Set(["utm", "at_campaign", "at_medium", "cmpid", "fbclid", "gclid", "mc_cid", "mc_eid", "msclkid", "_ga"]);
+    for (const key of [...u.searchParams.keys()]) {
+      if (key.toLowerCase().startsWith("utm_") || tracking.has(key.toLowerCase()) || (u.hostname === "news.google.com" && key === "oc")) u.searchParams.delete(key);
+    }
+    u.searchParams.sort();
+    u.pathname = u.pathname.replace(/\/amp\/?$/i, "").replace(/\/amp\//g, "/").replace(/\/$/, "") || "/";
+    return u.href;
   } catch {
-    return url.toLowerCase().trim();
+    return "";
   }
 }
 
@@ -241,7 +253,7 @@ export function normalizeStory(
 ): InsightStory | null {
   const refTime = referenceTime ?? Date.now();
   const ageHours = (refTime - raw.publishedAt) / (60 * 60 * 1000);
-  if (ageHours > cfg.MAX_STORY_AGE_HOURS) return null;
+  if (!Number.isFinite(raw.publishedAt) || raw.publishedAt <= 0 || ageHours < 0 || ageHours > cfg.MAX_STORY_AGE_HOURS) return null;
 
   if (cfg.TIER_D_EXCLUDE && isTierD(raw)) return null;
 
@@ -277,6 +289,7 @@ export function normalizeStory(
     eventVerbs: extractedVerbs,
     numbers: extractedNumbers,
     sourceTier: tier,
+    publisherFamily: canonicalPublisherFamily(raw.sourceGroup),
     sourceDistributionType,
     sourceContentDomain,
     sectionDomain,
@@ -306,7 +319,10 @@ export function applyTierCFallback(
   // Group by parentId
   const byParent = new Map<string, InsightStory[]>();
   for (const s of stories) {
-    const pid = s.parentId ?? "__none__";
+    // An unclustered story is a separate event until evidence establishes
+    // otherwise. Grouping all missing parentIds as __none__ falsely suppresses
+    // unrelated Tier-C stories.
+    const pid = s.parentId ?? `__unclustered__:${s.id}`;
     if (!byParent.has(pid)) byParent.set(pid, []);
     byParent.get(pid)!.push(s);
   }

@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   DEFAULT_CONFIG,
   InsightConfig,
@@ -221,6 +221,11 @@ function buildReport(snapshot: any, result: any, diagnostics: any) {
       score: Number(parent.finalParentScore || 0),
       postTreeScore: Number(parent.debug?.postTreeQualityDiagnostics?.postTreeQualityScore || 0),
       childCount: Array.isArray(parent.childStoryIds) ? parent.childStoryIds.length : 0,
+      children: childStories.map((story: any) => ({
+        id: story.id, title: story.title, url: story.url, sourceGroup: story.sourceGroup,
+        angle: story.angle, temporalTier: story.temporalTier, evolutionRole: story.evolutionRole,
+        informationDeltaScore: story.informationDeltaScore,
+      })),
       angles,
       temporalTiers,
       evolutionRoles,
@@ -285,6 +290,7 @@ const cfg: InsightConfig = {
 };
 
 describe("Real Insight snapshot quality benchmark", () => {
+  afterEach(() => { vi.restoreAllMocks(); });
   it("runs the Insight pipeline against public/newsdata/insight_latest.json when available", async () => {
     const snapshot = readSnapshot();
 
@@ -313,6 +319,11 @@ describe("Real Insight snapshot quality benchmark", () => {
     expect(snapshot.stories.length).toBeGreaterThan(0);
     expect(String(snapshot.contentHash || "").length).toBeGreaterThan(0);
 
+    // This is an archived replay. Its publication/retention clock must match
+    // the capture rather than silently expiring all historical input today.
+    const replayNow = Number(snapshot.fetchedAt);
+    expect(Number.isFinite(replayNow) && replayNow > 0).toBe(true);
+    vi.spyOn(Date, "now").mockReturnValue(replayNow);
     clearCache();
 
     const rawResult = await runInsightPipeline(await makeFetcher(snapshot), cfg);

@@ -24,7 +24,7 @@ describe('Travel news ingestion certification', () => {
     expect(payload.locationKey).toBe('colombo');
     expect(payload.countryCode).toBe('LK');
     expect(payload.stories).toHaveLength(1);
-    expect(payload.stories[0].city).toBe('Colombo');
+    expect(payload.stories[0].city).toBeUndefined(); // Source profile does not define event city
     expect(payload.stories[0]._travelLocationScore).toBeGreaterThan(0);
   });
 

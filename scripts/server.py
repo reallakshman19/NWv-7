@@ -2,6 +2,8 @@ import http.server
 import socketserver
 import json
 import os
+import hashlib
+import tempfile
 
 PORT = 3001
 PUBLIC_DIR = os.path.join(os.getcwd(), 'public')
@@ -62,7 +64,55 @@ def write_json_response(handler, payload, status=200, cache_control=None):
     handler.wfile.write(json.dumps(payload).encode('utf-8'))
 
 
+PLANNER_ENDPOINT = '/api/user_plan'
+
+
+def valid_plan_payload(payload):
+    return isinstance(payload, dict) and all(isinstance(rows, list) for rows in payload.values())
+
+
+def read_plan_for_update(filepath):
+    # Invalid existing bytes must never be treated as an empty plan.
+    try:
+        with open(filepath, 'rb') as file:
+            raw = file.read()
+    except FileNotFoundError:
+        raw = b'{}'
+    payload = json.loads(raw)
+    if not valid_plan_payload(payload):
+        raise ValueError('Invalid existing planner data')
+    return payload, '"' + hashlib.sha256(raw).hexdigest() + '"'
+
+
+def write_plan_atomically(filepath, payload):
+    # The single-process TCPServer serializes requests; replacement protects
+    # the on-disk snapshot against partial writes or a failed JSON write.
+    fd, temporary = tempfile.mkstemp(dir=os.path.dirname(filepath), prefix='.planner-')
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as file:
+            json.dump(payload, file, indent=4)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary, filepath)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
 def serve_file_or_default(handler, path, filepath):
+    if path == PLANNER_ENDPOINT:
+        try:
+            payload, etag = read_plan_for_update(filepath)
+        except (OSError, ValueError):
+            write_json_response(handler, {'status': 'error', 'message': 'Planner unavailable'}, status=500)
+            return
+        handler.send_response(200)
+        handler.send_header('Content-type', 'application/json')
+        handler.send_header('ETag', etag)
+        handler.send_header('Cache-Control', 'no-store')
+        handler.end_headers()
+        handler.wfile.write(json.dumps(payload).encode('utf-8'))
+        return
     payload = load_json_file(filepath, get_missing_api_default(path))
     write_json_response(handler, payload)
 
@@ -104,8 +154,22 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 # Ensure directory exists
                 os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
-                with open(filepath, 'w', encoding='utf-8') as f:
-                    json.dump(json_data, f, indent=4)
+                if self.path == PLANNER_ENDPOINT:
+                    if not valid_plan_payload(json_data):
+                        write_json_response(self, {'status': 'error', 'message': 'Invalid plan'}, status=400)
+                        return
+                    expected = self.headers.get('If-Match')
+                    if not expected:
+                        write_json_response(self, {'status': 'error', 'message': 'Planner revision required'}, status=428)
+                        return
+                    _, actual = read_plan_for_update(filepath)
+                    if expected != actual:
+                        write_json_response(self, {'status': 'error', 'message': 'Planner revision conflict'}, status=412)
+                        return
+                    write_plan_atomically(filepath, json_data)
+                else:
+                    with open(filepath, 'w', encoding='utf-8') as f:
+                        json.dump(json_data, f, indent=4)
 
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')

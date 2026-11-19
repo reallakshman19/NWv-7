@@ -3,7 +3,9 @@
 // ─────────────────────────────────────────────
 
 import { EvolutionRole, InsightConfig, InsightStory, AngleLabel } from "../types";
-import { hasSharedTopicSignature, topicTokenOverlap } from "../cluster/topicCohesion";
+import { canonicalPublisherFamily } from "../pipeline/publisherIdentity";
+import { hasConflictingEventIdentity } from "../cluster/eventOccurrenceIdentity";
+import { hasSharedNamedEventSignature, hasSharedTopicSignature, topicTokenOverlap } from "../cluster/topicCohesion";
 
 // ── Duplicate diagnostics ─────────────────────────────────────────────────────
 
@@ -130,7 +132,7 @@ export function shouldKeepUsefulVariantOverEmbeddingDuplicate(
   candidate: InsightStory,
   existing: InsightStory
 ): boolean {
-  const isCrossSource = candidate.sourceGroup !== existing.sourceGroup;
+  const isCrossSource = canonicalPublisherFamily(candidate) !== canonicalPublisherFamily(existing);
   if (!isCrossSource) return false;
 
   const isSameUrl = candidate.canonicalUrl === existing.canonicalUrl;
@@ -162,7 +164,7 @@ export function shouldKeepUsefulVariantOverEmbeddingDuplicate(
 
   const hasDistinctIntent = hasDistinctStoryIntent(candidate, existing);
   const hasDifferentSourcePerspective =
-    candidate.sourceGroup !== existing.sourceGroup &&
+    canonicalPublisherFamily(candidate) !== canonicalPublisherFamily(existing) &&
     candidate.source !== existing.source &&
     titleSimilarity(candidate.title, existing.title) < 0.88;
 
@@ -351,9 +353,69 @@ export function removeHardDuplicates(
   const seenUrls = new Map<string, InsightStory>();
   const seenHashes = new Map<string, InsightStory>();
 
+  // One canonical winner must be shared by retained rows and BOTH identity maps.
+  // Otherwise a later authoritative duplicate only updates an index while the
+  // lower-authority row remains visible to cluster/rank/child selection.
+  const promote = (previous: InsightStory, winner: InsightStory, candidate: InsightStory): void => {
+    if (winner !== previous) {
+      const position = kept.indexOf(previous);
+      if (position >= 0) kept[position] = winner;
+      for (const [key, mapped] of seenUrls) if (mapped === previous) seenUrls.set(key, winner);
+      for (const [key, mapped] of seenHashes) if (mapped === previous) seenHashes.set(key, winner);
+    }
+    if (candidate.canonicalUrl) seenUrls.set(candidate.canonicalUrl, winner);
+    if (candidate.canonicalTextHash) seenHashes.set(candidate.canonicalTextHash, winner);
+    if (winner.canonicalUrl) seenUrls.set(winner.canonicalUrl, winner);
+    if (winner.canonicalTextHash) seenHashes.set(winner.canonicalTextHash, winner);
+  };
+
+  // Exact identity is transitive: a later URL/hash bridge can connect two
+  // already-seen groups. Resolve components before fuzzy comparison so all
+  // permutations retain the same authoritative representative.
+  // A legacy article ID is not authoritative when two different canonical URLs
+  // share it. Preserve both URLs with deterministic, collision-resistant IDs.
+  const urlsById = new Map<string, Set<string>>();
   for (const story of stories) {
+    if (!story.id || !story.canonicalUrl) continue;
+    if (!urlsById.has(story.id)) urlsById.set(story.id, new Set());
+    urlsById.get(story.id)!.add(story.canonicalUrl);
+  }
+  stories = stories.map(story => (urlsById.get(story.id)?.size || 0) > 1
+    ? { ...story, id: `${story.id}~${encodeURIComponent(story.canonicalUrl || story.canonicalText || story.title)}` }
+    : story);
+  const roots = stories.map((_, index) => index);
+  const find = (index: number): number => {
+    while (roots[index] !== index) { roots[index] = roots[roots[index]]; index = roots[index]; }
+    return index;
+  };
+  const identityIndex = new Map<string, number>();
+  stories.forEach((story, index) => {
+    for (const [prefix, value] of [["id", story.id], ["url", story.canonicalUrl], ["hash", story.canonicalTextHash]]) {
+      if (!value) continue;
+      const key = `${prefix}:${value}`;
+      const previous = identityIndex.get(key);
+      if (previous !== undefined) roots[find(index)] = find(previous);
+      else identityIndex.set(key, index);
+    }
+  });
+  const components = new Map<number, InsightStory[]>();
+  stories.forEach((story, index) => {
+    const key = find(index);
+    if (!components.has(key)) components.set(key, []);
+    components.get(key)!.push(story);
+  });
+  const exactWinners = [...components.values()].map(group => {
+    const winner = group.reduce(pickWinner);
+    for (const loser of group) {
+      if (loser === winner) continue;
+      if (loser.id !== winner.id) hiddenIds.add(loser.id);
+      recordDuplicateDecision(diagnostics, loser.canonicalUrl === winner.canonicalUrl ? "CANONICAL_URL_DUPLICATE" : "CANONICAL_TEXT_HASH_DUPLICATE", loser, winner, 1, winner.id, "exact identity component");
+    }
+    return winner;
+  });
+  for (const story of exactWinners) {
     story.angle = classifyAngle(story);
-    if (seenUrls.has(story.canonicalUrl)) {
+    if (story.canonicalUrl && seenUrls.has(story.canonicalUrl)) {
       const previous = seenUrls.get(story.canonicalUrl)!;
       const winner = pickWinner(previous, story);
       const hidden = winner === story ? previous : story;
@@ -369,11 +431,11 @@ export function removeHardDuplicates(
         "same canonical URL"
       );
 
-      seenUrls.set(story.canonicalUrl, winner);
+      promote(previous, winner, story);
       continue;
     }
 
-    if (seenHashes.has(story.canonicalTextHash)) {
+    if (story.canonicalTextHash && seenHashes.has(story.canonicalTextHash)) {
       const previous = seenHashes.get(story.canonicalTextHash)!;
       const winner = pickWinner(previous, story);
       const hidden = winner === story ? previous : story;
@@ -389,7 +451,7 @@ export function removeHardDuplicates(
         "same canonical text hash"
       );
 
-      seenHashes.set(story.canonicalTextHash, winner);
+      promote(previous, winner, story);
       continue;
     }
 
@@ -403,7 +465,7 @@ export function removeHardDuplicates(
     // by the 0.96 bar; this only adds recall, never lowers a threshold.
     const canonTitle = canonicalizeTitle(story.title);
     const syndicationMatch = canonTitle.length >= 20
-      ? kept.find(k => titleSimilarity(canonicalizeTitle(k.title), canonTitle) >= cfg.HARD_DUP_TITLE_SIM)
+      ? kept.find(k => !hasConflictingEventIdentity(k, story) && titleSimilarity(canonicalizeTitle(k.title), canonTitle) >= cfg.HARD_DUP_TITLE_SIM)
       : undefined;
     if (syndicationMatch) {
       const score = titleSimilarity(canonicalizeTitle(syndicationMatch.title), canonTitle);
@@ -421,15 +483,13 @@ export function removeHardDuplicates(
         `cross-source syndication: canonical title similarity >= ${cfg.HARD_DUP_TITLE_SIM}`
       );
 
-      if (winner !== syndicationMatch) {
-        const idx = kept.indexOf(syndicationMatch);
-        if (idx >= 0) kept[idx] = winner;
-      }
+      promote(syndicationMatch, winner, story);
       continue;
     }
 
     const sameGroupMatch = kept.find(
-      k => k.sourceGroup === story.sourceGroup &&
+      k => !hasConflictingEventIdentity(k, story) &&
+           canonicalPublisherFamily(k) === canonicalPublisherFamily(story) &&
            titleSimilarity(k.title, story.title) >= cfg.HARD_DUP_TITLE_SIM
     );
     if (sameGroupMatch) {
@@ -448,15 +508,13 @@ export function removeHardDuplicates(
         `title similarity >= ${cfg.HARD_DUP_TITLE_SIM}`
       );
 
-      if (winner !== sameGroupMatch) {
-        const idx = kept.indexOf(sameGroupMatch);
-        kept[idx] = winner;
-      }
+      promote(sameGroupMatch, winner, story);
       continue;
     }
 
     const embedMatch = kept.find(
-      k => k.sourceGroup === story.sourceGroup &&
+      k => !hasConflictingEventIdentity(k, story) &&
+        canonicalPublisherFamily(k) === canonicalPublisherFamily(story) &&
         cosineSimilarity(k.embedding, story.embedding) >= cfg.HARD_DUP_EMBED_SIM
     );
     if (embedMatch) {
@@ -470,8 +528,8 @@ export function removeHardDuplicates(
           score
         );
 
-        seenUrls.set(story.canonicalUrl, story);
-        seenHashes.set(story.canonicalTextHash, story);
+        if (story.canonicalUrl) seenUrls.set(story.canonicalUrl, story);
+        if (story.canonicalTextHash) seenHashes.set(story.canonicalTextHash, story);
         kept.push(story);
         continue;
       }
@@ -490,15 +548,13 @@ export function removeHardDuplicates(
         `embedding similarity >= ${cfg.HARD_DUP_EMBED_SIM}`
       );
 
-      if (winner !== embedMatch) {
-        const idx = kept.indexOf(embedMatch);
-        kept[idx] = winner;
-      }
+      promote(embedMatch, winner, story);
       continue;
     }
 
     const crossSourceEmbedMatch = kept.find(
-      k => k.sourceGroup !== story.sourceGroup &&
+      k => !hasConflictingEventIdentity(k, story) &&
+        canonicalPublisherFamily(k) !== canonicalPublisherFamily(story) &&
         cosineSimilarity(k.embedding, story.embedding) >= cfg.HARD_DUP_EMBED_SIM
     );
     if (
@@ -513,11 +569,13 @@ export function removeHardDuplicates(
       );
     }
 
-    seenUrls.set(story.canonicalUrl, story);
-    seenHashes.set(story.canonicalTextHash, story);
+    if (story.canonicalUrl) seenUrls.set(story.canonicalUrl, story);
+    if (story.canonicalTextHash) seenHashes.set(story.canonicalTextHash, story);
     kept.push(story);
   }
 
+  // The ledger identifies excluded records, never the retained identity.
+  for (const story of kept) hiddenIds.delete(story.id);
   return kept;
 }
 
@@ -541,7 +599,7 @@ function isLowDeltaRepeat(candidate: InsightStory, keptStory: InsightStory): boo
   if (candidate.informationDeltaScore === undefined) return false;
 
   const sameRole = candidate.evolutionRole === keptStory.evolutionRole;
-  const sameSourceGroup = candidate.sourceGroup === keptStory.sourceGroup;
+  const sameSourceGroup = canonicalPublisherFamily(candidate) === canonicalPublisherFamily(keptStory);
   const titleSim = titleSimilarity(candidate.title, keptStory.title);
   const embedSim = cosineSimilarity(candidate.embedding, keptStory.embedding);
 
@@ -563,7 +621,7 @@ export function applyPostClusterDeltaDedup(
   const sorted = [...stories]
     .sort((a, b) => {
       if (a.publishedAt !== b.publishedAt) return a.publishedAt - b.publishedAt;
-      return b.sourceAuthority - a.sourceAuthority;
+      return b.sourceAuthority - a.sourceAuthority || String(a.id).localeCompare(String(b.id));
     });
   const kept: InsightStory[] = [];
 
@@ -589,7 +647,11 @@ export function applyPostClusterDeltaDedup(
 function pickWinner(a: InsightStory, b: InsightStory): InsightStory {
   if (a.sourceAuthority !== b.sourceAuthority)
     return a.sourceAuthority > b.sourceAuthority ? a : b;
-  return a.publishedAt <= b.publishedAt ? a : b; // earlier = original
+  if (a.publishedAt !== b.publishedAt) return a.publishedAt < b.publishedAt ? a : b;
+  const idOrder = String(a.id).localeCompare(String(b.id));
+  if (idOrder) return idOrder < 0 ? a : b;
+  const stableKey = (story: InsightStory) => JSON.stringify([story.canonicalUrl, story.canonicalTextHash, story.title, story.summary, story.sourceGroup]);
+  return stableKey(a).localeCompare(stableKey(b)) <= 0 ? a : b;
 }
 
 // ── Layer B: Event Similarity (for clustering) ────────────────────────────────
@@ -657,6 +719,10 @@ export function applyClusterOverrides(
   rawSim: number,
   cfg: InsightConfig
 ): "SAME" | "DIFFERENT" | "USE_SCORE" {
+  // An explicitly distinct occurrence is not the same event, even when
+  // organization, location, action and syndicated topical language all match.
+  if (hasConflictingEventIdentity(a, b)) return "DIFFERENT";
+
   // Force SAME
   const sameOrgs   = a.entities.orgs.some(o => b.entities.orgs.includes(o));
   const sameVerbs  = a.eventVerbs.some(v => b.eventVerbs.includes(v));
@@ -668,9 +734,14 @@ export function applyClusterOverrides(
   // topic cohesion cluster override
   const sharedTopic = hasSharedTopicSignature(a, b);
   const topicOverlapScore = topicTokenOverlap(a, b);
-  const crossSource = a.sourceGroup !== b.sourceGroup || a.source !== b.source;
+  const crossSource = canonicalPublisherFamily(a) !== canonicalPublisherFamily(b);
   const within36h = Math.abs(a.publishedAt - b.publishedAt) < 36 * 60 * 60 * 1000;
   const categoryCompatible = !a.category || !b.category || a.category === b.category || rawSim >= cfg.POSSIBLE_EVENT_THRESHOLD;
+
+  // Recover sparse-vector reports of an explicitly named event, including
+  // genuine follow-ups by the same publisher. This grants no extra publisher
+  // independence and never bypasses the occurrence-conflict veto above.
+  if (within36h && hasSharedNamedEventSignature(a, b)) return "SAME";
 
   if (
     sharedTopic &&
@@ -705,7 +776,7 @@ export function applyClusterOverrides(
 
 const OFFICIAL_SIGNALS = [
   /spokesperson/i, /minister/i, /official statement/i, /company said/i,
-  /regulator said/i, /police confirmed/i, /government said/i, /mea/i,
+  /regulator said/i, /police confirmed/i, /government said/i, /\bmea\b/i,
   /secretary/i, /chairman/i, /ceo said/i, /officially announced/i,
   /government announced/i, /ministry announced/i, /regulator announced/i,
   /officials? said/i, /authorities said/i, /court said/i, /rbi said/i,
@@ -719,7 +790,7 @@ const OFFICIAL_SIGNALS = [
 const MARKET_SIGNALS = [
   /shares rose/i, /shares fell/i, /stock (up|down)/i, /yields moved/i,
   /futures (dropped|rose)/i, /crypto (rally|fell)/i, /market reaction/i,
-  /nifty/i, /sensex/i, /bse/i, /nse/i, /intraday/i,
+  /\bnifty\b/i, /\bsensex\b/i, /\bbse\b/i, /\bnse\b/i, /\bintraday\b/i,
   /stocks? (rallied|slumped|gained|lost|jumped|dropped)/i,
   /investors? (cheered|sold|bought|reacted)/i,
   /bond yields?/i,
@@ -739,7 +810,7 @@ const FACT_UPDATE_SIGNALS = [
 
 const EXPERT_SIGNALS = [
   /analysts? (say|warn|note)/i, /experts? (warn|say)/i, /economists? (note|say)/i,
-  /think tank/i, /commentary/i, /crisil/i, /ficci/i, /cii/i, /imf/i,
+  /think tank/i, /commentary/i, /\bcrisil\b/i, /\bficci\b/i, /\bcii\b/i, /\bimf\b/i,
   /analysis/i, /explained by/i, /what experts say/i,
   /why it matters/i, /what it means/i, /implications/i,
   /strategists? said/i, /researchers? said/i,

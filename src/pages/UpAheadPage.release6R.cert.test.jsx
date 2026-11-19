@@ -53,7 +53,7 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
     expect(dataset).toContain('providerDecision.browserWideFeedFetchAllowed');
     expect(dataset).toContain('static_runtime_blocks_browser_live');
     expect(vm).toContain('deriveOfferCapability');
-    expect(page).toContain('data-offer-capability');
+    expect(page).toContain('<RetailOffersPanel');
     expect(page).not.toContain('emptyMessage="No online offers right now."');
   });
 
@@ -82,6 +82,24 @@ describe('Release 6R UpAheadPage ViewModel binding', () => {
     })).toEqual({
       modeStr: 'cached',
       modeLabel: 'Cached',
+    });
+
+    expect(getSourceModeState({
+      data: { sourceMode: 'dataset-api' },
+      runtime: { isStaticHost: true },
+      envelope: { freshness: 'fresh' },
+    })).toEqual({
+      modeStr: 'snapshot',
+      modeLabel: 'Worker API',
+    });
+
+    expect(getSourceModeState({
+      data: { sourceMode: 'dataset-api' },
+      runtime: { isStaticHost: true },
+      envelope: { freshness: 'stale' },
+    })).toEqual({
+      modeStr: 'degraded',
+      modeLabel: 'Limited',
     });
   });
 

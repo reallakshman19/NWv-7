@@ -48,15 +48,16 @@ describe('Up Ahead publication and dated nine-category replay', () => {
   });
 
   it('keeps six-day-old future items in every tab and Planner across refresh, revision and expiry', () => {
-    let retained = saveToCache(fixture);
+    const initial = { ...fixture, items: fixture.items.map((item, index) => index === 1 ? { ...item, occurrenceId: 'workshop-occurrence' } : item) };
+    let retained = saveToCache(initial);
     let projected = getVisibleUpAheadProjection({ data: retained, settings });
     expect(projected.upAheadEvidence.coveredCategories).toHaveLength(9);
     expect(projected.suggestedItems).toHaveLength(9);
     expect(projected.onlineOffers).toHaveLength(1);
     expect(projected.offlineOffers).toHaveLength(1);
     expect(getUpAheadPlannerSuggestions(retained, {}, new Set(), settings.upAhead, NOW)).toHaveLength(9);
-    const revised = { ...fixture.items[1], title: 'Chennai workshop revised', eventStartAt: NOW + 2 * DAY };
-    const added = { ...revised, id: 'new-workshop', url: 'https://example.org/new', title: 'Chennai new workshop' };
+    const revised = { ...initial.items[1], title: 'Chennai workshop revised', eventStartAt: NOW + 2 * DAY };
+    const added = { ...revised, id: 'new-workshop', occurrenceId: 'new-workshop-occurrence', url: 'https://example.org/new', title: 'Chennai new workshop' };
     const expired = { ...fixture.items.find(item => item.category === 'shopping'), expiryAt: NOW };
     retained = saveToCache({ fetchedAt: NOW + 1000, items: [revised, added, expired] });
     projected = getVisibleUpAheadProjection({ data: retained, settings });

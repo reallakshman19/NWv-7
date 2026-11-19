@@ -149,11 +149,8 @@ describe('Top Stories shadow artifact reader', () => {
     const directories = await discoverTopStoriesArtifactDirectories(root);
     const records = await Promise.all(directories.map(readTopStoriesArtifactDirectory));
     expect(records).toHaveLength(3);
-    expect(records.find(row => row.directory.endsWith('/v3')).traceRelationStatus).toBe('VALID');
-    expect(records.find(row => row.directory.endsWith('/legacy')).traceRelationStatus)
-      .toBe('MISSING_LEGACY');
-    expect(records.find(row => row.directory.endsWith('/failure')).traceRelationStatus)
-      .toBe('NOT_APPLICABLE');
+    const statusByName = Object.fromEntries(records.map(row => [path.basename(row.directory), row.traceRelationStatus]));
+    expect(statusByName).toEqual({ v3: 'VALID', legacy: 'MISSING_LEGACY', failure: 'NOT_APPLICABLE' });
     expect(records.every(record => record.schemaValid)).toBe(true);
   });
 

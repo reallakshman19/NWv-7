@@ -1,16 +1,21 @@
-import { deduplicatePlanningItems, isLikelyDuplicateStory } from './similarity.js';
 import { getRuntimeCapabilities } from "../runtime/runtimeCapabilities.js";
 import { toLocalDateKey } from './dateKey.js';
+import { upAheadDateKey } from '../services/upAheadLifecycle.js';
+import { recoverLegacyPlannerSeed, quarantineLegacyRemotePlan } from './plannerSeedRecovery.js';
 import {
     makeStorageWriteFailure,
     safeGetJson,
+    getSafeLocalStorage,
     safeSetJson,
 } from '../data/safeStorage.js';
 
 const PLANNER_KEY = 'upAhead_planner';
 const BLACKLIST_KEY = 'upAhead_blacklist';
+const REMOVED_KEY = 'upAhead_planner_removed_v1';
+let planPostQueue = Promise.resolve();
+let mutationVersion = 0;
+const changedKeys = new Map();
 const API_BASE = '/api';
-const STATIC_PLAN_URL = `${import.meta.env.BASE_URL || './'}data/user_plan.json`;
 const STATIC_BLACKLIST_URL = `${import.meta.env.BASE_URL || './'}data/blacklist.json`;
 
 function isStaticHostRuntime() { return getRuntimeCapabilities().isStaticHost; }
@@ -36,59 +41,164 @@ function normalizeDateKey(value) {
 }
 
 function resolveOccurrenceDateKey(item, fallbackDate = null) {
-    return normalizeDateKey(item?.eventDateKey || item?.eventDate || item?.planDate || fallbackDate || item?.extractedDate || item?.date || item?.releaseDate || item?.publishDate || item?.pubDate);
+    if (item && Object.hasOwn(item, 'eventDateKey') && item.eventDateKey === null) return 'nodate';
+    const explicit = item?.eventDateKey ? upAheadDateKey(item) : null;
+    return explicit || normalizeDateKey(item?.eventDate || item?.extractedDate || item?.date || item?.releaseDate || item?.planDate || fallbackDate);
 }
 
+// Saved-plan identity is not publisher/story identity. Explicit IDs win;
+// legacy ambiguous records remain separate, including during read and sync.
 function getItemKey(itemOrId) {
     if (typeof itemOrId === 'string') return itemOrId.trim();
     if (!itemOrId || typeof itemOrId !== 'object') return '';
-    if (itemOrId.hiddenKey) return String(itemOrId.hiddenKey).trim();
-    if (itemOrId.canonicalId) return String(itemOrId.canonicalId).trim();
-    if (itemOrId.title) return generateCanonicalId(itemOrId.title, resolveOccurrenceDateKey(itemOrId));
-    return String(itemOrId.id || itemOrId.link || '').trim();
+    return String(itemOrId.savedPlanId || itemOrId.id || itemOrId.hiddenKey || itemOrId.canonicalId || '').trim();
 }
-
+function legacyKey(item, date) {
+    return getItemKey(item) || `legacy:${generateCanonicalId(JSON.stringify(item), date)}`;
+}
+function occurrenceSlot(item, date) {
+    return JSON.stringify([String(item.id || item.hiddenKey || item.canonicalId || legacyKey(item, date)), resolveOccurrenceDateKey(item, date), item.eventStartAt || '', item.locationCanonical || item.city || item.location || '']);
+}
+export function getSavedPlanIdentity(item, date) {
+    return item?.savedPlanId || (item && `legacy:${occurrenceSlot(item, date)}`);
+}
+function durableKey(item, date) {
+    return JSON.stringify([date, getSavedPlanIdentity(item, date)]);
+}
+function legacyDurableKey(item, date) { return JSON.stringify([date, `legacy:${occurrenceSlot(item,date)}`]); }
+function markMutation(item,date) {
+    const version = ++mutationVersion;
+    changedKeys.set(durableKey(item,date),version);
+    changedKeys.set(legacyDurableKey(item,date),version);
+}
 function normalizePlanItem(item, fallbackDate = null) {
-    if (!item || typeof item !== 'object') return null;
+    if (!item || typeof item !== 'object' || !item.title) return null;
     const eventDateKey = resolveOccurrenceDateKey(item, fallbackDate);
-    const hiddenKey = getItemKey({ ...item, eventDateKey });
-    if (!hiddenKey) return null;
+    const id = getItemKey(item) || globalThis.crypto?.randomUUID?.() || `manual-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    // A scoped occurrence key can be used as durable ID for explicit feed saves;
+    // independently created manual records keep their own supplied ID.
+    const savedPlanId = item.savedPlanId || item.occurrenceKey || id;
     return {
         ...item,
-        id: item.id || hiddenKey,
-        hiddenKey: hiddenKey,
-        canonicalId: item.canonicalId || hiddenKey,
-        title: item.title,
+        id: item.id || id,
+        savedPlanId,
+        hiddenKey: item.hiddenKey || id,
+        canonicalId: item.canonicalId || id,
         category: item.category || 'events',
         type: item.type || 'event',
         eventDateKey: eventDateKey === 'nodate' ? null : eventDateKey,
-        eventDate: item.eventDate || (eventDateKey !== 'nodate' ? new Date(eventDateKey).toISOString() : null),
+        eventDate: item.eventDate || (eventDateKey !== 'nodate' ? eventDateKey : null),
         locationCanonical: item.locationCanonical || item.location || '',
         sourceMode: item.sourceMode || 'live',
         state: item.state || 'saved',
-        planDate: item.planDate || (eventDateKey !== 'nodate' ? eventDateKey : fallbackDate || null)
+        planDate: item.planDate || fallbackDate || (eventDateKey !== 'nodate' ? eventDateKey : null)
     };
 }
-
-function deduplicatePlanItems(items) { return deduplicatePlanningItems(items || []); }
-function hasSimilarPlanItem(items, candidate) { return (items || []).some(existing => getItemKey(existing) === getItemKey(candidate) || isLikelyDuplicateStory(existing, candidate)); }
-function normalizeBlacklistData(list) { return Array.isArray(list) ? [...new Set(list.map(entry => getItemKey(entry)).filter(Boolean))] : []; }
-function normalizePlanData(planData) {
-    if (!planData || typeof planData !== 'object') return {};
-    return Object.fromEntries(Object.entries(planData).filter(([, items]) => Array.isArray(items)).map(([date, items]) => [date, deduplicatePlanItems(items.map(item => normalizePlanItem(item, date)).filter(Boolean))]).filter(([, items]) => items.length > 0));
+function hasSimilarPlanItem(items, candidate, date) {
+    return (items || []).some(existing => existing && (durableKey(existing, date) === durableKey(candidate, date)
+        || (!existing.savedPlanId && occurrenceSlot(existing, date) === occurrenceSlot(candidate, date))));
 }
-function readLocalPlan() { return normalizePlanData(safeGetJson(PLANNER_KEY, {})); }
-function pruneStaleEntries(planData, maxAgeMs) {
-    const cutoff = toLocalDateKey(new Date(Date.now() - maxAgeMs));
-    return Object.fromEntries(Object.entries(planData).filter(([date]) => date >= cutoff));
+function normalizeBlacklistData(list) { return Array.isArray(list) ? [...new Set(list.map(entry => typeof entry === 'string' ? entry.trim() : String(entry?.occurrenceKey || entry?.hiddenKey || getItemKey(entry))).filter(Boolean))] : []; }
+function normalizePlanData(planData) {
+    if (!planData || typeof planData !== 'object' || Array.isArray(planData)) return {};
+    // Never normalize/deduplicate/prune persisted rows on an unrelated write.
+    return Object.fromEntries(Object.entries(planData).filter(([, items]) => Array.isArray(items)));
+}
+function readLocalPlan() {
+    const storage = getSafeLocalStorage();
+    if (!storage) throw Error('Planner storage unavailable');
+    const bytes = storage.getItem(PLANNER_KEY);
+    if (bytes === null) return {};
+    const parsed = JSON.parse(bytes);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || Object.values(parsed).some(rows => !Array.isArray(rows))) throw Error('Invalid stored planner data; refusing to overwrite');
+    return parsed;
 }
 function writeLocalPlan(planData) {
-    const normalized = normalizePlanData(planData);
-    const pruned = pruneStaleEntries(normalized, 30 * 24 * 60 * 60 * 1000); // drop entries >30 days old
-    if (!safeSetJson(PLANNER_KEY, pruned)) {
-        return makeStorageWriteFailure(PLANNER_KEY);
+    if (!safeSetJson(PLANNER_KEY, planData)) return makeStorageWriteFailure(PLANNER_KEY);
+    return { ok: true, plan: planData };
+}
+function readRemoved() { return safeGetJson(REMOVED_KEY, {}) || {}; }
+function timestamp(item) { const n = Date.parse(item?.planUpdatedAt || item?.updatedAt || ''); return Number.isFinite(n) ? n : 0; }
+function rowEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function sameDurableRow(a, b, date) {
+    return a && b && (durableKey(a,date) === durableKey(b,date) ||
+        ((!a.savedPlanId || !b.savedPlanId) && occurrenceSlot(a,date) === occurrenceSlot(b,date)));
+}
+function removalFor(item,date) {
+    const removed=readRemoved();
+    return removed[durableKey(item,date)] || removed[legacyDurableKey(item,date)];
+}
+// A conditional full-plan write is permitted only if every remote row is
+// represented without loss, or a uniquely identified older revision was
+// explicitly changed/deleted locally. Ambiguous legacy conflicts fail closed.
+function remoteRowsAccountedFor(remotePlan, outbound) {
+    for (const [date, rows] of Object.entries(remotePlan)) {
+        const available = [...(outbound[date] || [])];
+        for (const row of rows) {
+            const exact = available.findIndex(x => rowEqual(x,row));
+            if (exact >= 0) { available.splice(exact,1); continue; }
+            const matching = available.map((x,i)=>sameDurableRow(x,row,date)?i:-1).filter(i=>i>=0);
+            if (matching.length === 1 && timestamp(row) && timestamp(available[matching[0]]) > timestamp(row)
+                && rows.filter(x=>sameDurableRow(x,row,date)).length === 1) {
+                available.splice(matching[0],1); continue;
+            }
+            const removal = removalFor(row,date);
+            if (matching.length === 0 && removal?.priorTimestamp && timestamp(row) && timestamp(row) <= removal.priorTimestamp
+                && rows.filter(x=>sameDurableRow(x,row,date)).length === 1) continue;
+            return false;
+        }
     }
-    return { ok: true, plan: pruned };
+    return true;
+}
+async function writableRemotePlan() {
+    const response = await fetch(`${API_BASE}/user_plan`, {cache:'no-store'});
+    if (!response.ok) return null;
+    const etag = response.headers?.get('ETag');
+    const plan = await response.json();
+    if (!etag || !plan || typeof plan !== 'object' || Array.isArray(plan) || Object.values(plan).some(rows=>!Array.isArray(rows))) return null;
+    return {plan,etag};
+}
+// Only an unambiguous, explicitly newer revision may replace an unchanged
+// local record. Remote absence is never deletion authority. Local edits that
+// occur while GET is in flight always win, even against a newer timestamp.
+function mergePlans(localPlan, remotePlan, requestStart = localPlan, startVersion = mutationVersion) {
+    const merged = Object.fromEntries(Object.entries(localPlan).map(([date, rows]) => [date, [...rows]]));
+    const removed = readRemoved();
+    for (const [date, rows] of Object.entries(normalizePlanData(remotePlan))) {
+        const target = merged[date] ||= [];
+        const imported = new Set();
+        for (const remote of rows) {
+            if (!remote || typeof remote !== 'object') continue;
+            const key = durableKey(remote, date);
+            if (removed[key] || removed[legacyDurableKey(remote, date)]) continue;
+            const matching = row => sameDurableRow(row, remote, date);
+            if (Math.max(changedKeys.get(key) || 0, changedKeys.get(legacyDurableKey(remote,date)) || 0) > startVersion) continue;
+            const matches = target.map((row, i) => matching(row) && !imported.has(i) ? i : -1).filter(i => i >= 0);
+            const started = (requestStart[date] || []).filter(matching);
+            if (matches.length === 0) {
+                if (!started.length) { imported.add(target.length); target.push(remote); }
+                continue;
+            }
+            if (matches.length !== 1 || started.length !== 1) continue;
+            const i = matches[0], current = target[i];
+            if (rowEqual(current, started[0]) && timestamp(current) && timestamp(remote) > timestamp(current)) {
+                target[i] = { ...current, ...remote, savedPlanId: current.savedPlanId || remote.savedPlanId || getItemKey(current), planUpdatedAt: remote.planUpdatedAt || remote.updatedAt };
+            }
+        }
+        if (!target.length) delete merged[date];
+    }
+    return merged;
+}
+async function synchronizePlan() {
+    const recovery = await recoverLegacyPlannerSeed();
+    if (!recovery.ok) return recovery;
+    const requestStart = readLocalPlan();
+    const startVersion = mutationVersion;
+    const remote = await quarantineLegacyRemotePlan(await fetchRemotePlan());
+    const local = readLocalPlan();
+    const merged = mergePlans(local, remote, requestStart, startVersion);
+    if (rowEqual(local, merged)) return { ok: true, plan: local };
+    return writeLocalPlan(merged);
 }
 function readLocalBlacklist() { return normalizeBlacklistData(safeGetJson(BLACKLIST_KEY, [])); }
 function writeLocalBlacklist(list) {
@@ -98,9 +208,6 @@ function writeLocalBlacklist(list) {
     }
     return { ok: true, list: normalized };
 }
-function pruneBlacklistedFromPlan(planData, blacklist) { const normalizedPlan = normalizePlanData(planData); const blacklistSet = blacklist instanceof Set ? blacklist : new Set(normalizeBlacklistData(blacklist)); return Object.fromEntries(Object.entries(normalizedPlan).map(([date, items]) => [date, items.filter(item => !blacklistSet.has(getItemKey(item)))]).filter(([, items]) => items.length > 0)); }
-function mergePlans(basePlan, incomingPlan) { const merged = { ...normalizePlanData(basePlan) }; Object.entries(normalizePlanData(incomingPlan)).forEach(([date, items]) => { if (!merged[date]) merged[date] = []; items.forEach(item => { const normalizedItem = normalizePlanItem(item, date); if (normalizedItem && !hasSimilarPlanItem(merged[date], normalizedItem)) merged[date].push(normalizedItem); }); merged[date] = deduplicatePlanItems(merged[date]); }); return merged; }
-
 export function isPlannerStorageSuccess(result) {
     return result === true || result?.ok === true;
 }
@@ -118,12 +225,8 @@ async function fetchRemotePlan() {
             console.warn('[PlannerStorage] API plan fetch unavailable', e);
         }
     }
-    try {
-        const staticResponse = await fetch(STATIC_PLAN_URL);
-        if (staticResponse.ok) return normalizePlanData(await staticResponse.json());
-    } catch (e) {
-        console.warn('[PlannerStorage] Static plan fetch unavailable', e);
-    }
+    // Public app publications are not a personal Planner backup. Never import
+    // bundled user_plan.json; the private API and explicit local saves own plans.
     return {};
 }
 
@@ -153,9 +256,7 @@ const plannerStorage = {
             const mergedBlacklist = new Set([...localBlacklist, ...remoteBlacklist]);
             const blacklistWrite = writeLocalBlacklist([...mergedBlacklist]);
             if (!isPlannerStorageSuccess(blacklistWrite)) return blacklistWrite;
-            const remotePlan = await fetchRemotePlan();
-            const mergedPlan = pruneBlacklistedFromPlan(mergePlans(remotePlan, readLocalPlan()), mergedBlacklist);
-            return writeLocalPlan(mergedPlan);
+            return await synchronizePlan();
         } catch (e) {
             console.warn('[PlannerStorage] Sync failed', e);
             return { ok: false, reason: 'sync-failed', error: e?.message || String(e) };
@@ -175,17 +276,14 @@ const plannerStorage = {
     },
     loadPlanFromApi: async () => {
         try {
-            const remotePlan = await fetchRemotePlan();
-            const mergedPlan = pruneBlacklistedFromPlan(mergePlans(remotePlan, readLocalPlan()), plannerStorage.getBlacklist());
-            const result = writeLocalPlan(mergedPlan);
-            if (!isPlannerStorageSuccess(result)) return result;
-            return mergedPlan;
+            const result = await synchronizePlan();
+            return isPlannerStorageSuccess(result) ? result.plan : result;
         } catch (e) {
             console.warn('[PlannerStorage] Plan load from API failed', e);
-            return pruneBlacklistedFromPlan(readLocalPlan(), plannerStorage.getBlacklist());
+            return { ok: false, reason: 'sync-failed', error: e?.message || String(e) };
         }
     },
-    getPlan: () => readLocalPlan(),
+    getPlan: () => { try { return readLocalPlan(); } catch(e) { console.warn('[PlannerStorage] Plan unreadable; retaining stored bytes',e); return {}; } },
     getUpcomingDays: (days = 14) => {
         try {
             const parsed = readLocalPlan();
@@ -199,14 +297,18 @@ const plannerStorage = {
     addItem: (date, item) => {
         try {
             const parsed = readLocalPlan();
-            const normalizedItem = normalizePlanItem({ ...item, planDate: item?.planDate || date, eventDateKey: item?.eventDateKey || date, eventDate: item?.eventDate || date }, date);
+            const normalizedItem = normalizePlanItem({ ...item, planDate: date, planUpdatedAt: new Date().toISOString() }, date);
             if (!normalizedItem) return { ok: false, reason: 'invalid-item', error: 'Planner item is invalid' };
             if (!parsed[date]) parsed[date] = [];
-            if (!hasSimilarPlanItem(parsed[date], normalizedItem)) {
+            if (!hasSimilarPlanItem(parsed[date], normalizedItem, date)) {
                 parsed[date].push(normalizedItem);
-                parsed[date] = deduplicatePlanItems(parsed[date]);
                 const result = writeLocalPlan(parsed);
                 if (!isPlannerStorageSuccess(result)) return result;
+                const removed = readRemoved();
+                delete removed[durableKey(normalizedItem, date)];
+                delete removed[legacyDurableKey(normalizedItem,date)];
+                markMutation(normalizedItem,date);
+                safeSetJson(REMOVED_KEY, removed);
                 plannerStorage.savePlanToApi(parsed);
                 return { ok: true, item: normalizedItem };
             } else if (import.meta.env.DEV) {
@@ -224,10 +326,32 @@ const plannerStorage = {
             const parsed = readLocalPlan();
             const itemKey = getItemKey(itemId);
             if (parsed[date]) {
-                parsed[date] = parsed[date].filter(i => getItemKey(i) !== itemKey);
+                const exact = parsed[date].filter(i => getSavedPlanIdentity(i,date) === itemKey || getItemKey(i) === itemKey);
+                const matches = exact.length ? exact : parsed[date].filter(i => i.hiddenKey === itemKey || i.canonicalId === itemKey);
+                if (matches.length !== 1) return { ok: false, reason: matches.length ? 'ambiguous-id' : 'not-found', error: 'Planner item identity is not unique' };
+                // Capture exact tombstone bytes before the first of two writes.
+                // If the plan write fails, restore the tombstone so a rejected
+                // removal cannot poison future synchronization/reopening.
+                const removedStorage = getSafeLocalStorage();
+                const removedBeforeBytes = removedStorage?.getItem(REMOVED_KEY) ?? null;
+                const removed = readRemoved();
+                const tombstone = { priorTimestamp: timestamp(matches[0]), removedAt: Date.now() };
+                removed[durableKey(matches[0], date)] = tombstone;
+                removed[legacyDurableKey(matches[0],date)] = tombstone;
+                if (!safeSetJson(REMOVED_KEY, removed)) return makeStorageWriteFailure(REMOVED_KEY);
+                parsed[date] = parsed[date].filter(i => i !== matches[0]);
                 if (parsed[date].length === 0) delete parsed[date];
                 const result = writeLocalPlan(parsed);
-                if (!isPlannerStorageSuccess(result)) return result;
+                if (!isPlannerStorageSuccess(result)) {
+                    try {
+                        if (removedBeforeBytes === null) removedStorage?.removeItem(REMOVED_KEY);
+                        else removedStorage?.setItem(REMOVED_KEY, removedBeforeBytes);
+                    } catch (rollbackError) {
+                        return { ...result, rollbackFailed: true, error: `${result.error}; removal marker restoration failed: ${rollbackError?.message || rollbackError}` };
+                    }
+                    return result;
+                }
+                markMutation(matches[0],date);
                 plannerStorage.savePlanToApi(parsed);
                 return { ok: true };
             }
@@ -241,10 +365,9 @@ const plannerStorage = {
             dates.forEach(date => {
                 if (!parsed[date]) parsed[date] = [];
                 (newItems || []).forEach(rawItem => {
-                    const item = normalizePlanItem(rawItem, date);
-                    if (item && !hasSimilarPlanItem(parsed[date], item)) { parsed[date].push(item); changed = true; }
+                    const item = normalizePlanItem({ ...rawItem, planUpdatedAt: new Date().toISOString() }, date);
+                    if (item && !hasSimilarPlanItem(parsed[date], item, date)) { parsed[date].push(item); markMutation(item,date); changed = true; }
                 });
-                parsed[date] = deduplicatePlanItems(parsed[date]);
             });
             if (changed) {
                 const result = writeLocalPlan(parsed);
@@ -254,30 +377,45 @@ const plannerStorage = {
             return { ok: true, changed };
         } catch (e) { console.error('Merge failed', e); return { ok: false, reason: 'planner-merge-failed', error: e?.message || String(e) }; }
     },
-    savePlanToApi: async (planData) => {
+    savePlanToApi: async () => {
         try {
-            const normalizedPlan = pruneBlacklistedFromPlan(normalizePlanData(planData), plannerStorage.getBlacklist());
-            const result = writeLocalPlan(normalizedPlan);
-            if (!isPlannerStorageSuccess(result)) return result;
+            // Callers already committed the explicit local mutation. Do not
+            // rewrite local storage from a delayed outbound synchronization.
             if (isStaticHostRuntime()) return true;
-            await fetch(`${API_BASE}/user_plan`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(normalizedPlan) });
-            return true;
+            // Serialize full-plan POSTs in this runtime; each dispatch reads
+            // current committed state. An older in-flight write cannot finish
+            // after a newer write from this same client.
+            const send = async () => {
+                for (let attempt=0; attempt<2; attempt++) {
+                    const requestStart = readLocalPlan(), startVersion = mutationVersion;
+                    const remote = await writableRemotePlan();
+                    // Older servers without a revision token cannot safely
+                    // accept a whole-plan replacement. Local saving remains durable.
+                    if (!remote) return false;
+                    const local = readLocalPlan();
+                    const outbound = mergePlans(local,remote.plan,requestStart,startVersion);
+                    if (!remoteRowsAccountedFor(remote.plan,outbound)) return false;
+                    const response = await fetch(`${API_BASE}/user_plan`, {method:'POST',headers:{'Content-Type':'application/json','If-Match':remote.etag},body:JSON.stringify(outbound)});
+                    if (response.ok) return true;
+                    if (response.status !== 412) return false;
+                }
+                return false;
+            };
+            const operation = planPostQueue.then(send, send);
+            planPostQueue = operation.catch(() => false);
+            return await operation;
         } catch (e) { console.warn('API save plan error:', e); return false; }
     },
     addToBlacklist: (id) => {
         try {
-            const key = getItemKey(id);
+            const key = normalizeBlacklistData([id])[0];
             if (!key) return;
             const list = readLocalBlacklist();
             if (!list.includes(key)) {
                 list.push(key);
                 const blacklistWrite = writeLocalBlacklist(list);
                 if (!isPlannerStorageSuccess(blacklistWrite)) return blacklistWrite;
-                const prunedPlan = pruneBlacklistedFromPlan(readLocalPlan(), new Set(list));
-                const planWrite = writeLocalPlan(prunedPlan);
-                if (!isPlannerStorageSuccess(planWrite)) return planWrite;
                 plannerStorage.saveBlacklistToApi(list);
-                plannerStorage.savePlanToApi(prunedPlan);
                 return { ok: true };
             }
             return { ok: true, skipped: true };

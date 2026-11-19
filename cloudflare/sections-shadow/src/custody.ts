@@ -9,7 +9,7 @@ import {
   type ShadowPointerRow,
 } from './contracts';
 import { sha256Text } from './crypto';
-import { prepareD1EvidenceCapacity, readD1EvidenceObject } from './evidenceStore';
+import { assertD1TextCapacity, prepareD1EvidenceCapacity, readD1EvidenceObject } from './evidenceStore';
 import { reserveEpochCapacity } from './quota';
 
 export interface CustodyEnv {
@@ -28,9 +28,32 @@ const HOUR_MS = 60 * 60 * 1_000;
 const DAY_MS = 24 * HOUR_MS;
 const SHA256 = /^[0-9a-f]{64}$/;
 const MAX_DECISION_EVIDENCE_BYTES = 64_000;
+const MAX_DECISION_BATCH_BIND_BYTES = 1_000_000;
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
+}
+
+function decisionBindChunks(rows: unknown[]): string[] {
+  const chunks: string[] = [];
+  let pending: string[] = [];
+  let pendingBytes = 2;
+  for (const row of rows) {
+    const encoded = JSON.stringify(row);
+    const bytes = byteLength(encoded);
+    if (bytes + 2 > MAX_DECISION_BATCH_BIND_BYTES) {
+      throw new ShadowCustodyError('DECISION_BATCH_ROW_TOO_LARGE', 'One encoded decision exceeds the D1 bind budget');
+    }
+    if (pendingBytes + bytes + (pending.length ? 1 : 0) > MAX_DECISION_BATCH_BIND_BYTES) {
+      chunks.push(`[${pending.join(',')}]`);
+      pending = [];
+      pendingBytes = 2;
+    }
+    pendingBytes += bytes + (pending.length ? 1 : 0);
+    pending.push(encoded);
+  }
+  if (pending.length) chunks.push(`[${pending.join(',')}]`);
+  return chunks;
 }
 
 function assertText(value: string, field: string): void {
@@ -380,6 +403,7 @@ export async function stageDecisionEvidence(
     return;
   }
 
+  await assertD1TextCapacity(env, byteLength(decision.evidenceJson));
   const results = await env.SHADOW_DB.batch([
     env.SHADOW_DB.prepare(`
       INSERT INTO sections_shadow_decisions (
@@ -403,7 +427,7 @@ export async function stageDecisionEvidence(
       WHERE epoch_id = ? AND state = 'STAGED'
     `).bind(decision.epochId, decision.epochId),
   ]);
-  if (resultChanges(results[0]) !== 1 || resultChanges(results[1]) !== 1) {
+  if (resultChanges(results[0]) < 1 || resultChanges(results[1]) !== 1) {
     throw new ShadowCustodyError(
       'DECISION_STAGE_FAILED',
       `Could not stage decision ${decision.candidateIdentity}`,
@@ -441,8 +465,18 @@ export async function stageDecisionEvidenceBatch(
   if (new Set(rows.map(row => row.candidateIdentity)).size !== rows.length) {
     throw new ShadowCustodyError('DECISION_BATCH_DUPLICATE', 'Decision batch contains duplicate identities');
   }
+  // D1 limits each bound string, even when every individual decision fits.
+  // All chunks still commit inside one D1 transaction.
+  const bindChunks = decisionBindChunks(rows);
+  const existing = await env.SHADOW_DB.prepare(`
+    SELECT candidate_identity FROM sections_shadow_decisions WHERE epoch_id = ?
+  `).bind(epochId).all<{ candidate_identity: string }>();
+  const existingIds = new Set(existing.results.map(row => row.candidate_identity));
+  await assertD1TextCapacity(env, rows.reduce((total, row) => total + (
+    existingIds.has(row.candidateIdentity) ? 0 : byteLength(row.evidenceJson)
+  ), 0));
   await env.SHADOW_DB.batch([
-    env.SHADOW_DB.prepare(`
+    ...bindChunks.map(chunk => env.SHADOW_DB.prepare(`
       INSERT INTO sections_shadow_decisions (
         epoch_id, candidate_identity, authoritative_rank, selected_position,
         displayed_position, evidence_digest, evidence_json
@@ -457,14 +491,8 @@ export async function stageDecisionEvidenceBatch(
         json_extract(value, '$.evidenceJson')
       FROM json_each(?)
       WHERE true
-      ON CONFLICT(epoch_id, candidate_identity) DO UPDATE SET
-        evidence_digest = sections_shadow_decisions.evidence_digest
-      WHERE sections_shadow_decisions.authoritative_rank = excluded.authoritative_rank
-        AND sections_shadow_decisions.selected_position IS excluded.selected_position
-        AND sections_shadow_decisions.displayed_position IS excluded.displayed_position
-        AND sections_shadow_decisions.evidence_digest = excluded.evidence_digest
-        AND sections_shadow_decisions.evidence_json = excluded.evidence_json
-    `).bind(JSON.stringify(rows)),
+      ON CONFLICT(epoch_id, candidate_identity) DO NOTHING
+    `).bind(chunk)),
     env.SHADOW_DB.prepare(`
       UPDATE sections_shadow_epochs
       SET actual_decision_count = (
