@@ -68,8 +68,15 @@ test('newer partial live row retains SENSEX while updating NIFTY',async()=>{
     if(String(url).includes('chart/%5ENSEI?')) return json({chart:{result:[{meta:{regularMarketPrice:25300,regularMarketTime:when/1000}}]}});
     return json(null,false);
   };
-  const data=await fetchAllMarketData({forceRefresh:true,previousData:previous});
+  const data=await fetchAllMarketData({forceRefresh:true,previousData:previous,allowLegacyLive:true});
   assert.equal(data.sourceMode,'live');assert.equal(data.indices.length,2);
   assert.equal(lookup(data,'^NSEI').quoteAt,iso(when));
   assert.equal(lookup(data,'^BSESN').quoteAt,previous.indices[1].quoteAt);
+});
+
+test('cold publication failure does not invoke any Yahoo/proxy cascade',async()=>{
+  let calls=[];globalThis.fetch=async(url)=>{calls.push(String(url));return {ok:false,json:async()=>null};};
+  const data=await fetchAllMarketData({forceRefresh:true});
+  assert.equal(data.sourceMode,'failed');
+  assert.equal(calls.length,1);assert.match(calls[0],/market_snapshot\.json$/);
 });
