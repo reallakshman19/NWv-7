@@ -41,3 +41,4 @@
 .market-workspace__empty { margin: 12px 0; color: var(--text-secondary); }
 @media (max-width: 500px) { .market-workspace__tabs { grid-template-columns: repeat(2,minmax(0,1fr)); } .market-workspace__numbers { text-align: left; } .market-workspace__row { align-items: flex-start; } }
 @media print { .market-workspace__tabs, .market-workspace__filters, .market-workspace button, .market-workspace__footer { display: none !important; } .market-workspace__panel { border: none; padding: 0; } }
+@media (max-width: 260px) { .market-workspace__tabs { grid-template-columns: minmax(0,1fr); } .market-workspace__tabs button { overflow-wrap: anywhere; } }
