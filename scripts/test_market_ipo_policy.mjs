@@ -64,6 +64,11 @@ test('invalid offset-free source clock cannot establish freshness',()=>{
   const raw=fixture('empty',empty(),'2026-11-19T10:30:00');delete raw.generatedAt;delete raw.fetchedAt;
   assert.equal(assessMarketIpo(raw,NOW).state,'unverified');
 });
+test('new publication clock cannot re-date an IPO empty receipt with missing check clock',()=>{
+  const raw=fixture('empty');delete raw.ipoLastCheckedAt;
+  raw.generatedAt=new Date(NOW-1000).toISOString();
+  assert.equal(assessMarketIpo(raw,NOW).state,'unverified');
+});
 test('unidentified health stays unverified instead of being guessed',()=>{
   const raw=fixture('snapshot',{live:[issue],upcoming:[],recent:[]});
   raw.sourceHealth.ipo.status='unknown';
