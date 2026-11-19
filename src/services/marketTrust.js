@@ -25,14 +25,15 @@ export function parseMarketTimestamp(payload) {
   for (const value of candidates) {
     if (!value) continue;
 
-    if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-      return value;
-    }
+    if (typeof value === 'number' && Number.isFinite(value) && value > 946684800000 &&
+        value <= Date.now() + 5 * 60 * 1000) return value;
 
+    // Date-only strings and local-time instants are not publication clocks.
+    if (typeof value !== 'string' ||
+        !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?(?:Z|[+-]\d{2}:\d{2})$/i.test(value)) continue;
     const parsed = Date.parse(value);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
+    if (Number.isFinite(parsed) && parsed > 946684800000 &&
+        parsed <= Date.now() + 5 * 60 * 1000) return parsed;
   }
 
   return null;
@@ -47,8 +48,12 @@ export function getMarketPayloadAgeMs(payload, nowMs = Date.now()) {
 export function isMarketPayloadUsable(payload) {
   return Boolean(
     payload &&
-    Array.isArray(payload.indices) &&
-    payload.indices.some((item) => item?.name && item?.value)
+    ['indices', 'globalIndices', 'sectorals', 'equities'].some((key) =>
+      Array.isArray(payload[key]) && payload[key].some((item) =>
+        (item?.name || item?.symbol) &&
+        Number.isFinite(Number(String(item?.value ?? item?.price ?? '').replace(/,/g, ''))) &&
+        Number(String(item?.value ?? item?.price ?? '').replace(/,/g, '')) > 0 &&
+        String(item?.sourceMode || item?.source || '').toLowerCase() !== 'seed'))
   );
 }
 
@@ -74,7 +79,7 @@ export function isMarketPayloadDisplayable(payload, maxAgeMs = MARKET_EXPIRED_DI
 }
 
 export function markMarketPayload(payload, sourceMode, extra = {}) {
-  const timestamp = parseMarketTimestamp(payload) || Date.now();
+  const timestamp = parseMarketTimestamp(payload);
 
   return {
     ...payload,
@@ -82,7 +87,7 @@ export function markMarketPayload(payload, sourceMode, extra = {}) {
     schemaVersion: MARKET_CACHE_SCHEMA_VERSION,
     sourceMode,
     fetchedAt: timestamp,
-    generatedAt: payload?.generatedAt || payload?.generated_at || new Date(timestamp).toISOString(),
+    generatedAt: payload?.generatedAt || payload?.generated_at || (timestamp ? new Date(timestamp).toISOString() : null),
     sourceHealth: normalizeSourceHealth(payload?.sourceHealth || extra.sourceHealth || {}, sourceMode)
   };
 }
@@ -225,7 +230,7 @@ export function shouldRejectMarketPayload(payload, options = {}) {
   if (!isMarketPayloadUsable(payload)) {
     return {
       reject: true,
-      reason: 'Market payload has no displayable index rows.'
+      reason: 'Market payload has no displayable qualified quote rows.'
     };
   }
 
