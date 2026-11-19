@@ -5,6 +5,7 @@ export const INDIA_MARKET_SOURCES = {
   indices: 'https://www.nseindia.com/market-data/live-market-indices',
   equity: 'https://www.nseindia.com/get-quotes/equity',
   ipo: 'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',
+  ipoBse: 'https://www.bseindia.com/markets/PublicIssues/IPOIssues_new.aspx',
   issueDocuments: 'https://www.nseindia.com/companies-listing/corporate-public-issue-advertisements',
   nfo: 'https://www.amfiindia.com/new-fund-offer',
   nav: 'https://www.amfiindia.com/net-asset-value/nav-download',

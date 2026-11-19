@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EquityWorkspace, FundsWorkspace, CurrencyWorkspace } from '../components/market/MarketWorkspaceTools.jsx';
 import * as sources from '../services/indiaMarketTools.js';
@@ -10,6 +10,7 @@ vi.mock('../services/indiaMarketTools.js', async importOriginal => {
   return { ...original, searchIndianFunds:vi.fn(),loadFundNav:vi.fn(),loadOmrRate:vi.fn() };
 });
 const at = new Date(Date.now()-60000).toISOString();
+const recentNavDate = new Date(Date.now()-86400000).toLocaleDateString('en-GB', {timeZone:'Asia/Kolkata'}).replaceAll('/', '-');
 const share=(symbol,value) => ({id:`equity:NSE:${symbol}`,symbol,name:symbol,value,quoteAt:at,exchange:'NSE',currency:'INR',sourceProvider:'Yahoo Finance',sourceAuthority:'third-party',cadence:'daily',changePercent:2});
 beforeEach(()=>{window.localStorage.clear();vi.clearAllMocks();});
 afterEach(cleanup);
@@ -34,24 +35,28 @@ describe('Market workflow independence',()=>{
     expect(screen.getByText(/No saved funds/)).toBeTruthy();
   });
 
-  it('ignores an older NAV response after the user selects another scheme',async()=>{
-    const pending={};
-    sources.loadFundNav.mockImplementation(code=>new Promise(resolve=>{pending[code]=resolve;}));
+  it('ignores an older selected NAV completion while retaining each saved fund result', async () => {
+    const pending = {};
+    localStorage.setItem('nw7.market-saved-funds.v1', JSON.stringify(['100001', '100002']));
+    sources.loadFundNav.mockImplementation(code => new Promise(resolve => { pending[code] = resolve; }));
     render(<FundsWorkspace data={{mutualFunds:[]}} />);
-    // Saved codes are loaded on explicit selection; never during Market boot.
-    localStorage.setItem('nw7.market-saved-funds.v1',JSON.stringify(['100001','100002']));
-    cleanup();render(<FundsWorkspace data={{mutualFunds:[]}} />);
-    fireEvent.click(screen.getAllByRole('button',{name:'View NAV'})[0]);
-    fireEvent.click(screen.getAllByRole('button',{name:'View NAV'})[1]);
-    pending['100002']({code:'100002',name:'Fund B',nav:125,date:'18-11-2026'});
-    await screen.findByText('Fund B');
-    pending['100001']({code:'100001',name:'Fund A',nav:500,date:'18-11-2026'});
-    expect(screen.getByText('Fund B')).toBeTruthy();
+    const first = screen.getByText('Scheme 100001').closest('li');
+    const second = screen.getByText('Scheme 100002').closest('li');
+    fireEvent.click(within(first).getByRole('button', {name:'View NAV'}));
+    fireEvent.click(within(second).getByRole('button', {name:'View NAV'}));
+    await waitFor(() => expect(pending['100002']).toBeTypeOf('function'));
+    await act(async () => pending['100002']({code:'100002',name:'Fund B',nav:125,date:recentNavDate}));
+    await waitFor(() => expect(document.querySelector('div.market-workspace__nested > strong')?.textContent).toBe('Fund B'));
+    await act(async () => pending['100001']({code:'100001',name:'Fund A',nav:500,date:recentNavDate}));
+    // Fund A may appear in its saved list row; it must NOT replace selected Fund B.
+    await waitFor(() => expect(document.querySelector('div.market-workspace__nested > strong')?.textContent).toBe('Fund B'));
   });
 
   it('fetches currency only when the Currency workspace mounts; typing and swap remain offline',async()=>{
     sources.loadOmrRate.mockResolvedValue({rate:245.123456,asOf:Date.now()-86400000,stale:false});
     render(<CurrencyWorkspace />);
+    const attribution = screen.getByRole('link', { name: 'Rates By Exchange Rate API' });
+    expect(attribution.getAttribute('href')).toBe(sources.INDIA_MARKET_SOURCES.fx);
     expect(sources.loadOmrRate).toHaveBeenCalledTimes(1);
     await screen.findByText(/1 OMR =/);
     fireEvent.change(screen.getByLabelText('Amount'),{target:{value:'10'}});
@@ -70,11 +75,11 @@ describe('Saved NAV loading and independent user tasks', () => {
     render(<FundsWorkspace data={{mutualFunds:[]}} />);
     await waitFor(() => expect(sources.loadFundNav).toHaveBeenCalledTimes(3));
     expect(pending.length).toBe(3);
-    pending[0].resolve({code: pending[0].code, name:'Fund A', nav:123.45,date:'18-11-2026'});
+    pending[0].resolve({code: pending[0].code, name:'Fund A', nav:123.45,date:recentNavDate});
     pending[1].reject(new Error('Provider unavailable'));
-    pending[2].resolve({code: pending[2].code, name:'Fund C', nav:111.45,date:'18-11-2026'});
+    pending[2].resolve({code: pending[2].code, name:'Fund C', nav:111.45,date:recentNavDate});
     await waitFor(() => expect(sources.loadFundNav).toHaveBeenCalledTimes(6));
-    pending.slice(3).forEach(item => item.resolve({code:item.code,name:'Fund ' + item.code,nav:200,date:'18-11-2026'}));
+    pending.slice(3).forEach(item => item.resolve({code:item.code,name:'Fund ' + item.code,nav:200,date:recentNavDate}));
     await screen.findByText(/Other schemes remain available/);
     expect(screen.getByText(/Fund A/)).toBeTruthy();
     expect(JSON.parse(localStorage.getItem('nw7.market-saved-funds.v1'))).toEqual(codes);
@@ -95,16 +100,62 @@ describe('Saved NAV loading and independent user tasks', () => {
     fireEvent.click(screen.getByRole('button',{name:'View NAV'}));
     // The search controls are still usable while one NAV request is pending.
     expect(screen.getByRole('button',{name:'Search funds'}).disabled).toBe(false);
-    navPending[100001]({code:'100001',name:'Index Direct Growth',nav:101,date:'18-11-2026'});
+    await waitFor(() => expect(navPending[100001]).toBeTypeOf('function'));
+    navPending[100001]({code:'100001',name:'Index Direct Growth',nav:101,date:recentNavDate});
     await screen.findByText(/NAV ₹101/);
   });
 
   it('preserves duplicate-free scheme codes and existing saved storage', async () => {
     localStorage.setItem('nw7.market-saved-funds.v1', JSON.stringify(['100001','100001','100002','invalid']));
-    sources.loadFundNav.mockResolvedValue({code:'100001',name:'Fund',nav:101,date:'18-11-2026'});
+    sources.loadFundNav.mockResolvedValue({code:'100001',name:'Fund',nav:101,date:recentNavDate});
     render(<FundsWorkspace data={{mutualFunds:[]}} />);
     expect(screen.getAllByRole('button',{name:'Remove'})).toHaveLength(2);
     fireEvent.click(screen.getAllByRole('button',{name:'Remove'})[0]);
     expect(JSON.parse(localStorage.getItem('nw7.market-saved-funds.v1'))).toEqual(['100002']);
+  });
+});
+
+
+describe('IPO source evidence is separate from empty or cached schedules', () => {
+  const fresh = () => new Date(Date.now()-60_000).toISOString();
+  const due = days => new Date(Date.now()+days*86400000).toISOString().slice(0,10);
+  const issue = () => ({ name:'Fixture Verified Issue', openDate:due(-1), closeDate:due(5) });
+  const calendar = (status, rows=[]) => ({
+    equities:[], sourceMode:'snapshot', generatedAt:fresh(), ipoLastCheckedAt:fresh(),
+    ipo:{ live:rows, upcoming:[],recent:[] }, sourceHealth:{ ipo:{status,provider:'BSE'} }
+  });
+  const open = data => {
+    render(<EquityWorkspace data={data} onRefresh={()=>{}} />);
+    fireEvent.click(screen.getByRole('button',{name:'IPO / FPO'}));
+    return document.querySelector('.market-workspace__ipo-evidence');
+  };
+  it('reports BSE 403 failure as unavailable, not no active IPOs',()=>{
+    const panel=open(calendar('failed'));
+    expect(panel.dataset.ipoState).toBe('unavailable');
+    expect(within(panel).getByText(/source unavailable/i)).toBeTruthy();
+    expect(within(panel).getByRole('link',{name:/Verify current public issues/})).toBeTruthy();
+    expect(within(panel).getByRole('link',{name:/BSE public issues/}).getAttribute('href')).toContain('bseindia.com/markets/PublicIssues/IPOIssues_new.aspx');
+    expect(panel.textContent).not.toMatch(/no qualifying current ipo/i);
+  });
+  it('does not display old issue rows after an unsuccessful refresh',()=>{
+    const panel=open(calendar('failed',[issue()]));
+    expect(panel.dataset.ipoState).toBe('unavailable');
+    expect(panel.textContent).not.toContain('Fixture Verified Issue');
+  });
+  it('uses verified-empty only with explicit fresh source-empty receipt',()=>{
+    const panel=open(calendar('empty'));
+    expect(panel.dataset.ipoState).toBe('verified-empty');
+    expect(panel.textContent).toMatch(/no qualifying current ipo/i);
+  });
+  it('renders dated issues only with fresh successful receipt',()=>{
+    const panel=open(calendar('snapshot',[issue()]));
+    expect(panel.dataset.ipoState).toBe('available');
+    expect(within(panel).getByText('Fixture Verified Issue')).toBeTruthy();
+  });
+  it('source receipt omitted in a newly dated publication is unverified',()=>{
+    const data=calendar('empty');delete data.sourceHealth.ipo;
+    const panel=open(data);
+    expect(panel.dataset.ipoState).toBe('unverified');
+    expect(panel.textContent).toMatch(/not.*confirm/i);
   });
 });

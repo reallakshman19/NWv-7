@@ -33,7 +33,8 @@
 .market-workspace__nested { margin-top: 15px; }
 .market-workspace__nested summary { cursor: pointer; padding: 9px 0; font-weight: 600; }
 .market-workspace__field-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin: 10px 0; }
-.market-workspace__field-row label { flex: 1 1 170px; }
+.market-workspace__field-row label { flex: 1 1 170px; min-width: 0; max-width: 100%; }
+.market-workspace__field-row label input { display: block; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
 .market-workspace__result { display: block; font-size: 1.3rem; padding: 10px 0; font-variant-numeric: tabular-nums; }
 .market-workspace__footer { padding: 16px clamp(12px,2vw,28px); color: var(--text-secondary); font-size: .8rem; }
 .market-workspace__section-switch { display: flex; flex-wrap: wrap; gap: 7px; margin: 10px 0; }
@@ -42,3 +43,10 @@
 @media (max-width: 500px) { .market-workspace__tabs { grid-template-columns: repeat(2,minmax(0,1fr)); } .market-workspace__numbers { text-align: left; } .market-workspace__row { align-items: flex-start; } }
 @media print { .market-workspace__tabs, .market-workspace__filters, .market-workspace button, .market-workspace__footer { display: none !important; } .market-workspace__panel { border: none; padding: 0; } }
 @media (max-width: 260px) { .market-workspace__tabs { grid-template-columns: minmax(0,1fr); } .market-workspace__tabs button { overflow-wrap: anywhere; } }
+
+/* 320px and high-font-size layouts: never let a form input's 20ch intrinsic
+   width expand its flex label beyond the available Market panel content. */
+@media (max-width: 360px) {
+  .market-workspace__field-row > label { flex: 1 1 100%; width: 100%; }
+  .market-workspace__field-row > label input { width: 100%; max-width: 100%; }
+}

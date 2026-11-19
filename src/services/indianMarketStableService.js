@@ -9,7 +9,6 @@ import {
   MARKET_SNAPSHOT_FRESH_MS,
   MARKET_EXPIRED_DISPLAY_MAX_AGE_MS,
   getMarketPayloadAgeMs,
-  isMarketPayloadUsable,
   isMarketPayloadFresh,
   normalizeSourceHealth,
   parseMarketTimestamp,
@@ -532,6 +531,14 @@ function reconcilePayloads(previous, incoming) {
     ...retain.sourceHealth,
     ...updated.sourceHealth,
   }, current.sourceMode);
+  // IPO evidence must belong to the selected publication, not a prior quote
+  // cache. A newer index publication without an IPO receipt proves nothing
+  // about whether there are zero issues or the source was unavailable.
+  const selectedIpoHealth = current?.sourceHealth?.ipo;
+  sourceHealth.ipo = selectedIpoHealth
+    ? normalizeSourceHealth({ ipo: selectedIpoHealth }, current.sourceMode).ipo
+    : { status: 'unknown', provider: 'IPO source', mode: current.sourceMode,
+        message: 'No IPO source receipt for the selected publication.' };
   // Empty or failed independent sidecars cannot clear valid retained data.
   const arrayFrom = (key) => (Array.isArray(updated[key]) && updated[key].length ? updated[key] : (retain[key] || []));
   // Only qualified same-session observations can generate tracked-share movers.
@@ -559,6 +566,8 @@ function reconcilePayloads(previous, incoming) {
     commodities: arrayFrom('commodities'),
     currencies: arrayFrom('currencies'),
     mutualFunds: arrayFrom('mutualFunds'),
+    ipo: current?.ipo || MARKET_SEED.ipo,
+    ipoLastCheckedAt: current?.ipoLastCheckedAt || null,
     sourceMode: current.sourceMode,
     fetchedAt: parseMarketTimestamp(current),
     generatedAt: current.generatedAt || current.generated_at || null,

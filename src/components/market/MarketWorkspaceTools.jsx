@@ -6,11 +6,12 @@ import {
 } from '../../services/indiaMarketTools.js';
 import { canonicalEquitySymbol, TRACKED_EQUITY_SYMBOLS, qualifyTrackedEquities } from '../../services/marketEquityPolicy.js';
 import { createMarketFundNavStore, normalizeSavedFundCodes } from '../../services/marketFundRequests.js';
+import { assessMarketIpo } from '../../services/marketIpoPolicy.js';
 
 const WATCHLIST_KEY = 'nw7.india-watchlist.v1';
 const SAVED_FUNDS_KEY = 'nw7.market-saved-funds.v1';
 const rupees = number => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(number);
-const external = (url, label) => <a href={url} target="_blank" rel="noopener noreferrer">{label} ↗</a>;
+const external = (url, label) => <a href={url} target="_blank" rel="noopener noreferrer">{label} <span aria-hidden="true">↗</span></a>;
 
 function PriceRow({ row }) {
   const change = Number(row.changePercent);
@@ -21,6 +22,26 @@ function PriceRow({ row }) {
       <span className="market-workspace__muted">{row.sourceProvider || row.source || 'Provider unavailable'} · Tracked NSE shares</span></div>
     <div className="market-workspace__numbers"><strong>{rupees(Number(row.value))}</strong><span className={validChange && change > 0 ? 'text-success' : validChange && change < 0 ? 'text-danger' : ''}>{validChange ? `${change > 0 ? '+' : ''}${change.toFixed(2)}%` : 'Change unavailable'}</span></div>
   </li>;
+}
+
+function IpoEvidencePanel({ data }) {
+  const evidence = assessMarketIpo(data);
+  return <div className="market-workspace__ipo-evidence" data-ipo-state={evidence.state}>
+    <p className="market-workspace__muted">IPO schedules are separate from share prices. A failed source does not mean zero public issues.</p>
+    <p role="status">{evidence.message}{evidence.checkedAt != null
+      ? ' · Source checked ' + new Date(evidence.checkedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST' : ''}</p>
+    {evidence.state === 'available' && <ul className="market-workspace__list">
+      {['live','upcoming','recent'].flatMap(group => evidence.rows[group].map((row,index) =>
+        <li className="market-workspace__row" key={group+'-'+row.name+'-'+index}>
+          <div><strong>{row.name}</strong><p>{group} · {row.openDate} – {row.closeDate}</p></div>
+        </li>
+      ))}
+    </ul>}
+    <div className="market-workspace__field-row">
+      {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
+      {external(INDIA_MARKET_SOURCES.ipoBse, 'BSE public issues')}
+    </div>
+  </div>;
 }
 
 export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
@@ -65,12 +86,9 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
       })}</ul> : <p className="market-workspace__empty">No saved shares. Add a symbol above or browse the tracked universe.</p>}
     </>}
     {section === 'all' && (quotes.length ? <ul className="market-workspace__list">{quotes.map(row => <PriceRow key={row.id} row={row} />)}</ul> : <p role="status">No qualified tracked equity quotes available. Saved symbols remain preserved.</p>)}
-    {section === 'offers' && (settings.showIPO === false ? <p>IPO/FPO is hidden in Market settings.</p> : <>
-      <p className="market-workspace__muted">IPO schedules are separate from share prices. Provider failures are not evidence of zero issues.</p>
-      {['live','upcoming','recent'].some(group => (data.ipo?.[group] || []).length) ? <ul className="market-workspace__list">{['live','upcoming','recent'].flatMap(group => (data.ipo?.[group] || []).map((row,index) => <li className="market-workspace__row" key={`${group}-${row.name}-${index}`}><div><strong>{row.name}</strong><p>{group} · {row.openDate || 'Opening unknown'} – {row.closeDate || 'Closing unknown'}</p></div></li>))}</ul>
-      : <p role="status">{data.sourceHealth?.ipo?.status === 'failed' ? 'IPO/FPO source unavailable.' : 'No verified current issue rows in this publication.'}</p>}
-      {external(INDIA_MARKET_SOURCES.ipo, 'Verify current public issues')}
-    </>)}
+    {section === 'offers' && (settings.showIPO === false
+      ? <p>IPO/FPO is hidden in Market settings.</p>
+      : <IpoEvidencePanel data={data} />)}
   </section>;
 }
 
@@ -92,7 +110,6 @@ export function FundsWorkspace({ data, settings = {} }) {
   const selectionAbort = useRef(null);
   const latestSearch = useRef(0);
   const latestSelection = useRef(0);
-  const savedKey = saved.join('|');
   const publicationNav = useMemo(() => new Map(
     (data.mutualFunds || []).filter(row => /^\d{3,8}$/.test(String(row.code || row.schemeCode)) &&
       Number.isFinite(Number(row.nav)) && Number(row.nav) > 0 &&
@@ -111,7 +128,7 @@ export function FundsWorkspace({ data, settings = {} }) {
     };
     void navStore.batch(saved, { signal: controller.signal, onItem: update });
     return () => controller.abort();
-  }, [navStore, savedKey, settings.showMutualFunds]); // savedKey is a stable serialized bounded code list
+  }, [navStore, saved, settings.showMutualFunds]); // stable saved array changes only when the watchlist changes
 
   useEffect(() => () => {
     latestSearch.current += 1;
@@ -288,7 +305,7 @@ export function CurrencyWorkspace({ settings = {} }) {
       <output className="market-workspace__result">{amount === '' ? '' : converted == null ? 'Result unavailable' : base === 'OMR' ? rupees(converted) : `${converted.toFixed(3)} OMR`}</output>
       {rate ? <p>1 OMR = {rate.rate.toPrecision(8)} INR · {rate.stale ? 'Stale reference' : 'Daily reference'} · As of {new Date(rate.asOf).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST{rate.warning ? ` · ${rate.warning}` : ''}</p> : <p role="status">{loading ? 'Loading daily reference rate…' : 'No rate available.'}</p>}
       {error && <p role="alert">{error}</p>}
-      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rate provider')} · Transfer fees and spreads excluded.</p>
+      <p className="market-workspace__muted">{external(INDIA_MARKET_SOURCES.fx,'Rates By Exchange Rate API')} · Transfer fees and spreads excluded.</p>
       {!loading && error && <button type="button" onClick={() => void reload()}>Retry rate acquisition</button>}
     </>}
   </section>;

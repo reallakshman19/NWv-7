@@ -1,9 +1,11 @@
 // src/services/marketTrust.js
 
-export const MARKET_CACHE_SCHEMA_VERSION = 'market-v3';
+// Qualified per-instrument clock and provenance contract; do not silently accept
+// legacy v3 prices whose source timestamps may be missing or synthetic.
+export const MARKET_CACHE_SCHEMA_VERSION = 'market-v4';
 
-export const MARKET_CONTEXT_CACHE_KEY = 'market_cache_v3';
-export const MARKET_SERVICE_CACHE_KEY = 'indian_market_stable_data_v3';
+export const MARKET_CONTEXT_CACHE_KEY = 'market_cache_v4';
+export const MARKET_SERVICE_CACHE_KEY = 'indian_market_stable_data_v4';
 
 export const MARKET_FRESH_CACHE_TTL_MS = 15 * 60 * 1000;
 export const MARKET_SERVICE_CACHE_TTL_MS = 30 * 60 * 1000;

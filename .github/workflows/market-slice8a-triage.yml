@@ -1,0 +1,35 @@
+name: Market Slice 8A Focused Regression Evidence
+on:
+  push:
+    branches: [release/market-slice8a-integrated-20261119]
+    paths:
+      - '.github/workflows/market-slice8a-triage.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  focused:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Run focused Market React regressions with complete failure log
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p reports/market-triage
+          npx vitest run --config vitest.config.js src/pages/MarketPage.workspaces.cert.test.jsx src/services/indianMarketStableService.cert.test.js 2>&1 | tee reports/market-triage/vitest.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-slice8a-triage-log
+          path: reports/market-triage/
+          if-no-files-found: warn
+          retention-days: 5

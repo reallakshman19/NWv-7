@@ -12,6 +12,9 @@ const PRECACHE_URLS = [
 
 function isRuntimeDataRequest(url) {
     return url.pathname.includes('/newsdata/') ||
+        // Quote publication validity belongs to the Market v4 source-clock layer.
+        // Never serve it from the app-shell service-worker fallback cache.
+        url.pathname.endsWith('/data/market_snapshot.json') ||
         url.pathname.includes('/api/datasets/') ||
         url.pathname.includes('/preview/sections/') ||
         url.pathname.includes('/v1/sections/');

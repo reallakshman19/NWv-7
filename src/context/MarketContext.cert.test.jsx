@@ -113,6 +113,22 @@ describe('MarketProvider refresh', () => {
         expect(result.current.error).toBe('Network unavailable');
     });
 
+
+    it('rejects a legacy v3 quote cache instead of silently relabeling it v4', async () => {
+        const legacy = { ...dataAt(Date.now() - 120_000), schemaVersion: 'market-v3' };
+        getIdbCache.mockResolvedValueOnce(legacy);
+        const qualified = dataAt(Date.now() - 60_000);
+        fetchAllMarketData.mockResolvedValueOnce(qualified);
+        const { result } = renderHook(useMarket, { wrapper: MarketProvider });
+        act(() => result.current.ensureBoot());
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(getIdbCache).toHaveBeenCalledWith(MARKET_CONTEXT_CACHE_KEY);
+        expect(fetchAllMarketData).toHaveBeenCalledTimes(1);
+        expect(fetchAllMarketData).toHaveBeenCalledWith({ forceRefresh: false, previousData: null });
+        expect(result.current.marketData).toEqual(qualified);
+    });
+
+
     it('expires in-memory quotes after a long-open tab, even if the next refresh throws', async () => {
         const now = Date.now();
         const initial = dataAt(now - 180_000);
