@@ -12,4 +12,4 @@ export {
   R21_MARKET_WORKSPACES,R21_MARKET_WORKSPACE_IDS,R21_DEFAULT_WORKSPACE,
   normalizeR21MarketView,getR21MarketViewFromHash,withR21MarketViewHash
 } from '../registry/workspaceRegistry.js';
-export {MARKET_SOURCES,MARKET_SOURCE_ACTIONS,getMarketSource,mayPerformSourceAction} from '../registry/sourceRegistry.js';
+export {MARKET_SOURCES,MARKET_SOURCE_ACTIONS,MARKET_SOURCE_HOSTS,getMarketSource,mayPerformSourceAction,isAllowedMarketSourceUrl} from '../registry/sourceRegistry.js';
