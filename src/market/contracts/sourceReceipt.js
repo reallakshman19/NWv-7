@@ -1,3 +1,5 @@
+import { getMarketSource } from '../registry/sourceRegistry.js';
+
 /**
  * Market R2.1 / WP-00: deterministic, fail-closed receipt contract.
  * Source clocks are NEVER populated from request or validation clocks.
@@ -53,6 +55,11 @@ export function validateSourceReceipt(input) {
     return { ok:false, errors:['INVALID_RECEIPT'] };
   }
   if (!SOURCE_IDS.test(input.sourceId || '')) errors.push('INVALID_SOURCE_ID');
+  const policy = getMarketSource(input.sourceId);
+  if (!policy) errors.push('UNREGISTERED_SOURCE');
+  if (policy && input.accessMode !== policy.accessMode) errors.push('SOURCE_ACCESS_MISMATCH');
+  if (policy && input.rights !== policy.rights) errors.push('SOURCE_RIGHTS_MISMATCH');
+  if (policy && input.publisher !== policy.publisher) errors.push('SOURCE_PUBLISHER_MISMATCH');
   if (!has(SOURCE_STATES,input.state)) errors.push('INVALID_STATE');
   if (!has(SOURCE_ACCESS_MODES,input.accessMode)) errors.push('INVALID_ACCESS_MODE');
   if (!has(SOURCE_RIGHTS,input.rights)) errors.push('INVALID_RIGHTS');
