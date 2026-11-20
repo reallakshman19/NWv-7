@@ -66,7 +66,7 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
     if (saved.length >= 12) { setMessage('The 12-symbol watchlist is full. Remove a symbol first.'); return; }
     const next = [...saved, symbol]; setSaved(next);
     const persisted = safeSetJson(WATCHLIST_KEY, next);
-    setInput(''); setMessage(persisted ? `${symbol} saved. Quotes are available only within the tracked universe.` : 'Saved for this visit only. Browser storage is unavailable.');
+    setInput(''); setMessage(persisted ? (freeOnly ? `${symbol} saved. Use the NSE link to verify its quote.` : `${symbol} saved. Quotes are available only within the tracked universe.`) : 'Saved for this visit only. Browser storage is unavailable.');
   };
   const removeSymbol = symbol => { const next = saved.filter(item => item !== symbol); setSaved(next); if (!safeSetJson(WATCHLIST_KEY, next)) setMessage('Change applies to this visit only. Browser storage is unavailable.'); };
   return <section id="market-equity" aria-labelledby="equity-heading" className="market-workspace__panel">

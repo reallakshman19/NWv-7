@@ -80,6 +80,8 @@ async function runViewport(width, height) {
       (await page.locator('#market-workspace').textContent()).includes('no redistributed quotes'));
     check('free-only-official-index-link-'+width,
       (await page.getByRole('link',{name:'NSE indices'}).count())===1);
+    check('free-only-does-not-offer-inert-index-filters-'+width,
+      (await page.getByLabel('Index coverage').count())===0 && (await page.getByLabel('Find an index').count())===0);
     check('four-workspace-tabs-' + width,
       await page.locator('.market-workspace__tabs button').count() === 4);
 
@@ -106,6 +108,8 @@ async function runViewport(width, height) {
     await page.getByRole('button',{name:'Equity',exact:true}).click();
     await page.getByPlaceholder('INFY').fill('INFY');
     await page.getByRole('button',{name:'Save symbol'}).click();
+    check('saved-nse-quote-instructions-'+width,
+      (await page.locator('#market-equity').textContent()).includes('Use the NSE link to verify its quote.'));
     check('uncovered-saved-symbol-not-fabricated-' + width,
       (await page.locator('#market-equity').textContent()).includes('No qualified quote in this publication'));
 

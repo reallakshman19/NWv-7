@@ -78,8 +78,8 @@ function IndexWorkspace({ data, settings, loading, onRefresh }) {
     <div className="market-workspace__panel-header"><div><h2 id="indices-heading">Indices</h2><p>{freeOnly ? 'Explore BSE reference prices below or verify directly with an exchange.' : 'Source-dated index points. One row per index.'}</p></div><button type="button" onClick={onRefresh} disabled={loading || freeOnly}>Refresh indices</button></div>
     <div className="market-workspace__filters">
       <label>Market<select aria-label="Market region" value={region} onChange={event => { setRegion(event.target.value); setScope('all'); }}><option value="india">India</option><option value="global">Global</option></select></label>
-      <label>Coverage<select aria-label="Index coverage" value={scope} onChange={event => setScope(event.target.value)}><option value="all">All indices</option><option value="broad">Broad indices</option><option value="sector">Sector indices</option></select></label>
-      <label>Find an index<input type="search" aria-label="Find an index" value={search} onChange={event => setSearch(event.target.value)} placeholder="NIFTY, SENSEX…" /></label>
+      {!freeOnly && <><label>Coverage<select aria-label="Index coverage" value={scope} onChange={event => setScope(event.target.value)}><option value="all">All indices</option><option value="broad">Broad indices</option><option value="sector">Sector indices</option></select></label>
+      <label>Find an index<input type="search" aria-label="Find an index" value={search} onChange={event => setSearch(event.target.value)} placeholder="NIFTY, SENSEX…" /></label></>}
     </div>
     {freeOnly && <p className="market-workspace__muted">Official sources: <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">NSE indices</a> · <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">BSE indices</a>. No copied quote values.</p>}
     {freeOnly && regionAllowed && region === 'india' && <BseMarketWidget kind="indices" />}
