@@ -39,3 +39,29 @@ export function mayPerformSourceAction(id, action) {
   // Public native price snapshots are closed until a separate owner/license decision.
   return Boolean(source && action!=='PUBLIC_SNAPSHOT' && source.actions.includes(action));
 }
+
+/** Exact allowed source hostnames, not arbitrary subdomains or proxy fallbacks. */
+export const MARKET_SOURCE_HOSTS = Object.freeze({
+  'tradingview-bse':Object.freeze(['www.tradingview.com','s3.tradingview.com']),
+  'nse-indices':Object.freeze(['www.nseindia.com']),
+  'nse-equities':Object.freeze(['www.nseindia.com']),
+  'nse-ipo':Object.freeze(['www.nseindia.com']),
+  'bse-ipo':Object.freeze(['www.bseindia.com']),
+  'amfi-nfo':Object.freeze(['www.amfiindia.com']),
+  'mfapi':Object.freeze(['www.mfapi.in','api.mfapi.in']),
+  'frankfurter':Object.freeze(['frankfurter.dev','api.frankfurter.dev']),
+  'world-bank':Object.freeze(['data.worldbank.org','api.worldbank.org']),
+  'nwv7-market-news':Object.freeze(['reallakshman19.github.io']),
+  'personal-local':Object.freeze([])
+});
+export function isAllowedMarketSourceUrl(sourceId, rawUrl) {
+  if (typeof rawUrl !== 'string' || !getMarketSource(sourceId)) return false;
+  try {
+    const parsed=new URL(rawUrl);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password &&
+      (!parsed.port || parsed.port === '443') &&
+      (MARKET_SOURCE_HOSTS[sourceId] || []).includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
