@@ -168,7 +168,19 @@ test('WP00-018 reject bad URL and invented publisher',()=>{
   assert.equal(createSourceReceipt(valid({originalUrl:'http://insecure.example/'})).ok,false);
   assert.equal(createSourceReceipt(valid({publisher:''})).ok,false);
 });
-test('WP00-019 no data fixtures or automatic on-mount source access',()=>{
+test('WP00-019 cannot spoof source rights or publisher metadata',()=>{
+  const nse=valid({sourceId:'nse-equities',publisher:'NSE',rights:'BROWSER_DIRECT_CONDITIONAL'});
+  assert.ok(createSourceReceipt(nse).errors.includes('SOURCE_ACCESS_MISMATCH'));
+  assert.ok(createSourceReceipt(nse).errors.includes('SOURCE_RIGHTS_MISMATCH'));
+  assert.ok(createSourceReceipt(valid({publisher:'Yahoo Finance'})).errors.includes('SOURCE_PUBLISHER_MISMATCH'));
+  assert.ok(createSourceReceipt(valid({sourceId:'unknown-source'})).errors.includes('UNREGISTERED_SOURCE'));
+});
+test('WP00-020 cannot claim zero IPOs from an official link being reachable',()=>{
+  const fake=valid({sourceId:'nse-ipo',publisher:'NSE',accessMode:'OFFICIAL_LINK',rights:'LINK_ONLY',
+    state:'NO_RESULTS',providerAsOf:null,validity:'VALID',transportStatus:200});
+  assert.ok(createSourceReceipt(fake).errors.includes('NO_RESULTS_REQUIRES_DIRECT_SOURCE'));
+});
+test('WP00-021 no data fixtures or automatic on-mount source access',()=>{
   assert.equal(SOURCE_STATES.includes('READY'),true);
   assert.equal(MARKET_SOURCES['tradingview-bse'].actions.includes('BROWSER_FETCH'),false);
   assert.equal(MARKET_SOURCES['personal-local'].actions.includes('BROWSER_FETCH'),false);
