@@ -229,13 +229,13 @@ export function checkRollbackEligibility(storage) {
 }
 
 /**
- * Executes rollback if eligible or forced.
+ * Executes rollback only if V2 is unchanged since the migration checkpoint.
  * Leaves legacy key 100% untouched.
  */
-export function rollbackWatchlistMigration(storage, force = false) {
+export function rollbackWatchlistMigration(storage) {
   const eligibility = checkRollbackEligibility(storage);
 
-  if (!eligibility.eligible && !force) {
+  if (!eligibility.eligible) {
     return {
       ok: false,
       reason: eligibility.reason,
