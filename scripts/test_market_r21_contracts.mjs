@@ -113,7 +113,8 @@ test('WP00-011 verified empty requires proven source check',()=>{
 });
 test('WP00-012 NO_RIGHTS must match rights policy',()=>{
   assert.equal(createSourceReceipt(valid({sourceId:'world-bank',publisher:'World Bank',accessMode:'LICENSED_OPEN_DATA',
-    state:'NO_RIGHTS',rights:'NO_PUBLICATION',providerAsOf:null,validity:'UNKNOWN'})).ok,true);
+    state:'NO_RIGHTS',rights:'NO_PUBLICATION',providerAsOf:null,validity:'UNKNOWN',
+    originalUrl:'https://api.worldbank.org/v2/country/IN/indicator/NY.GDP.MKTP.CD'})).ok,true);
   assert.equal(createSourceReceipt(valid({state:'NO_RIGHTS',providerAsOf:null,validity:'UNKNOWN'})).ok,false);
 });
 test('WP00-013 valid qualified native result preserved, bad data blocked',()=>{
@@ -122,7 +123,8 @@ test('WP00-013 valid qualified native result preserved, bad data blocked',()=>{
   assert.equal(qualifiedSourceResult(null,outcome.receipt).ok,false);
   assert.equal(qualifiedSourceResult({nav:123.45},valid({providerAsOf:null})).ok,false);
   const link=createSourceReceipt(valid({sourceId:'nse-indices',publisher:'NSE',state:'NOT_REQUESTED',
-    validity:'UNKNOWN',accessMode:'OFFICIAL_LINK',rights:'LINK_ONLY',providerAsOf:null}));
+    validity:'UNKNOWN',accessMode:'OFFICIAL_LINK',rights:'LINK_ONLY',providerAsOf:null,
+    originalUrl:'https://www.nseindia.com/market-data/live-market-indices'}));
   assert.equal(link.ok,true);
   assert.equal(qualifiedSourceResult({quote:1},link.receipt).ok,false);
 });
