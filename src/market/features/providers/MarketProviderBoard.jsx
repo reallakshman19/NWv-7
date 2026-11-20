@@ -88,54 +88,51 @@ export function MarketProviderBoard({
       }
     }, TIMEOUT_MS);
 
-    // 1. Create widget placeholder
-    const placeholder = document.createElement('div');
-    placeholder.className = 'tradingview-widget-container__widget';
-    placeholder.style.height = '100%';
-    placeholder.style.width = '100%';
-    container.appendChild(placeholder);
-
-    // 2. Create single TradingView embed script
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js';
-    script.async = true;
-    script.type = 'text/javascript';
-    script.textContent = JSON.stringify({
+    // Provider script executes only inside an opaque-origin sandboxed iframe.
+    // In particular, NEVER append the TradingView script to the host document.
+    const config = JSON.stringify({
       title: groupConfig.title,
       width: '100%',
       height: '100%',
       locale: 'en',
       showSymbolLogo: true,
-      symbolsGroups: [
-        {
-          name: groupConfig.title,
-          symbols: groupConfig.symbols,
-        },
-      ],
+      symbolsGroups: [{ name: groupConfig.title, symbols: groupConfig.symbols }],
       colorTheme: 'dark',
-    });
+    }).replace(/</g, '\\u003c');
+    const frameHtml =
+      '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0f172a;">' +
+      '<div class="tradingview-widget-container" style="height:100vh;width:100%">' +
+      '<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>' +
+      '<script src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" type="text/javascript">' +
+      config + '</script></div></body></html>';
+    const frame = document.createElement('iframe');
+    frame.setAttribute('sandbox', 'allow-scripts allow-popups');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    frame.setAttribute('title', groupConfig.title + ' — provider-controlled reference display');
+    frame.setAttribute('srcdoc', frameHtml);
+    frame.style.height = '100%';
+    frame.style.width = '100%';
+    frame.style.border = '0';
 
-    script.onload = () => {
+    frame.onload = () => {
       if (currentAttempt !== attemptId.current) return;
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
-      // P0-03: Transition to EMBED_UNCONFIRMED; do not claim verified quote visibility
+      // Iframe load does not prove the third-party chart rendered.
       setLifecycleState('EMBED_UNCONFIRMED');
     };
-
-    script.onerror = () => {
+    frame.onerror = () => {
       if (currentAttempt !== attemptId.current) return;
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
       setLifecycleState('SCRIPT_ERROR');
     };
+    container.appendChild(frame);
 
-    container.appendChild(script);
-
-    // Cleanup on unmount, toggle, or group switch (WP02-T06)
     return () => {
-      script.onload = null;
-      script.onerror = null;
+      frame.onload = null;
+      frame.onerror = null;
       if (timeoutTimerRef.current) clearTimeout(timeoutTimerRef.current);
       container.replaceChildren();
+      attemptId.current += 1;
     };
   }, [userConsented, groupConfig, retryCount]);
 
@@ -171,7 +168,7 @@ export function MarketProviderBoard({
             BSE end-of-day reference — TradingView
           </h3>
           <p className="market-provider-board__subtitle">
-            Provider renders its own numbers inside a third-party iframe; no quote extraction or app storage.
+            Provider script runs in a sandboxed, opaque-origin iframe; no native quote extraction or app storage.
           </p>
         </div>
 
@@ -201,7 +198,7 @@ export function MarketProviderBoard({
         <div className="market-provider-board__consent-box" role="region" aria-label="Provider consent">
           <p className="market-provider-board__disclosure">
             <strong>Privacy Notice:</strong> Loading this optional display connects directly to TradingView CDN
-            and shares your IP address and the current page URL with the provider.
+            and shares your IP address with the provider. The iframe uses a no-referrer policy.
           </p>
           <div className="market-provider-board__consent-actions">
             <button
@@ -237,7 +234,7 @@ export function MarketProviderBoard({
 
         {lifecycleState === 'EMBED_UNCONFIRMED' && (
           <p className="market-provider-board__status market-provider-board__status--loaded" role="status">
-            BSE end-of-day display loaded. Provider owns quote clocks and updates.
+            Provider frame loaded; quote rendering is unverified. Check the provider's dates and values.
           </p>
         )}
 
