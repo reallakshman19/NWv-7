@@ -444,7 +444,7 @@ test('WP10-G19 static export audit: all 9 feature index files export required ca
 // WP10-G20: Integrity of Shared Codebase and No Unauthorized Files
 // --------------------------------------------------------------------------
 test('WP10-G20 worktree & branch integrity: all modifications bounded within market desk', () => {
-  const changedFiles = execSync('git diff --name-only 2510cac78e4ec177efaaedfb8de2ac3504415813', {
+  const changedFiles = execSync('git diff --name-only $(git merge-base HEAD origin/main) HEAD', {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
