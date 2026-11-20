@@ -28,7 +28,6 @@ import {
 
 // Retain legacy tool imports for backwards compatibility with tests mocking MarketWorkspaceTools
 import { EquityWorkspace, FundsWorkspace, CurrencyWorkspace } from '../components/market/MarketWorkspaceTools.jsx';
-import BseMarketWidget from '../components/market/BseMarketWidget.jsx';
 
 import './MarketPage.workspaces.css';
 import '../market/features/overview/overview.css';
@@ -198,7 +197,7 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         </p>
       )}
 
-      {freeOnly && regionAllowed && region === 'india' && <BseMarketWidget kind="indices" />}
+      {freeOnly && regionAllowed && region === 'india' && <MarketProviderBoard group="indices" />}
 
       {!regionAllowed ? (
         <p role="status">This market region is hidden in Market settings.</p>
