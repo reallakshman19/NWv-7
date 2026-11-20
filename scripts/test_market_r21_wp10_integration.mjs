@@ -455,10 +455,46 @@ test('WP10-G20 worktree & branch integrity: all modifications bounded within mar
       file === 'src/pages/MarketPage.jsx' ||
       file === 'src/services/marketWorkspaceRoute.js' ||
       file.startsWith('scripts/') ||
-      file.startsWith('reports/market-r21/');
+      file.startsWith('reports/market-r21/') ||
+      [
+        '.github/workflows/market-r21-wp00-contracts.yml',
+        'docs/market/R21_AGENT_DISPATCH.md',
+        'docs/market/R21_WP00_FOUNDATION.md',
+      ].includes(file);
     assert.ok(
       isAllowed,
       `Violation of path isolation! Unauthorized modification of shared file: ${file}`
     );
   }
+});
+
+
+// WP10-G21: public quote publisher and fallback must remain disabled in FREE_OPEN_ONLY.
+test('WP10-G21 rejects bundled unlicensed quotes, false breadth, and host-page provider scripts', () => {
+  const forbiddenFiles = [
+    'src/market/features/overview/realServerSnapshot.js',
+    'scripts/fetch_real_market_snapshot.mjs',
+    'scripts/save_real_snapshot_module.mjs',
+  ];
+  for (const file of forbiddenFiles) {
+    assert.equal(fs.existsSync(path.resolve(file)), false, 'Unauthorized static publisher: ' + file);
+  }
+  const files = [
+    'src/pages/MarketPage.jsx',
+    'src/market/features/overview/Overview.jsx',
+    'src/market/features/equity/EquityResearchPanel.jsx',
+    'src/market/features/equity/WatchlistSummary.jsx',
+    'src/market/features/funds/FundSummary.jsx',
+    'src/market/features/funds/FundsPanel.jsx',
+  ];
+  for (const file of files) {
+    const source = fs.readFileSync(path.resolve(file), 'utf8');
+    assert.doesNotMatch(source, /REAL_SERVER_SNAPSHOT|data\/market_snapshot\.json/);
+  }
+  const overview = fs.readFileSync(path.resolve('src/market/features/overview/Overview.jsx'), 'utf8');
+  assert.doesNotMatch(overview, /1,522 Advances|554 Declines|88 Unchanged/);
+  const provider = fs.readFileSync(path.resolve('src/market/features/providers/MarketProviderBoard.jsx'), 'utf8');
+  assert.match(provider, /allow-scripts allow-popups/);
+  assert.match(provider, /no-referrer/);
+  assert.doesNotMatch(provider, /allow-same-origin|document\.createElement\('script'\)/);
 });
