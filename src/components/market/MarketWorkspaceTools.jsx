@@ -7,6 +7,7 @@ import {
 import { canonicalEquitySymbol, TRACKED_EQUITY_SYMBOLS, qualifyTrackedEquities } from '../../services/marketEquityPolicy.js';
 import { createMarketFundNavStore, normalizeSavedFundCodes } from '../../services/marketFundRequests.js';
 import { assessMarketIpo } from '../../services/marketIpoPolicy.js';
+import BseMarketWidget from './BseMarketWidget.jsx';
 
 const WATCHLIST_KEY = 'nw7.india-watchlist.v1';
 const SAVED_FUNDS_KEY = 'nw7.market-saved-funds.v1';
@@ -71,6 +72,7 @@ export function EquityWorkspace({ data, settings = {}, loading, onRefresh }) {
   return <section id="market-equity" aria-labelledby="equity-heading" className="market-workspace__panel">
     <div className="market-workspace__panel-header"><div><h2 id="equity-heading">Equity</h2><p>{freeOnly ? 'Free/open mode: 16 watchlist symbols and official NSE verification, no republished quote prices.' : '16 tracked NSE symbols; source-dated observations, not an exchange-wide quote service.'}</p></div><button type="button" onClick={onRefresh} disabled={loading || freeOnly}>Refresh tracked shares</button></div>
     <p className="market-workspace__muted">Qualified quotes: {quotes.length}/{TRACKED_EQUITY_SYMBOLS.length} · Acquired this publication: {sourceCount} · Retained: {coverage.retainedCount ?? 'Unknown'}</p>
+    {freeOnly && <BseMarketWidget kind="equities" />}
     <div className="market-workspace__section-switch" aria-label="Equity sections">
       {[['saved','My shares'],['all','Tracked universe'],['offers','IPO / FPO']].map(([id,title]) => <button key={id} type="button" aria-pressed={section === id} onClick={() => setSection(id)}>{title}</button>)}
     </div>
@@ -289,14 +291,54 @@ export function CurrencyWorkspace({ settings = {} }) {
   const generation = useRef(0);
   const reload = useCallback(async () => {
     const request = ++generation.current; setLoading(true); setError('');
-    try { const result = await loadOmrRate(); if (generation.current === request) setRate(result); }
-    catch (failure) { if (generation.current === request) setError(failure?.message || 'Currency rate unavailable.'); }
+    try {
+      const result = await loadOmrRate();
+      if (generation.current === request) { setRate(result); setError(''); }
+    }
+    catch (failure) {
+      if (generation.current === request) {
+        // The loader has already considered any still-eligible cached rate.
+        // Retaining the previous component value here can resurrect an expired rate.
+        setRate(null);
+        setError(failure?.message || 'Currency rate unavailable.');
+      }
+    }
     finally { if (generation.current === request) setLoading(false); }
   }, []);
   useEffect(() => {
     if (settings.showCurrency !== false) void reload();
     return () => { generation.current += 1; };
   }, [reload, settings.showCurrency]); // Browser-held daily cache survives workspace changes.
+  useEffect(() => {
+    if (!rate) return undefined;
+    let timer;
+    const recheck = () => {
+      clearTimeout(timer);
+      const age = Date.now() - rate.asOf;
+      const staleAfter = 36 * 60 * 60 * 1000;
+      const expiresAfter = 3 * 24 * 60 * 60 * 1000;
+      if (!Number.isFinite(age) || age > expiresAfter) {
+        setRate(null);
+        setError('The reference rate has expired. Retry to get a current rate.');
+        return;
+      }
+      if (age > staleAfter && !rate.stale) {
+        setRate(previous => previous === rate ? { ...previous, stale: true } : previous);
+        return;
+      }
+      const next = age <= staleAfter && !rate.stale ? staleAfter : expiresAfter;
+      timer = setTimeout(recheck, Math.max(1, next - age + 1));
+    };
+    recheck();
+    // Timers can be suspended while a browser tab is in the background.
+    window.addEventListener('focus', recheck);
+    document.addEventListener('visibilitychange', recheck);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', recheck);
+      document.removeEventListener('visibilitychange', recheck);
+    };
+  }, [rate]);
   const converted = convertOmrInr(amount, rate?.rate, base);
   return <section id="market-currency" aria-labelledby="currency-heading" className="market-workspace__panel">
     <div className="market-workspace__panel-header"><div><h2 id="currency-heading">Currency conversion</h2><p>Daily OMR/INR reference rate; not a bank transfer quote.</p></div></div>

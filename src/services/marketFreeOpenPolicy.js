@@ -31,7 +31,7 @@ export function freeOpenMarketPayload() {
     ipo:{live:[],upcoming:[],recent:[]}, ipoLastCheckedAt:null,
     nfo:[], fiidii:{fii:{},dii:{},date:''},
     sourceHealth:{
-      indices:{status:'unavailable',provider:'Exchange source',message:'Public redistribution not licensed for free/open mode'},
+      indices:{status:'unavailable',provider:'Exchange source',message:'Free/open feed with public redistribution rights not verified'},
       equities:{status:'unavailable',provider:'Exchange source',message:'Free/open feed with public redistribution rights not verified'},
       ipo:{status:'unknown',provider:'Official issue calendars',message:'Visit official issue pages'},
     },

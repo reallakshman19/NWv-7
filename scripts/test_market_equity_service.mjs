@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
-import { fetchAllMarketData, sanitizeMarketPayload } from '../src/services/indianMarketStableService.js';
+import { importLegacyMarketServiceForTests } from './market_legacy_service_test_loader.mjs';
+const { fetchAllMarketData, sanitizeMarketPayload } = await importLegacyMarketServiceForTests();
 import { isMarketPayloadUsable } from '../src/services/marketTrust.js';
 const now = Date.now();
 const time = (offset) => new Date(now + offset).toISOString();

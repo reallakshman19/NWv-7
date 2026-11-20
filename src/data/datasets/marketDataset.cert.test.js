@@ -81,6 +81,16 @@ describe('marketDataset', () => {
     expect(env.source).toBe('seed');
   });
 
+  it('does not invent live provenance or publication times for free-only empty data', async () => {
+    fetchAllMarketData.mockResolvedValue({ sourceMode: 'free-open-only', fetchedAt: null, generatedAt: null, indices: [] });
+    const env = await load();
+    expect(env.ok).toBe(false);
+    expect(env.source).toBe('unknown');
+    expect(env.freshness).toBe('empty');
+    expect(env.fetchedAt).toBeNull();
+    expect(env.generatedAt).toBeNull();
+  });
+
   it('payloadHash is deterministic regardless of key order', async () => {
     const dataA = { indices: [{ name: 'X', value: 1 }], fetchedAt: 1000, sourceMode: 'live' };
     const dataB = { sourceMode: 'live', fetchedAt: 1000, indices: [{ name: 'X', value: 1 }] };

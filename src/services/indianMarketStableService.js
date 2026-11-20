@@ -594,9 +594,8 @@ async function storeMarketData(data) {
 }
 
 export async function fetchAllMarketData({ forceRefresh = false, previousData = null, allowLegacyLive = false } = {}) {
-  // Production has no public quote redistribution license. Reject even valid
-  // previous IndexedDB quote caches and never fetch the old Yahoo/AMFI snapshot.
-  if (MARKET_FREE_OPEN_ONLY && import.meta.env?.PROD === true) return freeOpenMarketPayload();
+  // Do not rehydrate legacy quotes or request the old snapshot in free-only mode.
+  if (MARKET_FREE_OPEN_ONLY) return freeOpenMarketPayload();
   if (!forceRefresh) {
     const freshCache = await readMarketCache();
     if (freshCache) return sanitizeMarketPayload(freshCache, 'cache', { sourceHealth: { cache: 'cache' } });

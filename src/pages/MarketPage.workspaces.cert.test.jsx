@@ -63,6 +63,87 @@ describe('Market workflow independence',()=>{
     fireEvent.click(screen.getByRole('button',{name:'Swap pair'}));
     expect(sources.loadOmrRate).toHaveBeenCalledTimes(1);
   });
+
+  it('removes a previously displayed rate when a later acquisition has no usable fallback', async () => {
+    sources.loadOmrRate
+      .mockResolvedValueOnce({rate:245.12,asOf:Date.now()-86400000,stale:false})
+      .mockRejectedValueOnce(new Error('No recent rate available'));
+    const { rerender } = render(<CurrencyWorkspace />);
+    await screen.findByText(/1 OMR =/);
+
+    // The component can stay mounted while the user hides and re-enables Currency.
+    rerender(<CurrencyWorkspace settings={{showCurrency:false}} />);
+    rerender(<CurrencyWorkspace settings={{showCurrency:true}} />);
+    await screen.findByRole('alert');
+    expect(screen.getByText('No recent rate available')).toBeTruthy();
+    expect(screen.getByText('Result unavailable')).toBeTruthy();
+    expect(screen.queryByText(/1 OMR =/)).toBeNull();
+  });
+
+  it('ages an open reference rate into stale and then unavailable without another request', async () => {
+    vi.useFakeTimers();
+    try {
+      const start = Date.UTC(2026, 10, 20, 0);
+      vi.setSystemTime(start);
+      sources.loadOmrRate.mockResolvedValue({rate:245.12,asOf:start,stale:false});
+      render(<CurrencyWorkspace />);
+      await act(async () => {});
+      expect(screen.getByText(/Daily reference · Reference date/)).toBeTruthy();
+      await act(async () => { await vi.advanceTimersByTimeAsync(36 * 3600000 + 1); });
+      expect(screen.getByText(/Stale reference · Reference date/)).toBeTruthy();
+      await act(async () => { await vi.advanceTimersByTimeAsync(36 * 3600000); });
+      expect(screen.queryByText(/1 OMR =/)).toBeNull();
+      expect(screen.getByText('Result unavailable')).toBeTruthy();
+      expect(screen.getByRole('alert').textContent).toMatch(/reference rate has expired/i);
+      expect(sources.loadOmrRate).toHaveBeenCalledTimes(1);
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
+  it('checks expiry on focus after a suspended tab wakes', async () => {
+    vi.useFakeTimers();
+    try {
+      const start = Date.UTC(2026, 10, 20, 0);
+      vi.setSystemTime(start);
+      sources.loadOmrRate.mockResolvedValue({rate:245.12,asOf:start,stale:false});
+      render(<CurrencyWorkspace />);
+      await act(async () => {});
+      vi.setSystemTime(start + 3 * 86400000 + 1);
+      fireEvent.focus(window);
+      expect(screen.queryByText(/1 OMR =/)).toBeNull();
+      expect(screen.getByText('Result unavailable')).toBeTruthy();
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
+
+  it('clears an expiry error if a refresh that was in flight succeeds', async () => {
+    vi.useFakeTimers();
+    try {
+      const start = Date.UTC(2026, 10, 20, 0);
+      vi.setSystemTime(start);
+      let finishRefresh;
+      sources.loadOmrRate
+        .mockResolvedValueOnce({rate:245.12,asOf:start,stale:false})
+        .mockImplementationOnce(() => new Promise(resolve => { finishRefresh = resolve; }));
+      const { rerender } = render(<CurrencyWorkspace />);
+      await act(async () => {});
+      rerender(<CurrencyWorkspace settings={{showCurrency:false}} />);
+      rerender(<CurrencyWorkspace settings={{showCurrency:true}} />);
+      vi.setSystemTime(start + 3 * 86400000 + 1);
+      fireEvent.focus(window);
+      expect(screen.getByRole('alert').textContent).toMatch(/expired/i);
+      await act(async () => finishRefresh({rate:246,asOf:Date.now(),stale:false}));
+      expect(screen.queryByRole('alert')).toBeNull();
+      expect(screen.getByText(/1 OMR = 246/)).toBeTruthy();
+    } finally {
+      cleanup();
+      vi.useRealTimers();
+    }
+  });
 });
 
 

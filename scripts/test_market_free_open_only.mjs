@@ -43,6 +43,10 @@ test('all four public financial dataset files are quote-free in checkout',()=>{
       assert.equal(raw.includes(token),false,p+' contains forbidden '+token);
     }
   }
+  // Historical docs copies are publicly readable even though Pages builds from public/.
+  for (const p of ['market_snapshot', 'mutual_fund_snapshot', 'market_metrics']) {
+    assert.deepEqual(json('docs/data/' + p + '.json'), json('public/data/' + p + '.json'));
+  }
 });
 test('neither scheduled nor manual data-writing jobs remain in Market publisher workflow',()=>{
   const flow=file('.github/workflows/market_refresh.yml');
@@ -56,7 +60,7 @@ test('public market and browser cache never rehydrate legacy third-party quotes'
   const service=file('src/services/indianMarketStableService.js');
   const context=file('src/context/MarketContext.jsx');
   for(const text of [service,context]){
-    assert.match(text,/MARKET_FREE_OPEN_ONLY && import\.meta\.env\?\.PROD === true/);
+    assert.match(text,/if\s*\(MARKET_FREE_OPEN_ONLY\)/);
     assert.match(text,/freeOpenMarketPayload\(\)/);
   }
 });

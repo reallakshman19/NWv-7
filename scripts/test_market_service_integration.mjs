@@ -1,7 +1,8 @@
 // Runs without a browser, an external feed, or a Vitest dependency; publication responses are deterministic.
 import assert from 'node:assert/strict';
 import { test, afterEach } from 'node:test';
-import { fetchAllMarketData } from '../src/services/indianMarketStableService.js';
+import { importLegacyMarketServiceForTests } from './market_legacy_service_test_loader.mjs';
+const { fetchAllMarketData } = await importLegacyMarketServiceForTests();
 import { markMarketPayload, isMarketPayloadUsable } from '../src/services/marketTrust.js';
 const now = Date.now();
 const iso = (ms) => new Date(ms).toISOString();

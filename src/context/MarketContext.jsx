@@ -42,7 +42,7 @@ export function MarketProvider({ children }) {
         setError(null);
         // The normal stored/cache branch can contain former Yahoo/AMFI quotes.
         // In public free/open mode never rehydrate or show those historic values.
-        if (MARKET_FREE_OPEN_ONLY && import.meta.env?.PROD === true) {
+        if (MARKET_FREE_OPEN_ONLY) {
             const empty = freeOpenMarketPayload();
             lastData.current = empty;
             setMarketData(empty);

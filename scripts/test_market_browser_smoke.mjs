@@ -18,7 +18,10 @@ const check = (name, condition, detail) => {
   if (!condition) throw new Error(name + (detail ? ': ' + JSON.stringify(detail) : ''));
 };
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  ...(process.env.MARKET_BROWSER_EXECUTABLE ? { executablePath: process.env.MARKET_BROWSER_EXECUTABLE } : {}),
+});
 async function runViewport(width, height) {
   // The SW owns app-shell caching; disable it in this deterministic network fixture.
   // Its market-publication bypass is verified separately by test_market_sw_contract.mjs.

@@ -3,6 +3,11 @@ import { fetchAllMarketData, fetchIPOData, fetchMutualFunds, MARKET_SEED } from 
 import { getIdbCache, setIdbCache } from './indexedDbCache.js';
 import { MARKET_CACHE_SCHEMA_VERSION, MARKET_SERVICE_CACHE_KEY } from './marketTrust.js';
 
+// These cases certify the isolated legacy refresh machinery, not free-only mode.
+vi.mock('./marketFreeOpenPolicy.js', async (importOriginal) => ({
+  ...await importOriginal(), MARKET_FREE_OPEN_ONLY: false,
+}));
+
 vi.mock('./indexedDbCache.js', () => ({
   getIdbCache: vi.fn().mockResolvedValue(null),
   setIdbCache: vi.fn().mockResolvedValue(undefined),
