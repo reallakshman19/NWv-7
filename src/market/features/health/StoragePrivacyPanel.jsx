@@ -19,7 +19,6 @@ export function StoragePrivacyPanel({
 }) {
   const [migrationStatus, setMigrationStatus] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [showConflictOverride, setShowConflictOverride] = useState(false);
 
   // Check legacy watchlist in localStorage if available
   let legacyWatchlistRaw = null;
@@ -44,15 +43,10 @@ export function StoragePrivacyPanel({
     }
   };
 
-  const handleRollback = (force = false) => {
+  const handleRollback = () => {
     if (onRollbackWatchlist) {
-      const res = onRollbackWatchlist(force);
+      const res = onRollbackWatchlist();
       setMigrationStatus(res);
-      if (res.blocked) {
-        setShowConflictOverride(true);
-      } else {
-        setShowConflictOverride(false);
-      }
     }
   };
 
@@ -132,7 +126,7 @@ export function StoragePrivacyPanel({
               <button
                 type="button"
                 className="health-action-btn btn-danger"
-                onClick={() => handleRollback(false)}
+                onClick={handleRollback}
               >
                 Rollback to Legacy
               </button>
@@ -152,29 +146,11 @@ export function StoragePrivacyPanel({
           {migrationStatus && (
             <div className={`status-alert ${migrationStatus.ok ? 'alert-success' : 'alert-danger'}`}>
               <p>{migrationStatus.message || (migrationStatus.ok ? 'Migration completed successfully!' : 'Action failed.')}</p>
-              {migrationStatus.blocked && showConflictOverride && (
-                <div className="conflict-override-box">
-                  <p className="text-danger font-semibold">
-                    ⚠️ Conflict Warning: New edits were made in V2 after migration.
-                    Rolling back now will permanently discard those edits.
-                  </p>
-                  <div className="conflict-btn-group">
-                    <button
-                      type="button"
-                      className="health-action-btn btn-danger-force"
-                      onClick={() => handleRollback(true)}
-                    >
-                      Force Rollback Anyway
-                    </button>
-                    <button
-                      type="button"
-                      className="health-action-btn btn-secondary"
-                      onClick={() => setShowConflictOverride(false)}
-                    >
-                      Cancel Rollback
-                    </button>
-                  </div>
-                </div>
+              {migrationStatus.blocked && (
+                <p className="text-danger font-semibold">
+                  Automatic rollback is blocked. Current V2 edits are preserved.
+                  Export and reconcile the watchlist explicitly before any recovery.
+                </p>
               )}
             </div>
           )}
