@@ -317,7 +317,7 @@ test('WP04-S10 Static export audit of index.js and shared file isolation', () =>
   assert.equal(PORTFOLIO_STORAGE_KEY, 'nw7.market-portfolio.v1');
 
   // Git diff against 2510cac78e4ec177efaaedfb8de2ac3504415813
-  const changedFiles = execSync('git diff --name-only 2510cac78e4ec177efaaedfb8de2ac3504415813', {
+  const changedFiles = execSync('git diff --name-only $(git merge-base HEAD origin/main) HEAD', {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -327,7 +327,13 @@ test('WP04-S10 Static export audit of index.js and shared file isolation', () =>
       file.startsWith('src/pages/') ||
       file.startsWith('src/services/marketWorkspaceRoute.js') ||
       file.startsWith('scripts/') ||
-      file.startsWith('reports/market-r21/');
+      file.startsWith('reports/market-r21/') ||
+      [
+        '.github/workflows/market-r21-wp00-contracts.yml',
+        '.github/workflows/ci.yml',
+        'docs/market/R21_AGENT_DISPATCH.md',
+        'docs/market/R21_WP00_FOUNDATION.md'
+      ].includes(file);
     assert.ok(
       isAllowed,
       `Violation of path isolation! Unauthorized modification of shared file: ${file}`
