@@ -5,7 +5,7 @@
 
 export { CurrencyMacroPanel } from './CurrencyMacroPanel.jsx';
 export { FXQuickConverter } from './FXQuickConverter.jsx';
-export { MacroChart } from './MacroChart.jsx';
+export { FxLineChart, FxLineChart as MacroChart } from './FxLineChart.jsx';
 
 export {
   FxClient,
@@ -14,14 +14,6 @@ export {
   FRESHNESS_WINDOW_MS,
   EXPIRY_WINDOW_MS
 } from './fxClient.js';
-
-export {
-  MacroClient,
-  macroClient,
-  WORLDBANK_SOURCE_ID,
-  WDI_INDICATORS,
-  SUPPORTED_MACRO_COUNTRIES
-} from './macroClient.js';
 
 export {
   macroStore,

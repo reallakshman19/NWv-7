@@ -84,7 +84,7 @@ export function PortfolioSummary({ onOpenPortfolio }) {
           className="portfolio-btn portfolio-btn-outline"
           onClick={() => onOpenPortfolio && onOpenPortfolio()}
         >
-          Open Portfolio Desk &rarr;
+          Open Portfolio Desk →
         </button>
       </div>
     </div>

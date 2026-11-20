@@ -108,7 +108,7 @@ export function EventTimeline({
                         rel="noopener noreferrer"
                         className="timeline-source-link"
                       >
-                        Official Schedule Notice &nearr;
+                        Official Schedule Notice ↗
                       </a>
                     )}
                   </div>

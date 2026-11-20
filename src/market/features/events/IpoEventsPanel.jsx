@@ -43,7 +43,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                 onClick={() => onNavigateWorkspace('overview')}
                 title="Return to Market Overview"
               >
-                &larr; Overview
+                ← Overview
               </button>
             )}
             <h2 className="events-title">IPO, NFO &amp; Financial Events</h2>
@@ -56,7 +56,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
 
       {/* Statutory / Regulatory Disclaimer Banner */}
       <div className="events-disclaimer-banner" role="note">
-        <strong>Official Market Registers &amp; Free Open Policy:</strong> Primary equity public issue bidding, subscription books, and allotment allocations are administered exclusively by the National Stock Exchange of India (NSE) and BSE Limited. Free/open policy enforced; zero unverified issue counts or fake empty assertions.
+        <strong>Official Exchange Issue Desks:</strong> Primary equity public issue bidding, subscription books, and allotment allocations are administered directly by the National Stock Exchange of India (NSE) and BSE Limited.
       </div>
 
       {/* Main Workspace Navigation Tabs */}
@@ -109,6 +109,61 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
             </div>
           </div>
 
+          {/* Primary Market & Exchange Issue Gateway */}
+          <div className="statutory-gateway-card" style={{
+            background: 'var(--market-bg-secondary, #1e293b)',
+            border: '1px solid var(--market-border, #334155)',
+            borderRadius: '8px',
+            padding: '20px',
+            marginBottom: '24px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+              <div>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--market-text-primary, #f8fafc)', margin: 0 }}>
+                  Primary Market &amp; Exchange Issue Gateway
+                </h4>
+                <p style={{ fontSize: '0.825rem', color: 'var(--market-text-muted, #94a3b8)', margin: '4px 0 0 0' }}>
+                  Live bidding books, price band determinations, lot sizes, and subscription status are hosted under statutory registry. Access official exchange issue desks below:
+                </p>
+              </div>
+              <span className="portfolio-badge badge-source" style={{ background: '#0f172a', border: '1px solid #334155', color: '#94a3b8', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px' }}>
+                OFFICIAL REGISTERS
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', marginTop: '16px' }}>
+              <a
+                href="https://www.nseindia.com/market-data/all-upcoming-issues-ipo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="portal-action-btn"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#38bdf8', textDecoration: 'none', fontWeight: 500 }}
+              >
+                <span>NSE Current &amp; Upcoming Issues</span>
+                <span>↗</span>
+              </a>
+              <a
+                href="https://www.bseindia.com/markets/PublicIssues/IPOIssues_new.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="portal-action-btn"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#38bdf8', textDecoration: 'none', fontWeight: 500 }}
+              >
+                <span>BSE Public Issues Register</span>
+                <span>↗</span>
+              </a>
+              <a
+                href="https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&amp;sid=3&amp;ssid=15&amp;smid=10"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="portal-action-btn"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px', color: '#38bdf8', textDecoration: 'none', fontWeight: 500 }}
+              >
+                <span>SEBI Draft Offer Documents</span>
+                <span>↗</span>
+              </a>
+            </div>
+          </div>
+
           <div className="portals-full-grid">
             {/* WP-00 Registered Exchange Issue Desks */}
             {REGISTERED_ISSUE_SOURCES.filter(s => s.id !== 'amfi-nfo').map(src => (
@@ -125,7 +180,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                     rel="noopener noreferrer"
                     className="portal-action-btn"
                   >
-                    Open Official Desk &nearr;
+                    Open Official Desk ↗
                   </a>
                 </div>
               </div>
@@ -146,7 +201,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                     rel="noopener noreferrer"
                     className="portal-action-btn"
                   >
-                    View Official Filing &nearr;
+                    View Official Filing ↗
                   </a>
                 </div>
               </div>
@@ -177,7 +232,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                 rel="noopener noreferrer"
                 className="portfolio-btn btn-sm portfolio-btn-secondary"
               >
-                Official AMFI NFO Portal &nearr;
+                Official AMFI NFO Portal ↗
               </a>
             </div>
           </div>
@@ -214,7 +269,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                 rel="noopener noreferrer"
                 className="portfolio-btn portfolio-btn-secondary btn-sm"
               >
-                Check AMFI India New Fund Offers &nearr;
+                Check AMFI India New Fund Offers ↗
               </a>
             </div>
           )}
@@ -293,7 +348,7 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
                       rel="noopener noreferrer"
                       className="news-story-link"
                     >
-                      {story.title} &nearr;
+                      {story.title} ↗
                     </a>
                   </h4>
                   {story.summary && <p className="news-story-snippet">{story.summary}</p>}
@@ -319,19 +374,19 @@ export function IpoEventsPanel({ onNavigateWorkspace = null, now = null }) {
         <h4 className="footer-links-title">Official Primary Market Verification Portals</h4>
         <div className="footer-links-grid">
           <a href="https://www.nseindia.com/" target="_blank" rel="noopener noreferrer" className="macro-ext-link">
-            NSE India &nearr;
+            NSE India ↗
           </a>
           <a href="https://www.bseindia.com/" target="_blank" rel="noopener noreferrer" className="macro-ext-link">
-            BSE India &nearr;
+            BSE India ↗
           </a>
           <a href="https://www.sebi.gov.in/" target="_blank" rel="noopener noreferrer" className="macro-ext-link">
-            SEBI Regulatory Portal &nearr;
+            SEBI Regulatory Portal ↗
           </a>
           <a href="https://www.amfiindia.com/" target="_blank" rel="noopener noreferrer" className="macro-ext-link">
-            AMFI India &nearr;
+            AMFI India ↗
           </a>
           <a href="https://www.rbi.org.in/" target="_blank" rel="noopener noreferrer" className="macro-ext-link">
-            Reserve Bank of India &nearr;
+            Reserve Bank of India ↗
           </a>
         </div>
       </section>

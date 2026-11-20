@@ -6,7 +6,6 @@
 
 import { useSyncExternalStore } from 'react';
 import { fxClient } from './fxClient.js';
-import { macroClient, WDI_INDICATORS } from './macroClient.js';
 import { subtractCalendarDays } from './fxMath.js';
 
 export const OMR_INR_STORAGE_KEY = 'nw7.omr-inr.frankfurter.v1';
@@ -28,7 +27,6 @@ class MacroStore {
     this.state = null;
     this.cachedSnapshot = null;
     this.inflightFx = new Map();
-    this.inflightMacro = new Map();
     this.requestId = 0;
 
     this.init();
@@ -36,7 +34,6 @@ class MacroStore {
 
   init() {
     this.inflightFx.clear();
-    this.inflightMacro.clear();
     this.requestId = 0;
 
     const cachedOmr = this.readStorageCache(OMR_INR_STORAGE_KEY);
@@ -53,10 +50,7 @@ class MacroStore {
       historyByPair: {},
       historyLoading: false,
       historyError: null,
-      // Macro indicators: key `${country}_${indicator}` -> { status: 'idle'|'loading'|'ready'|'error', data?: object, error?: string }
-      macroByKey: {},
       activePair: 'OMR/INR',
-      activeCountry: 'IND',
       activeHorizonDays: 30,
       revision: 1
     };
@@ -250,52 +244,6 @@ class MacroStore {
       this.updateSnapshot();
       throw err;
     }
-  }
-
-  // Fetch World Bank Macro indicator on-demand with component-level isolation
-  async fetchMacroIndicator(countryCode = 'IND', indicatorId = WDI_INDICATORS.GDP_GROWTH.id, { signal } = {}) {
-    const key = `${countryCode.toUpperCase()}_${indicatorId}`;
-
-    if (this.state.macroByKey[key]?.status === 'ready') {
-      return this.state.macroByKey[key].data;
-    }
-
-    if (this.inflightMacro.has(key)) {
-      return this.inflightMacro.get(key);
-    }
-
-    this.state.macroByKey[key] = {
-      status: 'loading',
-      error: null
-    };
-    this.updateSnapshot();
-
-    const fetchPromise = (async () => {
-      try {
-        const data = await macroClient.fetchIndicator(countryCode, indicatorId, { signal });
-        this.state.macroByKey[key] = {
-          status: 'ready',
-          data,
-          error: null
-        };
-        this.state.revision += 1;
-        this.updateSnapshot();
-        return data;
-      } catch (err) {
-        this.state.macroByKey[key] = {
-          status: 'error',
-          error: err.message || 'Failed to load macro indicator'
-        };
-        this.state.revision += 1;
-        this.updateSnapshot();
-        throw err;
-      } finally {
-        this.inflightMacro.delete(key);
-      }
-    })();
-
-    this.inflightMacro.set(key, fetchPromise);
-    return fetchPromise;
   }
 }
 

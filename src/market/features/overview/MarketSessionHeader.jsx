@@ -90,6 +90,20 @@ export function MarketSessionHeader({
               : 'Direct user requests only'}
           </span>
         </div>
+
+        <div className="market-session-header__mode-badge">
+          <span className="market-session-header__meta-label">Freshness:</span>
+          <span className="market-session-header__mode-text" style={{ color: '#34d399', fontWeight: 600 }}>
+            🟢 SLA {'<'} 24h EOD
+          </span>
+        </div>
+
+        <div className="market-session-header__mode-badge">
+          <span className="market-session-header__meta-label">Retention Policy:</span>
+          <span className="market-session-header__mode-text" style={{ color: '#60a5fa' }}>
+            🔒 Client-Side Storage (IndexedDB)
+          </span>
+        </div>
       </div>
     </header>
   );

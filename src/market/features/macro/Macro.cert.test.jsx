@@ -5,7 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import {
   FXQuickConverter,
   CurrencyMacroPanel,
-  MacroChart,
+  FxLineChart,
   macroStore
 } from './index.js';
 
@@ -98,41 +98,8 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
     });
   });
 
-  describe('MacroChart Component', () => {
-    it('renders annual macro bars with negative/positive styling and zero line', () => {
-      const sampleObservations = [
-        { year: '2020', value: -5.77 },
-        { year: '2021', value: 3.10 },
-        { year: '2022', value: 4.31 }
-      ];
-
-      const { container } = render(
-        <MacroChart
-          mode="BAR"
-          data={sampleObservations}
-          unit="%"
-          title="Oman GDP Growth"
-        />
-      );
-
-      expect(screen.getByText('Oman GDP Growth')).toBeTruthy();
-      expect(screen.getByText(/2020 — 2022/)).toBeTruthy();
-
-      const svg = container.querySelector('svg');
-      expect(svg).toBeTruthy();
-
-      // Check bars
-      const bars = container.querySelectorAll('.macro-chart-bar');
-      expect(bars.length).toBe(3);
-
-      // Check screen reader table fallback
-      const table = container.querySelector('table.sr-only');
-      expect(table).toBeTruthy();
-      expect(table.textContent).toContain('2020');
-      expect(table.textContent).toContain('-5.77%');
-    });
-
-    it('renders daily FX line chart with polyline and trading date points', () => {
+  describe('FxLineChart Component', () => {
+    it('renders daily FX line chart with polyline, trading date points, and table fallback', () => {
       const sampleRates = [
         { date: '2026-11-17', rate: 218.10 },
         { date: '2026-11-18', rate: 218.25 },
@@ -140,15 +107,14 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
       ];
 
       const { container } = render(
-        <MacroChart
-          mode="LINE"
+        <FxLineChart
           data={sampleRates}
-          unit=""
+          unit="₹"
           title="OMR / INR Trajectory"
         />
       );
 
-      expect(screen.getByText('OMR / INR Trajectory')).toBeTruthy();
+      expect(screen.getAllByText('OMR / INR Trajectory').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText(/2026-11-17 — 2026-11-19/)).toBeTruthy();
 
       const linePath = container.querySelector('path');
@@ -156,58 +122,46 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
 
       const dots = container.querySelectorAll('.macro-chart-dot');
       expect(dots.length).toBe(3);
+
+      // Check screen reader table fallback
+      const table = container.querySelector('table.sr-only');
+      expect(table).toBeTruthy();
+      expect(table.textContent).toContain('2026-11-17');
+      expect(table.textContent).toContain('218.1');
     });
 
     it('renders empty fallback when data is missing or empty', () => {
-      render(<MacroChart mode="BAR" data={[]} title="Empty Test" />);
+      render(<FxLineChart data={[]} title="Empty Test" />);
       expect(screen.getByText(/No qualified historical observations available/)).toBeTruthy();
     });
   });
 
   describe('CurrencyMacroPanel Component', () => {
-    it('renders full currency desk, macro desk, CC BY-4.0 disclosures and official links', () => {
+    it('renders pure currency desk, official central-bank links, and zero World Bank references', () => {
       render(<CurrencyMacroPanel />);
 
-      expect(screen.getByText('Currency & Macro Indicators')).toBeTruthy();
-      expect(screen.getAllByText(/Creative Commons Attribution 4.0/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('Currency & FX Reference Desk')).toBeTruthy();
       expect(screen.getByText(/Central Bank of Oman \(CBO\)/)).toBeTruthy();
       expect(screen.getByText(/Reserve Bank of India \(RBI\)/)).toBeTruthy();
-      expect(screen.getByText(/World Bank Open Data/)).toBeTruthy();
+      expect(screen.getByText(/Frankfurter API Documentation/)).toBeTruthy();
+      expect(screen.queryByText(/World Bank/i)).toBeNull();
+      expect(screen.queryByText(/Creative Commons/i)).toBeNull();
     });
 
-    it('allows country switching between India and Oman for macro metrics', async () => {
-      const fetchMock = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => [
-          { page: 1, total: 2 },
-          [
-            { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'OMN', date: '2023', value: 1.30 },
-            { indicator: { id: 'FP.CPI.TOTL.ZG' }, countryiso3code: 'OMN', date: '2023', value: 0.90 }
-          ]
-        ]
-      });
-      vi.stubGlobal('fetch', fetchMock);
-
+    it('renders currency benchmark desk and verifies GDP surveys are removed', () => {
       render(<CurrencyMacroPanel />);
 
-      const omanBtn = screen.getByRole('button', { name: /Oman \(OMN\)/i });
-      fireEvent.click(omanBtn);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Oman: GDP Growth/)).toBeTruthy();
-      });
+      expect(screen.getByText('Currency & FX Reference Desk')).toBeTruthy();
+      expect(screen.getByText('Major Gulf & Global Currency Benchmarks')).toBeTruthy();
+      expect(screen.getAllByText('OMR / INR').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('USD / INR').length).toBeGreaterThanOrEqual(1);
+      // Verifies complete removal of GDP growth and macro indicators from trading view
+      expect(screen.queryByText(/GDP Growth/i)).toBeNull();
+      expect(screen.queryByText(/Consumer Inflation/i)).toBeNull();
     });
 
-    it('isolates World Bank failure from FX converter desk (MKT-032)', async () => {
+    it('operates FX converter desk and fetches reference rate reliably', async () => {
       const fetchMock = vi.fn().mockImplementation(async (url) => {
-        if (url.includes('api.worldbank.org')) {
-          return {
-            ok: false,
-            status: 403,
-            json: async () => ({ error: 'Forbidden' })
-          };
-        }
         if (url.includes('api.frankfurter.dev')) {
           return {
             ok: true,
@@ -226,17 +180,11 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
 
       render(<CurrencyMacroPanel />);
 
-      // FX Converter is fully rendered and operable
       const refreshBtn = screen.getByRole('button', { name: /Check Reference Rate|Refresh Rate/i });
       fireEvent.click(refreshBtn);
 
       await waitFor(() => {
         expect(screen.getByText(/1 OMR = 218.50 INR/)).toBeTruthy();
-      });
-
-      // Macro failure alert is confined to macro section without unmounting or crashing the panel
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeTruthy();
       });
     });
   });

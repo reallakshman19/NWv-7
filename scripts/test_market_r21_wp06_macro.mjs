@@ -13,12 +13,8 @@ import {
   FRESHNESS_WINDOW_MS,
   EXPIRY_WINDOW_MS
 } from '../src/market/features/macro/fxClient.js';
-import {
-  MacroClient,
-  WORLDBANK_SOURCE_ID,
-  WDI_INDICATORS,
-  SUPPORTED_MACRO_COUNTRIES
-} from '../src/market/features/macro/macroClient.js';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   macroStore,
   OMR_INR_STORAGE_KEY,
@@ -236,8 +232,8 @@ test('WP06-T07 complete source receipt construction: valid schema under validate
 test('WP06-T08 host allowlist verification', () => {
   assert.equal(isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, 'https://api.frankfurter.dev/v2/rate/omr/inr'), true);
   assert.equal(isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, 'https://evil.api.frankfurter.dev/v2/rate'), false);
-  assert.equal(isAllowedMarketSourceUrl(WORLDBANK_SOURCE_ID, 'https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.KD.ZG'), true);
-  assert.equal(isAllowedMarketSourceUrl(WORLDBANK_SOURCE_ID, 'https://malicious-worldbank.org/v2'), false);
+  assert.equal(isAllowedMarketSourceUrl('world-bank', 'https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.KD.ZG'), true);
+  assert.equal(isAllowedMarketSourceUrl('world-bank', 'https://malicious-worldbank.org/v2'), false);
 });
 
 // WP06-T09: Frankfurter v2 Flat Array Parsing & Validation
@@ -311,162 +307,61 @@ test('WP06-T11 conflicting historical rate rejection: throws when contradictory 
   );
 });
 
-// WP06-T12: MKT-023 World Bank Annual Granularity & CC BY-4.0 Metadata
-test('WP06-T12 MKT-023 World Bank annual granularity & CC BY-4.0 metadata', async () => {
-  const client = new MacroClient();
-  const mockFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, pages: 1, per_page: 50, total: 3, lastupdated: '2026-10-15' },
-        [
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG', value: 'GDP growth (annual %)' }, countryiso3code: 'IND', date: '2022', value: 7.24 },
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG', value: 'GDP growth (annual %)' }, countryiso3code: 'IND', date: '2023', value: 8.15 },
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG', value: 'GDP growth (annual %)' }, countryiso3code: 'IND', date: '2024', value: 7.00 }
-        ]
-      ]
-    }
-  });
-
-  const res = await client.fetchIndicator('IND', WDI_INDICATORS.GDP_GROWTH.id, {
-    fetchImpl: mockFetch
-  });
-
-  assert.equal(res.countryCode, 'IND');
-  assert.equal(res.indicatorId, 'NY.GDP.MKTP.KD.ZG');
-  assert.equal(res.frequency, 'Annual');
-  assert.equal(res.license, 'CC BY-4.0');
-  assert.equal(res.latestYear, '2024');
-  assert.equal(res.latestValue, 7.00);
-  assert.equal(res.observations.length, 3);
-  assert.equal(res.observations[0].year, '2022');
-  assert.equal(res.observations[2].year, '2024');
+// WP06-T12: MKT-023 World Bank Source Registry Rights Enforcement (NO_PUBLICATION)
+test('WP06-T12 MKT-023 World Bank source registry rights enforcement: NO_PUBLICATION policy', () => {
+  const sourceDef = getMarketSource('world-bank');
+  assert.ok(sourceDef != null);
+  assert.equal(sourceDef.publisher, 'World Bank');
+  assert.equal(sourceDef.rights, 'NO_PUBLICATION');
+  assert.equal(sourceDef.accessMode, 'LICENSED_OPEN_DATA');
 });
 
-// WP06-T13: World Bank Indicator Identity & Country Validation
-test('WP06-T13 World Bank indicator identity & country validation: rejects mismatched rows', async () => {
-  const client = new MacroClient();
-  const mockFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, total: 2 },
-        [
-          // Mismatched country USA instead of IND
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'USA', date: '2023', value: 2.5 },
-          // Correct country IND
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'IND', date: '2023', value: 7.5 }
-        ]
-      ]
-    }
-  });
-
-  const res = await client.fetchIndicator('IND', WDI_INDICATORS.GDP_GROWTH.id, {
-    fetchImpl: mockFetch
-  });
-
-  assert.equal(res.observations.length, 1);
-  assert.equal(res.observations[0].value, 7.5);
+// WP06-T13: Macro Client Decoupling & Dead Code Purge
+test('WP06-T13 Macro client decoupling: macroClient.js is purged from repository', () => {
+  const clientPath = path.resolve('src/market/features/macro/macroClient.js');
+  assert.equal(fs.existsSync(clientPath), false, 'macroClient.js must be deleted');
 });
 
-// WP06-T14: Negative and Zero Macro Metric Handling
-test('WP06-T14 negative and zero macro metric handling: preserves contraction and deflation', async () => {
-  const client = new MacroClient();
-  const mockFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, total: 3 },
-        [
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'OMN', date: '2020', value: -5.77 }, // Contraction
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'OMN', date: '2021', value: 0.00 },  // Zero growth
-          { indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'OMN', date: '2022', value: 4.31 }
-        ]
-      ]
-    }
-  });
-
-  const res = await client.fetchIndicator('OMN', WDI_INDICATORS.GDP_GROWTH.id, {
-    fetchImpl: mockFetch
-  });
-
-  assert.equal(res.observations.length, 3);
-  assert.equal(res.observations[0].value, -5.77);
-  assert.equal(res.observations[1].value, 0.00);
-  assert.equal(res.observations[2].value, 4.31);
-});
-
-// WP06-T15: Independent Observation-Year Decoupling
-test('WP06-T15 independent observation-year decoupling: India and Oman retain distinct observation years', async () => {
-  const client = new MacroClient();
-
-  // India has 2024 published
-  const mockIndFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, total: 1 },
-        [{ indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'IND', date: '2024', value: 7.00 }]
-      ]
-    }
-  });
-
-  // Oman latest is 2023
-  const mockOmnFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, total: 1 },
-        [{ indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'OMN', date: '2023', value: 1.30 }]
-      ]
-    }
-  });
-
-  const indRes = await client.fetchIndicator('IND', WDI_INDICATORS.GDP_GROWTH.id, { fetchImpl: mockIndFetch });
-  const omnRes = await client.fetchIndicator('OMN', WDI_INDICATORS.GDP_GROWTH.id, { fetchImpl: mockOmnFetch });
-
-  assert.equal(indRes.latestYear, '2024');
-  assert.equal(omnRes.latestYear, '2023');
-  assert.notEqual(indRes.latestYear, omnRes.latestYear);
-});
-
-// WP06-T16: World Bank Rights Policy Compliance
-test('WP06-T16 World Bank rights policy compliance under frozen contract', async () => {
-  const client = new MacroClient();
-  const sourceDef = getMarketSource(WORLDBANK_SOURCE_ID);
-
-  const mockFetch = createMockFetch({
-    'api.worldbank.org': {
-      body: [
-        { page: 1, total: 1 },
-        [{ indicator: { id: 'NY.GDP.MKTP.KD.ZG' }, countryiso3code: 'IND', date: '2023', value: 7.24 }]
-      ]
-    }
-  });
-
-  const res = await client.fetchIndicator('IND', WDI_INDICATORS.GDP_GROWTH.id, { fetchImpl: mockFetch });
-
-  if (sourceDef?.rights === 'NO_PUBLICATION') {
-    assert.equal(res.receipt?.rights, 'NO_PUBLICATION');
-    assert.equal(res.receipt?.state, 'NO_RIGHTS');
-    assert.equal(res.receipt?.reasonCode, 'LICENSE_AMENDMENT_PENDING_WP10');
-  } else {
-    assert.equal(res.receipt?.rights, 'OPEN_LICENSE_CONFIRMED');
-    assert.equal(res.receipt?.state, 'READY');
+// WP06-T14: Zero-GDP Indicator Verification in Macro Workspace
+test('WP06-T14 Zero-GDP verification: feature directory contains zero references to GDP indicators', () => {
+  const macroDir = path.resolve('src/market/features/macro');
+  const files = fs.readdirSync(macroDir).filter(f => f.endsWith('.js') || f.endsWith('.jsx'));
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(macroDir, file), 'utf-8');
+    assert.equal(
+      /NY\.GDP\.MKTP/i.test(content),
+      false,
+      `File ${file} must not reference World Bank GDP indicator NY.GDP.MKTP`
+    );
   }
 });
 
-// WP06-T17: MKT-032 Macro Failure Isolation
-test('WP06-T17 MKT-032 macro failure isolation: HTTP 403 on World Bank throws isolated error without breaking caller', async () => {
-  const client = new MacroClient();
-  const mockFetch = createMockFetch({
-    'api.worldbank.org': {
-      status: 403,
-      body: { error: 'Forbidden' }
-    }
-  });
+// WP06-T15: Pure Currency Desk Isolation in macroStore
+test('WP06-T15 Pure currency desk isolation: macroStore manages only FX benchmarks without World Bank bindings', () => {
+  assert.equal('ratesByPair' in macroStore.state, true);
+  assert.equal('historyByPair' in macroStore.state, true);
+  assert.equal('macroByKey' in macroStore.state, false, 'macroByKey must be purged from store');
+  assert.equal(typeof macroStore.fetchRate, 'function');
+  assert.equal(typeof macroStore.fetchRateHistory, 'function');
+  assert.equal(typeof macroStore.fetchMacroIndicator, 'undefined', 'fetchMacroIndicator must be purged');
+});
 
-  await assert.rejects(
-    async () => {
-      await client.fetchIndicator('IND', WDI_INDICATORS.GDP_GROWTH.id, { fetchImpl: mockFetch });
-    },
-    (err) => err.status === 403
-  );
+// WP06-T16: FxLineChart Contract & Rendering Verification
+test('WP06-T16 FxLineChart contract: pure daily line chart visualizer', () => {
+  const chartPath = path.resolve('src/market/features/macro/FxLineChart.jsx');
+  assert.equal(fs.existsSync(chartPath), true, 'FxLineChart.jsx must exist');
+  const chartContent = fs.readFileSync(chartPath, 'utf-8');
+  assert.ok(chartContent.includes('export function FxLineChart'));
+  assert.equal(chartContent.includes('mode === \'BAR\''), false, 'FxLineChart must not contain GDP bar chart mode');
+});
+
+// WP06-T17: Currency Desk Independence from World Bank
+test('WP06-T17 Currency desk independence: operates exclusively on central-bank exchange references', () => {
+  const panelPath = path.resolve('src/market/features/macro/CurrencyMacroPanel.jsx');
+  const panelContent = fs.readFileSync(panelPath, 'utf-8');
+  assert.equal(panelContent.includes('data.worldbank.org'), false, 'World Bank link must be removed from Currency Desk');
+  assert.ok(panelContent.includes('Frankfurter API Documentation'));
+  assert.ok(panelContent.includes('Central Bank of Oman (CBO)'));
 });
 
 // WP06-T18: MKT-032 FX Failure Isolation

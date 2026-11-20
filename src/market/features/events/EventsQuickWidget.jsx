@@ -78,7 +78,7 @@ export function EventsQuickWidget({ onOpenEventsDesk = null, now = null }) {
                   rel="noopener noreferrer"
                   className="portal-ext-link"
                 >
-                  {s.title} &nearr;
+                  {s.title} ↗
                 </a>
               ))}
             </div>
@@ -93,7 +93,7 @@ export function EventsQuickWidget({ onOpenEventsDesk = null, now = null }) {
                 rel="noopener noreferrer"
                 className="portal-ext-link"
               >
-                View official AMFI NFO announcements &nearr;
+                View official AMFI NFO announcements ↗
               </a>
             </div>
           </div>
@@ -110,7 +110,7 @@ export function EventsQuickWidget({ onOpenEventsDesk = null, now = null }) {
           className="portfolio-btn portfolio-btn-outline"
           onClick={() => onOpenEventsDesk && onOpenEventsDesk('ipo-events')}
         >
-          Open IPO &amp; Events Desk &rarr;
+          Open IPO &amp; Events Desk →
         </button>
       </div>
     </div>

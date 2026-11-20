@@ -178,7 +178,7 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     fireEvent.click(within(desktopTablist).getByRole('tab', { name: 'Currency & macro' }));
 
     expect(window.location.hash).toBe('#/markets?view=currency-macro');
-    expect(screen.getByText('Currency & Macro Indicators')).toBeTruthy();
+    expect(screen.getByText(/Currency & FX Reference Desk|Currency & Macro Indicators/)).toBeTruthy();
   });
 
   it('WP10-T10: navigates to Investment Lab workspace', () => {

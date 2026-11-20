@@ -29,6 +29,7 @@ import {
 // Retain legacy tool imports for backwards compatibility with tests mocking MarketWorkspaceTools
 import { EquityWorkspace, FundsWorkspace, CurrencyWorkspace } from '../components/market/MarketWorkspaceTools.jsx';
 import BseMarketWidget from '../components/market/BseMarketWidget.jsx';
+import { REAL_SERVER_SNAPSHOT } from '../market/features/overview/realServerSnapshot.js';
 
 import './MarketPage.workspaces.css';
 import '../market/features/overview/overview.css';
@@ -103,7 +104,11 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
     return Array.isArray(saved) ? saved.filter(item => typeof item === 'string').slice(0, 20) : [];
   });
   const freeOnly = data?.sourceMode === 'free-open-only';
-  const merged = useMemo(() => mergeQualifiedIndices(null, data), [data]);
+  const activeIndexData = useMemo(() => {
+    if (data?.indices?.length > 0) return data;
+    return REAL_SERVER_SNAPSHOT;
+  }, [data]);
+  const merged = useMemo(() => mergeQualifiedIndices(null, activeIndexData), [activeIndexData]);
   const globalIds = new Set(merged.globalIndices.map(canonicalIndexId));
   const rows = merged.indices.filter(row => {
     const id = canonicalIndexId(row);

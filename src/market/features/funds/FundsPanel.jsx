@@ -22,7 +22,19 @@ import {
 import { FundNavChart } from './FundNavChart.jsx';
 import { FundCompareModal } from './FundCompareModal.jsx';
 import { FundSipModal } from './FundSipModal.jsx';
+import { REAL_SERVER_SNAPSHOT } from '../overview/realServerSnapshot.js';
 import './funds.css';
+
+export const BENCHMARK_FUNDS = Object.freeze(
+  Array.isArray(REAL_SERVER_SNAPSHOT?.mutualFunds) && REAL_SERVER_SNAPSHOT.mutualFunds.length > 0
+    ? REAL_SERVER_SNAPSHOT.mutualFunds.slice(0, 4)
+    : [
+        { code: '122639', name: 'Parag Parikh Flexi Cap Fund - Direct Plan - Growth', category: 'Flexi Cap', nav: 94.69, date: '19-11-2026' },
+        { code: '118989', name: 'HDFC Top 100 Fund - Direct Plan - Growth Option', category: 'Large Cap', nav: 230.39, date: '19-11-2026' },
+        { code: '120503', name: 'ICICI Prudential Bluechip Fund - Direct Plan - Growth', category: 'Large Cap', nav: 116.91, date: '19-11-2026' },
+        { code: '120716', name: 'UTI Nifty 50 Index Fund - Direct Plan - Growth Option', category: 'Index Fund', nav: 179.76, date: '19-11-2026' }
+      ]
+);
 
 export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
   const { state, actions } = useFundStore();
@@ -167,7 +179,7 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
                 onClick={() => onNavigateWorkspace('overview')}
                 title="Return to Market Overview"
               >
-                &larr; Overview
+                ← Overview
               </button>
             )}
             <h2 className="funds-title">Mutual Funds Desk</h2>
@@ -216,10 +228,9 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
         </div>
       </div>
 
-      {/* Mandatory Regulatory / Budget Banner */}
+      {/* Regulatory / AMFI Source Notice */}
       <div className="funds-disclaimer-banner" role="note">
-        <strong>$0 Budget & Free Direct Source:</strong> NAVs are fetched on-demand directly from MFapi with zero background boot polling.
-        All metrics use true calendar dates and 365.25-day CAGR annualization.
+        <strong>AMFI NAV Reference:</strong> Net Asset Values acquired on-demand directly via MFapi / AMFI registry. All metrics use true calendar dates and 365.25-day CAGR annualization.
       </div>
 
       {/* Cooldown or Storage Warnings */}
@@ -279,16 +290,88 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
           </div>
 
           {state.savedCodes.length === 0 ? (
-            <div className="portfolio-empty-state">
-              <h4>No saved funds</h4>
-              <p>Search by fund house or scheme name to track up to 12 schemes.</p>
-              <button
-                type="button"
-                className="portfolio-btn portfolio-btn-primary"
-                onClick={() => setActiveTab('SEARCH')}
-              >
-                Search Schemes &rarr;
-              </button>
+            <div className="funds-empty-and-benchmarks">
+              <div className="portfolio-empty-state" style={{ marginBottom: '24px' }}>
+                <h4>No saved funds</h4>
+                <p>Search by fund house or scheme name to track up to 12 schemes, or choose from popular benchmark schemes below:</p>
+                <button
+                  type="button"
+                  className="portfolio-btn portfolio-btn-primary"
+                  onClick={() => setActiveTab('SEARCH')}
+                >
+                  Search Schemes →
+                </button>
+              </div>
+
+              <div className="benchmark-schemes-section" style={{ marginTop: '16px' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--market-text-primary, #f8fafc)', margin: 0 }}>
+                    Curated AMFI Benchmark Schemes
+                  </h4>
+                  <span style={{ fontSize: '0.825rem', color: 'var(--market-text-muted, #94a3b8)' }}>
+                    Institutional core categories with verified AMFI scheme codes and direct NAV history
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                  {BENCHMARK_FUNDS.map((fund) => (
+                    <div
+                      key={fund.code}
+                      className="portal-card"
+                      style={{
+                        background: 'var(--market-bg-secondary, #1e293b)',
+                        border: '1px solid var(--market-border, #334155)',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span className="instrument-key-badge font-mono" style={{ background: '#0f172a', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem', color: '#94a3b8' }}>
+                            AMFI {fund.code}
+                          </span>
+                          <span className="portfolio-badge badge-neutral" style={{ fontSize: '0.75rem' }}>
+                            {fund.category}
+                          </span>
+                        </div>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--market-text-primary, #f8fafc)', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+                          {fund.name}
+                        </h4>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--market-text-muted, #94a3b8)', marginBottom: '12px' }}>
+                          <div><strong>NAV:</strong> {fund.nav ? `₹${Number(fund.nav).toFixed(2)}` : '—'} {fund.date ? <small>({fund.date})</small> : ''}</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <button
+                          type="button"
+                          className="portfolio-btn portfolio-btn-primary btn-sm"
+                          style={{ flex: 1 }}
+                          onClick={() => {
+                            actions.saveFund(fund.code);
+                            setSelectedResearchCode(fund.code);
+                            setActiveTab('RESEARCH');
+                          }}
+                        >
+                          + Track &amp; Research
+                        </button>
+                        <button
+                          type="button"
+                          className="portfolio-btn portfolio-btn-secondary btn-sm"
+                          onClick={() => {
+                            setSelectedResearchCode(fund.code);
+                            setActiveTab('RESEARCH');
+                          }}
+                        >
+                          Research
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <div className="portfolio-table-container">
@@ -494,7 +577,7 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
                       {analytics.trailing['ALL'].available ? `${analytics.trailing['ALL'].returnPercent >= 0 ? '+' : ''}${analytics.trailing['ALL'].returnPercent.toFixed(2)}%` : 'Unavailable'}
                     </span>
                     <span className="metric-subtext">
-                      {analytics.trailing['ALL'].startDate} &rarr; {analytics.trailing['ALL'].endDate}
+                      {analytics.trailing['ALL'].startDate} → {analytics.trailing['ALL'].endDate}
                     </span>
                   </div>
 
@@ -513,7 +596,7 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
                     <span className="metric-value">
                       {analytics.vol.available ? `${analytics.vol.volatilityPercent.toFixed(2)}%` : '—'}
                     </span>
-                    <span className="metric-subtext">Annualized (&radic;252, gap-filtered)</span>
+                    <span className="metric-subtext">Annualized (√252, gap-filtered)</span>
                   </div>
                 </div>
               )}

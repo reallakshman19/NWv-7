@@ -175,7 +175,7 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
           className="portfolio-btn portfolio-btn-outline"
           onClick={() => onOpenMacroDesk && onOpenMacroDesk('currency-macro')}
         >
-          Open Currency &amp; Macro Desk &rarr;
+          Open Currency &amp; Macro Desk →
         </button>
       </div>
     </div>

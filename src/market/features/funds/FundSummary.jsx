@@ -7,6 +7,7 @@
 
 import React, { useMemo } from 'react';
 import { useFundStore } from './fundStore.js';
+import { REAL_SERVER_SNAPSHOT } from '../overview/realServerSnapshot.js';
 
 export function FundSummary({ onOpenFunds = null }) {
   const { state } = useFundStore();
@@ -38,6 +39,10 @@ export function FundSummary({ onOpenFunds = null }) {
     return { bestFund, checkedCount };
   }, [state.savedCodes, state.navByCode, state.historyCache, savedCount]);
 
+  const topBenchmark = Array.isArray(REAL_SERVER_SNAPSHOT?.mutualFunds) && REAL_SERVER_SNAPSHOT.mutualFunds.length > 0
+    ? REAL_SERVER_SNAPSHOT.mutualFunds[0]
+    : null;
+
   return (
     <div className="fund-summary-card">
       <div className="fund-summary-header">
@@ -58,9 +63,25 @@ export function FundSummary({ onOpenFunds = null }) {
 
       <div className="fund-summary-content">
         {savedCount === 0 ? (
-          <p className="fund-summary-empty-text">
-            Search and track up to 12 Indian mutual fund schemes with direct-source NAV analytics.
-          </p>
+          <div>
+            <p className="fund-summary-empty-text">
+              Search and track up to 12 Indian mutual fund schemes with direct-source NAV analytics.
+            </p>
+            {topBenchmark && (
+              <div style={{ marginTop: '8px', padding: '8px 10px', background: '#0f172a', border: '1px solid #334155', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Popular Benchmark:</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#34d399' }}>AMFI {topBenchmark.code}</span>
+                </div>
+                <div style={{ fontSize: '0.825rem', fontWeight: 600, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {topBenchmark.name}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '2px' }}>
+                  NAV: ₹{Number(topBenchmark.nav).toFixed(2)} {topBenchmark.date ? <span style={{ color: '#64748b' }}>({topBenchmark.date})</span> : ''}
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="fund-summary-metrics">
             <div className="fund-summary-metric-col">
@@ -88,7 +109,7 @@ export function FundSummary({ onOpenFunds = null }) {
           className="portfolio-btn portfolio-btn-outline"
           onClick={() => onOpenFunds && onOpenFunds()}
         >
-          Open Funds Desk &rarr;
+          Open Funds Desk →
         </button>
       </div>
     </div>
