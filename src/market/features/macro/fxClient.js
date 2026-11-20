@@ -1,0 +1,204 @@
+/**
+ * NWv7 Market Desk R2.1 - WP-06 Frankfurter v2 Transport Client
+ * Handles on-demand reference rates, historical series acquisition,
+ * two-tier freshness enforcement (36h/72h), and immutable source receipts.
+ */
+
+import { isAllowedMarketSourceUrl } from '../../contracts/index.js';
+import { createSourceReceipt } from '../../contracts/sourceReceipt.js';
+
+export const FRANKFURTER_SOURCE_ID = 'frankfurter';
+export const FRESHNESS_WINDOW_MS = 36 * 3600000;   // 36 hours: normal dated reference
+export const EXPIRY_WINDOW_MS = 72 * 3600000;      // 72 hours (3 calendar days): conversion expiry limit
+
+export class FxClient {
+  /**
+   * Fetches latest benchmark exchange rate for a currency pair from Frankfurter v2.
+   *
+   * @param {string} base e.g. 'OMR' or 'USD'
+   * @param {string} quote e.g. 'INR'
+   * @param {{ signal?: AbortSignal, fetchImpl?: typeof fetch, now?: number }} options
+   * @returns {Promise<object>}
+   */
+  async fetchLatestRate(base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch, now = Date.now() } = {}) {
+    const canonicalBase = String(base).trim().toUpperCase();
+    const canonicalQuote = String(quote).trim().toUpperCase();
+
+    const requestStartedMs = now;
+    const requestStartedIso = new Date(requestStartedMs).toISOString();
+
+    const url = `https://api.frankfurter.dev/v2/rate/${canonicalBase.toLowerCase()}/${canonicalQuote.toLowerCase()}`;
+    if (!isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, url)) {
+      throw new Error(`Disallowed source URL host for Frankfurter: ${url}`);
+    }
+
+    const res = await fetchImpl(url, { signal });
+    const transportStatus = res.status;
+
+    if (!res.ok) {
+      const err = new Error(`Frankfurter rate transport failed with HTTP ${transportStatus}`);
+      err.status = transportStatus;
+      throw err;
+    }
+
+    const payload = await res.json();
+
+    // Verify payload schema
+    const rate = Number(payload?.rate);
+    const date = payload?.date;
+    const returnedBase = String(payload?.base || '').toUpperCase();
+    const returnedQuote = String(payload?.quote || '').toUpperCase();
+
+    if (returnedBase !== canonicalBase || returnedQuote !== canonicalQuote) {
+      throw new Error(`Currency pair mismatch: requested ${canonicalBase}/${canonicalQuote} but received ${returnedBase}/${returnedQuote}`);
+    }
+
+    if (!Number.isFinite(rate) || rate <= 0) {
+      throw new Error(`Invalid non-positive exchange rate returned for ${canonicalBase}/${canonicalQuote}`);
+    }
+
+    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error(`Invalid provider date format: ${date}`);
+    }
+
+    const asOf = Date.parse(date + 'T00:00:00Z');
+    if (!Number.isFinite(asOf) || new Date(asOf).toISOString().slice(0, 10) !== date) {
+      throw new Error(`Malformed observation date: ${date}`);
+    }
+
+    // Reject future clock (with 300s leeway for clock drift)
+    if (asOf > now + 300000) {
+      throw new Error(`Provider clock is in the future: ${date}`);
+    }
+
+    const ageMs = now - asOf;
+    let freshness;
+    let stale;
+    let isHistorical;
+    let warning = null;
+    let receiptState;
+
+    if (ageMs <= FRESHNESS_WINDOW_MS) {
+      freshness = 'FRESH';
+      stale = false;
+      isHistorical = false;
+      receiptState = 'READY';
+    } else if (ageMs <= EXPIRY_WINDOW_MS) {
+      freshness = 'DATED_WARNING';
+      stale = true;
+      isHistorical = false;
+      warning = 'Dated reference rate (over 36 hours old)';
+      receiptState = 'READY';
+    } else {
+      freshness = 'EXPIRED';
+      stale = true;
+      isHistorical = true;
+      warning = 'Reference rate expired for current-day conversion (over 72 hours old)';
+      receiptState = 'HISTORICAL';
+    }
+
+    const checkedAtIso = new Date().toISOString();
+
+    const receiptResult = createSourceReceipt({
+      sourceId: FRANKFURTER_SOURCE_ID,
+      publisher: 'Frankfurter',
+      accessMode: 'DIRECT_ON_DEMAND',
+      rights: 'BROWSER_DIRECT_CONDITIONAL',
+      state: receiptState,
+      validity: 'VALID',
+      providerClockGranularity: 'day',
+      providerAsOf: date,
+      requestedAt: requestStartedIso,
+      checkedAt: checkedAtIso,
+      originalUrl: url,
+      transportStatus: 200,
+      dataVersion: 'frankfurter-v2'
+    });
+
+    return {
+      base: canonicalBase,
+      quote: canonicalQuote,
+      rate,
+      date,
+      asOf,
+      freshness,
+      stale,
+      isHistorical,
+      warning,
+      receipt: receiptResult.ok ? receiptResult.receipt : null,
+      checkedAt: requestStartedMs,
+      payload: {
+        date,
+        base: canonicalBase,
+        quote: canonicalQuote,
+        rate
+      }
+    };
+  }
+
+  /**
+   * Fetches historical exchange rate time series from Frankfurter v2.
+   * Expects a flat array of `{ date, base, quote, rate }` objects.
+   *
+   * @param {string} startDate YYYY-MM-DD
+   * @param {string} endDate YYYY-MM-DD
+   * @param {string} base e.g. 'OMR' or 'USD'
+   * @param {string} quote e.g. 'INR'
+   * @param {{ signal?: AbortSignal, fetchImpl?: typeof fetch, now?: number }} options
+   * @returns {Promise<Array<{ date: string, rate: number }>>}
+   */
+  async fetchRateHistory(startDate, endDate, base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch } = {}) {
+    const canonicalBase = String(base).trim().toUpperCase();
+    const canonicalQuote = String(quote).trim().toUpperCase();
+
+    const url = `https://api.frankfurter.dev/v2/rates?from=${startDate}&to=${endDate}&base=${canonicalBase.toLowerCase()}&quotes=${canonicalQuote.toLowerCase()}`;
+    if (!isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, url)) {
+      throw new Error(`Disallowed source URL host for Frankfurter: ${url}`);
+    }
+
+    const res = await fetchImpl(url, { signal });
+    if (!res.ok) {
+      throw new Error(`Frankfurter history transport failed with HTTP ${res.status}`);
+    }
+
+    const raw = await res.json();
+    if (!Array.isArray(raw)) {
+      throw new Error('Frankfurter v2 historical response is not a valid array');
+    }
+
+    const validByDate = new Map();
+
+    for (const row of raw) {
+      if (!row || typeof row !== 'object') continue;
+      const d = String(row.date || '').trim();
+      const r = Number(row.rate);
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+      if (!Number.isFinite(r) || r <= 0) continue;
+
+      // Deduplicate identical dates, reject conflicting duplicates
+      if (validByDate.has(d)) {
+        const existingRate = validByDate.get(d);
+        if (Math.abs(existingRate - r) > 0.0001) {
+          throw new Error(`Conflicting rates returned for date ${d}: ${existingRate} vs ${r}`);
+        }
+        continue;
+      }
+
+      validByDate.set(d, r);
+    }
+
+    if (validByDate.size === 0) {
+      throw new Error(`No valid historical rates returned for interval ${startDate} to ${endDate}`);
+    }
+
+    // Sort chronologically date ASC
+    const sorted = Array.from(validByDate.entries())
+      .map(([date, rate]) => ({ date, rate }))
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+    return sorted;
+  }
+}
+
+export const fxClient = new FxClient();

@@ -1,15 +1,17 @@
-export const MARKET_WORKSPACE_IDS = Object.freeze(['indices', 'equity', 'funds', 'currency']);
+import {
+  R21_MARKET_WORKSPACE_IDS,
+  R21_DEFAULT_WORKSPACE,
+  getR21MarketViewFromHash,
+  withR21MarketViewHash
+} from '../market/contracts/index.js';
+
+export const LEGACY_MARKET_WORKSPACE_IDS = Object.freeze(['indices', 'equity', 'funds', 'currency']);
+export const MARKET_WORKSPACE_IDS = R21_MARKET_WORKSPACE_IDS;
 
 export function getMarketWorkspaceFromHash(hash = '') {
-  const query = String(hash).split('?')[1]?.split('#')[0] || '';
-  const candidate = new URLSearchParams(query).get('view');
-  return MARKET_WORKSPACE_IDS.includes(candidate) ? candidate : 'indices';
+  return getR21MarketViewFromHash(hash);
 }
 
-export function withMarketWorkspaceHash(hash = '#/markets', view = 'indices') {
-  if (!MARKET_WORKSPACE_IDS.includes(view)) return hash;
-  const [route, rawQuery = ''] = String(hash).split('?');
-  const params = new URLSearchParams(rawQuery);
-  params.set('view', view);
-  return `${route || '#/markets'}?${params.toString()}`;
+export function withMarketWorkspaceHash(hash = '#/markets', view = R21_DEFAULT_WORKSPACE) {
+  return withR21MarketViewHash(hash, view);
 }

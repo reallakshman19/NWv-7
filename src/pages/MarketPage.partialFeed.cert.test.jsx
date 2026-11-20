@@ -23,15 +23,21 @@ function setMarket({ indices = [india], globalIndices = [global], sectorals = []
   useMarketPageViewModel.mockReturnValue({marketData, rawMarketData: marketData, marketSettings, sourceHealth:marketData.sourceHealth, sessionState:{label:'After hours'},loading, error:null,refreshMarket});
   return refreshMarket;
 }
-beforeEach(() => { window.location.hash = '#/markets'; window.localStorage.clear(); });
+beforeEach(() => { window.location.hash = '#/markets?view=indices'; window.localStorage.clear(); });
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
-describe('Market four-workspace shell', () => {
+describe('Market four-workspace shell and R2.1 routing transition', () => {
+  it('defaults to Overview workspace on root #/markets hash', () => {
+    window.location.hash = '#/markets';
+    setMarket(); render(<MarketPage />);
+    expect(screen.getByText('India Market Pulse')).toBeTruthy();
+  });
+
   it('renders only the active workspace, and changes URL for Back/reload', () => {
     setMarket(); render(<MarketPage />);
     expect(screen.getByRole('heading',{name:'Indices'})).toBeTruthy();
     expect(screen.queryByText('Funds ready without India quotes')).toBeNull();
-    fireEvent.click(screen.getByRole('button',{name:'Funds'}));
+    fireEvent.click(screen.getByRole('tab',{name:'Mutual funds'}));
     expect(window.location.hash).toBe('#/markets?view=funds');
     expect(screen.getByText('Funds ready without India quotes')).toBeTruthy();
     window.location.hash = '#/markets?view=currency';
@@ -52,7 +58,8 @@ describe('Market four-workspace shell', () => {
   it('deduplicates the same BANK NIFTY in indices and sectorals', () => {
     const bank={name:'BANK NIFTY',symbol:'^NSEBANK',value:'52000',quoteAt,change:'0'};
     setMarket({indices:[india,bank],sectorals:[bank]}); render(<MarketPage />);
-    expect(screen.getAllByText('BANK NIFTY')).toHaveLength(1);
+    const list = document.querySelector('ul.market-workspace__list');
+    expect(within(list).getAllByText('BANK NIFTY')).toHaveLength(1);
     expect(screen.getByText(/1 up · 0 down · 1 flat/)).toBeTruthy();
   });
 
@@ -67,9 +74,9 @@ describe('Market four-workspace shell', () => {
   it('shows the shell during Market boot and Funds/Currency remain usable', () => {
     setMarket({indices:[],globalIndices:[],loading:true}); render(<MarketPage />);
     expect(screen.getByRole('heading',{name:'Markets'})).toBeTruthy();
-    fireEvent.click(screen.getByRole('button',{name:'Funds'}));
+    fireEvent.click(screen.getByRole('tab',{name:'Mutual funds'}));
     expect(screen.getByText('Funds ready without India quotes')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button',{name:'Currency'}));
+    fireEvent.click(screen.getByRole('tab',{name:'Currency & macro'}));
     expect(screen.getByText('Currency ready without India quotes')).toBeTruthy();
   });
 
@@ -89,6 +96,6 @@ describe('Market four-workspace shell', () => {
     expect(refreshButton.disabled).toBe(true);
     fireEvent.click(refreshButton);
     expect(refresh).not.toHaveBeenCalled();
-    expect(screen.getByRole('button',{name:'Currency'}).disabled).toBe(false);
+    expect(screen.getByRole('tab',{name:'Currency & macro'}).disabled).toBeFalsy();
   });
 });

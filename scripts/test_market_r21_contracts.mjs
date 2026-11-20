@@ -10,7 +10,7 @@ import {
   normalizeR21MarketView,getR21MarketViewFromHash,withR21MarketViewHash,
   MARKET_SOURCES,MARKET_SOURCE_HOSTS,getMarketSource,mayPerformSourceAction,isAllowedMarketSourceUrl
 } from '../src/market/contracts/index.js';
-import {MARKET_WORKSPACE_IDS,getMarketWorkspaceFromHash} from '../src/services/marketWorkspaceRoute.js';
+import {MARKET_WORKSPACE_IDS,LEGACY_MARKET_WORKSPACE_IDS,getMarketWorkspaceFromHash} from '../src/services/marketWorkspaceRoute.js';
 import {MARKET_FREE_OPEN_ONLY} from '../src/services/marketFreeOpenPolicy.js';
 
 const base = Object.freeze({
@@ -41,9 +41,10 @@ test('WP00-002 legacy /markets and /market hash routes and unrelated query retai
   assert.equal(withR21MarketViewHash('#/market?region=IN','lab'),'#/market?region=IN&view=lab');
   assert.equal(getR21MarketViewFromHash(withR21MarketViewHash('#/markets','health')),'health');
 });
-test('WP00-003 existing page route not activated prematurely (no blank Overview)',()=>{
-  assert.deepEqual(MARKET_WORKSPACE_IDS,['indices','equity','funds','currency']);
-  assert.equal(getMarketWorkspaceFromHash('#/markets'),'indices');
+test('WP00-003 R2.1 market page route activated (supersedes legacy premature guard)',()=>{
+  assert.deepEqual(MARKET_WORKSPACE_IDS, R21_MARKET_WORKSPACE_IDS);
+  assert.equal(getMarketWorkspaceFromHash('#/markets'), 'overview');
+  assert.deepEqual(LEGACY_MARKET_WORKSPACE_IDS, ['indices', 'equity', 'funds', 'currency']);
 });
 test('WP00-004 no bridge changes public market quote rights',()=>{
   assert.equal(MARKET_FREE_OPEN_ONLY,true);
