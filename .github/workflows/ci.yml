@@ -26,6 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       - name: Block rejected patch artifacts
         shell: bash
@@ -53,6 +54,12 @@ jobs:
           set -o pipefail
           mkdir -p reports
           npm run test:certify:smoke 2>&1 | tee reports/ci_validation.log
+
+      - name: Market R2.1 domain and integration certification
+        shell: bash
+        run: |
+          set -o pipefail
+          node --test scripts/test_market_r21_contracts.mjs scripts/test_market_r21_wp*.mjs
 
       - name: Validate PR evidence contract
         if: github.event_name == 'pull_request'
