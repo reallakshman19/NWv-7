@@ -80,6 +80,7 @@ export function validateSourceReceipt(input) {
   if (dataState && (input.providerAsOf == null || input.validity !== 'VALID')) errors.push('UNQUALIFIED_OBSERVATION');
   if (dataState && ['PROVIDER_EMBED','OFFICIAL_LINK','UNAUTHORIZED_PUBLICATION'].includes(input.accessMode)) errors.push('NOT_NATIVE_OBSERVATION');
   if (dataState && ['DISPLAY_PROVIDER_ONLY','LINK_ONLY','NO_PUBLICATION'].includes(input.rights)) errors.push('RIGHTS_DO_NOT_ALLOW_NATIVE_RESULT');
+  if (input.state === 'NO_RESULTS' && !['DIRECT_ON_DEMAND','LICENSED_OPEN_DATA'].includes(input.accessMode)) errors.push('NO_RESULTS_REQUIRES_DIRECT_SOURCE');
   if (input.state === 'NO_RESULTS' && (input.validity !== 'VALID' || input.checkedAt == null || input.transportStatus == null ||
       input.transportStatus < 200 || input.transportStatus >= 300)) errors.push('EMPTY_RESULT_UNVERIFIED');
   if (input.state === 'NO_RIGHTS' && input.rights !== 'NO_PUBLICATION') errors.push('NO_RIGHTS_MISMATCH');
