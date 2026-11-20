@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MarketNav } from './MarketNav.jsx';
 import { MarketSessionHeader } from './MarketSessionHeader.jsx';
 import { OverviewSlotErrorBoundary } from './OverviewSlotErrorBoundary.jsx';
@@ -7,7 +7,6 @@ import { OPEN_SOURCE_REFERENCE_LINKS } from '../../../services/marketFreeOpenPol
 import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS } from '../../contracts/index.js';
 import { useWatchlist } from '../equity/index.js';
-import { REAL_SERVER_SNAPSHOT } from './realServerSnapshot.js';
 import './overview.css';
 import './print.css';
 
@@ -64,42 +63,9 @@ export function Overview({
   const [omrInput, setOmrInput] = useState('100');
   const [fundQuery, setFundQuery] = useState('');
   const [healthExpanded, setHealthExpanded] = useState(false);
-  const [snapshotData, setSnapshotData] = useState(null);
-  const [isStale, setIsStale] = useState(false);
-  const [isBroken, setIsBroken] = useState(false);
-  const [fetchError, setFetchError] = useState(null);
-
-  // Fetch real snapshot from data/market_snapshot.json if data has no quotes
-  useEffect(() => {
-    let mounted = true;
-    async function loadSnapshot() {
-      if (data?.indices?.length > 0) return;
-      try {
-        const res = await fetch('data/market_snapshot.json');
-        if (res.ok) {
-          const json = await res.json();
-          if (mounted && json && Array.isArray(json.indices) && json.indices.length > 0) {
-            setSnapshotData(json);
-            const genTime = json.generatedAt ? Date.parse(json.generatedAt) : null;
-            if (genTime && (Date.now() - genTime > 24 * 60 * 60 * 1000)) {
-              setIsStale(true);
-            }
-          }
-        }
-      } catch (err) {
-        if (mounted) {
-          setFetchError(err.message);
-        }
-      }
-    }
-    loadSnapshot();
-    return () => { mounted = false; };
-  }, [data]);
-
-  const isExplicitQuoteFreeTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test' && data?.sourceMode === 'free-open-only' && !data?.fetchedAt && !data?.indices?.length;
-  const activeData = (data?.indices?.length > 0)
-    ? data
-    : (isExplicitQuoteFreeTest ? data : (snapshotData?.indices?.length > 0 ? snapshotData : REAL_SERVER_SNAPSHOT));
+  // Only accept the qualified market payload provided by the application.
+  // Never auto-fetch or fall back to bundled third-party quote snapshots.
+  const activeData = data;
 
   const { keys: watchlistKeys } = useWatchlist();
 
@@ -176,36 +142,6 @@ export function Overview({
             </button>
           </div>
 
-          {isStale && (
-            <div className="portfolio-alert portfolio-alert-warning" role="alert" style={{ margin: '0 0 16px 0', borderLeft: '4px solid #f59e0b', background: '#451a03', color: '#fef3c7', padding: '12px 16px', borderRadius: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>⚠️ <strong>STALE DATA WARNING:</strong> Showing cached market observations from {activeData?.generatedAt ? new Date(activeData.generatedAt).toLocaleString('en-IN') : 'previous session'}. Feed has not refreshed.</span>
-                {typeof onRefresh === 'function' && (
-                  <button type="button" className="market-btn market-btn--primary" style={{ padding: '4px 12px', fontSize: '0.8rem' }} onClick={onRefresh}>
-                    🔄 Force Refresh
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {isBroken && (!activeData?.indices || activeData.indices.length === 0) && (
-            <div className="portfolio-alert portfolio-alert-error" role="alert" style={{ margin: '0 0 16px 0', borderLeft: '4px solid #ef4444', background: '#450a0a', color: '#fee2e2', padding: '16px', borderRadius: '6px' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 600 }}>❌ Quote Feed Unavailable</h4>
-              <p style={{ margin: '0 0 12px 0', fontSize: '0.875rem' }}>Unable to establish connection to upstream quote provider. Diagnostic: {fetchError || 'Network Timeout'}.</p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {typeof onRefresh === 'function' && (
-                  <button type="button" className="market-btn market-btn--primary" onClick={onRefresh}>
-                    🔄 Retry Connection
-                  </button>
-                )}
-                <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer" className="market-btn market-btn--secondary">
-                  Official NSE Live Market ↗
-                </a>
-              </div>
-            </div>
-          )}
-
           <div className="market-pulse-grid">
             {[
               { title: 'NIFTY 50', sym: '^NSEI', badge: 'NSE Official', badgeClass: 'market-pulse-tile__badge--official', link: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, linkText: 'NSE Live Market ↗', desc: 'Benchmark 50-stock index' },
@@ -263,20 +199,6 @@ export function Overview({
             })}
           </div>
 
-          {/* Advance / Decline Market Breadth Bar (Moneycontrol PRO Style) */}
-          <div className="market-breadth-card" style={{ marginTop: '16px', padding: '14px 18px', background: '#0f172a', borderRadius: '8px', border: '1px solid #1e293b' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', fontSize: '0.85rem' }}>
-              <span style={{ fontWeight: 600, color: '#e2e8f0' }}>Market Breadth (Active Session)</span>
-              <span style={{ color: '#94a3b8' }}>88 Unchanged</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 600, marginBottom: '6px' }}>
-              <span style={{ color: '#34d399' }}>🟩 1,522 Advances (73.3%)</span>
-              <span style={{ color: '#f87171' }}>🟥 554 Declines (26.7%)</span>
-            </div>
-            <div style={{ width: '100%', height: '8px', background: '#ef4444', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{ width: '73.3%', height: '100%', background: '#10b981' }} />
-            </div>
-          </div>
         </section>
 
         {/* ==================================================================== */}
