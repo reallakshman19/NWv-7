@@ -11,7 +11,7 @@
  * - Cross-workpack handoff for Portfolio (WP-04) and News (WP-07) (P0-04).
  * - Transactional import preview & export (P0-05).
  */
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useWatchlist, defaultWatchlistStore } from './watchlistStore.js';
 import { useEquityNote, defaultNotesStore, MAX_NOTE_LENGTH } from './notesStore.js';
 import {
