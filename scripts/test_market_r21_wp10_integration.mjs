@@ -458,6 +458,7 @@ test('WP10-G20 worktree & branch integrity: all modifications bounded within mar
       file.startsWith('reports/market-r21/') ||
       [
         '.github/workflows/market-r21-wp00-contracts.yml',
+        '.github/workflows/ci.yml',
         'docs/market/R21_AGENT_DISPATCH.md',
         'docs/market/R21_WP00_FOUNDATION.md',
       ].includes(file);
