@@ -7,16 +7,8 @@ import React from 'react';
 import { useWatchlist, defaultWatchlistStore } from './watchlistStore.js';
 import { fromCanonicalKey } from './equityModel.js';
 import { getNseQuoteUrl } from './equityMetadata.js';
-import { REAL_SERVER_SNAPSHOT } from '../overview/realServerSnapshot.js';
 import './equity.css';
 
-function formatChangePercent(val, isUp) {
-  if (val == null || val === '') return '';
-  const s = String(val).trim();
-  const clean = s.replace(/^[+-]/, '').replace(/%$/, '');
-  const prefix = isUp ? '+' : '-';
-  return `${prefix}${clean}%`;
-}
 
 export function WatchlistSummary({
   compact = false,
@@ -71,9 +63,6 @@ export function WatchlistSummary({
           {keys.map((key) => {
             const symbol = fromCanonicalKey(key) || key;
             const quoteUrl = getNseQuoteUrl(symbol);
-            const q = REAL_SERVER_SNAPSHOT?.equities?.find(e => e.symbol === symbol || (e.name || '').includes(symbol));
-            const hasPrice = q && (q.price != null || q.value != null);
-            const isUp = q && (Number(q.change) >= 0 || q.direction === 'up');
 
             return (
               <li key={key} className="market-watchlist-summary__item">
@@ -83,18 +72,7 @@ export function WatchlistSummary({
                 </div>
 
                 <div className="market-watchlist-summary__item-price font-mono" style={{ margin: '0 8px', textAlign: 'right' }}>
-                  {hasPrice ? (
-                    <div>
-                      <span style={{ fontWeight: 700, color: isUp ? '#34d399' : '#f87171', marginRight: '6px' }}>
-                        ₹{q.value || Number(q.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </span>
-                      <small style={{ color: isUp ? '#34d399' : '#f87171' }}>
-                        {formatChangePercent(q.changePercent, isUp)}
-                      </small>
-                    </div>
-                  ) : (
-                    <span style={{ color: '#64748b' }}>--</span>
-                  )}
+                  <span style={{ color: '#94a3b8' }}>Quote unavailable</span>
                 </div>
 
                 <div className="market-watchlist-summary__item-actions">
