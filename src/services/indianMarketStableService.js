@@ -1,4 +1,7 @@
+import { MARKET_FREE_OPEN_ONLY, freeOpenMarketPayload } from './marketFreeOpenPolicy.js';
 import { getIdbCache, setIdbCache } from './indexedDbCache.js';
+import { mergeQualifiedIndices } from './marketQuotePolicy.js';
+import { TRACKED_EQUITY_SYMBOLS, mergeQualifiedEquities, qualifyTrackedEquities, deriveTrackedMovers } from './marketEquityPolicy.js';
 import {
   MARKET_CACHE_SCHEMA_VERSION,
   MARKET_SERVICE_CACHE_KEY,
@@ -7,7 +10,6 @@ import {
   MARKET_SNAPSHOT_FRESH_MS,
   MARKET_EXPIRED_DISPLAY_MAX_AGE_MS,
   getMarketPayloadAgeMs,
-  isMarketPayloadUsable,
   isMarketPayloadFresh,
   normalizeSourceHealth,
   parseMarketTimestamp,
@@ -50,15 +52,14 @@ const CORE_INDICES = [
   { key: 'hangSeng', name: 'HANG SENG', symbol: '^HSI' },
 ];
 
-const TOP_STOCKS = [
-  'RELIANCE.NS', 'TCS.NS', 'HDFCBANK.NS', 'INFY.NS', 'ICICIBANK.NS',
-  'BHARTIARTL.NS', 'SBIN.NS', 'ITC.NS', 'LT.NS', 'AXISBANK.NS',
-  'KOTAKBANK.NS', 'MARUTI.NS', 'BAJFINANCE.NS', 'HINDUNILVR.NS', 'SUNPHARMA.NS',
-];
+// Legacy developer fallback uses the same bounded universe as the publisher.
+const TOP_STOCKS = TRACKED_EQUITY_SYMBOLS.map((symbol) => `${symbol}.NS`);
 
 // The ticker also uses this when no market data is available.
 export const MARKET_SEED = {
   indices: [],
+  globalIndices: [],
+  equities: [],
   movers: { gainers: [], losers: [] },
   sectorals: [],
   commodities: [],
@@ -73,7 +74,7 @@ export const MARKET_SEED = {
 };
 
 function publicDataUrl(path) {
-  const base = (import.meta.env.BASE_URL || './').replace(/\/?$/, '/');
+  const base = (import.meta.env?.BASE_URL || './').replace(/\/?$/, '/');
   return `${base}${String(path).replace(/^\//, '')}`;
 }
 
@@ -137,6 +138,7 @@ export function sanitizeMarketPayload(data, sourceMode = data?.sourceMode, extra
     ...data,
     indices: quoteRows(data.indices),
     globalIndices: quoteRows(data.globalIndices),
+    equities: qualifyTrackedEquities(data.equities),
     movers: {
       ...data.movers,
       gainers: quoteRows(data.movers?.gainers),
@@ -515,24 +517,71 @@ async function fetchLiveMarketBundle(snapshot) {
   }
 }
 
-function getQuoteTimestamp(data) {
-  const timestamps = (data?.indices || []).map((row) => (
-    Date.parse(row.quoteAt) || Number(row.timestamp)
-  )).filter((ts) => Number.isFinite(ts) && ts > 0 && ts <= Date.now() + 5 * 60 * 1000);
-  return timestamps.length ? Math.max(...timestamps) : null;
+// Reconcile independent quote observations. A publication clock is not a quote clock.
+function reconcilePayloads(previous, incoming) {
+  const merged = mergeQualifiedIndices(previous, incoming);
+  const equityMerge = mergeQualifiedEquities(previous, incoming);
+  if (!merged.indices.length && !equityMerge.equities.length) return null;
+  const previousTime = parseMarketTimestamp(previous) || 0;
+  const incomingTime = parseMarketTimestamp(incoming) || 0;
+  const publicationAdvanced = incomingTime > previousTime;
+  const current = !previous || publicationAdvanced ? incoming : previous;
+  const retain = previous || {};
+  const updated = incoming || {};
+  const sourceHealth = normalizeSourceHealth({
+    ...retain.sourceHealth,
+    ...updated.sourceHealth,
+  }, current.sourceMode);
+  // IPO evidence must belong to the selected publication, not a prior quote
+  // cache. A newer index publication without an IPO receipt proves nothing
+  // about whether there are zero issues or the source was unavailable.
+  const selectedIpoHealth = current?.sourceHealth?.ipo;
+  sourceHealth.ipo = selectedIpoHealth
+    ? normalizeSourceHealth({ ipo: selectedIpoHealth }, current.sourceMode).ipo
+    : { status: 'unknown', provider: 'IPO source', mode: current.sourceMode,
+        message: 'No IPO source receipt for the selected publication.' };
+  // Empty or failed independent sidecars cannot clear valid retained data.
+  const arrayFrom = (key) => (Array.isArray(updated[key]) && updated[key].length ? updated[key] : (retain[key] || []));
+  // Only qualified same-session observations can generate tracked-share movers.
+  const movers = equityMerge.equities.length
+    ? deriveTrackedMovers(equityMerge.equities)
+    : ((updated.movers?.gainers?.length || updated.movers?.losers?.length)
+      ? updated.movers : (retain.movers || MARKET_SEED.movers));
+  const payload = {
+    ...retain,
+    ...updated,
+    indices: merged.indices,
+    globalIndices: merged.globalIndices,
+    sectorals: merged.sectorals,
+    equities: equityMerge.equities,
+    equityCoverage: (Array.isArray(updated.equities) || Array.isArray(retain.equities))
+      ? {
+        ...equityMerge.coverage,
+        // Displayable includes eligible retained shares; source acquired is only this publication.
+        sourceAcquiredCount: Array.isArray(updated.equities) ? qualifyTrackedEquities(updated.equities).length : null,
+        retainedCount: equityMerge.equities.filter((row) => !qualifyTrackedEquities(updated.equities)
+          .some((fresh) => fresh.id === row.id && fresh.value === row.value && fresh.quoteAt === row.quoteAt)).length,
+      } : null,
+    equityMerge: equityMerge.summary,
+    movers,
+    commodities: arrayFrom('commodities'),
+    currencies: arrayFrom('currencies'),
+    mutualFunds: arrayFrom('mutualFunds'),
+    ipo: current?.ipo || MARKET_SEED.ipo,
+    ipoLastCheckedAt: current?.ipoLastCheckedAt || null,
+    sourceMode: current.sourceMode,
+    fetchedAt: parseMarketTimestamp(current),
+    generatedAt: current.generatedAt || current.generated_at || null,
+    sourceHealth,
+    errors: { ...retain.errors, ...updated.errors },
+    quoteMerge: merged.summary,
+  };
+  return { payload, changed: merged.changed || equityMerge.changed, publicationAdvanced };
 }
 
-function compareMarketQuotes(candidate, previous) {
-  const candidateQuoteAt = getQuoteTimestamp(candidate);
-  const previousQuoteAt = getQuoteTimestamp(previous);
-  if (candidateQuoteAt && previousQuoteAt) return candidateQuoteAt - previousQuoteAt;
-  return candidate.fetchedAt - previous.fetchedAt;
-}
-
-function latestMarketData(...candidates) {
-  return candidates.filter(Boolean).reduce((latest, candidate) => (
-    !latest || compareMarketQuotes(candidate, latest) > 0 ? candidate : latest
-  ), null);
+function eligibleMarketData(data) {
+  return !shouldRejectMarketPayload(data, { maxAgeMs: STALE_CACHE_MAX_AGE, allowSeed: false }).reject
+    ? sanitizeMarketPayload(data) : null;
 }
 
 async function storeMarketData(data) {
@@ -544,7 +593,9 @@ async function storeMarketData(data) {
   return data;
 }
 
-export async function fetchAllMarketData({ forceRefresh = false, previousData = null } = {}) {
+export async function fetchAllMarketData({ forceRefresh = false, previousData = null, allowLegacyLive = false } = {}) {
+  // Do not rehydrate legacy quotes or request the old snapshot in free-only mode.
+  if (MARKET_FREE_OPEN_ONLY) return freeOpenMarketPayload();
   if (!forceRefresh) {
     const freshCache = await readMarketCache();
     if (freshCache) return sanitizeMarketPayload(freshCache, 'cache', { sourceHealth: { cache: 'cache' } });
@@ -555,39 +606,58 @@ export async function fetchAllMarketData({ forceRefresh = false, previousData = 
     readMarketCache({ allowStale: true }),
   ]);
   const snapshot = normalizeSnapshot(rawSnapshot);
-  const previous = sanitizeMarketPayload(previousData);
-  const baseline = latestMarketData(
-    isMarketPayloadUsable(previous) ? previous : null,
-    staleCache,
-  );
+  const previous = eligibleMarketData(previousData);
+  const eligibleStored = eligibleMarketData(staleCache);
+  // Merge two retained datasets by instrument, not by their maximum index time.
+  const baseline = previous && eligibleStored
+    ? (parseMarketTimestamp(previous) >= parseMarketTimestamp(eligibleStored)
+      ? reconcilePayloads(eligibleStored, previous)?.payload
+      : reconcilePayloads(previous, eligibleStored)?.payload)
+    : (previous || eligibleStored);
 
-  const snapshotComparison = snapshot && baseline ? compareMarketQuotes(snapshot, baseline) : 0;
-  if (snapshot?.sourceMode === 'snapshot' && (!forceRefresh || !baseline ||
-    snapshotComparison > 0 || (snapshotComparison === 0 && snapshot.fetchedAt > baseline.fetchedAt))) {
-    return storeMarketData(snapshot);
+  const verifiedSnapshot = snapshot ? reconcilePayloads(baseline, snapshot) : null;
+  if (snapshot?.sourceMode === 'snapshot' && verifiedSnapshot &&
+      (!baseline || verifiedSnapshot.publicationAdvanced || verifiedSnapshot.changed)) {
+    return storeMarketData({ ...verifiedSnapshot.payload, sourceMode: 'snapshot' });
   }
 
-  const fallback = latestMarketData(baseline, snapshot);
-  const failure = 'Market refresh failed. Showing the last available market data.';
-  if (!forceRefresh && fallback && fallback !== snapshot) {
+  const fallback = verifiedSnapshot?.payload || baseline;
+  if (!forceRefresh && baseline && !verifiedSnapshot?.changed) {
     return sanitizeMarketPayload(fallback, 'stale-cache', {
       sourceHealth: { cache: 'stale-cache' },
       errors: { feed: 'Showing previously collected market data.' },
     });
   }
 
+  // Public browser proxy cascades are not a qualified production data contract.
+  // Diagnostic access requires an explicit opt-in and cannot run in a production build.
+  if (!allowLegacyLive || import.meta.env?.PROD === true) {
+    if (snapshot && verifiedSnapshot) {
+      return sanitizeMarketPayload(verifiedSnapshot.payload, snapshot.sourceMode, {
+        sourceHealth: { snapshot: snapshot.sourceHealth?.snapshot || { status: snapshot.sourceMode } },
+      });
+    }
+    if (fallback) return sanitizeMarketPayload(fallback, 'stale-cache', {
+      sourceHealth: { cache: 'stale-cache' },
+      errors: { feed: 'Market publication unavailable. Showing eligible previously collected quotes.' },
+    });
+    return { ...MARKET_SEED, sourceMode: 'failed',
+      sourceHealth: normalizeSourceHealth({ indices: 'failed', equities: 'failed' }, 'failed'),
+      errors: { feed: 'Market quotes are currently unavailable.' } };
+  }
+
   const live = await fetchLiveMarketBundle(rawSnapshot);
   const normalized = sanitizeMarketPayload(live, 'live');
-  if (!shouldRejectMarketPayload(normalized, { allowSeed: false }).reject &&
-      (!fallback || compareMarketQuotes(normalized, fallback) >= 0)) {
-    return storeMarketData(normalized);
+  const liveReconciliation = normalized ? reconcilePayloads(fallback, normalized) : null;
+  if (liveReconciliation && (!fallback || liveReconciliation.changed)) {
+    return storeMarketData({ ...liveReconciliation.payload, sourceMode: 'live' });
   }
 
   if (fallback) {
-    const mode = fallback === snapshot ? 'stale-snapshot' : 'stale-cache';
+    const mode = fallback === verifiedSnapshot?.payload && !baseline ? 'stale-snapshot' : 'stale-cache';
     return sanitizeMarketPayload(fallback, mode, {
       sourceHealth: { [mode === 'stale-snapshot' ? 'snapshot' : 'cache']: mode },
-      errors: { feed: failure },
+      errors: { feed: 'Market refresh failed. Showing the last available market data.' },
     });
   }
 

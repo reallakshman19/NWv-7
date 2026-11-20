@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import json
 import pytest
-from refresh_india_market import acquire, parse_chart, parse_nav, parse_bse, parse_nfo, validate, INDICES, STOCKS
+from refresh_india_market import acquire, parse_chart, parse_nav, parse_bse, parse_nfo, validate, INDICES, STOCKS, iso, IST
 
 NOW = datetime(2026, 11, 16, 10, tzinfo=timezone.utc)
 
@@ -130,3 +130,91 @@ def test_core_failure_blocks_publication_even_if_collection_clock_is_new():
 def test_validator_rejects_stale_collection_independently():
     with pytest.raises(ValueError, match="collection"):
         validate({"generatedAt": "2026-07-21T10:00:00Z"}, NOW)
+
+
+def test_all_sixteen_qualified_equities_are_published_without_new_upstream_requests():
+    calls = []
+    def getter(url):
+        calls.append(url)
+        if "finance.yahoo" in url:
+            return json.dumps(chart())
+        raise RuntimeError("source unavailable")
+    snapshot = acquire(NOW, getter)
+    assert len(calls) == len(INDICES) + len(STOCKS) + 3 == 25
+    assert len(snapshot["equities"]) == 16
+    assert snapshot["equityCoverage"] == {"universeSize": 16, "quotedCount": 16, "unavailableSymbols": []}
+    assert snapshot["sourceHealth"]["equities"]["status"] == "snapshot"
+    assert [row["symbol"] for row in snapshot["equities"]] == STOCKS
+    assert all(row["id"] == f"equity:NSE:{row['symbol']}" for row in snapshot["equities"])
+    assert all(row["providerSymbol"] == f"{row['symbol']}.NS" for row in snapshot["equities"])
+    assert all(row["value"] == 102.0 and row["quoteAt"] == iso(NOW) for row in snapshot["equities"])
+    assert all(row["currency"] == "INR" and row["sourceAuthority"] == "third-party" for row in snapshot["equities"])
+    assert all(row["sourceUrl"].startswith("https://query1.finance.yahoo.com/v8/finance/chart/") for row in snapshot["equities"])
+    assert snapshot["movers"]["scope"] == "tracked-universe"
+    assert snapshot["movers"]["sessionDate"] == NOW.astimezone(IST).date().isoformat()
+    assert validate(snapshot, NOW)["equities"] == 16
+
+
+def test_failed_equity_is_not_fabricated_and_does_not_block_valid_indices():
+    calls = []
+    def getter(url):
+        calls.append(url)
+        if "WIPRO.NS" in url:
+            raise ConnectionError("WIPRO unavailable")
+        if "finance.yahoo" in url:
+            return json.dumps(chart())
+        raise RuntimeError("optional source failed")
+    snapshot = acquire(NOW, getter)
+    assert len(calls) == 25
+    assert len(snapshot["equities"]) == 15
+    assert snapshot["equityCoverage"]["unavailableSymbols"] == ["WIPRO"]
+    assert snapshot["sourceHealth"]["equities"]["status"] == "partial"
+    assert snapshot["sourceHealth"]["WIPRO"]["status"] == "failed"
+    assert all(row["symbol"] != "WIPRO" for row in snapshot["equities"])
+    assert validate(snapshot, NOW)["status"] == "WARN"
+
+
+def test_movers_use_one_source_day_and_not_the_whole_nse_exchange():
+    def getter(url):
+        if "finance.yahoo" in url:
+            quote_at = NOW - timedelta(days=1) if "WIPRO.NS" in url else NOW
+            return json.dumps(chart(quote_at=quote_at))
+        raise RuntimeError("optional source failed")
+    snapshot = acquire(NOW, getter)
+    assert len(snapshot["equities"]) == 16
+    assert snapshot["movers"]["scope"] == "tracked-universe"
+    assert snapshot["movers"]["sessionDate"] == NOW.astimezone(IST).date().isoformat()
+    assert "WIPRO" not in {row["symbol"] for row in snapshot["movers"]["gainers"] + snapshot["movers"]["losers"]}
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda row: row.update(id="equity:NSE:UNRELATED"),
+    lambda row: row.update(value=0),
+    lambda row: row.update(quoteAt="2026-12-01T00:00:00Z"),
+    lambda row: row.update(sourceAuthority="official"),
+    lambda row: row.update(currency="USD"),
+])
+def test_publisher_rejects_unqualified_equity_observations(mutate):
+    from copy import deepcopy
+    def getter(url):
+        if "finance.yahoo" in url:
+            return json.dumps(chart())
+        raise RuntimeError("source unavailable")
+    snapshot = acquire(NOW, getter)
+    bad = deepcopy(snapshot)
+    mutate(bad["equities"][0])
+    with pytest.raises(ValueError, match="equity"):
+        validate(bad, NOW)
+
+
+def test_publisher_rejects_duplicate_equity_and_retains_old_snapshot_compatibility():
+    def getter(url):
+        if "finance.yahoo" in url:
+            return json.dumps(chart())
+        raise RuntimeError("source unavailable")
+    snapshot = acquire(NOW, getter)
+    snapshot["equities"].append(snapshot["equities"][0].copy())
+    with pytest.raises(ValueError, match="equity"):
+        validate(snapshot, NOW)
+    del snapshot["equities"]
+    assert validate(snapshot, NOW)["equities"] == 0

@@ -1,165 +1,24 @@
 {
-  "generatedAt": "2026-11-19T12:17:00.104976Z",
+  "schemaVersion": "market-free-open-v1",
+  "generatedAt": null,
   "validation": {
-    "status": "WARN",
-    "indices": 6,
-    "failures": {
-      "ipo": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P"
-    }
+    "status": "HOLD",
+    "indices": 0,
+    "equities": 0,
+    "reason": "Public quote redistribution is not licensed in free/open-only mode"
   },
   "sources": {
-    "NIFTY 50": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:01:07Z"
+    "indices": {
+      "status": "unavailable"
     },
-    "SENSEX": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5EBSESN?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:02:27Z"
-    },
-    "BANK NIFTY": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEBANK?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:01:07Z"
-    },
-    "NIFTY IT": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXIT?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:01:08Z"
-    },
-    "NIFTY AUTO": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXAUTO?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:01:08Z"
-    },
-    "NIFTY PHARMA": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/%5ECNXPHARMA?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T10:01:08Z"
-    },
-    "RELIANCE": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/RELIANCE.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "TCS": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/TCS.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:01Z"
-    },
-    "HDFCBANK": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/HDFCBANK.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "INFY": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/INFY.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "ICICIBANK": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/ICICIBANK.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "SBIN": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/SBIN.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:01Z"
-    },
-    "ITC": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/ITC.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "BHARTIARTL": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BHARTIARTL.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "KOTAKBANK": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/KOTAKBANK.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:02Z"
-    },
-    "LT": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/LT.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:02Z"
-    },
-    "HINDUNILVR": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/HINDUNILVR.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "AXISBANK": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/AXISBANK.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "BAJFINANCE": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/BAJFINANCE.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:00Z"
-    },
-    "MARUTI": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/MARUTI.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
-    },
-    "WIPRO": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/WIPRO.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:59:02Z"
-    },
-    "SUNPHARMA": {
-      "status": "snapshot",
-      "provider": "Yahoo Finance",
-      "sourceUrl": "https://query1.finance.yahoo.com/v8/finance/chart/SUNPHARMA.NS?range=5d&interval=1d",
-      "quoteAt": "2026-11-19T09:58:59Z"
+    "equities": {
+      "status": "unavailable"
     },
     "mutualFunds": {
-      "status": "snapshot",
-      "provider": "AMFI",
-      "sourceUrl": "https://portal.amfiindia.com/spages/NAVAll.txt",
-      "count": 50,
-      "message": "Source-dated rows"
+      "status": "unavailable"
     },
     "ipo": {
-      "status": "failed",
-      "provider": "BSE",
-      "sourceUrl": "https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P",
-      "message": "403 Client Error: Forbidden for url: https://api.bseindia.com/BseIndiaAPI/api/IPOIssues/w?Type=UpcomingIPO&CategoryCode=E&issueType=P",
-      "count": 0
-    },
-    "nfo": {
-      "status": "snapshot",
-      "provider": "AMFI",
-      "sourceUrl": "https://portal.amfiindia.com/rssNAV.aspx?nfo=y",
-      "count": 6,
-      "message": "Source-dated rows"
+      "status": "unknown"
     }
   }
 }

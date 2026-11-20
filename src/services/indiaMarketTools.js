@@ -1,39 +1,39 @@
 import { safeGetJson, safeSetJson } from '../data/safeStorage.js';
+import { boundedMarketJson } from './marketJsonRequest.js';
 
 export const INDIA_MARKET_SOURCES = {
   indices: 'https://www.nseindia.com/market-data/live-market-indices',
   equity: 'https://www.nseindia.com/get-quotes/equity',
   ipo: 'https://www.nseindia.com/market-data/all-upcoming-issues-ipo',
+  ipoBse: 'https://www.bseindia.com/markets/PublicIssues/IPOIssues_new.aspx',
   issueDocuments: 'https://www.nseindia.com/companies-listing/corporate-public-issue-advertisements',
   nfo: 'https://www.amfiindia.com/new-fund-offer',
   nav: 'https://www.amfiindia.com/net-asset-value/nav-download',
-  fx: 'https://www.exchangerate-api.com',
+  fx: 'https://frankfurter.dev/',
   funds: 'https://www.mfapi.in',
 };
 const DAY = 86400000;
-const FX_CACHE = 'nw7.omr-inr.v1';
+const FX_CACHE = 'nw7.omr-inr.frankfurter.v1';
 let fxPending = null;
 
-async function getJson(url, fetchImpl = fetch) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetchImpl(url, { signal: controller.signal });
-    if (!response.ok) throw new Error(`Source returned HTTP ${response.status}`);
-    return await response.json();
-  } finally {
-    clearTimeout(timer);
-  }
+async function getJson(url, fetchImpl = fetch, { signal } = {}) {
+  return boundedMarketJson(url, { fetchImpl, signal, timeoutMs: 8000, maxBytes: 2 * 1024 * 1024 });
 }
 
 export function normalizeOmrRate(data, now = Date.now()) {
-  const rate = Number(data?.rates?.INR);
-  const asOf = Number(data?.time_last_update_unix) * 1000;
-  if (data?.result !== 'success' || data?.base_code !== 'OMR' || !Number.isFinite(rate) || rate <= 0 ||
-      !Number.isFinite(asOf) || asOf <= 0 || asOf > now + 300000 || now - asOf > 3 * DAY) {
+  // Frankfurter v2: free MIT-licensed API code. Reference rate ownership
+  // remains with original central bank(s); use direct browser conversion only.
+  const rate = Number(data?.rate);
+  const date = data?.date;
+  const asOf = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? Date.parse(date + 'T00:00:00Z') : NaN;
+  if (data?.base !== 'OMR' || data?.quote !== 'INR' ||
+      !Number.isFinite(rate) || rate <= 0 ||
+      !Number.isFinite(asOf) || new Date(asOf).toISOString().slice(0, 10) !== date ||
+      asOf > now + 300000 || now - asOf > 3 * DAY) {
     throw new Error('No recent, valid OMR/INR reference rate is available');
   }
-  return { rate, asOf, stale: now - asOf > 36 * 3600000 };
+  return { rate, asOf, rateDate:date, stale: now - asOf > 36 * 3600000 };
 }
 
 export async function loadOmrRate({ now = Date.now(), fetchImpl = fetch, read = safeGetJson, write = safeSetJson } = {}) {
@@ -45,7 +45,7 @@ export async function loadOmrRate({ now = Date.now(), fetchImpl = fetch, read = 
   if (fxPending) return fxPending;
   fxPending = (async () => {
     try {
-      const payload = await getJson('https://open.er-api.com/v6/latest/OMR', fetchImpl);
+      const payload = await getJson('https://api.frankfurter.dev/v2/rate/omr/inr', fetchImpl);
       const result = normalizeOmrRate(payload, now);
       write(FX_CACHE, { payload, checkedAt: now });
       return result;
@@ -74,10 +74,10 @@ export function equityQuoteUrl(symbol) {
     ? `${INDIA_MARKET_SOURCES.equity}?symbol=${encodeURIComponent(normalized)}` : null;
 }
 
-export async function searchIndianFunds(query, { fetchImpl = fetch } = {}) {
+export async function searchIndianFunds(query, { fetchImpl = fetch, signal } = {}) {
   const cleaned = String(query || '').trim().slice(0, 120);
   if (cleaned.length < 3) throw new Error('Enter at least three characters');
-  const rows = await getJson(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(cleaned)}`, fetchImpl);
+  const rows = await getJson(`https://api.mfapi.in/mf/search?q=${encodeURIComponent(cleaned)}`, fetchImpl, { signal });
   if (!Array.isArray(rows)) throw new Error('Fund search is unavailable');
   return rows.filter(row => /^\d+$/.test(String(row?.schemeCode)) && row?.schemeName).slice(0, 20);
 }
@@ -94,9 +94,9 @@ export function parseIndiaDate(value) {
     ? stamp - 19800000 : null;
 }
 
-export async function loadFundNav(code, { fetchImpl = fetch, now = Date.now() } = {}) {
+export async function loadFundNav(code, { fetchImpl = fetch, now = Date.now(), signal } = {}) {
   if (!/^\d{3,8}$/.test(String(code))) throw new Error('Invalid fund scheme code');
-  const payload = await getJson(`https://api.mfapi.in/mf/${code}/latest`, fetchImpl);
+  const payload = await getJson(`https://api.mfapi.in/mf/${code}/latest`, fetchImpl, { signal });
   const row = payload?.data?.[0];
   const asOf = parseIndiaDate(row?.date);
   const nav = Number(row?.nav);

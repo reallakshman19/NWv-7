@@ -81,9 +81,13 @@ describe('Release 6J Market surface binding', () => {
     expect(projectMarketData(null)).toEqual({
       indices: [],
       globalIndices: [],
+      equities: [],
+      equityCoverage: {},
       commodities: [],
       currencies: [],
       ipo: {},
+      ipoLastCheckedAt: undefined,
+      generatedAt: undefined,
       mutualFunds: [],
       nfo: [],
       movers: {},
@@ -111,6 +115,13 @@ describe('Release 6J Market surface binding', () => {
       fiidii: {},
       sourceHealth: {},
     });
+  });
+
+  it('preserves the IPO-specific check clock rather than substituting index time', () => {
+    const date = '2026-11-19T10:30:00Z';
+    const projected = projectMarketData({ipoLastCheckedAt:date,generatedAt:'2026-11-19T11:00:00Z',sourceHealth:{ipo:{status:'empty'}}});
+    expect(projected.ipoLastCheckedAt).toBe(date);
+    expect(projected.generatedAt).toBe('2026-11-19T11:00:00Z');
   });
 
   it('preserves acquired NFO schedules for the Market page', () => {

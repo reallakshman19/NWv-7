@@ -1,0 +1,68 @@
+name: Market Slice 8B - Private Candidate and Rights Gate
+on:
+  push:
+    branches: [release/market-slice8b-license-gate-20261119]
+    paths:
+      - '.github/workflows/market-slice8b-candidate-custody.yml'
+      - 'scripts/prepare_market_publication_candidate.mjs'
+      - 'scripts/test_market_publication_candidate.mjs'
+      - 'docs/market/SOURCE_AUTHORIZATION_MATRIX.md'
+      - 'docs/market/RIGHTS_EVIDENCE_TEMPLATE.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  custody:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: No-network rights and three-asset bundle negative controls
+        run: node --test scripts/test_market_publication_candidate.mjs scripts/test_market_publication_readiness.mjs
+      - name: Inspect currently committed publication without fetching or staging quotes
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/market-slice8b-committed-HOLD"
+          mkdir -p reports/market-release-custody
+          set +e
+          node scripts/prepare_market_publication_candidate.mjs --candidate public/data/market_snapshot.json --out-dir "$out" > "$RUNNER_TEMP/market-slice8b-sanitized-stdout.json"
+          code=$?
+          set -e
+          if test "$code" -ne 2; then echo "Expected fail-closed exit 2, observed $code"; exit 1; fi
+          node --input-type=module - "$out/custody.json" <<'JS'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const source = process.argv[2];
+          const receipt = JSON.parse(fs.readFileSync(source,'utf8'));
+          assert.equal(receipt.publicationAuthorized,false);
+          assert.equal(receipt.releaseStatus,'HOLD_FOR_LEGAL_AND_OWNER_APPROVAL');
+          assert.equal(receipt.stageEligible,false);
+          assert.equal(receipt.candidateCustody,'NO_CANDIDATE_STAGED');
+          assert.equal(receipt.technicalStatus,'HOLD');
+          assert.ok(receipt.technicalBlocks.includes('SCHEMA_UNKNOWN'));
+          assert.ok(receipt.rightsBlocks.includes('RIGHTS_MANIFEST_MISSING'));
+          assert.ok(receipt.sidecarBlocks.includes('SOURCE_SIDECARS_REQUIRED'));
+          console.log('CONFIRMED: committed publication is not a releasable candidate.');
+          JS
+          cp "$out/custody.json" reports/market-release-custody/existing-publication-HOLD.json
+          git diff --exit-code -- public/data docs/data
+          test ! -e "$out/market_snapshot.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-slice8b-HOLD-metadata-only
+          path: reports/market-release-custody/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Declare hard release boundary
+        if: always()
+        shell: bash
+        run: |
+          echo '### Market candidate: HOLD' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No redistribution rights established. The old public asset lacks 16 equities. Never publish or deploy from this workflow.' >> "$GITHUB_STEP_SUMMARY"

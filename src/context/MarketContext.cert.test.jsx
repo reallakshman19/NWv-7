@@ -7,6 +7,11 @@ import { fetchAllMarketData } from '../services/indianMarketStableService.js';
 import { getIdbCache, setIdbCache } from '../services/indexedDbCache.js';
 import { MARKET_CACHE_SCHEMA_VERSION, MARKET_CONTEXT_CACHE_KEY } from '../services/marketTrust.js';
 
+// These cases certify the isolated legacy refresh machinery, not free-only mode.
+vi.mock('../services/marketFreeOpenPolicy.js', async (importOriginal) => ({
+    ...await importOriginal(), MARKET_FREE_OPEN_ONLY: false,
+}));
+
 vi.mock('../services/indianMarketStableService.js', async (importOriginal) => ({
     ...await importOriginal(),
     fetchAllMarketData: vi.fn(),
@@ -112,6 +117,22 @@ describe('MarketProvider refresh', () => {
         expect(result.current.marketData.sourceMode).toBe('stale-cache');
         expect(result.current.error).toBe('Network unavailable');
     });
+
+
+    it('rejects a legacy v3 quote cache instead of silently relabeling it v4', async () => {
+        const legacy = { ...dataAt(Date.now() - 120_000), schemaVersion: 'market-v3' };
+        getIdbCache.mockResolvedValueOnce(legacy);
+        const qualified = dataAt(Date.now() - 60_000);
+        fetchAllMarketData.mockResolvedValueOnce(qualified);
+        const { result } = renderHook(useMarket, { wrapper: MarketProvider });
+        act(() => result.current.ensureBoot());
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(getIdbCache).toHaveBeenCalledWith(MARKET_CONTEXT_CACHE_KEY);
+        expect(fetchAllMarketData).toHaveBeenCalledTimes(1);
+        expect(fetchAllMarketData).toHaveBeenCalledWith({ forceRefresh: false, previousData: null });
+        expect(result.current.marketData).toEqual(qualified);
+    });
+
 
     it('expires in-memory quotes after a long-open tab, even if the next refresh throws', async () => {
         const now = Date.now();

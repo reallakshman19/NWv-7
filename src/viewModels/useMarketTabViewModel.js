@@ -126,9 +126,14 @@ export function projectMarketData(marketData) {
   return {
     indices: asArray(safeMarketData.indices),
     globalIndices: asArray(safeMarketData.globalIndices),
+    equities: asArray(safeMarketData.equities),
+    equityCoverage: asRecord(safeMarketData.equityCoverage),
     commodities: asArray(safeMarketData.commodities),
     currencies: asArray(safeMarketData.currencies),
     ipo: asRecord(safeMarketData.ipo),
+    // Per-source IPO check time is distinct from indices/publication fetch time.
+    ipoLastCheckedAt: safeMarketData.ipoLastCheckedAt,
+    generatedAt: safeMarketData.generatedAt,
     mutualFunds: asArray(safeMarketData.mutualFunds),
     nfo: asArray(safeMarketData.nfo),
     movers: asRecord(safeMarketData.movers),

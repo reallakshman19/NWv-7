@@ -1,6 +1,6 @@
 /* Service Worker for News & Weather App */
 const CACHE_PREFIX = 'news-weather-app-';
-const CACHE_NAME = 'news-weather-app-v3-sections-authority';
+const CACHE_NAME = 'news-weather-app-v4-free-open-market';
 const BASE_PATH = './';
 
 const PRECACHE_URLS = [
@@ -12,6 +12,14 @@ const PRECACHE_URLS = [
 
 function isRuntimeDataRequest(url) {
     return url.pathname.includes('/newsdata/') ||
+        // Quote publication validity belongs to the Market v4 source-clock layer.
+        // Never serve it from the app-shell service-worker fallback cache.
+        [
+            '/data/market_snapshot.json',
+            '/data/mutual_fund_snapshot.json',
+            '/data/market_source_health.json',
+            '/data/market_metrics.json',
+        ].some(path => url.pathname.endsWith(path)) ||
         url.pathname.includes('/api/datasets/') ||
         url.pathname.includes('/preview/sections/') ||
         url.pathname.includes('/v1/sections/');

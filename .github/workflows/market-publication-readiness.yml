@@ -1,0 +1,40 @@
+name: Market Publication Readiness - READ ONLY
+on:
+  push:
+    branches: [audit/market-publication-readiness-20261119, release/market-slice8a-integrated-20261119]
+    paths:
+      - '.github/workflows/market-publication-readiness.yml'
+      - 'scripts/check_market_publication_readiness.mjs'
+      - 'scripts/test_market_publication_readiness.mjs'
+      - 'src/config/marketEquityUniverse.json'
+      - 'public/data/market_snapshot.json'
+      - 'src/services/marketIpoPolicy.js'
+      - 'docs/market/SLICE08A_INTEGRATED_CANDIDATE.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    name: Publication inspection (HOLD is not release approval)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Pure data-policy regressions
+        run: node --test scripts/test_market_publication_readiness.mjs
+      - name: Collect truthful committed-snapshot receipt
+        run: node scripts/check_market_publication_readiness.mjs --out reports/market-publication-readiness.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-publication-readiness-report
+          path: reports/market-publication-readiness.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Enforce technical publication qualification (no external requests)
+        run: node scripts/check_market_publication_readiness.mjs --enforce-technical

@@ -15,6 +15,8 @@ import {
 function normalizeMarketSource(sourceMode) {
   if (!sourceMode) return ENVELOPE_SOURCES.LIVE;
 
+  if (sourceMode === 'free-open-only') return ENVELOPE_SOURCES.UNKNOWN;
+
   if (sourceMode === 'seed') return ENVELOPE_SOURCES.SEED;
   if (sourceMode === 'cache' || sourceMode === 'stale-cache') return ENVELOPE_SOURCES.CACHE;
   if (sourceMode === 'snapshot' || sourceMode === 'stale-snapshot') return ENVELOPE_SOURCES.SNAPSHOT;
@@ -32,6 +34,7 @@ function getMarketSourceMode(data) {
 }
 
 function getMarketTimestamp(data) {
+  if (data?.sourceMode === 'free-open-only' && !data?.fetchedAt && !data?.generatedAt && !data?.generated_at) return null;
   const numericFetchedAt = Number(data?.fetchedAt);
 
   if (Number.isFinite(numericFetchedAt) && numericFetchedAt > 0) {
