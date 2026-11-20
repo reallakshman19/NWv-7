@@ -1,4 +1,4 @@
-import { getMarketSource } from '../registry/sourceRegistry.js';
+import { getMarketSource, isAllowedMarketSourceUrl } from '../registry/sourceRegistry.js';
 
 /**
  * Market R2.1 / WP-00: deterministic, fail-closed receipt contract.
@@ -75,7 +75,8 @@ export function validateSourceReceipt(input) {
       (!Number.isInteger(input.transportStatus) || input.transportStatus < 100 || input.transportStatus > 599)) errors.push('INVALID_TRANSPORT_STATUS');
   if (!optionalString(input.reasonCode) || !optionalString(input.originalUrl) ||
       !optionalString(input.dataVersion)) errors.push('INVALID_METADATA_TYPE');
-  if (input.originalUrl != null && !/^https:\/\/[^ /\s]+(?:\/[^\s]*)?$/.test(input.originalUrl)) errors.push('INVALID_SOURCE_URL');
+  if (input.originalUrl != null && !isAllowedMarketSourceUrl(input.sourceId,input.originalUrl)) errors.push('INVALID_SOURCE_URL');
+  if (['READY','HISTORICAL','NO_RESULTS'].includes(input.state) && input.accessMode !== 'USER_LOCAL' && input.originalUrl == null) errors.push('MISSING_SOURCE_URL');
   const dataState = input.state === 'READY' || input.state === 'HISTORICAL';
   if (dataState && (input.providerAsOf == null || input.validity !== 'VALID')) errors.push('UNQUALIFIED_OBSERVATION');
   if (dataState && ['PROVIDER_EMBED','OFFICIAL_LINK','UNAUTHORIZED_PUBLICATION'].includes(input.accessMode)) errors.push('NOT_NATIVE_OBSERVATION');
