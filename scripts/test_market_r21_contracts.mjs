@@ -8,7 +8,7 @@ import {
   MARKET_LEGACY_STORAGE_KEYS,MARKET_R21_STORAGE_KEYS,MARKET_STORAGE_RULES,
   R21_MARKET_WORKSPACE_IDS,R21_MARKET_WORKSPACES,R21_DEFAULT_WORKSPACE,
   normalizeR21MarketView,getR21MarketViewFromHash,withR21MarketViewHash,
-  MARKET_SOURCES,getMarketSource,mayPerformSourceAction
+  MARKET_SOURCES,MARKET_SOURCE_HOSTS,getMarketSource,mayPerformSourceAction,isAllowedMarketSourceUrl
 } from '../src/market/contracts/index.js';
 import {MARKET_WORKSPACE_IDS,getMarketWorkspaceFromHash} from '../src/services/marketWorkspaceRoute.js';
 import {MARKET_FREE_OPEN_ONLY} from '../src/services/marketFreeOpenPolicy.js';
@@ -180,7 +180,18 @@ test('WP00-020 cannot claim zero IPOs from an official link being reachable',()=
     state:'NO_RESULTS',providerAsOf:null,validity:'VALID',transportStatus:200});
   assert.ok(createSourceReceipt(fake).errors.includes('NO_RESULTS_REQUIRES_DIRECT_SOURCE'));
 });
-test('WP00-021 no data fixtures or automatic on-mount source access',()=>{
+test('WP00-021 source URL cannot spoof another registry publisher',()=>{
+  assert.equal(isAllowedMarketSourceUrl('mfapi','https://api.mfapi.in/mf/123456/latest'),true);
+  assert.equal(isAllowedMarketSourceUrl('mfapi','https://nseindia.com/market-data'),false);
+  assert.equal(isAllowedMarketSourceUrl('mfapi','https://api.mfapi.in.attacker.tld/mf/123456'),false);
+  assert.equal(isAllowedMarketSourceUrl('mfapi','https://api.mfapi.in@attacker.tld/mf/123456'),false);
+  assert.equal(isAllowedMarketSourceUrl('personal-local','https://api.mfapi.in/'),false);
+  assert.equal(Object.keys(MARKET_SOURCE_HOSTS).length,Object.keys(MARKET_SOURCES).length);
+  assert.ok(createSourceReceipt(valid({originalUrl:'https://www.nseindia.com/market-data/live-market-indices'})).errors.includes('INVALID_SOURCE_URL'));
+  assert.ok(createSourceReceipt(valid({originalUrl:'https://api.mfapi.in.attacker.tld/mf/123456'})).errors.includes('INVALID_SOURCE_URL'));
+  assert.ok(createSourceReceipt(valid({originalUrl:null})).errors.includes('MISSING_SOURCE_URL'));
+});
+test('WP00-022 no data fixtures or automatic on-mount source access',()=>{
   assert.equal(SOURCE_STATES.includes('READY'),true);
   assert.equal(MARKET_SOURCES['tradingview-bse'].actions.includes('BROWSER_FETCH'),false);
   assert.equal(MARKET_SOURCES['personal-local'].actions.includes('BROWSER_FETCH'),false);
