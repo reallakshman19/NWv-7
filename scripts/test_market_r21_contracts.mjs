@@ -112,8 +112,8 @@ test('WP00-011 verified empty requires proven source check',()=>{
   assert.equal(createSourceReceipt(valid({state:'NO_RESULTS',providerAsOf:null,transportStatus:403})).ok,false);
 });
 test('WP00-012 NO_RIGHTS must match rights policy',()=>{
-  assert.equal(createSourceReceipt(valid({state:'NO_RIGHTS',rights:'NO_PUBLICATION',providerAsOf:null,
-    validity:'UNKNOWN'})).ok,true);
+  assert.equal(createSourceReceipt(valid({sourceId:'world-bank',publisher:'World Bank',accessMode:'LICENSED_OPEN_DATA',
+    state:'NO_RIGHTS',rights:'NO_PUBLICATION',providerAsOf:null,validity:'UNKNOWN'})).ok,true);
   assert.equal(createSourceReceipt(valid({state:'NO_RIGHTS',providerAsOf:null,validity:'UNKNOWN'})).ok,false);
 });
 test('WP00-013 valid qualified native result preserved, bad data blocked',()=>{
