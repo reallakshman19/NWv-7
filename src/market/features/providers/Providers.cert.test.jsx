@@ -23,6 +23,12 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+function iframeConfig(frame) {
+  const srcdoc = frame?.getAttribute('srcdoc') || '';
+  const match = srcdoc.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+  return match ? JSON.parse(match[1]) : null;
+}
+
 describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T15)', () => {
   // --------------------------------------------------------------------------
   // WP02-T01: Zero network requests before user opt-in, including StrictMode
@@ -35,22 +41,27 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     );
 
     // Initial mount: zero script elements
-    expect(container.querySelector('script')).toBeNull();
+    expect(container.querySelector('iframe')).toBeNull();
 
     // Privacy disclosure must be clearly visible
-    expect(screen.getByText(/shares your IP address and the current page URL/i)).toBeTruthy();
+    expect(screen.getByText(/shares your IP address/i)).toBeTruthy();
 
     // Explicit user click
     const loadBtn = screen.getByRole('button', { name: /Load BSE indices prices/i });
     fireEvent.click(loadBtn);
 
     // Exactly one TradingView embed script inserted
-    const scripts = container.querySelectorAll('script');
+    const scripts = container.querySelectorAll('iframe');
     expect(scripts).toHaveLength(1);
-    expect(scripts[0].src).toBe('https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js');
+    expect(scripts[0].getAttribute('srcdoc')).toContain('https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js');
+    expect(scripts[0].getAttribute('sandbox')).toBe('allow-scripts allow-popups');
+    expect(scripts[0].getAttribute('sandbox')).not.toContain('allow-same-origin');
+    expect(scripts[0].getAttribute('referrerpolicy')).toBe('no-referrer');
+    expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
 
-    const config = JSON.parse(scripts[0].textContent);
+    const config = iframeConfig(scripts[0]);
     expect(config.title).toBe('BSE indices');
+    expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
     expect(config.symbolsGroups[0].symbols.map(s => s.name)).toEqual(['BSE:SENSEX', 'BSE:BSE500']);
   });
 
@@ -64,8 +75,8 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     const { container } = render(<MarketProviderBoard group="equities" />);
     fireEvent.click(screen.getByRole('button', { name: /Load BSE equities prices/i }));
 
-    const script = container.querySelector('script');
-    const config = JSON.parse(script.textContent);
+    const script = container.querySelector('iframe');
+    const config = iframeConfig(script);
     const symbolNames = config.symbolsGroups[0].symbols.map(s => s.name);
 
     // All symbols must have explicit BSE: prefix
@@ -86,7 +97,7 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     const { container } = render(<MarketProviderBoard group="indices" />);
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
 
-    const script = container.querySelector('script');
+    const script = container.querySelector('iframe');
     expect(script).toBeTruthy();
 
     // Trigger script error
@@ -145,11 +156,11 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     const { container } = render(<MarketProviderBoard group="indices" />);
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
 
-    const script = container.querySelector('script');
+    const script = container.querySelector('iframe');
     fireEvent.load(script);
 
     // EMBED_UNCONFIRMED status
-    expect(screen.getByText(/BSE end-of-day display loaded\. Provider owns quote clocks and updates\./i)).toBeTruthy();
+    expect(screen.getByText(/Provider frame loaded; quote rendering is unverified/i)).toBeTruthy();
 
     // Must not display "Live" or synthetic numbers
     expect(screen.queryByText(/Live quote/i)).toBeNull();
@@ -159,27 +170,27 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
   // --------------------------------------------------------------------------
   // WP02-T06: Ten load/hide/group-change cycles leave zero orphaned DOM nodes
   // --------------------------------------------------------------------------
-  it('WP02-T06: ten load/hide/group-change cycles leave zero orphaned scripts or DOM leaks', () => {
+  it('WP02-T06: ten load/hide/group-change cycles leave no orphaned sandboxed frames or host scripts', () => {
     const { container } = render(<MarketProviderBoard group="indices" />);
 
     // Perform 10 rapid toggle cycles
     for (let i = 0; i < 10; i++) {
       fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
-      expect(container.querySelectorAll('script')).toHaveLength(1);
+      expect(container.querySelectorAll('iframe')).toHaveLength(1);
 
       fireEvent.click(screen.getByRole('button', { name: /Hide TradingView Board/i }));
-      expect(container.querySelectorAll('script')).toHaveLength(0);
+      expect(container.querySelectorAll('iframe')).toHaveLength(0);
     }
 
     // Switch group while loaded
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
-    expect(container.querySelectorAll('script')).toHaveLength(1);
+    expect(container.querySelectorAll('iframe')).toHaveLength(1);
 
     fireEvent.click(screen.getByRole('button', { name: /Switch to BSE Equities/i }));
     // Still exactly 1 script, now configured for equities
-    const scripts = container.querySelectorAll('script');
+    const scripts = container.querySelectorAll('iframe');
     expect(scripts).toHaveLength(1);
-    const config = JSON.parse(scripts[0].textContent);
+    const config = iframeConfig(scripts[0]);
     expect(config.title).toBe('BSE equities');
   });
 
@@ -190,17 +201,17 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     const { container, rerender } = render(<MarketProviderBoard group="indices" />);
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
 
-    const firstScript = container.querySelector('script');
+    const firstScript = container.querySelector('iframe');
 
     // Switch group to equities
     rerender(<MarketProviderBoard group="equities" />);
-    const secondScript = container.querySelector('script');
+    const secondScript = container.querySelector('iframe');
     expect(secondScript).not.toBe(firstScript);
 
     // Old script finishes loading late
     fireEvent.load(firstScript);
     // Should still have second group active
-    const config = JSON.parse(secondScript.textContent);
+    const config = iframeConfig(secondScript);
     expect(config.title).toBe('BSE equities');
   });
 
@@ -242,7 +253,7 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     render(<MarketProviderBoard group="indices" />);
 
     expect(screen.getByText(/BSE end-of-day reference — TradingView/i)).toBeTruthy();
-    expect(screen.getByText(/shares your IP address and the current page URL/i)).toBeTruthy();
+    expect(screen.getByText(/shares your IP address/i)).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
 
@@ -298,7 +309,7 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     const { container } = render(<MarketProviderBoard group="indices" />);
     fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
 
-    const script = container.querySelector('script');
+    const script = container.querySelector('iframe');
     fireEvent.error(script);
 
     // SENSEX and BSE500 links remain accessible
