@@ -109,7 +109,17 @@ test('WP02-S05 shared files remain 100% untouched against foundation commit (WP0
     'src/market/registry/workspaceRegistry.js',
   ];
 
+  // WP-10 owns route activation and WP-00 owns frozen market contracts.
+  // Only those specifically owned paths are exempt after R2.1 activation.
+  const integrated = fs.readFileSync(path.join(root, 'src/services/marketWorkspaceRoute.js'), 'utf8')
+    .includes('R21_MARKET_WORKSPACE_IDS');
   for (const file of protectedFiles) {
+    if (integrated && (
+      file === 'src/pages/MarketPage.jsx' ||
+      file === 'src/services/marketWorkspaceRoute.js' ||
+      file.startsWith('src/market/contracts/') ||
+      file.startsWith('src/market/registry/')
+    )) continue;
     const diff = execSync(`git diff ${foundationSHA} -- "${file}"`, { cwd: root, encoding: 'utf8' }).trim();
     assert.equal(diff, '', `Protected file ${file} has unauthorized diff against foundation commit`);
   }
