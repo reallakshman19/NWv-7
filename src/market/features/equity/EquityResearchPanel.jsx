@@ -28,7 +28,6 @@ import {
   generateWatchlistJson,
 } from './equityModel.js';
 import { ImportPreviewModal } from './ImportPreviewModal.jsx';
-import { REAL_SERVER_SNAPSHOT } from '../overview/realServerSnapshot.js';
 import './equity.css';
 
 export function EquityResearchPanel({
@@ -63,12 +62,6 @@ export function EquityResearchPanel({
   const selectedMeta = getEquityMetadata(selectedSymbol);
   const selectedQuoteUrl = getNseQuoteUrl(selectedSymbol);
   const selectedAnnouncementsUrl = getNseAnnouncementsUrl(selectedSymbol);
-
-  // Real server snapshot quote for selected symbol
-  const selectedSnap = useMemo(() => {
-    if (!Array.isArray(REAL_SERVER_SNAPSHOT?.equities)) return null;
-    return REAL_SERVER_SNAPSHOT.equities.find((e) => e.symbol === selectedSymbol) || null;
-  }, [selectedSymbol]);
 
   // Notes state for selected symbol
   const { note, saveNote, deleteNote } = useEquityNote(selectedKey, notesStore);
@@ -427,54 +420,11 @@ export function EquityResearchPanel({
               </div>
             </div>
 
-            {/* LIVE SNAPSHOT QUOTE OR STRUCTURED PLACEHOLDER */}
-            <div className="market-equity-quote-block" style={{ margin: '16px 0', padding: '12px 14px', background: 'var(--market-bg-primary, #0f172a)', border: '1px solid var(--market-border, #334155)', borderRadius: '6px' }}>
-              {selectedSnap ? (
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--market-text-primary, #f8fafc)', fontFamily: 'monospace' }}>
-                      ₹{Number(selectedSnap.price).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: selectedSnap.direction === 'up' ? '#34d399' : '#f87171' }}>
-                      {selectedSnap.direction === 'up' ? '▲' : '▼'} {selectedSnap.change} ({selectedSnap.changePercent}%)
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--market-text-muted, #94a3b8)', marginTop: '8px' }}>
-                    <span>Day L: ₹{Number(selectedSnap.dayLow).toLocaleString('en-IN')}</span>
-                    <span>Day H: ₹{Number(selectedSnap.dayHigh).toLocaleString('en-IN')}</span>
-                  </div>
-                  {selectedSnap.fiftyTwoWeekLow && selectedSnap.fiftyTwoWeekHigh && (
-                    <div style={{ marginTop: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: '#64748b' }}>
-                        <span>52W L: ₹{selectedSnap.fiftyTwoWeekLow}</span>
-                        <span>52W H: ₹{selectedSnap.fiftyTwoWeekHigh}</span>
-                      </div>
-                      <div style={{ width: '100%', height: '4px', background: '#334155', borderRadius: '2px', marginTop: '3px', position: 'relative' }}>
-                        <div
-                          style={{
-                            position: 'absolute',
-                            left: `${Math.max(0, Math.min(100, ((selectedSnap.price - selectedSnap.fiftyTwoWeekLow) / (selectedSnap.fiftyTwoWeekHigh - selectedSnap.fiftyTwoWeekLow)) * 100))}%`,
-                            top: '-3px',
-                            width: '10px',
-                            height: '10px',
-                            background: '#38bdf8',
-                            borderRadius: '50%',
-                            transform: 'translateX(-50%)'
-                          }}
-                          title={`Position in 52W range: ₹${selectedSnap.price}`}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--market-text-muted, #94a3b8)' }}>
-                    LTP: <span style={{ fontFamily: 'monospace' }}>—</span> <small style={{ opacity: 0.8 }}>(Custom symbol quote unavailable)</small>
-                  </div>
-                  <span className="portfolio-badge badge-neutral" style={{ fontSize: '0.75rem' }}>Listing verification required</span>
-                </div>
-              )}
+            {/* Native NSE quotes require an authorized source; use official links. */}
+            <div className="market-equity-quote-block" role="status" style={{ margin: '16px 0', padding: '12px 14px', background: 'var(--market-bg-primary, #0f172a)', border: '1px solid var(--market-border, #334155)', borderRadius: '6px' }}>
+              <div style={{ color: 'var(--market-text-muted, #94a3b8)' }}>
+                Native quote unavailable. Verify price, change and 52-week range directly at NSE.
+              </div>
             </div>
 
             {/* OFFICIAL VERIFICATION LINKS */}
