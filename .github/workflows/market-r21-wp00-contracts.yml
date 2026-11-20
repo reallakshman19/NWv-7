@@ -1,0 +1,35 @@
+name: Market R2.1 WP00 Contract Certification
+on:
+  push:
+    branches:
+      - feat/market-r21-wp00-contracts-20261120
+    paths:
+      - 'src/market/contracts/**'
+      - 'src/market/registry/**'
+      - 'scripts/test_market_r21_contracts.mjs'
+      - '.github/workflows/market-r21-wp00-contracts.yml'
+  pull_request:
+    paths:
+      - 'src/market/contracts/**'
+      - 'src/market/registry/**'
+      - 'scripts/test_market_r21_contracts.mjs'
+      - '.github/workflows/market-r21-wp00-contracts.yml'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Node-native WP-00 contract and negative tests
+        run: node --test scripts/test_market_r21_contracts.mjs
+      - name: No new quote publisher or production Market mutation
+        run: |
+          test ! -e src/market/fixtures/market_snapshot.json
+          grep -q "MARKET_FREE_OPEN_ONLY = true" src/services/marketFreeOpenPolicy.js

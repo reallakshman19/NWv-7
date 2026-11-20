@@ -1,0 +1,575 @@
+/**
+ * NWv7 Market Desk R2.1 - WP-05 Mutual Funds Stylesheet
+ */
+
+.funds-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background-color: var(--color-bg-base, #0d1117);
+  color: var(--color-text-primary, #e6edf3);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* Header */
+.funds-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-border-subtle, #30363d);
+  padding-bottom: 1rem;
+}
+
+.funds-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.funds-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.funds-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.funds-count-badge {
+  background-color: #21262d;
+  color: #58a6ff;
+  border: 1px solid #30363d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+}
+
+.funds-subtitle {
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.funds-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Disclaimer Banner */
+.funds-disclaimer-banner {
+  background-color: rgba(56, 139, 253, 0.1);
+  border: 1px solid rgba(56, 139, 253, 0.3);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  font-size: 0.825rem;
+  color: #79c0ff;
+  line-height: 1.45;
+}
+
+/* Toolbar */
+.funds-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.toolbar-info {
+  font-size: 0.825rem;
+  color: #8b949e;
+}
+
+.scheme-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.scheme-plan-tags {
+  display: flex;
+  gap: 0.3rem;
+}
+
+/* Search Bar */
+.fund-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.fund-search-input {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.65rem 0.9rem;
+}
+
+.search-spinner {
+  position: absolute;
+  right: 1rem;
+  font-size: 0.8rem;
+  color: #58a6ff;
+}
+
+/* Research Header Card */
+.fund-research-header-card {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.research-title-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.scheme-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.research-scheme-name {
+  margin: 0.2rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.research-subtext {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.research-actions-col {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* SVG Chart Card */
+.fund-nav-chart-card {
+  background-color: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.fund-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fund-chart-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fund-chart-metric-title {
+  font-size: 0.775rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8b949e;
+  font-weight: 600;
+}
+
+.fund-chart-val-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fund-chart-latest-nav {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.fund-chart-gain-pill {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.fund-chart-range-bar {
+  display: flex;
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.fund-range-btn {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+.fund-range-btn:hover {
+  color: #f0f6fc;
+}
+.fund-range-btn.active {
+  background-color: #238636;
+  color: #ffffff;
+}
+
+.fund-svg-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.fund-svg-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.svg-axis-label {
+  font-size: 10px;
+  fill: #8b949e;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.svg-hover-target {
+  cursor: crosshair;
+}
+
+.fund-chart-tooltip {
+  position: absolute;
+  background-color: #0d1117;
+  border: 1px solid #58a6ff;
+  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+.tooltip-date {
+  color: #8b949e;
+  font-size: 0.7rem;
+}
+.tooltip-val {
+  color: #58a6ff;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.fund-compare-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #21262d;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.legend-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-name {
+  font-weight: 500;
+}
+
+.legend-gain {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-weight: 700;
+}
+
+/* Comparison Modal */
+.fund-compare-modal {
+  max-width: 780px;
+}
+
+.fund-compare-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fund-compare-selection-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.selection-label,
+.horizon-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #8b949e;
+}
+
+.scheme-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.scheme-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+.scheme-toggle-pill.active {
+  background-color: rgba(56, 139, 253, 0.2);
+  color: #58a6ff;
+  border-color: #58a6ff;
+}
+.check-mark {
+  font-weight: 700;
+}
+
+.fund-compare-horizon-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fund-disclaimer-note {
+  background: rgba(56, 139, 253, 0.08);
+  border: 1px solid rgba(56, 139, 253, 0.25);
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.8rem;
+  color: #79c0ff;
+}
+
+/* SIP Modal */
+.fund-sip-modal {
+  max-width: 500px;
+}
+
+.fund-sip-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fund-sip-target-scheme {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: #0d1117;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  border: 1px solid #30363d;
+}
+
+.scheme-label {
+  font-size: 0.75rem;
+  color: #8b949e;
+}
+
+.fund-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.fund-sip-shortcut-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.shortcut-active-pill {
+  font-size: 0.75rem;
+  color: #3fb950;
+}
+
+.fund-sip-results-card {
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.result-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.result-metric-row.total-row {
+  border-top: 1px solid #30363d;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.result-metric-row.total-row .highlight {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #58a6ff;
+}
+
+/* Summary Card */
+.fund-summary-card {
+  background-color: var(--color-bg-card, #161b22);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fund-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.fund-summary-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.fund-summary-subtitle {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.fund-summary-metrics {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.fund-summary-metric-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.fund-featured {
+  align-items: flex-end;
+}
+
+.fund-metric-label {
+  font-size: 0.75rem;
+  color: #8b949e;
+  font-weight: 500;
+}
+
+.fund-metric-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.fund-featured-name {
+  font-size: 0.825rem;
+  font-weight: 600;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fund-featured-nav {
+  font-size: 0.85rem;
+}
+
+.fund-summary-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fund-summary-empty-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #8b949e;
+}
+
+.fund-loading-status {
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  color: #58a6ff;
+  text-align: center;
+}
+
+.fund-empty-state {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  border: 1px dashed #30363d;
+  border-radius: 8px;
+  color: #8b949e;
+}
+
+/* Mobile Responsiveness (320px, 390px) */
+@media (max-width: 600px) {
+  .funds-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .funds-header-actions {
+    justify-content: flex-start;
+  }
+  .fund-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .fund-research-header-card {
+    flex-direction: column;
+  }
+  .fund-summary-metrics {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .fund-featured {
+    align-items: flex-start;
+  }
+}

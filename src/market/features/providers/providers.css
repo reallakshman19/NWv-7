@@ -1,0 +1,544 @@
+/* ==========================================================================
+   NWv-7 Market Desk R2.1 — WP-02 Provider Displays Stylesheet
+   Responsive layout (320px–1366px), intrinsic containment, WCAG AA contrast,
+   dark/light theme support, and leak-free widget bounds.
+   ========================================================================== */
+
+:root {
+  --market-bg-primary: var(--bg-primary, #ffffff);
+  --market-bg-secondary: var(--bg-secondary, #f8fafc);
+  --market-text-primary: var(--text-primary, #0f172a);
+  --market-text-secondary: var(--text-secondary, #475569);
+  --market-border-color: var(--border-color, #cbd5e1);
+  --market-accent-primary: var(--accent-primary, #0284c7);
+  --market-tone-success: #15803d;
+  --market-tone-warning: #b45309;
+  --market-tone-danger: #b91c1c;
+  --market-tone-muted: var(--text-secondary, #64748b);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --market-bg-primary: var(--bg-primary, #0f172a);
+    --market-bg-secondary: var(--bg-secondary, #1e293b);
+    --market-text-primary: var(--text-primary, #f8fafc);
+    --market-text-secondary: var(--text-secondary, #94a3b8);
+    --market-border-color: var(--border-color, #334155);
+    --market-accent-primary: var(--accent-primary, #38bdf8);
+    --market-tone-success: #4ade80;
+    --market-tone-warning: #facc15;
+    --market-tone-danger: #f87171;
+    --market-tone-muted: var(--text-secondary, #94a3b8);
+  }
+}
+
+/* ==========================================================================
+   1. MarketProviderBoard Component
+   ========================================================================== */
+.market-provider-board {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background-color: var(--market-bg-secondary);
+  border: 1px solid var(--market-border-color);
+  border-radius: 10px;
+  padding: 16px;
+  color: var(--market-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.market-provider-board *,
+.market-provider-board *::before,
+.market-provider-board *::after {
+  box-sizing: border-box;
+}
+
+.market-provider-board__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.market-provider-board__branding {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.market-provider-board__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.market-provider-board__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--market-text-secondary);
+  line-height: 1.4;
+}
+
+.market-provider-board__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.market-provider-board__btn {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--market-border-color);
+  background-color: var(--market-bg-primary);
+  color: var(--market-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.market-provider-board__btn:hover {
+  background-color: var(--market-bg-secondary);
+}
+
+.market-provider-board__switch-btn {
+  border-color: var(--market-accent-primary);
+  color: var(--market-accent-primary);
+}
+
+.market-provider-board__hide-btn {
+  color: var(--market-text-secondary);
+}
+
+/* Consent Box (IDLE state) */
+.market-provider-board__consent-box {
+  background-color: var(--market-bg-primary);
+  border: 1px dashed var(--market-border-color);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.market-provider-board__disclosure {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--market-text-secondary);
+}
+
+.market-provider-board__disclosure strong {
+  color: var(--market-text-primary);
+}
+
+.market-provider-board__consent-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.market-provider-board__load-btn {
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  min-height: 42px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--market-accent-primary);
+  background-color: var(--market-accent-primary);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.market-provider-board__load-btn:hover {
+  opacity: 0.92;
+}
+
+/* Active body container */
+.market-provider-board__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.market-provider-board__body.is-hidden {
+  display: none;
+}
+
+.market-provider-board__status {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--market-text-secondary);
+  font-style: italic;
+}
+
+.market-provider-board__status--loaded {
+  color: var(--market-tone-success);
+  font-style: normal;
+  font-weight: 500;
+}
+
+/* Alerts (Error & Timeout) */
+.market-provider-board__error-alert {
+  padding: 12px 14px;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid var(--market-tone-danger);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--market-tone-danger);
+}
+
+.market-provider-board__error-alert p {
+  margin: 0;
+  flex: 1 1 200px;
+}
+
+.market-provider-board__retry-btn {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--market-tone-danger);
+  background-color: var(--market-bg-primary);
+  color: var(--market-tone-danger);
+  cursor: pointer;
+}
+
+/* TradingView host container */
+.tradingview-widget-container {
+  min-height: 380px;
+  height: 380px;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #131722; /* TradingView default dark background */
+}
+
+.tradingview-widget-copyright {
+  font-size: 0.72rem;
+  color: var(--market-text-secondary);
+  text-align: right;
+  padding: 4px 0 0;
+}
+
+.tradingview-widget-copyright a {
+  color: var(--market-accent-primary);
+  text-decoration: none;
+}
+
+.tradingview-widget-copyright a:hover {
+  text-decoration: underline;
+}
+
+/* Catalog fallback links */
+.market-provider-board__catalog-links {
+  border-top: 1px solid var(--market-border-color);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.market-provider-board__links-caption {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--market-text-secondary);
+}
+
+.market-provider-board__links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.market-provider-board__link {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--market-accent-primary);
+  text-decoration: none;
+}
+
+.market-provider-board__link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   2. IndexSectorPanel Component
+   ========================================================================== */
+.index-sector-panel {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background-color: var(--market-bg-secondary);
+  border: 1px solid var(--market-border-color);
+  border-radius: 10px;
+  padding: 16px;
+  color: var(--market-text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.index-sector-panel *,
+.index-sector-panel *::before,
+.index-sector-panel *::after {
+  box-sizing: border-box;
+}
+
+.index-sector-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.index-sector-panel__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.index-sector-panel__subtitle {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--market-text-secondary);
+}
+
+.index-sector-panel__nav-btn {
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--market-accent-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+}
+
+.index-sector-panel__nav-btn:hover {
+  text-decoration: underline;
+}
+
+.index-sector-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.index-sector-panel__section-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--market-text-primary);
+}
+
+.index-sector-panel__section-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--market-text-secondary);
+}
+
+/* Benchmark Grid */
+.benchmark-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 10px;
+}
+
+.benchmark-card {
+  background-color: var(--market-bg-primary);
+  border: 1px solid var(--market-border-color);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.benchmark-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.benchmark-card__badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.benchmark-card__badge--nse {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: var(--market-tone-success);
+}
+
+.benchmark-card__badge--bse {
+  background-color: rgba(2, 132, 199, 0.15);
+  color: var(--market-accent-primary);
+}
+
+.benchmark-card__desc {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--market-text-secondary);
+}
+
+.benchmark-card__link,
+.benchmark-card__action-btn {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--market-accent-primary);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.benchmark-card__link:hover,
+.benchmark-card__action-btn:hover {
+  text-decoration: underline;
+}
+
+/* Provider Group Switcher in Sector Panel */
+.provider-group-selector {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  background-color: var(--market-bg-primary);
+  border: 1px solid var(--market-border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.provider-group-selector__label {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.provider-group-selector__btn-group {
+  display: inline-flex;
+  border: 1px solid var(--market-border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.provider-group-btn {
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  color: var(--market-text-secondary);
+  cursor: pointer;
+}
+
+.provider-group-btn.is-active {
+  background-color: var(--market-accent-primary);
+  color: #ffffff;
+}
+
+.provider-group-selector__note {
+  font-size: 0.74rem;
+  color: var(--market-text-secondary);
+}
+
+/* Sector Link Chips */
+.sector-link-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sector-link-chip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: var(--market-bg-primary);
+  border: 1px solid var(--market-border-color);
+  color: var(--market-text-primary);
+  text-decoration: none;
+}
+
+.sector-link-chip:hover {
+  border-color: var(--market-accent-primary);
+  color: var(--market-accent-primary);
+}
+
+/* Movers Row */
+.movers-links-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.movers-btn {
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--market-border-color);
+  background-color: var(--market-bg-primary);
+  color: var(--market-accent-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.movers-btn:hover {
+  background-color: var(--market-bg-secondary);
+}
+
+.index-sector-panel__disclaimer {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  color: var(--market-text-secondary);
+  line-height: 1.4;
+}
+
+/* Accessibility Focus States */
+.market-provider-board button:focus-visible,
+.market-provider-board a:focus-visible,
+.index-sector-panel button:focus-visible,
+.index-sector-panel a:focus-visible {
+  outline: 3px solid var(--market-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Ultra-compact width safety (320px) */
+@media (max-width: 340px) {
+  .market-provider-board,
+  .index-sector-panel {
+    padding: 10px;
+  }
+}
