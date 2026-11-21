@@ -154,17 +154,18 @@ def priority(item: dict) -> tuple:
             -millis(item.get("lastVerifiedAt")), category, identity(item))
 
 
-def envelope(items: list[dict], now: int, latest: dict, metrics: dict) -> dict:
+def envelope(items: list[dict], now: int, latest: dict, metrics: dict, tombstones: list[dict]) -> dict:
     return {"schemaVersion": 1, "kind": "buzz_rolling_retention",
             "policyVersion": POLICY["version"], "generatedAt": now,
             "source": latest, "freshHours": POLICY["freshHours"],
             "maxDisplayHours": POLICY["maximumDisplayHours"],
             "maxItems": MAX_ITEMS, "maxBytes": MAX_BYTES,
             "items": items, "itemsSha256": digest(items),
+            "tombstones": tombstones, "tombstonesSha256": digest(tombstones),
             "metrics": metrics}
 
 
-def bound(items: list[dict], now: int, latest: dict) -> tuple[dict, dict]:
+def bound(items: list[dict], now: int, latest: dict, tombstones: list[dict]) -> tuple[dict, dict]:
     by_cat = {section: sorted((x for x in items if x["buzzSection"] == section), key=priority)
               for section in BUZZ_SECTIONS}
     selected: list[dict] = []
@@ -194,15 +195,15 @@ def bound(items: list[dict], now: int, latest: dict) -> tuple[dict, dict]:
                    "rejectedByCategory": dict(sorted(Counter(
                        x["buzzSection"] for x in items if identity(x) not in {identity(y) for y in chosen}
                    ).items())), "rejectedByBytes": omitted_by_size}
-        result = envelope(chosen, now, latest, metrics)
+        result = envelope(chosen, now, latest, metrics, tombstones)
         size = len(json_bytes(result))
         if size <= MAX_BYTES:
             metrics["snapshotBytes"] = size
             # Account for the inserted size counter itself.
-            result = envelope(chosen, now, latest, metrics)
+            result = envelope(chosen, now, latest, metrics, tombstones)
             size = len(json_bytes(result))
             metrics["snapshotBytes"] = size
-            result = envelope(chosen, now, latest, metrics)
+            result = envelope(chosen, now, latest, metrics, tombstones)
             if len(json_bytes(result)) <= MAX_BYTES:
                 return result, metrics
         if not selected:
@@ -230,6 +231,21 @@ def build(current: dict, previous: dict, now: int) -> tuple[dict, dict]:
         if now < row["retention"]["displayUntil"]:
             survivors[identity(row)] = row
 
+    # An explicit withdrawal must not be reversed by a delayed publisher replay.
+    prior_tombstones = previous.get("tombstones", []) if isinstance(previous, dict) else []
+    if not isinstance(prior_tombstones, list) or len(prior_tombstones) > 500:
+        raise RetentionRejected("invalid_tombstone_pool")
+    if prior_tombstones and previous.get("tombstonesSha256") != digest(prior_tombstones):
+        raise RetentionRejected("tampered_tombstone_pool")
+    tombstones = {}
+    for row in prior_tombstones:
+        if not isinstance(row, dict) or not isinstance(row.get("identity"), str):
+            raise RetentionRejected("invalid_tombstone_record")
+        removed_at = millis(row.get("removedAt"))
+        if removed_at and 0 <= now - removed_at <= 7 * DAY:
+            tombstones[row["identity"]] = row
+            survivors.pop(row["identity"], None)
+
     source_clock = int(source.get("fetchedAt") or 0)
     # Only observations from a newer source epoch can renew lastVerifiedAt.
     # A repeated snapshot can supply new rows only on an empty bootstrap.
@@ -243,8 +259,17 @@ def build(current: dict, previous: dict, now: int) -> tuple[dict, dict]:
                 continue
             if is_withdrawn(item):
                 survivors.pop(key, None)
+                tombstones[key] = {"identity": key, "removedAt": source_clock,
+                                   "sourceSnapshotHash": source.get("contentHash") or ""}
                 withdrawals += 1
                 continue
+            if key in tombstones:
+                # No ordinary source reappearance can undo an explicit retraction.
+                # A separate verified reinstatement is necessary, not a retry.
+                reinstated_at = millis(item.get("reinstatedAt"))
+                if not reinstated_at or reinstated_at <= millis(tombstones[key]["removedAt"]) or reinstated_at > source_clock:
+                    continue
+                del tombstones[key]
             if not is_valid_story(item, now):
                 continue
             old = survivors.get(key)
@@ -256,13 +281,15 @@ def build(current: dict, previous: dict, now: int) -> tuple[dict, dict]:
                 refreshed += 1
 
     all_eligible = list(survivors.values())
-    snapshot, metrics = bound(all_eligible, now, source)
+    retained_tombstones = sorted(tombstones.values(), key=lambda row: (-millis(row["removedAt"]), row["identity"]))[:500]
+    snapshot, metrics = bound(all_eligible, now, source, retained_tombstones)
     if not snapshot["items"]:
         raise RetentionRejected("no_eligible_buzz_items_keep_last_qualified_release")
     report = {"schemaVersion": 1, "status": "WARN" if not source["eligible"] or metrics["rejectedByCapacity"] else "PASS",
               "generatedAt": now, "policyVersion": POLICY["version"],
               "source": source, "sourceReverifiedRows": refreshed,
               "explicitWithdrawals": withdrawals,
+              "activeWithdrawalTombstones": len(retained_tombstones),
               "retainedAcrossSourceGap": sum(1 for x in snapshot["items"]
                                                if millis(x.get("lastVerifiedAt")) < source_clock or not source["eligible"]),
               "metrics": metrics,
