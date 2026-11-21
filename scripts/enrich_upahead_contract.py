@@ -18,21 +18,30 @@ from typing import Any
 from prefetch_common import compute_content_hash, title_fingerprint
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
+_POLICY_PATH = Path(__file__).resolve().parents[1] / "config" / "upahead_retention_policy.json"
+RETENTION_POLICY = json.loads(_POLICY_PATH.read_text(encoding="utf-8"))
+MAX_ACTIVE_ITEMS = int(RETENTION_POLICY["active"]["maxItems"])
+MAX_ACTIVE_BYTES = int(RETENTION_POLICY["active"]["maxBytes"])
+MAX_TOTAL_PUBLICATION_BYTES = int(RETENTION_POLICY["publication"]["maxSnapshotBytes"])
+MAX_ACTIVE_WINDOW_HOURS = int(RETENTION_POLICY["maximumActiveWindowHours"])
+CATEGORY_SOFT_CAPS = RETENTION_POLICY["active"]["softCategoryCaps"]
+SAFETY_CATEGORIES = {"alerts", "weather_alerts", "civic"}
+
 H_MS = 3_600_000
 DAY_MS = 86_400_000
 UPAHEAD_LOOKAHEAD_DAYS = 7
 UPAHEAD_EVENT_PAST_GRACE_HOURS = 24
 PLANNER_PAST_GRACE_HOURS = 6
-ALERT_FALLBACK_HOURS = 24
-OFFER_FALLBACK_HOURS = 48
+ALERT_FALLBACK_HOURS = int(RETENTION_POLICY["categoryDefaultRetentionHours"]["alerts"])
+OFFER_FALLBACK_HOURS = int(RETENTION_POLICY["categoryDefaultRetentionHours"]["shopping"])
 # The public snapshot carries a separate future pool. Limits apply to admission,
 # never to the independent holiday calendar or user-saved Planner reminders.
-PENDING_LOOKAHEAD_DAYS = 180
-MAX_PENDING_ITEMS = 500
-MAX_PENDING_BYTES = 1_000_000
-MAX_RETIRED_REVISIONS = 2000
-MAX_QUARANTINE_ITEMS = 100
-MAX_QUARANTINE_BYTES = 256_000
+PENDING_LOOKAHEAD_DAYS = int(RETENTION_POLICY["pending"]["futureAdmissionDays"])
+MAX_PENDING_ITEMS = int(RETENTION_POLICY["pending"]["maxItems"])
+MAX_PENDING_BYTES = int(RETENTION_POLICY["pending"]["maxBytes"])
+MAX_RETIRED_REVISIONS = int(RETENTION_POLICY["retention"]["retiredRevisionsMax"])
+MAX_QUARANTINE_ITEMS = int(RETENTION_POLICY["quarantine"]["maxItems"])
+MAX_QUARANTINE_BYTES = int(RETENTION_POLICY["quarantine"]["maxBytes"])
 
 EVENT_CATEGORIES = {"events", "movies", "festivals", "sports"}
 ALERT_CATEGORIES = {"alerts", "weather_alerts", "civic"}
@@ -79,18 +88,33 @@ def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str
                       ('publishedAt', 'firstSeenAt', 'observedAt') if _ms(item.get(key))), None)
 
     if expiry_at is not None and (event_end is None or expiry_at <= event_end):
-        return expiry_at, "expiryAt"
-    if event_end is not None:
-        return event_end, "eventEndAt"
-    if event_start is not None:
-        return event_start + DAY_MS, "eventStartAt_end_of_day"
-    if not published:
+        deadline, reason = expiry_at, "expiryAt"
+    elif event_end is not None:
+        deadline, reason = event_end, "eventEndAt"
+    elif event_start is not None:
+        deadline, reason = event_start + DAY_MS, "eventStartAt_end_of_day"
+    elif not published:
         return 0, "missing_source_time"
-    if category in OFFER_CATEGORIES:
-        return published + OFFER_FALLBACK_HOURS * H_MS, "offer_48h_fallback"
-    if category in ALERT_CATEGORIES:
-        return published + ALERT_FALLBACK_HOURS * H_MS, "alert_24h_fallback"
-    return now_ms - 1, "missing_event_time"
+    elif category in OFFER_CATEGORIES:
+        deadline, reason = published + OFFER_FALLBACK_HOURS * H_MS, "offer_48h_fallback"
+    elif category in ALERT_CATEGORIES:
+        deadline, reason = published + ALERT_FALLBACK_HOURS * H_MS, "alert_36h_fallback"
+    else:
+        return now_ms - 1, "missing_event_time"
+
+    # An old cached copy cannot indefinitely extend a source's advertised validity.
+    # Future-dated items are admitted separately: their seven-day evidence window
+    # starts no earlier than the verified event occurrence, not at announcement.
+    verified = next((_ms(item.get(key)) for key in
+                     ("lastVerifiedAt", "observedAt", "firstSeenAt", "publishedAt")
+                     if _ms(item.get(key))), None)
+    if verified is None and event_start is None:
+        return 0, "missing_source_clock"
+    evidence_anchor = max(verified or 0, event_start or 0)
+    evidence_deadline = evidence_anchor + MAX_ACTIVE_WINDOW_HOURS * H_MS
+    if deadline > evidence_deadline:
+        return evidence_deadline, "max_7d_without_verified_refresh"
+    return deadline, reason
 
 
 def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
@@ -149,6 +173,67 @@ def should_publish_item(item: dict[str, Any], lifecycle: dict[str, Any]) -> bool
     return bool(lifecycle.get("isVisible"))
 
 
+def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Bound published active data deterministically, protecting urgent alerts.
+
+    Category allocations are soft. Spare room is redistributed; hard item/byte
+    limits always win. Any rejected safety alert must fail the release gate.
+    """
+    def ordering(row: dict[str, Any]) -> tuple:
+        category = str(row.get("category") or "")
+        urgency = 0 if category in SAFETY_CATEGORIES else 1
+        expiry = (_ms(row.get("lifecycle", {}).get("displayUntil")) or 0)
+        start = (_ms(row.get("eventStartAt")) or expiry)
+        return (urgency, start, expiry, -float(row.get("actionabilityScore") or 0),
+                category, str(row.get("occurrenceId") or row.get("id") or row.get("url") or ""))
+
+    ordered = sorted(items, key=ordering)
+    chosen: list[dict[str, Any]] = []
+    chosen_ids: set[int] = set()
+    selected_by_category = Counter()
+    active_bytes = 0
+    too_large_count = 0
+
+    def admit(index: int, row: dict[str, Any]) -> bool:
+        nonlocal active_bytes, too_large_count
+        size = len(json.dumps(row, ensure_ascii=False).encode("utf-8"))
+        if size > MAX_ACTIVE_BYTES or active_bytes + size > MAX_ACTIVE_BYTES:
+            too_large_count += 1
+            return False
+        if len(chosen) >= MAX_ACTIVE_ITEMS:
+            return False
+        chosen.append(row)
+        chosen_ids.add(index)
+        selected_by_category[str(row.get("category") or "unknown")] += 1
+        active_bytes += size
+        return True
+
+    for index, row in enumerate(ordered):
+        category = str(row.get("category") or "unknown")
+        if selected_by_category[category] >= int(CATEGORY_SOFT_CAPS.get(category, MAX_ACTIVE_ITEMS)):
+            continue
+        admit(index, row)
+    for index, row in enumerate(ordered):
+        if index not in chosen_ids:
+            admit(index, row)
+
+    rejected = [row for index, row in enumerate(ordered) if index not in chosen_ids]
+    rejected_by_category = Counter(str(row.get("category") or "unknown") for row in rejected)
+    metrics = {
+        "maxActiveItems": MAX_ACTIVE_ITEMS,
+        "maxActiveBytes": MAX_ACTIVE_BYTES,
+        "activeItemCount": len(chosen),
+        "activeBytes": active_bytes,
+        "rejectedActiveCount": len(rejected),
+        "rejectedActiveByCategory": dict(sorted(rejected_by_category.items())),
+        "rejectedSafetyAlertCount": sum(rejected_by_category.get(category, 0) for category in SAFETY_CATEGORIES),
+        "oversizedOrByteRejectedCount": too_large_count,
+        "maxTotalPublishedBytes": MAX_TOTAL_PUBLICATION_BYTES,
+        "maxActiveWindowHours": MAX_ACTIVE_WINDOW_HOURS,
+    }
+    return chosen, metrics
+
+
 def enrich_items(items: list[dict[str, Any]], now_ms: int) -> list[dict[str, Any]]:
     output = []
     for item in items or []:
@@ -205,6 +290,7 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
             continue
         pending.append(row)
         pending_bytes += size
+    items, active_capacity = bound_active_items(items)
     enriched = dict(snapshot)
     enriched["schemaVersion"] = int(enriched.get("schemaVersion") or 1)
     enriched["contractVersion"] = "upahead-lifecycle-v1"
@@ -219,10 +305,11 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
     enriched["items"] = items
     enriched['pendingItems'] = pending
     enriched['retention'] = {
-        'version': 'upahead-retention-v1', 'futureAdmissionDays': PENDING_LOOKAHEAD_DAYS,
+        'version': RETENTION_POLICY['policyVersion'], 'futureAdmissionDays': PENDING_LOOKAHEAD_DAYS,
         'maxPendingItems': MAX_PENDING_ITEMS, 'maxPendingBytes': MAX_PENDING_BYTES,
         'pendingItemCount': len(pending), 'pendingBytes': pending_bytes,
         'rejectedFutureCount': rejected, 'historyDays': 7,
+        **active_capacity,
     }
     enriched['contentHash'] = compute_content_hash([*items, *pending])
     quarantine = {}
