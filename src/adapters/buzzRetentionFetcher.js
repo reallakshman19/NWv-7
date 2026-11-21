@@ -53,9 +53,12 @@ export function qualifyBuzzRetainedSnapshot(snapshot, now = Date.now()) {
     return { ok: false, reason: 'unsupported_buzz_retention', sections: {}, items: [] };
   }
   const generated = ms(snapshot.generatedAt);
-  if (!generated || generated > now + FUTURE || now - generated > RETAINED_MAX_AGE_MS) {
-    return { ok: false, reason: 'stale_buzz_retention_snapshot', sections: {}, items: [] };
+  if (!generated || generated > now + FUTURE) {
+    return { ok: false, reason: 'invalid_buzz_retention_clock', sections: {}, items: [] };
   }
+  // The publishing snapshot may become stale during an outage, but its
+  // independently verified stories stay eligible until their own deadlines.
+  const stale = now - generated > RETAINED_MAX_AGE_MS;
   const counts = { entertainment: [], social: [], technology: [] };
   let invalid = 0;
   for (const item of snapshot.items) {
@@ -70,18 +73,17 @@ export function qualifyBuzzRetainedSnapshot(snapshot, now = Date.now()) {
     });
   }
   return { ok: Object.values(counts).some(rows => rows.length > 0),
-    reason: invalid ? 'some_retained_items_expired' : null,
+    stale,
+    reason: stale ? 'stale_buzz_retention_snapshot' : invalid ? 'some_retained_items_expired' : null,
     sections: counts, items: Object.values(counts).flat(), rejectedAtRuntime: invalid,
     source: snapshot.source || null, generatedAt: generated };
 }
 
-export function buzzRetentionUrl(location = globalThis.window?.location) {
-  if (location?.origin === 'https://reallakshman19.github.io'
-    && (location.pathname === '/NWv-7' || location.pathname?.startsWith('/NWv-7/'))) {
-    return 'https://raw.githubusercontent.com/reallakshman19/NWv-7/main/public/newsdata/buzz_retained_latest.json';
-  }
+export function buzzRetentionUrl() {
+  // Consume only the reviewed Pages release, not an unpinned main-branch blob.
+  // The rolling publication workflow alone does not authorize a Pages deploy.
   const base = import.meta.env.BASE_URL || '/';
-  return `${base.replace(/\/$/, '')}/newsdata/buzz_retained_latest.json`;
+  return `${base.replace(/\\/$/, '')}/newsdata/buzz_retained_latest.json`;
 }
 
 export async function loadBuzzRetainedSnapshot({ now = Date.now(), timeoutMs = 1800,
