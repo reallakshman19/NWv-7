@@ -206,22 +206,24 @@ function getStoryTimeMs(story) {
 }
 
 function filterOldNews(newsArray, freshnessLimitHours = 72) {
-  const limitMs = Number(freshnessLimitHours || 72) * 3600000;
+  const limitMs = Math.min(168, Math.max(1, Number(freshnessLimitHours) || 72)) * 3600000;
   const now = Date.now();
 
-  const filtered = asArray(newsArray).filter(item => {
+  // The Rolling Buzz store owns its vetted displayUntil clock. Avoid applying
+  // a separate 72h UI freshness filter that makes 7d-eligible stories vanish.
+  // The original publication timestamp is never refreshed or relabelled.
+  return asArray(newsArray).filter(item => {
     const publishedAtMs = getStoryTimeMs(item);
-    if (!publishedAtMs) return true;
+    if (!publishedAtMs || publishedAtMs > now + 5 * 60_000) return false;
+    if (item?.suppressionReason || item?.withdrawnAt ||
+        ['withdrawn', 'retracted', 'removed', 'cancelled'].includes(String(item?.status || '').toLowerCase())) return false;
+    if (item?._buzzRetained) {
+      const displayUntil = getPublishedAtMs(item?.retention?.displayUntil);
+      const upperHours = item?.buzzSection === 'social' ? 72 : 168;
+      return displayUntil > now && now - publishedAtMs <= upperHours * 3600000;
+    }
     return now - publishedAtMs < limitMs;
   });
-
-  // If live feeds are stale (e.g. in test env or due to feed delay) and all items
-  // were filtered, fall back to displaying the raw items to avoid a blank screen
-  if (filtered.length === 0 && asArray(newsArray).length > 0) {
-    console.warn(`[BuzzHub] Relaxing freshness filter; no articles found within ${freshnessLimitHours}h`);
-    return asArray(newsArray);
-  }
-  return filtered;
 }
 
 function sortNewestFirst(stories) {
@@ -354,7 +356,8 @@ function projectEntertainmentStories(newsData, freshnessLimitHours = 72, setting
     filterOldNews(raw, freshnessLimitHours)
       .map(item => ({
         ...item,
-        region: classifyEntertainmentRegion(item, settings),
+        region: classifyEntertainmentRegion(item, settings)
+          || (item?._buzzRetained && item?.buzzSection === 'entertainment' ? 'other' : null),
       }))
       .filter(item => item.region)
   );
@@ -632,13 +635,14 @@ export function useTechSocialPageViewModel() {
       const cachedItems = asArray(cached[section]);
       const fallbackItems = asArray(fallback[section]);
 
-      if (primaryItems.length > 0) {
-        merged[section] = primaryItems;
-      } else if (cachedItems.length > 0) {
-        merged[section] = cachedItems;
-      } else {
-        merged[section] = fallbackItems;
-      }
+      // A nonempty NewsContext section must not mask still-eligible rolling
+      // stories; a cached copy must not override more recent verified evidence.
+      merged[section] = uniqueByStory([
+        ...fallbackItems.filter(item => item?._buzzRetained),
+        ...primaryItems,
+        ...fallbackItems,
+        ...cachedItems,
+      ]);
     });
 
     return merged;
@@ -669,12 +673,12 @@ export function useTechSocialPageViewModel() {
   // Hindi/Hollywood. Respects an explicit user choice.
   useEffect(() => {
     if (userSelectedEntTab) return;
-    const counts = { tamil: 0, hindi: 0, hollywood: 0, ott: 0 };
+    const counts = { tamil: 0, hindi: 0, hollywood: 0, ott: 0, other: 0 };
     processedEntertainment.forEach(item => {
       if (counts[item.region] != null) counts[item.region] += 1;
     });
     if (counts[activeEntTab] === 0) {
-      const firstNonEmpty = ['tamil', 'hindi', 'hollywood', 'ott'].find(region => counts[region] > 0);
+      const firstNonEmpty = ['tamil', 'hindi', 'hollywood', 'ott', 'other'].find(region => counts[region] > 0);
       if (firstNonEmpty && firstNonEmpty !== activeEntTab) {
         setActiveEntTabState(firstNonEmpty);
       }
