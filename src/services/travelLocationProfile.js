@@ -1,3 +1,5 @@
+import { getWeatherLocation } from './weatherLocations.js';
+
 export const TRAVEL_LOCATION_PROFILE_VERSION = 'travel-location-profile-v1-colombo';
 
 export const TRAVEL_LOCATION_REGISTRY = {
@@ -96,6 +98,41 @@ export const TRAVEL_LOCATION_REGISTRY = {
 
 export const DEFAULT_TRAVEL_LOCATION_KEY = 'chennai';
 
+// Prefetched local feeds currently cover the four dedicated registry cities.
+// Other configured weather cities can still display matching aggregated news.
+const WEATHER_COUNTRY_EDITION_CODES = {
+  India: 'IN',
+  Oman: 'OM',
+  'Sri Lanka': 'LK',
+  'United States': 'US',
+  'United Kingdom': 'GB',
+  Canada: 'CA',
+  Australia: 'AU',
+  Singapore: 'SG',
+  UAE: 'AE',
+};
+
+function getWeatherCityTravelProfile(city) {
+  const location = getWeatherLocation(city);
+  if (!location) return null;
+
+  const countryCode = WEATHER_COUNTRY_EDITION_CODES[location.country] || 'ZZ';
+  return {
+    key: location.key,
+    display: location.display,
+    countryCode,
+    countryLabel: location.country,
+    regionLabel: location.region,
+    icon: location.icon,
+    lat: location.lat,
+    lon: location.lon,
+    aliases: location.aliases || [],
+    storyKeywords: [location.display, ...(location.aliases || [])],
+    edition: { country: countryCode, lang: 'en', timeRange: '30d' },
+    hasDedicatedLocalFeed: false,
+  };
+}
+
 function safeLocalStorageGet(key) {
   try {
     if (typeof localStorage === 'undefined') return '';
@@ -132,7 +169,9 @@ export function resolveTravelLocationKey(value) {
         [profile.countryLabel, profile.regionLabel].map(normalizeTravelLocation).includes(parts[1])) return key;
   }
 
-  return null;
+  // Weather locations beyond the dedicated travel feed cities are allowed;
+  // they use aggregated headline matching rather than an invented local feed.
+  return getWeatherLocation(value)?.key || null;
 }
 
 export function getTravelLocationOptions() {
@@ -164,6 +203,25 @@ export function buildTravelLocationSettings(baseSettings = {}, patch = {}) {
   };
 }
 
+// Called from Quick Weather when the user actively selects a weather city.
+// Preserve unrelated settings and local-news visibility preferences.
+export function buildWeatherSelectedNewsSettings(baseSettings = {}, selectedCity) {
+  const city = resolveTravelLocationKey(selectedCity);
+  if (!city) return baseSettings;
+
+  return {
+    ...baseSettings,
+    weather: {
+      ...(baseSettings.weather || {}),
+      activeCity: city,
+    },
+    travelLocation: {
+      ...(baseSettings.travelLocation || {}),
+      city,
+    },
+  };
+}
+
 export function getTravelLocationProfile(settings = {}, options = {}) {
   const explicitCity = settings?.travelLocation?.city;
   const weatherActiveCity =
@@ -181,7 +239,7 @@ export function getTravelLocationProfile(settings = {}, options = {}) {
     resolveTravelLocationKey(firstConfiguredWeatherCity) ||
     DEFAULT_TRAVEL_LOCATION_KEY;
 
-  const registryProfile = TRAVEL_LOCATION_REGISTRY[key] || TRAVEL_LOCATION_REGISTRY[DEFAULT_TRAVEL_LOCATION_KEY];
+  const registryProfile = TRAVEL_LOCATION_REGISTRY[key] || getWeatherCityTravelProfile(key) || TRAVEL_LOCATION_REGISTRY[DEFAULT_TRAVEL_LOCATION_KEY];
 
   const enabled = settings?.travelLocation?.enabled !== false;
   const prioritizeStories = enabled && settings?.travelLocation?.prioritizeStories !== false;
