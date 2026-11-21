@@ -184,8 +184,8 @@ def test_schedule_policy_skips_live_publisher_probe_outside_pull_requests():
     text = workflow.read_text(encoding='utf-8')
     assert re.search(
         r"- name: Probe official Daily Thanthi feed and require a current attributable preview\n"
-        r"\s+if: github\\.event_name == 'pull_request'\n"
-        r"\s+run: python scripts/daily_brief\\.py --probe-source DAILY_THANTHI",
+        r"\s+if: github[.]event_name == 'pull_request'\n"
+        r"\s+run: python scripts/daily_brief[.]py --probe-source DAILY_THANTHI",
         text,
     )
     assert "needs: certify" in text
