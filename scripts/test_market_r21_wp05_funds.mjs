@@ -322,6 +322,17 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
+  // This workpack-isolation assertion applies only to Market implementation
+  // changes. Independent Buzz/Up Ahead/Sections workflow PRs must not be
+  // treated as Market workpacks solely because they add shared-path files.
+  const marketWorkpack = changedFiles.some(file =>
+    file.startsWith('src/market/') ||
+    file.startsWith('reports/market-r21/') ||
+    file.startsWith('src/pages/MarketPage.') ||
+    file === 'src/services/marketWorkspaceRoute.js'
+  );
+  if (!marketWorkpack) return;
+
   for (const file of changedFiles) {
     const isAllowed =
       file.startsWith('src/market/') ||
