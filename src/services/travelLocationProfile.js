@@ -1,3 +1,5 @@
+import { getWeatherLocation } from './weatherLocations.js';
+
 export const TRAVEL_LOCATION_PROFILE_VERSION = 'travel-location-profile-v1-colombo';
 
 export const TRAVEL_LOCATION_REGISTRY = {
@@ -10,6 +12,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇱🇰',
     lat: 6.9271,
     lon: 79.8612,
+    cityKeywords: ['colombo', 'columbo', 'kolamba'],
     aliases: [
       'colombo',
       'columbo',
@@ -48,6 +51,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇮🇳',
     lat: 13.0827,
     lon: 80.2707,
+    cityKeywords: ['chennai', 'madras', 'சென்னை'],
     aliases: ['chennai', 'madras', 'tamil nadu', 'tn', 'சென்னை'],
     storyKeywords: ['chennai', 'madras', 'tamil nadu', 'tn', 'india', 'சென்னை', 'தமிழ்நாடு'],
     edition: {
@@ -66,6 +70,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇮🇳',
     lat: 10.7905,
     lon: 78.7047,
+    cityKeywords: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi'],
     aliases: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi'],
     storyKeywords: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi', 'tamil nadu', 'india'],
     edition: {
@@ -84,6 +89,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇴🇲',
     lat: 23.5859,
     lon: 58.4059,
+    cityKeywords: ['muscat', 'masqat', 'maskat', 'مسقط'],
     aliases: ['muscat', 'masqat', 'maskat', 'oman', 'مسقط'],
     storyKeywords: ['muscat', 'masqat', 'oman', 'omani', 'مسقط', 'عمان'],
     edition: {
@@ -164,8 +170,37 @@ export function buildTravelLocationSettings(baseSettings = {}, patch = {}) {
   };
 }
 
+// A weather city outside the four prefetched travel feeds still gets its OWN
+// location identity. It must never be labelled as Chennai or served a cached
+// news payload for a different city.
+function weatherOnlyLocationProfile(location) {
+  return {
+    key: location.key,
+    display: location.display,
+    countryCode: null,
+    countryLabel: location.country,
+    regionLabel: location.region || '',
+    icon: location.icon || '📍',
+    lat: location.lat,
+    lon: location.lon,
+    aliases: location.aliases || [],
+    cityKeywords: [location.display, ...(location.aliases || [])],
+    storyKeywords: [location.display, ...(location.aliases || [])],
+    edition: null,
+    prefetchSupported: false,
+  };
+}
+
 export function getTravelLocationProfile(settings = {}, options = {}) {
   const explicitCity = settings?.travelLocation?.city;
+  // A user click in Quick Weather wins over an older manual travel preference.
+  // Do not use persisted weather storage here as a forced override: Settings
+  // still owns the manual travel preference when no active click is supplied.
+  const selectedWeatherLocation = options.activeWeatherCity
+    ? getWeatherLocation(options.activeWeatherCity)
+    : null;
+  const selectedWeatherKey = selectedWeatherLocation?.key ||
+    resolveTravelLocationKey(options.activeWeatherCity);
   const weatherActiveCity =
     options.activeWeatherCity ||
     settings?.weather?.activeCity ||
@@ -176,12 +211,15 @@ export function getTravelLocationProfile(settings = {}, options = {}) {
     : '';
 
   const key =
+    selectedWeatherKey ||
     resolveTravelLocationKey(explicitCity) ||
     resolveTravelLocationKey(weatherActiveCity) ||
     resolveTravelLocationKey(firstConfiguredWeatherCity) ||
     DEFAULT_TRAVEL_LOCATION_KEY;
 
-  const registryProfile = TRAVEL_LOCATION_REGISTRY[key] || TRAVEL_LOCATION_REGISTRY[DEFAULT_TRAVEL_LOCATION_KEY];
+  const registryProfile = TRAVEL_LOCATION_REGISTRY[key] ||
+    (selectedWeatherLocation?.key === key ? weatherOnlyLocationProfile(selectedWeatherLocation) : null) ||
+    TRAVEL_LOCATION_REGISTRY[DEFAULT_TRAVEL_LOCATION_KEY];
 
   const enabled = settings?.travelLocation?.enabled !== false;
   const prioritizeStories = enabled && settings?.travelLocation?.prioritizeStories !== false;
@@ -190,8 +228,10 @@ export function getTravelLocationProfile(settings = {}, options = {}) {
     ...registryProfile,
     enabled,
     prioritizeStories,
-    source: explicitCity
-      ? 'manual'
+    source: selectedWeatherKey
+      ? 'quick-weather'
+      : explicitCity
+        ? 'manual'
       : weatherActiveCity
         ? 'weather-active-city'
         : firstConfiguredWeatherCity
@@ -211,5 +251,5 @@ export function getTravelEditionOptions(profile) {
 }
 
 export function isTravelLocationProfile(value) {
-  return Boolean(value?.key && value?.countryCode && Array.isArray(value?.storyKeywords));
+  return Boolean(value?.key && value?.countryLabel && Array.isArray(value?.storyKeywords));
 }
