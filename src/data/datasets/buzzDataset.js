@@ -6,6 +6,7 @@ import {
 import { applyDatasetSlo } from '../slo/applyDatasetSlo.js';
 import { load as loadSectionsDataset } from './sectionsDataset.js';
 import { fetchSectionNews } from '../../services/rssAggregator.js';
+import { loadBuzzRetainedSnapshot } from '../../adapters/buzzRetentionFetcher.js';
 
 const BUZZ_SOURCE_SECTIONS = [
   'entertainment',
@@ -253,25 +254,43 @@ function splitTechnologyCards(technologyItems = []) {
 }
 
 export async function load() {
-  const sectionsEnv = await loadSectionsDataset({
-    sections: BUZZ_SOURCE_SECTIONS,
-    maxSections: BUZZ_SOURCE_SECTIONS.length,
-    frontPageLimit: 30,
-  });
-  const diagnostics = [];
+  const [sectionsEnv, rolling] = await Promise.all([
+    loadSectionsDataset({
+      sections: BUZZ_SOURCE_SECTIONS,
+      maxSections: BUZZ_SOURCE_SECTIONS.length,
+      frontPageLimit: 30,
+    }),
+    loadBuzzRetainedSnapshot(),
+  ]);
+  const diagnostics = [{
+    event: 'buzzDataset.rolling_retention',
+    severity: rolling.ok ? 'info' : 'warn',
+    message: rolling.ok
+      ? `Rolling Buzz retention admitted ${rolling.items.length} source-dated article(s)`
+      : `Rolling Buzz retention unavailable: ${rolling.reason || 'unknown'}`,
+    details: { source: rolling.source, rejectedAtRuntime: rolling.rejectedAtRuntime || 0 },
+  }];
 
   const sourceSections = sectionsEnv.data?.sections || {};
-  const entertainmentItems = sourceSections.entertainment || [];
+  const retainedSections = rolling.ok ? rolling.sections : {};
+  const entertainmentItems = uniqByBuzzItem([
+    ...(retainedSections.entertainment || []),
+    ...(sourceSections.entertainment || []),
+  ]);
 
-  const socialItems = [
+  const socialItems = uniqByBuzzItem([
+    ...(retainedSections.social || []),
     ...(sourceSections.social || []),
     ...(sourceSections.world || []).filter(item => includesAny(item, ['viral', 'trend', 'social media'])),
     ...(sourceSections.india || []).filter(item => includesAny(item, ['viral', 'trend', 'social media'])),
     ...(sourceSections.chennai || []).filter(item => includesAny(item, ['viral', 'trend', 'social media'])),
     ...(sourceSections.local || []).filter(item => includesAny(item, ['viral', 'trend', 'social media'])),
-  ];
+  ]);
 
-  const technologyItems = await getTechnologyItemsWithFallback(sectionsEnv, diagnostics);
+  const technologyItems = uniqByBuzzItem([
+    ...(retainedSections.technology || []),
+    ...await getTechnologyItemsWithFallback(sectionsEnv, diagnostics),
+  ]);
   const { techCards, aiCards } = splitTechnologyCards(technologyItems);
 
   const entertainment = classifyEntertainment(entertainmentItems);
@@ -294,14 +313,23 @@ export async function load() {
       socialTrends,
       techCards,
       aiCards,
-      sourceSections,
+      sourceSections: {
+        ...sourceSections,
+        entertainment: entertainmentItems,
+        social: socialItems,
+        technology: technologyItems,
+      },
       raw: {
         sections: sectionsEnv.data,
         sourceDominance: dominance,
+        buzzRollingRetention: { loaded: rolling.ok, source: rolling.source,
+          rejectedAtRuntime: rolling.rejectedAtRuntime || 0 },
       },
     },
     source: sectionsEnv.source || ENVELOPE_SOURCES.LIVE,
-    freshness: ok ? ENVELOPE_FRESHNESS.FRESH : ENVELOPE_FRESHNESS.EMPTY,
+    freshness: !ok ? ENVELOPE_FRESHNESS.EMPTY
+      : rolling.ok && allBuzzItems.some(item => item._buzzRetained)
+        ? ENVELOPE_FRESHNESS.STALE : ENVELOPE_FRESHNESS.FRESH,
     error: ok ? null : 'buzz unavailable',
     validation: {
       passed: ok,

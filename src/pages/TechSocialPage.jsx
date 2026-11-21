@@ -106,6 +106,9 @@ function TechSocialPage() {
                                     <button className={`ent-tab ${activeEntTab === 'ott' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('ott')}>
                                         <span className="ent-icon">📺</span> OTT
                                     </button>
+                                    <button className={`ent-tab ${activeEntTab === 'other' ? 'ent-tab--active' : ''}`} onClick={() => setActiveEntTab('other')}>
+                                        <span className="ent-icon">📰</span> Latest
+                                    </button>
                                 </div>
 
                                 <div className="masonry-grid">
