@@ -18,5 +18,5 @@ def test_horizon_constants_are_repo_contract():
     assert UPAHEAD_LOOKAHEAD_DAYS == 7
     assert UPAHEAD_EVENT_PAST_GRACE_HOURS == 24
     assert PLANNER_PAST_GRACE_HOURS == 6
-    assert ALERT_FALLBACK_HOURS == 24
+    assert ALERT_FALLBACK_HOURS == 36
     assert OFFER_FALLBACK_HOURS == 48
