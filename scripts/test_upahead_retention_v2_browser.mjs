@@ -37,6 +37,15 @@ const future = item('events', {
 assert.equal(upAheadExpiryMs(future), now + 31 * DAY);
 assert.equal(upAheadExpiryMs({ ...future, suppressionReason: 'cancelled' }), 0);
 
+const longRunning = item('events', {
+  firstVisibleAt: now,
+  eventStartAt: now + 6 * DAY,
+  eventEndAt: now + 20 * DAY,
+  expiryAt: now + 20 * DAY,
+});
+assert.equal(upAheadExpiryMs(longRunning), now + 7 * DAY);
+assert.equal(upAheadExpiryMs({ ...longRunning, observedAt: now + 5 * DAY }), now + 12 * DAY);
+
 const lifecycleBound = item('shopping', {
   expiryAt: now + 10 * DAY,
   lifecycle: { displayUntil: now + 4 * DAY },
