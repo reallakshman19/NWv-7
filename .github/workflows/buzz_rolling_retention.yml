@@ -44,6 +44,28 @@ jobs:
           cache: npm
       - name: Prove no source-clock renewal from cache and cap enforcement
         run: python -m unittest discover -s scripts -p 'test_buzz_retention_v1.py' -v
+      - name: Rebuild and qualify real committed Sections corpus (fixed source clock; nonpublishing)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/buzz-rolling-probe
+          observed=$(python -c 'import json;print(json.load(open("public/newsdata/sections_latest.json"))["fetchedAt"])')
+          python scripts/build_buzz_retained.py \
+            --now "$observed" \
+            --existing artifacts/buzz-rolling-probe/none.json \
+            --out artifacts/buzz-rolling-probe/buzz_retained_latest.json \
+            --report artifacts/buzz-rolling-probe/buzz_retention_report.json
+          python scripts/validate_buzz_retained.py \
+            --now "$observed" \
+            --input artifacts/buzz-rolling-probe/buzz_retained_latest.json \
+            --report artifacts/buzz-rolling-probe/buzz_retention_report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: buzz-rolling-corpus-${{ github.run_id }}
+          path: artifacts/buzz-rolling-probe/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Install locked browser test dependencies
         run: npm ci
       - name: Certify rendering, actual expiry and source failover
