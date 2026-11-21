@@ -53,6 +53,49 @@ def test_inclusive_day_end_is_local_end_of_day_not_utc_start_of_day():
         assert not lifecycle_for_item(row, deadline)["isVisible"]
 
 
+def test_planner_keeps_local_calendar_day_after_six_hour_grace():
+    """Regression from source row e1ba58117a92406d at main 96ede1ff.
+
+    A Muscat 21-Nov day-precision event with no eventEndAt is still eligible
+    at 09:36 local time; converting its UTC-midnight sentinel must not make
+    today's occurrence appear to have ended on the previous UTC day.
+    """
+    def ms(iso):
+        return int(datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp() * 1000)
+
+    source_start = ms("2026-11-21T00:00:00Z")
+    as_of = ms("2026-11-21T05:36:00Z")
+    row = item("e1ba58117a92406d", category="sports", city="Muscat",
+               datePrecision="day", eventDateKey="2026-11-21",
+               eventStartAt=source_start, eventEndAt=None,
+               expiryAt=ms("2026-11-21T20:00:00Z"),
+               publishedAt=source_start - H_MS, observedAt=source_start)
+    status = lifecycle_for_item(row, as_of)
+    assert status["isActionValid"]
+    assert status["isVisible"]
+    assert status["plannerEligibleByLifecycle"]
+    assert not lifecycle_for_item(row, ms("2026-11-21T20:00:00Z"))["plannerEligibleByLifecycle"]
+
+
+def test_planner_inclusive_multi_day_range_uses_venue_local_event_end():
+    def ms(iso):
+        return int(datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp() * 1000)
+
+    first = ms("2026-11-24T00:00:00Z")
+    last = ms("2026-11-25T00:00:00Z")
+    for city, end in [
+        ("Chennai", ms("2026-11-25T18:30:00Z")),
+        ("Muscat", ms("2026-11-25T20:00:00Z")),
+    ]:
+        event = item("two-day-" + city, city=city, datePrecision="range",
+                     eventDateKey="2026-11-24", eventDateEndKey="2026-11-25",
+                     eventStartAt=first, eventEndAt=last, expiryAt=last,
+                     publishedAt=first, observedAt=first)
+        assert lifecycle_for_item(event, ms("2026-11-25T12:00:00Z"))["plannerEligibleByLifecycle"]
+        assert lifecycle_for_item(event, ms("2026-11-25T12:00:00Z"))["isVisible"]
+        assert not lifecycle_for_item(event, end)["plannerEligibleByLifecycle"]
+
+
 def test_default_alert_36h_and_offer_48h():
     alert = item("alert", category="alerts", eventStartAt=None, eventEndAt=None, expiryAt=None)
     offer = item("offer", category="shopping", eventStartAt=None, eventEndAt=None, expiryAt=None)
