@@ -66,14 +66,14 @@ describe('Travel location profile certification', () => {
 
     const trichy = buildWeatherSelectedNewsSettings(initial, 'Trichy');
     expect(trichy.weather.activeCity).toBe('trichy');
-    expect(trichy.travelLocation.city).toBe('trichy');
-    expect(getTravelLocationProfile(trichy).display).toBe('Trichy');
+    expect(trichy.travelLocation.city).toBe('chennai');
+    expect(getTravelLocationProfile(trichy, { activeWeatherCity: trichy.weather.activeCity }).display).toBe('Trichy');
     expect(trichy.theme).toBe('dark');
 
     const muscat = buildWeatherSelectedNewsSettings(trichy, 'Muscat');
     expect(muscat.weather.activeCity).toBe('muscat');
-    expect(muscat.travelLocation.city).toBe('muscat');
-    expect(getTravelLocationProfile(muscat).countryLabel).toBe('Oman');
+    expect(muscat.travelLocation.city).toBe('chennai');
+    expect(getTravelLocationProfile(muscat, { activeWeatherCity: muscat.weather.activeCity }).countryLabel).toBe('Oman');
   });
 
   it('retains the user\'s local-news visibility preference', () => {
@@ -83,7 +83,7 @@ describe('Travel location profile certification', () => {
 
     const next = buildWeatherSelectedNewsSettings(previous, 'colombo');
     expect(next.travelLocation).toEqual({
-      city: 'colombo',
+      city: 'chennai',
       enabled: false,
       prioritizeStories: false,
     });
@@ -95,7 +95,7 @@ describe('Travel location profile certification', () => {
       travelLocation: { city: 'chennai' },
     }, 'Mumbai');
 
-    const profile = getTravelLocationProfile(next);
+    const profile = getTravelLocationProfile(next, { activeWeatherCity: next.weather.activeCity });
     expect(profile.key).toBe('mumbai');
     expect(profile.display).toBe('Mumbai');
     expect(profile.countryLabel).toBe('India');
