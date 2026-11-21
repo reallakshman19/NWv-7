@@ -127,6 +127,9 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
             continue
         category_counts[str(item.get("category") or "unknown")] += 1
         class_counts[str(item.get("contentClass") or "unknown")] += 1
+        first_visible = item.get("firstVisibleAt")
+        if not isinstance(first_visible, (int, float)) or first_visible <= 0 or first_visible > ts + 300_000:
+            errors.append("Active occurrence has no valid firstVisibleAt lifecycle clock")
         lifecycle = item.get("lifecycle") if isinstance(item.get("lifecycle"), dict) else None
         if not lifecycle:
             missing_lifecycle.append(item.get("id") or item.get("url") or item.get("title") or "unknown")
