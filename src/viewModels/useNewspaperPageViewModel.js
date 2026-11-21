@@ -1,5 +1,5 @@
 import { publishPageProvenance } from '../data/pageProvenance.js';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import { geminiService } from '../services/geminiService';
 import { extractArticleText } from '../utils/articleExtractor';
@@ -109,6 +109,8 @@ export function useNewspaperPageViewModel() {
   const [isTranslated, setIsTranslated] = useState(false);
   const [dynamicSummaries, setDynamicSummaries] = useState({});
   const [dynamicTitles, setDynamicTitles] = useState({});
+  const [dynamicPreviews, setDynamicPreviews] = useState({});
+  const previewTranslationAttempts = useRef(new Set());
   const isGeneratingSummary = false;
   const [isTranslatingTitles, setIsTranslatingTitles] = useState(false);
   const [digestMode, setDigestMode] = useState(false);
@@ -161,6 +163,8 @@ export function useNewspaperPageViewModel() {
       setDynamicSummaries({});
       setClientSummaries({});
       setDynamicTitles({});
+      setDynamicPreviews({});
+      previewTranslationAttempts.current.clear();
     } catch (fetchError) {
       console.warn('JSON fetch failed, trying Virtual Paper fallback...', fetchError);
 
@@ -178,6 +182,8 @@ export function useNewspaperPageViewModel() {
         setDynamicSummaries({});
         setClientSummaries({});
         setDynamicTitles({});
+      setDynamicPreviews({});
+      previewTranslationAttempts.current.clear();
       } catch (fallbackError) {
         console.error('Fallback failed:', fallbackError);
         setData(null);
@@ -296,6 +302,41 @@ export function useNewspaperPageViewModel() {
     isTranslatingTitles,
   ]);
 
+  // Translate publisher-provided excerpts, not headlines, with the same
+  // opt-in Gemini key used for Tamil headline translation. Never fabricate a
+  // preview where the publisher did not supply one.
+  useEffect(() => {
+    if (!isTranslated || !geminiKey || !data?.[activeSource]
+      || getSourceMeta(activeSource).lang !== 'ta') return;
+
+    const pending = [];
+    asArray(data[activeSource]).forEach(section => {
+      asArray(section.articles).forEach(article => {
+        if (!article?.link || !article?.preview || article.preview_en) return;
+        const key = `${activeSource}:${article.link}`;
+        if (previewTranslationAttempts.current.has(key)) return;
+        previewTranslationAttempts.current.add(key);
+        pending.push({ link: article.link, text: article.preview });
+      });
+    });
+    if (!pending.length) return;
+
+    (async () => {
+      for (let i = 0; i < pending.length; i += 15) {
+        const batch = pending.slice(i, i + 15);
+        const translations = await geminiService.translateTexts(batch.map(item => item.text), geminiKey);
+        setDynamicPreviews(prev => {
+          const next = { ...prev };
+          batch.forEach((item, index) => {
+            const translated = translations?.[index];
+            if (typeof translated === 'string' && translated.trim()) next[item.link] = translated.trim();
+          });
+          return next;
+        });
+      }
+    })().catch(error => console.warn('Publisher excerpt translation unavailable:', error));
+  }, [activeSource, data, geminiKey, isTranslated]);
+
   const getSectionSummary = useCallback((section) => (
     getSectionSummaryResult({
       section,
@@ -399,6 +440,7 @@ export function useNewspaperPageViewModel() {
     isTranslated,
     dynamicSummaries,
     dynamicTitles,
+    dynamicPreviews,
     isGeneratingSummary,
     isTranslatingTitles,
     digestMode,
