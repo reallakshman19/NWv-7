@@ -58,3 +58,34 @@ def test_publisher_recovery_runs_only_when_its_direct_feeds_have_no_qualified_ar
     assert len(recovery) == (0 if direct_available else 1)
     assert result['sourceStatus']['INDIAN_EXPRESS']['currentCount'] == 1
     assert result['sources']['INDIAN_EXPRESS'][0]['articles'][0]['publishedAt'] == (NOW - 3600) * 1000
+
+
+def test_direct_publisher_excerpt_is_bounded_and_clean():
+    from daily_brief import MAX_PREVIEW_CHARS
+    rows = qualify_entries([entry(
+        summary='<p>Officials said a new transport service will link several districts, '
+                'with additional routes expected to begin next month.</p><script>bad()</script>')],
+        'thehindu.com', NOW)
+    assert len(rows) == 1
+    assert rows[0]['preview'].startswith('Officials said a new transport')
+    assert 'bad()' not in rows[0]['preview']
+    assert rows[0]['previewMethod'] == 'publisher-rss-excerpt'
+    assert len(rows[0]['preview']) <= MAX_PREVIEW_CHARS + 1
+
+
+def test_aggregator_and_headline_only_feeds_cannot_gain_previews():
+    discovery = entry(link='https://news.google.com/rss/articles/ABC',
+                      source={'href': 'https://www.dinamani.com'},
+                      summary='<p>Unrelated aggregator teaser is not a publisher synopsis.</p>')
+    assert 'preview' not in qualify_entries([discovery], 'dinamani.com', NOW)[0]
+    assert 'preview' not in qualify_entries([entry(summary='A current publisher headline')],
+                                            'thehindu.com', NOW)[0]
+    assert 'preview' not in qualify_entries([entry()], 'thehindu.com', NOW)[0]
+
+
+def test_publisher_excerpt_truncates_on_word_boundary():
+    from daily_brief import MAX_PREVIEW_CHARS
+    result = qualify_entries([entry(summary='A detailed publisher synopsis ' * 25)],
+                             'thehindu.com', NOW)[0]
+    assert result['preview'].endswith('…')
+    assert len(result['preview']) <= MAX_PREVIEW_CHARS + 1
