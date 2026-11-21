@@ -205,6 +205,23 @@ function getStoryTimeMs(story) {
   return getPublishedAtMs(story?.publishedAt || story?.timestamp || story?.date || story?.pubDate);
 }
 
+// Rendering is the final admission boundary: cache and dataset adapters may
+// contain older rows. Neither a recent publication nor a future retention
+// deadline can override a publisher's explicit expiry or withdrawal.
+function isBuzzStoryStillActionable(story, now = Date.now()) {
+  if (story?.suppressionReason || story?.withdrawnAt ||
+      ['withdrawn', 'retracted', 'removed', 'cancelled', 'canceled']
+        .includes(String(story?.status || '').toLowerCase())) return false;
+  // Check both common publisher spellings. Neither an empty expiryAt nor
+  // a later second deadline can mask an earlier expiresAt withdrawal.
+  for (const declaredExpiry of [story?.expiryAt, story?.expiresAt]) {
+    if (declaredExpiry == null || declaredExpiry === '') continue;
+    const expiryMs = getPublishedAtMs(declaredExpiry);
+    if (!expiryMs || expiryMs <= now) return false;
+  }
+  return true;
+}
+
 function filterOldNews(newsArray, freshnessLimitHours = 72) {
   const limitMs = Math.min(168, Math.max(1, Number(freshnessLimitHours) || 72)) * 3600000;
   const now = Date.now();
@@ -215,8 +232,7 @@ function filterOldNews(newsArray, freshnessLimitHours = 72) {
   return asArray(newsArray).filter(item => {
     const publishedAtMs = getStoryTimeMs(item);
     if (!publishedAtMs || publishedAtMs > now + 5 * 60_000) return false;
-    if (item?.suppressionReason || item?.withdrawnAt ||
-        ['withdrawn', 'retracted', 'removed', 'cancelled'].includes(String(item?.status || '').toLowerCase())) return false;
+    if (!isBuzzStoryStillActionable(item, now)) return false;
     if (item?._buzzRetained) {
       const displayUntil = getPublishedAtMs(item?.retention?.displayUntil);
       const upperHours = item?.buzzSection === 'social' ? 72 : 168;
@@ -258,15 +274,12 @@ function hasBuzzLiveData(newsData) {
 function isCacheStoryUnexpired(story, freshnessLimitHours = 72, now = Date.now()) {
   const published = getStoryTimeMs(story);
   if (!published || published > now + 5 * 60_000) return false;
-  if (story?.suppressionReason || story?.withdrawnAt ||
-      ['withdrawn', 'retracted', 'removed', 'cancelled', 'canceled'].includes(
-        String(story?.status || '').toLowerCase())) return false;
+  if (!isBuzzStoryStillActionable(story, now)) return false;
   const configuredHours = Math.min(168, Math.max(1, Number(freshnessLimitHours) || 72));
   const sourceDeadline = story?._buzzRetained
     ? getPublishedAtMs(story?.retention?.displayUntil)
     : published + configuredHours * 3600000;
-  const explicitExpiry = getPublishedAtMs(story?.expiryAt || story?.expiresAt);
-  return Boolean(sourceDeadline > now && (!explicitExpiry || explicitExpiry > now));
+  return Boolean(sourceDeadline > now);
 }
 
 function mergeBuzzCachedStories(incoming = [], cached = [], freshnessLimitHours = 72, now = Date.now()) {
@@ -789,6 +802,7 @@ export const __techSocialPageViewModelInternalsForTest = {
   hasAnyKeyword,
   getPublishedAtMs,
   filterOldNews,
+  isBuzzStoryStillActionable,
   sortNewestFirst,
   uniqueByStory,
   hasBuzzLiveData,

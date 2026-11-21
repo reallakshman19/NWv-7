@@ -12,6 +12,8 @@ const {
   normalizeBuzzCachePayload,
   mergeBuzzCachedStories,
   isCacheStoryUnexpired,
+  filterOldNews,
+  isBuzzStoryStillActionable,
 } = __techSocialPageViewModelInternalsForTest;
 
 describe('Buzz Hub retained display continuity', () => {
@@ -167,5 +169,53 @@ describe('Buzz cache honors individual story expiry instead of an 8h blanket TTL
   it('rejects a fully expired old cache rather than reviving yesterday via savedAt', () => {
     expect(normalizeBuzzCachePayload({ timestamp: now - H,
       data: { entertainment: [expired] } }, 72, now)).toBeNull();
+  });
+});
+
+describe('Post-merge final Buzz display expiry regression (#186 self-audit)', () => {
+  const H = 3_600_000;
+
+  it('hides a recent publisher-expired story in all untrusted live projections', () => {
+    const now = Date.now();
+    const recent = { id: 'expired-publisher', title: 'Vijay Tamil movie',
+      publishedAt: now - 2 * H, expiryAt: now - H };
+    const valid = { id: 'valid', title: 'Netflix OTT film',
+      publishedAt: now - 2 * H, expiryAt: now + H };
+    expect(filterOldNews([recent, valid]).map(item => item.id)).toEqual(['valid']);
+    expect(projectEntertainmentStories({ entertainment: [recent, valid] })
+      .map(item => item.id)).toEqual(['valid']);
+    expect(projectTechnologyStories({ technology: [recent, valid] })
+      .map(item => item.id)).toEqual(['valid']);
+    expect(isBuzzStoryStillActionable(recent, now)).toBe(false);
+  });
+
+  it('does not let a stale retained displayUntil override an explicit expiry', () => {
+    const now = Date.now();
+    const retained = { id: 'publisher-expired-rolling', title: 'Hollywood cinema update',
+      publishedAt: now - 80 * H, expiryAt: now - H,
+      _buzzRetained: true, buzzSection: 'entertainment',
+      retention: { displayUntil: now + H } };
+    expect(filterOldNews([retained])).toHaveLength(0);
+    expect(isCacheStoryUnexpired(retained, 72, now)).toBe(false);
+    expect(normalizeBuzzCachePayload({ timestamp: now - 12 * H,
+      data: { entertainment: [retained] } }, 72, now)).toBeNull();
+    expect(mergeBuzzCachedStories([retained], [], 72, now)).toHaveLength(0);
+  });
+
+  it('parses expiresAt string dates and fails closed on malformed explicit expiry', () => {
+    const now = Date.now();
+    const recent = { title: 'Vijay Tamil film', publishedAt: now - H };
+    expect(filterOldNews([{ ...recent,
+      expiresAt: new Date(now - 5 * 60_000).toISOString() }])).toHaveLength(0);
+    expect(filterOldNews([{ ...recent,
+      expiresAt: 'invalid-publisher-clock' }])).toHaveLength(0);
+    expect(filterOldNews([{ ...recent,
+      expiresAt: new Date(now + H).toISOString() }])).toHaveLength(1);
+    expect(filterOldNews([{ ...recent, status: 'canceled' }])).toHaveLength(0);
+    // Both fields may be present in mixed legacy/provider projections.
+    expect(filterOldNews([{ ...recent, expiryAt: '',
+      expiresAt: new Date(now - H).toISOString() }])).toHaveLength(0);
+    expect(filterOldNews([{ ...recent, expiryAt: now + H,
+      expiresAt: now - H }])).toHaveLength(0);
   });
 });

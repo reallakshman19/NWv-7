@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { upAheadExpiryMs, isUpAheadItemActive } from '../src/services/upAheadLifecycle.js';
+import {
+  upAheadExpiryMs, isUpAheadItemActive, upAheadPlannerDayKey, getUpAheadWindowStatus,
+} from '../src/services/upAheadLifecycle.js';
 import {
   ALERT_FALLBACK_HOURS,
   OFFER_FALLBACK_HOURS,
@@ -66,6 +68,39 @@ for (const [city, expected] of [
   assert.equal(upAheadExpiryMs(day), expected);
   assert.equal(isUpAheadItemActive(day, Date.parse('2026-11-24T12:00:00Z')), true);
   assert.equal(isUpAheadItemActive(day, expected), false);
+}
+
+// Compare the publisher-local calendar behavior to the exact Python fixture.
+const muscatSourceRow = item('sports', {
+  city: 'Muscat', datePrecision: 'day', eventDateKey: '2026-11-21',
+  eventStartAt: Date.parse('2026-11-21T00:00:00Z'), eventEndAt: null,
+  expiryAt: Date.parse('2026-11-21T20:00:00Z'), plannerEligible: true,
+});
+const muscatMorning = Date.parse('2026-11-21T05:36:00Z');
+assert.equal(upAheadPlannerDayKey(muscatSourceRow, muscatMorning), '2026-11-21');
+assert.equal(getUpAheadWindowStatus(muscatSourceRow,
+  { asOfDate: muscatMorning }), 'inside_window');
+assert.equal(isUpAheadItemActive(muscatSourceRow, muscatMorning), true);
+assert.equal(isUpAheadItemActive(muscatSourceRow,
+  Date.parse('2026-11-21T20:00:00Z')), false);
+
+for (const [city, expiredAt] of [
+  ['Chennai', Date.parse('2026-11-25T18:30:00Z')],
+  ['Muscat', Date.parse('2026-11-25T20:00:00Z')],
+]) {
+  const start = Date.parse('2026-11-24T00:00:00Z');
+  const end = Date.parse('2026-11-25T00:00:00Z');
+  const range = item('events', {
+    city, datePrecision: 'range', eventDateKey: '2026-11-24',
+    eventDateEndKey: '2026-11-25', eventStartAt: start,
+    eventEndAt: end, expiryAt: end,
+  });
+  const secondDay = Date.parse('2026-11-25T12:00:00Z');
+  assert.equal(upAheadPlannerDayKey(range, secondDay), '2026-11-25');
+  assert.equal(getUpAheadWindowStatus(range,
+    { asOfDate: secondDay }), 'inside_window');
+  assert.equal(isUpAheadItemActive(range, secondDay), true);
+  assert.equal(isUpAheadItemActive(range, expiredAt), false);
 }
 
 // Legacy date-only cards must remain eligible despite missing publication timestamps.

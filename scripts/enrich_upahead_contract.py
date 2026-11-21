@@ -175,12 +175,37 @@ def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str
     return deadline, reason
 
 
+def _effective_event_end_ms(item: dict[str, Any]) -> int | None:
+    """Honor an inclusive calendar end in the venue's own time zone."""
+    recorded = _event_deadline_clock(item.get("eventEndAt"), item, end=True)
+    if recorded is not None:
+        return recorded
+    exclusive = item.get("eventDateEndExclusiveKey")
+    if isinstance(exclusive, str):
+        boundary = _calendar_boundary_ms(exclusive, item)
+        if boundary is not None:
+            return boundary
+    inclusive = item.get("eventDateEndKey")
+    if not isinstance(inclusive, str) and item.get("datePrecision") == "day":
+        inclusive = item.get("eventDateKey")
+    if isinstance(inclusive, str):
+        return _calendar_boundary_ms(inclusive, item, next_day=True)
+    return None
+
+
+def _venue_local_date_key(timestamp_ms: int, item: dict[str, Any]) -> str:
+    offset = _venue_day_offset_ms(item)
+    return datetime.fromtimestamp((timestamp_ms + offset) / 1000,
+                                  tz=timezone.utc).date().isoformat()
+
+
 def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
     event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     display_until, _reason = _display_until_for_item(item, now_ms)
     if event_start is None:
         return display_until >= now_ms
-    still_running = (_ms(item.get("eventEndAt")) or 0) > now_ms
+    end = _effective_event_end_ms(item)
+    still_running = bool(end is not None and event_start <= now_ms < end)
     return (
         event_start <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS
         and (still_running or event_start >= now_ms - UPAHEAD_EVENT_PAST_GRACE_HOURS * H_MS)
@@ -191,10 +216,31 @@ def _within_planner_horizon(item: dict[str, Any], now_ms: int) -> bool:
     event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     if event_start is None:
         return False
-    ongoing = event_start <= now_ms < (_ms(item.get("eventEndAt")) or 0)
-    today_only = item.get('datePrecision') == 'day' and event_start // DAY_MS == now_ms // DAY_MS
-    return ongoing or today_only or (now_ms - PLANNER_PAST_GRACE_HOURS * H_MS <= event_start
-                       <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS)
+    end = _effective_event_end_ms(item)
+    ongoing = end is not None and event_start <= now_ms < end
+
+    # A UTC-midnight transport sentinel identifies a venue-local *date*, not
+    # the UTC date containing the converted local-midnight instant.
+    # Compare venue calendar keys so Muscat and Chennai remain eligible all day.
+    on_event_day = False
+    if item.get("datePrecision") in ("day", "range"):
+        start_day = item.get("eventDateKey")
+        if not isinstance(start_day, str):
+            start_day = _venue_local_date_key(event_start, item)
+        today = _venue_local_date_key(now_ms, item)
+        exclusive_day = item.get("eventDateEndExclusiveKey")
+        inclusive_day = item.get("eventDateEndKey")
+        if isinstance(exclusive_day, str):
+            on_event_day = start_day <= today < exclusive_day
+        elif isinstance(inclusive_day, str):
+            on_event_day = start_day <= today <= inclusive_day
+        else:
+            on_event_day = start_day == today
+
+    return bool(ongoing or on_event_day or (
+        now_ms - PLANNER_PAST_GRACE_HOURS * H_MS <= event_start
+        <= now_ms + UPAHEAD_LOOKAHEAD_DAYS * DAY_MS
+    ))
 
 
 def lifecycle_for_item(item: dict[str, Any], now_ms: int) -> dict[str, Any]:
