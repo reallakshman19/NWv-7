@@ -108,6 +108,11 @@ class CloudflareMirrorContractTests(unittest.TestCase):
         old["sections"]["entertainment"][0]["publishedAt"] = NOW - 40 * 3600_000
         self.reject(old)
 
+    def test_rejects_stale_committed_epoch_even_if_fetched_at_is_recent(self):
+        candidate = example()
+        candidate["preview"]["committedAt"] = NOW - 13 * 3600_000
+        self.reject(candidate)
+
     def test_rejects_bad_digest_prefix(self):
         self.reject(example(contentHash="bad"))
 
