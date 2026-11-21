@@ -9,6 +9,9 @@ const {
   projectAiInnovationStories,
   classifyEntertainmentRegion,
   projectEntertainmentStories,
+  normalizeBuzzCachePayload,
+  mergeBuzzCachedStories,
+  isCacheStoryUnexpired,
 } = __techSocialPageViewModelInternalsForTest;
 
 describe('Buzz Hub retained display continuity', () => {
@@ -127,5 +130,42 @@ describe('TechSocial page Buzz dataset fallback', () => {
     });
 
     expect(stories.map(item => item.id)).toEqual(['ott']);
+  });
+});
+
+describe('Buzz cache honors individual story expiry instead of an 8h blanket TTL', () => {
+  const H = 3600000;
+  const now = Date.now();
+  const oldButValid = { id: 'yesterday', title: 'Yesterday Tamil cinema',
+    publishedAt: now - 20 * H };
+  const expired = { id: 'expired', title: 'Old Tamil movie',
+    publishedAt: now - 74 * H };
+
+  it('restores yesterday stories from a ten-hour-old cache', () => {
+    const old = { timestamp: now - 10 * H,
+      data: { entertainment: [oldButValid, expired] } };
+    const cache = normalizeBuzzCachePayload(old, 72, now);
+    expect(cache?.data.entertainment.map(row => row.id)).toEqual(['yesterday']);
+  });
+
+  it('preserves individually eligible stories alongside a newer incoming batch', () => {
+    const today = { id: 'today', title: 'Current Hindi film', publishedAt: now - H };
+    const merged = mergeBuzzCachedStories([today], [oldButValid, expired], 72, now);
+    expect(new Set(merged.map(x => x.id))).toEqual(new Set(['today', 'yesterday']));
+  });
+
+  it('uses verified rolling displayUntil, not cache save time', () => {
+    const retained = { id: 'retained', title: 'Hollywood story',
+      publishedAt: now - 85 * H, _buzzRetained: true, buzzSection: 'entertainment',
+      retention: { displayUntil: now + 6 * H } };
+    expect(isCacheStoryUnexpired(retained, 72, now)).toBe(true);
+    expect(isCacheStoryUnexpired({ ...retained,
+      retention: { displayUntil: now - 1 } }, 72, now)).toBe(false);
+    expect(isCacheStoryUnexpired({ id: 'clockless', title: 'Unknown' }, 72, now)).toBe(false);
+  });
+
+  it('rejects a fully expired old cache rather than reviving yesterday via savedAt', () => {
+    expect(normalizeBuzzCachePayload({ timestamp: now - H,
+      data: { entertainment: [expired] } }, 72, now)).toBeNull();
   });
 });
