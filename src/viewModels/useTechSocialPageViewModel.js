@@ -6,7 +6,7 @@ import { useDataset } from '../data/orchestrator/useDataset.js';
 
 export const BUZZ_PAGE_CACHE_KEY = 'buzz_page_cache';
 const BUZZ_CACHE_NEXT_KEY = 'nw_buzz_hub_cache_v1';
-const BUZZ_CACHE_MAX_AGE_MS = 8 * 60 * 60 * 1000;
+// Buzz cache validity is determined by each source-dated story, not the savedAt age.
 
 export const BUZZ_REQUIRED_SECTIONS = [
   'entertainment',
@@ -255,78 +255,84 @@ function hasBuzzLiveData(newsData) {
   ));
 }
 
-function normalizeBuzzCachePayload(parsed) {
-  if (!parsed || typeof parsed !== 'object') return null;
-
-  const savedAt = Number(parsed.savedAt || parsed.timestamp || 0);
-  const data = asRecord(parsed.newsData || parsed.data);
-
-  if (!savedAt || Object.keys(data).length === 0) return null;
-  if (Date.now() - savedAt > BUZZ_CACHE_MAX_AGE_MS) return null;
-
-  return {
-    savedAt,
-    timestamp: savedAt,
-    data,
-    newsData: data,
-  };
+function isCacheStoryUnexpired(story, freshnessLimitHours = 72, now = Date.now()) {
+  const published = getStoryTimeMs(story);
+  if (!published || published > now + 5 * 60_000) return false;
+  if (story?.suppressionReason || story?.withdrawnAt ||
+      ['withdrawn', 'retracted', 'removed', 'cancelled', 'canceled'].includes(
+        String(story?.status || '').toLowerCase())) return false;
+  const configuredHours = Math.min(168, Math.max(1, Number(freshnessLimitHours) || 72));
+  const sourceDeadline = story?._buzzRetained
+    ? getPublishedAtMs(story?.retention?.displayUntil)
+    : published + configuredHours * 3600000;
+  const explicitExpiry = getPublishedAtMs(story?.expiryAt || story?.expiresAt);
+  return Boolean(sourceDeadline > now && (!explicitExpiry || explicitExpiry > now));
 }
 
-function safeReadBuzzCache() {
+function mergeBuzzCachedStories(incoming = [], cached = [], freshnessLimitHours = 72, now = Date.now()) {
+  const eligible = [...asArray(incoming), ...asArray(cached)].filter(
+    item => isCacheStoryUnexpired(item, freshnessLimitHours, now)
+  );
+  // Prefer the independently qualified rolling story over an unverified live
+  // copy that happens to share an ID, without discarding other current stories.
+  return uniqueByStory([
+    ...eligible.filter(item => item?._buzzRetained),
+    ...eligible.filter(item => !item?._buzzRetained),
+  ]);
+}
+
+function normalizeBuzzCachePayload(parsed, freshnessLimitHours = 72, now = Date.now()) {
+  if (!parsed || typeof parsed !== 'object') return null;
+  const savedAt = Number(parsed.savedAt || parsed.timestamp || 0);
+  const raw = asRecord(parsed.newsData || parsed.data);
+  if (!savedAt || Object.keys(raw).length === 0) return null;
+
+  const data = {};
+  BUZZ_REQUIRED_SECTIONS.forEach(section => {
+    data[section] = mergeBuzzCachedStories([], raw[section], freshnessLimitHours, now);
+  });
+  if (!hasBuzzLiveData(data)) return null;
+
+  return { savedAt, timestamp: savedAt, data, newsData: data };
+}
+
+function safeReadBuzzCache(freshnessLimitHours = 72) {
   try {
     if (typeof window === 'undefined') return null;
-
     const storage = window.localStorage;
     if (!storage || typeof storage.getItem !== 'function') return null;
-
-    const keys = [BUZZ_CACHE_NEXT_KEY, BUZZ_PAGE_CACHE_KEY];
-
-    for (const key of keys) {
+    for (const key of [BUZZ_CACHE_NEXT_KEY, BUZZ_PAGE_CACHE_KEY]) {
       const raw = storage.getItem(key);
       if (!raw) continue;
-
-      const parsed = JSON.parse(raw);
-      const normalized = normalizeBuzzCachePayload(parsed);
-
-      if (normalized) return normalized;
+      try {
+        const cache = normalizeBuzzCachePayload(JSON.parse(raw), freshnessLimitHours);
+        if (cache) return cache;
+      } catch {
+        // A malformed newer cache must not block the usable legacy cache.
+      }
     }
-
     return null;
   } catch {
     return null;
   }
 }
 
-function safeWriteBuzzCache(newsData) {
+function safeWriteBuzzCache(newsData, freshnessLimitHours = 72) {
   try {
     if (typeof window === 'undefined') return false;
-
     const storage = window.localStorage;
     if (!storage || typeof storage.setItem !== 'function') return false;
-
-    const existing = safeReadBuzzCache();
-    const existingData = asRecord(existing?.data || existing?.newsData);
-
+    const existing = safeReadBuzzCache(freshnessLimitHours);
+    const previous = asRecord(existing?.data || existing?.newsData);
     const data = {};
     BUZZ_REQUIRED_SECTIONS.forEach(section => {
-      const liveItems = asArray(newsData?.[section]);
-      const cachedItems = asArray(existingData[section]);
-      data[section] = liveItems.length > 0 ? liveItems : cachedItems;
+      data[section] = mergeBuzzCachedStories(
+        newsData?.[section], previous[section], freshnessLimitHours
+      );
     });
-
-    const legacyPayload = {
-      timestamp: Date.now(),
-      data,
-    };
-
-    const nextPayload = {
-      savedAt: legacyPayload.timestamp,
-      newsData: data,
-    };
-
-    storage.setItem(BUZZ_PAGE_CACHE_KEY, JSON.stringify(legacyPayload));
-    storage.setItem(BUZZ_CACHE_NEXT_KEY, JSON.stringify(nextPayload));
-
+    const savedAt = Date.now();
+    storage.setItem(BUZZ_PAGE_CACHE_KEY, JSON.stringify({ timestamp: savedAt, data }));
+    storage.setItem(BUZZ_CACHE_NEXT_KEY, JSON.stringify({ savedAt, newsData: data }));
     return true;
   } catch {
     return false;
@@ -588,13 +594,10 @@ export function useTechSocialPageViewModel() {
   ), [settings]);
 
   useEffect(() => {
-    const cached = safeReadBuzzCache();
-
-    if (cached) {
-      setCachedData(cached);
-      setLoadingPhase(1);
-    }
-  }, []);
+    const cached = safeReadBuzzCache(freshnessLimitHours);
+    setCachedData(cached);
+    if (cached) setLoadingPhase(1);
+  }, [freshnessLimitHours]);
 
   useEffect(() => {
     BUZZ_REQUIRED_SECTIONS.forEach(section => {
@@ -616,11 +619,20 @@ export function useTechSocialPageViewModel() {
   ), [newsData]);
 
   useEffect(() => {
-    if (hasLiveData) {
+    const fallback = projectBuzzDatasetToNewsData(buzzEnvelope?.data);
+    const incoming = {};
+    BUZZ_REQUIRED_SECTIONS.forEach(section => {
+      incoming[section] = combineBuzzSectionItems(
+        newsData?.[section], [], fallback[section]
+      );
+    });
+    if (hasBuzzLiveData(incoming)) {
       setLoadingPhase(3);
-      safeWriteBuzzCache(newsData);
+      if (safeWriteBuzzCache(incoming, freshnessLimitHours)) {
+        setCachedData(safeReadBuzzCache(freshnessLimitHours));
+      }
     }
-  }, [hasLiveData, newsData]);
+  }, [newsData, buzzEnvelope, freshnessLimitHours]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -781,6 +793,8 @@ export const __techSocialPageViewModelInternalsForTest = {
   uniqueByStory,
   hasBuzzLiveData,
   normalizeBuzzCachePayload,
+  isCacheStoryUnexpired,
+  mergeBuzzCachedStories,
   safeReadBuzzCache,
   safeWriteBuzzCache,
   classifyEntertainmentRegion,
