@@ -41,6 +41,23 @@ jobs:
       - name: Test expiry, future pending, caps, storage, cancellation and recovery
         run: |
           python -m pytest -q scripts/test_7day_horizon_contract.py scripts/test_content_lifecycle.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_retention.py scripts/test_upahead_retention_v2.py scripts/test_upahead_recovery.py
+      - name: Requalify the real committed Up Ahead snapshot at its source clock (nonpublishing)
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.enrich_upahead_contract import enrich_snapshot
+          from scripts.validate_upahead_prefetch_output import validate_snapshot
+          snapshot = json.loads(Path("public/data/up_ahead.json").read_text(encoding="utf-8"))
+          source_clock = int(snapshot["fetchedAt"])
+          candidate = enrich_snapshot(snapshot, source_clock + 10 * 60_000)
+          report = validate_snapshot(candidate, source_clock + 10 * 60_000)
+          print({"sourceCount": len(snapshot.get("items", [])), "retainedCount": len(candidate["items"]),
+                 "pendingCount": len(candidate["pendingItems"]), "status": report["status"],
+                 "activeBytes": candidate["retention"]["activeBytes"]})
+          assert not report["errors"], report["errors"]
+          assert candidate["retention"]["activeItemCount"] <= 400
+          PY
       - name: Prove Python, JavaScript and JSON policy parity
         run: node scripts/test_horizon_constants_match_static.mjs
       - name: Prove browser lifecycle expiry parity
