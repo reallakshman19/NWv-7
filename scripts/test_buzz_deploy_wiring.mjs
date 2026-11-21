@@ -17,6 +17,19 @@ function hasQualifiedBuzzDeployTrigger(yaml) {
     && yaml.includes("github.event.workflow_run.conclusion == 'success'");
 }
 
+function hasMainBootstrap(yaml) {
+  const pushPaths = yaml.match(/\n  push:\s*\n    branches: \[main\]\n    paths:([\s\S]*?)\n  pull_request:/)?.[1] || '';
+  return pushPaths.includes("      - 'public/newsdata/sections_latest.json'")
+    && pushPaths.includes("      - '.github/workflows/buzz_rolling_retention.yml'")
+    && pushPaths.includes("      - '.github/workflows/deploy.yml'");
+}
+
+test('reviewed main releases can bootstrap the first qualified rolling JSON', () => {
+  assert.equal(hasMainBootstrap(publisher), true);
+  const broken = publisher.replace("      - 'public/newsdata/sections_latest.json'\n", '');
+  assert.equal(hasMainBootstrap(broken), false);
+});
+
 test('qualified Buzz publication triggers Pages deployment from main', () => {
   assert.equal(hasQualifiedBuzzDeployTrigger(deployment), true);
   assert.match(publisher, /if: github\.event_name != 'pull_request' && github\.ref == 'refs\/heads\/main'/);
