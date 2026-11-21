@@ -52,6 +52,22 @@ const lifecycleBound = item('shopping', {
 });
 assert.equal(upAheadExpiryMs(lifecycleBound), now + 4 * DAY);
 
+// The exact same venue-local inclusive date fixtures are checked in Python.
+for (const [city, expected] of [
+  ['Chennai', Date.parse('2026-11-24T18:30:00Z')],
+  ['Muscat', Date.parse('2026-11-24T20:00:00Z')],
+]) {
+  const sentinel = Date.parse('2026-11-24T00:00:00Z');
+  const day = item('events', {
+    city, datePrecision: 'day', eventDateKey: '2026-11-24',
+    eventDateEndKey: '2026-11-24', eventStartAt: sentinel,
+    eventEndAt: sentinel, expiryAt: sentinel,
+  });
+  assert.equal(upAheadExpiryMs(day), expected);
+  assert.equal(isUpAheadItemActive(day, Date.parse('2026-11-24T12:00:00Z')), true);
+  assert.equal(isUpAheadItemActive(day, expected), false);
+}
+
 // Legacy date-only cards must remain eligible despite missing publication timestamps.
 const dateOnlyFestival = { id: 'festival', category: 'festivals', title: 'Festival',
   city: 'Chennai', date: '2026-11-24', datePrecision: 'day' };
