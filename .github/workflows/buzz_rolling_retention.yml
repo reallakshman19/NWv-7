@@ -1,0 +1,97 @@
+name: Buzz Rolling Retention
+
+# Data-only GitHub publication. Does not promote Cloudflare authority or run Pages.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/buzz_rolling_retention.yml'
+      - 'config/buzz_retention_policy.json'
+      - 'scripts/build_buzz_retained.py'
+      - 'scripts/validate_buzz_retained.py'
+      - 'scripts/test_buzz_retention_v1.py'
+      - 'src/adapters/buzzRetentionFetcher*'
+      - 'src/data/datasets/buzzDataset.js'
+      - 'src/viewModels/useTechSocialPageViewModel*'
+      - 'src/pages/TechSocialPage.jsx'
+  workflow_dispatch:
+  schedule:
+    # Recovery collector schedules at :17 every 3h. Follow it, independently.
+    - cron: '47 */3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: buzz-retention-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    name: Retention expiry, source custody and display admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Prove no source-clock renewal from cache and cap enforcement
+        run: python -m unittest discover -s scripts -p 'test_buzz_retention_v1.py' -v
+      - name: Install locked browser test dependencies
+        run: npm ci
+      - name: Certify rendering, actual expiry and source failover
+        run: npx vitest run --config vitest.config.js src/adapters/buzzRetentionFetcher.cert.test.js src/data/datasets/buzzDataset.cert.test.js src/viewModels/useTechSocialPageViewModel.cert.test.js src/pages/TechSocialPage.release6P.cert.test.jsx
+
+  publish:
+    name: Qualify and commit rolling Buzz JSON only
+    runs-on: ubuntu-latest
+    needs: certify
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    timeout-minutes: 12
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build from current GitHub RSS snapshot and retained history
+        run: python scripts/build_buzz_retained.py
+      - name: Fail closed if digest, clocks, source provenance or caps are invalid
+        run: python scripts/validate_buzz_retained.py
+      - name: Persist qualified snapshot and receipt (no Pages trigger)
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s public/newsdata/buzz_retained_latest.json
+          test -s public/newsdata/buzz_retention_report.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- public/newsdata/buzz_retained_latest.json public/newsdata/buzz_retention_report.json
+          if git diff --cached --quiet; then
+            echo "No lifecycle or evidence changes."
+            exit 0
+          fi
+          git commit -m "data(buzz): retain qualified source-dated stories [skip ci]"
+          git push origin HEAD:main
+      - name: Retain signed-off data artifacts for comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buzz-rolling-${{ github.run_id }}
+          path: |
+            public/newsdata/buzz_retained_latest.json
+            public/newsdata/buzz_retention_report.json
+          if-no-files-found: warn
+          retention-days: 7
