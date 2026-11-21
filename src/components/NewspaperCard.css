@@ -30,7 +30,6 @@
     line-height: 1.4;
     color: var(--text-primary);
     margin-bottom: var(--spacing-md);
-    flex-grow: 1; /* Pushes footer down */
 }
 
 .newspaper-card__title a {
@@ -62,4 +61,34 @@
 
 .newspaper-card__link:hover {
     text-decoration: underline;
+}
+
+.newspaper-card__excerpt {
+    margin: 0 0 var(--spacing-md);
+}
+
+.newspaper-card__excerpt-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.newspaper-card__preview {
+    color: var(--text-secondary);
+    font-size: 0.87rem;
+    line-height: 1.55;
+    margin: 6px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: var(--preview-lines, 3);
+    line-clamp: var(--preview-lines, 3);
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.newspaper-card__time {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    margin-top: auto;
+    padding-bottom: var(--spacing-xs);
 }
