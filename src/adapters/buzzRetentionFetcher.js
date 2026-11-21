@@ -36,7 +36,14 @@ function storyEligible(item, now) {
   if (now - published > (item.buzzSection === 'social' ? MAX_SOCIAL_AGE_MS : MAX_STORY_AGE_MS)) return false;
   if (LOW.has(String(item.timestampConfidence || '').toLowerCase())) return false;
   if (SOURCE_BAD.has(String(item.publishedAtSource || '').toLowerCase())) return false;
-  return deadline <= published + (item.buzzSection === 'social' ? MAX_SOCIAL_AGE_MS : MAX_STORY_AGE_MS);
+  const firstSeen = ms(item.firstSeenAt);
+  const verified = ms(item.lastVerifiedAt);
+  if (!firstSeen || !verified || firstSeen > verified || verified > now + FUTURE) return false;
+  const cap = item.buzzSection === 'social' ? MAX_SOCIAL_AGE_MS : MAX_STORY_AGE_MS;
+  const expected = Math.min(published + cap,
+    Math.max(published + 36 * H, verified + 36 * H),
+    ms(item.expiryAt) || Infinity);
+  return deadline === expected && ms(item.retention?.freshUntil) === published + 36 * H;
 }
 
 export function qualifyBuzzRetainedSnapshot(snapshot, now = Date.now()) {
