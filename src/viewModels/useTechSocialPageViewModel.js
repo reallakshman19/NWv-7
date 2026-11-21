@@ -540,6 +540,17 @@ function mergeBuzzDisplayData(primaryData = {}, fallbackData = {}) {
   return merged;
 }
 
+function combineBuzzSectionItems(primaryItems, cachedItems, fallbackItems) {
+  // The rolling snapshot carries expiry/source evidence that raw NewsContext
+  // items may lack, so prefer the retained copy when IDs overlap.
+  return uniqueByStory([
+    ...asArray(fallbackItems).filter(item => item?._buzzRetained),
+    ...asArray(primaryItems),
+    ...asArray(fallbackItems),
+    ...asArray(cachedItems),
+  ]);
+}
+
 export function useTechSocialPageViewModel() {
   const {
     newsData,
@@ -635,14 +646,9 @@ export function useTechSocialPageViewModel() {
       const cachedItems = asArray(cached[section]);
       const fallbackItems = asArray(fallback[section]);
 
-      // A nonempty NewsContext section must not mask still-eligible rolling
-      // stories; a cached copy must not override more recent verified evidence.
-      merged[section] = uniqueByStory([
-        ...fallbackItems.filter(item => item?._buzzRetained),
-        ...primaryItems,
-        ...fallbackItems,
-        ...cachedItems,
-      ]);
+      // Do not replace a whole section when live data is nonempty: merge
+      // publisher-dated rolling survivors with fresh articles.
+      merged[section] = combineBuzzSectionItems(primaryItems, cachedItems, fallbackItems);
     });
 
     return merged;
@@ -788,4 +794,5 @@ export const __techSocialPageViewModelInternalsForTest = {
   flattenBucketMap,
   projectBuzzDatasetToNewsData,
   mergeBuzzDisplayData,
+  combineBuzzSectionItems,
 };
