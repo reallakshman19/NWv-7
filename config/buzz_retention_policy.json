@@ -1,0 +1,29 @@
+{
+  "version": "buzz-retention-v1",
+  "freshHours": 36,
+  "renewalHours": 36,
+  "maximumDisplayHours": 168,
+  "socialMaximumDisplayHours": 72,
+  "maxSnapshotAgeHours": 12,
+  "futureSkewMinutes": 5,
+  "maxItems": 400,
+  "maxSnapshotBytes": 3000000,
+  "maxReportBytes": 150000,
+  "categorySoftCaps": {
+    "entertainment": 160,
+    "social": 120,
+    "technology": 120
+  },
+  "inputs": {
+    "githubSections": "public/newsdata/sections_latest.json",
+    "rolling": "public/newsdata/buzz_retained_latest.json"
+  },
+  "rules": {
+    "preserveOriginalPublication": true,
+    "withdrawalOverridesRetention": true,
+    "doNotRenewFromCachedSnapshots": true,
+    "cloudflareMirrorSeparate": true,
+    "excludeLowConfidenceTimestamps": true,
+    "expiryExplicitOverrides": true
+  }
+}
