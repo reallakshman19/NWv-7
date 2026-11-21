@@ -25,7 +25,7 @@ describe('Newspaper publication freshness and publisher identity', () => {
     payload.sources.THE_HINDU[0].summary = 'Old July summary';
     const result = normalizeNewspaperEdition(payload, now);
     expect(result.sources.THE_HINDU[0].articles).toHaveLength(1);
-    expect(result.sources.THE_HINDU[0].summary).not.toContain('July');
+    expect(result.sources.THE_HINDU[0]).not.toHaveProperty('summary');
     expect(result.sources.INDIAN_EXPRESS).toEqual([]);
     expect(result.sourceStatus.INDIAN_EXPRESS.status).toBe('unavailable');
     expect(result.lastUpdated).toBe(now);
@@ -92,5 +92,37 @@ describe('Newspaper publication freshness and publisher identity', () => {
     const response=new Response(JSON.stringify({text:'தமிழ்'.repeat(100)}));
     await expect(readPublishedSnapshot(response,100)).rejects.toThrow('size limit');
     await expect(readPublishedSnapshot(new Response('{}',{headers:{'content-length':'9999999'}}),100)).rejects.toThrow('size limit');
+  });
+});
+
+
+describe('Per-story publisher RSS excerpt qualification', () => {
+  it('retains a direct publisher excerpt without publishing a duplicate section Headlines panel', () => {
+    const result = normalizeNewspaperEdition(edition([article({
+      acquiredVia: 'publisher-rss',
+      previewMethod: 'publisher-rss-excerpt',
+      preview: 'The authorities announced an updated transport network with several additional routes expected to open next month.',
+    })]), now);
+    expect(result.sources.THE_HINDU[0].articles[0].preview).toContain('transport network');
+    expect(result.sources.THE_HINDU[0]).not.toHaveProperty('summary');
+  });
+
+  it('removes unsupported and Google-discovery snippets rather than presenting made-up stories', () => {
+    const rows = [
+      article({ title: 'No feed proof', previewMethod: 'publisher-rss-excerpt',
+        preview: 'An unsupported passage with no original publisher feed attribution or evidence.' }),
+      article({ title: 'Discovered via Google', link: 'https://news.google.com/rss/articles/1',
+        publisherUrl: 'https://www.thehindu.com', acquiredVia: 'google-news-publisher-discovery',
+        previewMethod: 'publisher-rss-excerpt', preview: 'A borrowed news discovery snippet without direct publisher material.' }),
+    ];
+    const result = normalizeNewspaperEdition(edition(rows), now).sources.THE_HINDU[0].articles;
+    expect(result.every(row => !row.preview)).toBe(true);
+  });
+
+  it('never treats markup or long legacy article text as a verified excerpt', () => {
+    const row = article({ acquiredVia: 'publisher-rss', previewMethod: 'publisher-rss-excerpt',
+      preview: '<script>bad()</script>' + 'Excessive text '.repeat(40) });
+    const result = normalizeNewspaperEdition(edition([row]), now);
+    expect(result.sources.THE_HINDU[0].articles[0].preview).toBeUndefined();
   });
 });

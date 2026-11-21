@@ -1,9 +1,11 @@
-"""Bounded, free headline-only newspaper publication; no page scraping or AI calls."""
+"""Bounded, free publisher RSS headline and excerpt publication; no scraping or AI calls."""
 import argparse
 import calendar
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
+from html import unescape
+from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -12,6 +14,7 @@ import requests
 
 MAX_AGE_SECONDS = 48 * 60 * 60
 MAX_FEED_BYTES = 1000000
+MAX_PREVIEW_CHARS = 240
 SOURCES = {
     "THE_HINDU": {"domain": "thehindu.com", "feeds": [
         ("Front Page", "https://www.thehindu.com/news/national/feeder/default.rss"),
@@ -32,6 +35,47 @@ SOURCES = {
         ("Latest News", "https://news.google.com/rss/search?q=site:dailythanthi.com+when:2d&hl=ta&gl=IN&ceid=IN:ta"),
     ]},
 }
+
+
+
+class _FeedText(HTMLParser):
+    """Extract only visible text from a publisher RSS description."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self.ignored = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style"):
+            self.ignored += 1
+        elif not self.ignored and tag in ("p", "br", "li", "div"):
+            self.parts.append(" ")
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style"):
+            self.ignored = max(0, self.ignored - 1)
+        elif not self.ignored and tag in ("p", "li", "div"):
+            self.parts.append(" ")
+
+    def handle_data(self, value):
+        if not self.ignored:
+            self.parts.append(value)
+
+
+def publisher_preview(entry, title):
+    """A short direct-publisher RSS synopsis, not inferred article content."""
+    raw = entry.get("summary") or entry.get("description") or ""
+    if not isinstance(raw, str) or not raw:
+        return ""
+    parser = _FeedText()
+    parser.feed(raw)
+    text = " ".join(unescape("".join(parser.parts)).split())
+    if len(text) < 45 or text.casefold().strip(" .") == title.casefold().strip(" ."):
+        return ""
+    if len(text) > MAX_PREVIEW_CHARS:
+        text = text[:MAX_PREVIEW_CHARS + 1].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
+    return text
 
 
 def domain_matches(url, domain):
@@ -57,10 +101,18 @@ def qualify_entries(entries, domain, now_seconds):
         if not title or not (direct or discovery) or link in seen:
             continue
         seen.add(link)
-        articles.append({"title": title, "link": link,
-                         "publishedAt": published * 1000,
-                         "publisherUrl": publisher_url or "https://" + domain,
-                         "acquiredVia": "publisher-rss" if direct else "google-news-publisher-discovery"})
+        article = {"title": title, "link": link,
+                   "publishedAt": published * 1000,
+                   "publisherUrl": publisher_url or "https://" + domain,
+                   "acquiredVia": "publisher-rss" if direct else "google-news-publisher-discovery"}
+        # Google discovery includes aggregator blurbs, not publisher synopses.
+        # Never synthesize a preview from the headline or scrape an article.
+        if direct:
+            preview = publisher_preview(entry, title)
+            if preview:
+                article["preview"] = preview
+                article["previewMethod"] = "publisher-rss-excerpt"
+        articles.append(article)
     return sorted(articles, key=lambda row: row["publishedAt"], reverse=True)[:10]
 
 

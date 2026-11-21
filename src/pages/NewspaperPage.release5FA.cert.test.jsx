@@ -30,7 +30,8 @@ describe('NewspaperPage Release 5F-A migration', () => {
   });
 
   it('keeps newspaper UI controls', () => {
-    expect(src).toContain('Generate All Summaries');
+    expect(src).not.toContain('Generate All Summaries');
+    expect(src).toContain('Preview lines');
     expect(src).toContain('Digest View');
     expect(src).toContain('Translate to English');
     expect(src).toContain('NewspaperCard');
@@ -48,8 +49,8 @@ describe('NewspaperPage Release 5F-A migration', () => {
   });
 
   it('uses hasGeminiKey from ViewModel instead of checking sourceMeta', () => {
-    expect(src).toContain('hasGeminiKey');
-    expect(src).toContain('!hasGeminiKey');
+    expect(src).not.toContain('hasGeminiKey');
+    expect(src).not.toContain('getSectionSummary(section)');
     expect(src).not.toContain('sourceMeta?.geminiKey');
   });
 });

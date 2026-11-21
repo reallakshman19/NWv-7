@@ -63,8 +63,10 @@ describe('Release 6Q NewspaperPage ViewModel binding', () => {
     expect(page).toContain('<NewspaperCard');
     expect(page).toContain('digestMode');
     expect(page).toContain('FaLanguage');
-    expect(page).toContain('FaBolt');
-    expect(page).toContain('Add Key to Enable');
+    expect(page).not.toContain('FaBolt');
+    expect(page).not.toContain('Add Key to Enable');
+    expect(page).not.toContain('getSectionSummary(section)');
+    expect(page).toContain('previewLines');
     expect(page).toContain('Daily Brief');
     expect(page).toContain('Array.isArray(section.articles)');
   });

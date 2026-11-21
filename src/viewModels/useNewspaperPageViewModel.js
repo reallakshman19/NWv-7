@@ -109,9 +109,22 @@ export function useNewspaperPageViewModel() {
   const [isTranslated, setIsTranslated] = useState(false);
   const [dynamicSummaries, setDynamicSummaries] = useState({});
   const [dynamicTitles, setDynamicTitles] = useState({});
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const isGeneratingSummary = false;
   const [isTranslatingTitles, setIsTranslatingTitles] = useState(false);
   const [digestMode, setDigestMode] = useState(false);
+  const [previewLines, setPreviewLinesState] = useState(() => {
+    try {
+      const saved = Number(globalThis.localStorage?.getItem('newspaper-preview-lines'));
+      return [2, 3, 4].includes(saved) ? saved : 3;
+    } catch { return 3; }
+  });
+  const setPreviewLines = useCallback((value) => {
+    const count = Number(value);
+    if (![2, 3, 4].includes(count)) return;
+    setPreviewLinesState(count);
+    try { globalThis.localStorage?.setItem('newspaper-preview-lines', String(count)); }
+    catch { /* user preference is optional */ }
+  }, []);
   const [clientSummaries, setClientSummaries] = useState({});
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
 
@@ -215,46 +228,6 @@ export function useNewspaperPageViewModel() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  useEffect(() => {
-    const generateMissingSummaries = async () => {
-      if (!data || !data[activeSource]) return;
-      if (!geminiKey) return;
-
-      const currentSections = asArray(data[activeSource]);
-      const isTamil = getSourceMeta(activeSource).lang === 'ta';
-
-      for (const section of currentSections) {
-        const needsSummary = (!section.summary && !section.summary_ta) || section.error;
-        const alreadyGenerated = dynamicSummaries[section.page];
-
-        if (needsSummary && !alreadyGenerated && !isGeneratingSummary) {
-          setIsGeneratingSummary(true);
-
-          try {
-            console.log(`Generating fallback summary for ${section.page}...`);
-
-            const result = await geminiService.generateSummary(
-              section.articles,
-              geminiKey,
-              isTamil
-            );
-
-            setDynamicSummaries(prev => ({
-              ...prev,
-              [section.page]: result,
-            }));
-          } catch (summaryError) {
-            console.error(`Failed to generate summary for ${section.page}:`, summaryError);
-          } finally {
-            setIsGeneratingSummary(false);
-          }
-        }
-      }
-    };
-
-    generateMissingSummaries();
-  }, [activeSource, data, dynamicSummaries, geminiKey, isGeneratingSummary]);
 
   useEffect(() => {
     const translateVisibleTitles = async () => {
@@ -394,16 +367,6 @@ export function useNewspaperPageViewModel() {
     isTranslated,
   ]);
 
-  useEffect(() => {
-    if (!data || !data[activeSource]) return;
-
-    const firstSection = asArray(data[activeSource])[0];
-
-    if (firstSection && !firstSection.summary && !firstSection.summary_ta && !geminiKey) {
-      generateClientSummary(firstSection.page, firstSection.articles);
-    }
-  }, [activeSource, data, geminiKey, generateClientSummary]);
-
   const handleSourceChange = useCallback((sourceId) => {
     setActiveSource(sourceId);
     setIsTranslated(false);
@@ -439,6 +402,8 @@ export function useNewspaperPageViewModel() {
     isGeneratingSummary,
     isTranslatingTitles,
     digestMode,
+    previewLines,
+    setPreviewLines,
     clientSummaries,
     isGeneratingAll,
     summaryLineLimit,
