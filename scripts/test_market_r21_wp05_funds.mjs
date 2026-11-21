@@ -4,6 +4,7 @@
  */
 
 import assert from 'node:assert/strict';
+import { marketIsolationInput } from './market_r21_path_guard.mjs';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -322,15 +323,9 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
-  // Apply Market's strict isolation contract only to PRs modifying Market code.
-  // An unrelated Newspaper PR must not fail a Market-specific path allowlist.
-  const hasMarketCodeChanges = changedFiles.some(file =>
-    file.startsWith('src/market/') ||
-    file === 'src/pages/MarketPage.jsx' ||
-    file.startsWith('src/pages/MarketPage.') ||
-    file === 'src/services/marketWorkspaceRoute.js'
-  );
-  for (const file of hasMarketCodeChanges ? changedFiles : []) {
+  // The shared trigger includes policy-only Market service changes as well
+  // as src/market runtime paths; unrelated Newspaper PRs remain out of scope.
+  for (const file of marketIsolationInput(changedFiles)) {
     const isAllowed =
       file.startsWith('src/market/') ||
       file.startsWith('src/pages/') ||
