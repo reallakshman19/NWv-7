@@ -10,6 +10,7 @@ import {
   getWeatherLocationOptions,
   resolveRegistryKey,
 } from '../services/weatherLocations.js';
+import { buildWeatherSelectedNewsSettings } from '../services/travelLocationProfile.js';
 import { auditWeatherTabQuality } from '../services/pageAuditGrading.js';
 
 const WEATHER_ACTIVE_CITY_KEY = 'weather_active_city';
@@ -106,7 +107,7 @@ export function useWeatherTabViewModel() {
   ), []);
 
   const [requestedActiveCity, setRequestedActiveCity] = useState(() => (
-    resolveRegistryKey(safeReadActiveCity()) || null
+    resolveRegistryKey(settings?.weather?.activeCity) || resolveRegistryKey(safeReadActiveCity()) || null
   ));
 
   const activeCity = useMemo(() => (
@@ -126,10 +127,14 @@ export function useWeatherTabViewModel() {
   const setActiveCity = useCallback((city) => {
     const canonical = resolveRegistryKey(city) || city;
 
-    if (canonical) {
+    if (canonical && cities.includes(canonical)) {
+      if (settings?.weather?.activeCity !== canonical) {
+        const nextSettings = buildWeatherSelectedNewsSettings(settings, canonical);
+        if (updateSettings(nextSettings) === false) return;
+      }
       setRequestedActiveCity(canonical);
     }
-  }, []);
+  }, [cities, settings, updateSettings]);
 
   const refresh = useCallback(async (force = true) => {
     try {
@@ -167,14 +172,18 @@ export function useWeatherTabViewModel() {
     }
 
     try {
-      const nextSettings = buildWeatherSettingsWithCities(settings, uniqueCities);
+      const targetCity = uniqueCities.includes(activeCity) ? activeCity : uniqueCities[0];
+      const nextSettings = buildWeatherSelectedNewsSettings(
+        buildWeatherSettingsWithCities(settings, uniqueCities), targetCity
+      );
 
       if (typeof updateSettings === 'function') {
-        await Promise.resolve(updateSettings(nextSettings));
+        const saved = await Promise.resolve(updateSettings(nextSettings));
+        if (saved === false) return { ok: false, error: 'Could not save weather locations.' };
       }
 
       if (!uniqueCities.includes(activeCity)) {
-        setRequestedActiveCity(uniqueCities[0]);
+        setRequestedActiveCity(targetCity);
       }
 
       if (typeof refreshWeather === 'function') {

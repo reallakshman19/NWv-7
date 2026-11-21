@@ -4,6 +4,7 @@ import { useSettings } from '../context/SettingsContext';
 import WeatherIcon from './WeatherIcons';
 import QuickWeatherSignalStrip from './weather/QuickWeatherSignalStrip.jsx';
 import { buildNextRiskSummary, buildTomorrowChip } from '../services/weatherInsights.js';
+import { buildWeatherSelectedNewsSettings } from '../services/travelLocationProfile.js';
 import {
     buildWeatherSettingsWithCities,
     getCityWeatherKey,
@@ -192,9 +193,11 @@ const QuickWeather = () => {
 
     const [activeCity, setActiveCity] = useState(() => {
         try {
-            return normalizeCity(localStorage.getItem('weather_active_city')) || 'chennai';
+            const configured = normalizeCity(settings?.weather?.activeCity);
+            const stored = normalizeCity(localStorage.getItem('weather_active_city'));
+            return [configured, stored, cities[0]].find(city => cities.includes(city)) || 'chennai';
         } catch {
-            return 'chennai';
+            return cities[0] || 'chennai';
         }
     });
 
@@ -239,6 +242,23 @@ const QuickWeather = () => {
         }
     }, [activeCity]);
 
+    // Stay aligned if a selection is changed from the Weather tab.
+    useEffect(() => {
+        const configured = normalizeCity(settings?.weather?.activeCity);
+        if (configured && cities.includes(configured) && configured !== activeCity) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setActiveCity(configured);
+        }
+    }, [settings?.weather?.activeCity, cities, activeCity]);
+
+    // Migrate an existing localStorage selection to reactive settings without
+    // modifying the separately configured manual travel city.
+    useEffect(() => {
+        if (!settings?.weather?.activeCity && cities.includes(activeCity)) {
+            updateSettings(buildWeatherSelectedNewsSettings(settings, activeCity));
+        }
+    }, [settings, cities, activeCity, updateSettings]);
+
     function saveCities(nextCities, nextActiveCity = activeCity) {
         const uniqueCities = [...new Set(nextCities.map(normalizeCity).filter(Boolean))];
 
@@ -248,12 +268,33 @@ const QuickWeather = () => {
         }
 
         // Builds settings with: weather: { cities: uniqueCities }
-        const nextSettings = buildWeatherSettingsWithCities(settings, uniqueCities);
+        const nextSettings = buildWeatherSelectedNewsSettings(
+            buildWeatherSettingsWithCities(settings, uniqueCities),
+            nextActiveCity
+        );
 
-        updateSettings(nextSettings);
+        if (updateSettings(nextSettings) === false) {
+            setCityEditMessage('Could not save selected weather city.');
+            return;
+        }
         setActiveCity(nextActiveCity);
         setCityEditMessage('');
         refreshWeather?.(true);
+    }
+
+    function selectCity(city) {
+        const nextCity = normalizeCity(city);
+        if (!nextCity || !getWeatherLocation(nextCity)) return;
+
+        // SettingsContext drives both weather selection and local news.
+        // Never replace the independent manual travel location preference.
+        if (settings?.weather?.activeCity !== nextCity &&
+            updateSettings(buildWeatherSelectedNewsSettings(settings, nextCity)) === false) {
+            setCityEditMessage('Could not save selected weather city.');
+            return;
+        }
+        setCityEditMessage('');
+        setActiveCity(nextCity);
     }
 
     function handleAddCity(event) {
@@ -294,10 +335,8 @@ const QuickWeather = () => {
     const usableRows = cityRows.filter(row => row.usable);
 
     const bgClass = getBackgroundClass();
-    const activeRow = cityRows.find(row => row.city === activeCity && row.usable) ||
-        usableRows[0] ||
-        cityRows.find(row => row.city === activeCity) ||
-        cityRows[0];
+    const activeRow = cityRows.find(row => row.city === activeCity) ||
+        usableRows[0] || cityRows[0];
 
     const activeCityData = activeRow?.cityData;
     const severeWarning = getSevereWarning(activeCityData);
@@ -360,11 +399,14 @@ const QuickWeather = () => {
                         <div
                             key={row.city}
                             className={`qw-city-row ${isActive ? 'qw-city-row--active' : ''} ${!row.usable ? 'qw-city-row--missing' : ''}`}
-                            onClick={() => setActiveCity(row.city)}
+                            onClick={() => selectCity(row.city)}
                             role="button"
                             tabIndex={0}
                             onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') setActiveCity(row.city);
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    selectCity(row.city);
+                                }
                             }}
                         >
                             <div className="qw-city-row__left">
