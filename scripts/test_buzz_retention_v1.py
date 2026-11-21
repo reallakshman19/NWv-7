@@ -72,6 +72,22 @@ class BuzzRetentionTests(unittest.TestCase):
         row["lastVerifiedAt"] = NOW + 15 * H
         self.assertEqual(deadlines(row)["displayUntil"], row["publishedAt"] + 7 * DAY)
 
+    def test_later_feed_omission_cannot_erase_existing_publisher_expiry(self):
+        first, _ = self.publish(source([story("expires", expiryAt=NOW + 20 * H)]))
+        second, _ = self.publish(
+            source([story("expires", expiryAt=None)], when=NOW + 10 * H),
+            first, NOW + 10 * H,
+        )
+        row = second["items"][0]
+        self.assertEqual(row["expiryAt"], NOW + 20 * H)
+        self.assertEqual(row["retention"]["displayUntil"], NOW + 20 * H)
+        # An explicit earlier replacement tightens the deadline.
+        third, _ = self.publish(
+            source([story("expires", expiryAt=NOW + 18 * H)], when=NOW + 11 * H),
+            second, NOW + 11 * H,
+        )
+        self.assertEqual(third["items"][0]["retention"]["displayUntil"], NOW + 18 * H)
+
     def test_social_caps_to_three_days(self):
         social = story(section="social", title="Viral social media trend", hours_old=70)
         first, _ = self.publish(source([social], section="social"))
