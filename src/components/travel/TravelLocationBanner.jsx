@@ -10,7 +10,7 @@ export default function TravelLocationBanner({ profile }) {
       <div className="travel-location-banner__copy">
         <strong>{profile.display}</strong>
         <span>
-          Prioritising {profile.countryLabel} local stories · {profile.source}
+          Prioritising {profile.display} local stories · {profile.source}
         </span>
       </div>
     </section>
