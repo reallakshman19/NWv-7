@@ -32,6 +32,9 @@ SOURCES = {
         ("Latest News", "https://news.google.com/rss/search?q=site:dinamani.com+when:2d&hl=ta&gl=IN&ceid=IN:ta"),
     ]},
     "DAILY_THANTHI": {"domain": "dailythanthi.com", "feeds": [
+        # Publisher-hosted XML feed; Google discovery is headline-only recovery.
+        ("Latest News", "https://www.dailythanthi.com/feed"),
+    ], "fallbackFeeds": [
         ("Latest News", "https://news.google.com/rss/search?q=site:dailythanthi.com+when:2d&hl=ta&gl=IN&ceid=IN:ta"),
     ]},
 }
@@ -191,8 +194,23 @@ def collect_publication(now, fetcher=acquire_feed):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default="public/data/epaper_data.json")
+    parser.add_argument("--probe-source", choices=SOURCES,
+                        help="Read only the configured direct feeds and report live qualification without publishing.")
     args = parser.parse_args()
     now = datetime.now(timezone.utc).timestamp()
+    if args.probe_source:
+        key = args.probe_source
+        source = SOURCES[key]
+        readings = [acquire_feed((key, source["domain"], page, url), now)
+                    for page, url in source["feeds"]]
+        counts = {"articles": sum(len(row["articles"]) for row in readings),
+                  "previews": sum(sum(bool(article.get("preview")) for article in row["articles"])
+                                  for row in readings)}
+        print(json.dumps({"source": key, "counts": counts,
+                          "feeds": [{field: value for field, value in row.items()
+                                     if field != "articles"} for row in readings]}, ensure_ascii=False))
+        # Fail live acceptance for a publisher that still supplies no usable preview.
+        return 0 if counts["previews"] else 1
     publication = collect_publication(now)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -203,4 +221,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
