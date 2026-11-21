@@ -92,3 +92,31 @@
     margin-top: auto;
     padding-bottom: var(--spacing-xs);
 }
+
+.newspaper-card__preview--expanded {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+}
+
+.newspaper-card__preview-toggle {
+    display: inline-block;
+    padding: 6px 0 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent-primary);
+    font: inherit;
+    font-size: 0.76rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.newspaper-card__preview-toggle:hover {
+    text-decoration: underline;
+}
+
+.newspaper-card__preview-toggle:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 3px;
+}

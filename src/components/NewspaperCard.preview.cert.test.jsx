@@ -21,6 +21,8 @@ describe('NewspaperCard per-story preview', () => {
     expect(html).toContain('Publisher RSS excerpt');
     expect(html).toContain('Read Full Story');
     expect(html).toContain('--preview-lines:4');
+    expect(html).toContain('Show entire excerpt');
+    expect(html).toContain('aria-expanded="false"');
   });
 
   it('does not invent a preview when only an original headline exists', () => {
@@ -30,6 +32,23 @@ describe('NewspaperCard per-story preview', () => {
     expect(html).not.toContain('newspaper-card__excerpt');
     expect(html).not.toContain('Publisher RSS excerpt');
     expect(html).toContain('Read Full Story');
+  });
+
+  it('labels original-language excerpt rather than falsely claiming English translation', () => {
+    const html = renderToStaticMarkup(
+      <NewspaperCard article={makeArticle()} sourceName="Dinamani" isTranslated={true} />
+    );
+    expect(html).toContain('Publisher RSS excerpt (original language)');
+    expect(html).toContain('Officials detailed');
+  });
+
+  it('uses an available translated preview without changing the publisher attribution', () => {
+    const html = renderToStaticMarkup(
+      <NewspaperCard article={makeArticle({ preview_en: 'Translated publisher description in English with full factual details.' })}
+        sourceName="Dinamani" isTranslated={true} />
+    );
+    expect(html).toContain('Translated publisher description');
+    expect(html).not.toContain('(original language)');
   });
 
   it('bounds invalid preference inputs to three lines', () => {

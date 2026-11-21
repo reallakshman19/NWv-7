@@ -89,3 +89,37 @@ def test_publisher_excerpt_truncates_on_word_boundary():
                              'thehindu.com', NOW)[0]
     assert result['preview'].endswith('…')
     assert len(result['preview']) <= MAX_PREVIEW_CHARS + 1
+
+
+def test_direct_feed_content_synopsis_is_used_when_description_is_only_a_title():
+    rows = qualify_entries([entry(
+        summary='A current publisher headline',
+        content=[{'type': 'text/html', 'value':
+                  '<p>Officials published details of a district-wide school programme '
+                  'and said additional resources will be distributed next month.</p>'}])],
+        'thehindu.com', NOW)
+    assert rows[0]['preview'].startswith('Officials published details')
+    assert rows[0]['previewMethod'] == 'publisher-rss-excerpt'
+
+
+def test_aggregator_content_is_not_promoted_to_publisher_excerpt():
+    rows = qualify_entries([entry(
+        link='https://news.google.com/rss/articles/abc',
+        source={'href': 'https://www.dinamani.com'},
+        content=[{'value': 'A third-party description containing more than forty-five characters.'}])],
+        'dinamani.com', NOW)
+    assert len(rows) == 1
+    assert 'preview' not in rows[0]
+
+
+def test_publication_counts_available_previews_per_publisher():
+    rows = qualify_entries([
+        entry(title='Story with details', summary='The publisher reported additional service routes across several districts next month.'),
+        entry(title='Headline-only item', link='https://www.thehindu.com/news/second.ece'),
+    ], 'thehindu.com', NOW)
+    result = build_publication([{'sourceId': 'THE_HINDU', 'page': 'Front Page',
+                                 'url': 'https://www.thehindu.com/feed', 'ok': True,
+                                 'articles': rows, 'currentCount': 2}], NOW)
+    assert result['sourceStatus']['THE_HINDU']['currentCount'] == 2
+    assert result['sourceStatus']['THE_HINDU']['previewCount'] == 1
+    assert result['sourceStatus']['DINAMANI']['previewCount'] == 0

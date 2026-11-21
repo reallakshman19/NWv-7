@@ -30,6 +30,7 @@ const NewspaperPage = () => {
 
     isTranslated,
     dynamicTitles,
+    dynamicPreviews,
     isTranslatingTitles,
     digestMode,
     previewLines,
@@ -43,6 +44,15 @@ const NewspaperPage = () => {
     toggleDigestMode,
     toggleTranslation,
   } = useNewspaperPageViewModel();
+
+  const currentArticleCount = currentSections.reduce(
+    (total, section) => total + (Array.isArray(section?.articles) ? section.articles.length : 0), 0
+  );
+  const currentPreviewCount = currentSections.reduce(
+    (total, section) => total + (Array.isArray(section?.articles)
+      ? section.articles.filter(article => typeof article?.preview === 'string' && article.preview.trim()).length
+      : 0), 0
+  );
 
   return (
     <div className={`page-container mode-newspaper ${isWebView ? 'page-container--desktop' : ''}`}>
@@ -148,6 +158,12 @@ const NewspaperPage = () => {
           {' '}Short publisher RSS excerpts appear with verified stories when available; full articles open on the publisher site.
           {' '}<a href={sources[activeSource].url} target="_blank" rel="noopener noreferrer">Open {sources[activeSource].label}</a>
         </p>
+        {!loading && data && currentArticleCount > 0 && (
+          <p className="newspaper-source-note" aria-live="polite">
+            Publisher RSS excerpts available for {currentPreviewCount} of {currentArticleCount} stories.
+            {currentPreviewCount === 0 && ' This edition has no verified publisher snippets; headline-only cards are shown without invented text.'}
+          </p>
+        )}
         {loading && !data ? (
           <div className="loading">
             <div className="loading__spinner"></div>
@@ -200,6 +216,8 @@ const NewspaperPage = () => {
                       <div style={{ fontSize: '0.9rem', lineHeight: '1.7' }}>
                         {sectionArticles.map((article, aIdx) => {
                           const title = (isTranslated && (dynamicTitles[article.link] || article.title_en)) || article.title;
+                          const preview = (isTranslated && (dynamicPreviews[article.link] || article.preview_en)) || article.preview;
+                          const originalPreview = isTranslated && !dynamicPreviews[article.link] && !article.preview_en;
 
                           return (
                             <div
@@ -221,10 +239,13 @@ const NewspaperPage = () => {
                               >
                                 {title}
                               </a>
-                              {article.preview && (
-                                <p className="newspaper-card__preview" style={{ '--preview-lines': previewLines }}>
-                                  {article.preview}
-                                </p>
+                              {preview && (
+                                <div>
+                                  {originalPreview && <small>Original-language publisher excerpt</small>}
+                                  <p className="newspaper-card__preview" style={{ '--preview-lines': previewLines }}>
+                                    {preview}
+                                  </p>
+                                </div>
                               )}
                             </div>
                           );
@@ -242,6 +263,7 @@ const NewspaperPage = () => {
                           const articleWithTranslation = {
                             ...article,
                             title_en: dynamicTitles[article.link] || article.title_en,
+                            preview_en: dynamicPreviews[article.link] || article.preview_en,
                           };
 
                           return (

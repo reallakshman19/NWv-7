@@ -2,6 +2,14 @@ name: Daily News Brief
 
 on:
   workflow_dispatch:
+  # Publish a fresh edition after a producer or UI change reaches main.
+  # Snapshot-only bot commits do not match these paths, avoiding refresh loops.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/daily_brief.yml'
+      - 'scripts/daily_brief.py'
+      - 'scripts/test_daily_brief.py'
   schedule:
     - cron: '20 0,6,12,18 * * *'
   pull_request:

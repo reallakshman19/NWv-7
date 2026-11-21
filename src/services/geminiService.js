@@ -69,7 +69,7 @@ export const geminiService = {
         }
 
         const inputList = texts.map((t, i) => `${i + 1}. ${t}`).join("\n");
-        const prompt = `Translate the following news headlines to English. Maintain journalistic style. Return ONLY the translated list, numbered exactly as input.\n\n${inputList}`;
+        const prompt = `Translate the following news headlines or short publisher-provided RSS excerpts to English faithfully. Preserve facts and do not add information. Return ONLY the translated list, numbered exactly as input.\n\n${inputList}`;
 
         try {
             const result = await model.generateContent(prompt);

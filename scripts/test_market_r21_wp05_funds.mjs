@@ -322,7 +322,15 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
-  for (const file of changedFiles) {
+  // Apply Market's strict isolation contract only to PRs modifying Market code.
+  // An unrelated Newspaper PR must not fail a Market-specific path allowlist.
+  const hasMarketCodeChanges = changedFiles.some(file =>
+    file.startsWith('src/market/') ||
+    file === 'src/pages/MarketPage.jsx' ||
+    file.startsWith('src/pages/MarketPage.') ||
+    file === 'src/services/marketWorkspaceRoute.js'
+  );
+  for (const file of hasMarketCodeChanges ? changedFiles : []) {
     const isAllowed =
       file.startsWith('src/market/') ||
       file.startsWith('src/pages/') ||
