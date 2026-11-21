@@ -1,5 +1,6 @@
 import { addCalendarDays, isCalendarDateKey, parsePublicationDate, toLocalDateKey, toUtcCalendarDateKey } from '../utils/dateKey.js';
 import { upAheadCityLocation } from './upAheadLocation.js';
+import { ALERT_FALLBACK_HOURS, OFFER_FALLBACK_HOURS, UPAHEAD_MAX_ACTIVE_HOURS } from '../config/horizonPolicy.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -137,21 +138,28 @@ export function upAheadExpiryMs(item) {
     convertedDeadline(item.expiryAt),
     convertedDeadline(item.lifecycle?.displayUntil),
   ].filter(Boolean);
-  if (deadlines.length) return Math.min(...deadlines);
-  if (end) return end;
 
   const timestamp = upAheadTimeMs(item.publishedAt || item.publishDate || item.firstSeenAt || item.observedAt);
-  // A missing source/event clock cannot grant indefinite feed eligibility.
-  // Cache maintenance keeps such legacy rows in a bounded recovery quarantine.
+  const verifiedAt = upAheadTimeMs(item.lastVerifiedAt || item.observedAt || item.firstSeenAt || item.publishedAt);
+  const eventStart = upAheadTimeMs(item.eventStartAt);
+  // A source re-observation renews eligibility; an app/snapshot refresh does not.
+  // Future occurrences can wait in the pending pool until their verified event.
+  const anchor = Math.max(verifiedAt, eventStart);
+  const sevenDayCap = anchor ? anchor + UPAHEAD_MAX_ACTIVE_HOURS * HOUR_MS : 0;
+  if (!sevenDayCap) return 0;
+  if (deadlines.length) return Math.min(sevenDayCap, ...deadlines);
+  if (end) return Math.min(end, sevenDayCap);
+
+  // Legacy undated rows use a bounded fallback, never a rolling fetch-time TTL.
   if (!timestamp) return 0;
   const category = String(item.category || '').toLowerCase();
   if (['offer', 'shopping', 'airline_offer', 'airlines'].includes(category)) {
-    return timestamp + 48 * HOUR_MS;
+    return Math.min(sevenDayCap, timestamp + OFFER_FALLBACK_HOURS * HOUR_MS);
   }
   if (['alert', 'alerts', 'weather_alert', 'weather_alerts', 'civic'].includes(category)) {
-    return timestamp + 24 * HOUR_MS;
+    return Math.min(sevenDayCap, timestamp + ALERT_FALLBACK_HOURS * HOUR_MS);
   }
-  return timestamp + UP_AHEAD_SOURCE_LOOKBACK_MS;
+  return Math.min(sevenDayCap, timestamp + UP_AHEAD_SOURCE_LOOKBACK_MS);
 }
 
 export function isUpAheadItemActive(item, now = Date.now()) {
