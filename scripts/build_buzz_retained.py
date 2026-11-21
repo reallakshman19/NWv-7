@@ -141,6 +141,13 @@ def make_row(item: dict, old: dict | None, source_time: int, now: int) -> dict:
         row["publishedAt"] = old["publishedAt"]
         row["firstSeenAt"] = old["firstSeenAt"]
         row["lastVerifiedAt"] = max(millis(old.get("lastVerifiedAt")), source_time)
+        # A feed that omits a previously declared expiry has not revoked it.
+        # Without authenticated publisher revision evidence, never lengthen
+        # an earlier explicit deadline. A shorter new deadline is safe.
+        previous_expiry = millis(old.get("expiryAt"))
+        incoming_expiry = millis(item.get("expiryAt"))
+        if previous_expiry and (not incoming_expiry or incoming_expiry > previous_expiry):
+            row["expiryAt"] = previous_expiry
     else:
         row["firstSeenAt"] = source_time
         row["lastVerifiedAt"] = source_time
