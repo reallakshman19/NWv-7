@@ -84,9 +84,10 @@ pass(newspaperPage.includes('useNewspaperTabViewModel'), 'NewspaperPage must use
 pass(newspaperPage.includes('DataStateBoundary'), 'NewspaperPage must use DataStateBoundary');
 pass(newspaperPage.includes('NewspaperCard'), 'NewspaperPage must keep NewspaperCard rendering');
 pass(newspaperPage.includes('Digest View'), 'NewspaperPage must preserve digest toggle');
-pass(newspaperPage.includes('Generate All Summaries'), 'NewspaperPage must preserve summary generation control');
+pass(!newspaperPage.includes('Generate All Summaries'), 'NewspaperPage must remove duplicate section summary controls');
+pass(newspaperPage.includes('Preview lines'), 'NewspaperPage must support article preview preferences');
 pass(newspaperPage.includes('Translate to English'), 'NewspaperPage must preserve translation control');
-pass(newspaperPage.includes('!hasGeminiKey'), 'NewspaperPage must use hasGeminiKey');
+pass(!newspaperPage.includes('!hasGeminiKey'), 'NewspaperPage must not render obsolete Gemini summary prompt');
 pass(!newspaperPage.includes('sourceMeta?.geminiKey'), 'NewspaperPage must not check geminiKey on sourceMeta');
 
 [
