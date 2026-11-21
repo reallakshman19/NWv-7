@@ -118,6 +118,13 @@ export async function fetchTravelNewsPayload({ basePath = '/data', profile } = {
     ? profile
     : getTravelLocationProfile(profile || {});
 
+  // Only four travel cities currently have a dedicated GitHub JSON feed.
+  // Other supported weather cities rank available articles by city evidence
+  // and must not attempt another city's cached payload.
+  if (resolvedProfile.prefetchSupported === false) {
+    return normalizeTravelNewsPayload({ stories: [], sourceMode: 'no-city-prefetch' }, resolvedProfile);
+  }
+
   const paths = [
     `${basePath}/travel-local-${resolvedProfile.key}.json`,
     `${basePath}/travel-location-${resolvedProfile.key}.json`,
