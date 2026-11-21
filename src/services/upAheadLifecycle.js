@@ -144,7 +144,8 @@ export function upAheadExpiryMs(item) {
   const eventStart = upAheadTimeMs(item.eventStartAt);
   // A source re-observation renews eligibility; an app/snapshot refresh does not.
   // Future occurrences can wait in the pending pool until their verified event.
-  const anchor = Math.max(verifiedAt, eventStart);
+  const firstVisibleAt = upAheadTimeMs(item.firstVisibleAt);
+  const anchor = Math.max(verifiedAt, firstVisibleAt || eventStart);
   const sevenDayCap = anchor ? anchor + UPAHEAD_MAX_ACTIVE_HOURS * HOUR_MS : 0;
   if (!sevenDayCap) return 0;
   if (deadlines.length) return Math.min(sevenDayCap, ...deadlines);
