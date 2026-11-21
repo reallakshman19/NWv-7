@@ -10,6 +10,7 @@ const article = (more = {}) => ({
   title: 'Vijay Tamil cinema update',
   url: 'https://publisher.example/tamil',
   publishedAt: NOW - 5 * H,
+  firstSeenAt: NOW,
   lastVerifiedAt: NOW,
   buzzSection: 'entertainment',
   sourceSection: 'entertainment',
