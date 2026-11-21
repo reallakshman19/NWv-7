@@ -176,7 +176,7 @@ def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str
 
 
 def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
-    event_start = _ms(item.get("eventStartAt"))
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     display_until, _reason = _display_until_for_item(item, now_ms)
     if event_start is None:
         return display_until >= now_ms
@@ -188,7 +188,7 @@ def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
 
 
 def _within_planner_horizon(item: dict[str, Any], now_ms: int) -> bool:
-    event_start = _ms(item.get("eventStartAt"))
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     if event_start is None:
         return False
     ongoing = event_start <= now_ms < (_ms(item.get("eventEndAt")) or 0)
@@ -231,6 +231,11 @@ def should_publish_item(item: dict[str, Any], lifecycle: dict[str, Any]) -> bool
     return bool(lifecycle.get("isVisible"))
 
 
+def active_published_bytes(items: list[dict[str, Any]]) -> int:
+    """Count the actual indented JSON representation of the published items."""
+    return len(json.dumps({"items": items}, indent=2, ensure_ascii=False).encode("utf-8"))
+
+
 def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Bound published active data deterministically, protecting urgent alerts.
 
@@ -254,16 +259,16 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
 
     def admit(index: int, row: dict[str, Any]) -> bool:
         nonlocal active_bytes
-        size = len(json.dumps(row, ensure_ascii=False).encode("utf-8"))
-        if size > MAX_ACTIVE_BYTES or active_bytes + size > MAX_ACTIVE_BYTES:
-            byte_rejected_indexes.add(index)
-            return False
         if len(chosen) >= MAX_ACTIVE_ITEMS:
+            return False
+        next_bytes = active_published_bytes([*chosen, row])
+        if next_bytes > MAX_ACTIVE_BYTES:
+            byte_rejected_indexes.add(index)
             return False
         chosen.append(row)
         chosen_ids.add(index)
         selected_by_category[str(row.get("category") or "unknown")] += 1
-        active_bytes += size
+        active_bytes = next_bytes
         return True
 
     for index, row in enumerate(ordered):
