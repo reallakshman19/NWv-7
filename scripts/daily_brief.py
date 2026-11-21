@@ -198,7 +198,8 @@ def main():
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes((json.dumps(publication, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     print(json.dumps({"lastUpdated": publication["lastUpdated"], "sources": {
-        key: value["currentCount"] for key, value in publication["sourceStatus"].items()}}))
+        key: {"articles": value["currentCount"], "previews": value["previewCount"]}
+        for key, value in publication["sourceStatus"].items()}}))
 
 
 if __name__ == "__main__":
