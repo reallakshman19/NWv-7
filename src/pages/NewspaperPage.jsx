@@ -2,14 +2,10 @@
 // useNewspaperTabViewModel — Newspaper tab ViewModel pattern; page consumes useNewspaperPageViewModel
 // DataStateBoundary integration: <DataStateBoundary onRetry={handleRefresh} errorMessage={error || "Failed to load today's newspaper."} />
 import React from 'react';
-import { Link } from 'react-router-dom';
 import {
   FaNewspaper,
   FaSync,
   FaLanguage,
-  FaMagic,
-  FaExclamationTriangle,
-  FaBolt,
 } from 'react-icons/fa';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import NewspaperCard from '../components/NewspaperCard';
@@ -41,19 +37,15 @@ const NewspaperPage = () => {
 
     isTranslated,
     dynamicTitles,
-    isGeneratingSummary,
     isTranslatingTitles,
     digestMode,
-    isGeneratingAll,
-    summaryLineLimit,
-    hasGeminiKey,
+    previewLines,
+    setPreviewLines,
 
     showTranslationControls,
 
     handleRefresh,
     reload,
-    getSectionSummary,
-    handleGenerateAll,
     handleSourceChange,
     toggleDigestMode,
     toggleTranslation,
@@ -68,17 +60,18 @@ const NewspaperPage = () => {
         </div>
 
         <div className="header__actions" style={{ gap: '8px' }}>
-          <button
-            onClick={handleGenerateAll}
-            className={`btn-icon ${isGeneratingAll ? 'pulse' : ''}`}
-            title="Generate All Summaries"
-            disabled={isGeneratingAll}
-            style={{
-              color: isGeneratingAll ? 'var(--accent-primary)' : 'var(--text-secondary)',
-            }}
-          >
-            <FaBolt size={18} />
-          </button>
+          <label htmlFor="newspaper-preview-lines" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            Preview lines
+            <select
+              id="newspaper-preview-lines"
+              aria-label="Preview lines"
+              value={previewLines}
+              onChange={event => setPreviewLines(Number(event.target.value))}
+              style={{ marginLeft: '6px', color: 'var(--text-primary)', background: 'var(--bg-secondary)' }}
+            >
+              {[2, 3, 4].map(lines => <option key={lines} value={lines}>{lines}</option>)}
+            </select>
+          </label>
 
           <button
             onClick={toggleDigestMode}
@@ -159,7 +152,7 @@ const NewspaperPage = () => {
       <div className="main-content" style={{ padding: '16px' }}>
         <p className="newspaper-source-note">
           {provenance === 'current-sections-publisher-headlines' ? 'Current publisher headlines from the news feed.' : 'Publisher headlines from the last 48 hours.'}
-          {' '}This is a headline brief; full editions open on the publisher site.
+          {' '}Short publisher RSS excerpts appear with verified stories when available; full articles open on the publisher site.
           {' '}<a href={sources[activeSource].url} target="_blank" rel="noopener noreferrer">Open {sources[activeSource].label}</a>
         </p>
         {loading && !data ? (
@@ -183,7 +176,6 @@ const NewspaperPage = () => {
               </div>
             ) : (
               currentSections.map((section, idx) => {
-                const summaryResult = getSectionSummary(section);
                 const sectionArticles = Array.isArray(section.articles) ? section.articles : [];
 
                 return (
@@ -211,104 +203,6 @@ const NewspaperPage = () => {
                       )}
                     </h2>
 
-                    {summaryResult ? (
-                      <div
-                        style={{
-                          background: 'var(--bg-secondary)',
-                          padding: '16px',
-                          borderRadius: '8px',
-                          marginBottom: '20px',
-                          borderLeft: '4px solid var(--accent-primary)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            color: 'var(--accent-primary)',
-                            fontWeight: 'bold',
-                            marginBottom: '8px',
-                          }}
-                        >
-                          <FaMagic />
-                          <span>{methodLabels[summaryResult.method] || 'Summary'}</span>
-
-                          {summaryResult.method === 'extractive' && (
-                            <span
-                              style={{
-                                fontSize: '0.65rem',
-                                fontWeight: 'normal',
-                                color: 'var(--text-muted)',
-                                marginLeft: '4px',
-                              }}
-                            >
-                              (no API key needed)
-                            </span>
-                          )}
-                        </div>
-
-                        <div
-                          style={{
-                            whiteSpace: 'pre-line',
-                            fontSize: '0.95rem',
-                            lineHeight: '1.6',
-                            fontFamily: 'serif',
-                            display: '-webkit-box',
-                            WebkitLineClamp: summaryLineLimit,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {summaryResult.text}
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        style={{
-                          padding: '12px',
-                          marginBottom: '20px',
-                          background: 'rgba(255, 0, 0, 0.05)',
-                          borderLeft: '4px solid var(--accent-danger)',
-                          borderRadius: '4px',
-                          fontSize: '0.85rem',
-                          color: 'var(--text-secondary)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FaExclamationTriangle color="var(--accent-danger)" />
-                          <span>
-                            {section.error === 'Quota Exceeded'
-                              ? 'Daily AI Limit Reached.'
-                              : section.error === 'API Key Missing'
-                                ? 'AI Summary Unavailable.'
-                                : 'Summary not generated.'}
-                          </span>
-                        </div>
-
-                        {!hasGeminiKey && (
-                          <Link
-                            to="/settings"
-                            style={{
-                              color: 'var(--accent-primary)',
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            Add Key to Enable
-                          </Link>
-                        )}
-
-                        {hasGeminiKey && isGeneratingSummary && (
-                          <span style={{ color: 'var(--accent-primary)' }}>
-                            Generating...
-                          </span>
-                        )}
-                      </div>
-                    )}
-
                     {digestMode ? (
                       <div style={{ fontSize: '0.9rem', lineHeight: '1.7' }}>
                         {sectionArticles.map((article, aIdx) => {
@@ -334,6 +228,11 @@ const NewspaperPage = () => {
                               >
                                 {title}
                               </a>
+                              {article.preview && (
+                                <p className="newspaper-card__preview" style={{ '--preview-lines': previewLines }}>
+                                  {article.preview}
+                                </p>
+                              )}
                             </div>
                           );
                         })}
@@ -358,6 +257,7 @@ const NewspaperPage = () => {
                               article={articleWithTranslation}
                               sourceName={sources[activeSource].label}
                               isTranslated={isTranslated}
+                              previewLines={previewLines}
                             />
                           );
                         })}
@@ -369,8 +269,7 @@ const NewspaperPage = () => {
             )}
 
             <div className="market-disclaimer" style={{ marginTop: '32px' }}>
-              Publisher headlines; summaries are labelled by method.
-              Verify important details from original articles.
+              Publisher headlines and attributed feed excerpts only. Verify important details from original articles.
             </div>
           </div>
         )}
