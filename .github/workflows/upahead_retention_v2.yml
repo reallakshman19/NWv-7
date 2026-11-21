@@ -1,0 +1,66 @@
+name: Up Ahead Retention V2 — Contract Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/upahead_retention_v2.yml'
+      - 'config/upahead_retention_policy.json'
+      - 'scripts/enrich_upahead_contract.py'
+      - 'scripts/fetch_upahead_events.py'
+      - 'scripts/horizon_policy.py'
+      - 'scripts/content_lifecycle.py'
+      - 'scripts/validate_upahead_prefetch_output.py'
+      - 'scripts/test_upahead_retention*'
+      - 'scripts/test_upahead_lifecycle_contract.py'
+      - 'scripts/test_horizon_constants_match_static.mjs'
+      - 'src/config/horizonPolicy.js'
+      - 'src/services/upAheadLifecycle.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Fixed-clock lifecycle and hard-cap parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check pytest requests feedparser
+      - name: Test expiry, future pending, caps, storage, cancellation and recovery
+        run: |
+          python -m pytest -q scripts/test_7day_horizon_contract.py scripts/test_content_lifecycle.py scripts/test_upahead_lifecycle_contract.py scripts/test_upahead_retention.py scripts/test_upahead_retention_v2.py scripts/test_upahead_recovery.py
+      - name: Requalify the real committed Up Ahead snapshot at its source clock (nonpublishing)
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "scripts")
+          from enrich_upahead_contract import enrich_snapshot
+          from validate_upahead_prefetch_output import validate_snapshot
+          snapshot = json.loads(Path("public/data/up_ahead.json").read_text(encoding="utf-8"))
+          source_clock = int(snapshot["fetchedAt"])
+          candidate = enrich_snapshot(snapshot, source_clock + 10 * 60_000)
+          report = validate_snapshot(candidate, source_clock + 10 * 60_000)
+          print({"sourceCount": len(snapshot.get("items", [])), "retainedCount": len(candidate["items"]),
+                 "pendingCount": len(candidate["pendingItems"]), "status": report["status"],
+                 "activeBytes": candidate["retention"]["activeBytes"]})
+          assert not report["errors"], report["errors"]
+          assert candidate["retention"]["activeItemCount"] <= 400
+          PY
+      - name: Prove Python, JavaScript and JSON policy parity
+        run: node scripts/test_horizon_constants_match_static.mjs
+      - name: Prove browser lifecycle expiry parity
+        run: node scripts/test_upahead_retention_v2_browser.mjs

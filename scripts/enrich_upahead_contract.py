@@ -13,26 +13,36 @@ from __future__ import annotations
 import json
 import time
 from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from prefetch_common import compute_content_hash, title_fingerprint
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
+_POLICY_PATH = Path(__file__).resolve().parents[1] / "config" / "upahead_retention_policy.json"
+RETENTION_POLICY = json.loads(_POLICY_PATH.read_text(encoding="utf-8"))
+MAX_ACTIVE_ITEMS = int(RETENTION_POLICY["active"]["maxItems"])
+MAX_ACTIVE_BYTES = int(RETENTION_POLICY["active"]["maxBytes"])
+MAX_TOTAL_PUBLICATION_BYTES = int(RETENTION_POLICY["publication"]["maxSnapshotBytes"])
+MAX_ACTIVE_WINDOW_HOURS = int(RETENTION_POLICY["maximumActiveWindowHours"])
+CATEGORY_SOFT_CAPS = RETENTION_POLICY["active"]["softCategoryCaps"]
+SAFETY_CATEGORIES = {"alerts", "weather_alerts", "civic"}
+
 H_MS = 3_600_000
 DAY_MS = 86_400_000
 UPAHEAD_LOOKAHEAD_DAYS = 7
 UPAHEAD_EVENT_PAST_GRACE_HOURS = 24
 PLANNER_PAST_GRACE_HOURS = 6
-ALERT_FALLBACK_HOURS = 24
-OFFER_FALLBACK_HOURS = 48
+ALERT_FALLBACK_HOURS = int(RETENTION_POLICY["categoryDefaultRetentionHours"]["alerts"])
+OFFER_FALLBACK_HOURS = int(RETENTION_POLICY["categoryDefaultRetentionHours"]["shopping"])
 # The public snapshot carries a separate future pool. Limits apply to admission,
 # never to the independent holiday calendar or user-saved Planner reminders.
-PENDING_LOOKAHEAD_DAYS = 180
-MAX_PENDING_ITEMS = 500
-MAX_PENDING_BYTES = 1_000_000
-MAX_RETIRED_REVISIONS = 2000
-MAX_QUARANTINE_ITEMS = 100
-MAX_QUARANTINE_BYTES = 256_000
+PENDING_LOOKAHEAD_DAYS = int(RETENTION_POLICY["pending"]["futureAdmissionDays"])
+MAX_PENDING_ITEMS = int(RETENTION_POLICY["pending"]["maxItems"])
+MAX_PENDING_BYTES = int(RETENTION_POLICY["pending"]["maxBytes"])
+MAX_RETIRED_REVISIONS = int(RETENTION_POLICY["retention"]["retiredRevisionsMax"])
+MAX_QUARANTINE_ITEMS = int(RETENTION_POLICY["quarantine"]["maxItems"])
+MAX_QUARANTINE_BYTES = int(RETENTION_POLICY["quarantine"]["maxBytes"])
 
 EVENT_CATEGORIES = {"events", "movies", "festivals", "sports"}
 ALERT_CATEGORIES = {"alerts", "weather_alerts", "civic"}
@@ -70,31 +80,103 @@ def content_class_for_item(item: dict[str, Any]) -> str:
     return "upahead_event"
 
 
+def _venue_day_offset_ms(item: dict[str, Any]) -> int:
+    aliases = {
+        "madras": "chennai", "tiruchirappalli": "trichy",
+        "tiruchirapalli": "trichy", "seeb": "muscat", "al seeb": "muscat",
+        "ghubrah": "muscat", "al ghubrah": "muscat",
+        "mawaleh": "muscat",
+    }
+    regions = {"in", "india", "tn", "tamil nadu", "om", "oman", "global", "online", "national", "worldwide"}
+    for candidate in (item.get("city"), item.get("locationCanonical"), item.get("region")):
+        key = str(candidate or "").strip().lower()
+        key = aliases.get(key, key)
+        if key and key not in regions:
+            return {"chennai": 330, "trichy": 330, "muscat": 240}.get(key, 0) * 60_000
+    return 0
+
+
+def _calendar_boundary_ms(key: str, item: dict[str, Any], *, next_day: bool = False) -> int | None:
+    try:
+        day = date.fromisoformat(key)
+        if day.isoformat() != key:
+            return None
+    except (ValueError, TypeError):
+        return None
+    midnight_utc = datetime.combine(day + timedelta(days=int(next_day)),
+                                    datetime.min.time(), tzinfo=timezone.utc)
+    return int(midnight_utc.timestamp() * 1000) - _venue_day_offset_ms(item)
+
+
+def _event_deadline_clock(value: Any, item: dict[str, Any], *, end: bool = False) -> int | None:
+    raw = _ms(value)
+    if raw is None or item.get("datePrecision") not in ("day", "range"):
+        return raw
+    if raw % DAY_MS:
+        return raw
+    key = datetime.fromtimestamp(raw / 1000, tz=timezone.utc).date().isoformat()
+    if end and key == item.get("eventDateEndKey"):
+        return _calendar_boundary_ms(key, item, next_day=True)
+    if not end and key == item.get("eventDateKey"):
+        return _calendar_boundary_ms(key, item)
+    return raw
+
+
 def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str]:
     category = str(item.get("category") or "").lower()
-    expiry_at = _ms(item.get("expiryAt"))
-    event_end = _ms(item.get("eventEndAt"))
-    event_start = _ms(item.get("eventStartAt"))
+    raw_expiry = _ms(item.get("expiryAt"))
+    raw_end = _ms(item.get("eventEndAt"))
+    # Match browser's inclusive date-only end sentinel semantics exactly.
+    event_end = _event_deadline_clock(raw_end, item, end=True)
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
+    expiry_at = (event_end if raw_end and raw_expiry == raw_end and
+                 item.get("datePrecision") in ("day", "range") and
+                 event_end != raw_end else raw_expiry)
+    if event_end is None:
+        key = item.get("eventDateEndExclusiveKey")
+        end_key = item.get("eventDateEndKey")
+        if isinstance(key, str):
+            event_end = _calendar_boundary_ms(key, item)
+        elif isinstance(end_key, str):
+            event_end = _calendar_boundary_ms(end_key, item, next_day=True)
     published = next((_ms(item.get(key)) for key in
                       ('publishedAt', 'firstSeenAt', 'observedAt') if _ms(item.get(key))), None)
 
     if expiry_at is not None and (event_end is None or expiry_at <= event_end):
-        return expiry_at, "expiryAt"
-    if event_end is not None:
-        return event_end, "eventEndAt"
-    if event_start is not None:
-        return event_start + DAY_MS, "eventStartAt_end_of_day"
-    if not published:
+        deadline, reason = expiry_at, "expiryAt"
+    elif event_end is not None:
+        deadline, reason = event_end, "eventEndAt"
+    elif event_start is not None:
+        deadline, reason = event_start + DAY_MS, "eventStartAt_end_of_day"
+    elif not published:
         return 0, "missing_source_time"
-    if category in OFFER_CATEGORIES:
-        return published + OFFER_FALLBACK_HOURS * H_MS, "offer_48h_fallback"
-    if category in ALERT_CATEGORIES:
-        return published + ALERT_FALLBACK_HOURS * H_MS, "alert_24h_fallback"
-    return now_ms - 1, "missing_event_time"
+    elif category in OFFER_CATEGORIES:
+        deadline, reason = published + OFFER_FALLBACK_HOURS * H_MS, "offer_48h_fallback"
+    elif category in ALERT_CATEGORIES:
+        deadline, reason = published + ALERT_FALLBACK_HOURS * H_MS, "alert_36h_fallback"
+    else:
+        return now_ms - 1, "missing_event_time"
+
+    # An old cached copy cannot indefinitely extend a source's advertised validity.
+    # Future-dated items are admitted separately: their seven-day evidence window
+    # starts no earlier than the verified event occurrence, not at announcement.
+    verified = next((_ms(item.get(key)) for key in
+                     ("lastVerifiedAt", "observedAt", "firstSeenAt", "publishedAt")
+                     if _ms(item.get(key))), None)
+    if verified is None and event_start is None:
+        return 0, "missing_source_clock"
+    first_visible = _ms(item.get("firstVisibleAt"))
+    # A future item has no active-display clock yet. Once first displayed, the
+    # recorded clock (not a sliding evaluation date) starts its seven-day cap.
+    evidence_anchor = max(verified or 0, first_visible or (event_start or 0))
+    evidence_deadline = evidence_anchor + MAX_ACTIVE_WINDOW_HOURS * H_MS
+    if deadline > evidence_deadline:
+        return evidence_deadline, "max_7d_without_verified_refresh"
+    return deadline, reason
 
 
 def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
-    event_start = _ms(item.get("eventStartAt"))
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     display_until, _reason = _display_until_for_item(item, now_ms)
     if event_start is None:
         return display_until >= now_ms
@@ -106,7 +188,7 @@ def _within_event_horizon(item: dict[str, Any], now_ms: int) -> bool:
 
 
 def _within_planner_horizon(item: dict[str, Any], now_ms: int) -> bool:
-    event_start = _ms(item.get("eventStartAt"))
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
     if event_start is None:
         return False
     ongoing = event_start <= now_ms < (_ms(item.get("eventEndAt")) or 0)
@@ -149,6 +231,72 @@ def should_publish_item(item: dict[str, Any], lifecycle: dict[str, Any]) -> bool
     return bool(lifecycle.get("isVisible"))
 
 
+def active_published_bytes(items: list[dict[str, Any]]) -> int:
+    """Count the actual indented JSON representation of the published items."""
+    return len(json.dumps({"items": items}, indent=2, ensure_ascii=False).encode("utf-8"))
+
+
+def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Bound published active data deterministically, protecting urgent alerts.
+
+    Category allocations are soft. Spare room is redistributed; hard item/byte
+    limits always win. Any rejected safety alert must fail the release gate.
+    """
+    def ordering(row: dict[str, Any]) -> tuple:
+        category = str(row.get("category") or "")
+        urgency = 0 if category in SAFETY_CATEGORIES else 1
+        expiry = (_ms(row.get("lifecycle", {}).get("displayUntil")) or 0)
+        start = (_ms(row.get("eventStartAt")) or expiry)
+        return (urgency, start, expiry, -float(row.get("actionabilityScore") or 0),
+                category, str(row.get("occurrenceId") or row.get("id") or row.get("url") or ""))
+
+    ordered = sorted(items, key=ordering)
+    chosen: list[dict[str, Any]] = []
+    chosen_ids: set[int] = set()
+    selected_by_category = Counter()
+    active_bytes = 0
+    byte_rejected_indexes: set[int] = set()
+
+    def admit(index: int, row: dict[str, Any]) -> bool:
+        nonlocal active_bytes
+        if len(chosen) >= MAX_ACTIVE_ITEMS:
+            return False
+        next_bytes = active_published_bytes([*chosen, row])
+        if next_bytes > MAX_ACTIVE_BYTES:
+            byte_rejected_indexes.add(index)
+            return False
+        chosen.append(row)
+        chosen_ids.add(index)
+        selected_by_category[str(row.get("category") or "unknown")] += 1
+        active_bytes = next_bytes
+        return True
+
+    for index, row in enumerate(ordered):
+        category = str(row.get("category") or "unknown")
+        if selected_by_category[category] >= int(CATEGORY_SOFT_CAPS.get(category, MAX_ACTIVE_ITEMS)):
+            continue
+        admit(index, row)
+    for index, row in enumerate(ordered):
+        if index not in chosen_ids:
+            admit(index, row)
+
+    rejected = [row for index, row in enumerate(ordered) if index not in chosen_ids]
+    rejected_by_category = Counter(str(row.get("category") or "unknown") for row in rejected)
+    metrics = {
+        "maxActiveItems": MAX_ACTIVE_ITEMS,
+        "maxActiveBytes": MAX_ACTIVE_BYTES,
+        "activeItemCount": len(chosen),
+        "activeBytes": active_bytes,
+        "rejectedActiveCount": len(rejected),
+        "rejectedActiveByCategory": dict(sorted(rejected_by_category.items())),
+        "rejectedSafetyAlertCount": sum(rejected_by_category.get(category, 0) for category in SAFETY_CATEGORIES),
+        "oversizedOrByteRejectedCount": sum(index in byte_rejected_indexes for index in range(len(ordered)) if index not in chosen_ids),
+        "maxTotalPublishedBytes": MAX_TOTAL_PUBLICATION_BYTES,
+        "maxActiveWindowHours": MAX_ACTIVE_WINDOW_HOURS,
+    }
+    return chosen, metrics
+
+
 def enrich_items(items: list[dict[str, Any]], now_ms: int) -> list[dict[str, Any]]:
     output = []
     for item in items or []:
@@ -156,6 +304,9 @@ def enrich_items(items: list[dict[str, Any]], now_ms: int) -> list[dict[str, Any
             continue
         enriched = dict(item)
         lifecycle = lifecycle_for_item(enriched, now_ms)
+        if lifecycle["isVisible"] and not _ms(enriched.get("firstVisibleAt")):
+            enriched["firstVisibleAt"] = now_ms
+            lifecycle = lifecycle_for_item(enriched, now_ms)
         if not should_publish_item(enriched, lifecycle):
             continue
         enriched["contentClass"] = lifecycle["contentClass"]
@@ -205,6 +356,7 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
             continue
         pending.append(row)
         pending_bytes += size
+    items, active_capacity = bound_active_items(items)
     enriched = dict(snapshot)
     enriched["schemaVersion"] = int(enriched.get("schemaVersion") or 1)
     enriched["contractVersion"] = "upahead-lifecycle-v1"
@@ -219,10 +371,11 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
     enriched["items"] = items
     enriched['pendingItems'] = pending
     enriched['retention'] = {
-        'version': 'upahead-retention-v1', 'futureAdmissionDays': PENDING_LOOKAHEAD_DAYS,
+        'version': RETENTION_POLICY['policyVersion'], 'futureAdmissionDays': PENDING_LOOKAHEAD_DAYS,
         'maxPendingItems': MAX_PENDING_ITEMS, 'maxPendingBytes': MAX_PENDING_BYTES,
         'pendingItemCount': len(pending), 'pendingBytes': pending_bytes,
         'rejectedFutureCount': rejected, 'historyDays': 7,
+        **active_capacity,
     }
     enriched['contentHash'] = compute_content_hash([*items, *pending])
     quarantine = {}
@@ -274,6 +427,12 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
         if key in retired_revisions and revision(item) <= retired_revisions[key]['revisionAt']:
             continue
         if key not in by_id or revision(item) >= revision(by_id[key]):
+            previous = by_id.get(key)
+            if previous and previous.get("firstVisibleAt") and not item.get("firstVisibleAt"):
+                # An actual reschedule receives a new seven-day display window,
+                # but an ordinary source update preserves the initial clock.
+                if _ms(previous.get("eventStartAt")) == _ms(item.get("eventStartAt")):
+                    item = {**item, "firstVisibleAt": previous["firstVisibleAt"]}
             by_id[key] = item
     # CAP identifiers name unique messages. Preserve explicit cancellations for
     # seven days so a browser holding an older snapshot cannot revive them.

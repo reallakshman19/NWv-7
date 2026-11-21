@@ -78,10 +78,10 @@ def test_market_snapshot_uses_validity_not_news_window():
     assert lc["isVisible"] is False
 
 
-def test_alert_fallback_24h():
-    lc = lifecycle_for_alert(published_at=0, expiry_at=None, now_ms=24 * H_MS)
+def test_alert_fallback_36h():
+    lc = lifecycle_for_alert(published_at=0, expiry_at=None, now_ms=36 * H_MS)
     assert lc["isVisible"] is True
-    lc2 = lifecycle_for_alert(published_at=0, expiry_at=None, now_ms=24 * H_MS + 1)
+    lc2 = lifecycle_for_alert(published_at=0, expiry_at=None, now_ms=36 * H_MS + 1)
     assert lc2["isVisible"] is False
 
 

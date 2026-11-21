@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import Any
 from enrich_upahead_contract import (
     DAY_MS, MAX_PENDING_BYTES, MAX_PENDING_ITEMS, PENDING_LOOKAHEAD_DAYS,
-    lifecycle_for_item,
+    MAX_ACTIVE_ITEMS, MAX_ACTIVE_BYTES, MAX_TOTAL_PUBLICATION_BYTES,
+    MAX_ACTIVE_WINDOW_HOURS, SAFETY_CATEGORIES, RETENTION_POLICY,
+    active_published_bytes, lifecycle_for_item,
 )
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
@@ -21,6 +23,7 @@ REPORT_PATH = Path("public/data/up_ahead_quality_report.json")
 SUMMARY_PATH = Path("public/data/up_ahead_quality_summary.md")
 
 EXPECTED_CONTRACT_VERSION = "upahead-lifecycle-v1"
+EXPECTED_RETENTION_VERSION = "upahead-retention-v2"
 EXPECTED_LOOKAHEAD_DAYS = 7
 EXPECTED_EVENT_PAST_GRACE_HOURS = 24
 EXPECTED_PLANNER_PAST_GRACE_HOURS = 6
@@ -66,6 +69,31 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
         pending = []
     if len(pending) > MAX_PENDING_ITEMS or sum(len(json.dumps(row, ensure_ascii=False).encode('utf8')) for row in pending) > MAX_PENDING_BYTES:
         errors.append('Pending future pool exceeds bounded storage policy')
+    retention = snapshot.get("retention") if isinstance(snapshot.get("retention"), dict) else {}
+    if retention.get("version") != EXPECTED_RETENTION_VERSION:
+        errors.append("Unsupported or missing retention policy version")
+    if retention.get("maxActiveItems") != MAX_ACTIVE_ITEMS or retention.get("maxActiveBytes") != MAX_ACTIVE_BYTES:
+        errors.append("Active count/byte limits disagree with retention policy")
+    if retention.get("maxActiveWindowHours") != MAX_ACTIVE_WINDOW_HOURS:
+        errors.append("Active seven-day evidence limit is missing or incorrect")
+    if len(items) > MAX_ACTIVE_ITEMS:
+        errors.append(f"Active item count exceeds {MAX_ACTIVE_ITEMS}")
+    active_bytes = active_published_bytes(items)
+    if active_bytes > MAX_ACTIVE_BYTES:
+        errors.append(f"Active item bytes exceed {MAX_ACTIVE_BYTES}")
+    if retention.get("activeItemCount") != len(items) or retention.get("activeBytes") != active_bytes:
+        errors.append("Active item counts/bytes do not match retention manifest")
+    rejected_safety = int(retention.get("rejectedSafetyAlertCount") or 0)
+    if rejected_safety:
+        errors.append(f"Capacity rejected {rejected_safety} safety alert(s)")
+    rejected_active = int(retention.get("rejectedActiveCount") or 0)
+    if rejected_active:
+        warnings.append(f"Capacity excluded {rejected_active} active item(s)")
+    actual_publication_bytes = len(json.dumps(snapshot, indent=2, ensure_ascii=False).encode("utf8"))
+    if actual_publication_bytes > MAX_TOTAL_PUBLICATION_BYTES:
+        errors.append(f"Snapshot exceeds {MAX_TOTAL_PUBLICATION_BYTES} UTF-8 bytes")
+    if len(pending) > RETENTION_POLICY["pending"]["maxItems"]:
+        errors.append("Pending pool violates retention policy")
     for row in pending:
         if not isinstance(row, dict):
             errors.append('Invalid pending occurrence')
@@ -99,11 +127,16 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
             continue
         category_counts[str(item.get("category") or "unknown")] += 1
         class_counts[str(item.get("contentClass") or "unknown")] += 1
+        first_visible = item.get("firstVisibleAt")
+        if not isinstance(first_visible, (int, float)) or first_visible <= 0 or first_visible > ts + 300_000:
+            errors.append("Active occurrence has no valid firstVisibleAt lifecycle clock")
         lifecycle = item.get("lifecycle") if isinstance(item.get("lifecycle"), dict) else None
         if not lifecycle:
             missing_lifecycle.append(item.get("id") or item.get("url") or item.get("title") or "unknown")
             continue
         current = lifecycle_for_item(item, ts)
+        if lifecycle.get("displayUntil") != current.get("displayUntil"):
+            errors.append("Stored lifecycle deadline differs from current source expiry rule")
         if current.get("isVisible"):
             visible_count += 1
         if current.get("plannerEligibleByLifecycle"):
@@ -147,6 +180,9 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
         "fetchedAt": snapshot.get("fetchedAt", 0),
         "contentHash": snapshot.get("contentHash", ""),
         "itemCount": len(items),
+        "activeBytes": active_bytes,
+        "publishedSnapshotBytes": actual_publication_bytes,
+        "retention": retention,
         "pendingItemCount": len(pending),
         "visibleItemCount": visible_count,
         "plannerEligibleByLifecycleCount": planner_lifecycle_count,
@@ -162,6 +198,10 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
             "plannerPastGraceHours": EXPECTED_PLANNER_PAST_GRACE_HOURS,
             "minVisibleItems": MIN_VISIBLE_ITEMS,
             "maxSnapshotAgeMs": MAX_SNAPSHOT_AGE_MS,
+            "maxActiveItems": MAX_ACTIVE_ITEMS,
+            "maxActiveBytes": MAX_ACTIVE_BYTES,
+            "maxActiveWindowHours": MAX_ACTIVE_WINDOW_HOURS,
+            "maxPublicationBytes": MAX_TOTAL_PUBLICATION_BYTES,
         },
     }
 

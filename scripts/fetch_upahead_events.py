@@ -146,7 +146,7 @@ def derive_expiry(event_start_ms, event_end_ms, published_ms, category, location
     if category in ('shopping', 'airlines'):
         return published_ms + 48 * H_MS
     if category in ('alerts', 'weather_alerts', 'civic'):
-        return published_ms + 24 * H_MS
+        return published_ms + 36 * H_MS
     return None
 
 

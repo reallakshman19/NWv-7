@@ -134,7 +134,7 @@ def display_until(item: dict[str, Any], now_ms: int) -> int | None:
     published = int_ms(item.get("publishedAt")) or now_ms
     category = normalize_category(item)
     if is_alert_category(category):
-        return published + 24 * H_MS
+        return published + 36 * H_MS
     if is_offer_category(category):
         return published + 48 * H_MS
     return None
