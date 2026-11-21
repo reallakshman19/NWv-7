@@ -6,7 +6,8 @@ import './WeatherHourIntervals.css';
 export default function WeatherHourIntervals({ cityData, compact = false }) {
   const [hours, setHours] = useState(2);
   const periods = useMemo(() => buildWeatherIntervals(cityData, hours, compact ? 4 : 6), [cityData, hours, compact]);
-  const count = cityData?.models?.count;
+  const knownModels = (cityData?.models?.successful || []).filter(model => ['ecmwf','gfs','icon'].includes(model));
+  const count = knownModels.length;
   const status = cityData?.sourceMode || 'unknown';
   return (
     <section className={'weather-hour-intervals' + (compact ? ' weather-hour-intervals--compact' : '')} data-weather-hour-intervals>
@@ -28,7 +29,7 @@ export default function WeatherHourIntervals({ cityData, compact = false }) {
         ))}
       </div> : <p className="whi-empty">Timestamped hourly forecast unavailable. Refresh to retrieve interval data.</p>}
       <div className="whi-footer">
-        <span>{status === 'live' ? 'Live forecast' : status === 'cache' ? 'Cached forecast' : status === 'snapshot' ? 'Snapshot forecast' : 'Source unverified'}{Number.isInteger(count) ? ' · ' + count + '/3 model feeds' : ''}</span>
+        <span>{status === 'live' ? 'Live forecast' : status === 'cache' ? 'Cached forecast' : status === 'snapshot' ? 'Snapshot forecast' : 'Source unverified'}{count > 0 ? ' · ' + count + '/3 model feeds' : ''}</span>
         <span>Rain total per interval · peak hourly chance</span>
       </div>
     </section>

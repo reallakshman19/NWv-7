@@ -5,3 +5,6 @@
 .wcs-name{font-size:.87rem;font-weight:700}.wcs-reading{display:flex;align-items:center;gap:8px}.wcs-reading strong{font-size:1.28rem}.wcs-foot{font-size:.72rem;color:#cbd5e1}
 .weather-city-strip--compact{padding:0 0 8px}.weather-city-strip--compact .qw-city-row{flex-basis:118px;padding:9px}
 @media(max-width:540px){.weather-city-strip{padding-left:10px;padding-right:10px}.weather-city-strip--compact{padding:0 0 8px}}
+
+.wcs-name{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.wcs-health{flex:0 0 auto}.wcs-health--healthy{color:#2dd4bf}.wcs-health--degraded,.wcs-health--snapshot{color:#fbbf24}.wcs-health--cached,.wcs-health--unverified{color:#cbd5e1}.wcs-health--unavailable{color:#f87171}

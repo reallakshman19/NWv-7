@@ -89,7 +89,7 @@ export default function DetailedWeatherCard({
             onClick={() => handleTravelAwareCityChange(city)}
             aria-label={`Select ${cityLabels[city] || city}`}
           >
-            <span className="dw-city-icon">{'City'}</span>
+            <span className="dw-city-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg></span>
             <span className="dw-city-name">{cityLabels[city] || city}</span>
           </button>
         ))}
@@ -191,7 +191,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
 
       <div className="dw-card-main">
         <div className="dw-main-icon">
-          {data.iconId ? <WeatherIcon id={data.iconId} size={56} /> : <span style={{ fontSize: '3rem' }}>{data.icon}</span>}
+          <WeatherIcon id={data.iconId || 'day_cloudy'} size={56} />
         </div>
 
         <div className="dw-main-temp">
