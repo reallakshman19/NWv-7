@@ -43,9 +43,22 @@ describe('Buzz rolling JSON browser fail-closed admission', () => {
     expect(qualifyBuzzRetainedSnapshot(snapshot([article({ status: 'withdrawn' })]), NOW).ok).toBe(false);
   });
 
-  it('rejects stale generation and over-cap artifacts', () => {
-    expect(qualifyBuzzRetainedSnapshot(snapshot([article()], { generatedAt: NOW - 13 * H }), NOW).ok).toBe(false);
+  it('degrades stale generation but retains eligible stories until their own expiry', () => {
+    const stale = qualifyBuzzRetainedSnapshot(snapshot([article()], { generatedAt: NOW - 13 * H }), NOW);
+    expect(stale.ok).toBe(true);
+    expect(stale.stale).toBe(true);
+    expect(stale.reason).toBe('stale_buzz_retention_snapshot');
+    expect(stale.items).toHaveLength(1);
+    expect(qualifyBuzzRetainedSnapshot(snapshot([article({
+      retention: { freshUntil: NOW + 31 * H, displayUntil: NOW - 1 },
+    })], { generatedAt: NOW - 13 * H }), NOW).ok).toBe(false);
     expect(qualifyBuzzRetainedSnapshot(snapshot([article()], { maxBytes: 10_000_000 }), NOW).ok).toBe(false);
+  });
+
+  it('fetches from the released Pages path, never raw main', async () => {
+    const { buzzRetentionUrl } = await import('./buzzRetentionFetcher.js');
+    expect(buzzRetentionUrl()).toContain('/newsdata/buzz_retained_latest.json');
+    expect(buzzRetentionUrl()).not.toContain('raw.githubusercontent.com');
   });
 
   it('does not accept clockless or low-confidence stories', () => {
