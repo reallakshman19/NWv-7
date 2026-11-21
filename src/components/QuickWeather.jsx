@@ -184,7 +184,7 @@ function getConfiguredCities(settings) {
     return getConfiguredWeatherCities(settings);
 }
 
-const QuickWeather = () => {
+const QuickWeather = ({ onActiveCityChange } = {}) => {
     const { weatherData, loading, error, ensureBoot, booted, refreshWeather } = useWeather();
     const { settings, updateSettings } = useSettings();
 
@@ -192,9 +192,10 @@ const QuickWeather = () => {
 
     const [activeCity, setActiveCity] = useState(() => {
         try {
-            return normalizeCity(localStorage.getItem('weather_active_city')) || 'chennai';
+            const storedCity = normalizeCity(localStorage.getItem('weather_active_city'));
+            return cities.includes(storedCity) ? storedCity : (cities[0] || 'chennai');
         } catch {
-            return 'chennai';
+            return cities[0] || 'chennai';
         }
     });
 
@@ -238,6 +239,11 @@ const QuickWeather = () => {
             // Ignore storage errors.
         }
     }, [activeCity]);
+
+    // Weather selection also drives the Main-page city-specific local news panel.
+    useEffect(() => {
+        if (cities.includes(activeCity)) onActiveCityChange?.(activeCity);
+    }, [activeCity, cities, onActiveCityChange]);
 
     function saveCities(nextCities, nextActiveCity = activeCity) {
         const uniqueCities = [...new Set(nextCities.map(normalizeCity).filter(Boolean))];
@@ -294,10 +300,8 @@ const QuickWeather = () => {
     const usableRows = cityRows.filter(row => row.usable);
 
     const bgClass = getBackgroundClass();
-    const activeRow = cityRows.find(row => row.city === activeCity && row.usable) ||
-        usableRows[0] ||
-        cityRows.find(row => row.city === activeCity) ||
-        cityRows[0];
+    const activeRow = cityRows.find(row => row.city === activeCity) ||
+        usableRows[0] || cityRows[0];
 
     const activeCityData = activeRow?.cityData;
     const severeWarning = getSevereWarning(activeCityData);
@@ -364,7 +368,10 @@ const QuickWeather = () => {
                             role="button"
                             tabIndex={0}
                             onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') setActiveCity(row.city);
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setActiveCity(row.city);
+                                }
                             }}
                         >
                             <div className="qw-city-row__left">
