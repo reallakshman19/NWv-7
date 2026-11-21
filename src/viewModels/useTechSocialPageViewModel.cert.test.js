@@ -8,6 +8,10 @@ const {
   projectAiInnovationStories,
   classifyEntertainmentRegion,
   projectEntertainmentStories,
+  filterOldNews,
+  normalizeBuzzCachePayload,
+  mergeRetainedBuzzStories,
+  getStoryExpirationMs,
 } = __techSocialPageViewModelInternalsForTest;
 
 describe('TechSocial page Buzz dataset fallback', () => {
@@ -72,5 +76,75 @@ describe('TechSocial page Buzz dataset fallback', () => {
     });
 
     expect(stories.map(item => item.id)).toEqual(['ott']);
+  });
+});
+
+describe('Buzz Hub per-story retention policy', () => {
+  const hour = 60 * 60 * 1000;
+  const now = Date.parse('2026-11-21T08:00:00.000Z');
+
+  it('retains a story past eight hours if its publication window has not expired', () => {
+    const story = { id: 'yesterday', title: 'Tamil cinema update', publishedAt: now - 20 * hour };
+    const payload = {
+      savedAt: now - 10 * hour,
+      newsData: { entertainment: [story] },
+    };
+    const restored = normalizeBuzzCachePayload(payload, 72, now);
+    expect(restored?.data.entertainment.map(item => item.id)).toEqual(['yesterday']);
+  });
+
+  it('prunes expired stories individually, even in an otherwise valid recent cache', () => {
+    const payload = {
+      savedAt: now - hour,
+      newsData: { entertainment: [
+        { id: 'expired', title: 'Old update', publishedAt: now - 73 * hour },
+        { id: 'alive', title: 'Recent update', publishedAt: now - 12 * hour },
+      ] },
+    };
+    expect(normalizeBuzzCachePayload(payload, 72, now)?.data.entertainment.map(item => item.id))
+      .toEqual(['alive']);
+    expect(normalizeBuzzCachePayload({
+      savedAt: now - hour,
+      newsData: { entertainment: [payload.newsData.entertainment[0]] },
+    }, 72, now)).toBeNull();
+  });
+
+  it('keeps surviving cached stories alongside a newer fetch without duplicating stories', () => {
+    const cached = [
+      { id: 'still-valid', title: 'Yesterday', publishedAt: now - 20 * hour },
+      { id: 'expired', title: 'Earlier', publishedAt: now - 73 * hour },
+    ];
+    const incoming = [
+      { id: 'today', title: 'Today', publishedAt: now - hour },
+      { id: 'still-valid', title: 'Updated description', publishedAt: now - 20 * hour },
+    ];
+    const merged = mergeRetainedBuzzStories(incoming, cached, 72, now - 20 * hour, now);
+    expect(merged.map(item => item.id)).toEqual(['today', 'still-valid']);
+    expect(merged[1].title).toBe('Updated description');
+  });
+
+  it('uses original cache timestamp for undated legacy stories, not each refresh', () => {
+    const story = { id: 'no-date', title: 'Undated story' };
+    const restored = normalizeBuzzCachePayload({
+      timestamp: now - 48 * hour, data: { entertainment: [story] },
+    }, 72, now);
+    expect(restored?.data.entertainment[0]._buzzFirstSeenAt).toBe(now - 48 * hour);
+
+    const refreshed = mergeRetainedBuzzStories(
+      [story], restored.data.entertainment, 72, restored.savedAt, now + 25 * hour
+    );
+    expect(refreshed).toEqual([]);
+  });
+
+  it('honors explicit article expiry and never revives an expired-only feed', () => {
+    const expired = {
+      id: 'ended', title: 'Old show',
+      publishedAt: now - 5 * hour, expiresAt: now - hour,
+    };
+    expect(getStoryExpirationMs(expired, 72)).toBe(now - hour);
+    expect(mergeRetainedBuzzStories([expired], [], 72, 0, now)).toEqual([]);
+    expect(filterOldNews([{
+      id: 'old', title: 'Movie article', publishedAt: Date.now() - 73 * hour,
+    }], 72)).toEqual([]);
   });
 });
