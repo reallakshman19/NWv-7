@@ -123,3 +123,54 @@ def test_publication_counts_available_previews_per_publisher():
     assert result['sourceStatus']['THE_HINDU']['currentCount'] == 2
     assert result['sourceStatus']['THE_HINDU']['previewCount'] == 1
     assert result['sourceStatus']['DINAMANI']['previewCount'] == 0
+
+
+def test_daily_thanthi_prefers_publisher_xml_and_retains_discovery_recovery():
+    from daily_brief import SOURCES
+    direct = SOURCES['DAILY_THANTHI']['feeds']
+    fallback = SOURCES['DAILY_THANTHI']['fallbackFeeds']
+    assert len(direct) == 1 and direct[0][1] == 'https://www.dailythanthi.com/feed'
+    assert len(fallback) == 1 and 'news.google.com' in fallback[0][1]
+
+    calls = []
+    def fetcher(task, now):
+        key, domain, page, url = task
+        calls.append(url)
+        is_direct = url == direct[0][1]
+        rows = qualify_entries([entry(
+            title='தமிழகப் போக்குவரத்துச் சேவைகள் விரிவாக்கம்',
+            link='https://www.dailythanthi.com/news/tamilnadu/transport',
+            summary='<p>மாவட்டங்களுக்கு இடையே புதிய போக்குவரத்துச் சேவைகள் அடுத்த மாதம் '
+                    'தொடங்கப்படும் என்று அதிகாரிகள் தெரிவித்தனர்.</p>')], domain, now)
+        if key == 'DAILY_THANTHI' and not is_direct:
+            rows = []
+        return {'sourceId': key, 'page': page, 'url': url, 'ok': True,
+                'articles': rows, 'currentCount': len(rows)}
+    edition = collect_publication(NOW, fetcher)
+    assert edition['sourceStatus']['DAILY_THANTHI']['previewCount'] == 1
+    assert edition['sources']['DAILY_THANTHI'][0]['articles'][0]['acquiredVia'] == 'publisher-rss'
+    assert fallback[0][1] not in calls
+
+
+def test_daily_thanthi_falls_back_to_headlines_on_official_feed_failure():
+    from daily_brief import SOURCES
+    direct = SOURCES['DAILY_THANTHI']['feeds'][0][1]
+    recovery = SOURCES['DAILY_THANTHI']['fallbackFeeds'][0][1]
+    called = []
+    def fetcher(task, now):
+        key, domain, page, url = task
+        called.append(url)
+        if key == 'DAILY_THANTHI' and url == direct:
+            return {'sourceId': key, 'page': page, 'url': url, 'ok': False,
+                    'articles': [], 'currentCount': 0, 'error': '403 Forbidden'}
+        rows = qualify_entries([entry(
+            link='https://news.google.com/rss/articles/abc',
+            source={'href': 'https://dailythanthi.com'},
+            summary='This is a Google discovery entry, not a publisher-authored description.')],
+            domain, now) if key == 'DAILY_THANTHI' else []
+        return {'sourceId': key, 'page': page, 'url': url, 'ok': True,
+                'articles': rows, 'currentCount': len(rows)}
+    result = collect_publication(NOW, fetcher)
+    assert direct in called and recovery in called
+    assert result['sourceStatus']['DAILY_THANTHI']['currentCount'] == 1
+    assert result['sourceStatus']['DAILY_THANTHI']['previewCount'] == 0
