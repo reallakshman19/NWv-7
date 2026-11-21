@@ -1,0 +1,53 @@
+{
+  "policyVersion": "upahead-retention-v2",
+  "minimumDefaultRetentionHours": 36,
+  "maximumActiveWindowHours": 168,
+  "active": {
+    "maxItems": 400,
+    "maxBytes": 3000000,
+    "softCategoryCaps": {
+      "events": 100,
+      "movies": 80,
+      "shopping": 65,
+      "airlines": 15,
+      "alerts": 20,
+      "weather_alerts": 20,
+      "civic": 20,
+      "festivals": 40,
+      "sports": 40
+    }
+  },
+  "pending": {
+    "maxItems": 500,
+    "maxBytes": 1000000,
+    "futureAdmissionDays": 180
+  },
+  "quarantine": {
+    "maxItems": 100,
+    "maxBytes": 256000
+  },
+  "publication": {
+    "maxSnapshotBytes": 8000000
+  },
+  "categoryDefaultRetentionHours": {
+    "alerts": 36,
+    "weather_alerts": 36,
+    "civic": 36,
+    "shopping": 48,
+    "airlines": 48,
+    "events": 36,
+    "festivals": 36,
+    "sports": 36,
+    "movies": 48
+  },
+  "retention": {
+    "archiveDays": 7,
+    "retiredRevisionsMax": 2000
+  },
+  "rules": {
+    "expiryOrCancellationWins": true,
+    "keepFutureDatedPending": true,
+    "maxWindowRequiresVerifiedSourceRefresh": true,
+    "savedPlannerExcluded": true
+  }
+}
