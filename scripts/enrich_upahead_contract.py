@@ -110,7 +110,10 @@ def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str
                      if _ms(item.get(key))), None)
     if verified is None and event_start is None:
         return 0, "missing_source_clock"
-    evidence_anchor = max(verified or 0, event_start or 0)
+    first_visible = _ms(item.get("firstVisibleAt"))
+    # A future item has no active-display clock yet. Once first displayed, the
+    # recorded clock (not a sliding evaluation date) starts its seven-day cap.
+    evidence_anchor = max(verified or 0, first_visible or (event_start or 0))
     evidence_deadline = evidence_anchor + MAX_ACTIVE_WINDOW_HOURS * H_MS
     if deadline > evidence_deadline:
         return evidence_deadline, "max_7d_without_verified_refresh"
@@ -241,6 +244,9 @@ def enrich_items(items: list[dict[str, Any]], now_ms: int) -> list[dict[str, Any
             continue
         enriched = dict(item)
         lifecycle = lifecycle_for_item(enriched, now_ms)
+        if lifecycle["isVisible"] and not _ms(enriched.get("firstVisibleAt")):
+            enriched["firstVisibleAt"] = now_ms
+            lifecycle = lifecycle_for_item(enriched, now_ms)
         if not should_publish_item(enriched, lifecycle):
             continue
         enriched["contentClass"] = lifecycle["contentClass"]
@@ -361,6 +367,12 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
         if key in retired_revisions and revision(item) <= retired_revisions[key]['revisionAt']:
             continue
         if key not in by_id or revision(item) >= revision(by_id[key]):
+            previous = by_id.get(key)
+            if previous and previous.get("firstVisibleAt") and not item.get("firstVisibleAt"):
+                # An actual reschedule receives a new seven-day display window,
+                # but an ordinary source update preserves the initial clock.
+                if _ms(previous.get("eventStartAt")) == _ms(item.get("eventStartAt")):
+                    item = {**item, "firstVisibleAt": previous["firstVisibleAt"]}
             by_id[key] = item
     # CAP identifiers name unique messages. Preserve explicit cancellations for
     # seven days so a browser holding an older snapshot cannot revive them.
