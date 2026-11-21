@@ -100,8 +100,10 @@ pass(vm.includes('finally'), 'Newspaper ViewModel must guard long-running genera
 pass(page.includes('<NewspaperCard'), 'NewspaperPage must preserve NewspaperCard rendering');
 pass(page.includes('digestMode'), 'NewspaperPage must preserve digest mode rendering');
 pass(page.includes('FaLanguage'), 'NewspaperPage must preserve translation control');
-pass(page.includes('FaBolt'), 'NewspaperPage must preserve generate-all control');
-pass(page.includes('Add Key to Enable'), 'NewspaperPage must preserve Settings CTA for missing Gemini key');
+pass(!page.includes('FaBolt'), 'NewspaperPage must remove obsolete section summary control');
+pass(!page.includes('Add Key to Enable'), 'NewspaperPage must remove obsolete summary Settings CTA');
+pass(!page.includes('getSectionSummary(section)'), 'NewspaperPage must not render the duplicate Headlines panel');
+pass(page.includes('previewLines'), 'NewspaperPage must support story previews');
 pass(page.includes('Array.isArray(section.articles)'), 'NewspaperPage must guard malformed section.articles arrays');
 
 const allowedChangedFiles = new Set([
