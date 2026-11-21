@@ -84,6 +84,20 @@ class BuzzRetentionTests(unittest.TestCase):
         with self.assertRaises(RetentionRejected):
             self.publish(source([{**row, "status": "withdrawn"}], when=NOW + H), first, NOW + H)
 
+    def test_explicit_withdrawal_survives_newer_replayed_source(self):
+        first, _ = self.publish(source([story("withdrawn"), story("safe")]))
+        removed = source([story("withdrawn", status="withdrawn"), story("safe")], when=NOW + H)
+        second, report = self.publish(removed, first, NOW + H)
+        self.assertEqual([x["id"] for x in second["items"]], ["safe"])
+        self.assertEqual(report["explicitWithdrawals"], 1)
+        self.assertEqual(len(second["tombstones"]), 1)
+        reappearance = source([story("withdrawn"), story("safe")], when=NOW + 2 * H)
+        third, _ = self.publish(reappearance, second, NOW + 2 * H)
+        self.assertEqual([x["id"] for x in third["items"]], ["safe"])
+        tampered = copy.deepcopy(third)
+        tampered["tombstones"][0]["removedAt"] = NOW - H
+        self.assertNotEqual(tampered["tombstonesSha256"], __import__("build_buzz_retained").digest(tampered["tombstones"]))
+
     def test_stale_or_future_source_cannot_reverify_evidence(self):
         first, _ = self.publish(source([story(hours_old=12)]))
         retained, report = self.publish(
