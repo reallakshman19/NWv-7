@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { fetchWeather } from '../services/weatherService';
 import { getSettings } from '../utils/storage';
 import { useSettings } from './SettingsContext';
@@ -21,13 +21,12 @@ export function WeatherProvider({ children, lazy = false }) {
     const [requestedCity, setRequestedCity] = useState(() => {
         try { return resolveRegistryKey(localStorage.getItem('weather_active_city')) || null; } catch { return null; }
     });
-    const selectedCities = getConfiguredWeatherCities(settings);
-    const selectedCitiesKey = selectedCities.join('|');
+    const selectedCities = useMemo(() => getConfiguredWeatherCities(settings), [settings]);
     const activeCity = selectedCities.includes(requestedCity) ? requestedCity : selectedCities[0];
     const setActiveCity = useCallback(city => {
         const canonical = resolveRegistryKey(city);
         if (canonical && selectedCities.includes(canonical)) setRequestedCity(canonical);
-    }, [selectedCitiesKey]);
+    }, [selectedCities]);
     useEffect(() => {
         try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
     }, [activeCity]);

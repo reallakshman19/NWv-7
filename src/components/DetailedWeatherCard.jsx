@@ -12,7 +12,6 @@ export default function DetailedWeatherCard({
   onActiveCityChange = null,
   cities = [],
   cityLabels = {},
-  cityIcons = {},
   hideSidebar = false,
 }) {
   const [expandedCard, setExpandedCard] = useState(null);
