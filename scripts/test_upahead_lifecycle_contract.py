@@ -50,10 +50,10 @@ def test_event_beyond_7_days_is_not_visible():
 
 
 def test_alert_and_offer_use_validity_fallbacks_not_news_36h():
-    alert = lifecycle_for_item(item(category="alerts", eventStartAt=None, expiryAt=None, publishedAt=NOW - 23 * H_MS), NOW)
-    stale_alert = lifecycle_for_item(item(category="alerts", eventStartAt=None, expiryAt=None, publishedAt=NOW - 25 * H_MS), NOW)
+    alert = lifecycle_for_item(item(category="alerts", eventStartAt=None, expiryAt=None, publishedAt=NOW - 35 * H_MS), NOW)
+    stale_alert = lifecycle_for_item(item(category="alerts", eventStartAt=None, expiryAt=None, publishedAt=NOW - 37 * H_MS), NOW)
     offer = lifecycle_for_item(item(category="shopping", eventStartAt=None, expiryAt=None, publishedAt=NOW - 47 * H_MS), NOW)
-    assert alert["retentionReason"] == "alert_24h_fallback"
+    assert alert["retentionReason"] == "alert_36h_fallback"
     assert alert["isVisible"] is True
     assert stale_alert["isVisible"] is False
     assert offer["retentionReason"] == "offer_48h_fallback"
