@@ -192,13 +192,13 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
     chosen_ids: set[int] = set()
     selected_by_category = Counter()
     active_bytes = 0
-    too_large_count = 0
+    byte_rejected_indexes: set[int] = set()
 
     def admit(index: int, row: dict[str, Any]) -> bool:
-        nonlocal active_bytes, too_large_count
+        nonlocal active_bytes
         size = len(json.dumps(row, ensure_ascii=False).encode("utf-8"))
         if size > MAX_ACTIVE_BYTES or active_bytes + size > MAX_ACTIVE_BYTES:
-            too_large_count += 1
+            byte_rejected_indexes.add(index)
             return False
         if len(chosen) >= MAX_ACTIVE_ITEMS:
             return False
@@ -227,7 +227,7 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
         "rejectedActiveCount": len(rejected),
         "rejectedActiveByCategory": dict(sorted(rejected_by_category.items())),
         "rejectedSafetyAlertCount": sum(rejected_by_category.get(category, 0) for category in SAFETY_CATEGORIES),
-        "oversizedOrByteRejectedCount": too_large_count,
+        "oversizedOrByteRejectedCount": sum(index in byte_rejected_indexes for index in range(len(ordered)) if index not in chosen_ids),
         "maxTotalPublishedBytes": MAX_TOTAL_PUBLICATION_BYTES,
         "maxActiveWindowHours": MAX_ACTIVE_WINDOW_HOURS,
     }
