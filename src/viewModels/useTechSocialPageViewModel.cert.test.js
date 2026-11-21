@@ -10,6 +10,54 @@ const {
   projectEntertainmentStories,
 } = __techSocialPageViewModelInternalsForTest;
 
+describe('Buzz Hub retained display continuity', () => {
+  it('does not let a populated NewsContext hide eligible rolling Entertainment stories', () => {
+    const result = mergeBuzzDisplayData({
+      entertainment: [{ id: 'fresh', title: 'Fresh', publishedAt: Date.now() }],
+    }, {
+      entertainment: [{ id: 'rolling', title: 'Vijay Tamil film', publishedAt: Date.now() - 80 * 3600000,
+        _buzzRetained: true, buzzSection: 'entertainment',
+        retention: { displayUntil: Date.now() + 6 * 3600000 } }],
+    });
+    // Explicit mergeBuzzDisplayData preserves its legacy simple fallback
+    // contract; the page's displayData combiner handles the rolling overlay.
+    expect(result.entertainment).toHaveLength(1);
+  });
+
+  it('retains publisher-dated extended stories until display expiry', () => {
+    const current = Date.now();
+    const article = {
+      id: 'rolling', title: 'Vijay Tamil cinema release',
+      publishedAt: current - 80 * 3600000,
+      _buzzRetained: true, buzzSection: 'entertainment',
+      retention: { displayUntil: current + 5 * 3600000 },
+    };
+    const projected = projectEntertainmentStories({ entertainment: [article] }, 72);
+    expect(projected.map(item => item.id)).toContain('rolling');
+    const gone = projectEntertainmentStories({ entertainment: [{
+      ...article, retention: { displayUntil: current - 1 },
+    }] }, 72);
+    expect(gone).toHaveLength(0);
+  });
+
+  it('keeps unclassified verified Entertainment on honest Latest tab', () => {
+    const result = projectEntertainmentStories({ entertainment: [
+      { id: 'other', title: 'Industry production update',
+        publishedAt: Date.now(), _buzzRetained: true, buzzSection: 'entertainment',
+        retention: { displayUntil: Date.now() + 3600000 } },
+      { id: 'untrusted', title: 'Political headline', publishedAt: Date.now() },
+    ] });
+    expect(result.map(item => [item.id, item.region])).toEqual([['other', 'other']]);
+  });
+
+  it('never resurrects expired unrelated old news as a raw fallback', () => {
+    const result = projectEntertainmentStories({ entertainment: [
+      { title: 'Vijay speaks on Tamil cinema', publishedAt: Date.now() - 200 * 3600000 },
+    ] });
+    expect(result).toHaveLength(0);
+  });
+});
+
 describe('TechSocial page Buzz dataset fallback', () => {
   it('projects Buzz dataset tech and AI cards into legacy page news shape', () => {
     const result = projectBuzzDatasetToNewsData({
