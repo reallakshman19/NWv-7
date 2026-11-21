@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/buzz_rolling_retention.yml'
+      - '.github/workflows/deploy.yml'
+      - 'scripts/test_buzz_deploy_wiring.mjs'
       - 'config/buzz_retention_policy.json'
       - 'scripts/build_buzz_retained.py'
       - 'scripts/validate_buzz_retained.py'
@@ -66,6 +68,8 @@ jobs:
           path: artifacts/buzz-rolling-probe/
           if-no-files-found: warn
           retention-days: 7
+      - name: Certify qualified Buzz data has a Pages rebuild trigger
+        run: node --test scripts/test_buzz_deploy_wiring.mjs
       - name: Install locked browser test dependencies
         run: npm ci
       - name: Certify rendering, actual expiry and source failover
