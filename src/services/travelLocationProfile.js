@@ -12,6 +12,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇱🇰',
     lat: 6.9271,
     lon: 79.8612,
+    cityKeywords: ['colombo', 'columbo', 'kolamba'],
     aliases: [
       'colombo',
       'columbo',
@@ -50,6 +51,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇮🇳',
     lat: 13.0827,
     lon: 80.2707,
+    cityKeywords: ['chennai', 'madras', 'சென்னை'],
     aliases: ['chennai', 'madras', 'tamil nadu', 'tn', 'சென்னை'],
     storyKeywords: ['chennai', 'madras', 'tamil nadu', 'tn', 'india', 'சென்னை', 'தமிழ்நாடு'],
     edition: {
@@ -68,6 +70,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇮🇳',
     lat: 10.7905,
     lon: 78.7047,
+    cityKeywords: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi'],
     aliases: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi'],
     storyKeywords: ['trichy', 'tiruchirappalli', 'tiruchirapalli', 'tiruchi', 'tamil nadu', 'india'],
     edition: {
@@ -86,6 +89,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     icon: '🇴🇲',
     lat: 23.5859,
     lon: 58.4059,
+    cityKeywords: ['muscat', 'masqat', 'maskat', 'مسقط'],
     aliases: ['muscat', 'masqat', 'maskat', 'oman', 'مسقط'],
     storyKeywords: ['muscat', 'masqat', 'oman', 'omani', 'مسقط', 'عمان'],
     edition: {
@@ -127,6 +131,7 @@ function getWeatherCityTravelProfile(city) {
     lat: location.lat,
     lon: location.lon,
     aliases: location.aliases || [],
+    cityKeywords: [location.display, ...(location.aliases || [])],
     storyKeywords: [location.display, ...(location.aliases || [])],
     edition: { country: countryCode, lang: 'en', timeRange: '30d' },
     hasDedicatedLocalFeed: false,
@@ -215,10 +220,8 @@ export function buildWeatherSelectedNewsSettings(baseSettings = {}, selectedCity
       ...(baseSettings.weather || {}),
       activeCity: city,
     },
-    travelLocation: {
-      ...(baseSettings.travelLocation || {}),
-      city,
-    },
+    // Preserve the independent saved travel city: Main-page news follows
+    // weather.activeCity through an explicit ViewModel input.
   };
 }
 
@@ -233,7 +236,9 @@ export function getTravelLocationProfile(settings = {}, options = {}) {
     ? settings.weather.cities[0]
     : '';
 
+  const selectedWeatherKey = resolveTravelLocationKey(options.activeWeatherCity);
   const key =
+    selectedWeatherKey ||
     resolveTravelLocationKey(explicitCity) ||
     resolveTravelLocationKey(weatherActiveCity) ||
     resolveTravelLocationKey(firstConfiguredWeatherCity) ||
@@ -248,8 +253,11 @@ export function getTravelLocationProfile(settings = {}, options = {}) {
     ...registryProfile,
     enabled,
     prioritizeStories,
-    source: explicitCity
-      ? 'manual'
+    hasDedicatedLocalFeed: Boolean(TRAVEL_LOCATION_REGISTRY[key]),
+    source: selectedWeatherKey
+      ? 'quick-weather'
+      : explicitCity
+        ? 'manual'
       : weatherActiveCity
         ? 'weather-active-city'
         : firstConfiguredWeatherCity
