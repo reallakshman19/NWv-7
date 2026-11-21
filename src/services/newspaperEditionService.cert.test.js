@@ -25,7 +25,7 @@ describe('Newspaper publication freshness and publisher identity', () => {
     payload.sources.THE_HINDU[0].summary = 'Old July summary';
     const result = normalizeNewspaperEdition(payload, now);
     expect(result.sources.THE_HINDU[0].articles).toHaveLength(1);
-    expect(result.sources.THE_HINDU[0].summary).not.toContain('July');
+    expect(result.sources.THE_HINDU[0]).not.toHaveProperty('summary');
     expect(result.sources.INDIAN_EXPRESS).toEqual([]);
     expect(result.sourceStatus.INDIAN_EXPRESS.status).toBe('unavailable');
     expect(result.lastUpdated).toBe(now);
