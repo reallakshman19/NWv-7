@@ -89,7 +89,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
     rejected_active = int(retention.get("rejectedActiveCount") or 0)
     if rejected_active:
         warnings.append(f"Capacity excluded {rejected_active} active item(s)")
-    actual_publication_bytes = len(json.dumps(snapshot, ensure_ascii=False).encode("utf8"))
+    actual_publication_bytes = len(json.dumps(snapshot, indent=2, ensure_ascii=False).encode("utf8"))
     if actual_publication_bytes > MAX_TOTAL_PUBLICATION_BYTES:
         errors.append(f"Snapshot exceeds {MAX_TOTAL_PUBLICATION_BYTES} UTF-8 bytes")
     if len(pending) > RETENTION_POLICY["pending"]["maxItems"]:
