@@ -52,4 +52,10 @@ const lifecycleBound = item('shopping', {
 });
 assert.equal(upAheadExpiryMs(lifecycleBound), now + 4 * DAY);
 
+// Legacy date-only cards must remain eligible despite missing publication timestamps.
+const dateOnlyFestival = { id: 'festival', category: 'festivals', title: 'Festival',
+  city: 'Chennai', date: '2026-11-24', datePrecision: 'day' };
+assert.ok(upAheadExpiryMs(dateOnlyFestival) > now);
+assert.equal(upAheadExpiryMs({ id: 'missing', category: 'alerts' }), 0);
+
 console.log('Up Ahead retention v2 browser expiry parity: PASS');
