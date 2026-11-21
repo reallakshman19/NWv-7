@@ -11,7 +11,7 @@ function storyUrl(story) {
 export default function TravelLocalStories({ newsData, profile, limit = 5 }) {
   if (!profile?.prioritizeStories) return null;
 
-  const stories = rankStoriesForLocation(newsData, profile, { limit });
+  const stories = rankStoriesForLocation(newsData, profile, { limit, requireCityEvidence: true });
   const audit = auditTravelLocalStories(stories, profile);
   const displayMode = getStoriesDisplayMode(audit, profile);
 

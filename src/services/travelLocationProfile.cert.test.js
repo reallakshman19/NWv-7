@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildTravelLocationSettings,
+  buildWeatherSelectedNewsSettings,
   getTravelEditionOptions,
   getTravelLocationProfile,
   normalizeTravelLocation,
@@ -55,4 +56,55 @@ describe('Travel location profile certification', () => {
       timeRange: '30d',
     });
   });
+
+  it('switches local news with each Quick Weather city selection', () => {
+    const initial = {
+      weather: { cities: ['chennai', 'trichy', 'muscat'], activeCity: 'chennai' },
+      travelLocation: { city: 'chennai', enabled: true, prioritizeStories: true },
+      theme: 'dark',
+    };
+
+    const trichy = buildWeatherSelectedNewsSettings(initial, 'Trichy');
+    expect(trichy.weather.activeCity).toBe('trichy');
+    expect(trichy.travelLocation.city).toBe('chennai');
+    expect(getTravelLocationProfile(trichy, { activeWeatherCity: trichy.weather.activeCity }).display).toBe('Trichy');
+    expect(trichy.theme).toBe('dark');
+
+    const muscat = buildWeatherSelectedNewsSettings(trichy, 'Muscat');
+    expect(muscat.weather.activeCity).toBe('muscat');
+    expect(muscat.travelLocation.city).toBe('chennai');
+    expect(getTravelLocationProfile(muscat, { activeWeatherCity: muscat.weather.activeCity }).countryLabel).toBe('Oman');
+  });
+
+  it('retains the user\'s local-news visibility preference', () => {
+    const previous = {
+      travelLocation: { city: 'chennai', enabled: false, prioritizeStories: false },
+    };
+
+    const next = buildWeatherSelectedNewsSettings(previous, 'colombo');
+    expect(next.travelLocation).toEqual({
+      city: 'chennai',
+      enabled: false,
+      prioritizeStories: false,
+    });
+    expect(getTravelLocationProfile(next).prioritizeStories).toBe(false);
+  });
+
+  it('shows a selected weather-only city instead of stale Chennai news', () => {
+    const next = buildWeatherSelectedNewsSettings({
+      travelLocation: { city: 'chennai' },
+    }, 'Mumbai');
+
+    const profile = getTravelLocationProfile(next, { activeWeatherCity: next.weather.activeCity });
+    expect(profile.key).toBe('mumbai');
+    expect(profile.display).toBe('Mumbai');
+    expect(profile.countryLabel).toBe('India');
+    expect(profile.hasDedicatedLocalFeed).toBe(false);
+  });
+
+  it('does not change saved settings for unknown cities', () => {
+    const saved = { travelLocation: { city: 'chennai' } };
+    expect(buildWeatherSelectedNewsSettings(saved, 'not-a-city')).toBe(saved);
+  });
+
 });

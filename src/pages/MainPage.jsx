@@ -289,6 +289,8 @@ const MainPage = () => {
 
                                     <QuickWeather />
 
+                                    <TravelLocalStories newsData={prioritizedNewsData} profile={travelLocationProfile} />
+
                                     <div className="news-sections">
                                         {(!isUrgentMode || breakingNews.length === 0) && (
                                             <>

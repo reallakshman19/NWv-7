@@ -399,7 +399,7 @@ export function useMainTabViewModel({ isWebView = false } = {}) {
   ), [datasetEnvelope]);
 
   const travelLocationProfile = useMemo(
-    () => getTravelLocationProfile(safeSettings),
+    () => getTravelLocationProfile(safeSettings, { activeWeatherCity: safeSettings?.weather?.activeCity }),
     [safeSettings]
   );
 

@@ -129,6 +129,15 @@ export function scoreStoryForLocation(story, profile) {
   return score;
 }
 
+// City-specific cards require evidence of this city, not merely the same
+// country or region. Sources and collection lanes are not event evidence.
+export function hasCityEvidence(story, profile) {
+  const text = storyText(story);
+  const terms = profile?.cityKeywords || [profile?.key, profile?.display];
+  return terms.map(normalize).filter(term => term.length > 2)
+    .some(term => hasWord(text, term));
+}
+
 export function rankStoriesForLocation(newsData = {}, profileInput = null, options = {}) {
   const profile = isTravelLocationProfile(profileInput)
     ? profileInput
@@ -139,6 +148,7 @@ export function rankStoriesForLocation(newsData = {}, profileInput = null, optio
   const seen = new Set();
 
   return collectStories(newsData)
+    .filter(story => !options.requireCityEvidence || hasCityEvidence(story, profile))
     .map(story => ({
       ...story,
       _travelLocationScore: scoreStoryForLocation(story, profile),
