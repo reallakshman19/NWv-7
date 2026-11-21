@@ -15,7 +15,7 @@ from enrich_upahead_contract import (
     DAY_MS, MAX_PENDING_BYTES, MAX_PENDING_ITEMS, PENDING_LOOKAHEAD_DAYS,
     MAX_ACTIVE_ITEMS, MAX_ACTIVE_BYTES, MAX_TOTAL_PUBLICATION_BYTES,
     MAX_ACTIVE_WINDOW_HOURS, SAFETY_CATEGORIES, RETENTION_POLICY,
-    lifecycle_for_item,
+    active_published_bytes, lifecycle_for_item,
 )
 
 UP_AHEAD_PATH = Path("public/data/up_ahead.json")
@@ -78,7 +78,7 @@ def validate_snapshot(snapshot: dict[str, Any], now_ms: int | None = None, *, re
         errors.append("Active seven-day evidence limit is missing or incorrect")
     if len(items) > MAX_ACTIVE_ITEMS:
         errors.append(f"Active item count exceeds {MAX_ACTIVE_ITEMS}")
-    active_bytes = sum(len(json.dumps(item, ensure_ascii=False).encode("utf8")) for item in items)
+    active_bytes = active_published_bytes(items)
     if active_bytes > MAX_ACTIVE_BYTES:
         errors.append(f"Active item bytes exceed {MAX_ACTIVE_BYTES}")
     if retention.get("activeItemCount") != len(items) or retention.get("activeBytes") != active_bytes:
