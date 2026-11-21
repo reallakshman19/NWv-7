@@ -4,6 +4,7 @@ import { useSettings } from '../context/SettingsContext';
 import WeatherIcon from './WeatherIcons';
 import QuickWeatherSignalStrip from './weather/QuickWeatherSignalStrip.jsx';
 import { buildNextRiskSummary, buildTomorrowChip } from '../services/weatherInsights.js';
+import { buildWeatherSelectedNewsSettings } from '../services/travelLocationProfile.js';
 import {
     buildWeatherSettingsWithCities,
     getCityWeatherKey,
@@ -248,12 +249,29 @@ const QuickWeather = () => {
         }
 
         // Builds settings with: weather: { cities: uniqueCities }
-        const nextSettings = buildWeatherSettingsWithCities(settings, uniqueCities);
+        const nextSettings = buildWeatherSelectedNewsSettings(
+            buildWeatherSettingsWithCities(settings, uniqueCities),
+            nextActiveCity
+        );
 
         updateSettings(nextSettings);
         setActiveCity(nextActiveCity);
         setCityEditMessage('');
         refreshWeather?.(true);
+    }
+
+    function selectCity(city) {
+        const nextCity = normalizeCity(city);
+        if (!nextCity || !getWeatherLocation(nextCity)) return;
+
+        setActiveCity(nextCity);
+
+        // SettingsContext is reactive in this tab, unlike localStorage events.
+        // Updating the travel location refreshes both the news heading and feed.
+        if (settings?.weather?.activeCity !== nextCity ||
+            settings?.travelLocation?.city !== nextCity) {
+            updateSettings(buildWeatherSelectedNewsSettings(settings, nextCity));
+        }
     }
 
     function handleAddCity(event) {
@@ -360,11 +378,14 @@ const QuickWeather = () => {
                         <div
                             key={row.city}
                             className={`qw-city-row ${isActive ? 'qw-city-row--active' : ''} ${!row.usable ? 'qw-city-row--missing' : ''}`}
-                            onClick={() => setActiveCity(row.city)}
+                            onClick={() => selectCity(row.city)}
                             role="button"
                             tabIndex={0}
                             onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') setActiveCity(row.city);
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    selectCity(row.city);
+                                }
                             }}
                         >
                             <div className="qw-city-row__left">
