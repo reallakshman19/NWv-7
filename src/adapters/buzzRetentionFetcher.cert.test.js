@@ -44,14 +44,22 @@ describe('Buzz rolling JSON browser fail-closed admission', () => {
   });
 
   it('degrades stale generation but retains eligible stories until their own expiry', () => {
-    const stale = qualifyBuzzRetainedSnapshot(snapshot([article()], { generatedAt: NOW - 13 * H }), NOW);
+    const stored = article({
+      publishedAt: NOW - 20 * H, firstSeenAt: NOW - 13 * H,
+      lastVerifiedAt: NOW - 13 * H,
+      retention: { freshUntil: NOW + 16 * H, displayUntil: NOW + 23 * H },
+    });
+    const stale = qualifyBuzzRetainedSnapshot(snapshot([stored], { generatedAt: NOW - 13 * H }), NOW);
     expect(stale.ok).toBe(true);
     expect(stale.stale).toBe(true);
     expect(stale.reason).toBe('stale_buzz_retention_snapshot');
     expect(stale.items).toHaveLength(1);
-    expect(qualifyBuzzRetainedSnapshot(snapshot([article({
-      retention: { freshUntil: NOW + 31 * H, displayUntil: NOW - 1 },
-    })], { generatedAt: NOW - 13 * H }), NOW).ok).toBe(false);
+    expect(qualifyBuzzRetainedSnapshot(snapshot([{ ...stored,
+      retention: { ...stored.retention, displayUntil: NOW - 1 },
+    }], { generatedAt: NOW - 13 * H }), NOW).ok).toBe(false);
+    expect(qualifyBuzzRetainedSnapshot(snapshot([article()], {
+      generatedAt: NOW - 13 * H,
+    }), NOW).ok).toBe(false); // cannot be verified after file was generated
     expect(qualifyBuzzRetainedSnapshot(snapshot([article()], { maxBytes: 10_000_000 }), NOW).ok).toBe(false);
   });
 
