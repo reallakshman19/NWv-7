@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useWeather } from '../context/WeatherContext';
 import { useSettings } from '../context/SettingsContext';
 import {
@@ -93,6 +93,8 @@ export function useWeatherTabViewModel() {
     refreshWeather,
     ensureBoot,
     booted,
+    activeCity,
+    setActiveCity,
   } = useWeather();
 
   const { settings, updateSettings } = useSettings();
@@ -105,31 +107,9 @@ export function useWeatherTabViewModel() {
     getWeatherLocationOptions()
   ), []);
 
-  const [requestedActiveCity, setRequestedActiveCity] = useState(() => (
-    resolveRegistryKey(safeReadActiveCity()) || null
-  ));
-
-  const activeCity = useMemo(() => (
-    resolveActiveWeatherCity(requestedActiveCity, cities)
-  ), [requestedActiveCity, cities]);
-
   useEffect(() => {
-    if (typeof ensureBoot === 'function') {
-      ensureBoot();
-    }
+    if (typeof ensureBoot === 'function') ensureBoot();
   }, [ensureBoot]);
-
-  useEffect(() => {
-    safeWriteActiveCity(activeCity);
-  }, [activeCity]);
-
-  const setActiveCity = useCallback((city) => {
-    const canonical = resolveRegistryKey(city) || city;
-
-    if (canonical) {
-      setRequestedActiveCity(canonical);
-    }
-  }, []);
 
   const refresh = useCallback(async (force = true) => {
     try {
@@ -170,17 +150,11 @@ export function useWeatherTabViewModel() {
       const nextSettings = buildWeatherSettingsWithCities(settings, uniqueCities);
 
       if (typeof updateSettings === 'function') {
-        await Promise.resolve(updateSettings(nextSettings));
+        const saved = await Promise.resolve(updateSettings(nextSettings));
+        if (saved === false) return { ok: false, error: 'Unable to save weather locations.' };
       }
 
-      if (!uniqueCities.includes(activeCity)) {
-        setRequestedActiveCity(uniqueCities[0]);
-      }
-
-      if (typeof refreshWeather === 'function') {
-        await Promise.resolve(refreshWeather(true));
-      }
-
+      // SettingsContext change performs the single coordinated refresh.
       return {
         ok: true,
         cities: uniqueCities,
@@ -192,7 +166,7 @@ export function useWeatherTabViewModel() {
         error: saveError?.message || String(saveError),
       };
     }
-  }, [activeCity, refreshWeather, settings, updateSettings]);
+  }, [settings, updateSettings]);
 
   const addWeatherCity = useCallback((cityValue) => {
     const canonical = resolveRegistryKey(cityValue);
@@ -242,10 +216,7 @@ export function useWeatherTabViewModel() {
     getRenderableWeatherData(weatherData)
   ), [weatherData]);
 
-  const activeCityData = displayData?.[activeCity] ||
-    displayData?.[cities[0]] ||
-    displayData?.chennai ||
-    null;
+  const activeCityData = displayData?.[activeCity] || null;
 
   const hasRenderableWeatherData = Object.keys(displayData).length > 0;
 
@@ -292,6 +263,7 @@ export function useWeatherTabViewModel() {
     cities,
     cityLabels,
     cityIcons,
+    hideSidebar: true,
   }), [
     displayData,
     activeCity,

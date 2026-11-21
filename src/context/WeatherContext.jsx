@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { fetchWeather } from '../services/weatherService';
 import { getSettings } from '../utils/storage';
 import { useSettings } from './SettingsContext';
-import { getConfiguredWeatherCities } from '../services/weatherLocations.js';
+import { getConfiguredWeatherCities, resolveRegistryKey } from '../services/weatherLocations.js';
 
 const WeatherContext = createContext();
 
@@ -16,7 +16,19 @@ function hasUsableWeatherCity(cityData) {
 }
 
 export function WeatherProvider({ children, lazy = false }) {
-    const { settingsVersion } = useSettings();
+    const { settings, settingsVersion } = useSettings();
+    const [requestedCity, setRequestedCity] = useState(() => {
+        try { return resolveRegistryKey(localStorage.getItem('weather_active_city')) || null; } catch { return null; }
+    });
+    const selectedCities = getConfiguredWeatherCities(settings);
+    const activeCity = selectedCities.includes(requestedCity) ? requestedCity : selectedCities[0];
+    const setActiveCity = useCallback(city => {
+        const canonical = resolveRegistryKey(city);
+        if (canonical && selectedCities.includes(canonical)) setRequestedCity(canonical);
+    }, [selectedCities.join('|')]);
+    useEffect(() => {
+        try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
+    }, [activeCity]);
     const prevVersion = useRef(settingsVersion);
 
     const [booted, setBooted] = useState(!lazy);
@@ -112,7 +124,7 @@ export function WeatherProvider({ children, lazy = false }) {
     }, [booted, settingsVersion, loadWeather]);
 
     return (
-        <WeatherContext.Provider value={{ weatherData, loading, error, refreshWeather: loadWeather, ensureBoot, booted }}>
+        <WeatherContext.Provider value={{ weatherData, loading, error, refreshWeather: loadWeather, ensureBoot, booted, activeCity, setActiveCity }}>
             {children}
         </WeatherContext.Provider>
     );

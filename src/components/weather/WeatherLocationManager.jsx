@@ -8,9 +8,7 @@ function getCityDisplay(city, cityLabels = {}) {
   return cityLabels[city] || city;
 }
 
-function getCityIcon(city, cityIcons = {}) {
-  return cityIcons[city] || '📍';
-}
+function getCityIcon(_city, _cityIcons = {}) { return 'Location'; }
 
 function optionMatchesSearch(option, searchTerm) {
   const search = String(searchTerm || '').trim().toLowerCase();
@@ -241,7 +239,7 @@ export default function WeatherLocationManager({
 
           {availableToAdd.map(option => (
             <option key={option.key} value={option.key}>
-              {option.icon} {option.label} — {option.region ? `${option.region}, ` : ''}{option.country}
+              {option.label} — {option.region ? `${option.region}, ` : ''}{option.country}
             </option>
           ))}
         </select>
@@ -265,7 +263,7 @@ export default function WeatherLocationManager({
           <div className="wlm-quick-add__buttons">
             {availableToAdd.slice(0, 12).map(option => (
               <button key={option.key} type="button" onClick={() => addCity(option.key)}>
-                + {option.icon} {option.label}
+                + {option.label}
               </button>
             ))}
           </div>

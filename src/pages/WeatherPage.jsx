@@ -7,6 +7,9 @@ import WeatherLocationManager from '../components/weather/WeatherLocationManager
 import WeeklyWeatherForecast from '../components/weather/WeeklyWeatherForecast.jsx';
 import WeatherCityComparison from '../components/weather/WeatherCityComparison.jsx';
 import WeatherPlanningSummary from '../components/weather/WeatherPlanningSummary.jsx';
+import WeatherHourIntervals from '../components/weather/WeatherHourIntervals.jsx';
+import WeatherCityStrip from '../components/weather/WeatherCityStrip.jsx';
+import '../components/weather/WeatherCitywise.css';
 import GradeBadge from '../components/audit/GradeBadge.jsx';
 import { useWeatherTabViewModel } from '../viewModels/useWeatherTabViewModel';
 
@@ -21,6 +24,8 @@ function WeatherPage() {
   const {
     weatherData,
     activeCity,
+    cities,
+    setActiveCity,
     weatherTabAudit,
     loading,
     error,
@@ -114,18 +119,20 @@ function WeatherPage() {
           </div>
         )}
 
+        <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
         <WeatherLocationManager {...locationManagerProps} />
 
-        {hasRenderableWeatherData ? (
-          <>
+        {weatherData?.[activeCity]?.current ? (
+          <div className="weather-citywise-content">
+            <WeatherHourIntervals cityData={weatherData[activeCity]} />
             <DetailedWeatherCard {...detailedWeatherCardProps} />
             <WeatherCityComparison {...cityComparisonProps} />
             <WeatherPlanningSummary {...planningSummaryProps} />
             <WeeklyWeatherForecast {...weeklyForecastProps} />
-          </>
+          </div>
         ) : (
           <div className="empty-state">
-            <div className="empty-state__icon">☁️</div>
+            <div className="empty-state__icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 16.6A5 5 0 0018 7h-1.3a7 7 0 00-12 3.5A4.5 4.5 0 005 19h11"/><path d="M16 14l5 5m0-5l-5 5"/></svg></div>
             <p>Weather data unavailable.</p>
             <button onClick={handleRefresh} className="btn btn--secondary mt-md">Retry</button>
           </div>
