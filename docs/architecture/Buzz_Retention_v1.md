@@ -47,10 +47,13 @@
   Unused quota is redistributed, subject to the global hard cap.
 - The report itself is capped to 150,000 bytes; withdrawal tombstones
   are capped at 500, retained for at most seven days.
-- The browser rejects stale snapshots (>12h since generation), bad
-  contract/version, oversize payload, and stories past their calculated
-  expiry. It does not show arbitrary old localStorage records on an
-  empty feed.
+- The browser **marks** a rolling snapshot stale after 12h, without
+  discarding individually verified stories that remain within their
+  source-derived `displayUntil`. It still rejects invalid/future clocks,
+  bad contracts, oversized responses, withdrawals, and expired stories.
+  LocalStorage caches are pruned per story, never by an 8h blanket TTL.
+  The live page reads the Pages-origin release, never unpinned raw GitHub
+  `main`; data-only publication is not a Pages deployment.
 - Automatic caps do **not** apply to user-owned Planner entries.
 
 A maximum display age is **not** a promise that every story will last
