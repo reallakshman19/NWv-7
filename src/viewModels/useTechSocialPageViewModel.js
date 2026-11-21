@@ -212,8 +212,10 @@ function isBuzzStoryStillActionable(story, now = Date.now()) {
   if (story?.suppressionReason || story?.withdrawnAt ||
       ['withdrawn', 'retracted', 'removed', 'cancelled', 'canceled']
         .includes(String(story?.status || '').toLowerCase())) return false;
-  const declaredExpiry = story?.expiryAt ?? story?.expiresAt;
-  if (declaredExpiry != null && declaredExpiry !== '') {
+  // Check both common publisher spellings. Neither an empty expiryAt nor
+  // a later second deadline can mask an earlier expiresAt withdrawal.
+  for (const declaredExpiry of [story?.expiryAt, story?.expiresAt]) {
+    if (declaredExpiry == null || declaredExpiry === '') continue;
     const expiryMs = getPublishedAtMs(declaredExpiry);
     if (!expiryMs || expiryMs <= now) return false;
   }
