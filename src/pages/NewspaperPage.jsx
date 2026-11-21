@@ -14,13 +14,6 @@ import {
   useNewspaperPageViewModel,
 } from '../viewModels/useNewspaperPageViewModel';
 
-const methodLabels = {
-  gemini: 'AI Summary',
-  server: 'Summary',
-  extractive: 'Auto-Summary',
-  headlines: 'Headlines',
-};
-
 const NewspaperPage = () => {
   const { isWebView } = useMediaQuery();
 
