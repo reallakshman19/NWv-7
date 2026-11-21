@@ -174,3 +174,60 @@ def test_daily_thanthi_falls_back_to_headlines_on_official_feed_failure():
     assert direct in called and recovery in called
     assert result['sourceStatus']['DAILY_THANTHI']['currentCount'] == 1
     assert result['sourceStatus']['DAILY_THANTHI']['previewCount'] == 0
+
+
+def test_schedule_policy_skips_live_publisher_probe_outside_pull_requests():
+    """A failing single publisher must not gate the scheduled publication job."""
+    from pathlib import Path
+    import re
+    workflow = Path(__file__).resolve().parent.parent / '.github/workflows/daily_brief.yml'
+    text = workflow.read_text(encoding='utf-8')
+    assert re.search(
+        r"- name: Probe official Daily Thanthi feed and require a current attributable preview\n"
+        r"\s+if: github\\.event_name == 'pull_request'\n"
+        r"\s+run: python scripts/daily_brief\\.py --probe-source DAILY_THANTHI",
+        text,
+    )
+    assert "needs: certify" in text
+    assert "if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'" in text
+
+
+def test_direct_daily_thanthi_outage_does_not_suppress_healthy_the_hindu_edition():
+    """Reject the former cross-publisher failure: source-level degradation only."""
+    from daily_brief import SOURCES
+    calls = []
+
+    def fetcher(task, now):
+        source_id, domain, page, url = task
+        calls.append((source_id, url))
+        if source_id == 'THE_HINDU':
+            rows = qualify_entries([entry(
+                title='Current front page story',
+                link='https://www.thehindu.com/news/current-story.ece',
+                summary='Officials confirmed new bus services that connect multiple towns and are expected to begin next month.',
+            )], domain, now)
+            return {'sourceId': source_id, 'page': page, 'url': url, 'ok': True,
+                    'articles': rows, 'currentCount': len(rows)}
+        if source_id == 'DAILY_THANTHI' and url == SOURCES[source_id]['feeds'][0][1]:
+            return {'sourceId': source_id, 'page': page, 'url': url,
+                    'ok': False, 'articles': [], 'currentCount': 0,
+                    'error': 'upstream timeout'}
+        if source_id == 'DAILY_THANTHI' and 'news.google.com' in url:
+            # Google discovery is a headline fallback, never an RSS preview.
+            rows = qualify_entries([entry(
+                link='https://news.google.com/rss/articles/current',
+                source={'href': 'https://www.dailythanthi.com'},
+                summary='An aggregator description that must not become a newspaper preview.',
+            )], domain, now)
+            return {'sourceId': source_id, 'page': page, 'url': url,
+                    'ok': True, 'articles': rows, 'currentCount': len(rows)}
+        return {'sourceId': source_id, 'page': page, 'url': url,
+                'ok': False, 'articles': [], 'currentCount': 0}
+
+    result = collect_publication(NOW, fetcher=fetcher)
+    assert result['sourceStatus']['THE_HINDU']['currentCount'] == 1
+    assert result['sourceStatus']['THE_HINDU']['previewCount'] == 1
+    assert result['sourceStatus']['DAILY_THANTHI']['currentCount'] == 1
+    assert result['sourceStatus']['DAILY_THANTHI']['previewCount'] == 0
+    assert any(source == 'DAILY_THANTHI' and 'news.google.com' in url
+               for source, url in calls)
