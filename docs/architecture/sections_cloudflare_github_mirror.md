@@ -31,7 +31,7 @@ write data. After an independently approved merge, the workflow may run on
 schedule or manual dispatch and only commits on `main` if all conditions pass.
 
 1. GET the exact public Worker preview (no token, no write endpoint).
-2. Require schema v2, non-stale/future timestamps, proven committed evidence,
+2. Require schema v2, independently fresh snapshot and commit timestamps, proven committed evidence,
    a valid 64-character decision digest consistent with the content-hash
    prefix, positive pointer generation, and at least one publisher-dated
    eligible article.
