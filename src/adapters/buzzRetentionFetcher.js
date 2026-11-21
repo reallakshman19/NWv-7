@@ -27,7 +27,7 @@ function validHttp(value) {
   }
 }
 
-function storyEligible(item, now) {
+function storyEligible(item, now, generated) {
   if (!item || !SECTIONS.has(item.buzzSection) || !validHttp(item.url || item.link)) return false;
   if (!String(item.title || '').trim() || item.suppressionReason || item.withdrawnAt || BLOCKED.has(String(item.status || '').toLowerCase())) return false;
   const published = ms(item.publishedAt);
@@ -38,7 +38,8 @@ function storyEligible(item, now) {
   if (SOURCE_BAD.has(String(item.publishedAtSource || '').toLowerCase())) return false;
   const firstSeen = ms(item.firstSeenAt);
   const verified = ms(item.lastVerifiedAt);
-  if (!firstSeen || !verified || firstSeen > verified || verified > now + FUTURE) return false;
+  if (!firstSeen || !verified || firstSeen > verified || verified > now + FUTURE
+    || verified > generated + FUTURE) return false;
   const cap = item.buzzSection === 'social' ? MAX_SOCIAL_AGE_MS : MAX_STORY_AGE_MS;
   const expected = Math.min(published + cap,
     Math.max(published + 36 * H, verified + 36 * H),
@@ -62,7 +63,7 @@ export function qualifyBuzzRetainedSnapshot(snapshot, now = Date.now()) {
   const counts = { entertainment: [], social: [], technology: [] };
   let invalid = 0;
   for (const item of snapshot.items) {
-    if (!storyEligible(item, now)) {
+    if (!storyEligible(item, now, generated)) {
       invalid += 1;
       continue;
     }
