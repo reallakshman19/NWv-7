@@ -79,10 +79,30 @@ def test_section_source_policy_report():
     assert_true("topStories" in report["sectionSummary"], "section summary missing")
 
 
+
+def test_entertainment_source_registry_removes_blocked_feeds_and_mislabelled_aliases():
+    policy = load_section_source_policy()
+    sources = policy["sections"]["entertainment"]
+    urls = [row["url"] for row in sources]
+    groups = {row["sourceGroup"] for row in sources}
+    assert_true(not any("hindustantimes.com/feeds/rss/entertainment/" in url or
+                        "indianexpress.com/section/entertainment/feed/" in url
+                        for url in urls),
+                "Retired 401/403 endpoints must not remain active in entertainment")
+    assert_true(len(groups) >= 4, "Entertainment needs diverse direct publishers")
+    assert_true({"ndtv", "bbc", "variety", "deadline", "hollywood_reporter"} <= groups,
+                "Entertainment must include established Hollywood and India publisher feeds")
+    for row in sources:
+        assert_true(row["url"].startswith("https://"), "Only HTTPS publisher feeds")
+        assert_true(row["sourceGroup"] not in {"hindustan_times", "indian_express"},
+                    "Failed publishers cannot be silently relabeled")
+
+
 if __name__ == "__main__":
     test_normalize_section_feed_list_shape()
     test_section_policy_load_and_validate()
     test_section_feeds_map_shape()
     test_build_section_quality()
     test_section_source_policy_report()
+    test_entertainment_source_registry_removes_blocked_feeds_and_mislabelled_aliases()
     print("PASS: Section source policy Python tests")

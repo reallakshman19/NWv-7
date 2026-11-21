@@ -12,6 +12,12 @@ on:
       - 'scripts/validate_sections_prefetch_output.py'
       - 'scripts/check_sections_recovery_gate.py'
       - 'scripts/test_check_sections_recovery_gate.py'
+      - 'config/section_sources.json'
+      - 'src/services/rssAggregator.js'
+      - 'scripts/section_source_policy.py'
+      - 'scripts/test_section_source_policy.py'
+      - 'scripts/probe_entertainment_feeds.py'
+      - 'scripts/test_probe_entertainment_feeds.py'
   workflow_dispatch:
   schedule:
     - cron: '17 */3 * * *'
@@ -53,6 +59,10 @@ jobs:
           python-version: '3.12'
       - name: Install collector dependencies
         run: python -m pip install --disable-pip-version-check requests feedparser
+      - name: Certify entertainment feed provenance and freshness filters
+        run: python -m unittest discover -s scripts -p 'test_probe_entertainment_feeds.py' -v
+      - name: Require current articles from diverse direct publishers and a Hollywood feed
+        run: python scripts/probe_entertainment_feeds.py --min-publishers 2 --min-hollywood 1
       - name: Collect publisher-dated RSS for read-only qualification
         run: python scripts/fetch_sections_stories.py
       - name: Fail if source is structurally wrong, stale, empty or single-source World
