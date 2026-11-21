@@ -30,6 +30,7 @@ export function WeatherProvider({ children, lazy = false }) {
         try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
     }, [activeCity]);
     const prevVersion = useRef(settingsVersion);
+    const requestGeneration = useRef(0);
 
     const [booted, setBooted] = useState(!lazy);
     const [weatherData, setWeatherData] = useState(null);
@@ -43,6 +44,7 @@ export function WeatherProvider({ children, lazy = false }) {
 
     const loadWeather = useCallback(async (force = false) => {
         if (!booted) return;
+        const generation = ++requestGeneration.current;
 
         const settings = getSettings();
         const freshnessLimitMs = (settings?.weatherFreshnessLimit || 4) * 60 * 60 * 1000;
@@ -72,7 +74,7 @@ export function WeatherProvider({ children, lazy = false }) {
             for (let i = 0; i < cities.length; i += 1) {
                 const city = String(cities[i] || '').toLowerCase();
                 try {
-                    const cityData = await fetchWeather(city);
+                    const cityData = await fetchWeather(city, { force });
                     if (hasUsableWeatherCity(cityData)) {
                         data[city] = cityData;
                         successCount += 1;
@@ -84,11 +86,13 @@ export function WeatherProvider({ children, lazy = false }) {
                     data[city] = weatherData?.[city] || null;
                 }
 
+                if (generation !== requestGeneration.current) return;
                 if (i < cities.length - 1) {
                     await delay(500);
                 }
             }
 
+            if (generation !== requestGeneration.current) return;
             if (successCount === 0 && weatherData) {
                 setError(new Error('Using previous cached weather data; live refresh failed.'));
                 setLoading(false);
@@ -100,13 +104,14 @@ export function WeatherProvider({ children, lazy = false }) {
             setLastFetch(successCount > 0 ? Date.now() : lastFetch);
             setError(successCount === 0 ? new Error('All weather fetches failed') : null);
         } catch (err) {
+            if (generation !== requestGeneration.current) return;
             console.error('Weather Context Error:', err);
             setError(err);
             if (!weatherData) {
                 setWeatherData(null);
             }
         } finally {
-            setLoading(false);
+            if (generation === requestGeneration.current) setLoading(false);
         }
     }, [weatherData, lastFetch, booted]);
 
