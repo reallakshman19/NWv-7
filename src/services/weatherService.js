@@ -17,7 +17,6 @@ import { getSettings } from '../utils/storage.js';
 import logStore from '../utils/logStore.js';
 import { getWeatherIconId } from '../utils/weatherUtils.js';
 import { getRuntimeCapabilities } from "../runtime/runtimeCapabilities.js";
-import { toLocalDateKey } from '../utils/dateKey.js';
 import { fetchWithTimeout } from '../utils/withTimeout.js';
 import { isLiveMode } from '../utils/fetchMode.js';
 
@@ -193,7 +192,7 @@ async function fetchSingleModel(modelName, lat, lon) {
     return response.json();
 }
 
-export async function fetchWeather(locationKey) {
+export async function fetchWeather(locationKey, { force = false } = {}) {
     const _t0 = Date.now();
     const key = String(locationKey || '').toLowerCase();
     const cacheFresh = readCachedWeather(key, false);
@@ -203,10 +202,10 @@ export async function fetchWeather(locationKey) {
     // block a live refresh for built-in cities, because it causes home QuickWeather to show
     // "No forecast" permanently.
     // In Live mode, skip cache/snapshot early-returns and always fetch from Open-Meteo.
-    if (!liveMode && cacheFresh && hasHourlyForecast(cacheFresh)) return { ...cacheFresh, sourceMode: 'cache' };
-    if (!liveMode && cacheFresh && !LOCATIONS[key]) return { ...cacheFresh, sourceMode: 'cache' };
+    if (!force && !liveMode && cacheFresh && hasHourlyForecast(cacheFresh)) return { ...cacheFresh, sourceMode: 'cache' };
+    if (!force && !liveMode && cacheFresh && !LOCATIONS[key]) return { ...cacheFresh, sourceMode: 'cache' };
 
-    if (!liveMode && isStaticHostRuntime() && !LOCATIONS[key]) {
+    if (!force && !liveMode && isStaticHostRuntime() && !LOCATIONS[key]) {
         const cached = readCachedWeather(key, true);
         if (cached) return { ...cached, sourceMode: 'cache' };
 
@@ -249,7 +248,7 @@ export async function fetchWeather(locationKey) {
     } catch (error) {
         const cached = readCachedWeather(key, true);
         if (cached && hasHourlyForecast(cached)) {
-            return { ...cached, isStale: true };
+            return { ...cached, sourceMode: 'cache', isStale: true };
         }
 
         const snapshot = await fetchWeatherSnapshot(key);
@@ -258,7 +257,7 @@ export async function fetchWeather(locationKey) {
         }
 
         if (cached) {
-            return { ...cached, isStale: true };
+            return { ...cached, sourceMode: 'cache', isStale: true };
         }
         logStore.error('weather', `${key}: ${error.message}`, { durationMs: Date.now() - _t0 });
         throw error;
@@ -266,11 +265,13 @@ export async function fetchWeather(locationKey) {
 }
 
 function getDailyMetricRows(modelData, field, dayIndex) {
+    const dateKey = ['ecmwf', 'gfs', 'icon'].map(name => modelData?.[name]?.daily?.time?.[dayIndex]).find(Boolean);
     return ['ecmwf', 'gfs', 'icon']
-        .map(modelName => ({
-            modelName,
-            value: modelData?.[modelName]?.daily?.[field]?.[dayIndex],
-        }))
+        .map(modelName => {
+            const daily = modelData?.[modelName]?.daily;
+            const matchedDay = Array.isArray(daily?.time) ? daily.time.indexOf(dateKey) : -1;
+            return { modelName, value: matchedDay < 0 ? null : daily?.[field]?.[matchedDay] };
+        })
         .filter(row => row.value != null && Number.isFinite(Number(row.value)));
 }
 
@@ -342,7 +343,7 @@ function processMultiModelData(modelData, locationName) {
         .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
     const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
-    const getIcon = (code) => { if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
+    const getIcon = (code) => { if (code == null) return null; if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
     const conditionMap = {
         0: 'Clear',
         1: 'Mainly Clear',
@@ -374,7 +375,7 @@ function processMultiModelData(modelData, locationName) {
         99: 'Severe Thunderstorm with Hail'
     };
     const getCondition = (code) => {
-        const normalizedCode = Number.isFinite(Number(code)) ? Number(code) : null;
+        const normalizedCode = code != null && Number.isFinite(Number(code)) ? Number(code) : null;
         if (normalizedCode == null) return 'Forecast';
         return conditionMap[normalizedCode] || conditionMap[Math.round(normalizedCode)] || 'Forecast';
     };
@@ -385,19 +386,25 @@ function processMultiModelData(modelData, locationName) {
             : null)
         .filter(Boolean);
 
+    const referenceTimes = allModelHourlyData.find(({ hourly }) => Array.isArray(hourly.time) && hourly.time.length)?.hourly.time || [];
     const getHourConsensus = (hourIdx) => {
-        const pts = allModelHourlyData.map(({ modelName, hourly: h }) => ({
+        const key = referenceTimes[hourIdx];
+        if (!key) return null;
+        const pts = allModelHourlyData.map(({ modelName, hourly: h }) => {
+            const modelIndex = Array.isArray(h.time) ? h.time.indexOf(key) : -1;
+            return {
             modelName,
-            temperature_2m: h.temperature_2m?.[hourIdx],
-            apparent_temperature: h.apparent_temperature?.[hourIdx],
-            precipitation: h.precipitation?.[hourIdx],
-            precipitation_probability: h.precipitation_probability?.[hourIdx],
-            weather_code: h.weather_code?.[hourIdx],
-            relative_humidity_2m: h.relative_humidity_2m?.[hourIdx],
-            wind_speed_10m: h.wind_speed_10m?.[hourIdx],
-            uv_index: h.uv_index?.[hourIdx],
-            cloud_cover: h.cloud_cover?.[hourIdx]
-        })).filter(d => d.temperature_2m != null);
+            temperature_2m: h.temperature_2m?.[modelIndex],
+            apparent_temperature: h.apparent_temperature?.[modelIndex],
+            precipitation: h.precipitation?.[modelIndex],
+            precipitation_probability: h.precipitation_probability?.[modelIndex],
+            weather_code: h.weather_code?.[modelIndex],
+            relative_humidity_2m: h.relative_humidity_2m?.[modelIndex],
+            wind_speed_10m: h.wind_speed_10m?.[modelIndex],
+            uv_index: h.uv_index?.[modelIndex],
+            cloud_cover: h.cloud_cover?.[modelIndex]
+            };
+        }).filter(d => d.temperature_2m != null);
         if (pts.length === 0) return null;
         return pts;
     };
@@ -492,23 +499,26 @@ function processMultiModelData(modelData, locationName) {
     const currentHumidity = weightedAverageMetric(currentData, 'relative_humidity_2m', { round: true });
     const currentWindSpeed = weightedAverageMetric(currentData, 'wind_speed_10m', { round: true });
     const currentWindDirection = weightedAverageMetric(currentData, 'wind_direction_10m', { round: true });
-    const maxPrecipProb = weightedDailyMetric(modelData, 'precipitation_probability_max', 0, { round: true }) ?? 0;
-    const totalPrecipValue = weightedDailyMetric(modelData, 'precipitation_sum', 0, { digits: 1 }) ?? 0;
-    const totalPrecip = totalPrecipValue.toFixed(1);
+    const maxPrecipProb = weightedDailyMetric(modelData, 'precipitation_probability_max', 0, { round: true });
+    const totalPrecipValue = weightedDailyMetric(modelData, 'precipitation_sum', 0, { digits: 1 });
+    const totalPrecip = totalPrecipValue == null ? '—' : totalPrecipValue.toFixed(1);
     const maxUV = weightedDailyMetric(modelData, 'uv_index_max', 0, { round: true });
     const successfulModels = getSuccessfulModels(modelData);
 
+    const sourceCurrentTime = modelData.ecmwf?.current?.time || modelData.gfs?.current?.time || modelData.icon?.current?.time || '';
+    const currentHourKey = String(sourceCurrentTime).slice(0, 13);
+    const startIndex = currentHourKey ? referenceTimes.findIndex(t => String(t).slice(0, 13) >= currentHourKey) : -1;
     const hourly24 = [];
     const next8Hours = [];
     for (let i = 0; i < 24; i++) {
-        const hourIdx = currentHourOfDay + i;
+        const hourIdx = startIndex < 0 ? -1 : startIndex + i;
         const hourData = getHourConsensus(hourIdx);
         if (!hourData) continue;
         const avgTemp = averageTemperature(hourData);
         if (avgTemp === null) continue;
         const weatherCode = getMostCommonWeatherCode(hourData);
-        const avgPrecip = averagePrecipitation(hourData);
-        const avgProb = averagePrecipitationProbability(hourData);
+        const avgPrecip = hourData.some(row => row.precipitation != null) ? averagePrecipitation(hourData) : null;
+        const avgProb = hourData.some(row => row.precipitation_probability != null) ? averagePrecipitationProbability(hourData) : null;
         const labelHour = hourIdx % 24;
         const slot = {
             label: i === 0 ? 'Now' : formatHourLabel(labelHour),
@@ -518,6 +528,8 @@ function processMultiModelData(modelData, locationName) {
             icon: getIcon(weatherCode),
             prob: avgProb,
             precip: avgPrecip,
+            localTime: referenceTimes[hourIdx],
+            weatherCode,
             condition: getCondition(weatherCode)
         };
         hourly24.push(slot);
@@ -552,6 +564,7 @@ function processMultiModelData(modelData, locationName) {
         name: getWeatherLocationLabel(locationName),
         icon: WEATHER_LOCATION_REGISTRY[locationName]?.icon || (locationName === 'muscat' ? '📍' : '🏛️'),
         fetchedAt: Date.now(),
+        sourceMode: 'live',
         timezone,
         models: { successful: successfulModels, count: successfulModels.length, names: formatModelNames(successfulModels) },
         current: {
@@ -579,24 +592,31 @@ function processMultiModelData(modelData, locationName) {
             forecastTotalMm: totalPrecipValue,
             probabilitySemantics: 'daily_max_hourly_probability_consensus',
         },
-        summary: parseFloat(totalPrecip) > 0
+        summary: totalPrecipValue != null && totalPrecipValue > 0
             ? `Peak rain chance today ${maxPrecipProb}% · Forecast total ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
-            : `Stable · UV ${maxUV ?? 'N/A'}`
+            : `Rain forecast ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
     };
 }
 
 function buildDailyConsensus(modelData, getIcon, getCondition) {
     const days = [];
-    for (let d = 0; d < 7; d++) {
+    const dayKeys = ['ecmwf', 'gfs', 'icon'].map(model => modelData?.[model]?.daily?.time).find(times => Array.isArray(times) && times.length) || [];
+    const dailyValue = (model, field, dayKey) => {
+        const daily = modelData?.[model]?.daily;
+        const index = Array.isArray(daily?.time) ? daily.time.indexOf(dayKey) : -1;
+        return index >= 0 ? daily?.[field]?.[index] : null;
+    };
+    for (let d = 0; d < Math.min(7, dayKeys.length); d++) {
+        const dayKey = dayKeys[d];
         const tempMax = [
-            modelData.ecmwf?.daily?.temperature_2m_max?.[d],
-            modelData.gfs?.daily?.temperature_2m_max?.[d],
-            modelData.icon?.daily?.temperature_2m_max?.[d],
+            dailyValue('ecmwf', 'temperature_2m_max', dayKey),
+            dailyValue('gfs', 'temperature_2m_max', dayKey),
+            dailyValue('icon', 'temperature_2m_max', dayKey),
         ].filter(v => v != null);
         const tempMin = [
-            modelData.ecmwf?.daily?.temperature_2m_min?.[d],
-            modelData.gfs?.daily?.temperature_2m_min?.[d],
-            modelData.icon?.daily?.temperature_2m_min?.[d],
+            dailyValue('ecmwf', 'temperature_2m_min', dayKey),
+            dailyValue('gfs', 'temperature_2m_min', dayKey),
+            dailyValue('icon', 'temperature_2m_min', dayKey),
         ].filter(v => v != null);
         const precipProbValue = weightedDailyMetric(
             modelData,
@@ -611,39 +631,39 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
             { digits: 1 }
         );
         const uvMax = [
-            modelData.ecmwf?.daily?.uv_index_max?.[d],
-            modelData.gfs?.daily?.uv_index_max?.[d],
-            modelData.icon?.daily?.uv_index_max?.[d],
+            dailyValue('ecmwf', 'uv_index_max', dayKey),
+            dailyValue('gfs', 'uv_index_max', dayKey),
+            dailyValue('icon', 'uv_index_max', dayKey),
         ].filter(v => v != null);
         const windMax = [
-            modelData.ecmwf?.daily?.wind_speed_10m_max?.[d],
-            modelData.gfs?.daily?.wind_speed_10m_max?.[d],
-            modelData.icon?.daily?.wind_speed_10m_max?.[d],
+            dailyValue('ecmwf', 'wind_speed_10m_max', dayKey),
+            dailyValue('gfs', 'wind_speed_10m_max', dayKey),
+            dailyValue('icon', 'wind_speed_10m_max', dayKey),
         ].filter(v => v != null);
         const apparentMax = [
-            modelData.ecmwf?.daily?.apparent_temperature_max?.[d],
-            modelData.gfs?.daily?.apparent_temperature_max?.[d],
-            modelData.icon?.daily?.apparent_temperature_max?.[d],
+            dailyValue('ecmwf', 'apparent_temperature_max', dayKey),
+            dailyValue('gfs', 'apparent_temperature_max', dayKey),
+            dailyValue('icon', 'apparent_temperature_max', dayKey),
         ].filter(v => v != null);
         const humidityMean = [
-            modelData.ecmwf?.daily?.relative_humidity_2m_mean?.[d],
-            modelData.gfs?.daily?.relative_humidity_2m_mean?.[d],
-            modelData.icon?.daily?.relative_humidity_2m_mean?.[d],
+            dailyValue('ecmwf', 'relative_humidity_2m_mean', dayKey),
+            dailyValue('gfs', 'relative_humidity_2m_mean', dayKey),
+            dailyValue('icon', 'relative_humidity_2m_mean', dayKey),
         ].filter(v => v != null);
         const weatherCodes = [
-            modelData.ecmwf?.daily?.weather_code?.[d],
-            modelData.gfs?.daily?.weather_code?.[d],
-            modelData.icon?.daily?.weather_code?.[d],
+            dailyValue('ecmwf', 'weather_code', dayKey),
+            dailyValue('gfs', 'weather_code', dayKey),
+            dailyValue('icon', 'weather_code', dayKey),
         ].filter(v => v != null);
 
         const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
-        const code = weatherCodes.length ? weatherCodes[Math.floor(weatherCodes.length / 2)] : 0;
+        const counts = new Map();
+        weatherCodes.forEach(code => counts.set(code, (counts.get(code) || 0) + 1));
+        const code = weatherCodes.length ? [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0] : null;
 
         // Determine day label
-        const date = new Date();
-        date.setDate(date.getDate() + d);
-        const dayLabel = d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : date.toLocaleDateString('en-US', { weekday: 'short' });
-        const dateStr = toLocalDateKey(date);
+        const dateStr = dayKey;
+        const dayLabel = d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : new Date(dayKey + 'T12:00:00Z').toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
 
         days.push({
             dayLabel,

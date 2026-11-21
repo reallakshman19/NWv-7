@@ -221,6 +221,8 @@ def build_hourly_slots(
             continue
 
         slots.append({
+            "localTime": str(times[index]),
+            "weatherCode": weather_code,
             "label": "Now" if label_now_first and offset == 0 else hour_label(raw_hour),
             "time": "Now" if label_now_first and offset == 0 else hour_label(raw_hour),
             "temp": round(temp),

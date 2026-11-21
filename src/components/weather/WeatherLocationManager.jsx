@@ -8,8 +8,8 @@ function getCityDisplay(city, cityLabels = {}) {
   return cityLabels[city] || city;
 }
 
-function getCityIcon(city, cityIcons = {}) {
-  return cityIcons[city] || '📍';
+function getCityIcon() {
+  return <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1116 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>;
 }
 
 function optionMatchesSearch(option, searchTerm) {
@@ -208,7 +208,7 @@ export default function WeatherLocationManager({
                 title={`Remove ${getCityDisplay(city, cityLabels)}`}
                 data-weather-delete-city={city}
               >
-                ×
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
               </button>
             </span>
           ))}
@@ -241,7 +241,7 @@ export default function WeatherLocationManager({
 
           {availableToAdd.map(option => (
             <option key={option.key} value={option.key}>
-              {option.icon} {option.label} — {option.region ? `${option.region}, ` : ''}{option.country}
+              {option.label} — {option.region ? `${option.region}, ` : ''}{option.country}
             </option>
           ))}
         </select>
@@ -265,7 +265,7 @@ export default function WeatherLocationManager({
           <div className="wlm-quick-add__buttons">
             {availableToAdd.slice(0, 12).map(option => (
               <button key={option.key} type="button" onClick={() => addCity(option.key)}>
-                + {option.icon} {option.label}
+                + {option.label}
               </button>
             ))}
           </div>

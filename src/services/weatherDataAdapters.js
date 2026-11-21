@@ -8,6 +8,7 @@ function asArray(value) {
 }
 
 function asNumber(value, fallback = null) {
+  if (value == null || value === '' || typeof value === 'boolean') return fallback;
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
@@ -26,7 +27,7 @@ export function normalizeForecastDay(day = {}, index = 0) {
     'rainfallProbability',
     'pop',
     'prob',
-  ], 0), 0);
+  ], null), null);
 
   const rainMm = asNumber(firstDefined(day, [
     'precipSum',
@@ -34,7 +35,7 @@ export function normalizeForecastDay(day = {}, index = 0) {
     'rainfallMm',
     'precip',
     'precipitationMm',
-  ], 0), 0);
+  ], null), null);
 
   const high = asNumber(firstDefined(day, [
     'tempMax',
@@ -138,5 +139,5 @@ export function getWeatherCityRows({ weatherData = {}, settings = {}, cities = n
 
 export function formatRainPair(day) {
   const normalized = normalizeForecastDay(day);
-  return `${normalized.rainProb || 0}% · ${Number(normalized.rainMm || 0).toFixed(1)}mm`;
+  return `${normalized.rainProb == null ? '—' : normalized.rainProb + '%'} · ${normalized.rainMm == null ? '—' : Number(normalized.rainMm).toFixed(1) + 'mm'}`;
 }

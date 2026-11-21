@@ -12,7 +12,7 @@ export default function DetailedWeatherCard({
   onActiveCityChange = null,
   cities = [],
   cityLabels = {},
-  cityIcons = {},
+  hideSidebar = false,
 }) {
   const [expandedCard, setExpandedCard] = useState(null);
 
@@ -26,8 +26,7 @@ export default function DetailedWeatherCard({
 
   if (!weatherData) return null;
 
-  const fallbackCity = safeCities[0] || 'chennai';
-  const cityData = weatherData[activeCity] || weatherData[fallbackCity] || weatherData.chennai;
+  const cityData = weatherData[activeCity];
 
   if (!cityData) return <div className="dw-container">Data unavailable</div>;
 
@@ -82,7 +81,7 @@ export default function DetailedWeatherCard({
 
   return (
     <div className="dw-container">
-      <div className="dw-sidebar">
+      {!hideSidebar && <div className="dw-sidebar">
         {safeCities.map(city => (
           <button
             key={city}
@@ -90,11 +89,11 @@ export default function DetailedWeatherCard({
             onClick={() => handleTravelAwareCityChange(city)}
             aria-label={`Select ${cityLabels[city] || city}`}
           >
-            <span className="dw-city-icon">{cityIcons[city] || '📍'}</span>
+            <span className="dw-city-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg></span>
             <span className="dw-city-name">{cityLabels[city] || city}</span>
           </button>
         ))}
-      </div>
+      </div>}
 
       <div className="dw-content">
         <div className="dw-header">
@@ -126,7 +125,7 @@ export default function DetailedWeatherCard({
         <div className="dw-footer">
           {cityData.models?.count
             ? `Forecast based on ${cityData.models.count} model${cityData.models.count !== 1 ? 's' : ''}: ${cityData.models.names}`
-            : 'Forecast based on ECMWF · GFS · DWD-ICON'}
+            : 'Forecast source coverage unknown'}
         </div>
       </div>
     </div>
@@ -192,7 +191,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
 
       <div className="dw-card-main">
         <div className="dw-main-icon">
-          {data.iconId ? <WeatherIcon id={data.iconId} size={56} /> : <span style={{ fontSize: '3rem' }}>{data.icon}</span>}
+          <WeatherIcon id={data.iconId || 'day_cloudy'} size={56} />
         </div>
 
         <div className="dw-main-temp">

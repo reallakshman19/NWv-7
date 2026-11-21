@@ -4,7 +4,7 @@ import './WeatherPlanningSummary.css';
 
 export default function WeatherPlanningSummary({ cityData, cityName }) {
     const summary = summarizeCityWeekly(cityData);
-    if (!summary) return null;
+    if (!summary?.hasWeekly || !summary.bestDay || !summary.rainiestDay || !summary.hottestDay || !summary.highestUvDay) return null;
     const { bestDay, rainiestDay, hottestDay, highestUvDay } = summary;
     return (
         <div className="wps-card">
