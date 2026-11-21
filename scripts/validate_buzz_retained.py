@@ -34,6 +34,25 @@ def validate(snapshot: dict, report: dict, now: int) -> list[str]:
         return errors + ["invalid_item_count"]
     if snapshot.get("itemsSha256") != digest(items):
         errors.append("item_digest_mismatch")
+    tombstones = snapshot.get("tombstones", [])
+    if not isinstance(tombstones, list) or len(tombstones) > 500:
+        errors.append("invalid_tombstone_pool")
+        tombstones = []
+    if snapshot.get("tombstonesSha256") != digest(tombstones):
+        errors.append("tombstone_digest_mismatch")
+    retired_keys = set()
+    for tombstone in tombstones:
+        if not isinstance(tombstone, dict) or not isinstance(tombstone.get("identity"), str):
+            errors.append("invalid_tombstone")
+            continue
+        key = tombstone["identity"]
+        removed = millis(tombstone.get("removedAt"))
+        if key in retired_keys or not removed or removed > now + SKEW or now - removed > 7 * 24 * H:
+            errors.append("invalid_tombstone_clock_or_duplicate")
+        retired_keys.add(key)
+    if any(identity(row) in retired_keys for row in items if isinstance(row, dict)):
+        errors.append("withdrawn_item_resurrected")
+
     seen = set()
     for row in items:
         if not isinstance(row, dict):
