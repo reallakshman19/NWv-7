@@ -1,68 +1,94 @@
 {
+  "activeBytes": 216848,
   "categoryCounts": {
     "alerts": 1,
-    "civic": 2,
-    "events": 49,
-    "festivals": 7,
-    "movies": 19,
+    "civic": 3,
+    "events": 78,
+    "festivals": 10,
+    "movies": 20,
     "shopping": 1,
-    "sports": 1,
-    "weather_alerts": 2
+    "sports": 2,
+    "weather_alerts": 4
   },
   "contentClassCounts": {
-    "upahead_alert": 5,
-    "upahead_event": 76,
+    "upahead_alert": 8,
+    "upahead_event": 110,
     "upahead_offer": 1
   },
-  "contentHash": "9f142ad5aeb8",
+  "contentHash": "c05f3feefe5c",
   "contractVersion": "upahead-lifecycle-v1",
   "errors": [],
-  "fetchedAt": 1795227806756,
-  "generatedAt": 1795227817799,
+  "fetchedAt": 1795259649242,
+  "generatedAt": 1795259658908,
   "horizon": {
-    "alertFallbackHours": 24,
+    "alertFallbackHours": 36,
     "eventPastGraceHours": 24,
     "lookaheadDays": 7,
     "offerFallbackHours": 48,
     "plannerPastGraceHours": 6
   },
-  "itemCount": 82,
+  "itemCount": 119,
   "lifecycleSummary": {
     "categoryCounts": {
       "alerts": 1,
-      "civic": 2,
-      "events": 49,
-      "festivals": 7,
-      "movies": 19,
+      "civic": 3,
+      "events": 78,
+      "festivals": 10,
+      "movies": 20,
       "shopping": 1,
-      "sports": 1,
-      "weather_alerts": 2
+      "sports": 2,
+      "weather_alerts": 4
     },
     "contentClassCounts": {
-      "upahead_alert": 5,
-      "upahead_event": 76,
+      "upahead_alert": 8,
+      "upahead_event": 110,
       "upahead_offer": 1
     },
     "horizonViolationCount": 0,
     "horizonViolationSample": [],
-    "itemCount": 82,
-    "plannerEligibleByLifecycleCount": 79,
-    "visibleItemCount": 82
+    "itemCount": 119,
+    "plannerEligibleByLifecycleCount": 98,
+    "visibleItemCount": 119
   },
-  "pendingItemCount": 9,
-  "plannerEligibleByLifecycleCount": 79,
+  "pendingItemCount": 10,
+  "plannerEligibleByLifecycleCount": 98,
+  "publishedSnapshotBytes": 285675,
+  "retention": {
+    "activeBytes": 216848,
+    "activeItemCount": 119,
+    "futureAdmissionDays": 180,
+    "historyDays": 7,
+    "maxActiveBytes": 3000000,
+    "maxActiveItems": 400,
+    "maxActiveWindowHours": 168,
+    "maxPendingBytes": 1000000,
+    "maxPendingItems": 500,
+    "maxTotalPublishedBytes": 8000000,
+    "oversizedOrByteRejectedCount": 0,
+    "pendingBytes": 14569,
+    "pendingItemCount": 10,
+    "rejectedActiveByCategory": {},
+    "rejectedActiveCount": 0,
+    "rejectedFutureCount": 0,
+    "rejectedSafetyAlertCount": 0,
+    "version": "upahead-retention-v2"
+  },
   "schemaVersion": 1,
   "status": "WARN",
   "thresholds": {
     "eventPastGraceHours": 24,
     "lookaheadDays": 7,
+    "maxActiveBytes": 3000000,
+    "maxActiveItems": 400,
+    "maxActiveWindowHours": 168,
+    "maxPublicationBytes": 8000000,
     "maxSnapshotAgeMs": 43200000,
     "minVisibleItems": 3,
     "plannerPastGraceHours": 6
   },
-  "visibleItemCount": 82,
+  "visibleItemCount": 119,
   "warnings": [
-    "1 acquisition sources failed; coverage is partial",
+    "2 acquisition sources failed; coverage is partial",
     "airlines: no currently active items"
   ]
 }
