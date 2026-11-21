@@ -1,0 +1,16 @@
+.weather-hour-intervals{margin:12px 16px;border:1px solid rgba(148,163,184,.22);border-radius:18px;padding:14px;background:rgba(15,23,42,.65);color:#f8fafc}
+.weather-hour-intervals--compact{margin:12px 0 0;padding:12px}
+.whi-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.whi-header h3{font-size:.97rem;margin:0 0 3px}.whi-header span,.whi-footer{font-size:.73rem;color:#cbd5e1}
+.whi-switch{display:flex;border:1px solid #475569;border-radius:10px;padding:3px;flex-shrink:0}
+.whi-switch button{border:0;border-radius:7px;padding:8px 12px;background:transparent;color:#e2e8f0;cursor:pointer;min-width:44px;min-height:36px;font-weight:700}
+.whi-switch button[aria-pressed=true]{background:#155e75;color:#fff}
+.whi-switch button:focus-visible{outline:2px solid #5eead4;outline-offset:3px}
+.whi-rows{display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:8px;margin-top:12px}
+.whi-period{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;border-radius:12px;background:rgba(30,41,59,.68);padding:10px 4px;text-align:center}
+.whi-period__time{color:#cbd5e1;font-size:.76rem;font-weight:700}.whi-period strong{font-size:1.15rem}
+.whi-period__rain,.whi-period__mm{font-size:.8rem;font-weight:700;display:flex;flex-direction:column;align-items:center}
+.whi-period small{font-size:.64rem;color:#cbd5e1;font-weight:500;line-height:1.2}
+.whi-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:11px}
+.whi-empty{color:#cbd5e1;font-size:.85rem}
+@media(max-width:540px){.whi-rows{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.whi-period{padding:9px 2px}.whi-period strong{font-size:1.04rem}.whi-period__rain,.whi-period__mm{font-size:.72rem}.whi-period small{font-size:.59rem}.whi-header{align-items:flex-start}}
