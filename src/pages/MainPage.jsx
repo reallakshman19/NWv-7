@@ -21,6 +21,13 @@ import SectionsDataSourceToggle from '../components/SectionsDataSourceToggle.jsx
 
 const MainPage = () => {
     const { isWebView } = useMediaQuery();
+    const [selectedQuickWeatherCity, setSelectedQuickWeatherCity] = useState(() => {
+        try {
+            return window.localStorage.getItem('weather_active_city') || null;
+        } catch {
+            return null;
+        }
+    });
     const {
         envelope,
         settings,
@@ -49,7 +56,7 @@ const MainPage = () => {
         marketTickerProps,
         themeToggleProps,
         shellRuntimeProps,
-    } = useMainTabViewModel({ isWebView });
+    } = useMainTabViewModel({ isWebView, activeWeatherCity: selectedQuickWeatherCity });
     const dailyDigest = useDailyDigestSectionViewModel();
     const { refresh: refreshDailyDigest } = dailyDigest;
 
@@ -202,7 +209,7 @@ const MainPage = () => {
                             {isWebView ? (
                                 <div className="main-page-grid">
                                     <div className="left-col">
-                                        <QuickWeather />
+                                        <QuickWeather onActiveCityChange={setSelectedQuickWeatherCity} />
 
                                         <TravelLocationBanner profile={travelLocationProfile} />
                                         <TravelLocalStories newsData={prioritizedNewsData} profile={travelLocationProfile} />
@@ -287,7 +294,7 @@ const MainPage = () => {
                                         </>
                                     )}
 
-                                    <QuickWeather />
+                                    <QuickWeather onActiveCityChange={setSelectedQuickWeatherCity} />
 
                                     <div className="news-sections">
                                         {(!isUrgentMode || breakingNews.length === 0) && (
