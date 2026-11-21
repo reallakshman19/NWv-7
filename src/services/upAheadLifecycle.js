@@ -130,9 +130,11 @@ export function upAheadExpiryMs(item) {
   if (!item || item.suppressionReason || item.displayEligible === false) return 0;
   const { start, end, hasCalendarRange } = upAheadEventBounds(item);
   const recordedEnd = upAheadTimeMs(item.eventEndAt);
-  const convertedDeadline = value => recordedEnd && !isInclusiveEndDay(item.eventEndAt, item) && upAheadTimeMs(value) === recordedEnd
-    ? end
-    : upAheadTimeMs(value);
+  // The collector's date-only expiry often shares the inclusive end-day
+  // UTC sentinel. Interpret it as the venue-local *exclusive next midnight*,
+  // not midnight at the start of the event's last calendar day.
+  const convertedDeadline = value => recordedEnd && isInclusiveEndDay(item.eventEndAt, item)
+    && upAheadTimeMs(value) === recordedEnd ? end : upAheadTimeMs(value);
   const deadlines = [
     recordedEnd || hasCalendarRange ? end : 0,
     convertedDeadline(item.expiryAt),
