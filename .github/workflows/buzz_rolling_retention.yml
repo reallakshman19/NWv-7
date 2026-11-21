@@ -2,6 +2,18 @@ name: Buzz Rolling Retention
 
 # Data-only GitHub publication. Does not promote Cloudflare authority or run Pages.
 on:
+  # Bootstrap the first qualified sidecar on a reviewed main-branch release.
+  # GITHUB_TOKEN data-only commits do not raise push events, avoiding loops;
+  # scheduled runs still recover ordinary data updates independently.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/buzz_rolling_retention.yml'
+      - '.github/workflows/deploy.yml'
+      - 'config/buzz_retention_policy.json'
+      - 'scripts/build_buzz_retained.py'
+      - 'scripts/validate_buzz_retained.py'
+      - 'public/newsdata/sections_latest.json'
   pull_request:
     branches: [main]
     paths:
