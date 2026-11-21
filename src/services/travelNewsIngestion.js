@@ -118,6 +118,12 @@ export async function fetchTravelNewsPayload({ basePath = '/data', profile } = {
     ? profile
     : getTravelLocationProfile(profile || {});
 
+  // Without a dedicated city JSON, rank matching published articles instead;
+  // never use a different city's cache as fallback.
+  if (resolvedProfile.hasDedicatedLocalFeed === false) {
+    return normalizeTravelNewsPayload({ stories: [], sourceMode: 'no-city-prefetch' }, resolvedProfile);
+  }
+
   const paths = [
     `${basePath}/travel-local-${resolvedProfile.key}.json`,
     `${basePath}/travel-location-${resolvedProfile.key}.json`,
