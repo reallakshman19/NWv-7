@@ -128,7 +128,7 @@ export function getUpAheadWindowStatus(item, { asOfDate = Date.now(), plannerWin
 
 export function upAheadExpiryMs(item) {
   if (!item || item.suppressionReason || item.displayEligible === false) return 0;
-  const { end, hasCalendarRange } = upAheadEventBounds(item);
+  const { start, end, hasCalendarRange } = upAheadEventBounds(item);
   const recordedEnd = upAheadTimeMs(item.eventEndAt);
   const convertedDeadline = value => recordedEnd && !isInclusiveEndDay(item.eventEndAt, item) && upAheadTimeMs(value) === recordedEnd
     ? end
@@ -141,7 +141,10 @@ export function upAheadExpiryMs(item) {
 
   const timestamp = upAheadTimeMs(item.publishedAt || item.publishDate || item.firstSeenAt || item.observedAt);
   const verifiedAt = upAheadTimeMs(item.lastVerifiedAt || item.observedAt || item.firstSeenAt || item.publishedAt);
-  const eventStart = upAheadTimeMs(item.eventStartAt);
+  // Date-only event, movie or festival records carry a verified calendar
+  // occurrence without necessarily having a separate eventStartAt clock.
+  // The venue-local date boundary is an eligible non-sliding anchor.
+  const eventStart = upAheadTimeMs(item.eventStartAt) || start;
   // A source re-observation renews eligibility; an app/snapshot refresh does not.
   // Future occurrences can wait in the pending pool until their verified event.
   const firstVisibleAt = upAheadTimeMs(item.firstVisibleAt);
