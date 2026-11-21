@@ -212,5 +212,10 @@ describe('Post-merge final Buzz display expiry regression (#186 self-audit)', ()
     expect(filterOldNews([{ ...recent,
       expiresAt: new Date(now + H).toISOString() }])).toHaveLength(1);
     expect(filterOldNews([{ ...recent, status: 'canceled' }])).toHaveLength(0);
+    // Both fields may be present in mixed legacy/provider projections.
+    expect(filterOldNews([{ ...recent, expiryAt: '',
+      expiresAt: new Date(now - H).toISOString() }])).toHaveLength(0);
+    expect(filterOldNews([{ ...recent, expiryAt: now + H,
+      expiresAt: now - H }])).toHaveLength(0);
   });
 });
