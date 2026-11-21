@@ -64,18 +64,27 @@ class _FeedText(HTMLParser):
 
 
 def publisher_preview(entry, title):
-    """A short direct-publisher RSS synopsis, not inferred article content."""
-    raw = entry.get("summary") or entry.get("description") or ""
-    if not isinstance(raw, str) or not raw:
-        return ""
-    parser = _FeedText()
-    parser.feed(raw)
-    text = " ".join(unescape("".join(parser.parts)).split())
-    if len(text) < 45 or text.casefold().strip(" .") == title.casefold().strip(" ."):
-        return ""
-    if len(text) > MAX_PREVIEW_CHARS:
-        text = text[:MAX_PREVIEW_CHARS + 1].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
-    return text
+    """Use only visible text carried by a direct publisher RSS item.
+
+    Some feeds put their synopsis in content:encoded rather than description.
+    Never fall back to third-party discovery snippets or infer text from a title.
+    """
+    candidates = [entry.get("summary"), entry.get("description")]
+    content = entry.get("content")
+    if isinstance(content, list):
+        candidates.extend(item.get("value") for item in content if isinstance(item, dict))
+    for raw in candidates:
+        if not isinstance(raw, str) or not raw:
+            continue
+        parser = _FeedText()
+        parser.feed(raw)
+        text = " ".join(unescape("".join(parser.parts)).split())
+        if len(text) < 45 or text.casefold().strip(" .") == title.casefold().strip(" ."):
+            continue
+        if len(text) > MAX_PREVIEW_CHARS:
+            text = text[:MAX_PREVIEW_CHARS + 1].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
+        return text
+    return ""
 
 
 def domain_matches(url, domain):
@@ -140,7 +149,7 @@ def acquire_feed(task, now_seconds):
 
 def build_publication(results, now_seconds):
     sources = {key: [] for key in SOURCES}
-    status = {key: {"feeds": [], "currentCount": 0} for key in SOURCES}
+    status = {key: {"feeds": [], "currentCount": 0, "previewCount": 0} for key in SOURCES}
     seen = {key: set() for key in SOURCES}
     for result in results:
         key = result["sourceId"]
@@ -156,6 +165,7 @@ def build_publication(results, now_seconds):
         if articles:
             sources[key].append({"page": result["page"], "articles": articles})
             status[key]["currentCount"] += len(articles)
+            status[key]["previewCount"] += sum(bool(row.get("preview")) for row in articles)
     if not any(row["currentCount"] for row in status.values()):
         raise ValueError("No verified current newspaper headlines; refusing empty/stale publication")
     return {"schemaVersion": 2, "lastUpdated": datetime.fromtimestamp(now_seconds, timezone.utc).isoformat(),
