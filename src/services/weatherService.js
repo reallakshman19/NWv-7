@@ -248,7 +248,7 @@ export async function fetchWeather(locationKey, { force = false } = {}) {
     } catch (error) {
         const cached = readCachedWeather(key, true);
         if (cached && hasHourlyForecast(cached)) {
-            return { ...cached, isStale: true };
+            return { ...cached, sourceMode: 'cache', isStale: true };
         }
 
         const snapshot = await fetchWeatherSnapshot(key);
@@ -257,7 +257,7 @@ export async function fetchWeather(locationKey, { force = false } = {}) {
         }
 
         if (cached) {
-            return { ...cached, isStale: true };
+            return { ...cached, sourceMode: 'cache', isStale: true };
         }
         logStore.error('weather', `${key}: ${error.message}`, { durationMs: Date.now() - _t0 });
         throw error;
@@ -343,7 +343,7 @@ function processMultiModelData(modelData, locationName) {
         .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
     const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
-    const getIcon = (code) => { if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
+    const getIcon = (code) => { if (code == null) return null; if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
     const conditionMap = {
         0: 'Clear',
         1: 'Mainly Clear',
@@ -375,7 +375,7 @@ function processMultiModelData(modelData, locationName) {
         99: 'Severe Thunderstorm with Hail'
     };
     const getCondition = (code) => {
-        const normalizedCode = Number.isFinite(Number(code)) ? Number(code) : null;
+        const normalizedCode = code != null && Number.isFinite(Number(code)) ? Number(code) : null;
         if (normalizedCode == null) return 'Forecast';
         return conditionMap[normalizedCode] || conditionMap[Math.round(normalizedCode)] || 'Forecast';
     };
@@ -499,9 +499,9 @@ function processMultiModelData(modelData, locationName) {
     const currentHumidity = weightedAverageMetric(currentData, 'relative_humidity_2m', { round: true });
     const currentWindSpeed = weightedAverageMetric(currentData, 'wind_speed_10m', { round: true });
     const currentWindDirection = weightedAverageMetric(currentData, 'wind_direction_10m', { round: true });
-    const maxPrecipProb = weightedDailyMetric(modelData, 'precipitation_probability_max', 0, { round: true }) ?? 0;
-    const totalPrecipValue = weightedDailyMetric(modelData, 'precipitation_sum', 0, { digits: 1 }) ?? 0;
-    const totalPrecip = totalPrecipValue.toFixed(1);
+    const maxPrecipProb = weightedDailyMetric(modelData, 'precipitation_probability_max', 0, { round: true });
+    const totalPrecipValue = weightedDailyMetric(modelData, 'precipitation_sum', 0, { digits: 1 });
+    const totalPrecip = totalPrecipValue == null ? '—' : totalPrecipValue.toFixed(1);
     const maxUV = weightedDailyMetric(modelData, 'uv_index_max', 0, { round: true });
     const successfulModels = getSuccessfulModels(modelData);
 
@@ -592,9 +592,9 @@ function processMultiModelData(modelData, locationName) {
             forecastTotalMm: totalPrecipValue,
             probabilitySemantics: 'daily_max_hourly_probability_consensus',
         },
-        summary: parseFloat(totalPrecip) > 0
+        summary: totalPrecipValue != null && totalPrecipValue > 0
             ? `Peak rain chance today ${maxPrecipProb}% · Forecast total ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
-            : `Stable · UV ${maxUV ?? 'N/A'}`
+            : `Rain forecast ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
     };
 }
 

@@ -11,7 +11,7 @@ export default function WeatherCityStrip({ cities = [], weatherData = {}, active
       return <button key={city} type="button" className={'qw-city-row' + (activeCity === city ? ' qw-city-row--active' : '') + (missing ? ' qw-city-row--missing' : '')} aria-current={activeCity === city ? 'true' : undefined} onClick={() => onSelect?.(city)}>
         <span className="wcs-name">{getWeatherLocationLabel(city)}</span>
         <span className="wcs-reading"><WeatherIcon id={current?.iconId || 'day_cloudy'} size={24}/><strong>{missing ? '—' : current.temp + '°'}</strong></span>
-        <span className="wcs-foot">{missing ? 'No forecast' : Number.isInteger(count) ? count + '/3 models' : 'Source unverified'}</span>
+        <span className="wcs-foot">{missing ? 'No forecast' : Number.isInteger(count) ? count + '/3 model feeds' : 'Source unverified'}</span>
       </button>;
     })}
   </nav>;

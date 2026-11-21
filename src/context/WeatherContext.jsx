@@ -12,7 +12,8 @@ function delay(ms) {
 }
 
 function hasUsableWeatherCity(cityData) {
-    return Boolean(cityData && cityData.current && Number.isFinite(Number(cityData.current.temp)));
+    return Boolean(cityData?.current?.temp != null && Number.isFinite(Number(cityData.current.temp)));
+
 }
 
 export function WeatherProvider({ children, lazy = false }) {
@@ -21,11 +22,12 @@ export function WeatherProvider({ children, lazy = false }) {
         try { return resolveRegistryKey(localStorage.getItem('weather_active_city')) || null; } catch { return null; }
     });
     const selectedCities = getConfiguredWeatherCities(settings);
+    const selectedCitiesKey = selectedCities.join('|');
     const activeCity = selectedCities.includes(requestedCity) ? requestedCity : selectedCities[0];
     const setActiveCity = useCallback(city => {
         const canonical = resolveRegistryKey(city);
         if (canonical && selectedCities.includes(canonical)) setRequestedCity(canonical);
-    }, [selectedCities.join('|')]);
+    }, [selectedCitiesKey]);
     useEffect(() => {
         try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
     }, [activeCity]);
@@ -44,21 +46,17 @@ export function WeatherProvider({ children, lazy = false }) {
 
     const loadWeather = useCallback(async (force = false) => {
         if (!booted) return;
-        const generation = ++requestGeneration.current;
-
         const settings = getSettings();
-        const freshnessLimitMs = (settings?.weatherFreshnessLimit || 4) * 60 * 60 * 1000;
 
         if (!force && weatherData) {
             const age = Date.now() - lastFetch;
             if (age < 15 * 60 * 1000) {
                 return;
             }
-            if (settings?.strictFreshness && age > freshnessLimitMs) {
-                setWeatherData(null);
-            }
+            // Keep previous visible data while a new request is in flight.
         }
 
+        const generation = ++requestGeneration.current;
         setLoading(true);
 
         if (settings?.sections?.weather === false) {

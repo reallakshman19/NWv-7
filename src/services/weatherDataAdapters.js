@@ -8,6 +8,7 @@ function asArray(value) {
 }
 
 function asNumber(value, fallback = null) {
+  if (value == null || value === '' || typeof value === 'boolean') return fallback;
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
