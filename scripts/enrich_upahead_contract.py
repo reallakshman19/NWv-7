@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import time
 from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from prefetch_common import compute_content_hash, title_fingerprint
@@ -79,11 +80,65 @@ def content_class_for_item(item: dict[str, Any]) -> str:
     return "upahead_event"
 
 
+def _venue_day_offset_ms(item: dict[str, Any]) -> int:
+    aliases = {
+        "madras": "chennai", "tiruchirappalli": "trichy",
+        "tiruchirapalli": "trichy", "seeb": "muscat", "al seeb": "muscat",
+        "ghubrah": "muscat", "al ghubrah": "muscat",
+        "mawaleh": "muscat",
+    }
+    regions = {"in", "india", "tn", "tamil nadu", "om", "oman", "global", "online", "national", "worldwide"}
+    for candidate in (item.get("city"), item.get("locationCanonical"), item.get("region")):
+        key = str(candidate or "").strip().lower()
+        key = aliases.get(key, key)
+        if key and key not in regions:
+            return {"chennai": 330, "trichy": 330, "muscat": 240}.get(key, 0) * 60_000
+    return 0
+
+
+def _calendar_boundary_ms(key: str, item: dict[str, Any], *, next_day: bool = False) -> int | None:
+    try:
+        day = date.fromisoformat(key)
+        if day.isoformat() != key:
+            return None
+    except (ValueError, TypeError):
+        return None
+    midnight_utc = datetime.combine(day + timedelta(days=int(next_day)),
+                                    datetime.min.time(), tzinfo=timezone.utc)
+    return int(midnight_utc.timestamp() * 1000) - _venue_day_offset_ms(item)
+
+
+def _event_deadline_clock(value: Any, item: dict[str, Any], *, end: bool = False) -> int | None:
+    raw = _ms(value)
+    if raw is None or item.get("datePrecision") not in ("day", "range"):
+        return raw
+    if raw % DAY_MS:
+        return raw
+    key = datetime.fromtimestamp(raw / 1000, tz=timezone.utc).date().isoformat()
+    if end and key == item.get("eventDateEndKey"):
+        return _calendar_boundary_ms(key, item, next_day=True)
+    if not end and key == item.get("eventDateKey"):
+        return _calendar_boundary_ms(key, item)
+    return raw
+
+
 def _display_until_for_item(item: dict[str, Any], now_ms: int) -> tuple[int, str]:
     category = str(item.get("category") or "").lower()
-    expiry_at = _ms(item.get("expiryAt"))
-    event_end = _ms(item.get("eventEndAt"))
-    event_start = _ms(item.get("eventStartAt"))
+    raw_expiry = _ms(item.get("expiryAt"))
+    raw_end = _ms(item.get("eventEndAt"))
+    # Match browser's inclusive date-only end sentinel semantics exactly.
+    event_end = _event_deadline_clock(raw_end, item, end=True)
+    event_start = _event_deadline_clock(item.get("eventStartAt"), item)
+    expiry_at = (event_end if raw_end and raw_expiry == raw_end and
+                 item.get("datePrecision") in ("day", "range") and
+                 event_end != raw_end else raw_expiry)
+    if event_end is None:
+        key = item.get("eventDateEndExclusiveKey")
+        end_key = item.get("eventDateEndKey")
+        if isinstance(key, str):
+            event_end = _calendar_boundary_ms(key, item)
+        elif isinstance(end_key, str):
+            event_end = _calendar_boundary_ms(end_key, item, next_day=True)
     published = next((_ms(item.get(key)) for key in
                       ('publishedAt', 'firstSeenAt', 'observedAt') if _ms(item.get(key))), None)
 
