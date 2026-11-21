@@ -109,7 +109,7 @@ export function useNewspaperPageViewModel() {
   const [isTranslated, setIsTranslated] = useState(false);
   const [dynamicSummaries, setDynamicSummaries] = useState({});
   const [dynamicTitles, setDynamicTitles] = useState({});
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const isGeneratingSummary = false;
   const [isTranslatingTitles, setIsTranslatingTitles] = useState(false);
   const [digestMode, setDigestMode] = useState(false);
   const [previewLines, setPreviewLinesState] = useState(() => {
