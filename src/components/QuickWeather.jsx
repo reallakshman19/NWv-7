@@ -246,6 +246,7 @@ const QuickWeather = () => {
     useEffect(() => {
         const configured = normalizeCity(settings?.weather?.activeCity);
         if (configured && cities.includes(configured) && configured !== activeCity) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveCity(configured);
         }
     }, [settings?.weather?.activeCity, cities, activeCity]);
