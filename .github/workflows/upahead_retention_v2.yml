@@ -45,9 +45,11 @@ jobs:
         run: |
           python - <<'PY'
           import json
+          import sys
           from pathlib import Path
-          from scripts.enrich_upahead_contract import enrich_snapshot
-          from scripts.validate_upahead_prefetch_output import validate_snapshot
+          sys.path.insert(0, "scripts")
+          from enrich_upahead_contract import enrich_snapshot
+          from validate_upahead_prefetch_output import validate_snapshot
           snapshot = json.loads(Path("public/data/up_ahead.json").read_text(encoding="utf-8"))
           source_clock = int(snapshot["fetchedAt"])
           candidate = enrich_snapshot(snapshot, source_clock + 10 * 60_000)
