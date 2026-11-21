@@ -22,6 +22,16 @@ function fresh(value, now) {
   return timestamp > 0 && timestamp <= now + 5 * 60 * 1000 && now - timestamp <= NEWSPAPER_MAX_AGE_MS;
 }
 
+export function normalizePublisherPreview(article) {
+  // Preview text must come from the verified direct publisher feed, not
+  // Google discovery snippets, a headline, or a previous edition.
+  if (article?.acquiredVia !== 'publisher-rss'
+    || article?.previewMethod !== 'publisher-rss-excerpt'
+    || typeof article?.preview !== 'string') return '';
+  const text = article.preview.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.length >= 45 && text.length <= 241 ? text : '';
+}
+
 function host(url) {
   try { const parsed = new URL(url); return /^https?:$/.test(parsed.protocol) ? parsed.hostname.toLowerCase().replace(/^www\./, '') : ''; } catch { return ''; }
 }
@@ -61,11 +71,16 @@ export function normalizeNewspaperEdition(payload, now = Date.now()) {
           || !isPublisherArticle(article, sourceId) || seenLinks.has(link) || seenTitles.has(key)) continue;
         seenLinks.add(link);
         seenTitles.add(key);
-        articles.push({ ...article, link, publishedAt: newspaperTimestamp(article.publishedAt || article.pubDate || article.date), source: meta.label });
+        const preview = host(link) === meta.domain || host(link).endsWith(`.${meta.domain}`)
+          ? normalizePublisherPreview(article) : '';
+        const { preview: _unverifiedPreview, previewMethod: _unverifiedMethod, ...safeArticle } = article;
+        articles.push({ ...safeArticle, link,
+          publishedAt: newspaperTimestamp(article.publishedAt || article.pubDate || article.date),
+          source: meta.label,
+          ...(preview ? { preview, previewMethod: 'publisher-rss-excerpt' } : {}) });
       }
       if (!articles.length) return [];
-      return [{ page: section.page || 'Latest headlines', articles,
-        summary: articles.map(article => `• ${article.title}`).join('\n'), summary_method: 'headlines' }];
+      return [{ page: section.page || 'Latest headlines', articles }];
     });
     const count = sources[sourceId].reduce((total, section) => total + section.articles.length, 0);
     sourceStatus[sourceId] = { count, status: count ? 'current' : 'unavailable',
