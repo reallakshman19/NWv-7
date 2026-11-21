@@ -90,7 +90,9 @@ def validate(raw: bytes, now_ms: int) -> dict:
     if type(generation) is not int or generation < 1:
         raise MirrorRejected("invalid_pointer_generation")
     committed = as_ms(preview.get("committedAt"))
-    if not committed or committed > now_ms + FUTURE_SKEW_MS or committed > fetched + FUTURE_SKEW_MS:
+    if (not committed or committed > now_ms + FUTURE_SKEW_MS
+        or now_ms - committed > MAX_SNAPSHOT_AGE_MS
+        or committed > fetched + FUTURE_SKEW_MS):
         raise MirrorRejected("invalid_commit_clock")
     sections = snapshot.get("sections")
     if not isinstance(sections, dict):
