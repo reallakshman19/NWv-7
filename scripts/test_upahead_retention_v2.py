@@ -68,6 +68,38 @@ def test_far_future_event_survives_pending_and_enters_seven_day_horizon():
     assert not expired["items"]
 
 
+def test_first_visible_clock_caps_real_display_to_seven_days():
+    long_event = item("long-running", eventStartAt=NOW + 6 * DAY_MS,
+                      eventEndAt=NOW + 20 * DAY_MS, expiryAt=NOW + 20 * DAY_MS)
+    first = merge_upahead_snapshot({}, [long_event], NOW, fetched=True)
+    displayed = first["items"][0]
+    assert displayed["firstVisibleAt"] == NOW
+    assert displayed["lifecycle"]["displayUntil"] == NOW + 7 * DAY_MS
+    expired = merge_upahead_snapshot(first, [], NOW + 8 * DAY_MS, fetched=False)
+    assert not expired["items"]
+
+    # Only a real revised publisher occurrence renews the stale-source ceiling.
+    observed_again = {**long_event, "observedAt": NOW + 5 * DAY_MS}
+    renewed = merge_upahead_snapshot(first, [observed_again], NOW + 5 * DAY_MS, fetched=True)
+    assert renewed["items"][0]["firstVisibleAt"] == NOW
+    assert renewed["items"][0]["lifecycle"]["displayUntil"] == NOW + 12 * DAY_MS
+    assert merge_upahead_snapshot(renewed, [], NOW + 8 * DAY_MS, fetched=False)["items"]
+
+
+def test_rescheduled_future_occurrence_resets_active_clock():
+    old = item("reschedule", occurrenceId="same", eventStartAt=NOW + DAY_MS)
+    first = merge_upahead_snapshot({}, [old], NOW, fetched=True)
+    assert first["items"][0]["firstVisibleAt"] == NOW
+    revision = {**old, "observedAt": NOW + H_MS, "eventStartAt": NOW + 30 * DAY_MS,
+                "eventEndAt": NOW + 31 * DAY_MS, "expiryAt": NOW + 31 * DAY_MS}
+    moved = merge_upahead_snapshot(first, [revision], NOW + H_MS, fetched=True)
+    assert not moved["items"]
+    assert len(moved["pendingItems"]) == 1
+    assert not moved["pendingItems"][0].get("firstVisibleAt")
+    entered = merge_upahead_snapshot(moved, [], NOW + 24 * DAY_MS, fetched=False)
+    assert entered["items"][0]["firstVisibleAt"] == NOW + 24 * DAY_MS
+
+
 def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     rows = [item(f"event-{i}") for i in range(MAX_ACTIVE_ITEMS + 25)]
     rows += [item(f"alert-{i}", category="weather_alerts") for i in range(10)]
