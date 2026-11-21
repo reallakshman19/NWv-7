@@ -83,7 +83,7 @@ export function buzzRetentionUrl() {
   // Consume only the reviewed Pages release, not an unpinned main-branch blob.
   // The rolling publication workflow alone does not authorize a Pages deploy.
   const base = import.meta.env.BASE_URL || '/';
-  return `${base.replace(/\\/$/, '')}/newsdata/buzz_retained_latest.json`;
+  return `${base.endsWith('/') ? base.slice(0, -1) : base}/newsdata/buzz_retained_latest.json`;
 }
 
 export async function loadBuzzRetainedSnapshot({ now = Date.now(), timeoutMs = 1800,
