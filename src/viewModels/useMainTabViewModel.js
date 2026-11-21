@@ -346,7 +346,7 @@ function getFirstNewsError(newsErrors) {
   return null;
 }
 
-export function useMainTabViewModel({ isWebView = false } = {}) {
+export function useMainTabViewModel({ isWebView = false, activeWeatherCity = null } = {}) {
   const { settings, updateSettings } = useSettings();
   const { currentSegment } = useSegment();
 
@@ -399,8 +399,8 @@ export function useMainTabViewModel({ isWebView = false } = {}) {
   ), [datasetEnvelope]);
 
   const travelLocationProfile = useMemo(
-    () => getTravelLocationProfile(safeSettings),
-    [safeSettings]
+    () => getTravelLocationProfile(safeSettings, { activeWeatherCity }),
+    [safeSettings, activeWeatherCity]
   );
 
   useEffect(() => {
