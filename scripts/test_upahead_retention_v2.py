@@ -2,10 +2,11 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from enrich_upahead_contract import (
     DAY_MS, H_MS, MAX_ACTIVE_BYTES, MAX_ACTIVE_ITEMS, RETENTION_POLICY,
-    bound_active_items, enrich_snapshot, lifecycle_for_item, merge_upahead_snapshot,
+    active_published_bytes, bound_active_items, enrich_snapshot, lifecycle_for_item, merge_upahead_snapshot,
 )
 from validate_upahead_prefetch_output import validate_snapshot
 
@@ -33,6 +34,23 @@ def item(identifier="event", **overrides):
 def snapshot(rows):
     return enrich_snapshot({"schemaVersion": 1, "fetchedAt": NOW,
                             "contentHash": "fixture", "items": rows}, NOW)
+
+
+def test_inclusive_day_end_is_local_end_of_day_not_utc_start_of_day():
+    def ms(iso):
+        return int(datetime.fromisoformat(iso.replace("Z", "+00:00")).timestamp() * 1000)
+
+    day_start = ms("2026-11-24T00:00:00Z")
+    for city, deadline in [
+        ("Chennai", ms("2026-11-24T18:30:00Z")),
+        ("Muscat", ms("2026-11-24T20:00:00Z")),
+    ]:
+        row = item("calendar-" + city, city=city, datePrecision="day",
+                   eventDateKey="2026-11-24", eventDateEndKey="2026-11-24",
+                   eventStartAt=day_start, eventEndAt=day_start, expiryAt=day_start)
+        assert lifecycle_for_item(row, ms("2026-11-24T12:00:00Z"))["displayUntil"] == deadline
+        assert lifecycle_for_item(row, ms("2026-11-24T12:00:00Z"))["isVisible"]
+        assert not lifecycle_for_item(row, deadline)["isVisible"]
 
 
 def test_default_alert_36h_and_offer_48h():
@@ -108,6 +126,7 @@ def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     assert len({r["id"] for r in enriched["items"]}) == MAX_ACTIVE_ITEMS
     assert all(any(s["id"] == f"alert-{i}" for s in enriched["items"]) for i in range(10))
     r = enriched["retention"]
+    assert r["activeBytes"] == active_published_bytes(enriched["items"])
     assert r["activeBytes"] <= MAX_ACTIVE_BYTES
     assert r["rejectedActiveCount"] == 35
     assert r["rejectedSafetyAlertCount"] == 0
