@@ -3,6 +3,7 @@ import { __techSocialPageViewModelInternalsForTest } from './useTechSocialPageVi
 
 const {
   mergeBuzzDisplayData,
+  combineBuzzSectionItems,
   projectBuzzDatasetToNewsData,
   projectTechnologyStories,
   projectAiInnovationStories,
@@ -11,17 +12,23 @@ const {
 } = __techSocialPageViewModelInternalsForTest;
 
 describe('Buzz Hub retained display continuity', () => {
-  it('does not let a populated NewsContext hide eligible rolling Entertainment stories', () => {
-    const result = mergeBuzzDisplayData({
-      entertainment: [{ id: 'fresh', title: 'Fresh', publishedAt: Date.now() }],
-    }, {
-      entertainment: [{ id: 'rolling', title: 'Vijay Tamil film', publishedAt: Date.now() - 80 * 3600000,
+  it('does not let nonempty live NewsContext hide eligible rolling Entertainment', () => {
+    const current = Date.now();
+    const merged = combineBuzzSectionItems(
+      [{ id: 'fresh', title: 'Fresh', publishedAt: current }],
+      [],
+      [{ id: 'rolling', title: 'Vijay Tamil film', publishedAt: current - 80 * 3600000,
         _buzzRetained: true, buzzSection: 'entertainment',
-        retention: { displayUntil: Date.now() + 6 * 3600000 } }],
-    });
-    // Explicit mergeBuzzDisplayData preserves its legacy simple fallback
-    // contract; the page's displayData combiner handles the rolling overlay.
-    expect(result.entertainment).toHaveLength(1);
+        retention: { displayUntil: current + 6 * 3600000 } }],
+    );
+    expect(merged.map(item => item.id)).toEqual(['rolling', 'fresh']);
+    const same = combineBuzzSectionItems(
+      [{ id: 'rolling', title: 'Unverified copy', publishedAt: current }],
+      [],
+      merged,
+    );
+    expect(same).toHaveLength(2);
+    expect(same[0]._buzzRetained).toBe(true);
   });
 
   it('retains publisher-dated extended stories until display expiry', () => {
