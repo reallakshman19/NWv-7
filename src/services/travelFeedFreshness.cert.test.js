@@ -110,6 +110,12 @@ describe('Travel Local news freshness, retention and source custody', () => {
   it('fetches GitHub Pages relative city data and filters expired stories', async () => {
     const current = Date.now();
     const payload = {
+      schemaVersion: 2,
+      sourceMode: 'github-rss-prefetch',
+      sourceAuthority: 'Google News RSS, publisher identified per story',
+      retentionHours: 36,
+      successfulQueries: 5,
+      storyCount: 3,
       locationKey: 'muscat',
       generatedAt: new Date(current).toISOString(),
       stories: [
@@ -130,6 +136,12 @@ describe('Travel Local news freshness, retention and source custody', () => {
     const spy = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
+        schemaVersion: 2,
+        sourceMode: 'github-rss-prefetch',
+        sourceAuthority: 'Google News RSS, publisher identified per story',
+        retentionHours: 36,
+        successfulQueries: 5,
+        storyCount: 1,
         locationKey: 'chennai',
         generatedAt: new Date().toISOString(),
         stories: [{ title: 'Chennai city roadwork', publishedAt: new Date().toISOString() }],

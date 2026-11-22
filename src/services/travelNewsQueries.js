@@ -28,9 +28,11 @@ export function buildTravelNewsQueries(profileInput = null) {
   const city = profile.display;
   const country = profile.countryLabel;
 
+  const cityAliases = profile.key === 'trichy' ? ['Tiruchi', 'Tiruchirappalli'] : [];
   const baseQueries = [
     `${city} news`,
     `${city} local news`,
+    ...cityAliases.map(alias => `${alias} news`),
     `${country} breaking news`,
     `${city} travel advisory`,
     `${city} airport`,

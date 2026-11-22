@@ -9,6 +9,7 @@ import { buildTravelNewsQueries } from '../src/services/travelNewsQueries.js';
 import { getTravelLocationProfile, TRAVEL_LOCATION_REGISTRY } from '../src/services/travelLocationProfile.js';
 import { hasCityEvidence } from '../src/services/storyLocationPriority.js';
 import { parseTravelRssItems } from '../src/services/travelRssParser.js';
+import { reconcileTravelFeed } from '../src/services/travelFeedRetention.js';
 import {
   TRAVEL_NEWS_RETENTION_HOURS,
   TRAVEL_NEWS_MAX_ITEMS,
@@ -22,10 +23,11 @@ if (!TRAVEL_LOCATION_REGISTRY[locationKey]) {
 }
 const profile = getTravelLocationProfile({ travelLocation: { city: locationKey } });
 const now = Date.now();
-const cityName = profile.display.toLowerCase();
+const cityNames = [profile.display, ...(profile.cityKeywords || [])]
+  .map(value => String(value).toLowerCase()).filter(Boolean);
 // Use only city-scoped RSS searches. Country-wide headlines are NOT city evidence.
 const queries = buildTravelNewsQueries(profile)
-  .filter(query => query.query.toLowerCase().includes(cityName))
+  .filter(query => cityNames.some(name => query.query.toLowerCase().includes(name)))
   .slice(0, 5);
 
 async function fetchWithRetry(url, attempts = 2) {
@@ -89,8 +91,21 @@ if (successfulQueries === 0) {
   throw new Error('No valid RSS response for ' + profile.key + '; retaining last published payload');
 }
 
-stories.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
-const current = stories.slice(0, TRAVEL_NEWS_MAX_ITEMS);
+const dir = path.join(process.cwd(), 'public', 'data');
+fs.mkdirSync(dir, { recursive: true });
+const output = path.join(dir, 'travel-local-' + profile.key + '.json');
+let previous = null;
+if (fs.existsSync(output)) {
+  try {
+    previous = JSON.parse(fs.readFileSync(output, 'utf8'));
+  } catch (error) {
+    console.warn('[travel-news] previous city receipt invalid; carry-forward disabled:', error.message);
+  }
+}
+const reconciled = reconcileTravelFeed({
+  previous, fetched: stories, profile, now, maxItems: TRAVEL_NEWS_MAX_ITEMS,
+});
+const current = reconciled.stories;
 const payload = {
   schemaVersion: 2,
   type: 'travel-location-news-payload',
@@ -109,11 +124,13 @@ const payload = {
   rejectedUndatedOrExpired,
   rejectedWrongCity,
   storyCount: current.length,
+  retainedFromPrevious: reconciled.retainedFromPrevious,
+  newlyObserved: reconciled.newlyObserved,
+  duplicatesRemoved: reconciled.duplicatesRemoved,
+  capEvictions: reconciled.capEvictions,
+  capPolicy: 'newest-30-eligible-distinct-stories',
   stories: current,
 };
-const dir = path.join(process.cwd(), 'public', 'data');
-fs.mkdirSync(dir, { recursive: true });
-const output = path.join(dir, 'travel-local-' + profile.key + '.json');
 fs.writeFileSync(output, JSON.stringify(payload, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({
   status: 'PASS',
@@ -122,6 +139,9 @@ console.log(JSON.stringify({
   queryCount: queries.length,
   successfulQueries,
   storyCount: current.length,
+  retainedFromPrevious: reconciled.retainedFromPrevious,
+  duplicatesRemoved: reconciled.duplicatesRemoved,
+  capEvictions: reconciled.capEvictions,
   rejectedUndatedOrExpired,
   rejectedWrongCity,
   fetchErrors,

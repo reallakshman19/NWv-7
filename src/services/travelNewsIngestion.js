@@ -6,7 +6,8 @@ import {
   rankStoriesForLocation,
   scoreStoryForLocation,
 } from './storyLocationPriority.js';
-import { filterFreshTravelStories, isFreshTravelPayload } from './travelNewsFreshness.js';
+import { filterFreshTravelStories, isFreshTravelPayload, TRAVEL_NEWS_RETENTION_HOURS } from './travelNewsFreshness.js';
+import { dedupeTravelStories } from './travelStoryIdentity.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -67,7 +68,7 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
   }
 
   return {
-    schemaVersion: 1,
+    schemaVersion: payload.schemaVersion || 1,
     type: 'travel-location-news-payload',
     locationKey: profile.key,
     display: profile.display,
@@ -75,6 +76,20 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
     countryLabel: profile.countryLabel,
     generatedAt: payload.generatedAt || payload.updatedAt || null,
     sourceMode: payload.sourceMode || 'runtime-json',
+    sourceAuthority: payload.sourceAuthority || null,
+    retentionHours: payload.retentionHours ?? null,
+    retentionCutoffAt: payload.retentionCutoffAt || null,
+    queryCount: payload.queryCount ?? null,
+    successfulQueries: payload.successfulQueries ?? null,
+    fetchErrors: Array.isArray(payload.fetchErrors) ? payload.fetchErrors : [],
+    storyCount: payload.storyCount ?? stories.length,
+    retainedFromPrevious: payload.retainedFromPrevious ?? 0,
+    newlyObserved: payload.newlyObserved ?? 0,
+    duplicatesRemoved: payload.duplicatesRemoved ?? 0,
+    capEvictions: payload.capEvictions ?? 0,
+    rejectedUndatedOrExpired: payload.rejectedUndatedOrExpired ?? 0,
+    rejectedWrongCity: payload.rejectedWrongCity ?? 0,
+    capPolicy: payload.capPolicy || null,
     stories,
   };
 }
@@ -91,14 +106,7 @@ export function mergeTravelNewsIntoNewsData(newsData = {}, payload = {}, profile
   const existingTravel = asArray(newsData.travelLocal);
   const merged = [...normalizedPayload.stories, ...existingTravel];
 
-  const seen = new Set();
-  const deduped = merged.filter(story => {
-    const key = normalizeStoryId(story);
-    if (!key) return true;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const deduped = dedupeTravelStories(merged);
 
   const rankedTravel = rankStoriesForLocation({
     travelLocal: deduped,
@@ -138,7 +146,14 @@ export async function fetchTravelNewsPayload({ basePath = './data', profile, sig
       if (!response.ok) continue;
 
       const payload = await response.json();
-      if (payload?.locationKey !== resolvedProfile.key || !isFreshTravelPayload(payload)) {
+      if (payload?.locationKey !== resolvedProfile.key ||
+          payload?.schemaVersion !== 2 ||
+          payload?.sourceMode !== 'github-rss-prefetch' ||
+          payload?.sourceAuthority !== 'Google News RSS, publisher identified per story' ||
+          payload?.retentionHours !== TRAVEL_NEWS_RETENTION_HOURS ||
+          !Number.isInteger(payload?.successfulQueries) || payload.successfulQueries < 1 ||
+          !Array.isArray(payload?.stories) || payload?.storyCount !== payload.stories.length ||
+          !isFreshTravelPayload(payload)) {
         staleOrWrongPayload = true;
         continue;
       }

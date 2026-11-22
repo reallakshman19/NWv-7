@@ -11,6 +11,10 @@ on:
       - 'src/services/storyLocationPriority.js'
       - 'src/services/travelNewsFreshness.js'
       - 'src/services/travelNewsQueries.js'
+      - 'src/services/travelFeedRetention.js'
+      - 'src/services/travelStoryIdentity.js'
+      - 'src/services/travelEventGeography.js'
+      - 'src/services/travelLocationProfile.js'
   schedule:
     - cron: '13 */3 * * *'
   workflow_dispatch:
@@ -62,7 +66,13 @@ jobs:
           npx vitest run --config vitest.config.js \
             src/services/travelFeedFreshness.cert.test.js \
             src/services/travelNewsIngestion.cert.test.js \
-            src/services/travelNewsWorkflow.cert.test.js
+            src/services/travelNewsWorkflow.cert.test.js \
+            src/services/travelIRFix.cert.test.js
+
+      - name: Refresh legacy docs/data shadow from validated canonical feeds
+        run: |
+          mkdir -p docs/data
+          cp public/data/travel-local-*.json docs/data/
 
       - name: Publish current city snapshots to main
         shell: bash
@@ -70,7 +80,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/travel-local-*.json public/data/travel-source-policy*.json
+          git add public/data/travel-local-*.json public/data/travel-source-policy*.json docs/data/travel-local-*.json
           if git diff --cached --quiet; then
             echo "No travel-local changes to publish"
             exit 0
