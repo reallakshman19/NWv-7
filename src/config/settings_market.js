@@ -96,9 +96,16 @@ export function normalizeMarketSettings(source = {}) {
         settings[key] = typeof raw[key] === 'boolean' ? raw[key] : DEFAULT_MARKET_SETTINGS[key];
     }
     const custom = Array.isArray(raw.tradingHolidays) ? raw.tradingHolidays : DEFAULT_MARKET_SETTINGS.tradingHolidays;
-    settings.tradingHolidays = [...new Set(custom.filter(validCalendarDate))].slice(0, 512);
-    settings.tradingHolidayYears = Array.isArray(raw.tradingHolidayYears)
-        ? [...new Set(raw.tradingHolidayYears.filter(year => Number.isInteger(year) && year >= 2020 && year <= 2100))]
+    // Older persisted settings may contain only six 2026 entries. Official NSE
+    // closures are authoritative, and custom user days may augment but not
+    // silently override the verified capital-market calendar.
+    settings.tradingHolidays = [...new Set([
+        ...MARKET_TRADING_HOLIDAY_CALENDAR[2026],
+        ...custom.filter(validCalendarDate)
+    ])].slice(0, 512);
+    const customYears = Array.isArray(raw.tradingHolidayYears)
+        ? raw.tradingHolidayYears.filter(year => Number.isInteger(year) && year >= 2020 && year <= 2100)
         : DEFAULT_MARKET_SETTINGS.tradingHolidayYears;
+    settings.tradingHolidayYears = [...new Set([2026, ...customYears])].sort((a, b) => a - b);
     return settings;
 }
