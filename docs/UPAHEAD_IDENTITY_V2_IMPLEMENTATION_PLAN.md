@@ -95,3 +95,15 @@ Run the existing UpAhead retention / JS / browser suites at the exact PR head be
 - **PR-B/C:** implement publisher immutable publication manifest and ledger, then Workers edge validation/error semantics with paired failing-negative tests.
 - **PR-D:** integrate frontend generation-aware provider policy and Planner state migrations.
 - **PR-E:** real Pages↔Worker↔browser parity, health diagnostics, rollback and live activation evidence. Deployment of Cloudflare account resources requires separate explicit approval.
+
+### P-CF implementation slice 1 — opt-in Worker generation probe (committed, not activated)
+
+**Code:** `cloudflare/upahead-dataset-api/src/edgeV2Probe.js` and `index.js` expose `GET /api/datasets/upAhead/v2/verify` **only** when `UP_AHEAD_V2_SHADOW_ENABLED=true`. Existing `GET /api/datasets/upAhead` remains the unchanged v1 serving path. This endpoint returns metadata/status, not the v2 dataset itself; no frontend provider switches to v2. Endpoint returns 404 when disabled.
+
+When explicitly configured, the probe reads two operator-configured same-origin HTTPS URLs (`UP_AHEAD_V2_SHADOW_MANIFEST_URL`, `UP_AHEAD_V2_SHADOW_PAYLOAD_URL`) with bounded timeout (`UP_AHEAD_V2_SHADOW_TIMEOUT_MS`, default 3.5 s, hard ceiling 10 s), max payload 8 MB and max manifest 64 KB. The manifest cannot override or supply the upstream URLs. `identityV2Shadow.verifyGeneration` checks generation ID, source commit format, semantic SHA-256, canonical uniqueness, aliases, retired/cancelled membership, expiry and counts. Response: 200 for VALID including verified-empty, 422 for INVALID, 503 for NOT_CONFIGURED/UPSTREAM_UNAVAILABLE/STALE_VALID. The body contains bounded receipt metadata and no source URLs or raw observations.
+
+**Executed locally:** `node --test cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs` — **16/16 PASS** against the actual Worker module (synthetic manifests, fixtures and mock fetch; no live Worker). The existing edge test orchestrator now includes this new test alongside the original 13 generation checker tests. Exact-head GitHub CI, live Cloudflare activation and browser parity remain separate gates.
+
+**CRITICAL LIMITS:** Two mutually consistent artifacts can still be attacker-provided; a SHA-256 pairing is *not* evidence of publisher authority, authentic organizer identity or an accepted ledger. A real publisher-issued and custody-verified immutable generation, atomic pointer, independent signature/source allowlist policy, Cloudflare operational activation, and frontend generation-aware selection are required **before ever enabling v2 serving**. No KV/R2/D1 resources are created in this slice. Do not set the shadow enablement flag on production without operator approval and verified immutable fixture URLs.
+
+**Next required code slice:** publisher-side deterministic v2 generation emitter and manifest/custody validation, shadow generation comparison against real source snapshots, then browser generation/Planner migration. Keep the PR draft and fail closed on unresolved source identity.
