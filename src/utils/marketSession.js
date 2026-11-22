@@ -111,6 +111,10 @@ export function getMarketSessionState({
     const todayKey = buildIstDateKey(parts);
     const hasHolidayCalendarForYear = holidayYears.has(parts.year);
     const isHoliday = hasHolidayCalendarForYear && holidaySet.has(todayKey);
+    const isOfficialHoliday = Boolean(
+        NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY[parts.year] &&
+        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year]?.includes(todayKey)
+    );
 
     const timestamp = parseTimestamp(quoteAt);
     const ageMinutes = timestamp !== null && timestamp <= now.getTime()
@@ -157,7 +161,7 @@ export function getMarketSessionState({
             ...baseState,
             label: 'Closed (scheduled)',
             tone: 'muted',
-            reason: isWeekend ? 'Weekend' : verifiedHolidayYear
+            reason: isWeekend ? 'Weekend' : isOfficialHoliday && verifiedHolidayYear
                 ? 'NSE 2026 capital-market circular holiday' : 'Listed holiday (unverified)',
             isOpen: false,
         };
