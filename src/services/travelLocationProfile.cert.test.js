@@ -53,7 +53,7 @@ describe('Travel location profile certification', () => {
     expect(getTravelEditionOptions(profile)).toEqual({
       country: 'LK',
       lang: 'en',
-      timeRange: '30d',
+      timeRange: '2d',
     });
   });
 
