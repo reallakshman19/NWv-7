@@ -1,0 +1,11 @@
+.weather-source-status{position:relative;display:inline-flex;flex:0 0 auto;z-index:12}
+.wss-button{width:34px;height:34px;display:inline-grid;place-items:center;border:1px solid rgba(148,163,184,.24);border-radius:10px;background:rgba(148,163,184,.06);color:#94a3b8;cursor:pointer}
+.wss-button:hover,.wss-button:focus-visible{border-color:#94a3b8;background:rgba(148,163,184,.12)}
+.wss-button:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+.wss-button--healthy{color:#5eead4}.wss-button--limited,.wss-button--stale,.wss-button--snapshot{color:#fbbf24}
+.wss-button--cached,.wss-button--unknown{color:#cbd5e1}.wss-button--unavailable{color:#fca5a5}
+.wss-detail{position:absolute;right:0;top:calc(100% + 7px);width:min(300px,calc(100vw - 28px));padding:14px;border-radius:12px;border:1px solid #475569;background:#0f172a;box-shadow:0 14px 36px rgba(0,0,0,.42);color:#f1f5f9;font-size:.79rem;line-height:1.45;text-align:left}
+.wss-detail__top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wss-detail__top strong{font-size:.84rem}.wss-detail__top button{display:grid;place-items:center;width:28px;height:28px;border:0;color:#e2e8f0;background:transparent;cursor:pointer}
+.wss-detail p{margin:7px 0 0;color:#cbd5e1}.wss-detail small{display:block;margin-top:10px;color:#94a3b8}
+.weather-source-status--compact .wss-button{width:30px;height:30px;border-radius:9px}
