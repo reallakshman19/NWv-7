@@ -47,3 +47,37 @@ export function recordMarketSourceFailure(sourceId, error, requestedAt = Date.no
   return failure.ok ? recordMarketSourceReceipt(failure.receipt)
     : { ok: false, error: 'INVALID_FAILURE_RECEIPT' };
 }
+
+/**
+ * Record a validated dated historical observation or an undated search result.
+ * Undated search/list responses must never be called fresh market observations.
+ */
+export function recordMarketSourceObservation({
+  sourceId,
+  providerAsOf = null,
+  requestedAt = Date.now(),
+  sourceUrl = null,
+  state = 'HISTORICAL'
+} = {}) {
+  const source = getMarketSource(sourceId);
+  if (!source || !['HISTORICAL', 'UNVERIFIED', 'NO_RESULTS'].includes(state)) {
+    return { ok: false, error: 'INVALID_OBSERVATION_STATE' };
+  }
+  const dated = state === 'HISTORICAL';
+  const receipt = createSourceReceipt({
+    sourceId,
+    publisher: source.publisher,
+    accessMode: source.accessMode,
+    rights: source.rights,
+    state,
+    validity: state === 'UNVERIFIED' ? 'UNKNOWN' : 'VALID',
+    providerAsOf: dated ? providerAsOf : null,
+    providerClockGranularity: 'day',
+    requestedAt: new Date(requestedAt).toISOString(),
+    checkedAt: new Date().toISOString(),
+    transportStatus: 200,
+    originalUrl: sourceUrl || source.url
+  });
+  return receipt.ok ? recordMarketSourceReceipt(receipt.receipt)
+    : { ok: false, error: receipt.errors.join(', ') };
+}
