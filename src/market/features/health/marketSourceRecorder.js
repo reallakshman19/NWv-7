@@ -21,6 +21,7 @@ export function recordMarketSourceReceipt(receipt) {
 export function recordMarketSourceFailure(sourceId, error, requestedAt = Date.now()) {
   // User cancellation is not a provider health failure.
   if (error?.name === 'AbortError') return { ok: false, skipped: 'ABORTED' };
+  if (error?.isLocalCooldown) return { ok: false, skipped: 'LOCAL_COOLDOWN' };
   const source = getMarketSource(sourceId);
   if (!source) return { ok: false, error: 'UNKNOWN_SOURCE' };
 
