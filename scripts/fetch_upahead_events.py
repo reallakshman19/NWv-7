@@ -232,6 +232,7 @@ def has_category_intent(category, text):
         # then apply existing source city, publication and expiry gates.
         impact = re.search(
             r'\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|'
+            r'(?:power|electricity|water)\s+supply(?:\s+(?:will|may|is|was|be|been|being|has|to|temporarily|scheduled|remain)){0,6}\s+(?:suspended|interrupted|cut|shut\s+off)|'
             r'water (?:supply )?(?:cut|outage|interruption|shutdown)|'
             r'road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|'
             r'public transport (?:suspended|disruption)|'

@@ -86,6 +86,27 @@ class GenerationTests(unittest.TestCase):
         self.assertFalse(again["payload"]["items"])
         self.assertEqual(again["payload"]["retiredOccurrences"][0]["status"], "CANCELLED")
 
+    def test_cancellation_survives_binding_promotion(self):
+        original = row(1)
+        cancelled = generate([row(1, status="CANCELLED")])
+
+        promoted = generate([original], bind(original), cancelled["ledger"])
+
+        self.assertEqual(promoted["payload"]["items"], [])
+        retired, = promoted["payload"]["retiredOccurrences"]
+        self.assertEqual(retired["status"], "CANCELLED")
+        self.assertEqual(binding_alias(original), promoted["payload"]["sourceAliases"][0]["alias"])
+        self.assertEqual(retired["canonicalOccurrenceId"],
+                         promoted["payload"]["sourceAliases"][0]["canonicalOccurrenceId"])
+
+    def test_newer_same_alias_observation_cannot_hide_cancellation(self):
+        original = row(1, revisionAt=NOW - 1)
+        cancelled = row(1, revisionAt=NOW - 2, status="CANCELLED")
+        result = generate([original, cancelled], bind(original))
+
+        self.assertEqual(result["payload"]["items"], [])
+        self.assertEqual(result["payload"]["retiredOccurrences"][0]["status"], "CANCELLED")
+
     def test_expired_does_not_get_new_validity_clock(self):
         r = row(1, eventStartAt=NOW - DAY, expiryAt=NOW - 100)
         result = generate([r], bind(r))
@@ -146,7 +167,9 @@ class GenerationTests(unittest.TestCase):
     def test_immutable_ledger_recovery_from_pointer(self):
         one = generate([row(1)], bind(row(1)))
         with tempfile.TemporaryDirectory() as td:
-            commit_generation(td, one)
+            generation_id = commit_generation(td, one)
+            directory_name = generation_id.replace(":", "-")
+            self.assertTrue((Path(td) / "generations" / directory_name / "manifest.json").is_file())
             restored = read_current(td)
             self.assertEqual(restored["ledger"], one["ledger"])
             self.assertEqual(restored["manifest"], one["manifest"])
@@ -184,7 +207,8 @@ class GenerationTests(unittest.TestCase):
         one = generate([row(1)], bind(row(1)))
         with tempfile.TemporaryDirectory() as td:
             commit_generation(td, one)
-            path = Path(td) / "generations" / one["manifest"]["generationId"] / "payload.json"
+            directory_name = one["manifest"]["generationId"].replace(":", "-")
+            path = Path(td) / "generations" / directory_name / "payload.json"
             path.write_text("{}")
             with self.assertRaisesRegex(ValueError, "mismatched payload"):
                 read_current(td)

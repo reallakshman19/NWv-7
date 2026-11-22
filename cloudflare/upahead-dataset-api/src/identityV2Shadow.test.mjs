@@ -7,7 +7,7 @@ const NOW = 1_800_000_000_000;
 const commit = 'a'.repeat(40);
 const event = (id, override = {}) => ({
   canonicalOccurrenceId: id, id: `raw:${id}`, category: 'events',
-  eventStartAt: NOW + 86400000, expiryAt: NOW + 2 * 86400000,
+  status: 'ACTIVE', eventStartAt: NOW + 86400000, expiryAt: NOW + 2 * 86400000,
   ...override,
 });
 const payloadFixture = () => ({
@@ -68,6 +68,20 @@ test('cancelled occurrence must not reappear as active', async () => {
   const p = payloadFixture(); p.retiredOccurrences.push({ canonicalOccurrenceId: 'occ:a', status: 'CANCELLED' });
   const a = await fixture(p);
   assert.equal((await checked(a)).reason, 'retired-occurrence-resurrected');
+});
+test('rejects rehashed generations with invalid active lifecycle fields', async () => {
+  for (const [field, value, reason] of [
+    ['status', 'CANCELLED', 'invalid-occurrence-status'],
+    ['expiryAt', undefined, 'invalid-occurrence-expiry'],
+    ['expiryAt', NOW + 1000, 'expired-active-occurrence'],
+  ]) {
+    const payload = payloadFixture();
+    if (value === undefined) delete payload.items[0][field];
+    else payload.items[0][field] = value;
+    const result = await checked(await fixture(payload));
+    assert.equal(result.status, 'INVALID');
+    assert.equal(result.reason, reason);
+  }
 });
 test('source alias cannot point to an unknown occurrence', async () => {
   const a = await fixture(); a.payload.sourceAliases[0].canonicalOccurrenceId = 'occ:nonexistent';

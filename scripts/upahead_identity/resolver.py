@@ -96,6 +96,12 @@ def resolve_observations(observations: Sequence[Mapping], *,
     if prior_ledger and prior_ledger.get("schemaVersion") != SCHEMA:
         raise ValueError("Unsupported ledger; fail closed rather than discarding state")
     prior = {r["canonicalOccurrenceId"]: r for r in prior_ledger.get("occurrences", [])}
+    cancelled_aliases = {
+        alias
+        for row in prior.values()
+        if row.get("status") == "CANCELLED"
+        for alias in row.get("sourceAliases", [])
+    }
     by_alias: dict[str, list[dict]] = defaultdict(list)
     for original in observations:
         if not isinstance(original, Mapping):
@@ -111,6 +117,10 @@ def resolve_observations(observations: Sequence[Mapping], *,
         slots = {(str(r.get("eventStartAt") or ""), str(r.get("eventEndAt") or "")) for r in rows}
         if len(slots) > 1 and not _adjudicated(trusted_bindings.get(alias)):
             raise ValueError("Conflicting source slots for one alias; require revision custody")
+        # Keep cancellation evidence even when a newer observation is selected
+        # to represent this exact listing.
+        if any(_status(row) == "CANCELLED" for row in rows):
+            cancelled_aliases.add(alias)
         latest = max(rows, key=_version)
         current.append({"alias": alias, "row": latest, "observationDigest": _hash(latest),
                         "allDigests": sorted({_hash(row) for row in rows}),
@@ -162,8 +172,9 @@ def resolve_observations(observations: Sequence[Mapping], *,
         aliases = sorted(x["alias"] for x in items)
         previous = prior.get(cid, {})
         old_status = previous.get("status")
-        # Cancellation is sticky: a lower-trust recollection cannot resurrect.
-        status = "CANCELLED" if old_status == "CANCELLED" or any(_status(r) == "CANCELLED" for r in rows) else "ACTIVE"
+        # Exact source aliases retain their cancellation through binding changes.
+        cancelled = old_status == "CANCELLED" or not cancelled_aliases.isdisjoint(aliases)
+        status = "CANCELLED" if cancelled else "ACTIVE"
         evidence = sorted({url for x in items if x["binding"] for url in x["binding"][3]})
         old_first = previous.get("firstVisibleAt")
         first = old_first if old_first is not None else min((int(r["firstVisibleAt"]) for r in rows

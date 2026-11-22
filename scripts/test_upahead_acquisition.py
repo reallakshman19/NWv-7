@@ -71,6 +71,11 @@ class AcquisitionRecovery(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertFalse(collector.has_category_intent('alerts', title))
 
+    def test_utility_supply_notices_require_an_actual_interruption(self):
+        self.assertTrue(collector.has_category_intent('alerts', 'TANGEDCO: Power supply will be suspended in Chennai on Saturday.'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Muscat water supply is temporarily interrupted on Saturday.'))
+        self.assertFalse(collector.has_category_intent('alerts', 'Chennai power supply will not be suspended on Saturday.'))
+
     def test_existing_rescue_news_does_not_reenter_via_new_feed(self):
         from types import SimpleNamespace
         article = dict(title='RAFO airlifts Russian national for medical emergency',

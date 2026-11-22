@@ -29,6 +29,12 @@ describe('UpAhead source-backed actionable alert admission', () => {
     ]) expect(isActionableLocalAlert(active(title,title))).toBe(true);
   });
 
+  it('requires an actual interruption for utility supply notices', () => {
+    expect(isActionableLocalAlert(active('power', 'TANGEDCO: Power supply will be suspended in Chennai on Saturday.'))).toBe(true);
+    expect(isActionableLocalAlert(active('water', 'Muscat water supply is temporarily interrupted on Saturday.'))).toBe(true);
+    expect(isActionableLocalAlert(active('denial', 'Chennai power supply will not be suspended on Saturday.'))).toBe(false);
+  });
+
   it('F02: keeps public-health notices while refusing generic rescue stories and rumors', () => {
     const eligible = [
       'Chennai boil-water advisory for contaminated tap water',
