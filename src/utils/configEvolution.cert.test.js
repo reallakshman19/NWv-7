@@ -105,6 +105,6 @@ describe('config evolution', () => {
 
     expect(state.holidayCalendarStatus).toBe('unknown_year_weekday_rules');
     expect(state.reason).not.toBe('Holiday');
-    expect(state.isOpen).toBe(true);
+    expect(state.isOpen).toBeNull();
   });
 });
