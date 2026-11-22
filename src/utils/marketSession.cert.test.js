@@ -68,6 +68,16 @@ describe('NSE verified 2026 calendar and fail-closed session model', () => {
       .toMatchObject({ label: 'Indicative NSE Hours', isOpen: null, holidayCalendarStatus: 'listed_year_completeness_unverified' });
   });
 
+  it('marks an added user-local holiday as unverified rather than official NSE evidence', () => {
+    const state = getMarketSessionState({
+      now: new Date('2026-11-19T05:00:00Z'),
+      tradingHolidays: [...holidays, '2026-11-19']
+    });
+    expect(state).toMatchObject({
+      label: 'Closed (scheduled)', reason: 'Listed holiday (unverified)', isOpen: false
+    });
+  });
+
   it('does not falsely mark the official Sunday Muhurat special session closed all day', () => {
     const state = getMarketSessionState({
       now: new Date('2026-11-08T05:00:00Z'), tradingHolidays: holidays
