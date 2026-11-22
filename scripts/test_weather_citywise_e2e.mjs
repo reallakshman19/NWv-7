@@ -92,6 +92,17 @@ try {
       if(!manageBox || manageBox.width>150)throw Error('Manage button too wide on mobile: '+JSON.stringify(manageBox));
     }
     if(await page.locator('[data-weather-city-strip] svg').count()<3)throw Error('SVG weather icons missing');
+    if(width===390){
+      const dims=await page.locator('.weather-citywise-content .dw-cards-list').first().evaluate(el=>{
+        const cards=[...el.querySelectorAll('.dw-card')];
+        return {direction:getComputedStyle(el).flexDirection,cards:cards.slice(0,2).map(c=>({
+          x:c.getBoundingClientRect().x,y:c.getBoundingClientRect().y,height:c.getBoundingClientRect().height
+        }))};
+      });
+      if(dims.direction!=='row' || dims.cards.length<2 || Math.abs(dims.cards[0].y-dims.cards[1].y)>3 ||
+         dims.cards.some(card=>card.height>360))
+        throw Error('Mobile detailed forecast failed compact horizontal rail: '+JSON.stringify(dims));
+    }
     if(await page.locator('[data-weather-city-strip]').first().getByText(/model feeds|cached|snapshot|source unverified/i).count())
       throw Error('Technical diagnostics are displayed in city tiles');
     if(await page.locator('[data-weather-hour-intervals]').first().getByText(/model feeds|cached forecast|source unverified/i).count())

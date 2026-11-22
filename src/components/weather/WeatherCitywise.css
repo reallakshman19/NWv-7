@@ -95,3 +95,23 @@ section.quick-weather-card .weather-hour-intervals--compact{margin-top:2px;paddi
   .weather-citywise-content .dw-temp-feels{font-size:11px}
   section.quick-weather-card .qw-config-add-btn{min-width:0!important}
 }
+
+/* Detailed cards must form a horizontal mobile rail. The inherited component
+   defaults to flex-direction:column; without this the flex-basis becomes HEIGHT. */
+@media(max-width:800px){
+  .weather-citywise-content .dw-cards-list{
+    display:flex;flex-direction:row;align-items:flex-start;
+    overflow-x:auto;overflow-y:hidden;gap:9px;min-height:0;
+  }
+  .weather-citywise-content .dw-card{
+    display:block;flex:0 0 min(280px,78vw);width:min(280px,78vw);
+    min-height:0;height:auto;align-self:flex-start;
+    box-sizing:border-box;
+  }
+  .weather-citywise-content .dw-card.expanded{
+    align-self:flex-start;min-height:0;height:auto;
+  }
+}
+@media(max-width:540px){
+  section.quick-weather-card .whi-title strong{font-size:14px!important;line-height:1.3!important}
+}
