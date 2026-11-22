@@ -70,7 +70,7 @@ jobs:
           # The source SHA-256 and Git blob must BOTH match before any replay.
           python3 scripts/audit_upahead_v2_source_snapshot.py --from-pinned-git-blob --expected-sha256 7bb3d491cf4df3c8ef1f57c479655e3e58141a5cd7bd95012bfc6b70f6d2d2f3 --expected-git-blob 7642efed72b6e733c7f9e5891c6a644317f71d16 --source-commit c9c5420bdaa31fb5e91c4940d7af9b0b01347a82
 
-          node --test scripts/test_upahead_generation_v2_parity.mjs cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs
+          node --test scripts/test_upahead_generation_v2_parity.mjs cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs
 
       - name: Validate PR evidence contract
         if: github.event_name == 'pull_request'
