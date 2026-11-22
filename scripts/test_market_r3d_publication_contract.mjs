@@ -35,6 +35,11 @@ test('R3D-S02 a legacy Yahoo FX file is rejected at the publication boundary', (
     const failed = auditMarketPublicationRoot(root);
     assert.ok(failed.errors.some(e => e.includes('FORBIDDEN_PUBLIC_FX_ASSET:fx_snapshot.json')));
     fs.rmSync(path.join(root, 'data', 'fx_snapshot.json'));
+    fs.writeFileSync(path.join(root, 'data', 'nse_quotes.json'),
+      JSON.stringify({ value: 999, source: 'unlicensed' }));
+    assert.ok(auditMarketPublicationRoot(root).errors.some(e =>
+      e.includes('UNREVIEWED_FINANCIAL_PUBLIC_ASSET:nse_quotes.json')));
+    fs.rmSync(path.join(root, 'data', 'nse_quotes.json'));
     assert.deepEqual(auditMarketPublicationRoot(root).errors, []);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
