@@ -375,6 +375,7 @@ function transformPythonItemsToDisplay(items = []) {
         locationCanonical: it.city || it.region || null,
         sourceDomain:      it.source,
         source:            it.source,
+        sourceGroup:       it.sourceGroup || null,
         sourceMode:        it.sourceMode || null,
         retailerId:        it.retailerId || null,
         offerMarket:       it.offerMarket || null,
