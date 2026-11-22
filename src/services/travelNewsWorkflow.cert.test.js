@@ -31,5 +31,8 @@ describe('Travel news workflow certification', () => {
     const content = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
     expect(content.locations.map(loc => loc.key).sort()).toEqual(['chennai', 'colombo', 'muscat', 'trichy']);
     expect(content.locations.every(loc => loc.edition?.timeRange === '2d')).toBe(true);
+    const trichy = content.locations.find(loc => loc.key === 'trichy');
+    expect(trichy.queries).toContain('Tiruchi news');
+    expect(trichy.queries).toContain('Tiruchirappalli news');
   });
 });
