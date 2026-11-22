@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
 import { canonicalIndexId, mergeQualifiedIndices } from '../services/marketQuotePolicy.js';
 import { formatMarketTimestamp } from '../utils/marketSession.js';
@@ -237,10 +237,11 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
 function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) {
   const [expanded, setExpanded] = useState(false);
   const time = formatMarketTimestamp(data?.fetchedAt);
+  const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
 
   const quality = useMemo(() => {
     try {
-      const snap = healthStore?.getSnapshot ? healthStore.getSnapshot() : {};
+      const snap = health || {};
       return evaluateMarketQuality({
         sourceStates: snap.sourceStates || sourceHealth || {},
         receipts: snap.receipts || [],
@@ -248,13 +249,13 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
           indicesCount: data?.indices?.length || 0,
           moversCount: (data?.movers?.gainers?.length || 0) + (data?.movers?.losers?.length || 0),
           fundsCount: 0,
-          currenciesCount: 2
+          currenciesCount: snap.sourceStates?.frankfurter?.providerAsOf ? 1 : 0
         }
       });
     } catch {
       return null;
     }
-  }, [data, sourceHealth]);
+  }, [data, sourceHealth, health]);
 
   return (
     <div className="market-workspace__status">
@@ -266,8 +267,8 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
           : time || 'Unavailable'}
       </span>
       {quality && (
-        <span className="text-success" title={quality.dimensions?.policyCompliance?.detail}>
-          Policy: 100% Free/Open
+        <span title={quality.dimensions?.policyCompliance?.detail}>
+          Policy guard: {quality.dimensions?.policyCompliance?.status === 'PASS' ? 'No local violation detected' : 'Review required'}
         </span>
       )}
       {loading && <span role="status">Refreshing quote publication…</span>}
@@ -365,7 +366,7 @@ export default function MarketPage() {
     fundSearch: <FundSummary onOpenFunds={() => changeView('funds')} />,
     currency: <FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} />,
     events: <EventsQuickWidget onOpenEventsDesk={() => changeView('ipo-events')} />,
-    sourceHealth: <SourceHealthCard sourceStates={healthStore.getSnapshot().sourceStates} />
+    sourceHealth: <SourceHealthCard />
   }), []);
 
   // Backwards compatibility check for mocked tests
