@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSettings } from '../context/SettingsContext';
 
-const DebugConsole = () => {
-    const { settings } = useSettings();
+const DebugConsolePanel = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [logs, setLogs] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -79,9 +78,6 @@ const DebugConsole = () => {
             setUnreadCount(0);
         }
     }, [logs, isOpen]);
-
-    // Only render if enabled in settings (default true)
-    if (settings.showDebugConsole === false) return null;
 
     return (
         <div style={{ position: 'fixed', bottom: '80px', right: '20px', zIndex: 9999 }}>
@@ -181,6 +177,17 @@ const DebugConsole = () => {
             )}
         </div>
     );
+};
+
+// Diagnostics require an explicit developer opt-in. Never intercept production
+// console messages or render the floating bug widget in the published app.
+const DebugConsole = () => {
+    const { settings } = useSettings();
+    const enabled = import.meta.env.DEV &&
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('nwDebugConsole') === '1' &&
+        settings.showDebugConsole !== false;
+    return enabled ? <DebugConsolePanel /> : null;
 };
 
 export default DebugConsole;
