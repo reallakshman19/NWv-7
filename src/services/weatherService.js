@@ -265,7 +265,8 @@ export async function fetchWeather(locationKey, { force = false } = {}) {
 }
 
 function getDailyMetricRows(modelData, field, dayIndex) {
-    const dateKey = ['ecmwf', 'gfs', 'icon'].map(name => modelData?.[name]?.daily?.time?.[dayIndex]).find(Boolean);
+    const dateKey = typeof dayIndex === 'string' ? dayIndex :
+        ['ecmwf', 'gfs', 'icon'].map(name => modelData?.[name]?.daily?.time?.[dayIndex]).find(Boolean);
     return ['ecmwf', 'gfs', 'icon']
         .map(modelName => {
             const daily = modelData?.[modelName]?.daily;
@@ -343,7 +344,7 @@ function processMultiModelData(modelData, locationName) {
         .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
     const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
-    const getIcon = (code) => { if (code == null) return null; if (code <= 1) return '☀️'; if (code <= 3) return '⛅'; if (code <= 67) return '🌧️'; if (code <= 99) return '⛈️'; return '❓'; };
+    const getIcon = (code) => code == null ? null : getWeatherIconId(code, 12);
     const conditionMap = {
         0: 'Clear',
         1: 'Mainly Clear',
@@ -487,7 +488,9 @@ function processMultiModelData(modelData, locationName) {
     };
 
     const getDaySegments = (dayOffset) => {
-        const offset = dayOffset * 24;
+        const dayKey = ['ecmwf', 'gfs', 'icon'].map(name => modelData?.[name]?.daily?.time?.[dayOffset]).find(Boolean);
+        const offset = dayKey ? referenceTimes.findIndex(time => time === dayKey + 'T00:00') : -1;
+        if (offset < 0) return { morning: null, noon: null, evening: null };
         return { morning: getSegmentMetrics(6 + offset, 11 + offset), noon: getSegmentMetrics(12 + offset, 16 + offset), evening: getSegmentMetrics(17 + offset, 22 + offset) };
     };
 
@@ -520,6 +523,13 @@ function processMultiModelData(modelData, locationName) {
         const avgPrecip = hourData.some(row => row.precipitation != null) ? averagePrecipitation(hourData) : null;
         const avgProb = hourData.some(row => row.precipitation_probability != null) ? averagePrecipitationProbability(hourData) : null;
         const labelHour = hourIdx % 24;
+        const metricCoverage = {
+            temperature: hourData.filter(row => row.temperature_2m != null && Number.isFinite(Number(row.temperature_2m))).length,
+            rain: hourData.filter(row => row.precipitation != null && Number.isFinite(Number(row.precipitation))).length,
+            rainProbability: hourData.filter(row => row.precipitation_probability != null && Number.isFinite(Number(row.precipitation_probability))).length,
+            humidity: hourData.filter(row => row.relative_humidity_2m != null && Number.isFinite(Number(row.relative_humidity_2m))).length,
+            wind: hourData.filter(row => row.wind_speed_10m != null && Number.isFinite(Number(row.wind_speed_10m))).length,
+        };
         const slot = {
             label: i === 0 ? 'Now' : formatHourLabel(labelHour),
             time: i === 0 ? 'Now' : formatHourLabel(labelHour),
@@ -530,6 +540,7 @@ function processMultiModelData(modelData, locationName) {
             precip: avgPrecip,
             localTime: referenceTimes[hourIdx],
             weatherCode,
+            modelCoverage: metricCoverage,
             condition: getCondition(weatherCode)
         };
         hourly24.push(slot);
@@ -540,12 +551,16 @@ function processMultiModelData(modelData, locationName) {
     const weeklyForecast = buildDailyConsensus(modelData, getIcon, getCondition);
 
     let todayHourlyConsensusMm = 0;
-    for (let hourIdx = 0; hourIdx < 24; hourIdx += 1) {
+    let todayRainHours = 0;
+    const firstDayKey = weeklyForecast[0]?.date;
+    for (let hourIdx = 0; hourIdx < referenceTimes.length; hourIdx += 1) {
+        if (!firstDayKey || !String(referenceTimes[hourIdx]).startsWith(firstDayKey)) continue;
         const hourData = getHourConsensus(hourIdx);
-        if (!hourData) continue;
+        if (!hourData?.some(row => row.precipitation != null && Number.isFinite(Number(row.precipitation)))) continue;
         todayHourlyConsensusMm += averagePrecipitation(hourData);
+        todayRainHours += 1;
     }
-    todayHourlyConsensusMm = Number(todayHourlyConsensusMm.toFixed(1));
+    todayHourlyConsensusMm = todayRainHours === 24 ? Number(todayHourlyConsensusMm.toFixed(1)) : null;
     const precipitationReconciliation = buildPrecipitationReconciliation(
         totalPrecipValue,
         todayHourlyConsensusMm
@@ -559,14 +574,22 @@ function processMultiModelData(modelData, locationName) {
     }
 
     const timezone = modelData.ecmwf?.timezone || modelData.gfs?.timezone || modelData.icon?.timezone || 'auto';
+    const nextFour = hourly24.slice(0, 4);
+    const metricCoverage = Object.fromEntries(
+        ['temperature', 'rain', 'rainProbability', 'humidity', 'wind'].map(field => [
+            field, nextFour.length === 4
+                ? Math.min(...nextFour.map(hour => hour.modelCoverage?.[field] ?? 0))
+                : 0,
+        ])
+    );
 
     return {
         name: getWeatherLocationLabel(locationName),
-        icon: WEATHER_LOCATION_REGISTRY[locationName]?.icon || (locationName === 'muscat' ? '📍' : '🏛️'),
+        icon: 'map-pin',
         fetchedAt: Date.now(),
         sourceMode: 'live',
         timezone,
-        models: { successful: successfulModels, count: successfulModels.length, names: formatModelNames(successfulModels) },
+        models: { successful: successfulModels, count: successfulModels.length, names: formatModelNames(successfulModels), metricCoverage },
         current: {
             temp: currentTemp,
             feelsLike: currentFeelsLike,
@@ -593,7 +616,7 @@ function processMultiModelData(modelData, locationName) {
             probabilitySemantics: 'daily_max_hourly_probability_consensus',
         },
         summary: totalPrecipValue != null && totalPrecipValue > 0
-            ? `Peak rain chance today ${maxPrecipProb}% · Forecast total ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
+            ? `Peak rain chance today ${maxPrecipProb == null ? '—' : maxPrecipProb + '%'} · Forecast total ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
             : `Rain forecast ${totalPrecip}mm · UV ${maxUV ?? 'N/A'}`
     };
 }
@@ -621,13 +644,13 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
         const precipProbValue = weightedDailyMetric(
             modelData,
             'precipitation_probability_max',
-            d,
+            dayKey,
             { round: true }
         );
         const precipSumValue = weightedDailyMetric(
             modelData,
             'precipitation_sum',
-            d,
+            dayKey,
             { digits: 1 }
         );
         const uvMax = [

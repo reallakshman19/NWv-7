@@ -126,17 +126,19 @@ def condition_for(code: Any) -> str:
 def icon_for(code: Any) -> str:
     parsed = as_number(code)
     if parsed is None:
-        return "?"
+        return "day_cloudy"
     code = int(round(parsed))
-    if code <= 1:
-        return "sunny"
-    if code <= 3:
-        return "cloudy"
-    if code <= 67:
-        return "rain"
-    if code <= 99:
-        return "storm"
-    return "forecast"
+    if code <= 1: return "day_clear"
+    if code == 2: return "day_partlyCloudy"
+    if code == 3: return "day_overcast"
+    if code <= 48: return "day_fog"
+    if code <= 57: return "day_drizzle"
+    if code <= 67: return "day_rain"
+    if code <= 77: return "day_snow"
+    if code <= 82: return "day_heavyRain"
+    if code <= 86: return "day_snow"
+    if code <= 99: return "day_storm"
+    return "day_cloudy"
 
 
 def build_url(location: Dict[str, Any]) -> str:
@@ -214,8 +216,10 @@ def build_hourly_slots(
         raw_hour = int(str(times[index])[11:13]) if len(str(times[index])) >= 13 else index % 24
         temp = as_number((hourly.get("temperature_2m") or [None])[index])
         weather_code = (hourly.get("weather_code") or [None])[index]
-        precip = as_number((hourly.get("precipitation") or [None])[index]) or 0
-        prob = as_number((hourly.get("precipitation_probability") or [None])[index]) or 0
+        precip_values = hourly.get("precipitation") or []
+        prob_values = hourly.get("precipitation_probability") or []
+        precip = as_number(precip_values[index]) if index < len(precip_values) else None
+        prob = as_number(prob_values[index]) if index < len(prob_values) else None
 
         if temp is None:
             continue
@@ -228,8 +232,8 @@ def build_hourly_slots(
             "temp": round(temp),
             "icon": icon_for(weather_code),
             "iconId": icon_for(weather_code),
-            "prob": round(prob),
-            "precip": round(precip, 1),
+            "prob": round(prob) if prob is not None else None,
+            "precip": round(precip, 1) if precip is not None else None,
             "condition": condition_for(weather_code),
         })
 
@@ -246,26 +250,27 @@ def build_segment(payload: Dict[str, Any], date_key: str, start_hour: int, end_h
 
     temps = [(hourly.get("temperature_2m") or [None])[index] for index in indices]
     apparent = [(hourly.get("apparent_temperature") or [None])[index] for index in indices]
-    precip = [as_number((hourly.get("precipitation") or [None])[index]) or 0 for index in indices]
+    precip_values = hourly.get("precipitation") or []
+    precip = [as_number(precip_values[index]) if index < len(precip_values) else None for index in indices]
     probs = [(hourly.get("precipitation_probability") or [None])[index] for index in indices]
     humidity = [(hourly.get("relative_humidity_2m") or [None])[index] for index in indices]
     wind = [(hourly.get("wind_speed_10m") or [None])[index] for index in indices]
     codes = [(hourly.get("weather_code") or [None])[index] for index in indices]
 
     code = codes[len(codes) // 2] if codes else 0
-    total_rain = sum(precip)
+    total_rain = sum(precip) if precip and all(v is not None for v in precip) else None
 
     return {
         "temp": avg(temps),
         "feelsLike": avg(apparent),
         "icon": icon_for(code),
         "iconId": icon_for(code),
-        "rainMm": "-" if total_rain < 1 else f"{total_rain:.1f}mm",
+        "rainMm": None if total_rain is None else f"{total_rain:.1f}mm",
         "rainProb": {
-            "avg": avg(probs) or 0,
-            "min": min([as_number(v) or 0 for v in probs], default=0),
-            "max": max([as_number(v) or 0 for v in probs], default=0),
-            "displayString": f"~{avg(probs) or 0}%",
+            "avg": avg(probs),
+            "min": min([v for v in (as_number(x) for x in probs) if v is not None], default=None),
+            "max": max([v for v in (as_number(x) for x in probs) if v is not None], default=None),
+            "displayString": f"~{avg(probs)}%" if avg(probs) is not None else "—",
             "isWideRange": False,
         },
         "humidity": avg(humidity),
@@ -294,10 +299,10 @@ def build_weekly_forecast(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
             "tempMin": avg([(daily.get("temperature_2m_min") or [None])[index]]),
             "high": avg([(daily.get("temperature_2m_max") or [None])[index]]),
             "low": avg([(daily.get("temperature_2m_min") or [None])[index]]),
-            "precipProb": avg([(daily.get("precipitation_probability_max") or [None])[index]]) or 0,
-            "rainProb": avg([(daily.get("precipitation_probability_max") or [None])[index]]) or 0,
-            "precipSum": avg([(daily.get("precipitation_sum") or [None])[index]], 1) or 0,
-            "rainMm": avg([(daily.get("precipitation_sum") or [None])[index]], 1) or 0,
+            "precipProb": avg([(daily.get("precipitation_probability_max") or [None])[index]]),
+            "rainProb": avg([(daily.get("precipitation_probability_max") or [None])[index]]),
+            "precipSum": avg([(daily.get("precipitation_sum") or [None])[index]], 1),
+            "rainMm": avg([(daily.get("precipitation_sum") or [None])[index]], 1),
             "realFeelDay": avg([(daily.get("apparent_temperature_max") or [None])[index]]),
             "humidityDay": avg([(daily.get("relative_humidity_2m_mean") or [None])[index]]),
             "uvIndex": avg([(daily.get("uv_index_max") or [None])[index]]),
@@ -334,8 +339,8 @@ def fetch_city(city_key: str) -> Dict[str, Any]:
         "generatedAt": iso_now(),
         "timezone": payload.get("timezone") or location["timezone"],
         "current": {
-            "temp": round(as_number(current.get("temperature_2m")) or 0),
-            "feelsLike": round(as_number(current.get("apparent_temperature")) or as_number(current.get("temperature_2m")) or 0),
+            "temp": round(as_number(current["temperature_2m"])) if as_number(current.get("temperature_2m")) is not None else None,
+            "feelsLike": round(as_number(current.get("apparent_temperature"))) if as_number(current.get("apparent_temperature")) is not None else None,
             "condition": condition_for(current_code),
             "icon": icon_for(current_code),
             "iconId": icon_for(current_code),

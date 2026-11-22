@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
@@ -26,7 +26,10 @@ import QuickWeather from './QuickWeather.jsx';
 function Probe(){const {activeCity}=useWeather();return <output data-testid="selected-city">{activeCity}</output>;}
 function Harness(){
   const [,tick]=useState(0);
-  mock.trigger=()=>tick(v=>v+1);
+  useEffect(()=>{
+    mock.trigger=()=>tick(v=>v+1);
+    return ()=>{mock.trigger=null;};
+  },[]);
   return <WeatherProvider lazy><QuickWeather/><Probe/></WeatherProvider>;
 }
 beforeEach(()=>{

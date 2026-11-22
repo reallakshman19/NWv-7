@@ -20,7 +20,7 @@ const WeatherStickyHeader = ({ weatherData, activeCity, onRefresh, loading, isDe
 
         if (highTemp == null || highTemp === undefined) {
             if (hourly24.length > 0) {
-                const maxHourly = Math.max(...hourly24.map(h => h.temp || -999));
+                const maxHourly = Math.max(...hourly24.map(h => h.temp ?? -999));
                 if (maxHourly !== -999) highTemp = maxHourly;
             }
         }
@@ -40,7 +40,7 @@ const WeatherStickyHeader = ({ weatherData, activeCity, onRefresh, loading, isDe
             usefulInfo = `Windy (${current.windSpeed} km/h)`;
         }
         else if ((current.temp > 38) || (highTemp > 38)) {
-            usefulInfo = "Heatwave Alert";
+            usefulInfo = "High temperature forecast";
         }
         else if (current.humidity > 85 && current.temp > 30) {
             usefulInfo = "High Humidity";
@@ -51,7 +51,7 @@ const WeatherStickyHeader = ({ weatherData, activeCity, onRefresh, loading, isDe
         }
 
         // Base string: Condition • High X
-        let baseString = `${current.condition || 'Clear'} • High ${highDisplay}`;
+        let baseString = `${current.condition || 'Forecast'} • High ${highDisplay}`;
 
         // Append useful info if available
         if (usefulInfo) {
@@ -153,7 +153,7 @@ const WeatherStickyHeader = ({ weatherData, activeCity, onRefresh, loading, isDe
                     transition: 'transform 1s linear infinite',
                     fontSize: '18px'
                 }}>
-                    {loading ? '⟳' : '↻'}
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2 6"/><path d="M20 4v7h-7"/></svg>
                 </span>
             </button>
         </div>
