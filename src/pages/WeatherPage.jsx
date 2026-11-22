@@ -8,6 +8,7 @@ import WeeklyWeatherForecast from '../components/weather/WeeklyWeatherForecast.j
 import WeatherCityComparison from '../components/weather/WeatherCityComparison.jsx';
 import WeatherPlanningSummary from '../components/weather/WeatherPlanningSummary.jsx';
 import WeatherHourIntervals from '../components/weather/WeatherHourIntervals.jsx';
+import WeatherOfficialAlerts from '../components/weather/WeatherOfficialAlerts.jsx';
 import WeatherCityStrip from '../components/weather/WeatherCityStrip.jsx';
 import '../components/weather/WeatherCitywise.css';
 import GradeBadge from '../components/audit/GradeBadge.jsx';
@@ -121,6 +122,7 @@ function WeatherPage() {
 
         <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
         <WeatherLocationManager {...locationManagerProps} />
+        <WeatherOfficialAlerts />
 
         {weatherData?.[activeCity]?.current ? (
           <div className="weather-citywise-content">

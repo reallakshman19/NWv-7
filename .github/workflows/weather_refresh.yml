@@ -2,6 +2,11 @@
 name: Weather Refresh
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/weather_refresh.yml'
+      - 'scripts/weather_snapshot_worker.py'
   schedule:
     - cron: '23 */2 * * *'
   workflow_dispatch:

@@ -716,3 +716,5 @@ function buildDailyConsensus(modelData, getIcon, getCondition) {
     }
     return days;
 }
+
+export const __processMultiModelDataForTest = processMultiModelData;
