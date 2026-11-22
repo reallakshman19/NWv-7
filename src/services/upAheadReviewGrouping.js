@@ -23,7 +23,7 @@ function candidateKey(row) {
   const link = row.link || row.url;
   try {
     const url = new URL(link);
-    if (url.protocol !== 'https:' || !url.hostname.endsWith('chennai2go.in')) return null;
+    if (url.protocol !== 'https:' || !['chennai2go.in', 'www.chennai2go.in'].includes(url.hostname)) return null;
   } catch { return null; }
   return JSON.stringify([row.sourceGroup, row.city, row.venue.toLowerCase().trim(),
     Number(row.eventStartAt), title]);
