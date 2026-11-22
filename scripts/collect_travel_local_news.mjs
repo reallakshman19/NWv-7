@@ -1,143 +1,129 @@
 /**
- * Travel local news RSS collector.
- * Fetches Google News RSS for configured travel location and writes JSON to public/data/.
- *
- * Environment variables:
- *   TRAVEL_LOCATION_KEY - location key (colombo, muscat, chennai, trichy). Default: colombo
+ * City-specific Google News RSS collector.
+ * Invoked by scheduled GitHub Actions with TRAVEL_LOCATION_KEY.
+ * Do not replace an existing receipt when every source request fails.
  */
+import fs from 'node:fs';
+import path from 'node:path';
+import { buildTravelNewsQueries } from '../src/services/travelNewsQueries.js';
+import { getTravelLocationProfile, TRAVEL_LOCATION_REGISTRY } from '../src/services/travelLocationProfile.js';
+import { hasCityEvidence } from '../src/services/storyLocationPriority.js';
+import { parseTravelRssItems } from '../src/services/travelRssParser.js';
+import {
+  TRAVEL_NEWS_RETENTION_HOURS,
+  TRAVEL_NEWS_MAX_ITEMS,
+  isFreshTravelStory,
+  getTravelStoryPublishedMs,
+} from '../src/services/travelNewsFreshness.js';
 
-import fs from 'fs';
-import path from 'path';
-import https from 'https';
-import http from 'http';
-
-// Import travel services (ES modules)
-const { buildTravelNewsQueries } = await import('../src/services/travelNewsQueries.js');
-const { getTravelLocationProfile } = await import('../src/services/travelLocationProfile.js');
-
-const locationKey = process.env.TRAVEL_LOCATION_KEY || 'colombo';
-
-const settings = { travelLocation: { city: locationKey, enabled: true, prioritizeStories: true } };
-const profile = getTravelLocationProfile(settings);
-const queries = buildTravelNewsQueries(profile);
-
-const highPriorityQueries = queries.filter(q => q.priority === 'high');
-
-console.log(`Collecting travel news for: ${profile.display} (${profile.countryCode})`);
-console.log(`Queries: ${highPriorityQueries.map(q => q.query).join(', ')}`);
-
-function fetchUrl(url) {
-  return new Promise((resolve, reject) => {
-    const lib = url.startsWith('https') ? https : http;
-    const request = lib.get(url, { timeout: 12000 }, response => {
-      if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
-        return resolve(fetchUrl(response.headers.location));
-      }
-      const chunks = [];
-      response.on('data', chunk => chunks.push(chunk));
-      response.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-      response.on('error', reject);
-    });
-    request.on('error', reject);
-    request.on('timeout', () => { request.destroy(); reject(new Error('Request timeout: ' + url)); });
-  });
+const locationKey = String(process.env.TRAVEL_LOCATION_KEY || '').toLowerCase();
+if (!TRAVEL_LOCATION_REGISTRY[locationKey]) {
+  throw new Error('TRAVEL_LOCATION_KEY must be one of: ' + Object.keys(TRAVEL_LOCATION_REGISTRY).join(', '));
 }
+const profile = getTravelLocationProfile({ travelLocation: { city: locationKey } });
+const now = Date.now();
+const cityName = profile.display.toLowerCase();
+// Use only city-scoped RSS searches. Country-wide headlines are NOT city evidence.
+const queries = buildTravelNewsQueries(profile)
+  .filter(query => query.query.toLowerCase().includes(cityName))
+  .slice(0, 5);
 
-async function fetchWithRetry(url, attempts = 2, delaysMs = [3000, 8000]) {
-  let lastErr;
-  for (let i = 0; i < attempts; i++) {
+async function fetchWithRetry(url, attempts = 2) {
+  let lastError;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {
-      return await fetchUrl(url);
-    } catch (err) {
-      lastErr = err;
-      if (i < attempts - 1) {
-        await new Promise(r => setTimeout(r, delaysMs[i] || 3000));
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(15000),
+        headers: { 'User-Agent': 'NWv7-TravelLocal-NewsCollector/2.0' },
+        redirect: 'follow',
+      });
+      if (!response.ok) throw new Error('RSS returned HTTP ' + response.status);
+      const xml = await response.text();
+      if (xml.length > 4_000_000) throw new Error('RSS exceeds size limit');
+      return parseTravelRssItems(xml);
+    } catch (error) {
+      lastError = error;
+      if (attempt + 1 < attempts) {
+        await new Promise(resolve => setTimeout(resolve, 1500 * (attempt + 1)));
       }
     }
   }
-  throw lastErr;
+  throw lastError;
 }
 
-function parseRssItems(xml) {
-  const items = [];
-  const itemRegex = /<item>([sS]*?)<\/item>/g;
-  let match;
-
-  while ((match = itemRegex.exec(xml)) !== null) {
-    const item = match[1];
-    const title = (/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/.exec(item) || /<title>([^<]*)<\/title>/.exec(item) || [])[1] || '';
-    const link = (/<link>([^<]*)<\/link>/.exec(item) || [])[1] || '';
-    const pubDate = (/<pubDate>([^<]*)<\/pubDate>/.exec(item) || [])[1] || '';
-    const source = (/<source[^>]*>([^<]*)<\/source>/.exec(item) || [])[1] || '';
-    const guid = (/<guid[^>]*>([^<]*)<\/guid>/.exec(item) || [])[1] || link;
-
-    if (title && link) {
-      items.push({
-        id: guid || link,
-        title: title.trim(),
-        url: link.trim(),
-        link: link.trim(),
-        source: source.trim() || 'Google News',
-        publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-        city: profile.display,
-        country: profile.countryLabel,
-      });
-    }
-  }
-
-  return items;
-}
-
-const allStories = [];
+const stories = [];
 const seen = new Set();
 const fetchErrors = [];
+let successfulQueries = 0;
+let rejectedUndatedOrExpired = 0;
+let rejectedWrongCity = 0;
 
-for (const query of highPriorityQueries) {
+for (const query of queries) {
   try {
-    console.log(`  Fetching: ${query.query}`);
-    const xml = await fetchWithRetry(query.url);
-    const items = parseRssItems(xml);
-    console.log(`  Got ${items.length} items`);
-
+    const items = await fetchWithRetry(query.url);
+    successfulQueries += 1;
     for (const item of items) {
-      const key = item.url.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        allStories.push(item);
+      if (!isFreshTravelStory(item, { now })) {
+        rejectedUndatedOrExpired += 1;
+        continue;
       }
+      if (!hasCityEvidence(item, profile)) {
+        rejectedWrongCity += 1;
+        continue;
+      }
+      const key = (item.url || item.title).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      stories.push({
+        ...item,
+        publishedAt: new Date(getTravelStoryPublishedMs(item)).toISOString(),
+      });
     }
   } catch (error) {
-    const msg = `${query.query}: ${error.message}`;
-    console.warn(`  Warning: failed to fetch ${msg}`);
-    fetchErrors.push(msg);
+    fetchErrors.push(query.label + ': ' + (error?.message || String(error)));
+    console.warn('[travel-news]', profile.key, fetchErrors[fetchErrors.length - 1]);
   }
 }
 
+if (successfulQueries === 0) {
+  throw new Error('No valid RSS response for ' + profile.key + '; retaining last published payload');
+}
+
+stories.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+const current = stories.slice(0, TRAVEL_NEWS_MAX_ITEMS);
 const payload = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   type: 'travel-location-news-payload',
   locationKey: profile.key,
   display: profile.display,
   countryCode: profile.countryCode,
   countryLabel: profile.countryLabel,
-  generatedAt: new Date().toISOString(),
+  generatedAt: new Date(now).toISOString(),
   sourceMode: 'github-rss-prefetch',
-  storyCount: allStories.length,
-  fetchErrors: fetchErrors.length > 0 ? fetchErrors : undefined,
-  stories: allStories,
+  sourceAuthority: 'Google News RSS, publisher identified per story',
+  retentionHours: TRAVEL_NEWS_RETENTION_HOURS,
+  retentionCutoffAt: new Date(now - TRAVEL_NEWS_RETENTION_HOURS * 3600000).toISOString(),
+  queryCount: queries.length,
+  successfulQueries,
+  fetchErrors,
+  rejectedUndatedOrExpired,
+  rejectedWrongCity,
+  storyCount: current.length,
+  stories: current,
 };
-
-const outDir = path.join(process.cwd(), 'public', 'data');
-fs.mkdirSync(outDir, { recursive: true });
-
-const outPath = path.join(outDir, `travel-local-${profile.key}.json`);
-fs.writeFileSync(outPath, JSON.stringify(payload, null, 2) + '\n', 'utf8');
-
-console.log(`Written ${allStories.length} stories to ${outPath}`);
-
+const dir = path.join(process.cwd(), 'public', 'data');
+fs.mkdirSync(dir, { recursive: true });
+const output = path.join(dir, 'travel-local-' + profile.key + '.json');
+fs.writeFileSync(output, JSON.stringify(payload, null, 2) + '\n', 'utf8');
 console.log(JSON.stringify({
   status: 'PASS',
+  sourceMode: 'github-rss-prefetch',
   locationKey: profile.key,
-  storyCount: allStories.length,
-  output: outPath.replace(process.cwd(), '.'),
+  queryCount: queries.length,
+  successfulQueries,
+  storyCount: current.length,
+  rejectedUndatedOrExpired,
+  rejectedWrongCity,
+  fetchErrors,
+  output,
 }, null, 2));
