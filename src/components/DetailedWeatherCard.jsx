@@ -4,7 +4,7 @@ import './DetailedWeatherCard.css';
 import WeatherIcon from './WeatherIcons';
 import { UmbrellaIcon, CloudIcon, HumidityIcon, WindIcon } from './AppIcons';
 
-import { getHourInTimezone, getWeatherHeaderSummary, getConditionText, hourlyPeakProbability } from './detailedWeatherCardUtils.js';
+import { getHourInTimezone, getWeatherHeaderSummary, getConditionText } from './detailedWeatherCardUtils.js';
 
 export default function DetailedWeatherCard({
   weatherData,
@@ -137,30 +137,26 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
   const hourly = Array.isArray(data.hourly) ? data.hourly : [];
   const hasHourly = hourly.length > 0;
 
-  const rainMmVal = Number.isFinite(Number(data.rainMmValue))
-    ? Number(data.rainMmValue)
-    : parseFloat(data.rainMm === '-' ? 0 : data.rainMm) || 0;
-  const rainProbVal = Math.max(
-    Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0,
-    hourlyPeakProbability(data)
-  );
-  const hasSignificantRain = rainMmVal >= 1.0;
-  const hasAnyRain = rainMmVal > 0 || rainProbVal > 0;
+  const explicitRain = data.rainMmValue != null ? Number(data.rainMmValue) : null;
+  const parsedRain = explicitRain == null && typeof data.rainMm === 'string' ? parseFloat(data.rainMm) : null;
+  const rainMmVal = Number.isFinite(explicitRain) ? explicitRain : Number.isFinite(parsedRain) ? parsedRain : null;
+  const hourlyProbs = hourly.map(h => h?.prob).filter(v => v != null && Number.isFinite(Number(v))).map(Number);
+  const rawProb = data.rainProb?.peak ?? data.rainProb?.avg;
+  const rainProbVal = rawProb != null && Number.isFinite(Number(rawProb))
+    ? Math.max(Number(rawProb), ...hourlyProbs)
+    : hourlyProbs.length ? Math.max(...hourlyProbs) : null;
+  const hasSignificantRain = rainMmVal != null && rainMmVal >= 1;
+  const hasAnyRain = (rainMmVal != null && rainMmVal > 0) || (rainProbVal != null && rainProbVal > 0);
 
   let RainIcon = CloudIcon;
   let rainColor = 'var(--text-secondary)';
-  let rainText = 'No significant rain';
+  let rainText = rainMmVal == null && rainProbVal == null ? 'Rain data unavailable' : 'No rain forecast for period';
 
   if (hasAnyRain) {
-    if (hasSignificantRain) {
-      RainIcon = UmbrellaIcon;
-      rainColor = '#3b82f6';
-    } else {
-      RainIcon = CloudIcon;
-      rainColor = '#94a3b8';
-    }
-
-    rainText = `${rainMmVal > 0 ? `${rainMmVal.toFixed(1)}mm` : 'Trace'} · Peak ${rainProbVal}%`;
+    RainIcon = hasSignificantRain ? UmbrellaIcon : CloudIcon;
+    rainColor = hasSignificantRain ? '#3b82f6' : '#94a3b8';
+    rainText = (rainMmVal == null ? 'Rain —' : rainMmVal.toFixed(1) + 'mm') +
+      ' · Peak ' + (rainProbVal == null ? '—' : rainProbVal + '%');
   }
 
   const description = getConditionText(data);

@@ -280,30 +280,33 @@ function weightedDailyMetric(modelData, field, dayIndex, options = {}) {
     return weightedAverageMetric(getDailyMetricRows(modelData, field, dayIndex), 'value', options);
 }
 
-export function summarizePeriodRain(hourlySlots = []) {
-    const valid = (Array.isArray(hourlySlots) ? hourlySlots : []).filter(Boolean);
-    const probabilities = valid.map(slot => Number(slot?.prob)).filter(Number.isFinite);
-    const precipitation = valid.map(slot => Number(slot?.precip)).filter(Number.isFinite);
-
-    const peak = probabilities.length ? Math.max(...probabilities) : 0;
-    const mean = probabilities.length
+export function summarizePeriodRain(hourlySlots = [], expectedSlots = null) {
+    const slots = (Array.isArray(hourlySlots) ? hourlySlots : []).filter(Boolean);
+    const complete = slots.length > 0 && (expectedSlots == null || slots.length === expectedSlots);
+    const numberOrNull = value => value != null && value !== '' &&
+        Number.isFinite(Number(value)) ? Number(value) : null;
+    const probabilities = slots.map(slot => numberOrNull(slot?.prob));
+    const amounts = slots.map(slot => numberOrNull(slot?.precip));
+    const fullProbability = complete && probabilities.every(value => value != null && value >= 0 && value <= 100);
+    const fullRainfall = complete && amounts.every(value => value != null && value >= 0);
+    const peak = fullProbability ? Math.max(...probabilities) : null;
+    const mean = fullProbability
         ? Math.round(probabilities.reduce((sum, value) => sum + value, 0) / probabilities.length)
-        : 0;
-    const min = probabilities.length ? Math.min(...probabilities) : 0;
-    const totalMm = Number(precipitation.reduce((sum, value) => sum + value, 0).toFixed(1));
+        : null;
+    const min = fullProbability ? Math.min(...probabilities) : null;
+    const totalMm = fullRainfall
+        ? Number(amounts.reduce((sum, value) => sum + value, 0).toFixed(1))
+        : null;
 
     return {
-        peak,
-        mean,
-        min,
-        max: peak,
-        totalMm,
-        displayString: `${peak}% peak`,
+        peak, mean, min, max: peak, totalMm,
+        displayString: peak == null ? '—' : peak + '% peak',
         semantics: 'period_peak_hourly_consensus',
     };
 }
 
 export function buildPrecipitationReconciliation(dailyForecastMm, hourlyConsensusMm) {
+    if (dailyForecastMm == null || hourlyConsensusMm == null) return null;
     const daily = Number(dailyForecastMm);
     const hourly = Number(hourlyConsensusMm);
     if (!Number.isFinite(daily) || !Number.isFinite(hourly)) return null;
@@ -322,7 +325,8 @@ export function buildPrecipitationReconciliation(dailyForecastMm, hourlyConsensu
 
 function selectPeriodWeatherCode(hourlySlots, fallbackCode = 0) {
     const rain = summarizePeriodRain(hourlySlots);
-    if (rain.peak < 30 && rain.totalMm < 0.5) return fallbackCode;
+    if (rain.peak == null && rain.totalMm == null) return fallbackCode;
+    if (rain.peak != null && rain.totalMm != null && rain.peak < 30 && rain.totalMm < 0.5) return fallbackCode;
 
     const riskiest = [...(hourlySlots || [])]
         .filter(Boolean)
@@ -343,7 +347,7 @@ function processMultiModelData(modelData, locationName) {
             : null)
         .filter(Boolean);
     const currentHourOfDay = getLocationLocalHour(locationName);
-    const getIconForHour = (code, hour) => getWeatherIconId(code, hour ?? currentHourOfDay);
+    const getIconForHour = (code, hour) => code == null ? 'day_cloudy' : getWeatherIconId(code, hour ?? currentHourOfDay);
     const getIcon = (code) => code == null ? null : getWeatherIconId(code, 12);
     const conditionMap = {
         0: 'Clear',
@@ -428,8 +432,8 @@ function processMultiModelData(modelData, locationName) {
             if (!hourData) return;
             const avgTemp = averageTemperature(hourData);
             const avgApparent = averageApparentTemperature(hourData);
-            const avgPrecip = averagePrecipitation(hourData);
-            const avgProb = averagePrecipitationProbability(hourData);
+            const avgPrecip = hourData.some(row => row.precipitation != null && Number.isFinite(Number(row.precipitation))) ? averagePrecipitation(hourData) : null;
+            const avgProb = hourData.some(row => row.precipitation_probability != null && Number.isFinite(Number(row.precipitation_probability))) ? averagePrecipitationProbability(hourData) : null;
             const weatherCode = getMostCommonWeatherCode(hourData);
             if (avgTemp !== null) segmentTemps.push(avgTemp);
             if (avgApparent !== null) segmentApparent.push(avgApparent);
@@ -457,8 +461,8 @@ function processMultiModelData(modelData, locationName) {
 
         const avgTemp = segmentTemps.length ? Math.round(segmentTemps.reduce((a, b) => a + b, 0) / segmentTemps.length) : null;
         const feelsLike = segmentApparent.length ? Math.round(segmentApparent.reduce((a, b) => a + b, 0) / segmentApparent.length) : avgTemp;
-        const rainSummary = summarizePeriodRain(hourlySlots);
-        const midCode = segmentWeatherCodes.length ? segmentWeatherCodes[Math.floor(segmentWeatherCodes.length / 2)] : 0;
+        const rainSummary = summarizePeriodRain(hourlySlots, indices.length);
+        const midCode = segmentWeatherCodes.length ? segmentWeatherCodes[Math.floor(segmentWeatherCodes.length / 2)] : null;
         const periodCode = selectPeriodWeatherCode(hourlySlots, midCode);
         const midHour = Math.floor((startHour + endHour) / 2) % 24;
 
@@ -468,7 +472,7 @@ function processMultiModelData(modelData, locationName) {
             icon: getIcon(periodCode),
             iconId: getIconForHour(periodCode, midHour),
             condition: getCondition(periodCode),
-            rainMm: `${rainSummary.totalMm.toFixed(1)}mm`,
+            rainMm: rainSummary.totalMm == null ? null : `${rainSummary.totalMm.toFixed(1)}mm`,
             rainMmValue: rainSummary.totalMm,
             rainProb: {
                 avg: rainSummary.peak,

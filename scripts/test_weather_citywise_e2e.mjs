@@ -61,6 +61,7 @@ try {
     await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
     await waitFor(page,'[data-weather-city-strip]');
     await waitFor(page,'[data-weather-hour-intervals]');
+    await waitFor(page,'.whi-period');
     await page.getByRole('button',{name:'4h',exact:true}).first().click();
     const intervalText=await page.locator('[data-weather-hour-intervals]').first().textContent();
     if(!intervalText.includes('4h rain')||!intervalText.includes('peak hourly'))

@@ -33,7 +33,7 @@ for (const token of [
 
 for (const token of [
     'Add / delete locations',
-    'Colombo',
+    'getCityDisplay',
     'Reset defaults',
     'wlm-chip',
     'removeCity'

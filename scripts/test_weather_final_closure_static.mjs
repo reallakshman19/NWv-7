@@ -48,7 +48,7 @@ function requireTokens(name, tokens) {
 requireTokens('locations', [
   'DEFAULT_WEATHER_CITIES',
   'colombo',
-  'Colombo',
+  'getCityDisplay',
   'Sri Lanka',
   'buildWeatherSettingsWithCities',
   'getConfiguredWeatherCities',
