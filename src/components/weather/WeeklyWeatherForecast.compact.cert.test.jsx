@@ -19,6 +19,7 @@ describe('Weekly weather compact presentation',()=>{
     expect(container.querySelectorAll('.wwf-row-primary')).toHaveLength(7);
     expect(container.querySelectorAll('.wwf-row-mobile-details')).toHaveLength(7);
     expect(container.querySelectorAll('.wwf-row-mobile-details[open]')).toHaveLength(0);
+    expect(container.querySelector('.wwf-city')).toBeNull();
     expect(days[0].textContent).toContain('Rain');
     expect(days[0].textContent).toContain('Humidity');
   });

@@ -71,7 +71,7 @@ function ForecastCard({ forecast, cityName }) {
 
 /** Accepts both a selected city forecast and the legacy city collection route. */
 export default function WeeklyWeatherForecast({
-  forecast = null, cityName = '', weatherData = null, settings = null, cities = null,
+  forecast = null, weatherData = null, settings = null, cities = null,
 }) {
   if (Array.isArray(forecast)) return <ForecastCard forecast={forecast}/>;
   const cityRows = getWeatherCityRows({

@@ -53,6 +53,12 @@ describe('Weather UI presentation trust and compactness',()=>{
     expect(nav.querySelectorAll('svg').length).toBeGreaterThanOrEqual(2);
     expect(nav.querySelector('[aria-current="true"]')?.textContent).toContain('Muscat');
   });
+  it('uses a neutral unavailable SVG instead of showing cloudy weather for a city with no forecast',()=>{
+    const {container}=render(<WeatherCityStrip cities={['muscat']} activeCity="muscat"
+      weatherData={{muscat:{current:{temp:null}}}}/>);
+    expect(container.querySelector('[data-weather-unavailable-icon]')).not.toBeNull();
+    expect(container.querySelector('.wcs-chip__reading strong')?.textContent).toBe('—');
+  });
   it('keeps only 2h/4h controls and no technical diagnostics in the forecast',()=>{
     render(<WeatherHourIntervals cityData={makeCity()} compact />);
     expect(screen.getByRole('button',{name:'2h'}).getAttribute('aria-pressed')).toBe('true');
