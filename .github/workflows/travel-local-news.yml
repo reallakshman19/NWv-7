@@ -11,6 +11,10 @@ on:
       - 'src/services/storyLocationPriority.js'
       - 'src/services/travelNewsFreshness.js'
       - 'src/services/travelNewsQueries.js'
+      - 'src/services/travelFeedRetention.js'
+      - 'src/services/travelStoryIdentity.js'
+      - 'src/services/travelEventGeography.js'
+      - 'src/services/travelLocationProfile.js'
   schedule:
     - cron: '13 */3 * * *'
   workflow_dispatch:
@@ -62,7 +66,8 @@ jobs:
           npx vitest run --config vitest.config.js \
             src/services/travelFeedFreshness.cert.test.js \
             src/services/travelNewsIngestion.cert.test.js \
-            src/services/travelNewsWorkflow.cert.test.js
+            src/services/travelNewsWorkflow.cert.test.js \
+            src/services/travelIRFix.cert.test.js
 
       - name: Publish current city snapshots to main
         shell: bash
