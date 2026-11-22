@@ -54,7 +54,12 @@ export function sameSourceBackedPlannerEvent(a, b, date) {
   const slotA = eventSlot(a, date), slotB = eventSlot(b, date);
   if (!slotA || slotA !== slotB) return false;
   const sameExplicit = field => String(a?.[field] || '').trim() === String(b?.[field] || '').trim();
-  // Missing authoritative IDs must not match populated ones. Distinct session
-  // or occurrence IDs never merge even on the same source permalink.
-  return ['sessionId', 'occurrenceId', 'revisionOf'].every(sameExplicit);
+  const originalSession = String(a?.sessionId || '').trim();
+  const revisedSession = String(b?.sessionId || '').trim();
+  // Issue #200: missing session ID is UNKNOWN, never source-backed equivalence.
+  // A URL+title+time describes an advertised listing, not necessarily a
+  // unique physical session. Without a matching declared session ID, leave
+  // both Planner entries independent until organizer evidence exists.
+  if (!originalSession || originalSession !== revisedSession) return false;
+  return ['occurrenceId', 'revisionOf'].every(sameExplicit);
 }
