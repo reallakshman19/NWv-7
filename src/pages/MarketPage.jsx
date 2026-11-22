@@ -11,7 +11,7 @@ import {
 import { OPEN_SOURCE_REFERENCE_LINKS } from '../services/marketFreeOpenPolicy.js';
 
 // R2.1 Feature Modules
-import { MarketNav, Overview } from '../market/features/overview/index.js';
+import { MarketNav, MarketDeskOverview } from '../market/features/overview/index.js';
 import { IndexSectorPanel, MarketProviderBoard } from '../market/features/providers/index.js';
 import { EquityResearchPanel, WatchlistSummary } from '../market/features/equity/index.js';
 import { PortfolioPanel, PortfolioSummary } from '../market/features/portfolio/index.js';
@@ -197,8 +197,6 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         </p>
       )}
 
-      {freeOnly && regionAllowed && region === 'india' && <MarketProviderBoard group="indices" />}
-
       {!regionAllowed ? (
         <p role="status">This market region is hidden in Market settings.</p>
       ) : rows.length ? (
@@ -215,7 +213,7 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         </>
       ) : (
         <p role="status">
-          No qualified {region === 'india' ? 'India' : 'Global'} index observations match these filters. Refresh or consult the source.
+          No qualified {region === 'india' ? 'India' : 'Global'} native observations. {freeOnly ? 'See the official source links and provider board.' : 'Check the filters or refresh the source.'}
         </p>
       )}
 
@@ -398,7 +396,7 @@ export default function MarketPage() {
         {refreshResult && <p role="status" className="market-workspace__muted">{refreshResult}</p>}
 
         {view === 'overview' && (
-          <Overview
+          <MarketDeskOverview
             onNavigate={changeView}
             data={marketData || {}}
             settings={marketSettings}
