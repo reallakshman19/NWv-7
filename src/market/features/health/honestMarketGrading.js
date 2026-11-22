@@ -38,7 +38,7 @@ export function evaluateMarketQuality({
     status: unauthorizedAttempts === 0 ? 'PASS' : 'FAIL',
     score: unauthorizedAttempts === 0 ? 100 : 0,
     detail: unauthorizedAttempts === 0
-      ? '100% compliant with free/open licensing contracts; zero unauthorized scrapers.'
+      ? 'No publication-policy violations detected in registered local states; independent license compliance has not been certified.'
       : `${unauthorizedAttempts} policy violation(s) detected.`
   };
 
@@ -62,51 +62,64 @@ export function evaluateMarketQuality({
       : 'Native exchange quotes are intentionally restricted under open/free licensing; official links provided.'
   };
 
-  // 3. Observation Freshness: Checks providerAsOf dates
+  // 3. Observation freshness is about the LAST provider observation per
+  // source, not the age of every entry in a bounded audit history.
+  const sourceList = Object.values(sourceStates);
+  const datedSources = sourceList.filter(source => typeof source?.providerAsOf === 'string');
+  const failedSources = sourceList.filter(source => source?.lastResult === 'REQUEST_FAILED');
   let staleCount = 0;
   let missingClockCount = 0;
-  const validReceipts = (Array.isArray(receipts) ? receipts : []).filter(r => r?.receipt);
-
-  for (const r of validReceipts) {
-    const asOf = r.receipt?.providerAsOf;
-    if (!asOf) {
+  for (const source of datedSources) {
+    // Year-only publication clocks do not support an hourly SLA assertion.
+    if (source.providerClockGranularity === 'year') {
       missingClockCount++;
       continue;
     }
-    const parsed = Date.parse(asOf);
-    if (Number.isFinite(parsed)) {
-      const ageHours = (now - parsed) / (1000 * 60 * 60);
-      if (ageHours > 72) staleCount++;
+    const parsed = Date.parse(source.providerAsOf);
+    if (!Number.isFinite(parsed) || parsed > now + 5 * 60 * 1000) {
+      missingClockCount++;
+      continue;
     }
+    if (now - parsed > 72 * 60 * 60 * 1000) staleCount++;
   }
 
   const freshness = {
     id: 'observation-freshness',
     label: 'Provider Observation Freshness',
-    status: missingClockCount > 0 ? 'WARN' : staleCount > 0 ? 'WARN' : 'PASS',
+    status: datedSources.length === 0 ? 'NOT_CHECKED'
+      : staleCount > 0 || missingClockCount > 0 ? 'WARN' : 'PASS',
+    observedCount: datedSources.length,
     staleCount,
     missingClockCount,
-    detail: missingClockCount > 0
-      ? `${missingClockCount} receipt(s) lack authentic provider observation clock.`
-      : staleCount > 0
-      ? `${staleCount} observation(s) older than 72 hours.`
-      : 'All recorded provider observations are fresh.'
+    detail: datedSources.length === 0
+      ? 'No dated provider observations recorded on this device.'
+      : staleCount > 0 || missingClockCount > 0
+        ? `${staleCount} dated observation(s) over 72h; ${missingClockCount} observation clock(s) too coarse or invalid.`
+        : `${datedSources.length} source(s) have recorded observations within 72h. No current reachability check is implied.`
   };
 
-  // 4. Functional Health: Store & workspace readiness
+  // 4. No synthetic functional PASS: this passive panel has no dedicated
+  // browser, storage round-trip, or live-provider functional certification.
   const functionalHealth = {
     id: 'functional-health',
     label: 'Functional & Storage Health',
-    status: 'PASS',
-    detail: 'Storage managers, migration journals, and cache controls operational.'
+    status: failedSources.length > 0 ? 'WARN' : 'NOT_CHECKED',
+    failedSourceCount: failedSources.length,
+    detail: failedSources.length > 0
+      ? `${failedSources.length} source request(s) most recently failed; prior dated values may remain visible.`
+      : 'Functional and storage checks have not been independently executed by this passive monitor.'
   };
 
-  // 5. Diagnostic Completeness: Receipts availability
+  // 5. A receipt is evidence of a bounded local event, not proof of coverage
+  // across all market workflows or continuing live reachability.
+  const validReceipts = (Array.isArray(receipts) ? receipts : []).filter(r => r?.receipt);
   const diagnosticCompleteness = {
     id: 'diagnostic-completeness',
-    label: 'Diagnostic Completeness',
-    status: validReceipts.length > 0 ? 'PASS' : 'INFO',
-    detail: `${validReceipts.length} validated source receipt(s) logged.`
+    label: 'Local Request Evidence',
+    status: validReceipts.length > 0 ? 'RECORDED' : 'NOT_CHECKED',
+    detail: validReceipts.length > 0
+      ? `${validReceipts.length} source request receipt(s) retained locally (max 100; not independently audited).`
+      : 'No provider request receipts recorded on this device.'
   };
 
   return {
@@ -122,7 +135,9 @@ export function evaluateMarketQuality({
     honestSummary: {
       isFullyPolicyCompliant: policyCompliance.status === 'PASS',
       hasNativeExchangeQuotes: nativeQuotesAvailable,
-      overallHealthStatus: unauthorizedAttempts > 0 ? 'FAIL' : 'EXCELLENT'
+      overallHealthStatus: unauthorizedAttempts > 0 ? 'FAIL'
+        : freshness.status === 'NOT_CHECKED' ? 'NOT_CHECKED'
+        : functionalHealth.status === 'WARN' || freshness.status === 'WARN' ? 'ATTENTION' : 'OBSERVED'
     }
   };
 }
