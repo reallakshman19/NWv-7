@@ -36,7 +36,7 @@ export function stripTravelPublisherSuffix(title, source) {
 
 function isEvergreenFlightListing(title, source) {
   return /flightradar24/i.test(source) &&
-    /\\bairport\\s+(?:arrivals|departures)\\b/i.test(title);
+    /\bairport\s+(?:arrivals|departures)\b/i.test(title);
 }
 
 export function parseTravelRssItems(xml) {
