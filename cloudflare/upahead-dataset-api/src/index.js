@@ -1,3 +1,4 @@
+import { EDGE_V2_SHADOW_PATH, isV2ShadowEnabled, verifyEdgeV2Shadow, edgeV2DiagnosticResponse } from './edgeV2Probe.js';
 const UP_AHEAD_DATASET_PATH = '/api/datasets/upAhead';
 const SOURCE_HEADER = 'X-NW-UpAhead-Source';
 const REASON_HEADER = 'X-NW-UpAhead-Reason';
@@ -183,6 +184,13 @@ export function notFoundResponse() {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Opt-in, metadata-only v2 verification. No v1 serving-path changes.
+    if (url.pathname === EDGE_V2_SHADOW_PATH) {
+      if (!isV2ShadowEnabled(env)) return notFoundResponse();
+      if (request.method === 'OPTIONS') return corsResponse();
+      if (request.method !== 'GET') return methodNotAllowedResponse();
+      return edgeV2DiagnosticResponse(await verifyEdgeV2Shadow(env, fetch), jsonResponse);
+    }
     if (!isUpAheadDatasetPath(url.pathname)) return notFoundResponse();
     if (request.method === 'OPTIONS') return corsResponse();
     if (request.method !== 'GET') return methodNotAllowedResponse();
