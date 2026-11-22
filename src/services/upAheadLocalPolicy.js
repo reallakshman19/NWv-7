@@ -43,8 +43,8 @@ export function getAlertProvenance(item) {
 // snapshots while the publisher transitions to the tighter Python rule.
 export function isActionableLocalAlert(item) {
   const text = itemText(item);
-  if (/\\b(?:medical evacuation|medevac|patient airlift|airlifts? patient|evacuat(?:ed|ion) (?:a |the )?(?:patient|national|seafarer|sailor))\\b/i.test(text)) return false;
-  return /\\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|water (?:supply )?(?:cut|outage|interruption|shutdown)|road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|public transport (?:suspended|disruption)|evacuation order|evacuate (?:residents|homes|areas)|public safety (?:warning|advisory)|(?:residents|commuters|drivers) (?:warned|advised|urged) to|service (?:shutdown|suspension|disruption)|airport (?:closure|closed)|school (?:closure|closed))\\b/i.test(text);
+  if (/\b(?:medical evacuation|medevac|patient airlift|airlifts? patient|evacuat(?:ed|ion) (?:a |the )?(?:patient|national|seafarer|sailor))\b/i.test(text)) return false;
+  return /\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|water (?:supply )?(?:cut|outage|interruption|shutdown)|road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|public transport (?:suspended|disruption)|evacuation order|evacuate (?:residents|homes|areas)|public safety (?:warning|advisory)|(?:residents|commuters|drivers) (?:warned|advised|urged) to|service (?:shutdown|suspension|disruption)|airport (?:closure|closed)|school (?:closure|closed))\b/i.test(text);
 }
 
 // Retained public records are subject to the same current admission rules.
