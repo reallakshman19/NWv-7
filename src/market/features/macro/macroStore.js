@@ -8,6 +8,7 @@ import { useSyncExternalStore } from 'react';
 import { fxClient } from './fxClient.js';
 import { subtractCalendarDays } from './fxMath.js';
 import { evaluateFxObservation } from './fxFreshness.js';
+import { recordMarketSourceReceipt, recordMarketSourceFailure, recordMarketSourceObservation } from '../health/marketSourceRecorder.js';
 
 export const OMR_INR_STORAGE_KEY = 'nw7.omr-inr.frankfurter.v1';
 export const USD_INR_STORAGE_KEY = 'nw7.usd-inr.frankfurter.v1';
@@ -171,9 +172,11 @@ class MacroStore {
     };
     this.updateSnapshot();
 
+    const startedAt = Date.now();
     const fetchPromise = (async () => {
       try {
         const result = await fxClient.fetchLatestRate(base, quote, { signal });
+        recordMarketSourceReceipt(result.receipt);
 
         // Race protection
         if (currentReqId === this.latestRequestByPair.get(pairKey)) {
@@ -188,6 +191,7 @@ class MacroStore {
         }
         return result;
       } catch (err) {
+        recordMarketSourceFailure('frankfurter', err, startedAt);
         if (currentReqId === this.latestRequestByPair.get(pairKey)) {
           // If we have an existing cached rate, retain it with a warning
           const existing = this.state.ratesByPair[pairKey]?.value;
@@ -230,6 +234,7 @@ class MacroStore {
       return this.state.historyByPair[pairKey][days];
     }
 
+    const historyRequestedAt = Date.now();
     this.state.historyLoading = true;
     this.state.historyError = null;
     this.updateSnapshot();
@@ -239,6 +244,13 @@ class MacroStore {
       const startIso = subtractCalendarDays(todayIso, days);
 
       const series = await fxClient.fetchRateHistory(startIso, todayIso, base, quote, { signal });
+      recordMarketSourceObservation({
+        sourceId: 'frankfurter',
+        providerAsOf: series.at(-1)?.date,
+        requestedAt: historyRequestedAt,
+        sourceUrl: `https://api.frankfurter.dev/v2/rates?from=${startIso}&to=${todayIso}&base=${base.toLowerCase()}&quotes=${quote.toLowerCase()}`,
+        state: 'HISTORICAL'
+      });
 
       const currentPairHist = this.state.historyByPair[pairKey] || {};
       this.state.historyByPair[pairKey] = {
@@ -251,6 +263,7 @@ class MacroStore {
 
       return series;
     } catch (err) {
+      recordMarketSourceFailure('frankfurter', err, historyRequestedAt);
       this.state.historyLoading = false;
       this.state.historyError = err.message || 'Failed to load historical rate series';
       this.updateSnapshot();
