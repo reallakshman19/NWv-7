@@ -5,6 +5,9 @@ import {
 import { applyAreaRelevance } from './areaRelevanceScorer.js';
 import { isFreshTravelStory } from './travelNewsFreshness.js';
 import { stripTravelPublisherSuffix } from './travelRssParser.js';
+import { hasContradictoryTravelEventLocation } from './travelEventGeography.js';
+import { getTravelStoryPublishedMs } from './travelNewsFreshness.js';
+import { travelTitleFingerprint } from './travelStoryIdentity.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -117,7 +120,7 @@ export function applyMainAreaRelevance(newsData = {}) {
 }
 
 export function scoreStoryForLocation(story, profile) {
-  if (!story || !profile?.prioritizeStories) return 0;
+  if (!story || !profile?.prioritizeStories || hasContradictoryTravelEventLocation(story, profile)) return 0;
 
   const text = cityEvidenceText(story, profile);
   if (!text) return 0;
@@ -146,6 +149,7 @@ export function scoreStoryForLocation(story, profile) {
 // City-specific cards require evidence of this city, not merely the same
 // country or region. Sources and collection lanes are not event evidence.
 export function hasCityEvidence(story, profile) {
+  if (hasContradictoryTravelEventLocation(story, profile)) return false;
   const text = cityEvidenceText(story, profile);
   const terms = profile?.cityKeywords || [profile?.key, profile?.display];
   return terms.map(normalize).filter(term => term.length > 2)
@@ -170,9 +174,14 @@ export function rankStoriesForLocation(newsData = {}, profileInput = null, optio
       _travelLocationKey: profile.key,
     }))
     .filter(story => story._travelLocationScore >= minScore)
-    .sort((a, b) => b._travelLocationScore - a._travelLocationScore)
+    .sort((a, b) =>
+      b._travelLocationScore - a._travelLocationScore ||
+      (getTravelStoryPublishedMs(b) || 0) - (getTravelStoryPublishedMs(a) || 0) ||
+      Number(b._travelSection === 'travelLocal') - Number(a._travelSection === 'travelLocal') ||
+      storyKey(a).localeCompare(storyKey(b))
+    )
     .filter(story => {
-      const key = storyKey(story);
+      const key = travelTitleFingerprint(story) || storyKey(story);
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
