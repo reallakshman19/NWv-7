@@ -80,6 +80,15 @@ export function auditMarketPublicationRoot(root, { required = true } = {}) {
     /^(?:fx_snapshot|forex_snapshot|market_legacy_quotes)\b/i.test(name)
   );
   for (const name of forbiddenAssetNames) errors.push('FORBIDDEN_PUBLIC_FX_ASSET:' + name);
+  // A new financial JSON filename must undergo its own licensing and data
+  // contract review; otherwise a renamed exporter bypasses fixed-file checks.
+  const financialNames = /(?:market|fx|forex|nav|fund|equity|stocks?|indices|^nse|^bse|^yahoo)/i;
+  for (const name of files) {
+    if (financialNames.test(name) && !QUOTE_FREE_ASSETS.includes(name) &&
+        !forbiddenAssetNames.includes(name)) {
+      errors.push('UNREVIEWED_FINANCIAL_PUBLIC_ASSET:' + name);
+    }
+  }
   const checked = [];
   for (const name of QUOTE_FREE_ASSETS) {
     if (!files.includes(name)) {
