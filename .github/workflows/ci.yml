@@ -66,9 +66,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m unittest discover -s scripts -p 'test_upahead_*_v2_shadow.py' -v
-          node --test scripts/test_upahead_generation_v2_parity.mjs \\
-            cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs \\
-            cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs
+          node --test scripts/test_upahead_generation_v2_parity.mjs cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs
 
       - name: Validate PR evidence contract
         if: github.event_name == 'pull_request'
