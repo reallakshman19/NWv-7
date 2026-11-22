@@ -300,14 +300,22 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
     chosen: list[dict[str, Any]] = []
     chosen_ids: set[int] = set()
     selected_by_category = Counter()
-    active_bytes = 0
+    # Serialization size is additive for these JSON-indented list elements.
+    # A single row contributes its one-row wrapper growth; each additional row
+    # replaces the former closing item indent with a comma and sibling indent
+    # (net -2 bytes versus two independently wrapped single-item payloads).
+    # Computing a full growing JSON payload for every candidate was O(n²)
+    # bytes encoded per three-hour refresh. Precompute each row once instead.
+    empty_bytes = active_published_bytes([])
+    row_deltas = [active_published_bytes([row]) - empty_bytes for row in ordered]
+    active_bytes = empty_bytes
     byte_rejected_indexes: set[int] = set()
 
     def admit(index: int, row: dict[str, Any]) -> bool:
         nonlocal active_bytes
         if len(chosen) >= MAX_ACTIVE_ITEMS:
             return False
-        next_bytes = active_published_bytes([*chosen, row])
+        next_bytes = active_bytes + row_deltas[index] - (2 if chosen else 0)
         if next_bytes > MAX_ACTIVE_BYTES:
             byte_rejected_indexes.add(index)
             return False
@@ -328,6 +336,10 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
 
     rejected = [row for index, row in enumerate(ordered) if index not in chosen_ids]
     rejected_by_category = Counter(str(row.get("category") or "unknown") for row in rejected)
+    # Fail closed if the size arithmetic ever diverges from the actual v1
+    # publisher JSON encoding; never publish a byte-cap estimate as proof.
+    if active_bytes != active_published_bytes(chosen):
+        raise ValueError("UpAhead bounded publication byte accounting mismatch")
     metrics = {
         "maxActiveItems": MAX_ACTIVE_ITEMS,
         "maxActiveBytes": MAX_ACTIVE_BYTES,
