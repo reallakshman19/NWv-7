@@ -6,6 +6,7 @@ import { getUpAheadEvidence } from './upAheadEvidence.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
 import { matchesUpAheadLocation } from './upAheadLocation.js';
 import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday, isActionableCivicNotice, isActionableLocalAlert } from './upAheadLocalPolicy.js';
+import { groupReviewOnlyEventListings } from './upAheadReviewGrouping.js';
 
 const DEFAULT_UPAHEAD_SETTINGS = {
   categories: {
@@ -287,10 +288,10 @@ function getVisibleUpAheadProjection({ data, settings }) {
   const movieCards = asArray(sections.movies).filter(local).map(buildCardArticle);
   const festivalCards = asArray(sections.festivals).filter(local)
     .filter(item => isLocalHoliday(item, locations)).map(buildCardArticle);
-  const eventItems = [
+  const eventItems = groupReviewOnlyEventListings([
     ...asArray(sections.events),
     ...asArray(sections.sports),
-  ].filter(local);
+  ].filter(local));
 
   const suggestedItems = buildSuggestedItems({
     movieCards,
