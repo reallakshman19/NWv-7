@@ -109,12 +109,17 @@ export function getMarketSessionState({
     const isWeekend = parts.weekday === 'Sat' || parts.weekday === 'Sun';
     const { holidaySet, holidayYears } = normalizeHolidayList(tradingHolidays);
     const todayKey = buildIstDateKey(parts);
-    const hasHolidayCalendarForYear = holidayYears.has(parts.year);
-    const isHoliday = hasHolidayCalendarForYear && holidaySet.has(todayKey);
-    const isOfficialHoliday = Boolean(
-        NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY[parts.year] &&
-        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year]?.includes(todayKey)
+    const official = NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY[parts.year];
+    const officialDays = official ? MARKET_TRADING_HOLIDAY_CALENDAR[parts.year] || [] : [];
+    const verifiedHolidayYear = Boolean(
+        official && officialDays.length === official.weekdayHolidayCount &&
+        new Set(officialDays).size === official.weekdayHolidayCount
     );
+    // Source authority must not depend on old persisted user settings. The
+    // built-in NSE closures remain effective when legacy settings omit them.
+    const isOfficialHoliday = verifiedHolidayYear && officialDays.includes(todayKey);
+    const isUserListedHoliday = holidaySet.has(todayKey);
+    const isHoliday = isOfficialHoliday || isUserListedHoliday;
 
     const timestamp = parseTimestamp(quoteAt);
     const ageMinutes = timestamp !== null && timestamp <= now.getTime()
@@ -126,15 +131,10 @@ export function getMarketSessionState({
         : ageMinutes < 60
             ? `${ageMinutes}m ago`
             : `${Math.round(ageMinutes / 60)}h ago`;
-    const official = NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY[parts.year];
-    const verifiedHolidayYear = Boolean(
-        official && hasHolidayCalendarForYear &&
-        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year]?.length === official.weekdayHolidayCount &&
-        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year].every(day => holidaySet.has(day))
-    );
+
     const holidayCalendarStatus = verifiedHolidayYear
         ? 'nse_circular_verified_list_live_status_unverified'
-        : hasHolidayCalendarForYear
+        : holidayYears.has(parts.year)
             ? 'listed_year_completeness_unverified'
             : 'unknown_year_weekday_rules';
     const baseState = {
@@ -161,7 +161,7 @@ export function getMarketSessionState({
             ...baseState,
             label: 'Closed (scheduled)',
             tone: 'muted',
-            reason: isWeekend ? 'Weekend' : isOfficialHoliday && verifiedHolidayYear
+            reason: isWeekend ? 'Weekend' : isOfficialHoliday
                 ? 'NSE 2026 capital-market circular holiday' : 'Listed holiday (unverified)',
             isOpen: false,
         };
