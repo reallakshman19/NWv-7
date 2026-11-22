@@ -48,6 +48,29 @@ class AcquisitionRecovery(unittest.TestCase):
         self.assertTrue(collector.has_category_intent('alerts', 'Residents advised to avoid flooded roads'))
         self.assertTrue(collector.has_category_intent('alerts', 'Evacuation order for residents following a fire'))
 
+    def test_F02_public_health_alerts_survive_and_medical_rescue_stays_excluded(self):
+        admitted = [
+            'Chennai boil-water advisory for contaminated tap water',
+            'Muscat water-contamination warning instructing residents to boil drinking water',
+            'Muscat contaminated tap water; residents advised to boil before drinking',
+            'Chennai public health advisory: residents warned to boil drinking water',
+            'Chennai power shutdown and traffic diversion tomorrow',
+            'Muscat medical evacuation reported; residents warned to boil drinking water',
+        ]
+        rejected = [
+            'RAFO airlifts Russian national for medical emergency in Muscat',
+            'Muscat medevac of an injured sailor on an offshore ship',
+            'Newspaper discusses the history of water-quality testing in Chennai',
+            'Officials deny rumors of water contamination',
+            'Muscat water conservation campaign asks households to save water',
+        ]
+        for title in admitted:
+            with self.subTest(title=title):
+                self.assertTrue(collector.has_category_intent('alerts', title))
+        for title in rejected:
+            with self.subTest(title=title):
+                self.assertFalse(collector.has_category_intent('alerts', title))
+
     def test_existing_rescue_news_does_not_reenter_via_new_feed(self):
         from types import SimpleNamespace
         article = dict(title='RAFO airlifts Russian national for medical emergency',
