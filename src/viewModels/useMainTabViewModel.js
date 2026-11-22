@@ -411,21 +411,35 @@ export function useMainTabViewModel({ isWebView = false } = {}) {
     }
 
     let cancelled = false;
-
-    fetchTravelNewsPayload({ profile: travelLocationProfile })
-      .then(payload => {
-        if (!cancelled) setTravelNewsPayload(payload);
-      })
-      .catch(error => {
-        console.warn('[useMainTabViewModel] travel news fetch failed', {
-          message: error?.message || String(error),
+    let latestRequest = 0;
+    const refreshTravelNews = () => {
+      const requestId = ++latestRequest;
+      fetchTravelNewsPayload({ profile: travelLocationProfile })
+        .then(payload => {
+          if (!cancelled && requestId === latestRequest) setTravelNewsPayload(payload);
+        })
+        .catch(error => {
+          if (cancelled || requestId !== latestRequest) return;
+          console.warn('[useMainTabViewModel] travel news fetch failed', {
+            message: error?.message || String(error),
+          });
+          setTravelNewsPayload(null);
         });
+    };
 
-        if (!cancelled) setTravelNewsPayload(null);
-      });
+    refreshTravelNews();
+    // Recheck source receipts while Main remains open. An expired JSON must
+    // stop displaying even if the user never navigates or refreshes the page.
+    const interval = setInterval(refreshTravelNews, 5 * 60 * 1000);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshTravelNews();
+    };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       cancelled = true;
+      clearInterval(interval);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [travelLocationProfile]);
 
