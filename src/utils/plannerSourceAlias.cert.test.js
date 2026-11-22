@@ -11,7 +11,7 @@ const date='2026-11-26';
 const started=Date.parse('2026-11-26T09:00:00Z');
 const event = (id, extra={}) => ({
   id, title:'AI & Bioinformatics Workshop',
-  city:'Chennai', category:'events', sourceGroup:'chennai-calendar',
+  city:'Chennai', category:'events', sourceGroup:'chennai-calendar', sessionId:'organizer-session-a',
   venue:'IIT Madras Research Park',
   eventStartAt:started,
   link:'https://chennai2go.in/event/authentic-session-a',
@@ -100,6 +100,16 @@ describe('fail-closed Planner source-ID compatibility',()=>{
        'https://publisher.example.org/event/authentic-session-a']) {
       expect(sameSourceBackedPlannerEvent(event('a',{link}),event('b',{link}),date)).toBe(false);
     }
+  });
+
+  it('F01: missing session IDs are unknown, even with an exact event permalink and identical title',()=>{
+    const prior = event('historical-id',{sessionId:null});
+    const revision = event('new-id',{sessionId:null});
+    expect(sameSourceBackedPlannerEvent(prior,revision,date)).toBe(false);
+    expect(plannerStorage.addItem(date,prior).ok).toBe(true);
+    expect(plannerStorage.addItem(date,revision).ok).toBe(true);
+    expect(plannerStorage.getPlan()[date].map(x=>x.id)).toEqual(['historical-id','new-id']);
+    expect(sameSourceBackedPlannerEvent(prior,event('new-id',{sessionId:'organizer-session-a'}),date)).toBe(false);
   });
 
   it('keeps distinct original session IDs even if the listing URL is reused',()=>{
