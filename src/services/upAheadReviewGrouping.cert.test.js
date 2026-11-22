@@ -55,7 +55,11 @@ describe('Unverified UpAhead workshop display clustering', () => {
   it('does not infer an identity from conflicting or missing original URLs', () => {
     const repeated = [row('first','Drone Technology Workshop'),row('second','Drone Technology 2-Day Workshop')];
     expect(groupReviewOnlyEventListings([...repeated, {...repeated[0],id:'third'}])).toHaveLength(3);
-    expect(groupReviewOnlyEventListings([...repeated, {...repeated[0],link:'ftp://bad'}])).toHaveLength(3);
+    const withBadLink = groupReviewOnlyEventListings([...repeated, {...repeated[0],link:'ftp://bad'}]);
+    expect(withBadLink).toHaveLength(2);
+    expect(withBadLink[0].reviewAlternateListings.map(item=>item.id)).toEqual(['first','second']);
+    expect(withBadLink[1].link).toBe('ftp://bad');
+    expect(withBadLink[1].reviewGroupStatus).toBeUndefined();
     expect(groupReviewOnlyEventListings([row('a','Unrelated concert')])).toHaveLength(1);
   });
 });
