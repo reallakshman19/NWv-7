@@ -72,10 +72,9 @@ export function readReceiptsLog(storage) {
     return { records: [], corrupt: false };
   }
 
-  const raw = storage.getItem(RECEIPTS_LOG_STORAGE_KEY);
-  if (!raw) return { records: [], corrupt: false };
-
   try {
+    const raw = storage.getItem(RECEIPTS_LOG_STORAGE_KEY);
+    if (!raw) return { records: [], corrupt: false };
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return { records: [], corrupt: true };
     return { records: parsed, corrupt: false };
