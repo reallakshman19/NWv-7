@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { macroStore, OMR_INR_STORAGE_KEY } from './macro/macroStore.js';
-import { fxClient } from './macro/fxClient.js';
-import { evaluateFxObservation, canConvertFxRate } from './macro/fxFreshness.js';
-import { fundClient } from './funds/fundClient.js';
-import { fundStore } from './funds/fundStore.js';
-import { healthStore } from './health/healthStore.js';
+import { macroStore, OMR_INR_STORAGE_KEY } from './features/macro/macroStore.js';
+import { fxClient } from './features/macro/fxClient.js';
+import { evaluateFxObservation, canConvertFxRate } from './features/macro/fxFreshness.js';
+import { fundClient } from './features/funds/fundClient.js';
+import { fundStore } from './features/funds/fundStore.js';
+import { healthStore } from './features/health/healthStore.js';
 
 const NOW = Date.UTC(2026, 10, 22, 12, 0, 0);
 const makeRate = (date = '2026-11-22', rate = 220) => ({
