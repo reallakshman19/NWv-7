@@ -339,13 +339,17 @@ export default function MarketPage() {
   };
 
   const refresh = () => {
+    if ((rawMarketData || marketData)?.sourceMode === 'free-open-only') {
+      setRefreshResult('No native market-quote feed is enabled. Refresh currency rates and fund NAVs within their own workspaces.');
+      return;
+    }
     setRefreshResult('Checking the quote publication…');
     void Promise.resolve(refreshMarket?.(true))
       .then(result =>
         setRefreshResult(
           result?.ok === false
             ? `Refresh failed: ${result.error || 'Source unavailable'}`
-            : 'Refresh check finished. Individual quotes retain their original source times.'
+            : 'Market publication check completed; verify individual source dates.'
         )
       )
       .catch(failure => setRefreshResult(`Refresh failed: ${failure?.message || 'Source unavailable'}`));
