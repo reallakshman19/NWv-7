@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFundStore } from './fundStore.js';
 import { fundClient } from './fundClient.js';
+import { recordMarketSourceObservation, recordMarketSourceFailure } from '../health/marketSourceRecorder.js';
 import {
   calculateTrailingReturns,
   calculateMaxDrawdown,
@@ -99,13 +100,23 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
 
     const controller = new AbortController();
     const timer = setTimeout(async () => {
+      const requestedAt = Date.now();
       setSearchBusy(true);
       setSearchError(null);
       try {
         const rows = await fundClient.searchFunds(searchQuery, { signal: controller.signal });
-        setSearchResults(rows);
+        if (!controller.signal.aborted) {
+          recordMarketSourceObservation({
+            sourceId: 'mfapi',
+            state: rows.length > 0 ? 'UNVERIFIED' : 'NO_RESULTS',
+            requestedAt,
+            sourceUrl: `https://api.mfapi.in/mf/search?q=${encodeURIComponent(searchQuery.trim().slice(0, 120))}`
+          });
+          setSearchResults(rows);
+        }
       } catch (err) {
         if (!controller.signal.aborted) {
+          recordMarketSourceFailure('mfapi', err, requestedAt);
           setSearchError(err.message || 'Search failed');
         }
       } finally {
