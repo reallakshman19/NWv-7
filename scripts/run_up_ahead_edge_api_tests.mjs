@@ -5,6 +5,12 @@ const npxBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
 export const UP_AHEAD_EDGE_API_TEST_COMMANDS = [
   {
+    label: 'UpAhead v2 Cloudflare generation shadow integrity tests',
+    command: nodeBin,
+    args: ['--test', 'cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs'],
+    display: 'node --test cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs',
+  },
+  {
     label: 'Worker contract executable test',
     command: nodeBin,
     args: ['scripts/test_up_ahead_edge_worker_contract.mjs'],
