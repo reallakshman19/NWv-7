@@ -34,8 +34,8 @@ function eventSlot(row, date) {
  * event; never changes the stored row or upgrades source authority.
  */
 export function sameSourceBackedPlannerEvent(a, b, date) {
-  const urlA = sourceUrl(a?.link || a?.url || a?.sourceUrl);
-  const urlB = sourceUrl(b?.link || b?.url || b?.sourceUrl);
+  const urlA = sourceUrl(a?.link || a?.url);
+  const urlB = sourceUrl(b?.link || b?.url);
   if (!urlA || !urlB || urlA !== urlB) return false;
   const slotA = eventSlot(a,date), slotB = eventSlot(b,date);
   if (!slotA || slotA !== slotB) return false;
