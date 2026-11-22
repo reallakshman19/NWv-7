@@ -440,4 +440,6 @@ const plannerStorage = {
     }
 };
 
+export const __plannerStorageInternalsForTest = { sameDurableRow };
+
 export default plannerStorage;
