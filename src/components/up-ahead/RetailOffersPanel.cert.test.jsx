@@ -48,8 +48,10 @@ describe('populated retailer offers',()=>{
   expect(screen.queryByRole('article')).toBeNull();
   expect(screen.getByText(/No current in-store offers could be verified/)).toBeTruthy();
   expect(screen.getByRole('complementary',{name:'Retailer source directory'})).toBeTruthy();
-  expect(screen.getByRole('link',{name:'HyperMax Oman · Store offers'}).getAttribute('href'))
-    .toBe('https://www.hypermax.com.om/mafomn/en/shop/storespromotions');
+  // Retailer filter remains set to LuLu across the channel switch.
+  expect(screen.getByRole('link',{name:'LuLu Oman · Store offers'}).getAttribute('href'))
+    .toBe('https://gcc.luluhypermarket.com/en-om/grocery-household-laundry-essentials/');
+  expect(screen.queryByRole('link',{name:'HyperMax Oman · Store offers'})).toBeNull();
   expect(screen.queryByRole('link',{name:/Amazon India.*Store offers/})).toBeNull();
  });
  it('clearly separates verified offers from browse-only retailer links when the snapshot is stale',()=>{
