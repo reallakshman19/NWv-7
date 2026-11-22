@@ -368,7 +368,9 @@ export function FundsPanel({ initialCode = null, onNavigateWorkspace = null }) {
                             <button
                               type="button"
                               className="portfolio-btn portfolio-btn-secondary btn-xs"
-                              onClick={() => actions.fetchSchemeNav(code, { force: true })}
+                              onClick={() => actions.fetchSchemeNav(code, { force: true }).catch(() => {
+                                // The fund store exposes the failed refresh state.
+                              })}
                               title="Force fresh network check"
                             >
                               Refresh
