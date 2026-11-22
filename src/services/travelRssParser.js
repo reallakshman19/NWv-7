@@ -22,6 +22,23 @@ function readTag(item, tag) {
   return decodeXmlText(regex.exec(item)?.[1] || '');
 }
 
+// Google News commonly appends " - Publisher Name" to the headline itself.
+// Treat it as acquisition metadata, never evidence that an event took place
+// in a city whose name happens to appear in the publisher's brand.
+export function stripTravelPublisherSuffix(title, source) {
+  const text = String(title || '').trim();
+  const publisher = String(source || '').trim();
+  const suffix = ' - ' + publisher;
+  return publisher && text.toLocaleLowerCase().endsWith(suffix.toLocaleLowerCase())
+    ? text.slice(0, -suffix.length).trim()
+    : text;
+}
+
+function isEvergreenFlightListing(title, source) {
+  return /flightradar24/i.test(source) &&
+    /\bairport\s+(?:arrivals|departures)\b/i.test(title);
+}
+
 export function parseTravelRssItems(xml) {
   if (typeof xml !== 'string' || !/<rss\b/i.test(xml)) {
     throw new Error('Invalid RSS document (missing rss root)');
@@ -31,16 +48,20 @@ export function parseTravelRssItems(xml) {
   let match;
   while ((match = itemRegex.exec(xml)) !== null) {
     const item = match[1];
-    const title = readTag(item, 'title');
+    const source = readTag(item, 'source');
+    const title = stripTravelPublisherSuffix(readTag(item, 'title'), source);
     const url = readTag(item, 'link');
     const date = readTag(item, 'pubDate');
-    if (!title || !/^https?:\/\//i.test(url) || !date) continue;
+    // No publisher provenance, no article; reject continuously regenerated
+    // utility listings that are not time-bound editorial news.
+    if (!title || !source || !/^https?:\/\//i.test(url) || !date ||
+        isEvergreenFlightListing(title, source)) continue;
     result.push({
       id: readTag(item, 'guid') || url,
       title,
       url,
       link: url,
-      source: readTag(item, 'source') || 'Google News',
+      source,
       publishedAt: date,
       // No synthetic city/country: the query or publisher isn't event geography.
     });

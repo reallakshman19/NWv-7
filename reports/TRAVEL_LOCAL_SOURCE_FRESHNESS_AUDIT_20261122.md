@@ -41,3 +41,15 @@
 - Deployed GitHub Pages observed data: **not yet verified**; browser connector did not respond during audit, so live UI behavior is not claimed.
 
 **Release rule:** No claim of fresh city news is justified by a green code-only test. The collector must actually fetch, parse, validate, publish and trigger Pages provenance verification on real source data.
+
+## First real-source acceptance and subsequent geographic correction
+
+**Collector run:** https://github.com/reallakshman19/NWv-7/actions/runs/44986353223
+**Published data commit:** `00312f03b7e7d18d572cf165d793fbb733369eee`
+**Collected 2026-11-22 04:44 UTC:** Chennai 30, Trichy 1, Muscat 14, Colombo 10; all four reported five successful Google News RSS queries and zero fetch errors. This closes the old empty/missing collection defect.
+
+**Additional live-content finding:** Google News RSS titles include ` - Publisher` suffixes. Titles from `Muscat Daily` were falsely admitted as Muscat event news (for example an OCCI voting story whose body title did not name Muscat). A Singapore tourism article mentioning **Muscat grapes** was also admitted as a city headline. Colombo's continuously refreshed Flightradar24 arrivals/departures listings are not current editorial news. These are source-identity errors, not timestamp errors.
+
+**Follow-up correction:** Strip the known RSS publisher suffix before scoring and display; preserve publisher separately as source. Exclude the grape/wine cultivar sense of Muscat from location relevance; reject evergreen flight-tracker listing items, and certify those negative examples. Extend workflow bootstrap triggers to source/parser/geography code changes so published city JSON can be regenerated promptly.
+
+The initial live collector success is **not** proof that all article geography is correct. Release acceptance requires the follow-up source-cleaning check and refreshed city JSON.
