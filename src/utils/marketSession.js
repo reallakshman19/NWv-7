@@ -1,3 +1,4 @@
+import { MARKET_TRADING_HOLIDAY_CALENDAR, NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY } from '../config/settings_market.js';
 const MARKET_TIME_ZONE = 'Asia/Kolkata';
 const MARKET_OPEN_MINUTES = 9 * 60 + 15;
 const MARKET_CLOSE_MINUTES = 15 * 60 + 30;
@@ -121,9 +122,17 @@ export function getMarketSessionState({
         : ageMinutes < 60
             ? `${ageMinutes}m ago`
             : `${Math.round(ageMinutes / 60)}h ago`;
-    const holidayCalendarStatus = hasHolidayCalendarForYear
-        ? 'listed_year_completeness_unverified'
-        : 'unknown_year_weekday_rules';
+    const official = NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY[parts.year];
+    const verifiedHolidayYear = Boolean(
+        official && hasHolidayCalendarForYear &&
+        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year]?.length === official.weekdayHolidayCount &&
+        MARKET_TRADING_HOLIDAY_CALENDAR[parts.year].every(day => holidaySet.has(day))
+    );
+    const holidayCalendarStatus = verifiedHolidayYear
+        ? 'nse_circular_verified_list_live_status_unverified'
+        : hasHolidayCalendarForYear
+            ? 'listed_year_completeness_unverified'
+            : 'unknown_year_weekday_rules';
     const baseState = {
         ageLabel,
         ageMinutes,
@@ -131,12 +140,25 @@ export function getMarketSessionState({
         holidayCalendarYear: parts.year,
     };
 
+    // NSE's 2026 special Muhurat Sunday session has a separately notified
+    // timetable; Sunday alone does not prove the exchange is closed all day.
+    if (official?.exceptionalSessionDates?.includes(todayKey)) {
+        return {
+            ...baseState,
+            label: 'Special Session — verify NSE',
+            tone: 'warning',
+            reason: 'Muhurat Trading timetable not verified by this calendar',
+            isOpen: null,
+        };
+    }
+
     if (isWeekend || isHoliday) {
         return {
             ...baseState,
-            label: 'Closed',
+            label: 'Closed (scheduled)',
             tone: 'muted',
-            reason: isWeekend ? 'Weekend' : 'Holiday',
+            reason: isWeekend ? 'Weekend' : verifiedHolidayYear
+                ? 'NSE 2026 capital-market circular holiday' : 'Listed holiday (unverified)',
             isOpen: false,
         };
     }
@@ -151,11 +173,15 @@ export function getMarketSessionState({
         };
     }
 
+    // This is an indicative timetable, not exchange connectivity or a live
+    // confirmation of trading, even when the official holiday list is complete.
     return {
         ...baseState,
-        label: 'Regular NSE Hours',
-        tone: 'success',
-        reason: 'Within regular NSE hours. Holiday calendar may be incomplete.',
-        isOpen: true,
+        label: verifiedHolidayYear ? 'Scheduled NSE Hours' : 'Indicative NSE Hours',
+        tone: verifiedHolidayYear ? 'muted' : 'warning',
+        reason: verifiedHolidayYear
+            ? 'Within the NSE 2026 regular timetable; live/exceptions not checked'
+            : 'Within regular timetable; official holiday calendar unverified',
+        isOpen: null,
     };
 }
