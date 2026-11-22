@@ -114,8 +114,8 @@ export function useWeatherTabViewModel() {
   const refresh = useCallback(async (force = true) => {
     try {
       if (typeof refreshWeather === 'function') {
-        await Promise.resolve(refreshWeather(force));
-        return { ok: true };
+        const result = await Promise.resolve(refreshWeather(force));
+        return result && result.ok === false ? result : { ok: true };
       }
 
       return {
