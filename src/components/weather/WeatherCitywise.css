@@ -115,3 +115,19 @@ section.quick-weather-card .weather-hour-intervals--compact{margin-top:2px;paddi
 @media(max-width:540px){
   section.quick-weather-card .whi-title strong{font-size:14px!important;line-height:1.3!important}
 }
+
+/* Progressive disclosure: secondary planning/comparison data remains accessible,
+   but does not dominate the city-first mobile weather screen. */
+.weather-secondary-details{margin:8px 16px;border:1px solid rgba(148,163,184,.2);border-radius:12px;overflow:hidden;background:rgba(15,23,42,.22)}
+.weather-secondary-details>summary{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:11px 13px;cursor:pointer;list-style:none;color:#cbd5e1;font-size:13px;font-weight:700}
+.weather-secondary-details>summary::-webkit-details-marker{display:none}
+.weather-secondary-details>summary svg{transition:transform .15s ease}
+.weather-secondary-details[open]>summary svg{transform:rotate(180deg)}
+.weather-secondary-details>summary:focus-visible{outline:2px solid #5eead4;outline-offset:-3px}
+.weather-secondary-details[open]>summary{border-bottom:1px solid rgba(148,163,184,.14)}
+.weather-secondary-details .wcc-card,.weather-secondary-details .wps-card{margin:0;border:0;border-radius:0;box-shadow:none}
+@media(max-width:540px){
+ .weather-secondary-details{margin:7px 10px}
+ .weather-secondary-details>summary{font-size:12px;padding:10px 11px}
+}
+@media(prefers-reduced-motion:reduce){.weather-secondary-details>summary svg{transition:none}}

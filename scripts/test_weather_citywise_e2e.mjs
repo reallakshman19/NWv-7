@@ -138,6 +138,14 @@ try {
       await page.waitForFunction(()=>!JSON.parse(localStorage.getItem('dailyEventAI_settings')||'{}')?.weather?.cities?.includes('london'));
       if(await page.locator('[data-weather-city-strip] button:has-text("London")').count())throw Error('Removed city remained in Weather tab');
     }
+    const secondary=page.locator('details.weather-secondary-details');
+    if(width===390){
+      if(await secondary.count()!==2)throw Error('Mobile comparison/planning disclosures not present');
+      if(await secondary.first().getAttribute('open')!==null)throw Error('Mobile comparison dominates first fold');
+      await secondary.first().locator('summary').click();
+      if(await secondary.first().getAttribute('open')===null)throw Error('City comparison did not expand on demand');
+      await secondary.first().locator('summary').click();
+    }
     await ensureNoOverflow(page,'Weather '+width+'px');
     if(width===390){
       await page.goto(BASE+'/#/',{waitUntil:'domcontentloaded'});
