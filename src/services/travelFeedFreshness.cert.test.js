@@ -10,7 +10,7 @@ import {
   filterFreshTravelStories,
 } from './travelNewsFreshness.js';
 import { parseTravelRssItems, stripTravelPublisherSuffix } from './travelRssParser.js';
-import { hasCityEvidence } from './storyLocationPriority.js';
+import { hasCityEvidence, scoreStoryForLocation } from './storyLocationPriority.js';
 import { rankStoriesForLocation } from './storyLocationPriority.js';
 import { fetchTravelNewsPayload } from './travelNewsIngestion.js';
 
@@ -72,6 +72,10 @@ describe('Travel Local news freshness, retention and source custody', () => {
       title: 'From murtabak to Muscat grapes: Malaysian trips to Singapore',
       source: 'The Straits Times',
     }, muscat)).toBe(false);
+    expect(scoreStoryForLocation({
+      title: 'From murtabak to Muscat grapes: Malaysian trips to Singapore',
+      source: 'The Straits Times',
+    }, muscat)).toBe(0);
     expect(hasCityEvidence({
       title: 'Muscat Municipality announces new Qurum road works',
       source: 'Times of Oman',
