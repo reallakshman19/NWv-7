@@ -1,3 +1,18 @@
+/**
+ * Source-backed NSE Capital Market equity calendar for 2026 only.
+ * A year appearing in the legacy list is not evidence its list is complete.
+ */
+export const NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY = Object.freeze({
+    2026: Object.freeze({
+        source: 'NSE',
+        circular: 'NSE/CMTR/71775',
+        published: '2025-12-12',
+        url: 'https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf',
+        weekdayHolidayCount: 15,
+        exceptionalSessionDates: Object.freeze(['2026-11-08'])
+    })
+});
+
 export const MARKET_TRADING_HOLIDAY_CALENDAR = {
     2024: [
         '2024-01-22', '2024-01-26', '2024-03-08', '2024-03-25', '2024-03-29',
@@ -10,9 +25,15 @@ export const MARKET_TRADING_HOLIDAY_CALENDAR = {
         '2025-04-18', '2025-05-01', '2025-08-15', '2025-10-02', '2025-10-20',
         '2025-11-05', '2025-12-25',
     ],
+    // NSE Capital Market circular NSE/CMTR/71775, 12 Dec 2025, 15 weekday closures.
+    // https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf
+    // Excludes weekend-only observances. A Sunday Muhurat special session
+    // (2026-11-08) must be treated separately, not as regular Sunday trading.
     2026: [
-        '2026-01-26', '2026-03-04', '2026-04-03', '2026-05-01',
-        '2026-10-02', '2026-12-25',
+        '2026-01-26', '2026-03-03', '2026-03-26', '2026-03-31',
+        '2026-04-03', '2026-04-14', '2026-05-01', '2026-05-28',
+        '2026-06-26', '2026-09-14', '2026-10-02', '2026-10-20',
+        '2026-11-10', '2026-11-24', '2026-12-25',
     ],
 };
 
