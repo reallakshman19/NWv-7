@@ -9,3 +9,8 @@
 .wss-detail__top strong{font-size:.84rem}.wss-detail__top button{display:grid;place-items:center;width:28px;height:28px;border:0;color:#e2e8f0;background:transparent;cursor:pointer}
 .wss-detail p{margin:7px 0 0;color:#cbd5e1}.wss-detail small{display:block;margin-top:10px;color:#94a3b8}
 .weather-source-status--compact .wss-button{width:30px;height:30px;border-radius:9px}
+
+/* Align disclosure with the entire Quick Weather toolbar, not the small icon.
+   Prevents a 300px panel from opening beyond the left viewport edge. */
+.weather-source-status--compact .wss-detail{right:-125px}
+@media(max-width:340px){.weather-source-status--compact .wss-detail{right:-118px}}

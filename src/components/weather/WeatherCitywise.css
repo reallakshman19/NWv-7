@@ -35,3 +35,5 @@
 @media(max-width:800px){.weather-citywise-content .dw-cards-list{display:flex;overflow-x:auto;scroll-snap-type:x proximity;gap:9px;padding-bottom:7px}.weather-citywise-content .dw-card{flex:0 0 min(280px,78vw);scroll-snap-align:start}}
 @media(max-width:540px){.quick-weather-card{padding:11px!important}.quick-weather-card .qw-config-add-btn{padding:0 8px!important}.qw-current-summary div{gap:6px}.qw-current-summary strong{font-size:1.25rem}.weather-citywise-content .dw-content{padding:6px 10px}.weather-city-toolbar{padding:0 10px}.weather-city-toolbar .wlm-toggle{min-width:72px}.weather-city-toolbar .wlm-collapsed__copy{display:none}.weather-city-toolbar .wlm-collapsed{justify-content:flex-end}}
 @media(prefers-reduced-motion:reduce){.weather-citywise-content .dw-card,.quick-weather-card{transition:none!important;animation:none!important}}
+
+.weather-citywise-content .dw-content,.weather-hour-intervals,.quick-weather-card{box-sizing:border-box}

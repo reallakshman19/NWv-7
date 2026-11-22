@@ -98,6 +98,12 @@ try {
       const selected=await page.locator('[data-quick-weather] [aria-current="true"]').textContent();
       if(!selected?.includes('London'))throw Error('Quick Weather did not retain Weather tab selection');
       await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-desktop.png'});
+      const quickHealth = page.locator('[data-quick-weather] [data-weather-health-icon]').first();
+      await quickHealth.click();
+      const sourceBox = await page.locator('[data-quick-weather] [data-weather-source-details]').first().boundingBox();
+      if(!sourceBox || sourceBox.x < 0 || sourceBox.x+sourceBox.width > width + 1)
+        throw Error('Desktop Quick Weather source details clipped to viewport: '+JSON.stringify(sourceBox));
+      await page.locator('[data-quick-weather]').getByRole('button',{name:'Close data source details'}).click();
       await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
       await page.getByRole('button',{name:'Manage',exact:true}).click();
       await page.getByRole('button',{name:'Remove London'}).click();
@@ -109,6 +115,11 @@ try {
       await page.goto(BASE+'/#/',{waitUntil:'domcontentloaded'});
       await waitFor(page,'[data-quick-weather]');
       await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-mobile.png'});
+      await page.locator('[data-quick-weather] [data-weather-health-icon]').first().click();
+      const sourceBox = await page.locator('[data-quick-weather] [data-weather-source-details]').first().boundingBox();
+      if(!sourceBox || sourceBox.x < 0 || sourceBox.x+sourceBox.width > width + 1)
+        throw Error('Mobile Quick Weather source details clipped to viewport: '+JSON.stringify(sourceBox));
+      await page.locator('[data-quick-weather]').getByRole('button',{name:'Close data source details'}).click();
       await ensureNoOverflow(page,'Quick Weather mobile');
     }
     await context.close();
