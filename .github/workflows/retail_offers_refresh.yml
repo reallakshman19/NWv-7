@@ -38,6 +38,11 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npx vitest run src/services/retailOffers.cert.test.js src/services/retailFlyers.cert.test.js src/components/up-ahead/RetailOffersPanel.cert.test.jsx src/pages/UpAheadLocalSources.cert.test.jsx
+      - name: Verify Playwright Chromium install and launch (PR, no retail network)
+        if: github.event_name == 'pull_request'
+        run: |
+          npx playwright install --with-deps chromium
+          node --input-type=module -e 'import { chromium } from "playwright"; const browser = await chromium.launch({headless:true}); try { const page = await browser.newPage(); await page.goto("about:blank"); if (await page.title() !== "") throw Error("Unexpected smoke page"); console.log("Retail Chromium installation and launch PASS"); } finally { await browser.close(); }'
   refresh:
     needs: certify
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
