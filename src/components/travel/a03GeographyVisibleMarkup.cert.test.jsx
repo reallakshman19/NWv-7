@@ -11,7 +11,7 @@ const wrong = {
 };
 const real = {
   id: 'qurum', title: 'Muscat Municipality announces road closure in Qurum',
-  source: 'Global Wire', section: 'local',
+  source: 'Global Wire', section: 'local', publishedAt: new Date().toISOString(),
 };
 
 describe('A03 visible travel-local component — actual React HTML', () => {
