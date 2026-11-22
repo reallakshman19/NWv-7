@@ -142,7 +142,7 @@ export function hasCityEvidence(story, profile) {
   // "Muscat grapes" and "Muscat wine" name a variety, not the Omani city.
   // Remove that lexical sense without suppressing any other city evidence.
   const geoText = profile?.key === 'muscat'
-    ? text.replace(/\\bmuscat\\s+(?:grapes?|wines?|vines?|fruits?|variet(?:y|ies))\\b/gu, ' ')
+    ? text.replace(/\bmuscat\s+(?:grapes?|wines?|vines?|fruits?|variet(?:y|ies))\b/gu, ' ')
     : text;
   const terms = profile?.cityKeywords || [profile?.key, profile?.display];
   return terms.map(normalize).filter(term => term.length > 2)
