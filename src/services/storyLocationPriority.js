@@ -3,6 +3,7 @@ import {
   isTravelLocationProfile,
 } from './travelLocationProfile.js';
 import { applyAreaRelevance } from './areaRelevanceScorer.js';
+import { isFreshTravelStory } from './travelNewsFreshness.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -149,6 +150,7 @@ export function rankStoriesForLocation(newsData = {}, profileInput = null, optio
 
   return collectStories(newsData)
     .filter(story => !options.requireCityEvidence || hasCityEvidence(story, profile))
+    .filter(story => !options.requireFreshPublication || isFreshTravelStory(story, { now: options.now }))
     .map(story => ({
       ...story,
       _travelLocationScore: scoreStoryForLocation(story, profile),
