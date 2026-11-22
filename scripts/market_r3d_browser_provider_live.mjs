@@ -35,13 +35,24 @@ async function acquireInBrowser(page, id, url) {
           observationAgeHours: valid ? Math.round((Date.now() - dateMs) / 3600000) : null };
       }
       const row = payload?.data?.[0];
+      const originalDate = String(row?.date || '');
+      const dmy = /^(\\d{2})-(\\d{2})-(\\d{4})$/.exec(originalDate);
+      const ymd = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(originalDate);
+      const parts = dmy ? [Number(dmy[3]), Number(dmy[2]), Number(dmy[1])]
+        : ymd ? [Number(ymd[1]), Number(ymd[2]), Number(ymd[3])] : null;
+      const asOf = parts ? Date.UTC(parts[0], parts[1] - 1, parts[2]) : NaN;
+      const checked = parts && Number.isFinite(asOf) &&
+        new Date(asOf).toISOString().slice(0, 10) ===
+          parts.map((x, i) => String(x).padStart(i === 0 ? 4 : 2, '0')).join('-') &&
+        asOf <= Date.now() + 300000;
       const valid = payload?.status === 'SUCCESS' &&
         Number(payload?.meta?.scheme_code) === 125497 &&
         Number.isFinite(Number(row?.nav)) && Number(row.nav) > 0 &&
-        typeof row?.date === 'string';
+        checked;
       return { ok: Boolean(valid), error: valid ? null : 'INVALID_MFAPI_PROVIDER_PAYLOAD',
         httpStatus: response.status,
-        providerClockPresent: valid };
+        providerClockPresent: Boolean(checked),
+        providerAsOf: valid ? new Date(asOf).toISOString().slice(0, 10) : null };
     } catch (error) {
       return { ok: false, error: String(error?.name || 'REQUEST_FAILED') + ': ' + String(error?.message || '').slice(0, 140) };
     } finally {
