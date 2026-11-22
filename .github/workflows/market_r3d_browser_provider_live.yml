@@ -1,0 +1,54 @@
+name: Market R3D Direct Provider Browser Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/market/**'
+      - 'src/config/settings_market.js'
+      - 'src/utils/marketSession.js'
+      - 'public/data/**'
+      - 'docs/data/**'
+      - 'scripts/market_r3d_browser_provider_live.mjs'
+      - 'scripts/check_market_publication_assets.mjs'
+      - '.github/workflows/market_r3d_browser_provider_live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-r3d-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-provider-proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source under test
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build checked-out application
+        run: npm run build
+      - name: Verify no public financial redistribution assets
+        run: node scripts/check_market_publication_assets.mjs public docs dist
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Live provider browser proof (no financial values published)
+        run: node scripts/market_r3d_browser_provider_live.mjs
+      - name: Upload timestamped sanitized proof
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r3d-live-provider-browser-proof
+          path: reports/market-r3d-browser-provider-live.json
+          if-no-files-found: warn
