@@ -29,6 +29,7 @@ describe('Travel news workflow certification', () => {
     expect(fs.existsSync(policyPath)).toBe(true);
 
     const content = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
-    expect(content.locations.some(loc => loc.key === 'colombo')).toBe(true);
+    expect(content.locations.map(loc => loc.key).sort()).toEqual(['chennai', 'colombo', 'muscat', 'trichy']);
+    expect(content.locations.every(loc => loc.edition?.timeRange === '2d')).toBe(true);
   });
 });
