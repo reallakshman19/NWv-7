@@ -1,6 +1,7 @@
 // Controlled-provider browser acceptance for Weather tab and Quick Weather.
 // No forecast values are sourced from a real provider in this test.
 import { spawn } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const HOST='127.0.0.1', PORT=4179, BASE='http://'+HOST+':'+PORT;
@@ -48,8 +49,10 @@ async function ensureNoOverflow(page,label){
   const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
   if(dims.scroll>dims.width+5)throw Error(label+' horizontal overflow '+JSON.stringify(dims));
 }
+const shots = 'artifacts/weather-ui-compact';
 let browser;
 try {
+  mkdirSync(shots,{recursive:true});
   await serverReady();
   browser=await chromium.launch({headless:true});
   for(const width of [1366,390]){
@@ -59,15 +62,56 @@ try {
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(dataFor(route.request().url()))});
     });
     await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
+    await waitFor(page,'[data-weather-focus-header]');
     await waitFor(page,'[data-weather-city-strip]');
     await waitFor(page,'[data-weather-hour-intervals]');
+    const headerBox=await page.locator('[data-weather-focus-header]').boundingBox();
+    const desktopNav=page.locator('.bottom-nav--desktop').first();
+    if(await desktopNav.isVisible().catch(()=>false)){
+      const navBox=await desktopNav.boundingBox();
+      if(!headerBox || !navBox || headerBox.y < navBox.y + navBox.height - 2)
+        throw Error('Weather current-city header hidden underneath desktop navigation: '+JSON.stringify({headerBox,navBox}));
+    }
     await waitFor(page,'.whi-period');
+    await page.screenshot({path:shots+'/weather-'+width+'-2h.png',fullPage:true});
     await page.getByRole('button',{name:'4h',exact:true}).first().click();
     const intervalText=await page.locator('[data-weather-hour-intervals]').first().textContent();
-    if(!intervalText.includes('4h rain')||!intervalText.includes('peak hourly'))
+    const firstPeriod = page.locator('[data-weather-hour-intervals] .whi-period').first();
+    const accessible = await firstPeriod.getAttribute('aria-label');
+    if(!accessible?.includes('4h rain') || !accessible?.includes('peak hourly rain chance') ||
+      !intervalText.includes('peak hourly rain chance'))
       throw Error('4h rainfall interval semantics unavailable');
     if(intervalText.includes('Today + tomorrow'))throw Error('Two-day merged risk returned');
+    if(width===390){
+      const rainBox=await page.locator('[data-weather-hour-intervals] .whi-period__rain').first().evaluate(el=>({
+        scroll:el.scrollWidth,width:el.clientWidth
+      }));
+      if(rainBox.scroll>rainBox.width+2)throw Error('Mobile rainfall values clipped: '+JSON.stringify(rainBox));
+      const manage=page.getByRole('button',{name:'Manage',exact:true});
+      const manageBox=await manage.boundingBox();
+      if(!manageBox || manageBox.width>150)throw Error('Manage button too wide on mobile: '+JSON.stringify(manageBox));
+    }
     if(await page.locator('[data-weather-city-strip] svg').count()<3)throw Error('SVG weather icons missing');
+    if(width===390){
+      const dims=await page.locator('.weather-citywise-content .dw-cards-list').first().evaluate(el=>{
+        const cards=[...el.querySelectorAll('.dw-card')];
+        return {direction:getComputedStyle(el).flexDirection,cards:cards.slice(0,2).map(c=>({
+          x:c.getBoundingClientRect().x,y:c.getBoundingClientRect().y,height:c.getBoundingClientRect().height
+        }))};
+      });
+      if(dims.direction!=='row' || dims.cards.length<2 || Math.abs(dims.cards[0].y-dims.cards[1].y)>3 ||
+         dims.cards.some(card=>card.height>360))
+        throw Error('Mobile detailed forecast failed compact horizontal rail: '+JSON.stringify(dims));
+    }
+    if(await page.locator('[data-weather-city-strip]').first().getByText(/model feeds|cached|snapshot|source unverified/i).count())
+      throw Error('Technical diagnostics are displayed in city tiles');
+    if(await page.locator('[data-weather-hour-intervals]').first().getByText(/model feeds|cached forecast|source unverified/i).count())
+      throw Error('Technical diagnostics are displayed in interval cards');
+    await page.screenshot({path:shots+'/weather-'+width+'-4h.png',fullPage:true});
+    const health = page.locator('[data-weather-health-icon]').first();
+    await health.click();
+    await waitFor(page,'[data-weather-source-details]');
+    await page.getByRole('button',{name:'Close data source details'}).first().click();
     if(width===1366){
       await page.getByRole('button',{name:'Manage',exact:true}).click();
       await page.getByRole('searchbox',{name:'Search weather city library'}).fill('London');
@@ -81,13 +125,39 @@ try {
       await waitFor(page,'[data-weather-city-strip]');
       const selected=await page.locator('[data-quick-weather] [aria-current="true"]').textContent();
       if(!selected?.includes('London'))throw Error('Quick Weather did not retain Weather tab selection');
+      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-desktop.png'});
+      const quickHealth = page.locator('[data-quick-weather] [data-weather-health-icon]').first();
+      await quickHealth.click();
+      const sourceBox = await page.locator('[data-quick-weather] [data-weather-source-details]').first().boundingBox();
+      if(!sourceBox || sourceBox.x < 0 || sourceBox.x+sourceBox.width > width + 1)
+        throw Error('Desktop Quick Weather source details clipped to viewport: '+JSON.stringify(sourceBox));
+      await page.locator('[data-quick-weather]').getByRole('button',{name:'Close data source details'}).click();
       await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
       await page.getByRole('button',{name:'Manage',exact:true}).click();
       await page.getByRole('button',{name:'Remove London'}).click();
       await page.waitForFunction(()=>!JSON.parse(localStorage.getItem('dailyEventAI_settings')||'{}')?.weather?.cities?.includes('london'));
       if(await page.locator('[data-weather-city-strip] button:has-text("London")').count())throw Error('Removed city remained in Weather tab');
     }
+    const secondary=page.locator('details.weather-secondary-details');
+    if(width===390){
+      if(await secondary.count()!==2)throw Error('Mobile comparison/planning disclosures not present');
+      if(await secondary.first().getAttribute('open')!==null)throw Error('Mobile comparison dominates first fold');
+      await secondary.first().locator('summary').click();
+      if(await secondary.first().getAttribute('open')===null)throw Error('City comparison did not expand on demand');
+      await secondary.first().locator('summary').click();
+    }
     await ensureNoOverflow(page,'Weather '+width+'px');
+    if(width===390){
+      await page.goto(BASE+'/#/',{waitUntil:'domcontentloaded'});
+      await waitFor(page,'[data-quick-weather]');
+      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-mobile.png'});
+      await page.locator('[data-quick-weather] [data-weather-health-icon]').first().click();
+      const sourceBox = await page.locator('[data-quick-weather] [data-weather-source-details]').first().boundingBox();
+      if(!sourceBox || sourceBox.x < 0 || sourceBox.x+sourceBox.width > width + 1)
+        throw Error('Mobile Quick Weather source details clipped to viewport: '+JSON.stringify(sourceBox));
+      await page.locator('[data-quick-weather]').getByRole('button',{name:'Close data source details'}).click();
+      await ensureNoOverflow(page,'Quick Weather mobile');
+    }
     await context.close();
   }
   console.log('PASS: Chromium desktop/mobile 2h/4h weather, SVG rendering, city persistence, add/remove');

@@ -98,3 +98,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Test citywise Weather and Quick Weather in Chromium
         run: node scripts/test_weather_citywise_e2e.mjs
+      - name: Upload desktop and mobile Weather UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-compact-ui-screenshots
+          path: artifacts/weather-ui-compact/
+          if-no-files-found: warn
+          retention-days: 14

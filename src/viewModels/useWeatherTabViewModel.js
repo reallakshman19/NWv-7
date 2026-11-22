@@ -272,6 +272,8 @@ export function useWeatherTabViewModel() {
     cityLabels,
     cityIcons,
     hideSidebar: true,
+    hideHeader: true,
+    hideSourceFooter: true,
   }), [
     displayData,
     activeCity,

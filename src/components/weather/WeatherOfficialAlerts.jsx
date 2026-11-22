@@ -2,15 +2,12 @@ import React from 'react';
 import SevereWeatherIcon from './SevereWeatherIcons.jsx';
 import './WeatherOfficialAlerts.css';
 
-/**
- * This app has no verified official-alert ingest yet.
- * Do not reinterpret Open-Meteo forecast weather codes as official warnings.
- */
+/** No authoritative warning feed is connected. Information is quiet, explicit and opt-in. */
 export default function WeatherOfficialAlerts() {
-  return <section className="weather-official-alerts" aria-label="Official severe weather warnings">
-    <SevereWeatherIcon type="warning" size={22}/>
-    <span><strong>Official warnings not monitored</strong>
-      <small>Check your national weather authority for cyclone, sandstorm and flood warnings.</small>
-    </span>
-  </section>;
+  return <details className="weather-official-alerts" aria-label="Official alert source information">
+    <summary title="About official weather warnings"><SevereWeatherIcon type="warning" size={15}/>
+      <span>Alert sources</span>
+    </summary>
+    <p>Official cyclone, sandstorm and flood warnings are not monitored in this app. Consult your national meteorological authority for active alerts.</p>
+  </details>;
 }

@@ -160,12 +160,10 @@ async function assertQuickWeather(page) {
   }
 
   const text = await page.locator(selector).first().textContent().catch(() => '');
-  const hasRainMm =
-    /\d+%\s*·\s*\d+(\.\d+)?mm/i.test(String(text)) ||
-    /0%\s*·\s*0\.0mm/i.test(String(text));
-
-  if (!hasRainMm) {
-    throw new Error('QuickWeather does not show precipitation as probability + mm.');
+  const interval = page.locator(selector).first().locator('[data-weather-hour-intervals] .whi-period').first();
+  const accessible = await interval.getAttribute('aria-label');
+  if (!accessible?.includes('rain') || !accessible?.includes('peak hourly')) {
+    throw new Error('QuickWeather interval rainfall semantics missing.');
   }
 }
 

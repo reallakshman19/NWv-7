@@ -80,15 +80,7 @@ function WeatherPage() {
   }
 
   return (
-    <div className="page-container" style={{ padding: 0 }}>
-      <GradeBadge
-        audit={weatherTabAudit}
-        label="Weather tab quality grade"
-        position="below-header"
-        topOffset="74px"
-        compact={true}
-      />
-
+    <div className="page-container weather-page" style={{ padding: 0 }}>
       <div
         style={{
           height: `${pullDistance}px`,
@@ -113,23 +105,29 @@ function WeatherPage() {
       )}
 
       <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
-        {error && (
-          <div className="topline" style={{ borderLeftColor: 'var(--accent-danger)', margin: '16px' }}>
-            <div className="topline__label" style={{ color: 'var(--accent-danger)' }}>Error</div>
-            <div className="topline__text">Failed to update weather. Showing cached data.</div>
-          </div>
+        {error && !weatherData?.[activeCity]?.current && (
+          <p className="weather-quiet-error" role="status">Weather could not refresh. Choose a city or retry.</p>
         )}
 
         <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
-        <WeatherLocationManager {...locationManagerProps} />
-        <WeatherOfficialAlerts />
+        <div className="weather-city-toolbar">
+          <WeatherLocationManager {...locationManagerProps} />
+          <GradeBadge audit={weatherTabAudit} label="Weather tab quality grade" position="inline" compact />
+          <WeatherOfficialAlerts />
+        </div>
 
         {weatherData?.[activeCity]?.current ? (
           <div className="weather-citywise-content">
             <WeatherHourIntervals cityData={weatherData[activeCity]} />
             <DetailedWeatherCard {...detailedWeatherCardProps} />
-            <WeatherCityComparison {...cityComparisonProps} />
-            <WeatherPlanningSummary {...planningSummaryProps} />
+            {cities.length > 1 && <details className="weather-secondary-details" open={isDesktop}>
+              <summary>Compare cities <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+              <WeatherCityComparison {...cityComparisonProps} />
+            </details>}
+            <details className="weather-secondary-details" open={isDesktop}>
+              <summary>Week at a glance <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+              <WeatherPlanningSummary {...planningSummaryProps} />
+            </details>
             <WeeklyWeatherForecast {...weeklyForecastProps} />
           </div>
         ) : (

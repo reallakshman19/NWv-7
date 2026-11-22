@@ -1,0 +1,19 @@
+.weather-focus-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;border-bottom:1px solid rgba(148,163,184,.21);background:rgba(15,23,42,.97);color:#f8fafc;box-shadow:0 5px 15px rgba(0,0,0,.15)}
+.wfh-current{display:flex;align-items:center;gap:12px;min-width:0}
+.wfh-city{font-size:1rem;font-weight:780;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wfh-reading{display:flex;align-items:center;gap:7px;min-width:0}
+.wfh-reading strong{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
+.wfh-reading span{font-size:.79rem;color:#cbd5e1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wfh-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.wfh-refresh{display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(148,163,184,.24);border-radius:10px;background:rgba(148,163,184,.06);color:#cbd5e1;cursor:pointer}
+.wfh-refresh:hover{color:#fff;border-color:#5eead4}.wfh-refresh:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+.wfh-refresh:disabled{opacity:.55;cursor:progress}.wfh-refresh.is-loading svg{animation:wfh-spin 1.5s linear infinite}
+@keyframes wfh-spin{to{transform:rotate(360deg)}}
+@media(max-width:540px){.weather-focus-header{padding:9px 10px;gap:8px}.wfh-current{gap:8px}.wfh-city{font-size:.91rem}.wfh-reading span{display:none}.wfh-reading strong{font-size:1.18rem}}
+@media(prefers-reduced-motion:reduce){.wfh-refresh.is-loading svg{animation:none}}
+
+/* The app's desktop navigation is fixed at top:0 with a 54px minimum height.
+   Keep the weather current-city header below that chrome rather than under it. */
+html[data-layout-mode='desktop'] .weather-page{padding-top:58px!important}
+html[data-layout-mode='desktop'] .weather-page .weather-focus-header{top:58px}
+html[data-layout-mode='mobile'] .weather-page{padding-top:0!important}

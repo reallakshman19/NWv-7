@@ -13,6 +13,8 @@ export default function DetailedWeatherCard({
   cities = [],
   cityLabels = {},
   hideSidebar = false,
+  hideHeader = false,
+  hideSourceFooter = false,
 }) {
   const [expandedCard, setExpandedCard] = useState(null);
 
@@ -96,7 +98,7 @@ export default function DetailedWeatherCard({
       </div>}
 
       <div className="dw-content">
-        <div className="dw-header">
+        {!hideHeader && <div className="dw-header">
           <div className="dw-header-main">
             <h2 className="dw-city-title">{cityData.name}</h2>
             <span className="dw-current-temp">{cityData.current?.temp}°</span>
@@ -105,7 +107,7 @@ export default function DetailedWeatherCard({
           <div className="dw-header-sub">
             {getWeatherHeaderSummary(cityData)}
           </div>
-        </div>
+        </div>}
 
         <div className="dw-cards-list">
           {segments.map((seg, idx) => {
@@ -122,11 +124,11 @@ export default function DetailedWeatherCard({
           })}
         </div>
 
-        <div className="dw-footer">
+        {!hideSourceFooter && <div className="dw-footer">
           {cityData.models?.count
             ? `Forecast based on ${cityData.models.count} model${cityData.models.count !== 1 ? 's' : ''}: ${cityData.models.names}`
             : 'Forecast source coverage unknown'}
-        </div>
+        </div>}
       </div>
     </div>
   );
@@ -196,6 +198,12 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
         </div>
       </div>
 
+      <div className="dw-card-compact-summary">
+        <span>{rainMmVal == null ? 'Rain —' : `Rain ${rainMmVal.toFixed(1)}mm`}</span>
+        <span>{rainProbVal == null ? 'Chance —' : `${rainProbVal}% peak`}</span>
+        <span>{data.humidity == null ? 'Humidity —' : `Humidity ${data.humidity}%`}</span>
+      </div>
+
       <div className="dw-details-grid">
         <div className="dw-detail-row">
           <div className="dw-detail-icon">
@@ -216,7 +224,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
         <div className="dw-detail-row">
           <div className="dw-detail-icon"><WeatherIcon id="day_clear" size={20} /></div>
           <div className="dw-detail-text">
-            UV: {data.uvIndex ?? '—'} <span className="dw-sep">|</span> PM 2.5: -
+            UV: {data.uvIndex ?? '—'}
           </div>
         </div>
 
