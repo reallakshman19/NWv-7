@@ -84,6 +84,11 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
     fetchErrors: Array.isArray(payload.fetchErrors) ? payload.fetchErrors : [],
     storyCount: payload.storyCount ?? stories.length,
     retainedFromPrevious: payload.retainedFromPrevious ?? 0,
+    newlyObserved: payload.newlyObserved ?? 0,
+    duplicatesRemoved: payload.duplicatesRemoved ?? 0,
+    capEvictions: payload.capEvictions ?? 0,
+    rejectedUndatedOrExpired: payload.rejectedUndatedOrExpired ?? 0,
+    rejectedWrongCity: payload.rejectedWrongCity ?? 0,
     capPolicy: payload.capPolicy || null,
     stories,
   };
