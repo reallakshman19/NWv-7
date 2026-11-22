@@ -220,7 +220,7 @@ function GridSection({
           )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Details ↗</a>
-            <button
+            {item.reviewGroupStatus !== 'POSSIBLE_DUPLICATE_UNCONFIRMED' && <button
               className="ua-cal-btn"
               onClick={(event) => {
                 const button = event.currentTarget;
@@ -241,7 +241,7 @@ function GridSection({
               }}
             >
               + Plan
-            </button>
+            </button>}
           </div>
         </div>
       ))}
