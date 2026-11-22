@@ -17,6 +17,7 @@ const controller = read('src/components/settings/OnThisDayVisibilityController.j
 const app = read('src/App.jsx');
 const settingsPage = read('src/pages/SettingsPage.jsx');
 const quickWeather = read('src/components/QuickWeather.jsx');
+const weatherContext = read('src/context/WeatherContext.jsx');
 const packageJson = read('package.json');
 const certGate = read('scripts/run_certification_gate.mjs');
 
@@ -79,9 +80,11 @@ assert(
 );
 
 assert(
-  quickWeather.includes('DEFAULT_WEATHER_CITIES'),
-  'QuickWeather.jsx must keep DEFAULT_WEATHER_CITIES available'
+  quickWeather.includes('getConfiguredWeatherCities'),
+  'QuickWeather must read the same canonical weather city registry'
 );
+
+assert(weatherContext.includes('activeCity, setActiveCity') && weatherContext.includes('updateSettings('), 'Weather city choice must persist to shared settings');
 
 assert(
   packageJson.includes('"test:weather-settings-onthisday"'),

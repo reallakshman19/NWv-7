@@ -40,9 +40,11 @@ check('weatherService returns weeklyForecast', fc('src/services/weatherService.j
 check('weatherService returns timezone', fc('src/services/weatherService.js', 'timezone'));
 check('weatherService has buildDailyConsensus', fc('src/services/weatherService.js', 'buildDailyConsensus'));
 
-// QuickWeather uses signal strip
-check('QuickWeather imports QuickWeatherSignalStrip', fc('src/components/QuickWeather.jsx', 'QuickWeatherSignalStrip'));
-check('QuickWeather renders QuickWeatherSignalStrip', fc('src/components/QuickWeather.jsx', '<QuickWeatherSignalStrip'));
+// Quick Weather no longer renders the misleading Today+Tomorrow strip.
+check('QuickWeather uses timestamped 2h/4h intervals', fc('src/components/QuickWeather.jsx', '<WeatherHourIntervals'));
+check('QuickWeather uses shared city selector', fc('src/components/QuickWeather.jsx', '<WeatherCityStrip'));
+check('Legacy Today+Tomorrow strip is not rendered', !fc('src/components/QuickWeather.jsx', 'QuickWeatherSignalStrip'));
+check('Intervals have time/freshness gate', fc('src/services/weatherIntervals.js', 'cityLocalHour') && fc('src/services/weatherIntervals.js', 'fetchedAt'));
 
 // WeatherPage uses all new components
 check('WeatherPage imports WeeklyWeatherForecast', fc('src/pages/WeatherPage.jsx', 'WeeklyWeatherForecast'));

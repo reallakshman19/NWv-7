@@ -23,7 +23,7 @@ const files = {
   detailedWeather: read('src/components/DetailedWeatherCard.jsx'),
   detailedWeatherUtils: read('src/components/detailedWeatherCardUtils.js'),
   topline: read('src/utils/toplineGenerator.js'),
-  quickWeatherCss: read('src/components/QuickWeatherRefined.css'),
+  quickWeatherCss: read('src/components/QuickWeatherRefined.css') + read('src/components/weather/WeatherCityStrip.css'),
   signalStrip: read('src/components/weather/QuickWeatherSignalStrip.jsx'),
   signalStripCss: read('src/components/weather/QuickWeatherSignalStrip.css'),
   manager: read('src/components/weather/WeatherLocationManager.jsx'),
@@ -48,7 +48,7 @@ function requireTokens(name, tokens) {
 requireTokens('locations', [
   'DEFAULT_WEATHER_CITIES',
   'colombo',
-  'Colombo',
+  'getCityDisplay',
   'Sri Lanka',
   'buildWeatherSettingsWithCities',
   'getConfiguredWeatherCities',
@@ -119,11 +119,11 @@ requireTokens('topline', [
 requireTokens('quickWeather', [
   'QuickWeatherRefined.css',
   'getConfiguredWeatherCities',
-  'buildWeatherSettingsWithCities',
-  'getWeatherLocationOptions',
-  'Select a supported city',
-  'quick-weather-city-options',
+  'WeatherCityStrip',
+  'WeatherHourIntervals',
+  'Manage cities',
 ]);
+assert(!files.quickWeather.includes('QuickWeatherSignalStrip'), 'Quick Weather must not display Today+Tomorrow signals');
 
 requireTokens('quickWeatherCss', [
   '.quick-weather-card',
@@ -234,7 +234,7 @@ console.log(JSON.stringify({
     'Colombo registry and defaults are present',
     'Add/delete/reset city manager is present',
     'Settings uses real WeatherLocationManager',
-    'QuickWeather add city is registry-backed',
+    'QuickWeather uses shared registry-backed Manage Cities workflow',
     'QuickWeather desktop visibility CSS exists',
     'QuickWeather shows precipitation probability and mm',
     'Weekly forecast supports weatherData/settings and forecast/cityName modes',

@@ -4,7 +4,7 @@ import './DetailedWeatherCard.css';
 import WeatherIcon from './WeatherIcons';
 import { UmbrellaIcon, CloudIcon, HumidityIcon, WindIcon } from './AppIcons';
 
-import { getHourInTimezone, getWeatherHeaderSummary, getConditionText, hourlyPeakProbability } from './detailedWeatherCardUtils.js';
+import { getHourInTimezone, getWeatherHeaderSummary, getConditionText } from './detailedWeatherCardUtils.js';
 
 export default function DetailedWeatherCard({
   weatherData,
@@ -12,7 +12,7 @@ export default function DetailedWeatherCard({
   onActiveCityChange = null,
   cities = [],
   cityLabels = {},
-  cityIcons = {},
+  hideSidebar = false,
 }) {
   const [expandedCard, setExpandedCard] = useState(null);
 
@@ -26,8 +26,7 @@ export default function DetailedWeatherCard({
 
   if (!weatherData) return null;
 
-  const fallbackCity = safeCities[0] || 'chennai';
-  const cityData = weatherData[activeCity] || weatherData[fallbackCity] || weatherData.chennai;
+  const cityData = weatherData[activeCity];
 
   if (!cityData) return <div className="dw-container">Data unavailable</div>;
 
@@ -82,7 +81,7 @@ export default function DetailedWeatherCard({
 
   return (
     <div className="dw-container">
-      <div className="dw-sidebar">
+      {!hideSidebar && <div className="dw-sidebar">
         {safeCities.map(city => (
           <button
             key={city}
@@ -90,11 +89,11 @@ export default function DetailedWeatherCard({
             onClick={() => handleTravelAwareCityChange(city)}
             aria-label={`Select ${cityLabels[city] || city}`}
           >
-            <span className="dw-city-icon">{cityIcons[city] || '📍'}</span>
+            <span className="dw-city-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="2"/></svg></span>
             <span className="dw-city-name">{cityLabels[city] || city}</span>
           </button>
         ))}
-      </div>
+      </div>}
 
       <div className="dw-content">
         <div className="dw-header">
@@ -126,7 +125,7 @@ export default function DetailedWeatherCard({
         <div className="dw-footer">
           {cityData.models?.count
             ? `Forecast based on ${cityData.models.count} model${cityData.models.count !== 1 ? 's' : ''}: ${cityData.models.names}`
-            : 'Forecast based on ECMWF · GFS · DWD-ICON'}
+            : 'Forecast source coverage unknown'}
         </div>
       </div>
     </div>
@@ -138,30 +137,26 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
   const hourly = Array.isArray(data.hourly) ? data.hourly : [];
   const hasHourly = hourly.length > 0;
 
-  const rainMmVal = Number.isFinite(Number(data.rainMmValue))
-    ? Number(data.rainMmValue)
-    : parseFloat(data.rainMm === '-' ? 0 : data.rainMm) || 0;
-  const rainProbVal = Math.max(
-    Number(data.rainProb?.peak ?? data.rainProb?.avg ?? 0) || 0,
-    hourlyPeakProbability(data)
-  );
-  const hasSignificantRain = rainMmVal >= 1.0;
-  const hasAnyRain = rainMmVal > 0 || rainProbVal > 0;
+  const explicitRain = data.rainMmValue != null ? Number(data.rainMmValue) : null;
+  const parsedRain = explicitRain == null && typeof data.rainMm === 'string' ? parseFloat(data.rainMm) : null;
+  const rainMmVal = Number.isFinite(explicitRain) ? explicitRain : Number.isFinite(parsedRain) ? parsedRain : null;
+  const hourlyProbs = hourly.map(h => h?.prob).filter(v => v != null && Number.isFinite(Number(v))).map(Number);
+  const rawProb = data.rainProb?.peak ?? data.rainProb?.avg;
+  const rainProbVal = rawProb != null && Number.isFinite(Number(rawProb))
+    ? Math.max(Number(rawProb), ...hourlyProbs)
+    : hourlyProbs.length ? Math.max(...hourlyProbs) : null;
+  const hasSignificantRain = rainMmVal != null && rainMmVal >= 1;
+  const hasAnyRain = (rainMmVal != null && rainMmVal > 0) || (rainProbVal != null && rainProbVal > 0);
 
   let RainIcon = CloudIcon;
   let rainColor = 'var(--text-secondary)';
-  let rainText = 'No significant rain';
+  let rainText = rainMmVal == null && rainProbVal == null ? 'Rain data unavailable' : 'No rain forecast for period';
 
   if (hasAnyRain) {
-    if (hasSignificantRain) {
-      RainIcon = UmbrellaIcon;
-      rainColor = '#3b82f6';
-    } else {
-      RainIcon = CloudIcon;
-      rainColor = '#94a3b8';
-    }
-
-    rainText = `${rainMmVal > 0 ? `${rainMmVal.toFixed(1)}mm` : 'Trace'} · Peak ${rainProbVal}%`;
+    RainIcon = hasSignificantRain ? UmbrellaIcon : CloudIcon;
+    rainColor = hasSignificantRain ? '#3b82f6' : '#94a3b8';
+    rainText = (rainMmVal == null ? 'Rain —' : rainMmVal.toFixed(1) + 'mm') +
+      ' · Peak ' + (rainProbVal == null ? '—' : rainProbVal + '%');
   }
 
   const description = getConditionText(data);
@@ -192,7 +187,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
 
       <div className="dw-card-main">
         <div className="dw-main-icon">
-          {data.iconId ? <WeatherIcon id={data.iconId} size={56} /> : <span style={{ fontSize: '3rem' }}>{data.icon}</span>}
+          <WeatherIcon id={data.iconId || 'day_cloudy'} size={56} />
         </div>
 
         <div className="dw-main-temp">
@@ -219,14 +214,14 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
         </div>
 
         <div className="dw-detail-row">
-          <div className="dw-detail-icon">☀️</div>
+          <div className="dw-detail-icon"><WeatherIcon id="day_clear" size={20} /></div>
           <div className="dw-detail-text">
-            UV: {data.uvIndex || '-'} <span className="dw-sep">|</span> PM 2.5: -
+            UV: {data.uvIndex ?? '—'} <span className="dw-sep">|</span> PM 2.5: -
           </div>
         </div>
 
         <div className="dw-detail-row">
-          <div className="dw-detail-icon">ℹ️</div>
+          <div className="dw-detail-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7v.01"/></svg></div>
           <div className="dw-detail-text dw-desc">
             {description}
           </div>
@@ -239,13 +234,13 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
             <div key={`${h.time || h.label || 'hour'}-${i}`} className="dw-hourly-slot">
               <span className="dw-slot-time">{h.time || h.label}</span>
               <div className="dw-slot-icon">
-                {h.iconId ? <WeatherIcon id={h.iconId} size={28} /> : h.icon}
+                <WeatherIcon id={h.iconId || 'day_cloudy'} size={28} />
               </div>
               <strong className="dw-slot-temp">{h.temp}°</strong>
               {((h.precip || 0) > 0 || (h.prob || 0) > 0) && (
                 <span className="dw-slot-precip">
-                  {h.precip >= 1 && <span style={{ fontSize: '0.7rem' }}>☂️</span>}
-                  {h.prob || 0}% · {Number(h.precip || 0).toFixed(1)}mm
+                  {h.precip >= 1 && <UmbrellaIcon size={13} />}
+                  {h.prob == null ? '—' : h.prob + '%'} · {h.precip == null ? '—' : Number(h.precip).toFixed(1) + 'mm'}
                 </span>
               )}
             </div>

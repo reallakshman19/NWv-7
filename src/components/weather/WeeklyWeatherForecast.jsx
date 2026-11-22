@@ -1,4 +1,6 @@
 import React from 'react';
+import WeatherIcon from '../WeatherIcons.jsx';
+import { getWeatherIconId } from '../../utils/weatherUtils.js';
 import {
   formatRainPair,
   getWeatherCityRows,
@@ -21,7 +23,7 @@ function renderForecastRows(forecast) {
       <div className="wwf-main">
         <span className="wwf-day">{day.dayLabel || day.label}</span>
         <span className="wwf-condition">
-          <span className="wwf-icon">{day.icon || '☁️'}</span>
+          <span className="wwf-icon"><WeatherIcon id={getWeatherIconId(day.weatherCode ?? 3, 12)} size={24}/></span>
           {day.condition || 'Forecast'}
         </span>
       </div>

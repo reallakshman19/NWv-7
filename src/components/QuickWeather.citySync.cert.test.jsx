@@ -1,72 +1,67 @@
 // @vitest-environment jsdom
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
-const mock = vi.hoisted(() => ({ settings: {}, save: vi.fn() }));
-vi.mock('../context/WeatherContext', () => ({
-  useWeather: () => ({
-    weatherData: {
-      chennai: { name: 'Chennai', current: { temp: 27, condition: 'Clear', icon: '☀️' } },
-      trichy: { name: 'Trichy', current: { temp: 29, condition: 'Clear', icon: '☀️' } },
-      muscat: { name: 'Muscat', current: { temp: 30, condition: 'Clear', icon: '☀️' } },
-    },
-    booted: true, loading: false, error: null,
-    ensureBoot: () => {}, refreshWeather: () => {},
-  }),
-}));
-vi.mock('../context/SettingsContext', () => ({
-  useSettings: () => ({
-    settings: mock.settings,
-    updateSettings: next => {
-      mock.settings = next;
-      mock.save(next);
-      return true;
+const mock=vi.hoisted(()=>({settings:{},version:0,save:vi.fn(),trigger:null}));
+vi.mock('../utils/storage',()=>({getSettings:()=>mock.settings}));
+vi.mock('../context/SettingsContext',()=>({
+  useSettings:()=>({
+    settings:mock.settings,settingsVersion:mock.version,
+    updateSettings:next=>{
+      mock.settings=next;mock.version+=1;mock.save(next);mock.trigger?.();return true;
     },
   }),
 }));
-vi.mock('../services/weatherInsights.js', () => ({
-  buildNextRiskSummary: () => null,
-  buildTomorrowChip: () => null,
+vi.mock('../services/weatherService',()=>({
+  fetchWeather:vi.fn(async(city)=>({
+    name:city,sourceMode:'live',fetchedAt:Date.now(),timezone:'Asia/Muscat',
+    models:{successful:['ecmwf','gfs','icon'],count:3,metricCoverage:{rain:3,rainProbability:3}},
+    current:{temp:29,condition:'Clear',iconId:'day_clear',feelsLike:30},
+  })),
 }));
-vi.mock('./weather/QuickWeatherSignalStrip.jsx', () => ({
-  default: () => null,
-}));
+import { WeatherProvider, useWeather } from '../context/WeatherContext.jsx';
 import QuickWeather from './QuickWeather.jsx';
 
-beforeEach(() => {
-  mock.settings = {
-    weather: { cities: ['chennai', 'trichy', 'muscat'], activeCity: 'chennai' },
-    travelLocation: { city: 'colombo', enabled: true, prioritizeStories: true },
-  };
-  mock.save.mockClear();
+function Probe(){const {activeCity}=useWeather();return <output data-testid="selected-city">{activeCity}</output>;}
+function Harness(){
+  const [,tick]=useState(0);
+  useEffect(()=>{
+    mock.trigger=()=>tick(v=>v+1);
+    return ()=>{mock.trigger=null;};
+  },[]);
+  return <WeatherProvider lazy><QuickWeather/><Probe/></WeatherProvider>;
+}
+beforeEach(()=>{
   window.localStorage.clear();
+  mock.settings={weather:{cities:['chennai','trichy','muscat'],activeCity:'chennai'},
+    travelLocation:{city:'colombo',enabled:true,prioritizeStories:true}};
+  mock.version=0;mock.save.mockClear();mock.trigger=null;
 });
-afterEach(() => cleanup());
-
-describe('Quick Weather selected-city sync', () => {
-  it('changes shared weather city with a click, without overwriting manual travel city', async () => {
-    render(<QuickWeather />);
-    fireEvent.click(screen.getByText('Muscat'));
-    await waitFor(() => expect(mock.save).toHaveBeenCalled());
-    expect(mock.settings.weather.activeCity).toBe('muscat');
+afterEach(()=>{cleanup();mock.trigger=null;});
+describe('Quick Weather → shared city selection and saved Local News authority',()=>{
+  it('click changes reactive weather city and saved news city but preserves manual travel city',async()=>{
+    render(<Harness/>);
+    fireEvent.click(screen.getByRole('button',{name:/Muscat/}));
+    await waitFor(()=>expect(mock.settings.weather.activeCity).toBe('muscat'));
+    expect(screen.getByTestId('selected-city').textContent).toBe('muscat');
     expect(mock.settings.travelLocation.city).toBe('colombo');
     expect(window.localStorage.getItem('weather_active_city')).toBe('muscat');
-    expect(document.querySelector('.qw-location-name')?.textContent).toBe('Muscat');
   });
-
-  it('supports keyboard city selection and persists the chosen city', async () => {
-    render(<QuickWeather />);
-    fireEvent.keyDown(screen.getByText('Trichy').closest('[role="button"]'), { key: 'Enter' });
-    await waitFor(() => expect(mock.settings.weather.activeCity).toBe('trichy'));
-    expect(window.localStorage.getItem('weather_active_city')).toBe('trichy');
+  it('uses native accessible buttons for city selection',async()=>{
+    render(<Harness/>);
+    const city=screen.getByRole('button',{name:/Trichy/});
+    expect(city.tagName).toBe('BUTTON');
+    fireEvent.click(city);
+    await waitFor(()=>expect(mock.settings.weather.activeCity).toBe('trichy'));
+    expect(city.getAttribute('aria-current')).toBe('true');
   });
-
-  it('migrates the prior stored weather city into shared settings', async () => {
-    mock.settings.weather.activeCity = undefined;
-    window.localStorage.setItem('weather_active_city', 'muscat');
-    render(<QuickWeather />);
-    await waitFor(() => expect(mock.settings.weather.activeCity).toBe('muscat'));
+  it('migrates the previous saved weather selection into settings',async()=>{
+    mock.settings.weather.activeCity=undefined;
+    window.localStorage.setItem('weather_active_city','muscat');
+    render(<Harness/>);
+    await waitFor(()=>expect(mock.settings.weather.activeCity).toBe('muscat'));
+    expect(screen.getByTestId('selected-city').textContent).toBe('muscat');
     expect(mock.settings.travelLocation.city).toBe('colombo');
   });
 });

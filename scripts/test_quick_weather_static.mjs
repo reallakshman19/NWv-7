@@ -1,71 +1,32 @@
-import fs from 'fs';
-
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+import fs from 'node:fs';
+function check(ok, why){if(!ok)throw Error(why);}
+function read(file){check(fs.existsSync(file),'Missing '+file);return fs.readFileSync(file,'utf8');}
+const quick=read('src/components/QuickWeather.jsx');
+const strip=read('src/components/weather/WeatherCityStrip.jsx');
+const interval=read('src/services/weatherIntervals.js');
+const context=read('src/context/WeatherContext.jsx');
+const view=read('src/viewModels/useWeatherTabViewModel.js');
+const page=read('src/pages/WeatherPage.jsx');
+const manager=read('src/components/weather/WeatherLocationManager.jsx');
+for(const token of ['getConfiguredWeatherCities','WeatherCityStrip','WeatherHourIntervals','activeCity','setActiveCity','Manage cities']){
+  check(quick.includes(token),'QuickWeather missing '+token);
 }
-
-function read(path) {
-  assert(fs.existsSync(path), `Missing file: ${path}`);
-  return fs.readFileSync(path, 'utf8');
+for(const token of ['data-weather-city-strip','qw-city-row--missing','No forecast','aria-current','onSelect']){
+  check(strip.includes(token),'City selector missing '+token);
 }
-
-const quickWeather = read('src/components/QuickWeather.jsx');
-
-for (const token of [
-  'DEFAULT_CITIES',
-  'normalizeCity',
-  'getConfiguredCities',
-  'getCitySlots',
-  'segmentToSlot',
-  'currentToSlot',
-  'hasUsableCityWeather',
-  'cityRows.map',
-  'qw-city-row--missing',
-  'No forecast',
-  '!cities.includes(activeCity)',
-  'tomorrow?.morning',
-  'weatherData?.[city]',
-  'updateSettings(nextSettings)',
-  'handleAddCity',
-  'Add city'
-]) {
-  assert(quickWeather.includes(token), `QuickWeather missing required token: ${token}`);
+for(const token of ['[2, 4].includes(hours)','cityLocalHour','fetchedAt','rain.every','probability.every','localTime']){
+  check(interval.includes(token),'Interval data contract missing '+token);
 }
-
-// City removal is managed exclusively by WeatherLocationManager ("weather central"),
-// not by inline × buttons in the QuickWeather row list.
-assert(
-  !quickWeather.includes('handleRemoveCity'),
-  'QuickWeather must NOT contain handleRemoveCity — removal is managed by WeatherLocationManager'
-);
-
-assert(
-  !quickWeather.includes('cities.filter(city => weatherData?.[city]?.current)'),
-  'QuickWeather must not filter visible cities only by current weather'
-);
-
-assert(
-  quickWeather.includes('settings?.weather?.cities') || quickWeather.includes('settings.weather?.cities'),
-  'QuickWeather must use configured weather cities'
-);
-
-assert(
-  quickWeather.includes('weather: {') && quickWeather.includes('cities: uniqueCities'),
-  'QuickWeather must save weather.cities to settings'
-);
-
-console.log(JSON.stringify({
-  status: 'PASS',
-  checked: 'QuickWeather configurable slice',
-  guarantees: [
-    'configured cities are rendered',
-    'cities can be added',
-    'city removal is managed only by WeatherLocationManager',
-    'at least one city remains',
-    'current/hourly/day/tomorrow fallback supported',
-    'invalid saved active city is corrected',
-    'per-city missing forecast state is explicit'
-  ]
-}, null, 2));
-
-console.log('PASS: QuickWeather configurable slice');
+for(const token of ['activeCity, setActiveCity','updateSettings(','weather_active_city']){
+  check(context.includes(token),'Shared city persistence missing '+token);
+}
+for(const token of ['buildWeatherSettingsWithCities','addWeatherCity','removeWeatherCity','uniqueCities.length > 10','Unable to save weather locations.']){
+  check(view.includes(token),'Weather manager missing '+token);
+}
+check(page.includes('<WeatherLocationManager')&&page.includes('<WeatherCityStrip'),'Weather tab cannot manage/select cities');
+check(manager.includes('removeCity')&&manager.includes('addCity'),'City manager must add and remove');
+check(!quick.includes('QuickWeatherSignalStrip'),'Do not mix Today+Tomorrow risk signals into Quick Weather');
+check(!quick.includes('getSevereWarning'),'No unsupported weather alert banner');
+check(!view.includes('displayData?.chennai'),'Must never substitute another city forecast');
+check(!quick.includes('handleRemoveCity'),'Quick Weather deletion must use canonical city manager');
+console.log('PASS: all citywise Quick Weather wiring and negative source constraints');

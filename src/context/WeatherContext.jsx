@@ -1,23 +1,54 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { fetchWeather } from '../services/weatherService';
 import { getSettings } from '../utils/storage';
 import { useSettings } from './SettingsContext';
-import { getConfiguredWeatherCities } from '../services/weatherLocations.js';
+import { getConfiguredWeatherCities, resolveRegistryKey } from '../services/weatherLocations.js';
 
 const WeatherContext = createContext();
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const WEATHER_CURRENT_MAX_AGE_MS = 4 * 60 * 60 * 1000;
 
 function hasUsableWeatherCity(cityData) {
-    return Boolean(cityData && cityData.current && Number.isFinite(Number(cityData.current.temp)));
+    if (cityData?.current?.temp == null || !Number.isFinite(Number(cityData.current.temp))) return false;
+    const stamp = Number(cityData?.fetchedAt);
+    const age = Date.now() - stamp;
+    return Number.isFinite(stamp) && stamp > 0 && age >= -5*60*1000 && age <= WEATHER_CURRENT_MAX_AGE_MS;
 }
 
 export function WeatherProvider({ children, lazy = false }) {
-    const { settingsVersion } = useSettings();
-    const prevVersion = useRef(settingsVersion);
+    const { settings, settingsVersion, updateSettings } = useSettings();
+    const [legacyCity] = useState(() => {
+        try { return resolveRegistryKey(localStorage.getItem('weather_active_city') || localStorage.getItem('dw_active_city')); }
+        catch { return null; }
+    });
+    const selectedCities = useMemo(() => getConfiguredWeatherCities(settings), [settings]);
+    const savedCity = resolveRegistryKey(settings?.weather?.activeCity);
+    const activeCity = selectedCities.includes(savedCity) ? savedCity :
+        selectedCities.includes(legacyCity) ? legacyCity : selectedCities[0];
+    const setActiveCity = useCallback(city => {
+        const canonical = resolveRegistryKey(city);
+        if (!canonical || !selectedCities.includes(canonical)) return false;
+        const existing = getSettings();
+        if (existing?.weather?.activeCity === canonical) return true;
+        return updateSettings({
+            ...existing,
+            weather: { ...(existing?.weather || {}), activeCity: canonical },
+        }) !== false;
+    }, [selectedCities, updateSettings]);
+    useEffect(() => {
+        if (settings?.weather?.activeCity !== activeCity && activeCity) setActiveCity(activeCity);
+    }, [activeCity, settings?.weather?.activeCity, setActiveCity]);
+    useEffect(() => {
+        if (!activeCity || settings?.weather?.activeCity !== activeCity) return;
+        try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
+    }, [activeCity, settings?.weather?.activeCity]);
+    const dataSettingsKey = JSON.stringify({
+        cities: selectedCities, models: settings?.weather?.models,
+        enabled: settings?.sections?.weather !== false,
+    });
+    const lastDataSettingsKey = useRef(dataSettingsKey);
+    const requestGeneration = useRef(0);
 
     const [booted, setBooted] = useState(!lazy);
     const [weatherData, setWeatherData] = useState(null);
@@ -29,22 +60,16 @@ export function WeatherProvider({ children, lazy = false }) {
         setBooted(true);
     }, []);
 
-    const loadWeather = useCallback(async (force = false) => {
+    const loadWeather = useCallback(async (force = false, { rosterChange = false } = {}) => {
         if (!booted) return;
-
         const settings = getSettings();
-        const freshnessLimitMs = (settings?.weatherFreshnessLimit || 4) * 60 * 60 * 1000;
 
-        if (!force && weatherData) {
+        if (!force && !rosterChange && weatherData) {
             const age = Date.now() - lastFetch;
-            if (age < 15 * 60 * 1000) {
-                return;
-            }
-            if (settings?.strictFreshness && age > freshnessLimitMs) {
-                setWeatherData(null);
-            }
+            if (age < 15 * 60 * 1000) return { ok: true, skipped: true };
         }
 
+        const generation = ++requestGeneration.current;
         setLoading(true);
 
         if (settings?.sections?.weather === false) {
@@ -56,45 +81,47 @@ export function WeatherProvider({ children, lazy = false }) {
             const cities = getConfiguredWeatherCities(settings);
             const data = {};
             let successCount = 0;
-
-            for (let i = 0; i < cities.length; i += 1) {
-                const city = String(cities[i] || '').toLowerCase();
+            let unavailableCount = 0;
+            // Preserve selected order but cap simultaneous model acquisitions.
+            // Only changed/expired cities are fetched on roster modifications.
+            const fetchCity = async city => {
+                const existing = weatherData?.[city];
+                if (!force && rosterChange && hasUsableWeatherCity(existing)) return existing;
                 try {
-                    const cityData = await fetchWeather(city);
-                    if (hasUsableWeatherCity(cityData)) {
-                        data[city] = cityData;
-                        successCount += 1;
-                    } else {
-                        data[city] = weatherData?.[city] || null;
-                    }
+                    const fetched = await fetchWeather(city, { force });
+                    if (hasUsableWeatherCity(fetched)) return fetched;
+                    return hasUsableWeatherCity(existing) ? { ...existing, sourceMode: 'cache', isStale: true } : null;
                 } catch (cityError) {
                     console.warn(`[WeatherContext] ${city} failed:`, cityError?.message || cityError);
-                    data[city] = weatherData?.[city] || null;
+                    return hasUsableWeatherCity(existing) ? { ...existing, sourceMode: 'cache', isStale: true } : null;
                 }
-
-                if (i < cities.length - 1) {
-                    await delay(500);
-                }
+            };
+            for (let offset=0; offset<cities.length; offset+=3) {
+                const batch=cities.slice(offset,offset+3);
+                const results=await Promise.all(batch.map(city=>fetchCity(city)));
+                if (generation !== requestGeneration.current) return { ok:false, superseded:true };
+                results.forEach((cityData,index)=>{
+                    const city=batch[index];
+                    data[city]=cityData;
+                    if (hasUsableWeatherCity(cityData)) successCount += 1;
+                    else unavailableCount += 1;
+                });
             }
-
-            if (successCount === 0 && weatherData) {
-                setError(new Error('Using previous cached weather data; live refresh failed.'));
-                setLoading(false);
-                return;
-            }
-
-            const nextData = successCount > 0 ? data : null;
-            setWeatherData(nextData);
-            setLastFetch(successCount > 0 ? Date.now() : lastFetch);
-            setError(successCount === 0 ? new Error('All weather fetches failed') : null);
+            if (generation !== requestGeneration.current) return { ok:false, superseded:true };
+            // Publish only the current configured-city roster. Removed cities and
+            // late responses cannot be restored in React state.
+            setWeatherData(data);
+            setLastFetch(Date.now());
+            setError(unavailableCount ? new Error(`${unavailableCount} city forecasts unavailable`) : null);
+            return { ok:successCount > 0, available:successCount, unavailable:unavailableCount };
         } catch (err) {
+            if (generation !== requestGeneration.current) return { ok:false, superseded:true };
             console.error('Weather Context Error:', err);
             setError(err);
-            if (!weatherData) {
-                setWeatherData(null);
-            }
+            if (!weatherData) setWeatherData(null);
+            return { ok:false, error:err?.message || String(err) };
         } finally {
-            setLoading(false);
+            if (generation === requestGeneration.current) setLoading(false);
         }
     }, [weatherData, lastFetch, booted]);
 
@@ -104,15 +131,31 @@ export function WeatherProvider({ children, lazy = false }) {
     }, [booted, loadWeather]);
 
     useEffect(() => {
+        if (!booted || typeof window === 'undefined') return;
+        const refreshOnResume = () => {
+            if (document.visibilityState === 'visible') loadWeather(false);
+        };
+        const timer = window.setInterval(() => loadWeather(false), 15*60*1000);
+        document.addEventListener('visibilitychange', refreshOnResume);
+        return () => {
+            window.clearInterval(timer);
+            document.removeEventListener('visibilitychange', refreshOnResume);
+        };
+    }, [booted, loadWeather]);
+
+    useEffect(() => {
         if (!booted) return;
-        if (prevVersion.current !== settingsVersion) {
-            prevVersion.current = settingsVersion;
-            loadWeather(true);
+        if (lastDataSettingsKey.current !== dataSettingsKey) {
+            const previous = JSON.parse(lastDataSettingsKey.current);
+            const next = JSON.parse(dataSettingsKey);
+            lastDataSettingsKey.current = dataSettingsKey;
+            const modelsChanged = JSON.stringify(previous.models) !== JSON.stringify(next.models) || previous.enabled !== next.enabled;
+            loadWeather(modelsChanged, { rosterChange: true });
         }
-    }, [booted, settingsVersion, loadWeather]);
+    }, [booted, dataSettingsKey, loadWeather, settingsVersion]);
 
     return (
-        <WeatherContext.Provider value={{ weatherData, loading, error, refreshWeather: loadWeather, ensureBoot, booted }}>
+        <WeatherContext.Provider value={{ weatherData, loading, error, refreshWeather: loadWeather, ensureBoot, booted, activeCity, setActiveCity }}>
             {children}
         </WeatherContext.Provider>
     );

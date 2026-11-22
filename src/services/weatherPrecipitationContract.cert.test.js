@@ -35,6 +35,14 @@ describe('Weather precipitation contract', () => {
     expect(summary.semantics).toBe('period_peak_hourly_consensus');
   });
 
+  it('does not fabricate dry weather from unknown or incomplete hourly readings', () => {
+    expect(summarizePeriodRain([{prob:null,precip:null},{prob:45,precip:2}])).toMatchObject({peak:null,totalMm:null});
+    expect(summarizePeriodRain([],2)).toMatchObject({peak:null,totalMm:null});
+    expect(summarizePeriodRain([{prob:20,precip:0.2}],2)).toMatchObject({peak:null,totalMm:null});
+    expect(buildPrecipitationReconciliation(null,0)).toBeNull();
+    expect(buildPrecipitationReconciliation(0,null)).toBeNull();
+  });
+
   it('flags large daily-vs-hourly precipitation mismatches without hiding them', () => {
     const mismatch = buildPrecipitationReconciliation(26.6, 2.1);
     expect(mismatch.withinTolerance).toBe(false);

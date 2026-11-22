@@ -13,7 +13,7 @@ const locations = read('src/services/weatherLocations.js');
 const manager = read('src/components/weather/WeatherLocationManager.jsx');
 const managerCss = read('src/components/weather/WeatherLocationManager.css');
 const quickWeather = read('src/components/QuickWeather.jsx');
-const quickCss = read('src/components/QuickWeatherRefined.css');
+const quickCss = read('src/components/QuickWeatherRefined.css') + read('src/components/weather/WeatherCityStrip.css');
 const weekly = read('src/components/weather/WeeklyWeatherForecast.jsx');
 const weeklyCss = read('src/components/weather/WeeklyWeatherForecast.css');
 const service = read('src/services/weatherService.js');
@@ -26,14 +26,14 @@ for (const token of [
     'getWeatherLocationOptions',
     'getWeatherLocationLabel',
     'WEATHER_LOCATION_CONFIG_VERSION',
-    'weather-locations-v3-colombo-ux'
+    'locationConfigVersion'
 ]) {
     assert(locations.includes(token), 'weatherLocations.js missing token: ' + token);
 }
 
 for (const token of [
     'Add / delete locations',
-    'Colombo',
+    'getCityDisplay',
     'Reset defaults',
     'wlm-chip',
     'removeCity'
@@ -43,17 +43,17 @@ for (const token of [
 
 for (const token of [
     'QuickWeatherRefined.css',
-    'getWeatherLocationOptions',
-    'Select a supported city',
-    'quick-weather-city-options',
-    '0% · 0.0mm'
+    'getConfiguredWeatherCities',
+    'WeatherCityStrip',
+    'WeatherHourIntervals',
+    'Manage cities'
 ]) {
     assert(quickWeather.includes(token), 'QuickWeather.jsx missing token: ' + token);
 }
 
 for (const token of [
     '.quick-weather-card',
-    '.qw-config-bar input',
+    '.qw-config-bar',
     '.qw-highlight-text-container',
     '.qw-city-row--active'
 ]) {
@@ -114,7 +114,7 @@ console.log(JSON.stringify({
     guarantees: [
         'Colombo remains in supported weather registry',
         'Weather location manager supports visible add/delete/reset',
-        'QuickWeather add city is real and registry-backed',
+        'Quick Weather and Weather tab share a registry-backed city manager',
         'QuickWeather displays precipitation probability and mm',
         'QuickWeather desktop contrast is improved',
         'Weekly forecast includes rainfall probability/mm, real feel and humidity',
