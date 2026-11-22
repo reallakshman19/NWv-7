@@ -39,6 +39,14 @@ function storyText(story) {
   ].filter(Boolean).join(' '));
 }
 
+function cityEvidenceText(story, profile) {
+  const text = storyText(story);
+  // A commodity or grape cultivar is not evidence for Muscat, Oman.
+  return profile?.key === 'muscat'
+    ? text.replace(/\bmuscat\s+(?:grapes?|wines?|vines?|fruits?|variet(?:y|ies))\b/gu, ' ')
+    : text;
+}
+
 function hasWord(text, keyword) {
   if (!keyword || !text) return false;
   if (/[\u0b80-\u0bff]/u.test(keyword)) {
@@ -111,7 +119,7 @@ export function applyMainAreaRelevance(newsData = {}) {
 export function scoreStoryForLocation(story, profile) {
   if (!story || !profile?.prioritizeStories) return 0;
 
-  const text = storyText(story);
+  const text = cityEvidenceText(story, profile);
   if (!text) return 0;
   const city = normalize(profile.display);
   const key = normalize(profile.key);
@@ -138,15 +146,10 @@ export function scoreStoryForLocation(story, profile) {
 // City-specific cards require evidence of this city, not merely the same
 // country or region. Sources and collection lanes are not event evidence.
 export function hasCityEvidence(story, profile) {
-  const text = storyText(story);
-  // "Muscat grapes" and "Muscat wine" name a variety, not the Omani city.
-  // Remove that lexical sense without suppressing any other city evidence.
-  const geoText = profile?.key === 'muscat'
-    ? text.replace(/\bmuscat\s+(?:grapes?|wines?|vines?|fruits?|variet(?:y|ies))\b/gu, ' ')
-    : text;
+  const text = cityEvidenceText(story, profile);
   const terms = profile?.cityKeywords || [profile?.key, profile?.display];
   return terms.map(normalize).filter(term => term.length > 2)
-    .some(term => hasWord(geoText, term));
+    .some(term => hasWord(text, term));
 }
 
 export function rankStoriesForLocation(newsData = {}, profileInput = null, options = {}) {
