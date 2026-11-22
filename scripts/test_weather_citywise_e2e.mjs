@@ -124,6 +124,10 @@ try {
     const health = page.locator('[data-weather-health-icon]').first();
     await health.click();
     await waitFor(page,'[data-weather-source-details]');
+    if(width<=390) {
+      const detailsHeight=await page.locator('[data-weather-source-details]').first().evaluate(el=>el.getBoundingClientRect().height);
+      if(detailsHeight>440)throw Error('Mobile source-health disclosure too tall: '+detailsHeight);
+    }
     await page.getByRole('button',{name:'Close data source details'}).first().click();
     if(width===1366){
       await page.getByRole('button',{name:'Manage',exact:true}).click();

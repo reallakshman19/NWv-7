@@ -73,7 +73,7 @@ function ForecastCard({ forecast, cityName }) {
 export default function WeeklyWeatherForecast({
   forecast = null, cityName = '', weatherData = null, settings = null, cities = null,
 }) {
-  if (Array.isArray(forecast)) return <ForecastCard forecast={forecast} cityName={cityName}/>;
+  if (Array.isArray(forecast)) return <ForecastCard forecast={forecast}/>;
   const cityRows = getWeatherCityRows({
     weatherData:weatherData || {},settings:settings || {},cities,
   }).filter(row => row.forecast.length>0);
