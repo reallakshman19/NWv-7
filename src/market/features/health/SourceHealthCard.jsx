@@ -5,10 +5,12 @@
  * Strictly separates legal rights from reachability (UNKNOWN) and request state.
  */
 
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
+import { healthStore } from './healthStore.js';
 
-export function SourceHealthCard({ sourceStates = {} }) {
-  const sources = Object.values(sourceStates);
+export function SourceHealthCard({ sourceStates = null }) {
+  const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
+  const sources = Object.values(sourceStates || health.sourceStates || {});
 
   const getStatusBadge = (source) => {
     if (source.rights === 'NO_PUBLICATION') {
