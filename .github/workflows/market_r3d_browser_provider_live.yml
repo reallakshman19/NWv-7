@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   browser-provider-proof:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright Chromium supported; ubuntu-26.04 is unsupported by pinned 1.59
     timeout-minutes: 15
     steps:
       - name: Checkout source under test
