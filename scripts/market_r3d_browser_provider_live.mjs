@@ -36,8 +36,8 @@ async function acquireInBrowser(page, id, url) {
       }
       const row = payload?.data?.[0];
       const originalDate = String(row?.date || '');
-      const dmy = /^(\\d{2})-(\\d{2})-(\\d{4})$/.exec(originalDate);
-      const ymd = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(originalDate);
+      const dmy = /^(\d{2})-(\d{2})-(\d{4})$/.exec(originalDate);
+      const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(originalDate);
       const parts = dmy ? [Number(dmy[3]), Number(dmy[2]), Number(dmy[1])]
         : ymd ? [Number(ymd[1]), Number(ymd[2]), Number(ymd[3])] : null;
       const asOf = parts ? Date.UTC(parts[0], parts[1] - 1, parts[2]) : NaN;
