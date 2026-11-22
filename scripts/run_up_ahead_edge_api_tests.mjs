@@ -3,7 +3,21 @@ import { spawn } from 'node:child_process';
 const nodeBin = process.execPath;
 const npxBin = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 
+const pythonBin = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+
 export const UP_AHEAD_EDGE_API_TEST_COMMANDS = [
+  {
+    label: 'UpAhead v2 source identity and immutable publisher shadow tests',
+    command: pythonBin,
+    args: ['-m', 'unittest', 'discover', '-s', 'scripts', '-p', 'test_upahead_*_v2_shadow.py', '-v'],
+    display: "python -m unittest discover -s scripts -p 'test_upahead_*_v2_shadow.py' -v",
+  },
+  {
+    label: 'UpAhead v2 Python publisher to Cloudflare WebCrypto parity',
+    command: nodeBin,
+    args: ['--test', 'scripts/test_upahead_generation_v2_parity.mjs'],
+    display: 'node --test scripts/test_upahead_generation_v2_parity.mjs',
+  },
   {
     label: 'UpAhead v2 feature-gated Worker route verification (16 cases)',
     command: nodeBin,
