@@ -1,5 +1,6 @@
 import React from 'react';
 import { rankStoriesForLocation } from '../../services/storyLocationPriority.js';
+import { TRAVEL_NEWS_RETENTION_HOURS, formatTravelStoryAge } from '../../services/travelNewsFreshness.js';
 import { auditTravelLocalStories, getStoriesDisplayMode } from '../../services/travelLocalUiQuality.js';
 import { sanitizeHtmlText } from '../../utils/htmlText.js';
 import './TravelLocalStories.css';
@@ -11,7 +12,7 @@ function storyUrl(story) {
 export default function TravelLocalStories({ newsData, profile, limit = 5 }) {
   if (!profile?.prioritizeStories) return null;
 
-  const stories = rankStoriesForLocation(newsData, profile, { limit, requireCityEvidence: true });
+  const stories = rankStoriesForLocation(newsData, profile, { limit, requireCityEvidence: true, requireFreshPublication: true });
   const audit = auditTravelLocalStories(stories, profile);
   const displayMode = getStoriesDisplayMode(audit, profile);
 
@@ -24,7 +25,7 @@ export default function TravelLocalStories({ newsData, profile, limit = 5 }) {
           <span>{profile.icon || '📍'} Travel local</span>
           <strong>{profile.display}</strong>
         </header>
-        <p>No strong {profile.display} local story match yet. The GitHub prefetch/local source workflow should add more coverage.</p>
+        <p>No strong {profile.display} local story match yet. Only verified city news published within the past {TRAVEL_NEWS_RETENTION_HOURS} hours is shown.</p>
       </section>
     );
   }
@@ -48,8 +49,8 @@ export default function TravelLocalStories({ newsData, profile, limit = 5 }) {
             <strong>{sanitizeHtmlText(story.title || story.headline)}</strong>
             <span>
               {sanitizeHtmlText(story.source || story.sourceGroup || story._travelSection || 'Local source')}
-              {' · score '}
-              {story._travelLocationScore}
+              {' · '}
+              {formatTravelStoryAge(story)}
             </span>
           </a>
         ))}
