@@ -38,7 +38,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     edition: {
       country: 'LK',
       lang: 'en',
-      timeRange: '30d',
+      timeRange: '2d',
     },
   },
 
@@ -57,7 +57,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     edition: {
       country: 'IN',
       lang: 'en',
-      timeRange: '30d',
+      timeRange: '2d',
     },
   },
 
@@ -76,7 +76,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     edition: {
       country: 'IN',
       lang: 'en',
-      timeRange: '30d',
+      timeRange: '2d',
     },
   },
 
@@ -95,7 +95,7 @@ export const TRAVEL_LOCATION_REGISTRY = {
     edition: {
       country: 'OM',
       lang: 'en',
-      timeRange: '30d',
+      timeRange: '2d',
     },
   },
 };
@@ -133,7 +133,7 @@ function getWeatherCityTravelProfile(city) {
     aliases: location.aliases || [],
     cityKeywords: [location.display, ...(location.aliases || [])],
     storyKeywords: [location.display, ...(location.aliases || [])],
-    edition: { country: countryCode, lang: 'en', timeRange: '30d' },
+    edition: { country: countryCode, lang: 'en', timeRange: '2d' },
     hasDedicatedLocalFeed: false,
   };
 }
@@ -272,7 +272,7 @@ export function getTravelEditionOptions(profile) {
   return {
     country: resolved.edition?.country || resolved.countryCode || 'IN',
     lang: resolved.edition?.lang || 'en',
-    timeRange: resolved.edition?.timeRange || '30d',
+    timeRange: resolved.edition?.timeRange || '2d',
   };
 }
 
