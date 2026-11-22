@@ -7,6 +7,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useMacroStore } from './macroStore.js';
+import { evaluateFxObservation, canConvertFxRate } from './fxFreshness.js';
 import {
   SUPPORTED_CURRENCY_PAIRS,
   sanitizeCurrencyAmount,
@@ -30,6 +31,8 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
 
   const currentRateItem = state.ratesByPair[selectedPairId];
   const rateData = currentRateItem?.value;
+  const effectiveFreshness = evaluateFxObservation(rateData?.date);
+  const conversionAllowed = canConvertFxRate(rateData);
   const isLoading = currentRateItem?.status === 'loading';
   const isError = currentRateItem?.status === 'error';
 
@@ -44,17 +47,19 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
   };
 
   const handleFetchRate = () => {
-    actions.fetchRate(pairConfig.base, pairConfig.quote, { force: true });
+    actions.fetchRate(pairConfig.base, pairConfig.quote, { force: true }).catch(() => {
+      // The store exposes the source error; do not leak an unhandled rejection.
+    });
   };
 
   // Perform unrounded conversion
   const conversionResult = useMemo(() => {
-    if (!rateData?.rate) return null;
+    if (!conversionAllowed) return null;
     const cleanAmount = sanitizeCurrencyAmount(inputAmount);
     if (cleanAmount === null) return null;
 
     return calculateConversion(cleanAmount, rateData.rate, fromCurrency, pairConfig.base);
-  }, [rateData, inputAmount, fromCurrency, pairConfig.base]);
+  }, [rateData, conversionAllowed, inputAmount, fromCurrency, pairConfig.base]);
 
   return (
     <div className="fx-converter-card">
@@ -131,13 +136,13 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
               <span className="fx-date-badge text-muted">
                 (As of {rateData.date})
               </span>
-              {rateData.freshness === 'DATED_WARNING' && (
-                <span className="portfolio-badge badge-warning" title={rateData.warning}>
+              {effectiveFreshness?.freshness === 'DATED_WARNING' && (
+                <span className="portfolio-badge badge-warning" title={effectiveFreshness?.warning}>
                   Dated Warning (36h+)
                 </span>
               )}
-              {rateData.freshness === 'EXPIRED' && (
-                <span className="portfolio-badge badge-error" title={rateData.warning}>
+              {effectiveFreshness?.freshness === 'EXPIRED' && (
+                <span className="portfolio-badge badge-error" title={effectiveFreshness?.warning}>
                   Expired Rate (72h+)
                 </span>
               )}
