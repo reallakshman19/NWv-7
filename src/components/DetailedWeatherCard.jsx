@@ -198,6 +198,12 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
         </div>
       </div>
 
+      <div className="dw-card-compact-summary">
+        <span>{rainMmVal == null ? 'Rain —' : `Rain ${rainMmVal.toFixed(1)}mm`}</span>
+        <span>{rainProbVal == null ? 'Chance —' : `${rainProbVal}% peak`}</span>
+        <span>{data.humidity == null ? 'Humidity —' : `Humidity ${data.humidity}%`}</span>
+      </div>
+
       <div className="dw-details-grid">
         <div className="dw-detail-row">
           <div className="dw-detail-icon">

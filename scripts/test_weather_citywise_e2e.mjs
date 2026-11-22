@@ -82,6 +82,15 @@ try {
       !intervalText.includes('peak hourly rain chance'))
       throw Error('4h rainfall interval semantics unavailable');
     if(intervalText.includes('Today + tomorrow'))throw Error('Two-day merged risk returned');
+    if(width===390){
+      const rainBox=await page.locator('[data-weather-hour-intervals] .whi-period__rain').first().evaluate(el=>({
+        scroll:el.scrollWidth,width:el.clientWidth
+      }));
+      if(rainBox.scroll>rainBox.width+2)throw Error('Mobile rainfall values clipped: '+JSON.stringify(rainBox));
+      const manage=page.getByRole('button',{name:'Manage',exact:true});
+      const manageBox=await manage.boundingBox();
+      if(!manageBox || manageBox.width>150)throw Error('Manage button too wide on mobile: '+JSON.stringify(manageBox));
+    }
     if(await page.locator('[data-weather-city-strip] svg').count()<3)throw Error('SVG weather icons missing');
     if(await page.locator('[data-weather-city-strip]').first().getByText(/model feeds|cached|snapshot|source unverified/i).count())
       throw Error('Technical diagnostics are displayed in city tiles');

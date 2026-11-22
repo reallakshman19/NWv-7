@@ -81,3 +81,17 @@ section.quick-weather-card .weather-hour-intervals--compact{margin-top:2px;paddi
   .weather-citywise-content .dw-card:not(.expanded) .dw-card-main{margin-bottom:4px;padding-bottom:4px;border:0}
   .weather-citywise-content .dw-card{font-size:12px}
 }
+
+.dw-card-compact-summary{display:none}
+@media(max-width:680px){
+  .weather-citywise-content .dw-card-compact-summary{
+    display:flex;flex-wrap:wrap;gap:5px 10px;align-items:center;
+    color:#cbd5e1;font-size:11px;line-height:1.35;margin-top:3px;
+  }
+  .weather-citywise-content .dw-card-compact-summary span:first-child{color:#93c5fd}
+  .weather-citywise-content .dw-card.expanded .dw-card-compact-summary{display:none}
+  .weather-citywise-content .dw-period-badge{font-size:11px}
+  .weather-citywise-content .dw-expand-hint{font-size:10px}
+  .weather-citywise-content .dw-temp-feels{font-size:11px}
+  section.quick-weather-card .qw-config-add-btn{min-width:0!important}
+}

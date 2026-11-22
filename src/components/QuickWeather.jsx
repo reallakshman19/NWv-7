@@ -20,9 +20,9 @@ export default function QuickWeather() {
       <strong className="qw-config-title">Quick Weather</strong>
       <div className="qw-config-actions">
         <WeatherSourceStatus cityData={cityData} compact />
-        <a className="qw-config-add-btn" href="#/weather" aria-label="Manage weather cities">
+        <a className="qw-config-add-btn" href="#/weather" aria-label="Manage weather cities" title="Manage cities">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-        Manage cities
+        Cities
         </a>
       </div>
     </div>
