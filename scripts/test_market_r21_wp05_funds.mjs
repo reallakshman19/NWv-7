@@ -335,6 +335,15 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
       [
         '.github/workflows/market-r21-wp00-contracts.yml',
         '.github/workflows/ci.yml',
+        '.github/workflows/deploy.yml',
+        '.github/workflows/market_r3d_browser_provider_live.yml',
+        'public/data/fx_snapshot.json',
+        'docs/data/fx_snapshot.json',
+        'src/config/settings_market.js',
+        'src/utils/marketSession.js',
+        'src/utils/marketSession.cert.test.js',
+        'src/utils/configEvolution.cert.test.js',
+        'src/utils/storage.market.cert.test.js',
         'docs/market/R21_AGENT_DISPATCH.md',
         'docs/market/R21_WP00_FOUNDATION.md'
       ].includes(file);
