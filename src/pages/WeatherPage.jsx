@@ -121,8 +121,10 @@ function WeatherPage() {
         )}
 
         <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
-        <WeatherLocationManager {...locationManagerProps} />
-        <WeatherOfficialAlerts />
+        <div className="weather-city-toolbar">
+          <WeatherLocationManager {...locationManagerProps} />
+          <WeatherOfficialAlerts />
+        </div>
 
         {weatherData?.[activeCity]?.current ? (
           <div className="weather-citywise-content">

@@ -64,10 +64,21 @@ try {
     await waitFor(page,'.whi-period');
     await page.getByRole('button',{name:'4h',exact:true}).first().click();
     const intervalText=await page.locator('[data-weather-hour-intervals]').first().textContent();
-    if(!intervalText.includes('4h rain')||!intervalText.includes('peak hourly'))
+    const firstPeriod = page.locator('[data-weather-hour-intervals] .whi-period').first();
+    const accessible = await firstPeriod.getAttribute('aria-label');
+    if(!accessible?.includes('4h rain') || !accessible?.includes('peak hourly rain chance') ||
+      !intervalText.includes('peak hourly rain chance'))
       throw Error('4h rainfall interval semantics unavailable');
     if(intervalText.includes('Today + tomorrow'))throw Error('Two-day merged risk returned');
     if(await page.locator('[data-weather-city-strip] svg').count()<3)throw Error('SVG weather icons missing');
+    if(await page.locator('[data-weather-city-strip]').first().getByText(/model feeds|cached|snapshot|source unverified/i).count())
+      throw Error('Technical diagnostics are displayed in city tiles');
+    if(await page.locator('[data-weather-hour-intervals]').first().getByText(/model feeds|cached forecast|source unverified/i).count())
+      throw Error('Technical diagnostics are displayed in interval cards');
+    const health = page.locator('[data-weather-health-icon]').first();
+    await health.click();
+    await waitFor(page,'[data-weather-source-details]');
+    await page.getByRole('button',{name:'Close data source details'}).first().click();
     if(width===1366){
       await page.getByRole('button',{name:'Manage',exact:true}).click();
       await page.getByRole('searchbox',{name:'Search weather city library'}).fill('London');

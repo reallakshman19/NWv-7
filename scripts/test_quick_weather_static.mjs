@@ -11,7 +11,7 @@ const manager=read('src/components/weather/WeatherLocationManager.jsx');
 for(const token of ['getConfiguredWeatherCities','WeatherCityStrip','WeatherHourIntervals','activeCity','setActiveCity','Manage cities']){
   check(quick.includes(token),'QuickWeather missing '+token);
 }
-for(const token of ['data-weather-city-strip','qw-city-row--missing','No forecast','aria-current','onSelect']){
+for(const token of ['data-weather-city-strip','wcs-chip--missing','No forecast','aria-current','onSelect']){
   check(strip.includes(token),'City selector missing '+token);
 }
 for(const token of ['[2, 4].includes(hours)','cityLocalHour','fetchedAt','rain.every','probability.every','localTime']){
