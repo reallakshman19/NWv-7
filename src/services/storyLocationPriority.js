@@ -4,6 +4,7 @@ import {
 } from './travelLocationProfile.js';
 import { applyAreaRelevance } from './areaRelevanceScorer.js';
 import { isFreshTravelStory } from './travelNewsFreshness.js';
+import { stripTravelPublisherSuffix } from './travelRssParser.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -25,10 +26,14 @@ function geoScalarValues(value) {
 }
 
 function storyText(story) {
-  // Source, sourceGroup, section, category, URL and travel profile are acquisition
-  // context, never event location evidence.
+  // A Google News headline can embed " - Muscat Daily" or another publisher
+  // name. Strip this attribution before deriving event geography.
+  const publisher = story?.source || story?.sourceGroup || story?.publisher || '';
   return normalize([
-    story?.title, story?.headline, story?.summary, story?.description,
+    stripTravelPublisherSuffix(story?.title, publisher),
+    stripTravelPublisherSuffix(story?.headline, publisher),
+    stripTravelPublisherSuffix(story?.summary, publisher),
+    stripTravelPublisherSuffix(story?.description, publisher),
     story?.city, story?.country,
     ...geoScalarValues(story?.location), ...geoScalarValues(story?.locations),
   ].filter(Boolean).join(' '));
@@ -134,9 +139,14 @@ export function scoreStoryForLocation(story, profile) {
 // country or region. Sources and collection lanes are not event evidence.
 export function hasCityEvidence(story, profile) {
   const text = storyText(story);
+  // "Muscat grapes" and "Muscat wine" name a variety, not the Omani city.
+  // Remove that lexical sense without suppressing any other city evidence.
+  const geoText = profile?.key === 'muscat'
+    ? text.replace(/\\bmuscat\\s+(?:grapes?|wines?|vines?|fruits?|variet(?:y|ies))\\b/gu, ' ')
+    : text;
   const terms = profile?.cityKeywords || [profile?.key, profile?.display];
   return terms.map(normalize).filter(term => term.length > 2)
-    .some(term => hasWord(text, term));
+    .some(term => hasWord(geoText, term));
 }
 
 export function rankStoriesForLocation(newsData = {}, profileInput = null, options = {}) {
