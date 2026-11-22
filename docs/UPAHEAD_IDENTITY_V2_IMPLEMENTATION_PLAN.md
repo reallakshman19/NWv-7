@@ -61,3 +61,37 @@ python -m unittest discover -s scripts -p 'test_upahead_identity_v2_shadow.py' -
 ```
 
 Run the existing UpAhead retention / JS / browser suites at the exact PR head before any further integration. Record actual source and browser receipts instead of treating this source-unit pass as product acceptance.
+
+
+## P-CF — Cloudflare UpAhead serving plane (MANDATORY, before release)
+**Status:** NOT_IMPLEMENTED for v2; current Worker code exists, production activation remains UNVERIFIED. This is part of issue #200, not a separate untracked WBS. Cross-reference existing operational-only [#107](https://github.com/reallakshman19/NWv-7/issues/107), which must not be re-scoped by this work.
+
+### Actual source-first baseline
+- `cloudflare/upahead-dataset-api/src/index.js` serves `GET /api/datasets/upAhead`; `UP_AHEAD_DATASET_URL` fetches the static GitHub Pages publication per request. This is an **HTTP proxy**, not an independent UpAhead occurrence publisher, nor an R2/KV/D1 durable store. Existing Worker responds with `X-NW-UpAhead-Source/Reason/Freshness/Age-Seconds`, CORS and no-cache.
+- A 12-hour header freshness classification uses the upstream `fetchedAt`/`lastUpdated` timestamp, **not** proof of verified expiry, occurrence membership or current authoritative generation.
+- On upstream timeout/bad JSON/invalid shape the Worker returns a syntactically valid **HTTP 200 empty fallback**, and the dataset client may next use static/retained data. Invariant: an empty fallback must never masquerade as a verified-zero canonical dataset.
+- `src/data/datasets/upAheadDatasetApiClient.js`, `upAheadDataset.js`, `upAheadProviderPolicy.js` decide Worker vs cache/static. Current source-selection may merge historical source rows unless bounded by a generation/alias-aware manifest. `VITE_API_BASE_URL` is optional, configuration-dependent. Deployed Worker URL, Cloudflare deployment/activation and real browser consumption have not been authenticated/observed here.
+
+### Target design
+**GitHub producer remains canonical occurrence authority; Cloudflare becomes an identity-preserving distribution and verification layer, not a second fuzzy-dedup engine.**
+1. **Versioned immutable publication:** publisher emits a release manifest with `schemaVersion`, `generationId`, `sourceCommit`, `retentionPolicyVersion`, `identityVersion`, `ledgerVersion`, `observedAt`, `publishedAt`, `semanticDigest`, `recordCounts` and accepted expiry/cancellation state. Digest covers canonical entries, aliases, revision/cancellation state, not just fetchedAt/number of rows. Producer retains immutable generation payload to permit rollback.
+2. **Cloudflare edge verification:** Worker validates manifest+payload, coherence of generation and digest, canonical identity uniqueness, expiry/cancellation constraints and bounded source freshness; return exact accepted-generation metadata to the browser. Reject mismatched/partially published/invalid generations, never return false 'fresh' from a recent fetch of old data.
+3. **Atomic authority / fallback:** atomic current-generation pointer owned by producer after publication checks. Choose an immutable manifest+asset-on-Pages design first (free existing infrastructure); optional **Cloudflare R2 last-known-good immutable objects** only after cost/quota/credential/operator approval. Never silently introduce KV/D1/R2 or change serving authority. `Cache-Control: no-cache` alone is not version coherency.
+4. **Failure semantics:** differentiate `VALID`, `STALE_VALID`, `INVALID`, `UPSTREAM_UNAVAILABLE`, `VERIFIED_EMPTY`, `NOT_CONFIGURED`. Return 503 (or explicit non-usable state) for unverified fallback, not an ordinary success dataset; preserve last independently verified generation only within validity boundaries, without reviving expired or cancelled items.
+5. **Frontend gating:** `upAheadDatasetApiClient` and `upAheadDataset` validate generation and source metadata before selecting/merging API, Pages and cache. Never combine records from incompatible generations as if one authoritative snapshot; saved Planner aliases resolve via the canonical ledger and cancelled IDs stay retired. Declare one serving authority per request, keep provenance for fallback.
+6. **Activation/rollback:** reuse #107 readiness and smoke harness, confirm real `VITE_API_BASE_URL` is configured in actual Pages build if edge mode intended. No live Worker host/secrets recorded in GitHub. Rollback to source-hash pinned Pages publication, not arbitrary older cache.
+
+### Mandatory Cloudflare proof cases
+- Same immutable generation from GitHub Pages, Worker, browser cache and service selection => identical canonical IDs, supported aliases, per-category counts, tombstones and semantic digest.
+- Newer generation updates a rescheduled occurrence across all surfaces; old cache and older Worker results cannot reintroduce duplicate source aliases or cancel a tombstone.
+- Upstream timeout, HTTP errors, invalid JSON, missing/downgraded identity manifest, digest mismatch, torn two-file publication, stale `fetchedAt`, partial category availability and verified zero each produce distinct safe states.
+- Worker returns the correct generation headers and avoids false success for empty fallback.
+- Two real consecutive publication cycles + deployed Worker smoke and browser DOM/source receipts, desktop/mobile and Planner reopen; include Worker-disabled static fallback.
+- 100, 1000 and policy-cap performance and free-tier CPU/request/response size budget. Verify no expensive per-request re-dedup or mandatory paid dependency.
+- **NO-GO** on any mismatched generation, false merge, resurrection, Planner alias loss, source integrity failure or unverified Cloudflare activation claim.
+
+### PR sequencing
+- **PR-A / present PR #201:** append verified edge inventory and *shadow-only manifest/parity test*, no live Worker behavior changes.
+- **PR-B/C:** implement publisher immutable publication manifest and ledger, then Workers edge validation/error semantics with paired failing-negative tests.
+- **PR-D:** integrate frontend generation-aware provider policy and Planner state migrations.
+- **PR-E:** real Pages↔Worker↔browser parity, health diagnostics, rollback and live activation evidence. Deployment of Cloudflare account resources requires separate explicit approval.
