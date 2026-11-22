@@ -1,6 +1,10 @@
 name: Travel local news prefetch
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/travel-local-news.yml'
   schedule:
     - cron: '13 */3 * * *'
   workflow_dispatch:
