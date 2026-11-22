@@ -8,11 +8,11 @@ const previousClose = '2026-11-18T10:00:00Z';
 describe('Market schedule and quote provenance', () => {
   it('keeps the regular schedule independent of collection and quote age', () => {
     expect(getMarketSessionState({ now, lastUpdated: now.getTime() })).toMatchObject({
-      label: 'Indicative NSE Hours', ageMinutes: null, ageLabel: '--', isOpen: null,
+      label: 'Scheduled NSE Hours', ageMinutes: null, ageLabel: '--', isOpen: null,
     });
     expect(getMarketSessionState({ now, quoteAt: previousClose, tradingHolidays: ['2026-01-26'] })).toMatchObject({
-      label: 'Indicative NSE Hours', ageMinutes: 1140, isOpen: null,
-      holidayCalendarStatus: 'listed_year_completeness_unverified',
+      label: 'Scheduled NSE Hours', ageMinutes: 1140, isOpen: null,
+      holidayCalendarStatus: 'nse_circular_verified_list_live_status_unverified',
     });
     expect(getMarketSessionState({ now, quoteAt: previousClose, tradingHolidays: ['2026-11-19'] })).toMatchObject({
       label: 'Closed (scheduled)', reason: 'Listed holiday (unverified)', ageMinutes: 1140, isOpen: false,
@@ -61,11 +61,13 @@ describe('NSE verified 2026 calendar and fail-closed session model', () => {
     expect(state.tone).not.toBe('success');
   });
 
-  it('treats missing/future calendar years as unverified and a truncated 2026 list as incomplete', () => {
+  it('uses trusted 2026 closures despite stale stored lists, and treats future years as unverified', () => {
     expect(getMarketSessionState({ now: new Date('2027-01-05T05:00:00Z'), tradingHolidays: holidays }))
       .toMatchObject({ label: 'Indicative NSE Hours', isOpen: null, holidayCalendarStatus: 'unknown_year_weekday_rules' });
     expect(getMarketSessionState({ now: new Date('2026-11-19T05:00:00Z'), tradingHolidays: holidays.slice(0, 6) }))
-      .toMatchObject({ label: 'Indicative NSE Hours', isOpen: null, holidayCalendarStatus: 'listed_year_completeness_unverified' });
+      .toMatchObject({ label: 'Scheduled NSE Hours', isOpen: null, holidayCalendarStatus: 'nse_circular_verified_list_live_status_unverified' });
+    expect(getMarketSessionState({ now: new Date('2026-11-24T05:00:00Z'), tradingHolidays: ['2026-01-26'] }))
+      .toMatchObject({ label: 'Closed (scheduled)', reason: 'NSE 2026 capital-market circular holiday', isOpen: false });
   });
 
   it('marks an added user-local holiday as unverified rather than official NSE evidence', () => {
