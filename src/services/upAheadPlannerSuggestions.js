@@ -20,7 +20,7 @@ export function getUpAheadPlannerSuggestions(data, savedPlan, blacklist, setting
     .filter(item => item.reviewGroupStatus === 'POSSIBLE_DUPLICATE_UNCONFIRMED');
   const needsSourceChoice = new Set(reviewGroups.flatMap(item =>
     item.reviewAlternateListings.map(source => source.id)));
-  const eligibleCandidates = candidates.filter(item => !needsSourceChoice.has(item.id));
+  const eligibleCandidates = candidates.filter(item => !(item.category === 'events' && item.sourceGroup === 'chennai-calendar' && needsSourceChoice.has(item.id)));
   return mergeUpAheadItems(eligibleCandidates, { preferEventCategory: true }).flatMap(item => {
     const date = upAheadDateKey(item);
     const today = upAheadEventDayKey(now, item);
