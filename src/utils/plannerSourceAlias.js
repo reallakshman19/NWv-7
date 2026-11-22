@@ -23,6 +23,7 @@ function eventSlot(row, date) {
   if (!row || typeof row !== 'object') return null;
   const event = Number(row.eventStartAt);
   if (!Number.isFinite(event) || event <= 0) return null;
+  if (row.eventDateKey && row.eventDateKey !== date) return null;
   const city = String(row.city || row.locationCanonical || row.location || '').toLowerCase().trim();
   const category = String(row.category || '').toLowerCase().trim();
   if (!city || !category || !date) return null;
