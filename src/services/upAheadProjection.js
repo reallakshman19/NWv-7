@@ -5,7 +5,7 @@ import { upAheadOccurrenceKey, sameUpAheadDisplayOccurrence } from './upAheadLif
 import { getUpAheadEvidence } from './upAheadEvidence.js';
 import { getUpAheadBriefing } from './upAheadBriefing.js';
 import { matchesUpAheadLocation } from './upAheadLocation.js';
-import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday, isActionableCivicNotice } from './upAheadLocalPolicy.js';
+import { classifyRetailOffer, matchesLocalAlert, getAlertProvenance, isLocalHoliday, isActionableCivicNotice, isActionableLocalAlert } from './upAheadLocalPolicy.js';
 
 const DEFAULT_UPAHEAD_SETTINGS = {
   categories: {
@@ -242,7 +242,7 @@ function getVisibleUpAheadProjection({ data, settings }) {
   const locations = upAheadSettings.locations || DEFAULT_UPAHEAD_SETTINGS.locations;
   const local = item => matchesUpAheadLocation(item, locations);
   const alertCard = item => ({ ...item, alertProvenance: getAlertProvenance(item) });
-  const generalAlerts = asArray(sections.alerts).filter(item => matchesLocalAlert(item, locations)).map(alertCard);
+  const generalAlerts = asArray(sections.alerts).filter(isActionableLocalAlert).filter(item => matchesLocalAlert(item, locations)).map(alertCard);
   const localWeatherAlerts = weatherAlerts.filter(item => matchesLocalAlert(item, locations)).map(alertCard);
 
   // This feeds both the Civics tab and the civic portion of the Alerts badge.
