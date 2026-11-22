@@ -1,7 +1,37 @@
-.qw-current-summary{display:flex;align-items:center;gap:12px;padding:8px 0;color:#f8fafc}
-.qw-current-summary div{display:flex;flex-direction:column;gap:3px}.qw-current-summary strong{font-size:1.55rem;line-height:1.1}
-.qw-current-summary span{color:#cbd5e1;font-size:.82rem}.qw-empty{padding:14px 0;color:#cbd5e1;font-size:.85rem}
-.weather-citywise-content{max-width:1200px;margin:0 auto}.weather-citywise-content .dw-sidebar{display:none}
-.weather-citywise-content .dw-content{width:100%;max-width:100%}.weather-citywise-content .dw-container{display:block}
-.quick-weather-card .qw-config-bar a{display:flex;align-items:center;gap:6px;text-decoration:none}
-@media(max-width:540px){.weather-citywise-content .dw-content{padding:10px}.qw-current-summary strong{font-size:1.35rem}}
+/* Compact city-first weather presentation: technical diagnostics are never content cards. */
+.qw-current-summary{display:flex;align-items:center;gap:9px;padding:3px 1px;color:#f8fafc}
+.qw-current-summary div{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.qw-current-summary strong{font-size:1.35rem;line-height:1.15;font-weight:780}
+.qw-current-summary span{color:#cbd5e1;font-size:.8rem}
+.qw-empty{padding:10px 0;color:#cbd5e1;font-size:.8rem}
+.qw-config-actions{display:flex;align-items:center;gap:7px}
+.quick-weather-card{padding:13px 14px!important;border-radius:16px!important;box-shadow:0 8px 22px rgba(0,0,0,.2)!important}
+.quick-weather-card .qw-config-bar{margin-bottom:7px!important;padding-bottom:7px!important;flex-wrap:nowrap!important}
+.quick-weather-card .qw-config-title{text-transform:none!important;letter-spacing:0!important;font-size:.85rem!important;color:#e2e8f0!important}
+.quick-weather-card .qw-config-add-btn{height:30px!important;padding:0 10px!important;font-size:.72rem!important}
+.quick-weather-card .qw-highlight-text-container{margin-top:5px!important;gap:5px!important}
+.weather-citywise-content{max-width:1200px;margin:0 auto;min-width:0}
+.weather-citywise-content .dw-sidebar{display:none}
+.weather-citywise-content .dw-container{display:block;min-height:unset;overflow:visible;border:0;background:transparent}
+.weather-citywise-content .dw-content{width:100%;max-width:100%;padding:8px 16px;overflow:visible;background:transparent}
+.weather-citywise-content .dw-cards-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.weather-citywise-content .dw-card{min-width:0;padding:12px;border-radius:13px}
+.weather-citywise-content .dw-card-main{margin-bottom:9px;padding-bottom:9px}
+.weather-citywise-content .dw-main-icon{width:45px;margin-right:8px}
+.weather-citywise-content .dw-main-icon svg{width:38px;height:38px}
+.weather-citywise-content .dw-temp-val{font-size:1.35rem}
+.weather-citywise-content .dw-detail-row{gap:6px;font-size:.78rem}
+.weather-citywise-content .dw-details-grid .dw-detail-icon{width:20px;flex:0 0 20px}
+.weather-citywise-content .dw-details-grid .dw-detail-icon svg{max-width:18px}
+.weather-citywise-content .dw-footer{display:none}
+.weather-city-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px}
+.weather-city-toolbar .wlm-collapsed,.weather-city-toolbar .wlm-panel{margin:3px 0;border-radius:10px}
+.weather-city-toolbar .wlm-collapsed{flex:1;min-width:0;border:0;box-shadow:none;background:transparent;padding:5px 0}
+.weather-city-toolbar .wlm-collapsed__copy strong{font-size:.72rem;letter-spacing:0;text-transform:none;color:#cbd5e1;font-weight:650}
+.weather-city-toolbar .wlm-collapsed__copy span{display:none}
+.weather-city-toolbar .wlm-toggle{font-size:.76rem;font-weight:700}
+.weather-city-toolbar:has(.wlm-panel){align-items:flex-start}
+.weather-city-toolbar .wlm-panel{flex:1}
+@media(max-width:800px){.weather-citywise-content .dw-cards-list{display:flex;overflow-x:auto;scroll-snap-type:x proximity;gap:9px;padding-bottom:7px}.weather-citywise-content .dw-card{flex:0 0 min(280px,78vw);scroll-snap-align:start}}
+@media(max-width:540px){.quick-weather-card{padding:11px!important}.quick-weather-card .qw-config-add-btn{padding:0 8px!important}.qw-current-summary div{gap:6px}.qw-current-summary strong{font-size:1.25rem}.weather-citywise-content .dw-content{padding:6px 10px}.weather-city-toolbar{padding:0 10px}.weather-city-toolbar .wlm-toggle{min-width:72px}.weather-city-toolbar .wlm-collapsed__copy{display:none}.weather-city-toolbar .wlm-collapsed{justify-content:flex-end}}
+@media(prefers-reduced-motion:reduce){.weather-citywise-content .dw-card,.quick-weather-card{transition:none!important;animation:none!important}}

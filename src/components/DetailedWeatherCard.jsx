@@ -13,6 +13,8 @@ export default function DetailedWeatherCard({
   cities = [],
   cityLabels = {},
   hideSidebar = false,
+  hideHeader = false,
+  hideSourceFooter = false,
 }) {
   const [expandedCard, setExpandedCard] = useState(null);
 
@@ -96,7 +98,7 @@ export default function DetailedWeatherCard({
       </div>}
 
       <div className="dw-content">
-        <div className="dw-header">
+        {!hideHeader && <div className="dw-header">
           <div className="dw-header-main">
             <h2 className="dw-city-title">{cityData.name}</h2>
             <span className="dw-current-temp">{cityData.current?.temp}°</span>
@@ -105,7 +107,7 @@ export default function DetailedWeatherCard({
           <div className="dw-header-sub">
             {getWeatherHeaderSummary(cityData)}
           </div>
-        </div>
+        </div>}
 
         <div className="dw-cards-list">
           {segments.map((seg, idx) => {
@@ -122,11 +124,11 @@ export default function DetailedWeatherCard({
           })}
         </div>
 
-        <div className="dw-footer">
+        {!hideSourceFooter && <div className="dw-footer">
           {cityData.models?.count
             ? `Forecast based on ${cityData.models.count} model${cityData.models.count !== 1 ? 's' : ''}: ${cityData.models.names}`
             : 'Forecast source coverage unknown'}
-        </div>
+        </div>}
       </div>
     </div>
   );
