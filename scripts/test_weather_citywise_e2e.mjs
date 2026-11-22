@@ -62,8 +62,16 @@ try {
       await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(dataFor(route.request().url()))});
     });
     await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
+    await waitFor(page,'[data-weather-focus-header]');
     await waitFor(page,'[data-weather-city-strip]');
     await waitFor(page,'[data-weather-hour-intervals]');
+    const headerBox=await page.locator('[data-weather-focus-header]').boundingBox();
+    const desktopNav=page.locator('.bottom-nav--desktop').first();
+    if(await desktopNav.isVisible().catch(()=>false)){
+      const navBox=await desktopNav.boundingBox();
+      if(!headerBox || !navBox || headerBox.y < navBox.y + navBox.height - 2)
+        throw Error('Weather current-city header hidden underneath desktop navigation: '+JSON.stringify({headerBox,navBox}));
+    }
     await waitFor(page,'.whi-period');
     await page.screenshot({path:shots+'/weather-'+width+'-2h.png',fullPage:true});
     await page.getByRole('button',{name:'4h',exact:true}).first().click();

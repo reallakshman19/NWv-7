@@ -218,7 +218,7 @@ function WeatherSegmentCard({ segment, isExpanded, onToggle }) {
         <div className="dw-detail-row">
           <div className="dw-detail-icon"><WeatherIcon id="day_clear" size={20} /></div>
           <div className="dw-detail-text">
-            UV: {data.uvIndex ?? '—'} <span className="dw-sep">|</span> PM 2.5: -
+            UV: {data.uvIndex ?? '—'}
           </div>
         </div>
 

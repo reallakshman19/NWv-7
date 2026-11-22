@@ -11,3 +11,9 @@
 @keyframes wfh-spin{to{transform:rotate(360deg)}}
 @media(max-width:540px){.weather-focus-header{padding:9px 10px;gap:8px}.wfh-current{gap:8px}.wfh-city{font-size:.91rem}.wfh-reading span{display:none}.wfh-reading strong{font-size:1.18rem}}
 @media(prefers-reduced-motion:reduce){.wfh-refresh.is-loading svg{animation:none}}
+
+/* The app's desktop navigation is fixed at top:0 with a 54px minimum height.
+   Keep the weather current-city header below that chrome rather than under it. */
+html[data-layout-mode='desktop'] .weather-page{padding-top:58px!important}
+html[data-layout-mode='desktop'] .weather-page .weather-focus-header{top:58px}
+html[data-layout-mode='mobile'] .weather-page{padding-top:0!important}

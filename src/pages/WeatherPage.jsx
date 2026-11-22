@@ -80,12 +80,12 @@ function WeatherPage() {
   }
 
   return (
-    <div className="page-container" style={{ padding: 0 }}>
+    <div className="page-container weather-page" style={{ padding: 0 }}>
       <GradeBadge
         audit={weatherTabAudit}
         label="Weather tab quality grade"
         position="below-header"
-        topOffset="74px"
+        topOffset={isDesktop ? '126px' : '100px'}
         compact={true}
       />
 
