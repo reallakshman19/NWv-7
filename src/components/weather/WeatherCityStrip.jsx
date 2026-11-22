@@ -18,7 +18,11 @@ export default function WeatherCityStrip({ cities = [], weatherData = {}, active
         onClick={() => onSelect?.(city)}>
         <span className="wcs-chip__name">{name}</span>
         <span className="wcs-chip__reading">
-          <WeatherIcon id={current?.iconId || 'day_cloudy'} size={compact ? 17 : 19}/>
+          {missing ? <svg data-weather-unavailable-icon viewBox="0 0 24 24" width={compact ? 17 : 19} height={compact ? 17 : 19}
+            fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M8 8l8 8m0-8-8 8"/>
+          </svg> : <WeatherIcon id={current.iconId || 'day_cloudy'} size={compact ? 17 : 19}/>}
+
           <strong>{missing ? '—' : Math.round(current.temp) + '°'}</strong>
         </span>
       </button>;

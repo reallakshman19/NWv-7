@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './WeatherSourceStatus.css';
 
 /** Source provenance is one accessible icon, never a dashboard-wide numeric label. */
-import { classifyWeatherSource } from './weatherSourceHealth.js';
+import { classifyWeatherSource, getWeatherSourceCoverage, WEATHER_SOURCE_METRICS } from './weatherSourceHealth.js';
 
 const iconPaths = {
   healthy: <path d="m7.5 12.5 3 3 6-7"/>,
@@ -14,8 +14,8 @@ const iconPaths = {
   unknown: <path d="M10 9a2.5 2.5 0 1 1 3.5 2.3c-1.5.7-1.5 1.5-1.5 2.2m0 3v.01"/>,
 };
 const titles = {
-  healthy: 'Weather sources verified',
-  limited: 'Weather sources partially available',
+  healthy: '24-hour model coverage complete',
+  limited: 'Forecast source coverage incomplete',
   cached: 'Using saved weather data',
   snapshot: 'Using a fallback weather snapshot',
   stale: 'Weather forecast needs refreshing',
@@ -25,9 +25,7 @@ const titles = {
 export default function WeatherSourceStatus({ cityData, compact = false }) {
   const [open, setOpen] = useState(false);
   const status = classifyWeatherSource(cityData);
-  const feeds = [...new Set((cityData?.models?.successful || []).filter(name => ['ecmwf','gfs','icon'].includes(name)))];
-  const rain = cityData?.models?.metricCoverage?.rain;
-  const chance = cityData?.models?.metricCoverage?.rainProbability;
+  const { feeds, metrics, completeHorizon } = getWeatherSourceCoverage(cityData);
   const updated = Number(cityData?.fetchedAt);
   const validUpdated = Number.isFinite(updated) && updated > 0 && updated <= Date.now()+300000;
   let timeText = 'Update time unavailable';
@@ -60,8 +58,12 @@ export default function WeatherSourceStatus({ cityData, compact = false }) {
       <p>{status === 'cached' || status === 'stale' || status === 'snapshot'
         ? 'Live feeds may be unavailable. Forecast freshness is limited.'
         : 'Available forecast model feeds: ' + feeds.length + ' of 3.'}</p>
-      <p>Rain contributors: {Number.isInteger(rain) ? rain + ' of 3' : 'unknown'} · Rain chance: {Number.isInteger(chance) ? chance + ' of 3' : 'unknown'}</p>
-      <small>Source availability does not measure forecast accuracy or official alerts.</small>
+      <p>Next 24h coverage: {completeHorizon ? '24 hourly slots' : 'incomplete hourly horizon'}</p>
+      <div className="wss-metrics">
+        {WEATHER_SOURCE_METRICS.map(([key, label]) => <div key={key}><span>{label}</span>
+          <strong>{Number.isInteger(metrics[key]) ? metrics[key] + ' of 3' : 'unknown'}</strong></div>)}
+      </div>
+      <small>Counts show the minimum contributing providers across 24 hours, not forecast accuracy. Weekly forecast and official alerts are not certified by this icon.</small>
     </div>}
   </div>;
 }

@@ -55,7 +55,7 @@ try {
   mkdirSync(shots,{recursive:true});
   await serverReady();
   browser=await chromium.launch({headless:true});
-  for(const width of [1366,390]){
+  for(const width of [1366,768,390,320]){
     const context=await browser.newContext({viewport:{width,height:844}});
     const page=await context.newPage();
     await page.route(/^https:\/\/api\.open-meteo\.com\/v1\/(ecmwf|gfs|dwd-icon)\?/,async route=>{
@@ -73,6 +73,19 @@ try {
         throw Error('Weather current-city header hidden underneath desktop navigation: '+JSON.stringify({headerBox,navBox}));
     }
     await waitFor(page,'.whi-period');
+    if (await page.locator('button').filter({hasText:'🐞'}).count()) throw Error('Production-style page still mounts debug overlay by default');
+    if (width<=390) {
+      const rows=page.locator('.wwf-card[data-weekly-weather-forecast="available"] .wwf-row');
+      await waitFor(page,'.wwf-card[data-weekly-weather-forecast="available"]');
+      if(await rows.count()!==7) throw Error('Weekly forecast must contain seven daily rows');
+      const heights=await rows.evaluateAll(all=>all.map(x=>Math.round(x.getBoundingClientRect().height)));
+      if(heights.some(h=>h>110)) throw Error('Weekly mobile rows remain oversized: '+JSON.stringify(heights));
+      const details=rows.first().locator('details.wwf-row-mobile-details');
+      if(await details.getAttribute('open')!==null) throw Error('Weekly secondary metrics expanded before request');
+      await details.locator('summary').click();
+      if(await details.getAttribute('open')===null) throw Error('Weekly secondary metrics did not expand');
+      await details.locator('summary').click();
+    }
     await page.screenshot({path:shots+'/weather-'+width+'-2h.png',fullPage:true});
     await page.getByRole('button',{name:'4h',exact:true}).first().click();
     const intervalText=await page.locator('[data-weather-hour-intervals]').first().textContent();
@@ -82,7 +95,7 @@ try {
       !intervalText.includes('peak hourly rain chance'))
       throw Error('4h rainfall interval semantics unavailable');
     if(intervalText.includes('Today + tomorrow'))throw Error('Two-day merged risk returned');
-    if(width===390){
+    if(width<=390){
       const rainBox=await page.locator('[data-weather-hour-intervals] .whi-period__rain').first().evaluate(el=>({
         scroll:el.scrollWidth,width:el.clientWidth
       }));
@@ -92,7 +105,7 @@ try {
       if(!manageBox || manageBox.width>150)throw Error('Manage button too wide on mobile: '+JSON.stringify(manageBox));
     }
     if(await page.locator('[data-weather-city-strip] svg').count()<3)throw Error('SVG weather icons missing');
-    if(width===390){
+    if(width<=390){
       const dims=await page.locator('.weather-citywise-content .dw-cards-list').first().evaluate(el=>{
         const cards=[...el.querySelectorAll('.dw-card')];
         return {direction:getComputedStyle(el).flexDirection,cards:cards.slice(0,2).map(c=>({
@@ -111,6 +124,10 @@ try {
     const health = page.locator('[data-weather-health-icon]').first();
     await health.click();
     await waitFor(page,'[data-weather-source-details]');
+    if(width<=390) {
+      const detailsHeight=await page.locator('[data-weather-source-details]').first().evaluate(el=>el.getBoundingClientRect().height);
+      if(detailsHeight>440)throw Error('Mobile source-health disclosure too tall: '+detailsHeight);
+    }
     await page.getByRole('button',{name:'Close data source details'}).first().click();
     if(width===1366){
       await page.getByRole('button',{name:'Manage',exact:true}).click();
@@ -139,7 +156,7 @@ try {
       if(await page.locator('[data-weather-city-strip] button:has-text("London")').count())throw Error('Removed city remained in Weather tab');
     }
     const secondary=page.locator('details.weather-secondary-details');
-    if(width===390){
+    if(width<=390){
       if(await secondary.count()!==2)throw Error('Mobile comparison/planning disclosures not present');
       if(await secondary.first().getAttribute('open')!==null)throw Error('Mobile comparison dominates first fold');
       await secondary.first().locator('summary').click();
@@ -147,10 +164,10 @@ try {
       await secondary.first().locator('summary').click();
     }
     await ensureNoOverflow(page,'Weather '+width+'px');
-    if(width===390){
+    if(width<=390){
       await page.goto(BASE+'/#/',{waitUntil:'domcontentloaded'});
       await waitFor(page,'[data-quick-weather]');
-      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-mobile.png'});
+      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-'+width+'.png'});
       await page.locator('[data-quick-weather] [data-weather-health-icon]').first().click();
       const sourceBox = await page.locator('[data-quick-weather] [data-weather-source-details]').first().boundingBox();
       if(!sourceBox || sourceBox.x < 0 || sourceBox.x+sourceBox.width > width + 1)
@@ -158,6 +175,48 @@ try {
       await page.locator('[data-quick-weather]').getByRole('button',{name:'Close data source details'}).click();
       await ensureNoOverflow(page,'Quick Weather mobile');
     }
+    await context.close();
+  }
+
+  // Adversarial provider conditions use fresh browser contexts to prevent cached
+  // success from masking outages. Every scenario must avoid an invented green icon.
+  for (const scenario of ['two-down','one-down','late-rain-gap','all-down']) {
+    const context=await browser.newContext({viewport:{width:390,height:844}});
+    const page=await context.newPage();
+    await page.route(/^https:\/\/api\.open-meteo\.com\/v1\/(ecmwf|gfs|dwd-icon)\?/,async route=>{
+      const endpoint=new URL(route.request().url()).pathname;
+      const fail=scenario==='all-down' ||
+        (scenario==='two-down' && !endpoint.includes('gfs')) ||
+        (scenario==='one-down' && endpoint.includes('dwd-icon'));
+      if(fail){
+        await route.fulfill({status:503,contentType:'application/json',body:'{"error":true,"reason":"simulated outage"}'});
+        return;
+      }
+      const response=dataFor(route.request().url());
+      if(scenario==='late-rain-gap') {
+        const first=response.hourly.time.indexOf(response.current.time);
+        response.hourly.precipitation=response.hourly.precipitation.map((value,i)=>i>=first+4?null:value);
+        response.hourly.precipitation_probability=response.hourly.precipitation_probability.map((value,i)=>i>=first+4?null:value);
+      }
+      await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
+    });
+    await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
+    await waitFor(page,'[data-weather-city-strip]');
+    if(scenario!=='all-down'){
+      const health=page.locator('[data-weather-health-icon="limited"]').first();
+      await health.waitFor({state:'visible',timeout:45000});
+      await health.click();
+      const detail=page.locator('[data-weather-source-details]').first();
+      await detail.waitFor({state:'visible'});
+      const summary=await detail.textContent();
+      if(!summary.includes('of 3'))throw Error(scenario+' model contributor disclosure absent');
+      if(scenario==='late-rain-gap' && !summary.includes('Rainfall'))throw Error('Later rain gap not disclosed');
+    }else{
+      await page.waitForTimeout(3000);
+      if(await page.locator('[data-weather-health-icon="healthy"]').count())
+        throw Error('All providers failed but forecast reported healthy');
+    }
+    await page.screenshot({path:shots+'/provider-'+scenario+'.png',fullPage:true});
     await context.close();
   }
   console.log('PASS: Chromium desktop/mobile 2h/4h weather, SVG rendering, city persistence, add/remove');
