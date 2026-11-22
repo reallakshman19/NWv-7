@@ -59,7 +59,11 @@ export class FxClient {
 
     const classification = evaluateFxObservation(date, now);
     if (!classification) {
-      throw new Error(`Invalid, future-dated, or malformed provider observation date: ${date}`);
+      const candidateAsOf = typeof date === 'string' ? Date.parse(`${date}T00:00:00Z`) : NaN;
+      if (Number.isFinite(candidateAsOf) && candidateAsOf > now + 300000) {
+        throw new Error(`Provider clock is in the future: ${date}`);
+      }
+      throw new Error(`Invalid or malformed provider observation date: ${date}`);
     }
     const { asOf, freshness, stale, isHistorical, warning, receiptState } = classification;
 
