@@ -75,24 +75,6 @@ Fallback payload when `UP_AHEAD_DATASET_URL` is unset, unavailable, non-OK, or i
 }
 ```
 
-
-## UpAhead v2 identity shadow verification — issue #200
-
-The Worker now contains an **optional metadata-only** route `GET /api/datasets/upAhead/v2/verify`. It is not a data-serving endpoint and does not change `GET /api/datasets/upAhead`.
-
-It returns 404 unless explicitly configured with:
-- `UP_AHEAD_V2_SHADOW_ENABLED = "true"`
-- `UP_AHEAD_V2_SHADOW_MANIFEST_URL = "https://<same-origin-host>/v2/<immutable-generation>/manifest.json"`
-- `UP_AHEAD_V2_SHADOW_PAYLOAD_URL = "https://<same-origin-host>/v2/<immutable-generation>/payload.json"`
-- Optional `UP_AHEAD_V2_SHADOW_TIMEOUT_MS = "3500"` (maximum 10000)
-
-Use only operator-approved HTTPS endpoints. Never commit deployed URLs, tokens or secret config. The service validates the manifest/payload pair; it is **not a signature or authoritative provenance verification**. The response exposes status, generation, semantic digest and counts; it does not expose URLs or source observations.
-
-States and status codes: `VALID` HTTP 200 (including verified empty), `INVALID` HTTP 422, `STALE_VALID` HTTP 503, `UPSTREAM_UNAVAILABLE` HTTP 503, `NOT_CONFIGURED` HTTP 503 when route enabled but URLs absent. A disabled route returns 404. `OPTIONS` supports the existing CORS contract; `POST` returns 405.
-
-Verify locally with `node --test cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs`; the normal `npm run test:upahead-edge-api` command includes this test. This is **shadow-only** functionality: do not activate live v2 serving or represent a successful probe as proof of organizer authority, production Worker availability, or frontend parity.
-
-
 ## Non-goals
 
 - No R2 implementation.
