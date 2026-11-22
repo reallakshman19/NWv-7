@@ -104,7 +104,7 @@ describe('Travel Local independent-review negative controls', () => {
   it('rejects fresh but unverified sourceMode while preserving trusted v2 metadata', async () => {
     const now = Date.now();
     const items = [story('Muscat roadworks announced', 2, now)];
-    const good = { ...receipt(items, now), generatedAt: new Date(now).toISOString() };
+    const good = { ...receipt(items, now), generatedAt: new Date(now).toISOString(), retainedFromPrevious: 2, newlyObserved: 1, duplicatesRemoved: 3, capEvictions: 4, rejectedWrongCity: 5 };
     const fake = { ...good, sourceMode: 'runtime-json' };
     const spy = vi.fn().mockResolvedValue({ ok: true, json: async () => fake });
     vi.stubGlobal('fetch', spy);
@@ -119,6 +119,10 @@ describe('Travel Local independent-review negative controls', () => {
     expect(accepted.sourceAuthority).toBe(good.sourceAuthority);
     expect(accepted.successfulQueries).toBe(5);
     expect(accepted.retentionHours).toBe(36);
+    expect(accepted.retainedFromPrevious).toBe(2);
+    expect(accepted.duplicatesRemoved).toBe(3);
+    expect(accepted.capEvictions).toBe(4);
+    expect(accepted.rejectedWrongCity).toBe(5);
   });
 
   it('actually executes collector twice: withdrawn but unexpired source story remains in emitted JSON', () => {
