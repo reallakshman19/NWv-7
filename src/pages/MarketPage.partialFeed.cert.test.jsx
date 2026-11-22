@@ -48,7 +48,7 @@ describe('Market four-workspace shell and R2.1 routing transition', () => {
   it('supports Global index observations when India has no qualified rows', () => {
     setMarket({indices:[{name:'NIFTY 50',symbol:'^NSEI',value:30000,quoteAt:null}],globalIndices:[global]});
     render(<MarketPage />);
-    expect(screen.getByText(/No qualified India index observations/)).toBeTruthy();
+    expect(screen.getByText(/No qualified India native observations/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Market region'), {target:{value:'global'}});
     expect(screen.getByText('S&P 500')).toBeTruthy();
     expect(screen.getByText('6,000')).toBeTruthy();
@@ -68,7 +68,7 @@ describe('Market four-workspace shell and R2.1 routing transition', () => {
     render(<MarketPage />);
     expect(screen.queryByText('99,999')).toBeNull();
     expect(screen.queryByText('82,000')).toBeNull();
-    expect(screen.getByText(/No qualified India index observations/)).toBeTruthy();
+    expect(screen.getByText(/No qualified India native observations/)).toBeTruthy();
   });
 
   it('shows the shell during Market boot and Funds/Currency remain usable', () => {
