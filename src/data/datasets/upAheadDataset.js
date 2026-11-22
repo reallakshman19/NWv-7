@@ -203,16 +203,37 @@ export async function load(options = {}) {
     diagnostics.push({ event: 'upAheadDataset.cache_hit', severity: 'info', message: 'Loaded retained Up Ahead items' });
   }
 
-  if (initialPolicy.shouldAttemptDatasetApi) {
+  // The Pages snapshot is canonical on a static host. Prefer it first,
+  // avoiding a Cloudflare Worker invocation (and another Pages fetch) when
+  // the same published generation is already fresh. The Worker remains a
+  // bounded availability fallback, not a new seven-day storage database.
+  // Explicit refresh still takes the original API-first path.
+  const staticFirst = initialPolicy.shouldReadStatic
+    && runtimeCapabilities.isStaticFrontend === true
+    && !options.forceRefresh && options.policy !== 'refresh-now';
+  if (staticFirst) {
+    const result = await mergeStaticData({ upAheadSettings, data, diagnostics, request });
+    data = result.data;
+    hasUsableStatic = result.hasUsableStatic;
+    if (result.sourceMode) sourceMode = result.sourceMode;
+  }
+
+  if (initialPolicy.shouldAttemptDatasetApi && (!staticFirst || !hasUsableStatic)) {
     const result = await mergeDatasetApiData({ runtimeCapabilities, upAheadSettings, data, diagnostics, request });
     data = result.data;
     hasFreshApi = result.hasFreshApi;
     if (result.sourceMode) sourceMode = result.sourceMode;
   } else {
-    diagnostics.push({ event: 'upAheadDataset.api_skipped_policy', severity: 'info', message: initialPolicy.apiSkippedReason || 'Dataset API not attempted' });
+    diagnostics.push({
+      event: 'upAheadDataset.api_skipped_policy',
+      severity: 'info',
+      message: initialPolicy.shouldAttemptDatasetApi && hasUsableStatic
+        ? 'fresh-static-snapshot-avoids-worker'
+        : (initialPolicy.apiSkippedReason || 'Dataset API not attempted'),
+    });
   }
 
-  if (initialPolicy.shouldReadStatic && !hasFreshApi) {
+  if (!staticFirst && initialPolicy.shouldReadStatic && !hasFreshApi) {
     const result = await mergeStaticData({ upAheadSettings, data, diagnostics, request });
     data = result.data;
     hasUsableStatic = result.hasUsableStatic;
