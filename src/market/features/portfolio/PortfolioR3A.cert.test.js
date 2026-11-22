@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { validateTransactionInputs, validateManualPriceMark, replayPortfolio } from './portfolioAccounting.js';
-import { portfolioStore } from './portfolioStore.js';
+import { MAX_PORTFOLIOS, portfolioStore } from './portfolioStore.js';
 
 const buy = (overrides = {}) => ({
   type: 'BUY', instrumentKey: 'NSE:INFY', date: '2026-11-20',
@@ -52,6 +52,32 @@ describe('Market R3A — portfolio safety and durability', () => {
     });
     expect(result.valuationStatus).toBe('PARTIAL');
     expect(result.totalCurrentValue).toBeNull();
+  });
+
+  it('rejects an over-capacity import without importing a partial batch', () => {
+    for (let index = 1; index < MAX_PORTFOLIOS - 1; index++) {
+      expect(portfolioStore.createPortfolio('Existing ' + index).ok).toBe(true);
+    }
+    const original = portfolioStore.getSnapshot();
+    const payload = JSON.stringify({ version: 1, portfolios: [
+      { name: 'First import', transactions: [] },
+      { name: 'Second import', transactions: [] }
+    ] });
+
+    expect(portfolioStore.importJson(payload, 'NEW_PORTFOLIO')).toMatchObject({
+      ok: false, errors: [expect.stringContaining('portfolio limit')]
+    });
+    expect(portfolioStore.getSnapshot()).toBe(original);
+  });
+
+  it('reports the actual count for an import that replaces one portfolio', () => {
+    const payload = JSON.stringify({ version: 1, portfolios: [
+      { name: 'First import', transactions: [buy()] },
+      { name: 'Second import', transactions: [] }
+    ] });
+
+    expect(portfolioStore.importJson(payload, 'REPLACE_ACTIVE')).toEqual({ ok: true, importedCount: 1 });
+    expect(portfolioStore.getSnapshot().portfolios[0].transactions).toHaveLength(1);
   });
 
   it('fails closed when browser storage refuses a portfolio save', () => {
