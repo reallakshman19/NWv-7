@@ -14,3 +14,14 @@
    Prevents a 300px panel from opening beyond the left viewport edge. */
 .weather-source-status--compact .wss-detail{right:-125px}
 @media(max-width:340px){.weather-source-status--compact .wss-detail{right:-118px}}
+
+/* Mobile: source details are a viewport-bound sheet, independent of icon x-position. */
+@media(max-width:640px){
+  .weather-source-status:has(.wss-detail){z-index:1201}
+  .weather-source-status--compact .wss-detail,
+  .weather-source-status .wss-detail{
+    position:fixed;left:12px;right:12px;top:auto;bottom:calc(74px + env(safe-area-inset-bottom,0px));
+    box-sizing:border-box;width:auto;max-height:65vh;overflow-y:auto;
+    border-radius:14px;z-index:1202;
+  }
+}

@@ -22,3 +22,24 @@
 .weather-hour-intervals--compact .whi-legend{text-align:left}
 @media(max-width:540px){.weather-hour-intervals{margin:7px 10px;padding:10px 9px}.whi-rows{grid-auto-columns:minmax(88px,1fr)}.whi-legend{font-size:.67rem}.whi-title>span{display:none}}
 @media(prefers-reduced-motion:reduce){.whi-rows{scroll-behavior:auto}}
+
+/* Avoid rem-unit inflation from inherited mobile page typography. */
+.whi-period__rain{white-space:normal;flex-wrap:wrap;justify-content:center;max-width:100%;min-width:0}
+.whi-period__chance{flex-basis:100%;margin:1px 0 0;text-align:center}
+.whi-period__rain svg{flex:0 0 12px}
+@media(max-width:540px){
+  .whi-title strong{font-size:14px;line-height:1.2}
+  .whi-switch button{font-size:12px;min-height:30px;min-width:40px}
+  .whi-period__time{font-size:12px}
+  .whi-period__clock{font-size:11px}
+  .whi-period>strong{font-size:17px}
+  .whi-period__rain{font-size:12px;line-height:1.25;gap:2px}
+  .whi-period__rain small{font-size:10px}
+  .whi-period__chance{font-size:11px}
+  .whi-legend{font-size:11px;line-height:1.35;text-align:left}
+  .whi-rows{grid-auto-columns:minmax(88px,1fr);gap:5px}
+  .weather-hour-intervals{padding:9px 8px}
+  .weather-hour-intervals--compact{padding:7px 0 0}
+  .whi-period{padding:8px 3px;overflow:hidden}
+  .whi-period__time,.whi-period__clock{white-space:nowrap}
+}

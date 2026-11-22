@@ -81,14 +81,6 @@ function WeatherPage() {
 
   return (
     <div className="page-container weather-page" style={{ padding: 0 }}>
-      <GradeBadge
-        audit={weatherTabAudit}
-        label="Weather tab quality grade"
-        position="below-header"
-        topOffset={isDesktop ? '126px' : '100px'}
-        compact={true}
-      />
-
       <div
         style={{
           height: `${pullDistance}px`,
@@ -120,6 +112,7 @@ function WeatherPage() {
         <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
         <div className="weather-city-toolbar">
           <WeatherLocationManager {...locationManagerProps} />
+          <GradeBadge audit={weatherTabAudit} label="Weather tab quality grade" position="inline" compact />
           <WeatherOfficialAlerts />
         </div>
 
