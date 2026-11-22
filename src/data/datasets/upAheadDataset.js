@@ -119,8 +119,11 @@ async function loadDatasetApiData({ runtimeCapabilities, upAheadSettings, data, 
     sourceMode: 'dataset-api',
     datasetApiFreshness: edgeFreshness === 'fresh' || edgeFreshness === 'stale' ? edgeFreshness : 'unknown',
   } : null;
-  if (apiData) data = saveToCache(apiData, data, upAheadSettings, request);
-  if (hasVisibleUpAheadContent(sanitizeUpAheadData(apiData))) {
+  // An HTTP-200 edge fallback can contain an empty dataset; never let it
+  // overwrite a retained, usable Pages generation or poison the browser cache.
+  const apiHasContent = hasVisibleUpAheadContent(sanitizeUpAheadData(apiData));
+  if (apiData && apiHasContent) data = saveToCache(apiData, data, upAheadSettings, request);
+  if (apiHasContent) {
     diagnostics.push({ event: 'upAheadDataset.api_loaded', severity: 'info', message: 'Loaded Up Ahead dataset API data' });
     return {
       data,
