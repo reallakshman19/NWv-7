@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getSettings, saveSettings } from './storage.js';
-import { MARKET_VISIBILITY_CONTROLS } from '../config/settings_market.js';
+import { MARKET_VISIBILITY_CONTROLS, MARKET_TRADING_HOLIDAY_CALENDAR } from '../config/settings_market.js';
 
 const USER_SETTINGS = 'dailyEventAI_settings';
 
@@ -33,7 +33,10 @@ describe('Market workspace preference migration', () => {
     expect(migrated.market.showCommodities).toBe(false);
     expect(migrated.market).not.toHaveProperty('cacheMinutes');
     expect(migrated.market).not.toHaveProperty('layoutVariant');
-    expect(migrated.market.tradingHolidays).toEqual(['2026-11-19','2027-01-26']);
+    expect(migrated.market.tradingHolidays).toEqual([
+      ...MARKET_TRADING_HOLIDAY_CALENDAR[2026],
+      '2026-11-19', '2027-01-26'
+    ]);
     expect(migrated.market.tradingHolidayYears).toEqual([2026,2027]);
     expect(localStorage.getItem('nw7.india-watchlist.v1')).toBe('["INFY","UNLISTED"]');
     expect(localStorage.getItem('nw7.market-saved-funds.v1')).toBe('["100001","100002"]');
@@ -63,7 +66,9 @@ describe('Market workspace preference migration', () => {
     expect(market.showIndices).toBe(true);
     expect(market.showGlobalIndices).toBe(false);
     expect(market.showCurrency).toBe(true);
-    expect(market.tradingHolidays).toEqual(['2027-01-26']);
+    expect(market.tradingHolidays).toEqual([
+      ...MARKET_TRADING_HOLIDAY_CALENDAR[2026], '2027-01-26'
+    ]);
     expect(market).not.toHaveProperty('cacheMinutes');
   });
 });
