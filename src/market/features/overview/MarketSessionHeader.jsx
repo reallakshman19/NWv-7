@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
+import { healthStore } from '../health/healthStore.js';
 import { getMarketSessionState } from '../../../utils/marketSession.js';
 
 /**
@@ -17,6 +18,8 @@ export function MarketSessionHeader({
   tradingHolidays = [],
   className = '',
 }) {
+  const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
+  const freshness = health.qualityEvaluation?.dimensions?.freshness;
   const session = sessionStateProp || getMarketSessionState({
     now: new Date(),
     quoteAt: null,
@@ -54,7 +57,7 @@ export function MarketSessionHeader({
               disabled={refreshing}
               aria-label="Check available sources"
             >
-              {refreshing ? 'Checking…' : 'Refresh tools'}
+              {refreshing ? 'Checking…' : sourceMode === 'free-open-only' ? 'Source status' : 'Refresh tools'}
             </button>
           )}
 
@@ -93,15 +96,17 @@ export function MarketSessionHeader({
 
         <div className="market-session-header__mode-badge">
           <span className="market-session-header__meta-label">Freshness:</span>
-          <span className="market-session-header__mode-text" style={{ color: '#34d399', fontWeight: 600 }}>
-            🟢 SLA {'<'} 24h EOD
+          <span className="market-session-header__mode-text">
+            {freshness?.status === 'NOT_CHECKED' ? 'Not checked' :
+              freshness?.status === 'PASS' ? `${freshness.observedCount} dated source(s) recorded` :
+              `${freshness?.staleCount || 0} older source(s) — inspect`}
           </span>
         </div>
 
         <div className="market-session-header__mode-badge">
           <span className="market-session-header__meta-label">Retention Policy:</span>
-          <span className="market-session-header__mode-text" style={{ color: '#60a5fa' }}>
-            🔒 Client-Side Storage (IndexedDB)
+          <span className="market-session-header__mode-text">
+            Browser-local cache · may be cleared or evicted
           </span>
         </div>
       </div>
