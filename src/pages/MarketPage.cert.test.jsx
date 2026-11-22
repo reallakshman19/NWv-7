@@ -222,11 +222,12 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     expect(screen.getByText('Investment Lab & Financial Mathematics')).toBeTruthy();
   });
 
-  it('WP10-T13: MarketDataStatus displays 100% Free/Open policy compliance indicator', () => {
+  it('WP10-T13: MarketDataStatus reports local policy status without claiming full license certification', () => {
     setupViewModel();
     render(<MarketPage />);
 
-    expect(screen.getByText('Policy: 100% Free/Open')).toBeTruthy();
+    expect(screen.getByText('Policy guard: No local violation detected')).toBeTruthy();
+    expect(screen.queryByText('Policy: 100% Free/Open')).toBeNull();
     expect(screen.getByText(/Publication: Free\/open mode — no redistributed quotes/i)).toBeTruthy();
   });
 
