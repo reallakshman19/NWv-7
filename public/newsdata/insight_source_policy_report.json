@@ -1,5 +1,5 @@
 {
-  "generatedAt": 1795289576577,
+  "generatedAt": 1795310825323,
   "policyVersion": "insight-source-policy-v3-direct-publishers",
   "reportVersion": "insight-source-policy-report-v1",
   "schemaVersion": 1,
@@ -90,7 +90,7 @@
   },
   "sourceCount": 16,
   "sourceHealthPolicy": {
-    "generatedAt": 1795289576578,
+    "generatedAt": 1795310825323,
     "policyVersion": "insight-source-health-policy-v1",
     "schemaVersion": 1,
     "slotReports": {
@@ -101,18 +101,18 @@
           {
             "backoffReason": "",
             "healthScore": 0.8,
-            "source": "BBC World",
-            "sourceGroup": "bbc",
+            "source": "The Hindu Opinion",
+            "sourceGroup": "the_hindu",
             "tier": "A",
-            "topic": "world"
+            "topic": "opinion"
           },
           {
             "backoffReason": "",
             "healthScore": 0.8,
-            "source": "The Hindu Intl",
-            "sourceGroup": "the_hindu",
+            "source": "BBC World",
+            "sourceGroup": "bbc",
             "tier": "A",
-            "topic": "international"
+            "topic": "world"
           },
           {
             "backoffReason": "",
@@ -157,6 +157,14 @@
           {
             "backoffReason": "",
             "healthScore": 0.55,
+            "source": "DW English",
+            "sourceGroup": "dw",
+            "tier": "A",
+            "topic": "world"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.55,
             "source": "Indian Express Explained",
             "sourceGroup": "indian_express",
             "tier": "A",
@@ -165,32 +173,24 @@
           {
             "backoffReason": "",
             "healthScore": 0.55,
-            "source": "The Hindu Opinion",
+            "source": "The Hindu Intl",
             "sourceGroup": "the_hindu",
             "tier": "A",
-            "topic": "opinion"
+            "topic": "international"
           },
           {
-            "backoffReason": "",
-            "healthScore": 0.55,
+            "backoffReason": "recent failure backoff for indian_express",
+            "healthScore": 0.05,
             "source": "Indian Express India",
             "sourceGroup": "indian_express",
             "tier": "A",
             "topic": "india"
-          },
-          {
-            "backoffReason": "zero-item backoff for dw",
-            "healthScore": 0.2,
-            "source": "DW English",
-            "sourceGroup": "dw",
-            "tier": "A",
-            "topic": "world"
           }
         ],
         "suppressedCount": 1
       },
       "minus24h": {
-        "activeCount": 3,
+        "activeCount": 5,
         "feedCount": 5,
         "feeds": [
           {
@@ -218,23 +218,23 @@
             "topic": "sports"
           },
           {
-            "backoffReason": "zero-item backoff for economic_times",
-            "healthScore": 0.2,
+            "backoffReason": "",
+            "healthScore": 0.55,
             "source": "ET Markets",
             "sourceGroup": "economic_times",
             "tier": "A",
             "topic": "markets"
           },
           {
-            "backoffReason": "recent failure backoff for indian_express",
-            "healthScore": 0.05,
+            "backoffReason": "",
+            "healthScore": 0.55,
             "source": "Indian Express Business",
             "sourceGroup": "indian_express",
             "tier": "A",
             "topic": "business"
           }
         ],
-        "suppressedCount": 2
+        "suppressedCount": 0
       },
       "minus4h": {
         "activeCount": 4,
@@ -282,6 +282,14 @@
           {
             "backoffReason": "",
             "healthScore": 0.8,
+            "source": "Economic Times",
+            "sourceGroup": "economic_times",
+            "tier": "A",
+            "topic": "business"
+          },
+          {
+            "backoffReason": "",
+            "healthScore": 0.8,
             "source": "Hindustan Times",
             "sourceGroup": "hindustan_times",
             "tier": "B",
@@ -294,14 +302,6 @@
             "sourceGroup": "the_hindu",
             "tier": "A",
             "topic": "national"
-          },
-          {
-            "backoffReason": "",
-            "healthScore": 0.55,
-            "source": "Economic Times",
-            "sourceGroup": "economic_times",
-            "tier": "A",
-            "topic": "business"
           },
           {
             "backoffReason": "",
@@ -328,9 +328,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://feeds.bbci.co.uk/news/world/rss.xml",
-        "items": 26,
+        "items": 27,
         "ok": true
       },
       "slots": [
@@ -346,9 +346,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.thehindubusinessline.com/news/feeder/default.rss",
-        "items": 40,
+        "items": 29,
         "ok": true
       },
       "slots": [
@@ -363,12 +363,7 @@
     },
     {
       "configuredFeeds": 1,
-      "health": {
-        "checkedAt": 1795289568208,
-        "feedUrl": "https://rss.dw.com/rdf/rss-en-all",
-        "items": 0,
-        "ok": true
-      },
+      "health": {},
       "slots": [
         "minus12h"
       ],
@@ -382,9 +377,9 @@
     {
       "configuredFeeds": 2,
       "health": {
-        "checkedAt": 1795289568208,
-        "feedUrl": "https://economictimes.indiatimes.com/rssfeeds/1368519714.cms",
-        "items": 0,
+        "checkedAt": 1795310817642,
+        "feedUrl": "https://economictimes.indiatimes.com/rssfeeds/1977021501.cms",
+        "items": 15,
         "ok": true
       },
       "slots": [
@@ -402,9 +397,9 @@
     {
       "configuredFeeds": 3,
       "health": {
-        "checkedAt": 1795289568208,
-        "error": "403 Client Error: Forbidden for url: https://indianexpress.com/section/business/feed/",
-        "feedUrl": "https://indianexpress.com/section/business/feed/",
+        "checkedAt": 1795310817642,
+        "error": "403 Client Error: Forbidden for url: https://indianexpress.com/section/india/feed/",
+        "feedUrl": "https://indianexpress.com/section/india/feed/",
         "items": 0,
         "ok": false
       },
@@ -424,9 +419,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.livemint.com/rss/markets",
-        "items": 35,
+        "items": 34,
         "ok": true
       },
       "slots": [
@@ -442,9 +437,9 @@
     {
       "configuredFeeds": 4,
       "health": {
-        "checkedAt": 1795289568208,
-        "feedUrl": "https://www.thehindu.com/news/international/feeder/default.rss",
-        "items": 40,
+        "checkedAt": 1795310817642,
+        "feedUrl": "https://www.thehindu.com/opinion/feeder/default.rss",
+        "items": 6,
         "ok": true
       },
       "slots": [
@@ -464,7 +459,7 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.aljazeera.com/xml/rss/all.xml",
         "items": 25,
         "ok": true
@@ -482,9 +477,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://feeds.arstechnica.com/arstechnica/index",
-        "items": 17,
+        "items": 15,
         "ok": true
       },
       "slots": [
@@ -500,9 +495,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.espncricinfo.com/rss/content/story/feeds/0.xml",
-        "items": 34,
+        "items": 21,
         "ok": true
       },
       "slots": [
@@ -518,9 +513,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://feeds.feedburner.com/gadgets360-latest",
-        "items": 30,
+        "items": 9,
         "ok": true
       },
       "slots": [
@@ -536,9 +531,9 @@
     {
       "configuredFeeds": 2,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://news.google.com/rss/search?q=site:reuters.com+India&hl=en-IN&gl=IN&ceid=IN:en",
-        "items": 14,
+        "items": 7,
         "ok": true
       },
       "slots": [
@@ -556,7 +551,7 @@
     {
       "configuredFeeds": 2,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml",
         "items": 40,
         "ok": true
@@ -575,7 +570,7 @@
     {
       "configuredFeeds": 2,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://feeds.feedburner.com/ndtvnews-india-news",
         "items": 20,
         "ok": true
@@ -595,9 +590,9 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://www.thearabianstories.com/category/oman-news/feed/",
-        "items": 10,
+        "items": 7,
         "ok": true
       },
       "slots": [
@@ -613,7 +608,7 @@
     {
       "configuredFeeds": 1,
       "health": {
-        "checkedAt": 1795289568208,
+        "checkedAt": 1795310817642,
         "feedUrl": "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms",
         "items": 20,
         "ok": true
