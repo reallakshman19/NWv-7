@@ -218,3 +218,17 @@ def test_publisher_rejects_duplicate_equity_and_retains_old_snapshot_compatibili
         validate(snapshot, NOW)
     del snapshot["equities"]
     assert validate(snapshot, NOW)["equities"] == 0
+
+
+def test_legacy_market_publisher_entrypoint_refuses_writes_and_network(tmp_path):
+    """Actual CLI must fail before Yahoo, AMFI or output-file operations."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    command = [sys.executable, str(Path(__file__).with_name("refresh_india_market.py")),
+               "--output-dir", str(tmp_path)]
+    result = subprocess.run(command, capture_output=True, text=True, timeout=10)
+    assert result.returncode != 0
+    assert "DISABLED_FREE_OPEN_ONLY" in (result.stdout + result.stderr)
+    assert list(tmp_path.iterdir()) == []
