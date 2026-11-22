@@ -163,18 +163,55 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     });
   });
 
-  it('retains active stale API items and checks for a newer published snapshot', async () => {
-    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi, {
+  it('retains distinct still-active dated Pages and stale API events without merging their identities', async () => {
+    const now = Date.now();
+    const eventStartAt = now + 24 * 60 * 60 * 1000;
+    const expiryAt = now + 48 * 60 * 60 * 1000;
+    // Source identity and explicit validity are essential. An undated, ID-less
+    // synthetic section is not a valid seven-day publisher retention fixture.
+    const staticEvent = {
+      id: 'pages-event-2026',
+      title: 'Static event',
+      category: 'events',
+      source: 'Pages calendar',
+      url: 'https://pages.example.org/occurrences/pages-event-2026',
+      city: 'Chennai',
+      observedAt: now - 18 * 60 * 60 * 1000,
+      eventStartAt,
+      expiryAt,
+    };
+    const apiEvent = {
+      id: 'api-event-2026',
+      title: 'API event',
+      category: 'events',
+      source: 'Independent organizer',
+      url: 'https://organizer.example.org/occurrences/api-event-2026',
+      city: 'Chennai',
+      observedAt: now - 12 * 60 * 60 * 1000,
+      eventStartAt,
+      expiryAt,
+    };
+    mocks.fetchStaticUpAheadData.mockResolvedValue({
+      fetchedAt: now - 18 * 60 * 60 * 1000,
+      sections: { events: [staticEvent] },
+      timeline: [], weekly_plan: [],
+    });
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse({
+      fetchedAt: now - 12 * 60 * 60 * 1000,
+      sections: { events: [apiEvent] },
+      timeline: [], weekly_plan: [],
+    }, {
       source: 'upstream',
       reason: 'ok',
       freshness: 'stale',
-      ageSeconds: '999999',
+      ageSeconds: '43200',
     }));
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
 
     expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
     expect(envelope.data.events.map(item => item.title).sort()).toEqual(['API event', 'Static event']);
     expect(envelope.diagnostics.find(item => item.event === 'upAheadDataset.api_edge_diagnostics')?.details.freshness).toBe('stale');
   });
