@@ -197,6 +197,27 @@ function GridSection({
             {item.source && ` · ${item.source}`}
             {item.city && ` · ${item.city}`}
           </p>}
+          {item.reviewGroupStatus === 'POSSIBLE_DUPLICATE_UNCONFIRMED' && (
+            <details className="ua-source-context" data-source-review-group="unconfirmed-workshop">
+              <summary>{item.reviewGroupCount} similar listings · not confirmed duplicates</summary>
+              <p>These may be separate sessions. Every original listing is preserved below; verify the organizer before booking or adding to Planner.</p>
+              <ul>
+                {(item.reviewAlternateListings || []).map(listing => (
+                  <li key={listing.id}>
+                    <a href={listing.link || listing.url} target="_blank" rel="noopener noreferrer">
+                      {sanitizeHtmlText(listing.title)} ↗
+                    </a>
+                    {onAddToPlan && (
+                      <button type="button" className="ua-cal-btn" onClick={() =>
+                        onAddToPlan(listing, listing.eventDateKey || listing.date || listing.releaseDate)}>
+                        + Plan this listing
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <a href={item.link} target="_blank" rel="noopener noreferrer" className="ua-source-link">Details ↗</a>
             <button
