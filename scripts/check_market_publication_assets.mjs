@@ -56,7 +56,7 @@ export function validateQuoteFreeFinancialAsset(name, payload, raw = '') {
     /query1\.finance\.yahoo\.com/i,
     /NAVAll\.txt/i,
     /"rate"\s*:/i,
-    /"(?:price|nav|lastPrice)"\s*:/i
+    /"(?:price|nav|lastPrice|value|changePercent)"\s*:/i
   ];
   for (const match of forbidden) {
     if (match.test(raw || JSON.stringify(payload))) errors.push('FORBIDDEN_MARKET_PAYLOAD:' + match.source);
