@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getSettings, saveSettings } from './storage.js';
+import { getMarketSessionState } from './marketSession.js';
 import { MARKET_VISIBILITY_CONTROLS, MARKET_TRADING_HOLIDAY_CALENDAR } from '../config/settings_market.js';
 
 const USER_SETTINGS = 'dailyEventAI_settings';
@@ -42,6 +43,25 @@ describe('Market workspace preference migration', () => {
     expect(localStorage.getItem('nw7.market-saved-funds.v1')).toBe('["100001","100002"]');
     expect(JSON.parse(localStorage.getItem(USER_SETTINGS))).toEqual(previous); // Pure read.
     expect(getSettings().market).toEqual(migrated.market); // Idempotent.
+  });
+
+  it('removes the obsolete shipped Holi date from saved settings', () => {
+    localStorage.setItem(USER_SETTINGS, JSON.stringify({
+      schemaVersion: 2,
+      market: {
+        tradingHolidays: [
+          '2026-01-26', '2026-03-04', '2026-04-03', '2026-05-01',
+          '2026-10-02', '2026-12-25', '2027-01-26'
+        ]
+      }
+    }));
+
+    const tradingHolidays = getSettings().market.tradingHolidays;
+    expect(tradingHolidays).not.toContain('2026-03-04');
+    expect(tradingHolidays).toContain('2027-01-26');
+    expect(getMarketSessionState({ now: new Date('2026-03-03T05:00:00Z'), tradingHolidays }).isOpen).toBe(false);
+    expect(getMarketSessionState({ now: new Date('2026-03-04T05:00:00Z'), tradingHolidays }).label)
+      .toBe('Scheduled NSE Hours');
   });
 
   it('does not discard unrelated account settings on a Market visibility save', () => {

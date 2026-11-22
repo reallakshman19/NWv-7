@@ -46,6 +46,24 @@ test('R3D-S02 a legacy Yahoo FX file is rejected at the publication boundary', (
   }
 });
 
+test('publication guard CLI checks a missing data root from a path containing spaces', () => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'nw7 market guard '));
+  const script = path.join(scratch, 'check_market_publication_assets.mjs');
+  try {
+    fs.copyFileSync('scripts/check_market_publication_assets.mjs', script);
+    const missingRoot = path.join(scratch, 'missing-publication-root');
+    const processResult = spawnSync(process.execPath, [script, missingRoot], { encoding: 'utf8' });
+    assert.equal(processResult.error, undefined);
+    assert.equal(processResult.status, 1);
+    const report = JSON.parse(processResult.stdout);
+    assert.equal(report.status, 'FAIL');
+    assert.deepEqual(report.roots[0].errors, ['MISSING_DATA_ROOT']);
+  } finally {
+    fs.rmSync(script, { force: true });
+    fs.rmdirSync(scratch);
+  }
+});
+
 test('R3D-S03 injected price, NAV, rate, quote row, timestamp and policy override all fail closed', () => {
   const market = policyPayload('market_snapshot.json');
   const nav = policyPayload('mutual_fund_snapshot.json');

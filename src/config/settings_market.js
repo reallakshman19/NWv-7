@@ -96,12 +96,11 @@ export function normalizeMarketSettings(source = {}) {
         settings[key] = typeof raw[key] === 'boolean' ? raw[key] : DEFAULT_MARKET_SETTINGS[key];
     }
     const custom = Array.isArray(raw.tradingHolidays) ? raw.tradingHolidays : DEFAULT_MARKET_SETTINGS.tradingHolidays;
-    // Older persisted settings may contain only six 2026 entries. Official NSE
-    // closures are authoritative, and custom user days may augment but not
-    // silently override the verified capital-market calendar.
+    // The old built-in list persisted March 4 as Holi. Remove that obsolete
+    // default while preserving other valid saved dates and the official calendar.
     settings.tradingHolidays = [...new Set([
         ...MARKET_TRADING_HOLIDAY_CALENDAR[2026],
-        ...custom.filter(validCalendarDate)
+        ...custom.filter(date => date !== '2026-03-04' && validCalendarDate(date))
     ])].slice(0, 512);
     const customYears = Array.isArray(raw.tradingHolidayYears)
         ? raw.tradingHolidayYears.filter(year => Number.isInteger(year) && year >= 2020 && year <= 2100)

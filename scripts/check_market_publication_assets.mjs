@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Fail closed on quote-bearing public Market asset reintroduction.
@@ -113,7 +114,7 @@ export function auditAllMarketPublicationRoots(roots = ['public', 'docs', 'dist'
   return roots.map(root => auditMarketPublicationRoot(root));
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const roots = process.argv.slice(2);
   const results = auditAllMarketPublicationRoots(roots.length ? roots : undefined);
   const issues = results.flatMap(x => x.errors.map(error => x.root + ': ' + error));
