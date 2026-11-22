@@ -83,12 +83,13 @@ describe('Market R3A — FX freshness, conversion and concurrency regressions', 
   it.each([
     ['quick', FXQuickConverter],
     ['desk', CurrencyMacroPanel]
-  ])('%s converter displays an expired observation but never computes with it', (_label, Component) => {
+  ])('%s converter displays an expired observation but never computes with it', (label, Component) => {
     localStorage.setItem('nw7.omr-inr.frankfurter.v1', JSON.stringify({
       payload: observation('OMR', '2026-11-13').payload, checkedAt: NOW - 60_000
     }));
     macroStore.init();
-    const { container } = render(<Component />);
+    const { container } = render(React.createElement(Component));
+    expect(container.textContent).toContain(label === 'quick' ? 'Currency Reference' : 'Currency & FX Reference Desk');
     expect(container.querySelector('.fx-result-box')?.textContent?.trim()).toBe('—');
     expect(container.textContent).toContain('Expired Rate');
   });
