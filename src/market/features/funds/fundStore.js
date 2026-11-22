@@ -352,7 +352,14 @@ class FundStore {
         const isCooldown = err.status === 429 || fundClient.isCoolingDown();
         const status = isCooldown ? 'cooldown' : 'error';
         const errorMsg = err.message || 'NAV fetch failed';
-        this.state.navByCode[canonical] = { status, error: errorMsg };
+        // Retain the last observation with its original source date; a failed
+        // network check must not erase historical evidence or mark it fresh.
+        const previous = this.state.navByCode[canonical]?.value;
+        this.state.navByCode[canonical] = {
+          status,
+          error: errorMsg,
+          ...(previous ? { value: previous } : {})
+        };
         this.updateSnapshot();
         throw err;
       } finally {
