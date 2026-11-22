@@ -31,8 +31,17 @@ describe('Market schedule and quote provenance', () => {
 
 describe('NSE verified 2026 calendar and fail-closed session model', () => {
   const holidays = MARKET_TRADING_HOLIDAY_CALENDAR[2026];
+  // Independent explicit oracle transcribed from NSE/CMTR/71775, dated
+  // 2025-12-12, rather than deriving the expected list from the module.
+  const NSE_CIRCULAR_71775_2026_DAYS = [
+    '2026-01-26', '2026-03-03', '2026-03-26', '2026-03-31',
+    '2026-04-03', '2026-04-14', '2026-05-01', '2026-05-28',
+    '2026-06-26', '2026-09-14', '2026-10-02', '2026-10-20',
+    '2026-11-10', '2026-11-24', '2026-12-25'
+  ];
 
   it('replays all 15 official weekday closures from NSE/CMTR/71775', () => {
+    expect(holidays).toEqual(NSE_CIRCULAR_71775_2026_DAYS);
     expect(holidays).toHaveLength(15);
     expect(new Set(holidays).size).toBe(15);
     for (const day of holidays) {
