@@ -74,6 +74,34 @@ describe('fail-closed Planner source-ID compatibility',()=>{
     expect(__plannerStorageInternalsForTest.sameDurableRow(first,first,date)).toBe(true);
   });
 
+  it('F01: independently saves different workshops even with identical publisher homepage, slot and venue',()=>{
+    const homepage = 'https://chennai2go.in/';
+    const first = event('robotics-source-id',{title:'Robotics Workshop',link:homepage});
+    const second = event('bioinformatics-source-id',{title:'Bioinformatics Workshop',link:homepage});
+    expect(sameSourceBackedPlannerEvent(first,second,date)).toBe(false);
+    expect(plannerStorage.addItem(date,first).ok).toBe(true);
+    expect(plannerStorage.addItem(date,second).ok).toBe(true);
+    const rows = plannerStorage.getPlan()[date];
+    expect(rows.map(x=>x.id)).toEqual(['robotics-source-id','bioinformatics-source-id']);
+    expect(rows.map(x=>x.savedPlanId)).toEqual(['robotics-source-id','bioinformatics-source-id']);
+    expect(plannerStorage.removeItem(date,rows[0].savedPlanId).ok).toBe(true);
+    expect(plannerStorage.getPlan()[date].map(x=>x.id)).toEqual(['bioinformatics-source-id']);
+  });
+
+  it('F01: keeps different title or untrusted generic event pages distinct despite a shared URL and clock',()=>{
+    const original=event('source-one');
+    const differentTitle=event('source-two',{title:'Ethical Hacking Workshop'});
+    expect(sameSourceBackedPlannerEvent(original,differentTitle,date)).toBe(false);
+    expect(plannerStorage.addItem(date,original).ok).toBe(true);
+    expect(plannerStorage.addItem(date,differentTitle).ok).toBe(true);
+    expect(plannerStorage.getPlan()[date]).toHaveLength(2);
+    for(const link of ['https://chennai2go.in/','https://chennai2go.in/events',
+       'https://chennai2go.in/event/', 'https://chennai2go.in/event/upcoming',
+       'https://publisher.example.org/event/authentic-session-a']) {
+      expect(sameSourceBackedPlannerEvent(event('a',{link}),event('b',{link}),date)).toBe(false);
+    }
+  });
+
   it('keeps distinct original session IDs even if the listing URL is reused',()=>{
     expect(sameSourceBackedPlannerEvent(event('a',{sessionId:'s1'}),event('b',{sessionId:'s2'}),date)).toBe(false);
     expect(sameSourceBackedPlannerEvent(event('a',{occurrenceId:'o1'}),event('b',{occurrenceId:'o2'}),date)).toBe(false);
