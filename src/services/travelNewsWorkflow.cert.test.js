@@ -5,7 +5,8 @@ import path from 'path';
 const TRAVEL_WORKFLOW = path.join(process.cwd(), '.github/workflows/travel-local-news.yml');
 
 describe('Travel news workflow certification', () => {
-  it.skipIf(!fs.existsSync(TRAVEL_WORKFLOW))('GitHub Actions workflow references travel-local-news', () => {
+  it('GitHub Actions workflow file exists and references travel-local-news', () => {
+    expect(fs.existsSync(TRAVEL_WORKFLOW)).toBe(true);
     const content = fs.readFileSync(TRAVEL_WORKFLOW, 'utf8');
     expect(content).toContain('collect_travel_local_news.mjs');
     expect(content).toContain('travel-local-*.json');
