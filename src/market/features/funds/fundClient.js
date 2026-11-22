@@ -53,6 +53,7 @@ class FundClient {
     if (this.isCoolingDown()) {
       const err = new Error(`NAV provider cooldown active for ${this.getCooldownRemainingSeconds()}s.`);
       err.status = 429;
+      err.isLocalCooldown = true;
       throw err;
     }
     const cleaned = String(query || '').trim().replace(/\s+/g, ' ').slice(0, 120);
@@ -114,6 +115,7 @@ class FundClient {
       const remaining = this.getCooldownRemainingSeconds(now);
       const err = new Error(`NAV provider rate-limited requests. Cooldown active for ${remaining}s.`);
       err.status = 429;
+      err.isLocalCooldown = true;
       throw err;
     }
 
@@ -234,6 +236,7 @@ class FundClient {
       const remaining = this.getCooldownRemainingSeconds(now);
       const err = new Error(`NAV provider rate-limited requests. Cooldown active for ${remaining}s.`);
       err.status = 429;
+      err.isLocalCooldown = true;
       throw err;
     }
 

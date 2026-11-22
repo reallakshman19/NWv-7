@@ -470,6 +470,13 @@ class PortfolioStore {
       return { ok: false, errors: [`Unsupported import mode: ${mode}`] };
     }
 
+    if (mode === 'NEW_PORTFOLIO' && this.state.portfolios.length + incomingPortfolios.length > MAX_PORTFOLIOS) {
+      return { ok: false, errors: [`Import would exceed the ${MAX_PORTFOLIOS}-portfolio limit`] };
+    }
+    if (mode !== 'NEW_PORTFOLIO' && !this.state.portfolios.some(p => p.id === this.state.activePortfolioId)) {
+      return { ok: false, errors: ['Active portfolio not found'] };
+    }
+
     // Pre-validate all transactions across all incoming portfolios
     const validatedPortfolios = [];
     for (const p of incomingPortfolios) {
@@ -523,10 +530,8 @@ class PortfolioStore {
         }
       } else if (mode === 'NEW_PORTFOLIO') {
         for (const p of validatedPortfolios) {
-          if (state.portfolios.length < MAX_PORTFOLIOS) {
-            state.portfolios.push(p);
-            state.activePortfolioId = p.id;
-          }
+          state.portfolios.push(p);
+          state.activePortfolioId = p.id;
         }
       } else if (mode === 'MERGE') {
         const active = state.portfolios.find(p => p.id === state.activePortfolioId);
@@ -546,7 +551,8 @@ class PortfolioStore {
     });
     if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
-    return { ok: true, importedCount: validatedPortfolios.length };
+    const importedCount = mode === 'NEW_PORTFOLIO' ? validatedPortfolios.length : 1;
+    return { ok: true, importedCount };
   }
 
   // CSV Export / Import (Transactions only, with formula injection protection)

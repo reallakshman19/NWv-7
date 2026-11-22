@@ -126,6 +126,24 @@ describe('Market R3B local provenance integration', () => {
     expect(healthStore.getSnapshot().receipts).toHaveLength(0);
   });
 
+  it('records a provider 429 once and skips fund searches blocked by local cooldown', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ status: 429, headers: new Headers() });
+    try {
+      const providerError = await fundClient.searchFunds('Index Fund', { fetchImpl }).catch(error => error);
+      expect(recordMarketSourceFailure('mfapi', providerError).ok).toBe(true);
+      const blockedError = await fundClient.searchFunds('Index Fund', { fetchImpl }).catch(error => error);
+      expect(blockedError.status).toBe(429);
+      expect(recordMarketSourceFailure('mfapi', blockedError)).toEqual({ ok: false, skipped: 'LOCAL_COOLDOWN' });
+
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      const snapshot = healthStore.getSnapshot();
+      expect(snapshot.receipts).toHaveLength(1);
+      expect(snapshot.sourceStates.mfapi.lastTransportStatus).toBe(429);
+    } finally {
+      fundClient.clearCooldown();
+    }
+  });
+
   it('handles blocked receipt storage access without throwing', () => {
     const storage = { getItem: () => { throw new Error('SecurityError'); } };
     expect(readReceiptsLog(storage)).toEqual({ records: [], corrupt: true });
