@@ -29,7 +29,7 @@ describe('fail-closed Planner source-ID compatibility',()=>{
     const old=event('legacy-id',{savedPlanId:'my-saved-slot'});
     const updated=event('new-publisher-id',{link:'https://chennai2go.in/event/authentic-session-a?utm_source=feed'});
     expect(sameSourceBackedPlannerEvent(old,updated,date)).toBe(true);
-    expect(sameSourceBackedPlannerEvent(old,updated,'2026-11-27')).toBe(true);
+    expect(sameSourceBackedPlannerEvent(old,updated,'2026-11-27')).toBe(false);
     expect(sameSourceBackedPlannerEvent(old,event('other',{link:'https://chennai2go.in/event/other-session'}),date)).toBe(false);
   });
 
