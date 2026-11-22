@@ -276,7 +276,8 @@ class FundStore {
     if (inMemory?.status === 'ready' && inMemory?.value) {
       const checkedAt = inMemory.value.checkedAt;
       if (
-        typeof checkedAt === 'number' &&
+        Number.isFinite(checkedAt) &&
+        checkedAt >= 0 && checkedAt <= now &&
         now - checkedAt < ONE_DAY_MS &&
         getIstDayKey(checkedAt) === getIstDayKey(now)
       ) {
@@ -289,9 +290,12 @@ class FundStore {
     if (cachedHistory?.checkedAt) {
       const checkedAt = cachedHistory.checkedAt;
       if (
+        Number.isFinite(checkedAt) &&
+        checkedAt >= 0 && checkedAt <= now &&
         now - checkedAt < ONE_DAY_MS &&
         getIstDayKey(checkedAt) === getIstDayKey(now) &&
-        cachedHistory.latestNav &&
+        Number.isFinite(Number(cachedHistory.latestNav)) &&
+        Number(cachedHistory.latestNav) > 0 &&
         cachedHistory.latestDate
       ) {
         return {
