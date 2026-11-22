@@ -41,6 +41,9 @@ jobs:
             TRAVEL_LOCATION_KEY="$city" node scripts/collect_travel_local_news.mjs
           done
 
+      - name: Regenerate published source-policy documents
+        run: node scripts/generate_travel_source_policy.mjs
+
       - name: Validate freshness, source custody and retention
         run: node scripts/validate_travel_local_news.mjs
 
@@ -57,7 +60,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data/travel-local-*.json
+          git add public/data/travel-local-*.json public/data/travel-source-policy*.json
           if git diff --cached --quiet; then
             echo "No travel-local changes to publish"
             exit 0
