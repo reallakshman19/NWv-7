@@ -5,6 +5,12 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/travel-local-news.yml'
+      - 'scripts/collect_travel_local_news.mjs'
+      - 'scripts/validate_travel_local_news.mjs'
+      - 'src/services/travelRssParser.js'
+      - 'src/services/storyLocationPriority.js'
+      - 'src/services/travelNewsFreshness.js'
+      - 'src/services/travelNewsQueries.js'
   schedule:
     - cron: '13 */3 * * *'
   workflow_dispatch:
