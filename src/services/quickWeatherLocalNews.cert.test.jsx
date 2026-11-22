@@ -6,6 +6,7 @@ import TravelLocalStories from '../components/travel/TravelLocalStories.jsx';
 import { getTravelLocationProfile, buildWeatherSelectedNewsSettings } from './travelLocationProfile.js';
 import { fetchTravelNewsPayload, mergeTravelNewsIntoNewsData } from './travelNewsIngestion.js';
 
+const publishedAt = new Date().toISOString();
 const baseSettings = {
   weather: { cities: ['chennai', 'trichy', 'muscat'], activeCity: 'chennai' },
   travelLocation: { city: 'colombo', enabled: true, prioritizeStories: true },
@@ -30,7 +31,7 @@ describe('Quick Weather → Travel Local end-to-end contract', () => {
     const html = renderToStaticMarkup(<TravelLocalStories profile={profileFor('trichy')} newsData={{
       local: [
         { id: 'wrong', title: 'Chennai corporation updates Tamil Nadu roadworks' },
-        { id: 'right', title: 'Trichy corporation announces city bus expansion' },
+        { id: 'right', title: 'Trichy corporation announces city bus expansion', publishedAt },
         { id: 'broad', title: 'Tamil Nadu statewide transport policy announced' },
       ],
     }} />);
@@ -44,7 +45,7 @@ describe('Quick Weather → Travel Local end-to-end contract', () => {
     const html = renderToStaticMarkup(<TravelLocalStories profile={profileFor('muscat')} newsData={{
       local: [
         { id: 'wrong', title: 'Chennai port expands traffic access', source: 'Muscat Daily' },
-        { id: 'right', title: 'Muscat Municipality opens new traffic interchange', source: 'Global Wire' },
+        { id: 'right', title: 'Muscat Municipality opens new traffic interchange', source: 'Global Wire', publishedAt },
       ],
     }} />);
     expect(html).toContain('Muscat / Oman');
@@ -63,7 +64,7 @@ describe('Quick Weather → Travel Local end-to-end contract', () => {
     expect(payload.locationKey).toBe('mumbai');
 
     const html = renderToStaticMarkup(<TravelLocalStories profile={mumbai} newsData={{
-      local: [{ title: 'Chennai local city festival' }, { title: 'Mumbai civic authorities launch new ferry service' }],
+      local: [{ title: 'Chennai local city festival' }, { title: 'Mumbai civic authorities launch new ferry service', publishedAt }],
     }} />);
     expect(html).toContain('Mumbai / India');
     expect(html).toContain('Mumbai civic authorities');

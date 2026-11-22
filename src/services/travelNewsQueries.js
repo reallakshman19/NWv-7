@@ -16,7 +16,7 @@ function buildGoogleNewsRssUrl(query, options = {}) {
   const lang = String(options.lang || 'en').toLowerCase();
   const ceid = `${country}:${lang}`;
 
-  return `${GOOGLE_NEWS_RSS_BASE}?q=${encodeQuery(query)}&hl=${lang}&gl=${country}&ceid=${ceid}`;
+  return `${GOOGLE_NEWS_RSS_BASE}?q=${encodeQuery(`${query} when:2d`)}&hl=${lang}&gl=${country}&ceid=${ceid}`;
 }
 
 export function buildTravelNewsQueries(profileInput = null) {
@@ -71,8 +71,8 @@ export function buildTravelNewsSourcePolicy(profileInput = null) {
       edition,
     },
     freshness: {
-      maxAgeMinutes: 180,
-      staleAfterMinutes: 360,
+      maxAgeMinutes: 360,
+      staleAfterMinutes: 720,
     },
     dedupe: {
       keyFields: ['url', 'title', 'source'],

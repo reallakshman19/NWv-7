@@ -6,6 +6,7 @@ import {
   rankStoriesForLocation,
   scoreStoryForLocation,
 } from './storyLocationPriority.js';
+import { filterFreshTravelStories, isFreshTravelPayload } from './travelNewsFreshness.js';
 
 function asArray(value) {
   return Array.isArray(value) ? value : [];
@@ -72,7 +73,7 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
     display: profile.display,
     countryCode: profile.countryCode,
     countryLabel: profile.countryLabel,
-    generatedAt: payload.generatedAt || payload.updatedAt || new Date().toISOString(),
+    generatedAt: payload.generatedAt || payload.updatedAt || null,
     sourceMode: payload.sourceMode || 'runtime-json',
     stories,
   };
@@ -113,7 +114,7 @@ export function mergeTravelNewsIntoNewsData(newsData = {}, payload = {}, profile
   };
 }
 
-export async function fetchTravelNewsPayload({ basePath = '/data', profile } = {}) {
+export async function fetchTravelNewsPayload({ basePath = './data', profile, signal } = {}) {
   const resolvedProfile = isTravelLocationProfile(profile)
     ? profile
     : getTravelLocationProfile(profile || {});
@@ -130,20 +131,31 @@ export async function fetchTravelNewsPayload({ basePath = '/data', profile } = {
     `${basePath}/travel/${resolvedProfile.key}.json`,
   ];
 
+  let staleOrWrongPayload = false;
   for (const path of paths) {
     try {
-      const response = await fetch(path, { cache: 'no-store' });
+      const response = await fetch(path, { cache: 'no-store', signal });
       if (!response.ok) continue;
 
       const payload = await response.json();
-      return normalizeTravelNewsPayload(payload, resolvedProfile);
-    } catch {
-      // Try next path.
+      if (payload?.locationKey !== resolvedProfile.key || !isFreshTravelPayload(payload)) {
+        staleOrWrongPayload = true;
+        continue;
+      }
+      const normalized = normalizeTravelNewsPayload(payload, resolvedProfile);
+      return {
+        ...normalized,
+        // A fresh collector timestamp never makes an old story fresh.
+        stories: filterFreshTravelStories(normalized.stories),
+      };
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      // The next documented location-specific path may still be available.
     }
   }
 
   return normalizeTravelNewsPayload({
     stories: [],
-    sourceMode: 'missing-json',
+    sourceMode: staleOrWrongPayload ? 'stale-json' : 'missing-json',
   }, resolvedProfile);
 }
