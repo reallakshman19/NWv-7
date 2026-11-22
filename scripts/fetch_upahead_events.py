@@ -231,12 +231,12 @@ def has_category_intent(category, text):
         # public disruption notice. Require a concrete community action,
         # affected service, mobility restriction, or civil-safety instruction.
         # Source search labels ('alerts') cannot supply this evidence.
-        if re.search(r'\\b(?:medical evacuation|medevac|patient airlift|airlifts? patient|'
-                     r'evacuat(?:ed|ion) (?:a |the )?(?:patient|national|seafarer|sailor))\\b',
+        if re.search(r'\b(?:medical evacuation|medevac|patient airlift|airlifts? patient|'
+                     r'evacuat(?:ed|ion) (?:a |the )?(?:patient|national|seafarer|sailor))\b',
                      text, re.I):
             return False
         return bool(re.search(
-            r'\\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|'
+            r'\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|'
             r'water (?:supply )?(?:cut|outage|interruption|shutdown)|'
             r'road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|'
             r'public transport (?:suspended|disruption)|'
@@ -245,7 +245,7 @@ def has_category_intent(category, text):
             r'(?:residents|commuters|drivers) (?:warned|advised|urged) to)|'
             r'service (?:shutdown|suspension|disruption)|'
             r'airport (?:closure|closed)|'
-            r'school (?:closure|closed))\\b', text, re.I))
+            r'school (?:closure|closed))\b', text, re.I))
     if category == 'civic':
         # A court issuing a notice, a political registration or a retrospective
         # road project is not a current service notice for residents.
