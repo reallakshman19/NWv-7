@@ -98,7 +98,7 @@ function ActiveRetailOffersPanel({locations=['Chennai','Muscat'],channel='online
   return <section className="ua-retail-panel" aria-label="Retailer offers">
     <div className="ua-retail-heading"><h3>{channel==='offline'?'Current in-store offers':'Current online offers'}</h3>
       <button type="button" onClick={refresh} disabled={loading}>{loading?'Checking…':'Refresh offers'}</button></div>
-    <p className="ua-retail-note">{channel==='online'?'Displayed prices come from retailer pages. Confirm Chennai/Muscat delivery availability and checkout price for your address.':'Dated in-store flyers are shown below. ClicOffer listings report store coverage; check branch terms in the flyer.'}</p>
+    <p className="ua-retail-note">{channel==='online'?'Displayed prices come from retailer pages. Confirm Chennai/Muscat delivery availability and checkout price for your address.':'When available, dated in-store flyers appear below. ClicOffer listings report store coverage; check branch terms in the flyer.'}</p>
     {channel==='offline'&&locations.some(city=>String(city).toLowerCase()==='chennai')&&<p className="ua-retail-note">Chennai: a current dated in-store feed is not available yet.</p>}
     <div className="ua-retail-tabs" role="group" aria-label="Filter offers by retailer">
       <button type="button" aria-pressed={activeRetailer==='all'} onClick={()=>{setRetailerId('all');setLimit(40);}}>All ({rows.length})</button>
@@ -108,7 +108,17 @@ function ActiveRetailOffersPanel({locations=['Chennai','Muscat'],channel='online
     {error&&<p className="ua-retail-note" role="status">{rows.length?`The latest update is unavailable. Showing unexpired cached ${channel==='offline'?'offers':'prices'}.`:'The retailer update is unavailable. Please refresh later.'}</p>}
     {loading&&!snapshot?<p role="status">Loading retailer offers…</p>:<>
       <p className="ua-retail-count">{items.length} current offer{items.length===1?'':'s'}{fromCache?' · Cached update':''}</p>
-      {visible.length?<>{flyers.length>0&&<RetailFlyerCards items={flyers} onAddToPlan={onAddToPlan}/>} {priced.length>0&&<RetailOfferCards items={priced} onAddToPlan={onAddToPlan}/>}</>:<p className="ua-retail-empty">No current {channel==='offline'?'in-store':'priced'} offers could be verified for {activeRetailer==='all'?'the selected locations':sources.find(source=>source.id===activeRetailer)?.name||'this retailer'}.</p>}
+      {visible.length?<>{flyers.length>0&&<RetailFlyerCards items={flyers} onAddToPlan={onAddToPlan}/>} {priced.length>0&&<RetailOfferCards items={priced} onAddToPlan={onAddToPlan}/>}</>:<>
+        <p className="ua-retail-empty">No current {channel==='offline'?'in-store':'priced'} offers could be verified for {activeRetailer==='all'?'the selected locations':sources.find(source=>source.id===activeRetailer)?.name||'this retailer'}.</p>
+        {channelSources.filter(source=>activeRetailer==='all'||source.id===activeRetailer).length>0&&
+          <aside aria-label="Retailer source directory" className="ua-retail-status">
+            <strong>Check retailer sources directly</strong>
+            <p className="ua-retail-note">These are retailer links, not verified current offers. Check store location, prices, availability and advertised validity at the source.</p>
+            <ul>{channelSources.filter(source=>activeRetailer==='all'||source.id===activeRetailer).map(source=>
+              <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">
+                {source.name} · {channel==='offline'?'Store offers':'Online offers'}</a></li>)}</ul>
+          </aside>}
+      </>}
       {items.length>visible.length&&<button type="button" className="ua-cal-btn" onClick={()=>setLimit(value=>value+40)}>Show {items.length-visible.length} more offers</button>}
     </>}
     {snapshot&&<details className="ua-retail-status"><summary>Retailer updates</summary><ul>{channelSources.map(source=>{
