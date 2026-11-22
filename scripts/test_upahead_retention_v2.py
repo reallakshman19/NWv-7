@@ -245,3 +245,58 @@ def test_linear_capacity_rejects_oversize_without_dropping_smaller_safety_alert(
     assert result["rejectedActiveCount"] == 1
     assert result["rejectedSafetyAlertCount"] == 0
     assert result["activeBytes"] == active_published_bytes(chosen)
+
+
+def test_eight_refresh_cycles_keep_future_dates_but_stop_stale_alerts_and_offers():
+    """Eight actual publisher-code transitions, plus day-eight eviction proof.
+
+    This is a fixed-clock E2E replay, NOT a claim of eight live GitHub runs.
+    No browser, Cloudflare DB, or independently archived publisher is needed.
+    """
+    stale_offer = item("no-longer-verified-deal", category="shopping",
+                       eventStartAt=None, eventEndAt=None,
+                       expiryAt=NOW + 20 * DAY_MS, publishedAt=NOW, observedAt=NOW)
+    long_event = item("future-runs-long", eventStartAt=NOW + 6 * DAY_MS,
+                      eventEndAt=NOW + 20 * DAY_MS, expiryAt=NOW + 20 * DAY_MS)
+    warning = item("official-warning", category="weather_alerts",
+                   source="oman-warnings", occurrenceId="oman-warnings:storm-A",
+                   eventStartAt=NOW, eventEndAt=NOW + 12 * DAY_MS,
+                   expiryAt=NOW + 12 * DAY_MS)
+    retired = item("official-warning-cancel", category="weather_alerts",
+                   source="oman-warnings", occurrenceId="oman-warnings:storm-CANCEL",
+                   retireOccurrenceId="oman-warnings:storm-A",
+                   suppressionReason="Cancelled official warning",
+                   eventStartAt=NOW + 2 * DAY_MS, eventEndAt=None,
+                   expiryAt=NOW + 2 * DAY_MS - 1)
+
+    snap = {}
+    receipts = []
+    for day in range(8):
+        as_of = NOW + day * DAY_MS
+        incoming = [stale_offer, long_event, warning] if day == 0 else []
+        if day == 2:
+            incoming = [{**retired, "observedAt": as_of}]
+        if day == 3:
+            # Replay an old bulletin after cancellation: never reanimate.
+            incoming = [{**warning, "observedAt": NOW}]
+        if day == 6:
+            incoming = [{**long_event, "observedAt": as_of}]
+        snap = merge_upahead_snapshot(snap, incoming, as_of,
+                                     fetched=day in (0, 2, 6))
+        active = {row["id"] for row in snap["items"]}
+        receipts.append(active)
+        assert not validate_snapshot(snap, as_of)["errors"]
+        assert not (day >= 2 and "official-warning" in active)
+        assert day < 7 or "no-longer-verified-deal" not in active
+        assert len(snap.get("retiredOccurrences", [])) <= 1
+
+    assert "no-longer-verified-deal" in receipts[6]
+    assert "no-longer-verified-deal" not in receipts[7]
+    assert "future-runs-long" in receipts[7]
+    # After the eight modeled refreshes, a no-fetch day-eight replay may not
+    # create a sliding publication clock or resurrect a previous cancellation.
+    day_eight = merge_upahead_snapshot(snap, [], NOW + 8 * DAY_MS, fetched=False)
+    assert "no-longer-verified-deal" not in {row["id"] for row in day_eight["items"]}
+    assert "official-warning" not in {row["id"] for row in day_eight["items"]}
+    assert "future-runs-long" in {row["id"] for row in day_eight["items"]}
+    assert not validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"]
