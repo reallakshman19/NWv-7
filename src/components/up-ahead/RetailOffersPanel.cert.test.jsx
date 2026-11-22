@@ -47,7 +47,25 @@ describe('populated retailer offers',()=>{
   rerender(<RetailOffersPanel channel="offline"/>);
   expect(screen.queryByRole('article')).toBeNull();
   expect(screen.getByText(/No current in-store offers could be verified/)).toBeTruthy();
+  expect(screen.getByRole('complementary',{name:'Retailer source directory'})).toBeTruthy();
+  expect(screen.getByRole('link',{name:'HyperMax Oman · Store offers'}).getAttribute('href'))
+    .toBe('https://www.hypermax.com.om/mafomn/en/shop/storespromotions');
+  expect(screen.queryByRole('link',{name:/Amazon India.*Store offers/})).toBeNull();
  });
+ it('clearly separates verified offers from browse-only retailer links when the snapshot is stale',()=>{
+  useRetailOffers.mockReturnValue({snapshot:null,loading:false,error:'stale retailer data',
+    fromCache:false,refresh:vi.fn()});
+  render(<RetailOffersPanel locations={['Chennai']} channel="online"/>);
+  expect(screen.getByText(/No current priced offers could be verified/)).toBeTruthy();
+  expect(screen.getByText(/not verified current offers/)).toBeTruthy();
+  expect(screen.getByRole('link',{name:'Amazon India · Online offers'}).getAttribute('href'))
+    .toBe('https://www.amazon.in/gp/goldbox');
+  expect(screen.getByRole('link',{name:'Flipkart India · Online offers'}).getAttribute('href'))
+    .toMatch(/^https:\/\/www.flipkart.com/);
+  expect(screen.queryByRole('heading',{name:/Current .* product deal/})).toBeNull();
+  expect(screen.queryByRole('button',{name:'+ Plan today'})).toBeNull();
+ });
+
  it('passes a manual shopping intent to Planner without inventing an event date',async()=>{
   const save=vi.fn().mockReturnValue({ok:true});render(<RetailOffersPanel locations={['Muscat']} onAddToPlan={save}/>);
   fireEvent.click(screen.getByRole('button',{name:'+ Plan today'}));
