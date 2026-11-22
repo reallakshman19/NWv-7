@@ -83,3 +83,18 @@ test('R3D-S05 weather snapshot still requires its authentic freshness clock', ()
   assert.match(code, /assertWeatherCitiesFresh\(/);
   assert.match(code, /assertFresh\(/);
 });
+
+test('R3D-S06 Pages and CI enforce built-output asset guard before publishing', () => {
+  const deploy = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
+  const ci = fs.readFileSync('.github/workflows/ci.yml', 'utf8');
+  const guardCommand = 'node scripts/check_market_publication_assets.mjs public docs dist';
+  assert.ok(deploy.includes(guardCommand), 'Pages deployment must inspect its build output');
+  assert.ok(ci.includes(guardCommand), 'PR CI must inspect the built output');
+  const buildPos = deploy.indexOf('run: npm run build');
+  const guardPos = deploy.indexOf(guardCommand);
+  const manifestPos = deploy.indexOf('name: Write pages data manifest');
+  assert.ok(buildPos >= 0 && buildPos < guardPos && guardPos < manifestPos,
+    'Pages guard must run after build and before manifest/publication');
+  assert.doesNotMatch(deploy, /^\s*\- "Market Refresh"\s*$/m,
+    'Disabled Market refresh must not masquerade as an active publication trigger');
+});
