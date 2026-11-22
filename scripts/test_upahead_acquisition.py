@@ -38,6 +38,30 @@ class AcquisitionRecovery(unittest.TestCase):
         self.assertFalse(collector.has_category_intent('shopping', 'Every day is a sale day as India picks up shopping occasions'))
         self.assertFalse(collector.has_category_intent('shopping', 'Amazon adapter vanished after going on sale'))
 
+    def test_rescue_news_is_not_a_local_disruption_alert(self):
+        headline = 'RAFO airlifts Russian national for medical emergency in Muscat'
+        self.assertFalse(collector.has_category_intent('alerts', headline))
+        self.assertFalse(collector.has_category_intent('alerts', 'Muscat patient medical evacuation completed'))
+        self.assertFalse(collector.has_category_intent('alerts', 'Chennai newspaper issues a general advisory'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Muscat water supply interruption on November 24'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Chennai traffic diversion for commuters tomorrow'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Residents advised to avoid flooded roads'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Evacuation order for residents following a fire'))
+
+    def test_existing_rescue_news_does_not_reenter_via_new_feed(self):
+        from types import SimpleNamespace
+        article = dict(title='RAFO airlifts Russian national for medical emergency',
+                       summary='Muscat evacuation to hospital on a merchant vessel',
+                       link='https://timesofoman.com/article/medical-evacuation',
+                       published_parsed=gmtime(NOW / 1000))
+        with patch.object(collector, '_safe_feed_parse',
+                          return_value=SimpleNamespace(entries=[article])):
+            rows, health = collector.fetch_category_items(
+                'alerts', 'Muscat',
+                [('https://timesofoman.com/feed', 'Times of Oman', 'times_of_oman')], NOW)
+        self.assertEqual(rows, [])
+        self.assertEqual(list(health.values())[0]['items'], 0)
+
     def test_date_only_today_and_ongoing_ranges_remain_plannable(self):
         item = dict(category='events', eventStartAt=NOW - 12 * 3_600_000,
                     datePrecision='day', expiryAt=NOW + DAY_MS, localityScore=1)
