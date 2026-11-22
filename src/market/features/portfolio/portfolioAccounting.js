@@ -80,13 +80,13 @@ export function validateTransactionInputs(input) {
 
   // 5. Quantity (positive integer)
   const quantity = Number(input.quantity);
-  if (!Number.isInteger(quantity) || quantity <= 0) {
+  if (!Number.isSafeInteger(quantity) || quantity <= 0) {
     errors.push('Quantity must be a positive integer greater than 0');
   }
 
   // 6. Unit Price (positive number > 0, max 4 decimal places)
   const price = Number(input.price);
-  if (typeof price !== 'number' || isNaN(price) || price <= 0) {
+  if (!Number.isFinite(price) || price <= 0 || !Number.isSafeInteger(Math.round(price * 10000)) || Math.round(price * 10000) <= 0) {
     errors.push('Unit price must be a positive number greater than 0');
   } else {
     const roundedPrice = Math.round(price * 10000) / 10000;
@@ -99,7 +99,7 @@ export function validateTransactionInputs(input) {
   let fee = 0;
   if (input.fee !== undefined && input.fee !== null && input.fee !== '') {
     const feeNum = Number(input.fee);
-    if (typeof feeNum !== 'number' || isNaN(feeNum) || feeNum < 0) {
+    if (!Number.isFinite(feeNum) || feeNum < 0 || !Number.isSafeInteger(Math.round(feeNum * 100))) {
       errors.push('Fee must be a non-negative number');
     } else {
       const roundedFee = Math.round(feeNum * 100) / 100;
@@ -108,6 +108,12 @@ export function validateTransactionInputs(input) {
       }
       fee = roundedFee;
     }
+  }
+
+  // All ledger amounts must remain representable in integer cents.
+  if (Number.isFinite(price) && Number.isSafeInteger(quantity) && quantity > 0 &&
+      !Number.isSafeInteger(Math.round((quantity * price + fee) * 100))) {
+    errors.push('Trade value exceeds safe accounting range');
   }
 
   // 8. Notes (optional string, max 280 chars)
@@ -142,6 +148,39 @@ export function validateTransactionInputs(input) {
   };
 
   return { ok: true, errors: [], sanitized };
+}
+
+/**
+ * Validate a dated manual price mark for both interactive entry and JSON import.
+ * Do not allow invalid calendar days or non-finite monetary values into replay.
+ */
+export function validateManualPriceMark(instrumentKey, price, asOfDate, recordedAt = null) {
+  const parsed = typeof instrumentKey === 'string' ? parseInstrumentKey(instrumentKey) : null;
+  if (!parsed) return { ok: false, error: 'Invalid instrument key for manual price mark' };
+
+  const numericPrice = Number(price);
+  const scaledPrice = Math.round(numericPrice * 10000);
+  if (!Number.isFinite(numericPrice) || numericPrice <= 0 ||
+      !Number.isSafeInteger(scaledPrice) || scaledPrice <= 0) {
+    return { ok: false, error: 'Price mark must be a finite positive number within safe accounting range' };
+  }
+
+  if (typeof asOfDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(asOfDate)) {
+    return { ok: false, error: 'As-of date must be in YYYY-MM-DD format' };
+  }
+  const [y, m, d] = asOfDate.split('-').map(Number);
+  const actual = new Date(Date.UTC(y, m - 1, d));
+  if (y < 1990 || y > 2100 || actual.getUTCFullYear() !== y ||
+      actual.getUTCMonth() !== m - 1 || actual.getUTCDate() !== d) {
+    return { ok: false, error: 'Invalid as-of calendar date' };
+  }
+
+  const safeRecordedAt = typeof recordedAt === 'string' && Number.isFinite(Date.parse(recordedAt))
+    ? recordedAt : new Date().toISOString();
+  return {
+    ok: true,
+    sanitized: { price: scaledPrice / 10000, asOfDate, recordedAt: safeRecordedAt }
+  };
 }
 
 /**
@@ -297,7 +336,8 @@ export function replayPortfolio(transactions = [], manualPriceMarks = {}) {
       activeHoldingsCount += 1;
 
       const mark = manualPriceMarks[pos.instrumentKey];
-      if (mark && typeof mark.price === 'number' && mark.price > 0) {
+      if (mark && Number.isFinite(mark.price) && mark.price > 0 &&
+          Number.isSafeInteger(Math.round(pos.currentQty * mark.price * 100))) {
         pos.currentPrice = mark.price;
         pos.currentValue = Math.round(pos.currentQty * mark.price * 100) / 100;
         pos.unrealizedPnL = Math.round((pos.currentValue - pos.remainingCostBasis) * 100) / 100;
