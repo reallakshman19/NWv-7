@@ -1,6 +1,7 @@
 // Controlled-provider browser acceptance for Weather tab and Quick Weather.
 // No forecast values are sourced from a real provider in this test.
 import { spawn } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const HOST='127.0.0.1', PORT=4179, BASE='http://'+HOST+':'+PORT;
@@ -48,8 +49,10 @@ async function ensureNoOverflow(page,label){
   const dims=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:window.innerWidth}));
   if(dims.scroll>dims.width+5)throw Error(label+' horizontal overflow '+JSON.stringify(dims));
 }
+const shots = 'artifacts/weather-ui-compact';
 let browser;
 try {
+  mkdirSync(shots,{recursive:true});
   await serverReady();
   browser=await chromium.launch({headless:true});
   for(const width of [1366,390]){
@@ -62,6 +65,7 @@ try {
     await waitFor(page,'[data-weather-city-strip]');
     await waitFor(page,'[data-weather-hour-intervals]');
     await waitFor(page,'.whi-period');
+    await page.screenshot({path:shots+'/weather-'+width+'-2h.png',fullPage:true});
     await page.getByRole('button',{name:'4h',exact:true}).first().click();
     const intervalText=await page.locator('[data-weather-hour-intervals]').first().textContent();
     const firstPeriod = page.locator('[data-weather-hour-intervals] .whi-period').first();
@@ -75,6 +79,7 @@ try {
       throw Error('Technical diagnostics are displayed in city tiles');
     if(await page.locator('[data-weather-hour-intervals]').first().getByText(/model feeds|cached forecast|source unverified/i).count())
       throw Error('Technical diagnostics are displayed in interval cards');
+    await page.screenshot({path:shots+'/weather-'+width+'-4h.png',fullPage:true});
     const health = page.locator('[data-weather-health-icon]').first();
     await health.click();
     await waitFor(page,'[data-weather-source-details]');
@@ -92,6 +97,7 @@ try {
       await waitFor(page,'[data-weather-city-strip]');
       const selected=await page.locator('[data-quick-weather] [aria-current="true"]').textContent();
       if(!selected?.includes('London'))throw Error('Quick Weather did not retain Weather tab selection');
+      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-desktop.png'});
       await page.goto(BASE+'/#/weather',{waitUntil:'domcontentloaded'});
       await page.getByRole('button',{name:'Manage',exact:true}).click();
       await page.getByRole('button',{name:'Remove London'}).click();
@@ -99,6 +105,12 @@ try {
       if(await page.locator('[data-weather-city-strip] button:has-text("London")').count())throw Error('Removed city remained in Weather tab');
     }
     await ensureNoOverflow(page,'Weather '+width+'px');
+    if(width===390){
+      await page.goto(BASE+'/#/',{waitUntil:'domcontentloaded'});
+      await waitFor(page,'[data-quick-weather]');
+      await page.locator('[data-quick-weather]').first().screenshot({path:shots+'/quickweather-mobile.png'});
+      await ensureNoOverflow(page,'Quick Weather mobile');
+    }
     await context.close();
   }
   console.log('PASS: Chromium desktop/mobile 2h/4h weather, SVG rendering, city persistence, add/remove');

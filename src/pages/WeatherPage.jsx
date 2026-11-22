@@ -113,11 +113,8 @@ function WeatherPage() {
       )}
 
       <main className="main-content" style={{ padding: 0, marginTop: 0 }}>
-        {error && (
-          <div className="topline" style={{ borderLeftColor: 'var(--accent-danger)', margin: '16px' }}>
-            <div className="topline__label" style={{ color: 'var(--accent-danger)' }}>Error</div>
-            <div className="topline__text">Failed to update weather. Showing cached data.</div>
-          </div>
+        {error && !weatherData?.[activeCity]?.current && (
+          <p className="weather-quiet-error" role="status">Weather could not refresh. Choose a city or retry.</p>
         )}
 
         <WeatherCityStrip cities={cities} activeCity={activeCity} weatherData={weatherData} onSelect={setActiveCity} />
