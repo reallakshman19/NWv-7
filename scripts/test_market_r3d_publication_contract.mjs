@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   auditMarketPublicationRoot,
   validateQuoteFreeFinancialAsset,
@@ -97,4 +97,21 @@ test('R3D-S06 Pages and CI enforce built-output asset guard before publishing', 
     'Pages guard must run after build and before manifest/publication');
   assert.doesNotMatch(deploy, /^\s*\- "Market Refresh"\s*$/m,
     'Disabled Market refresh must not masquerade as an active publication trigger');
+});
+
+test('R3D-S07 retired Yahoo/AMFI/FX Python publisher cannot write an asset', () => {
+  const python = process.platform === 'win32' ? 'python' : 'python3';
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'nw7-worker-disabled-'));
+  try {
+    const command = spawnSync(python, ['scripts/market_snapshot_worker.py'],
+      { encoding: 'utf8', timeout: 15000,
+        env: { ...process.env, MARKET_OUTPUT_DIR: root } });
+    assert.equal(command.error, undefined, 'Python is required to test the retired publisher');
+    assert.notEqual(command.status, 0, 'Legacy publisher must refuse execution');
+    assert.match((command.stdout || '') + (command.stderr || ''),
+      /DISABLED_FREE_OPEN_ONLY/);
+    assert.deepEqual(fs.readdirSync(root), [], 'Retired publisher must not write quote files');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
