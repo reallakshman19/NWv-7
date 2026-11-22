@@ -82,3 +82,19 @@ jobs:
           path: reports/ci_validation.log
           if-no-files-found: ignore
 
+
+  weather-browser:
+    name: Citywise Weather browser acceptance
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Test citywise Weather and Quick Weather in Chromium
+        run: node scripts/test_weather_citywise_e2e.mjs
