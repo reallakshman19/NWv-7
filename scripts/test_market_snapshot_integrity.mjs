@@ -1,5 +1,6 @@
 // scripts/test_market_snapshot_integrity.mjs
 import fs from 'fs';
+import { validateQuoteFreeFinancialAsset } from './check_market_publication_assets.mjs';
 
 const SNAPSHOT_PATH = 'public/data/market_snapshot.json';
 const MAX_AGE_HOURS_FOR_SNAPSHOT = Number(process.env.MARKET_SNAPSHOT_MAX_AGE_HOURS || 48);
@@ -31,6 +32,23 @@ function assertNumericLike(value, label) {
 
 assert(snapshot && typeof snapshot === 'object', 'snapshot must be an object');
 assert(snapshot.schemaVersion, 'schemaVersion missing');
+
+// The production Free/Open-Only contract deliberately contains NO quote data
+// and NO acquisition timestamp; passing this check does not mean fresh quotes.
+if (snapshot.schemaVersion === 'market-free-open-v1') {
+  const issues = validateQuoteFreeFinancialAsset(
+    'market_snapshot.json', snapshot, fs.readFileSync(SNAPSHOT_PATH, 'utf8')
+  );
+  assert(issues.length === 0, 'Quote-free policy violation: ' + issues.join(', '));
+  console.log(JSON.stringify({
+    status: 'PASS_POLICY_ONLY',
+    sourceMode: 'free-open-only',
+    nativeQuotesAvailable: false,
+    observationFreshnessVerified: false,
+    indices: 0
+  }, null, 2));
+  process.exit(0);
+}
 assert(snapshot.generatedAt || snapshot.generated_at || snapshot.fetchedAt, 'generatedAt/generated_at/fetchedAt missing');
 
 assert(Array.isArray(snapshot.indices), 'indices must be an array');
