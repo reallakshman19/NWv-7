@@ -125,7 +125,10 @@ function rowEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function sameDurableRow(a, b, date) {
     return a && b && (durableKey(a,date) === durableKey(b,date) ||
         ((!a.savedPlanId || !b.savedPlanId) && occurrenceSlot(a,date) === occurrenceSlot(b,date)) ||
-        sameSourceBackedPlannerEvent(a,b,date));
+        // Two explicitly saved Planner identities are independent user-owned
+        // rows even if they refer to the same source event. A publisher alias
+        // may reconcile a legacy row, never coalesce distinct savedPlanIds.
+        ((!a.savedPlanId || !b.savedPlanId) && sameSourceBackedPlannerEvent(a,b,date)));
 }
 function removalFor(item,date) {
     const removed=readRemoved();
