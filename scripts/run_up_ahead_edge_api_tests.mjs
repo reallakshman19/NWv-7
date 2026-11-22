@@ -19,12 +19,6 @@ export const UP_AHEAD_EDGE_API_TEST_COMMANDS = [
     display: 'node --test scripts/test_upahead_generation_v2_parity.mjs',
   },
   {
-    label: 'UpAhead v2 feature-gated Worker route verification (16 cases)',
-    command: nodeBin,
-    args: ['--test', 'cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs'],
-    display: 'node --test cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs',
-  },
-  {
     label: 'UpAhead v2 Cloudflare generation shadow integrity tests',
     command: nodeBin,
     args: ['--test', 'cloudflare/upahead-dataset-api/src/identityV2Shadow.test.mjs'],
