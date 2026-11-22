@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { TRAVEL_LOCATION_REGISTRY, getTravelLocationProfile } from '../src/services/travelLocationProfile.js';
 import { hasCityEvidence } from '../src/services/storyLocationPriority.js';
+import { compareTravelStoryRecency, dedupeTravelStories } from '../src/services/travelStoryIdentity.js';
 import {
   TRAVEL_NEWS_RETENTION_HOURS,
   TRAVEL_NEWS_MAX_ITEMS,
@@ -35,6 +36,10 @@ for (const city of Object.keys(TRAVEL_LOCATION_REGISTRY)) {
   if (payload.locationKey !== city || payload.display !== profile.display) {
     errors.push(city + ': wrong city identity');
   }
+  if (payload.schemaVersion !== 2 ||
+      payload.sourceAuthority !== 'Google News RSS, publisher identified per story') {
+    errors.push(city + ': missing original-source v2 authority');
+  }
   if (payload.sourceMode !== 'github-rss-prefetch') {
     errors.push(city + ': wrong source authority');
   }
@@ -46,6 +51,16 @@ for (const city of Object.keys(TRAVEL_LOCATION_REGISTRY)) {
   }
   if (!Number.isInteger(payload.successfulQueries) || payload.successfulQueries < 1) {
     errors.push(city + ': no successful RSS query; cannot publish refreshed receipt');
+  }
+  if (payload.capPolicy !== 'newest-30-eligible-distinct-stories') {
+    errors.push(city + ': missing deterministic retention cap policy');
+  }
+  if (dedupeTravelStories(articles).length !== articles.length) {
+    errors.push(city + ': duplicate editorial story survived publication');
+  }
+  if (articles.some((article, index) =>
+    index > 0 && compareTravelStoryRecency(articles[index - 1], article) > 0)) {
+    errors.push(city + ': articles not newest-first');
   }
 
   for (const article of articles) {
