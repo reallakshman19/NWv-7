@@ -138,6 +138,9 @@ export function useWeatherTabViewModel() {
       : [];
 
     const uniqueCities = [...new Set(safeCities)];
+    if (uniqueCities.length > 10) {
+      return { ok: false, error: 'Weather is limited to 10 selected cities for reliable refresh.' };
+    }
 
     if (uniqueCities.length === 0) {
       return {

@@ -1,0 +1,63 @@
+# Refresh supported starter-city weather snapshots; do not publish partial or old data.
+name: Weather Refresh
+
+on:
+  schedule:
+    - cron: '23 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weather-snapshot-main
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout publication branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install worker dependencies
+        run: python -m pip install requests
+      - name: Fetch and validate complete source-dated forecast
+        run: |
+          set -euo pipefail
+          python scripts/weather_snapshot_worker.py
+          python - <<'PY'
+          import json, datetime
+          from pathlib import Path
+          payload=json.loads(Path('public/data/weather_snapshot.json').read_text())
+          now=datetime.datetime.now(datetime.timezone.utc)
+          cities=('chennai','trichy','muscat','colombo')
+          for name in cities:
+              city=payload.get(name)
+              if not city or city.get('current',{}).get('temp') is None or len(city.get('hourly24',[]))<12:
+                  raise SystemExit('Weather snapshot missing validated city '+name)
+              stamp=datetime.datetime.fromtimestamp(int(city['fetchedAt'])/1000,datetime.timezone.utc)
+              if not 0 <= (now-stamp).total_seconds() < 900:
+                  raise SystemExit('Weather snapshot not fresh: '+name)
+          print('PASS: four complete, source-dated weather fallback cities')
+          PY
+      - name: Commit only validated snapshot
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add public/data/weather_snapshot.json
+          if git diff --cached --quiet; then
+            echo 'No changes'; exit 0
+          fi
+          git commit -m 'data(weather): verified Open-Meteo snapshot'
+          git pull --rebase origin main
+          git push origin HEAD:main

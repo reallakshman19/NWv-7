@@ -393,8 +393,13 @@ def run_worker() -> None:
                 errors[city] = str(exc)
 
     loaded = [city for city in DEFAULT_WEATHER_CITIES if city in snapshot]
-    if len(loaded) == 0:
-        raise SystemExit(f"No weather cities fetched: {errors}")
+    # Fail closed: never replace a complete published snapshot with a partial one.
+    if len(loaded) != len(DEFAULT_WEATHER_CITIES):
+        raise SystemExit(f"Incomplete weather snapshot {len(loaded)}/{len(DEFAULT_WEATHER_CITIES)}: {errors}")
+    for city in loaded:
+        record = snapshot[city]
+        if record.get("current", {}).get("temp") is None or len(record.get("hourly24", [])) < 12:
+            raise SystemExit(f"Incomplete current/hourly forecast for {city}; publication withheld")
 
     snapshot["sourceHealth"] = {
         "weather": {
