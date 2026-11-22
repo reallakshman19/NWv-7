@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import plannerStorage from './plannerStorage.js';
+import plannerStorage, { __plannerStorageInternalsForTest } from './plannerStorage.js';
 import { sameSourceBackedPlannerEvent } from './plannerSourceAlias.js';
 
 vi.mock('../runtime/runtimeCapabilities.js',()=>({
@@ -61,6 +61,17 @@ describe('fail-closed Planner source-ID compatibility',()=>{
       {id:'a',title:'Identical title',category:'events'},
       {id:'b',title:'Identical title',category:'events'},date,
     )).toBe(false);
+  });
+
+  it('preserves two independently saved explicit Planner IDs during remote reconciliation',()=>{
+    const first=event('old-publisher-id',{savedPlanId:'save-one',note:'my note 1'});
+    const second=event('new-publisher-id',{savedPlanId:'save-two',note:'my note 2'});
+    expect(sameSourceBackedPlannerEvent(first,second,date)).toBe(true);
+    // Publisher equivalence NEVER authorizes destroying a second explicit
+    // user-owned save or rewriting its notes during remote plan merging.
+    expect(__plannerStorageInternalsForTest.sameDurableRow(first,second,date)).toBe(false);
+    expect(__plannerStorageInternalsForTest.sameDurableRow(first,{...second,savedPlanId:null},date)).toBe(true);
+    expect(__plannerStorageInternalsForTest.sameDurableRow(first,first,date)).toBe(true);
   });
 
   it('keeps distinct original session IDs even if the listing URL is reused',()=>{
