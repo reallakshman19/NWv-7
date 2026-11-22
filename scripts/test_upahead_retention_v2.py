@@ -281,8 +281,10 @@ def test_eight_refresh_cycles_keep_future_dates_but_stop_stale_alerts_and_offers
             incoming = [{**warning, "observedAt": NOW}]
         if day == 6:
             incoming = [{**long_event, "observedAt": as_of}]
-        snap = merge_upahead_snapshot(snap, incoming, as_of,
-                                     fetched=day in (0, 2, 6))
+        # Each cycle fetches at least another source, so the publisher epoch
+        # is current, but an offer/event is NEVER reverified merely because
+        # some unrelated source refreshed.
+        snap = merge_upahead_snapshot(snap, incoming, as_of, fetched=True)
         active = {row["id"] for row in snap["items"]}
         receipts.append(active)
         assert not validate_snapshot(snap, as_of)["errors"]
@@ -299,4 +301,6 @@ def test_eight_refresh_cycles_keep_future_dates_but_stop_stale_alerts_and_offers
     assert "no-longer-verified-deal" not in {row["id"] for row in day_eight["items"]}
     assert "official-warning" not in {row["id"] for row in day_eight["items"]}
     assert "future-runs-long" in {row["id"] for row in day_eight["items"]}
-    assert not validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"]
+    assert all("stale" in error.lower()
+               for error in validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"])
+    assert validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"]
