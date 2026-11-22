@@ -206,3 +206,42 @@ def test_policy_centralization_and_stamp():
     assert r["retention"]["activeItemCount"] == 1
     assert r["retention"]["maxActiveItems"] == MAX_ACTIVE_ITEMS
     assert not validate_snapshot(r, NOW)["errors"]
+
+
+def test_linear_byte_accounting_matches_exact_pretty_json_for_unicode_and_nested_rows():
+    """Capacity accounting must never estimate below published UTF-8 bytes."""
+    rows = [item(f"unicode-{i}", title=f"Workshop 😀 क़هوة {i}",
+                 metadata={"source": {"nested": ["ø", "€", i], "flag": bool(i % 2)}},
+                 category="weather_alerts" if i % 61 == 0 else "events")
+            for i in range(MAX_ACTIVE_ITEMS + 17)]
+    chosen, receipt = bound_active_items(rows)
+    assert receipt["activeBytes"] == active_published_bytes(chosen)
+    assert receipt["activeItemCount"] == len(chosen) == MAX_ACTIVE_ITEMS
+    assert receipt["rejectedSafetyAlertCount"] == 0
+    assert receipt["rejectedActiveCount"] == 17
+    assert receipt["activeBytes"] <= MAX_ACTIVE_BYTES
+
+
+def test_linear_capacity_is_order_invariant_and_zero_items_are_exact():
+    empty, empty_meta = bound_active_items([])
+    assert empty == []
+    assert empty_meta["activeBytes"] == active_published_bytes([])
+    rows = [item(f"source-{i}", category="events" if i % 5 else "shopping",
+                 summary="अخبار - 🔔 " * (i % 13 + 1)) for i in range(140)]
+    first, first_meta = bound_active_items(rows)
+    second, second_meta = bound_active_items(list(reversed(rows)))
+    assert [row["id"] for row in first] == [row["id"] for row in second]
+    assert first_meta == second_meta
+    assert first_meta["activeBytes"] == active_published_bytes(first)
+
+
+def test_linear_capacity_rejects_oversize_without_dropping_smaller_safety_alert():
+    rows = [
+        item("huge-event", description="€" * (MAX_ACTIVE_BYTES // 2)),
+        item("small-safety", category="weather_alerts", title="Weather alert"),
+    ]
+    chosen, result = bound_active_items(rows)
+    assert [row["id"] for row in chosen] == ["small-safety"]
+    assert result["rejectedActiveCount"] == 1
+    assert result["rejectedSafetyAlertCount"] == 0
+    assert result["activeBytes"] == active_published_bytes(chosen)
