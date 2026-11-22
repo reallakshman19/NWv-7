@@ -71,6 +71,28 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     ]));
   });
 
+  it('does not let an HTTP-200 empty Worker fallback overwrite retained Pages coverage', async () => {
+    const cache = new Map();
+    vi.stubGlobal('localStorage', {
+      getItem: key => cache.get(key) || null,
+      setItem: (key, value) => cache.set(key, value),
+    });
+    const stalePages = { ...visibleStatic, fetchedAt: Date.now() - 18 * 60 * 60 * 1000 };
+    mocks.fetchStaticUpAheadData.mockResolvedValue(stalePages);
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(emptyData, {
+      source: 'fallback', reason: 'upstream-non-ok', freshness: 'unknown', ageSeconds: 'unknown',
+    }));
+    const { load } = await import('./upAheadDataset.js');
+    const envelope = await load({ policy: 'smart' });
+
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
+    expect(envelope.data.events.map(item => item.title)).toEqual(['Static event']);
+    expect(envelope.data.sourceMode).toBe('snapshot');
+    expect(envelope.diagnostics.map(item => item.event)).toContain('upAheadDataset.api_empty');
+    expect(JSON.parse(cache.get('upAhead_cache'))).toMatchObject({ sourceMode: 'snapshot' });
+  });
+
   it('falls back to Cloudflare when the GitHub Pages snapshot is unavailable', async () => {
     mocks.fetchStaticUpAheadData.mockResolvedValue(null);
     mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi));
