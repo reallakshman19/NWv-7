@@ -9,7 +9,8 @@ import {
   isFreshTravelPayload,
   filterFreshTravelStories,
 } from './travelNewsFreshness.js';
-import { parseTravelRssItems } from './travelRssParser.js';
+import { parseTravelRssItems, stripTravelPublisherSuffix } from './travelRssParser.js';
+import { hasCityEvidence } from './storyLocationPriority.js';
 import { rankStoriesForLocation } from './storyLocationPriority.js';
 import { fetchTravelNewsPayload } from './travelNewsIngestion.js';
 
@@ -60,6 +61,33 @@ describe('Travel Local news freshness, retention and source custody', () => {
     expect(articles[0].city).toBeUndefined();
     expect(articles[0].country).toBeUndefined();
     expect(() => parseTravelRssItems('<html>Not an RSS feed</html>')).toThrow('Invalid RSS');
+  });
+
+  it('does not mistake publisher names or Muscat grapes for event geography', () => {
+    const publisherTitle = 'OCCI members to vote through app for first time - Muscat Daily';
+    expect(stripTravelPublisherSuffix(publisherTitle, 'Muscat Daily'))
+      .toBe('OCCI members to vote through app for first time');
+    expect(hasCityEvidence({ title: publisherTitle, source: 'Muscat Daily' }, muscat)).toBe(false);
+    expect(hasCityEvidence({
+      title: 'From murtabak to Muscat grapes: Malaysian trips to Singapore',
+      source: 'The Straits Times',
+    }, muscat)).toBe(false);
+    expect(hasCityEvidence({
+      title: 'Muscat Municipality announces new Qurum road works',
+      source: 'Times of Oman',
+    }, muscat)).toBe(true);
+    const xml = `<rss><channel>
+      <item><title>OCCI members to vote through app for first time - Muscat Daily</title>
+        <link>https://example.test/publisher</link><source>Muscat Daily</source>
+        <pubDate>Sun, 22 Nov 2026 01:00:00 GMT</pubDate></item>
+      <item><title>Colombo Bandaranaike International Airport Arrivals - Flightradar24</title>
+        <link>https://example.test/flight</link><source>Flightradar24</source>
+        <pubDate>Sun, 22 Nov 2026 01:00:00 GMT</pubDate></item>
+    </channel></rss>`;
+    const items = parseTravelRssItems(xml);
+    expect(items).toHaveLength(1);
+    expect(items[0].title).toBe('OCCI members to vote through app for first time');
+    expect(hasCityEvidence(items[0], muscat)).toBe(false);
   });
 
   it('requires true publication age and actual city evidence in UI ranking', () => {
