@@ -73,7 +73,7 @@ export function normalizeTravelNewsPayload(payload = {}, profileInput = null) {
     display: profile.display,
     countryCode: profile.countryCode,
     countryLabel: profile.countryLabel,
-    generatedAt: payload.generatedAt || payload.updatedAt || new Date().toISOString(),
+    generatedAt: payload.generatedAt || payload.updatedAt || null,
     sourceMode: payload.sourceMode || 'runtime-json',
     stories,
   };
