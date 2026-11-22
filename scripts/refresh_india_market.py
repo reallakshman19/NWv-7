@@ -301,6 +301,12 @@ def main():
     if args.validate:
         print(json.dumps(validate(json.loads(Path(args.validate).read_text(encoding="utf-8")), now), indent=2))
         return
+    # The historical parsing/validation functions remain available for
+    # offline fixture regression only. Public output is explicitly forbidden.
+    raise SystemExit(
+        "DISABLED_FREE_OPEN_ONLY: market quote publisher is retired; "
+        "no network acquisition or public file write is authorized."
+    )
     snapshot = acquire(now)
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
