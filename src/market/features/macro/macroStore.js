@@ -7,6 +7,7 @@
 import { useSyncExternalStore } from 'react';
 import { fxClient } from './fxClient.js';
 import { subtractCalendarDays } from './fxMath.js';
+import { evaluateFxObservation } from './fxFreshness.js';
 
 export const OMR_INR_STORAGE_KEY = 'nw7.omr-inr.frankfurter.v1';
 export const USD_INR_STORAGE_KEY = 'nw7.usd-inr.frankfurter.v1';
@@ -28,6 +29,7 @@ class MacroStore {
     this.cachedSnapshot = null;
     this.inflightFx = new Map();
     this.requestId = 0;
+    this.latestRequestByPair = new Map();
 
     this.init();
   }
@@ -35,6 +37,7 @@ class MacroStore {
   init() {
     this.inflightFx.clear();
     this.requestId = 0;
+    this.latestRequestByPair.clear();
 
     const cachedOmr = this.readStorageCache(OMR_INR_STORAGE_KEY);
     const cachedUsd = this.readStorageCache(USD_INR_STORAGE_KEY);
@@ -64,23 +67,27 @@ class MacroStore {
       const raw = window.localStorage.getItem(key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object' || !parsed.payload || typeof parsed.checkedAt !== 'number') {
+      if (!parsed || typeof parsed !== 'object' || !parsed.payload || !Number.isFinite(parsed.checkedAt)) {
         return null;
       }
 
       const { payload, checkedAt } = parsed;
       const now = Date.now();
-      // Freshness check: if checked within last 24h
-      if (now - checkedAt < ONE_DAY_MS && payload.rate && payload.date) {
+      // The cache TTL applies to retrieval, not the provider observation date.
+      // Re-evaluate the observation every time a cached rate is read.
+      const rate = Number(payload.rate);
+      const classification = evaluateFxObservation(payload.date, now);
+      if (checkedAt >= 0 && checkedAt <= now &&
+          now - checkedAt < ONE_DAY_MS &&
+          Number.isFinite(rate) && rate > 0 &&
+          getStorageKeyForPair(payload.base, payload.quote) === key &&
+          classification) {
         return {
           base: payload.base,
           quote: payload.quote,
-          rate: Number(payload.rate),
+          rate,
           date: payload.date,
-          asOf: Date.parse(payload.date + 'T00:00:00Z'),
-          freshness: 'FRESH',
-          stale: false,
-          isHistorical: false,
+          ...classification,
           checkedAt,
           payload
         };
@@ -142,9 +149,12 @@ class MacroStore {
     const pairKey = `${base.toUpperCase()}/${quote.toUpperCase()}`;
     const storageKey = getStorageKeyForPair(base, quote);
 
-    // If already ready and not forcing, return existing
-    if (!force && this.state.ratesByPair[pairKey]?.status === 'ready') {
-      return this.state.ratesByPair[pairKey].value;
+    // Never treat a recently retrieved but expired observation as current.
+    const existingReady = this.state.ratesByPair[pairKey];
+    if (!force && existingReady?.status === 'ready' &&
+        evaluateFxObservation(existingReady.value?.date)?.freshness !== 'EXPIRED' &&
+        evaluateFxObservation(existingReady.value?.date)) {
+      return existingReady.value;
     }
 
     if (this.inflightFx.has(pairKey)) {
@@ -152,6 +162,7 @@ class MacroStore {
     }
 
     const currentReqId = ++this.requestId;
+    this.latestRequestByPair.set(pairKey, currentReqId);
 
     this.state.ratesByPair[pairKey] = {
       ...this.state.ratesByPair[pairKey],
@@ -165,7 +176,7 @@ class MacroStore {
         const result = await fxClient.fetchLatestRate(base, quote, { signal });
 
         // Race protection
-        if (currentReqId === this.requestId) {
+        if (currentReqId === this.latestRequestByPair.get(pairKey)) {
           this.state.ratesByPair[pairKey] = {
             status: 'ready',
             value: result,
@@ -177,7 +188,7 @@ class MacroStore {
         }
         return result;
       } catch (err) {
-        if (currentReqId === this.requestId) {
+        if (currentReqId === this.latestRequestByPair.get(pairKey)) {
           // If we have an existing cached rate, retain it with a warning
           const existing = this.state.ratesByPair[pairKey]?.value;
           if (existing) {
@@ -185,8 +196,9 @@ class MacroStore {
               status: 'ready',
               value: {
                 ...existing,
+                ...evaluateFxObservation(existing.date),
                 stale: true,
-                warning: `Rate refresh failed (${err.message}). Retained reference rate.`
+                warning: `Rate refresh failed (${err.message}). Retained dated reference only.`
               },
               error: null
             };
