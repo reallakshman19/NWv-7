@@ -29,7 +29,7 @@ export default function WeatherHourIntervals({ cityData, compact = false }) {
         ))}
       </div> : <p className="whi-empty">Timestamped hourly forecast unavailable. Refresh to retrieve interval data.</p>}
       <div className="whi-footer">
-        <span>{status === 'live' ? 'Live forecast' : status === 'cache' ? 'Cached forecast' : status === 'snapshot' ? 'Snapshot forecast' : 'Source unverified'}{count > 0 ? ' · ' + count + '/3 model feeds' : ''}</span>
+        <span>{status === 'live' ? 'Live forecast' : status === 'cache' ? 'Cached forecast' : status === 'snapshot' ? 'Snapshot forecast' : 'Source unverified'}{count > 0 ? ' · ' + count + '/3 model feeds · rain ' + (cityData?.models?.metricCoverage?.rain ?? '—') + '/3' : ''}</span>
         <span>Rain total per interval · peak hourly chance</span>
       </div>
     </section>

@@ -17,20 +17,37 @@ function hasUsableWeatherCity(cityData) {
 }
 
 export function WeatherProvider({ children, lazy = false }) {
-    const { settings, settingsVersion } = useSettings();
-    const [requestedCity, setRequestedCity] = useState(() => {
-        try { return resolveRegistryKey(localStorage.getItem('weather_active_city')) || null; } catch { return null; }
+    const { settings, settingsVersion, updateSettings } = useSettings();
+    const [legacyCity] = useState(() => {
+        try { return resolveRegistryKey(localStorage.getItem('weather_active_city') || localStorage.getItem('dw_active_city')); }
+        catch { return null; }
     });
     const selectedCities = useMemo(() => getConfiguredWeatherCities(settings), [settings]);
-    const activeCity = selectedCities.includes(requestedCity) ? requestedCity : selectedCities[0];
+    const savedCity = resolveRegistryKey(settings?.weather?.activeCity);
+    const activeCity = selectedCities.includes(savedCity) ? savedCity :
+        selectedCities.includes(legacyCity) ? legacyCity : selectedCities[0];
     const setActiveCity = useCallback(city => {
         const canonical = resolveRegistryKey(city);
-        if (canonical && selectedCities.includes(canonical)) setRequestedCity(canonical);
-    }, [selectedCities]);
+        if (!canonical || !selectedCities.includes(canonical)) return false;
+        const existing = getSettings();
+        if (existing?.weather?.activeCity === canonical) return true;
+        return updateSettings({
+            ...existing,
+            weather: { ...(existing?.weather || {}), activeCity: canonical },
+        }) !== false;
+    }, [selectedCities, updateSettings]);
     useEffect(() => {
+        if (settings?.weather?.activeCity !== activeCity && activeCity) setActiveCity(activeCity);
+    }, [activeCity, settings?.weather?.activeCity, setActiveCity]);
+    useEffect(() => {
+        if (!activeCity || settings?.weather?.activeCity !== activeCity) return;
         try { localStorage.setItem('weather_active_city', activeCity); } catch { /* storage unavailable */ }
-    }, [activeCity]);
-    const prevVersion = useRef(settingsVersion);
+    }, [activeCity, settings?.weather?.activeCity]);
+    const dataSettingsKey = JSON.stringify({
+        cities: selectedCities, models: settings?.weather?.models,
+        enabled: settings?.sections?.weather !== false,
+    });
+    const lastDataSettingsKey = useRef(dataSettingsKey);
     const requestGeneration = useRef(0);
 
     const [booted, setBooted] = useState(!lazy);
@@ -119,11 +136,11 @@ export function WeatherProvider({ children, lazy = false }) {
 
     useEffect(() => {
         if (!booted) return;
-        if (prevVersion.current !== settingsVersion) {
-            prevVersion.current = settingsVersion;
+        if (lastDataSettingsKey.current !== dataSettingsKey) {
+            lastDataSettingsKey.current = dataSettingsKey;
             loadWeather(true);
         }
-    }, [booted, settingsVersion, loadWeather]);
+    }, [booted, dataSettingsKey, loadWeather, settingsVersion]);
 
     return (
         <WeatherContext.Provider value={{ weatherData, loading, error, refreshWeather: loadWeather, ensureBoot, booted, activeCity, setActiveCity }}>

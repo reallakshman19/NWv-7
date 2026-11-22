@@ -147,7 +147,12 @@ export function useWeatherTabViewModel() {
     }
 
     try {
-      const nextSettings = buildWeatherSettingsWithCities(settings, uniqueCities);
+      const nextBase = buildWeatherSettingsWithCities(settings, uniqueCities);
+      const nextActiveCity = uniqueCities.includes(activeCity) ? activeCity : uniqueCities[0];
+      const nextSettings = {
+        ...nextBase,
+        weather: { ...nextBase.weather, activeCity: nextActiveCity },
+      };
 
       if (typeof updateSettings === 'function') {
         const saved = await Promise.resolve(updateSettings(nextSettings));
@@ -166,7 +171,7 @@ export function useWeatherTabViewModel() {
         error: saveError?.message || String(saveError),
       };
     }
-  }, [settings, updateSettings]);
+  }, [settings, updateSettings, activeCity]);
 
   const addWeatherCity = useCallback((cityValue) => {
     const canonical = resolveRegistryKey(cityValue);

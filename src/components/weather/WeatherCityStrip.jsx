@@ -11,8 +11,11 @@ export default function WeatherCityStrip({ cities = [], weatherData = {}, active
       const mode = data?.sourceMode || 'unknown';
       const known = (data?.models?.successful || []).filter(model => ['ecmwf','gfs','icon'].includes(model));
       const count = known.length;
-      const health = missing ? 'unavailable' : mode === 'cache' ? 'cached' : mode === 'snapshot' ? 'snapshot' : count === 3 ? 'healthy' : count > 0 ? 'degraded' : 'unverified';
-      const healthTitle = health === 'healthy' ? 'Three model feeds available' : health === 'degraded' ? count + '/3 model feeds available' : health === 'cached' ? 'Cached weather data' : health === 'snapshot' ? 'Fallback weather snapshot' : health === 'unavailable' ? 'City forecast unavailable' : 'Weather source unverified';
+      const rainCoverage = data?.models?.metricCoverage?.rain;
+      const probabilityCoverage = data?.models?.metricCoverage?.rainProbability;
+      const metricHealthy = rainCoverage === 3 && probabilityCoverage === 3;
+      const health = missing ? 'unavailable' : mode === 'cache' ? 'cached' : mode === 'snapshot' ? 'snapshot' : (count === 3 && metricHealthy) ? 'healthy' : count > 0 ? 'degraded' : 'unverified';
+      const healthTitle = health === 'healthy' ? 'Three models supply rainfall and rain probability' : health === 'degraded' ? count + '/3 model feeds; rain ' + (rainCoverage ?? 'unknown') + '/3, chance ' + (probabilityCoverage ?? 'unknown') + '/3' : health === 'cached' ? 'Cached weather data' : health === 'snapshot' ? 'Fallback weather snapshot' : health === 'unavailable' ? 'City forecast unavailable' : 'Weather source unverified';
       return <button key={city} type="button" className={'qw-city-row' + (activeCity === city ? ' qw-city-row--active' : '') + (missing ? ' qw-city-row--missing' : '')} aria-current={activeCity === city ? 'true' : undefined} onClick={() => onSelect?.(city)}>
         <span className="wcs-name">{getWeatherLocationLabel(city)}
           <svg className={'wcs-health wcs-health--' + health} viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" role="img" aria-label={healthTitle}>
@@ -22,7 +25,7 @@ export default function WeatherCityStrip({ cities = [], weatherData = {}, active
           </svg>
         </span>
         <span className="wcs-reading"><WeatherIcon id={current?.iconId || 'day_cloudy'} size={24}/><strong>{missing ? '—' : current.temp + '°'}</strong></span>
-        <span className="wcs-foot">{missing ? 'No forecast' : mode === 'cache' ? 'Cached' : mode === 'snapshot' ? 'Snapshot' : count ? count + '/3 model feeds' : 'Source unverified'}</span>
+        <span className="wcs-foot">{missing ? 'No forecast' : mode === 'cache' ? 'Cached' : mode === 'snapshot' ? 'Snapshot' : count ? count + '/3 feeds · rain ' + (rainCoverage ?? '—') + '/3' : 'Source unverified'}</span>
       </button>;
     })}
   </nav>;
