@@ -2,7 +2,8 @@
 import React from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import WeatherSourceStatus, { classifyWeatherSource } from './WeatherSourceStatus.jsx';
+import WeatherSourceStatus from './WeatherSourceStatus.jsx';
+import { classifyWeatherSource } from './weatherSourceHealth.js';
 import WeatherCityStrip from './WeatherCityStrip.jsx';
 import WeatherHourIntervals from './WeatherHourIntervals.jsx';
 
