@@ -1,6 +1,7 @@
 import { getRuntimeCapabilities } from "../runtime/runtimeCapabilities.js";
 import { toLocalDateKey } from './dateKey.js';
 import { upAheadDateKey } from '../services/upAheadLifecycle.js';
+import { sameSourceBackedPlannerEvent } from './plannerSourceAlias.js';
 import { recoverLegacyPlannerSeed, quarantineLegacyRemotePlan } from './plannerSeedRecovery.js';
 import {
     makeStorageWriteFailure,
@@ -96,7 +97,8 @@ function normalizePlanItem(item, fallbackDate = null) {
 }
 function hasSimilarPlanItem(items, candidate, date) {
     return (items || []).some(existing => existing && (durableKey(existing, date) === durableKey(candidate, date)
-        || (!existing.savedPlanId && occurrenceSlot(existing, date) === occurrenceSlot(candidate, date))));
+        || (!existing.savedPlanId && occurrenceSlot(existing, date) === occurrenceSlot(candidate, date))
+        || sameSourceBackedPlannerEvent(existing, candidate, date)));
 }
 function normalizeBlacklistData(list) { return Array.isArray(list) ? [...new Set(list.map(entry => typeof entry === 'string' ? entry.trim() : String(entry?.occurrenceKey || entry?.hiddenKey || getItemKey(entry))).filter(Boolean))] : []; }
 function normalizePlanData(planData) {
@@ -122,7 +124,8 @@ function timestamp(item) { const n = Date.parse(item?.planUpdatedAt || item?.upd
 function rowEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function sameDurableRow(a, b, date) {
     return a && b && (durableKey(a,date) === durableKey(b,date) ||
-        ((!a.savedPlanId || !b.savedPlanId) && occurrenceSlot(a,date) === occurrenceSlot(b,date)));
+        ((!a.savedPlanId || !b.savedPlanId) && occurrenceSlot(a,date) === occurrenceSlot(b,date)) ||
+        sameSourceBackedPlannerEvent(a,b,date));
 }
 function removalFor(item,date) {
     const removed=readRemoved();
