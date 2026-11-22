@@ -60,6 +60,9 @@ jobs:
         run: |
           set -o pipefail
           node --test scripts/test_market_r21_contracts.mjs scripts/test_market_r21_wp*.mjs
+          SNAPSHOT_FRESHNESS_FILES=market_snapshot.json,mutual_fund_snapshot.json node scripts/test_public_snapshot_freshness_static.mjs
+          node scripts/test_market_snapshot_integrity.mjs
+          node scripts/check_market_publication_assets.mjs public docs dist
 
       - name: Validate PR evidence contract
         if: github.event_name == 'pull_request'
