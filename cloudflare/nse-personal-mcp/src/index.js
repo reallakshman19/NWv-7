@@ -9,6 +9,8 @@
  * Scope: one explicitly requested NSE equity quote, not index levels.
  */
 const NSE_MCP = 'https://mcp.nseindia.in/cmmkt/mcp';
+const NSE_BHAVCOPY_MCP = 'https://mcp.nseindia.in/bhavcopy/cm/mcp';
+const BHAVCOPY_MAX_DAYS = 10;
 const PROTOCOL = '2025-06-18';
 const ALLOWED_SYMBOLS = new Set([
   'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'SBIN',
@@ -68,14 +70,14 @@ function decodeRpc(text, contentType) {
   return JSON.parse(text);
 }
 
-async function mcpPost(fetchImpl, body, session = '') {
+async function mcpPost(fetchImpl, endpoint, body, session = '') {
   const headers = {
     accept: 'application/json, text/event-stream',
     'content-type': 'application/json',
     'mcp-protocol-version': PROTOCOL,
   };
   if (session) headers['mcp-session-id'] = session;
-  const response = await fetchImpl(NSE_MCP, {
+  const response = await fetchImpl(endpoint, {
     method: 'POST', headers, body,
     signal: AbortSignal.timeout(12000),
     redirect: 'error',
@@ -124,6 +126,50 @@ export function normalizeNseQuote(content, expectedSymbol, nowMs = Date.now()) {
   };
 }
 
+/**
+ * Separate official NSE Bhavcopy MCP is a date-granular EOD source, not an
+ * intraday quote. Never substitute a request timestamp for a trading date.
+ */
+const DATE_ONLY = /^\\d{4}-\\d{2}-\\d{2}$/;
+export function normalizeBhavcopyQuote(payload, expectedSymbol, nowMs = Date.now()) {
+  if (!payload || typeof payload !== 'object' || payload.error || !Array.isArray(payload.quotes)) return null;
+  const matches = payload.quotes.filter(q => String(q?.symbol || '').trim().toUpperCase() === expectedSymbol);
+  if (matches.length !== 1) return null;
+  const row = matches[0];
+  const price = finitePrice(row.close);
+  const priceDate = row.date;
+  if (!price || typeof priceDate !== 'string' || !DATE_ONLY.test(priceDate)) return null;
+  const dateMs = Date.parse(priceDate + 'T00:00:00Z');
+  if (!Number.isFinite(dateMs) || new Date(dateMs).toISOString().slice(0, 10) !== priceDate ||
+      dateMs > nowMs || nowMs - dateMs > BHAVCOPY_MAX_DAYS * 86400000) return null;
+  return {
+    symbol: expectedSymbol, value: price, priceDate,
+    change: null, changePercent: finiteChange(row.pct_change),
+    source: 'NSE Bhavcopy MCP',
+    sourceTier: 'NSE_EOD_FALLBACK', freshness: 'END_OF_DAY',
+    priceType: 'END_OF_DAY_CLOSE',
+    requestedAt: new Date(nowMs).toISOString(),
+    delayNote: 'Official NSE Bhavcopy closing price for the indicated trading date; not an intraday quote.',
+  };
+}
+
+async function fetchNseTool(fetchImpl, endpoint, toolName, args) {
+  const init = await mcpPost(fetchImpl, endpoint, rpcBody(1, 'initialize', {
+    protocolVersion: PROTOCOL, capabilities: {},
+    clientInfo: { name: 'NWv7-personal-market', version: '1.0.0' },
+  }));
+  if (!init.packet?.result || !init.sessionId) throw new Error('NSE_INITIALIZE_FAILED');
+  await mcpPost(fetchImpl, endpoint, JSON.stringify({
+    jsonrpc: '2.0', method: 'notifications/initialized',
+  }), init.sessionId);
+  const tool = await mcpPost(fetchImpl, endpoint, rpcBody(2, 'tools/call', {
+    name: toolName, arguments: args,
+  }), init.sessionId);
+  if (tool.packet?.error || tool.packet?.result?.isError) throw new Error('NSE_TOOL_FAILED');
+  const block = tool.packet?.result?.content?.find(item => item.type === 'text');
+  return block?.text ? JSON.parse(block.text) : null;
+}
+
 export async function handleRequest(request, env, fetchImpl = fetch, now = Date.now()) {
   const expectedOrigin = env?.ALLOWED_ORIGIN;
   const origin = request.headers.get('origin');
@@ -151,26 +197,21 @@ export async function handleRequest(request, env, fetchImpl = fetch, now = Date.
   if (!ALLOWED_SYMBOLS.has(symbol)) return json({ error: 'UNSUPPORTED_SYMBOL' }, 400, origin);
 
   try {
-    const init = await mcpPost(fetchImpl, rpcBody(1, 'initialize', {
-      protocolVersion: PROTOCOL,
-      capabilities: {},
-      clientInfo: { name: 'NWv7-personal-market', version: '1.0.0' },
-    }));
-    if (!init.packet?.result || !init.sessionId) throw new Error('NSE_INITIALIZE_FAILED');
-    await mcpPost(fetchImpl, JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }), init.sessionId);
-    const tool = await mcpPost(fetchImpl, rpcBody(2, 'tools/call', {
-      name: 'cm_get_stock_quote', arguments: { symbol },
-    }), init.sessionId);
-    if (tool.packet?.error || tool.packet?.result?.isError) throw new Error('NSE_TOOL_FAILED');
-    const block = tool.packet?.result?.content?.find(item => item.type === 'text');
-    const payload = block?.text ? JSON.parse(block.text) : null;
+    const payload = await fetchNseTool(fetchImpl, NSE_MCP, 'cm_get_stock_quote', { symbol });
     const quote = normalizeNseQuote(payload, symbol, now);
-    if (!quote) throw new Error('NSE_QUOTE_UNQUALIFIED');
-    return json({ quote }, 200, origin);
+    if (quote) return json({ quote: { ...quote, sourceTier: 'NSE_CM_PRIMARY', priceType: 'INTRADAY_OBSERVATION' } }, 200, origin);
   } catch {
-    // Do not return upstream stack traces, credentials, sessions or payloads.
-    return json({ error: 'NSE_UNAVAILABLE_OR_UNQUALIFIED' }, 502, origin);
+    // The official intraday source may be down; continue to a different NSE service.
   }
+
+  try {
+    const payload = await fetchNseTool(fetchImpl, NSE_BHAVCOPY_MCP, 'get_bulk_quote', { symbols: [symbol] });
+    const quote = normalizeBhavcopyQuote(payload, symbol, now);
+    if (quote) return json({ quote }, 200, origin);
+  } catch {
+    // Never return upstream internals or fill an EOD gap with guessed prices.
+  }
+  return json({ error: 'NSE_UNAVAILABLE_OR_UNQUALIFIED' }, 502, origin);
 }
 
 export default { fetch: (request, env) => handleRequest(request, env) };
