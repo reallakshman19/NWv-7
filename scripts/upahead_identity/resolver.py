@@ -67,6 +67,15 @@ def _adjudicated(binding: object) -> tuple[str, str, str, tuple[str, ...]] | Non
     return role, namespace, occurrence, urls
 
 
+def _bound_key(category: object, binding: tuple) -> tuple:
+    role, namespace, occurrence, _ = binding
+    return ("BOUND", str(category).lower(), role, namespace, occurrence)
+
+
+def _session_id(row: Mapping) -> str:
+    return str(row.get("sessionId") or "").strip()
+
+
 def _version(row: Mapping) -> tuple:
     def integer(key):
         try:
@@ -96,6 +105,19 @@ def resolve_observations(observations: Sequence[Mapping], *,
     if prior_ledger and prior_ledger.get("schemaVersion") != SCHEMA:
         raise ValueError("Unsupported ledger; fail closed rather than discarding state")
     prior = {r["canonicalOccurrenceId"]: r for r in prior_ledger.get("occurrences", [])}
+    cancelled_aliases = set()
+    cancelled_bindings = set()
+    for prior_row in prior.values():
+        if prior_row.get("status") != "CANCELLED":
+            continue
+        observed = prior_row.get("representativeObservation") or {}
+        category = prior_row.get("contentClass") or observed.get("category")
+        session = _session_id(observed)
+        for alias in prior_row.get("sourceAliases", []):
+            cancelled_aliases.add(alias)
+            binding = _adjudicated(trusted_bindings.get(alias))
+            if binding is not None:
+                cancelled_bindings.add((_bound_key(category, binding), session))
     by_alias: dict[str, list[dict]] = defaultdict(list)
     for original in observations:
         if not isinstance(original, Mapping):
@@ -111,6 +133,10 @@ def resolve_observations(observations: Sequence[Mapping], *,
         slots = {(str(r.get("eventStartAt") or ""), str(r.get("eventEndAt") or "")) for r in rows}
         if len(slots) > 1 and not _adjudicated(trusted_bindings.get(alias)):
             raise ValueError("Conflicting source slots for one alias; require revision custody")
+        # Keep cancellation evidence even when a newer observation is selected
+        # to represent this exact listing.
+        if any(_status(row) == "CANCELLED" for row in rows):
+            cancelled_aliases.add(alias)
         latest = max(rows, key=_version)
         current.append({"alias": alias, "row": latest, "observationDigest": _hash(latest),
                         "allDigests": sorted({_hash(row) for row in rows}),
@@ -122,8 +148,7 @@ def resolve_observations(observations: Sequence[Mapping], *,
         if b is None:
             key = ("UNBOUND", obs["alias"])
         else:
-            role, namespace, occurrence, _ = b
-            key = ("BOUND", str(obs["row"]["category"]).lower(), role, namespace, occurrence)
+            key = _bound_key(obs["row"]["category"], b)
         candidates[key].append(obs)
 
     grouped: list[tuple[tuple, list[dict], str]] = []
@@ -132,7 +157,7 @@ def resolve_observations(observations: Sequence[Mapping], *,
         if key[0] == "UNBOUND":
             grouped.append((key, items, "UNVERIFIED"))
             continue
-        sessions = {str(item["row"].get("sessionId") or "").strip() for item in items}
+        sessions = {_session_id(item["row"]) for item in items}
         # Unknown is NOT a wildcard session. Mixed/contradictory identity must
         # not silently collapse physical occurrences.
         if len(sessions) > 1:
@@ -162,8 +187,14 @@ def resolve_observations(observations: Sequence[Mapping], *,
         aliases = sorted(x["alias"] for x in items)
         previous = prior.get(cid, {})
         old_status = previous.get("status")
-        # Cancellation is sticky: a lower-trust recollection cannot resurrect.
-        status = "CANCELLED" if old_status == "CANCELLED" or any(_status(r) == "CANCELLED" for r in rows) else "ACTIVE"
+        # The register can link a cancelled listing even when only a different
+        # alias returns. Session scope must agree before carrying the cancellation.
+        cancelled = (
+            old_status == "CANCELLED"
+            or not cancelled_aliases.isdisjoint(aliases)
+            or (key, _session_id(representative)) in cancelled_bindings
+        )
+        status = "CANCELLED" if cancelled else "ACTIVE"
         evidence = sorted({url for x in items if x["binding"] for url in x["binding"][3]})
         old_first = previous.get("firstVisibleAt")
         first = old_first if old_first is not None else min((int(r["firstVisibleAt"]) for r in rows

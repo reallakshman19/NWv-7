@@ -252,6 +252,17 @@ def _read_object(path: Path) -> dict:
     return obj
 
 
+def _generation_directory(root: Path, generation_id: str) -> Path:
+    # A validated wire ID contains colons, which Windows paths cannot use.
+    directory = root / "generations"
+    portable = directory / generation_id.replace(":", "-")
+    if os.name != "nt" and not portable.exists():
+        legacy = directory / generation_id
+        if legacy.exists():
+            return legacy
+    return portable
+
+
 def read_current(directory: Path | str) -> dict | None:
     """Read only pointer-approved generation. No fallback on corruption."""
     root = Path(directory)
@@ -262,7 +273,7 @@ def read_current(directory: Path | str) -> dict | None:
     gen_id = current.get("generationId")
     if not isinstance(gen_id, str) or not GENERATION.fullmatch(gen_id):
         raise ValueError("Invalid generation pointer")
-    target = root / "generations" / gen_id
+    target = _generation_directory(root, gen_id)
     files = {}
     for name in ("manifest", "payload", "ledger"):
         artifact = target / (name + ".json")
@@ -314,7 +325,7 @@ def commit_generation(directory: Path | str, generation: Mapping, *,
         if generation["manifest"].get("semanticDigest") != "sha256:" + hashlib.sha256(
                 canonical_generation_payload(generation["payload"]).encode("utf-8")).hexdigest():
             raise ValueError("Invalid payload digest")
-        target = root / "generations" / gen_id
+        target = _generation_directory(root, gen_id)
         target.mkdir(parents=True, exist_ok=True)
         receipts = {}
         for name in ("ledger", "payload", "manifest"):

@@ -230,6 +230,7 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       planDate: eventDateKey,
       category: sectionKey,
       source: item.sourceDomain || item.source || sectionKey,
+      sourceGroup: item.sourceGroup ?? null,
       sourceMode: item.sourceMode || null,
       retailerId: item.retailerId || null,
       offerMarket: item.offerMarket || null,

@@ -102,8 +102,13 @@ export async function verifyGeneration(payload, manifest, opts = {}) {
     if (!ALLOWED_CLASSES.has(String(row.category || ''))) return fail('invalid-content-class');
     if (activeIds.has(row.canonicalOccurrenceId)) return fail('duplicate-canonical-occurrence-id');
     activeIds.add(row.canonicalOccurrenceId);
-    if (payload.items.includes(row) && time(row.expiryAt) && row.expiryAt <= nowMs) {
+    if (row.status !== 'ACTIVE') return fail('invalid-occurrence-status');
+    if (!time(row.expiryAt)) return fail('invalid-occurrence-expiry');
+    if (payload.items.includes(row) && row.expiryAt <= nowMs) {
       return fail('expired-active-occurrence');
+    }
+    if (row.eventStartAt != null && (!time(row.eventStartAt) || row.expiryAt < row.eventStartAt)) {
+      return fail('invalid-occurrence-window');
     }
   }
   for (const retired of payload.retiredOccurrences) {

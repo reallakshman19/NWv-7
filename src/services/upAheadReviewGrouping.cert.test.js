@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { sanitizeUpAheadData } from './upAheadService.js';
 import { groupReviewOnlyEventListings, reviewWorkshopTitle } from './upAheadReviewGrouping.js';
 
 const base = {
@@ -30,6 +31,25 @@ describe('Unverified UpAhead workshop display clustering', () => {
     expect(shown[0].reviewAlternateListings.map(x=>x.id)).toEqual(['a','b','c']);
     expect(shown[0].reviewAlternateListings.map(x=>x.link)).toEqual(workshop.map(x=>x.link));
     expect(JSON.stringify(workshop)).toBe(original);
+  });
+
+  it('preserves grouping provenance through raw snapshot normalization', () => {
+    const now = base.eventStartAt - 60_000;
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      const items = workshop.map(({ link, ...listing }) => ({
+        ...listing, url: link, expiryAt: now + 86_400_000, publishedAt: now - 60_000,
+      }));
+      const data = sanitizeUpAheadData({ schemaVersion: 1, fetchedAt: now, items });
+      const grouped = groupReviewOnlyEventListings(data.sections.events);
+      expect(grouped).toHaveLength(1);
+      expect(grouped[0].reviewAlternateListings.map(item => item.link).sort())
+        .toEqual(workshop.map(item => item.link).sort());
+      expect(data.timeline.flatMap(day => day.items).map(item => item.sourceGroup))
+        .toEqual(workshop.map(item => item.sourceGroup));
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   it('never conceals conflicts in source, venue, day, city or sessions', () => {

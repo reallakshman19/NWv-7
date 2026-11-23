@@ -30,10 +30,12 @@ Removing `--dry-run` writes to an offline shadow directory, **not** the app's pu
 
 ```
 <shadow-output>/current.json                          # single atomic pointer
-<shadow-output>/generations/gen:v2:<hash>/manifest.json
-<shadow-output>/generations/gen:v2:<hash>/payload.json
-<shadow-output>/generations/gen:v2:<hash>/ledger.json
+<shadow-output>/generations/gen-v2-<hash>/manifest.json
+<shadow-output>/generations/gen-v2-<hash>/payload.json
+<shadow-output>/generations/gen-v2-<hash>/ledger.json
 ```
+
+The pointer and manifest keep the wire ID `gen:v2:<hash>`. New directories use the filesystem-safe name `gen-v2-<hash>`. Existing POSIX generation directories remain readable.
 
 All three content files are written and fsync'd before switching `current.json`. No old generation is deleted in this slice. Interrupted staging leaves the previous pointer in place. A corrupt pointer, missing artifact, wrong digest, duplicate canonical ID, stale-writer generation mismatch, unexpected concurrent lock or contradictory trusted occurrence **fails closed**. Recovery requires inspecting original artifacts and the writer lock before restarting; never blindly delete the lock.
 
