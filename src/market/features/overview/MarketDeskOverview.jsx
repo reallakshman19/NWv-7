@@ -60,11 +60,18 @@ function Metric({ label, value, detail, destination, onNavigate }) {
   );
 }
 
+function jumpToSection(id) {
+  const heading = document.getElementById(id);
+  if (!heading) return;
+  heading.focus({ preventScroll: true });
+  heading.scrollIntoView?.({ block: 'start' });
+}
+
 function DeskCard({ id, title, action, destination, onNavigate, wide = false, children }) {
   return (
     <section className={'md3-card' + (wide ? ' md3-card--wide' : '')} aria-labelledby={id}>
       <div className="md3-card-head">
-        <h2 id={id}>{title}</h2>
+        <h2 id={id} tabIndex={-1}>{title}</h2>
         {destination && (
           <button type="button" className="md3-card-action" onClick={() => onNavigate(destination)}>
             {action || 'Open workspace'}
@@ -126,7 +133,7 @@ function MarketPulse({ data }) {
 
 export function MarketDeskOverview({
   onNavigate, data = {}, settings = {}, slots: customSlots = {},
-  onRefresh = null, refreshing = false, currentWorkspace = 'overview', hideNav = false
+  onRefresh = null, refreshing = false, currentWorkspace = 'overview', hideNav = false, showSessionHeader = true
 }) {
   const slots = { ...DEFAULT_SLOTS, ...customSlots };
   const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
@@ -166,44 +173,65 @@ export function MarketDeskOverview({
 
   return (
     <div className="market-desk-r3c" data-testid="market-desk-r3c">
-      <MarketSessionHeader
-        sessionState={data?.sessionState}
-        sourceMode={data?.sourceMode || 'free-open-only'}
-        onNavigate={marketNav}
-        onRefresh={data?.sourceMode === 'free-open-only' ? null : onRefresh}
-        refreshing={refreshing}
-        tradingHolidays={settings?.tradingHolidays}
-      />
+      {showSessionHeader && (
+        <MarketSessionHeader
+          sessionState={data?.sessionState}
+          sourceMode={data?.sourceMode || 'free-open-only'}
+          onNavigate={marketNav}
+          onRefresh={data?.sourceMode === 'free-open-only' ? null : onRefresh}
+          refreshing={refreshing}
+          tradingHolidays={settings?.tradingHolidays}
+        />
+      )}
       {!hideNav && <MarketNav currentWorkspace={currentWorkspace} onNavigate={marketNav} />}
 
       <div className="md3-body">
-        <div className="md3-lead">
-          <div>
-            <p className="md3-eyebrow">YOUR MARKET WORKSPACE</p>
-            <h2>Market at a glance</h2>
-          </div>
-          <span className="md3-source-note">
-            Free/open · Source-dated · No redistributed quotes
-          </span>
-        </div>
-
-        <div className="md3-metrics" aria-label="Your market desk metrics">
-          <Metric label="Watchlist" value={String(savedSymbols.length) + ' / 12'}
-            detail="Saved equities" destination="equity" onNavigate={marketNav} />
-          <Metric label="Portfolio" value={String(portfolio?.activeHoldingsCount || 0)}
-            detail={holdingsStatus} destination="portfolio" onNavigate={marketNav} />
-          <Metric label="Funds" value={String(fundState.savedCodes?.length || 0)}
-            detail="Saved schemes" destination="funds" onNavigate={marketNav} />
-          <Metric label="OMR / INR" value={validRate ? fx.rate.toFixed(2) : fxState?.freshness === 'EXPIRED' ? 'Expired' : 'Check rate'}
-            detail={fx?.date ? 'Provider date: ' + fx.date : 'On-demand reference'} destination="currency-macro" onNavigate={marketNav} />
-          <Metric label="Source evidence" value={String(recentReceipts)}
-            detail="Local request receipts" destination="health" onNavigate={marketNav} />
-        </div>
+        <nav className="md3-jump-links" aria-label="Jump to a Market section">
+          <button type="button" onClick={() => jumpToSection('md3-pulse')}>Indices</button>
+          <button type="button" onClick={() => jumpToSection('md3-currency')}>Rates</button>
+          <button type="button" onClick={() => jumpToSection('md3-funds')}>Find fund</button>
+          <button type="button" onClick={() => jumpToSection('md3-briefing')}>News</button>
+        </nav>
 
         <div className="md3-grid">
           <DeskCard id="md3-pulse" title="India Market Pulse" wide
-            action="All Indices & Sectors" destination="indices" onNavigate={marketNav}>
+            action="All indices" destination="indices" onNavigate={marketNav}>
             <MarketPulse data={data} />
+            {slots.providerBoard && (
+              <button type="button" className="md3-secondary md3-bse-jump"
+                onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
+            )}
+          </DeskCard>
+
+          <DeskCard id="md3-currency" title="Currency Rates"
+            action="All rates" destination="currency-macro" onNavigate={marketNav}>
+            <QualifiedSlot title="Currency Tool" workspace="currency-macro" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('currency-macro')}>
+                Check dated reference rate
+              </button>}>
+              {slots.currency}
+            </QualifiedSlot>
+          </DeskCard>
+
+          <DeskCard id="md3-funds" title="Mutual Fund Quick Search"
+            action="Research funds" destination="funds" onNavigate={marketNav}>
+            <div className="md3-compact-caption">Saved: {fundState.savedCodes?.length || 0}/12 · Direct scheme lookup</div>
+            <QualifiedSlot title="Mutual Funds" workspace="funds" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('funds')}>
+                Find a fund by name or scheme code
+              </button>}>
+              {slots.fundSearch}
+            </QualifiedSlot>
+          </DeskCard>
+
+          <DeskCard id="md3-briefing" title="Market Briefing"
+            action="All Events & News" destination="ipo-events" onNavigate={marketNav}>
+            <QualifiedSlot title="Events" workspace="ipo-events" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('ipo-events')}>
+                View dated events
+              </button>}>
+              {slots.marketBriefing}
+            </QualifiedSlot>
           </DeskCard>
 
           <DeskCard id="md3-provider" title="BSE Provider Board" wide
@@ -250,37 +278,6 @@ export function MarketDeskOverview({
             </div>
           </DeskCard>
 
-          <DeskCard id="md3-funds" title="Mutual Fund Quick Search"
-            action="Research funds" destination="funds" onNavigate={marketNav}>
-            <div className="md3-compact-caption">Saved: {fundState.savedCodes?.length || 0}/12 · Direct scheme lookup</div>
-            <QualifiedSlot title="Mutual Funds" workspace="funds" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('funds')}>
-                Find a fund by name or scheme code
-              </button>}>
-              {slots.fundSearch}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-currency" title="Currency Rates & Converter"
-            action="Currency & Macro" destination="currency-macro" onNavigate={marketNav}>
-            <QualifiedSlot title="Currency Tool" workspace="currency-macro" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('currency-macro')}>
-                Check dated reference rate
-              </button>}>
-              {slots.currency}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-briefing" title="Market Briefing"
-            action="All Events & News" destination="ipo-events" onNavigate={marketNav}>
-            <QualifiedSlot title="Events" workspace="ipo-events" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('ipo-events')}>
-                View dated events
-              </button>}>
-              {slots.marketBriefing}
-            </QualifiedSlot>
-          </DeskCard>
-
           <DeskCard id="md3-sectors" title="Movers & Sector References"
             action="Explore sectors" destination="indices" onNavigate={marketNav}>
             <div className="md3-link-grid">
@@ -306,6 +303,19 @@ export function MarketDeskOverview({
               </QualifiedSlot>
             )}
           </DeskCard>
+        </div>
+
+        <div className="md3-metrics" aria-label="Your market desk metrics">
+          <Metric label="Watchlist" value={String(savedSymbols.length) + ' / 12'}
+            detail="Saved equities" destination="equity" onNavigate={marketNav} />
+          <Metric label="Portfolio" value={String(portfolio?.activeHoldingsCount || 0)}
+            detail={holdingsStatus} destination="portfolio" onNavigate={marketNav} />
+          <Metric label="Funds" value={String(fundState.savedCodes?.length || 0)}
+            detail="Saved schemes" destination="funds" onNavigate={marketNav} />
+          <Metric label="OMR / INR" value={validRate ? fx.rate.toFixed(2) : fxState?.freshness === 'EXPIRED' ? 'Expired' : 'Check rate'}
+            detail={fx?.date ? 'Provider date: ' + fx.date : 'On-demand reference'} destination="currency-macro" onNavigate={marketNav} />
+          <Metric label="Source evidence" value={String(recentReceipts)}
+            detail="Local request receipts" destination="health" onNavigate={marketNav} />
         </div>
 
         <section className="md3-health" aria-labelledby="md3-health-title">

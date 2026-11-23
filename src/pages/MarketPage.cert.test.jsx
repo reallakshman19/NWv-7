@@ -95,7 +95,8 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     expect(screen.getByRole('textbox', { name: 'Scheme name or code' })).toBeTruthy();
 
     // Slot 4: Currency Quick Tool
-    expect(screen.getByText('Currency Reference')).toBeTruthy();
+    expect(screen.getByText('Currency calculator').parentElement.open).toBe(false);
+    expect(screen.queryByRole('heading', { name: 'India Market Desk' })).toBeNull();
 
     // Slot 5: Events Quick Widget
     expect(screen.getByText('Market Events & Public Issues')).toBeTruthy();
@@ -129,7 +130,11 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
         items: [{
           id: '2331234', headline, ministry: 'Ministry of Finance', publishedOn: providerDate,
           url: 'https://www.pib.gov.in/PressReleaseDetail.aspx?PRID=2331234&lang=1&reg=20'
-        }]
+        }, ...[2331235, 2331236, 2331237].map(id => ({
+          id: String(id), headline: 'Other official release ' + id,
+          ministry: 'Ministry of Finance', publishedOn: providerDate,
+          url: 'https://www.pib.gov.in/PressReleaseDetail.aspx?PRID=' + id + '&lang=1&reg=20'
+        }))]
       });
       if (url === fundUrl) return response({
         status: 'SUCCESS',
@@ -147,6 +152,11 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
       expect(await screen.findByText(/ECB-derived cross via Frankfurter/)).toBeTruthy();
       expect((await screen.findByRole('link', { name: headline })).getAttribute('href'))
         .toBe('https://www.pib.gov.in/PressReleaseDetail.aspx?PRID=2331234&lang=1&reg=20');
+      expect(screen.queryByRole('link', { name: 'Other official release 2331237' })).toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Show all 4 headlines' }));
+      expect(screen.getByRole('link', { name: 'Other official release 2331237' })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Show fewer headlines' }));
+      expect(screen.queryByRole('link', { name: 'Other official release 2331237' })).toBeNull();
       expect(fetchMock.mock.calls.filter(([url]) => url === fxUrl)).toHaveLength(1);
       expect(fetchMock.mock.calls.some(([url]) => /omr\/inr|mfapi|tradingview/.test(url))).toBe(false);
 
@@ -282,6 +292,8 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     setupViewModel();
     render(<MarketPage />);
 
+    expect(screen.queryByText('Policy guard: No local violation detected')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Data status' }));
     expect(screen.getByText('Policy guard: No local violation detected')).toBeTruthy();
     expect(screen.queryByText('Policy: 100% Free/Open')).toBeNull();
     expect(screen.getByText(/Publication: Free\/open mode — no redistributed quotes/i)).toBeTruthy();

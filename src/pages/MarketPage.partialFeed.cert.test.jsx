@@ -82,10 +82,11 @@ describe('Market four-workspace shell and R2.1 routing transition', () => {
 
   it('keeps source publication timestamp separate from the quote timestamp', () => {
     setMarket();render(<MarketPage />);
-    expect(screen.getByText(/Publication:/)).toBeTruthy();
+    expect(screen.queryByText(/Publication:/)).toBeNull();
     expect(screen.getByText(/Quote as of/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button',{name:'Data status'}));
     const details=within(document.getElementById('market-data-status-details'));
+    expect(details.getByText(/Publication:/)).toBeTruthy();
     expect(details.getByText(/Publication time does not change the quote time/)).toBeTruthy();
     expect(screen.queryByText(/^Official$/)).toBeNull();
   });
