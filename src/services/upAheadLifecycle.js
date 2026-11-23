@@ -299,11 +299,40 @@ function combineOccurrence(existing, item, latest) {
   }
   return result;
 }
+
+function eventListingSourceId(item) {
+  if (!item.publicationOnlyId || categoryKey(item) !== 'event' || item.occurrenceId || item.revisionOf) return null;
+  return item.sourceObservationId || item.id || null;
+}
+
+function scopeReusedListingIds(rows) {
+  const firstLinks = new Map();
+  const reused = new Set();
+  for (const row of rows) {
+    const id = eventListingSourceId(row);
+    const link = id && listingLink(row, true);
+    if (!link) continue;
+    if (!firstLinks.has(id)) firstLinks.set(id, link);
+    else if (firstLinks.get(id) !== link) reused.add(id);
+  }
+  return rows.map(row => {
+    const sourceObservationId = eventListingSourceId(row);
+    if (!reused.has(sourceObservationId) || row.sourceObservationId || !listingLink(row, true)) return row;
+    const { occurrenceKey, ...unkeyed } = row;
+    const scoped = { ...row, sourceObservationId };
+    // Recalculate only an old generated key. Explicit persisted keys still
+    // represent their original identities.
+    if (occurrenceKey === upAheadOccurrenceKey(unkeyed)) delete scoped.occurrenceKey;
+    return scoped;
+  });
+}
+
 export function mergeUpAheadItems(items, { preferEventCategory = false } = {}) {
   const merged = [];
   // Process stable lineages first, so an older revision cannot bridge two
   // independent occurrences through a common article alias.
-  for (const row of [...(items || [])].filter(Boolean).sort(compareRevision)) {
+  const rows = scopeReusedListingIds((items || []).filter(Boolean));
+  for (const row of rows.sort(compareRevision)) {
     if (!row || !upAheadIdentityKeys(row).length) continue;
     const item = { ...row, occurrenceKey: upAheadOccurrenceKey(row) };
     const index = merged.findIndex(existing => preferEventCategory

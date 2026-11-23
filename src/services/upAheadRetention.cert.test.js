@@ -119,9 +119,11 @@ it('retains separate event listings when an older publisher reused their ID', ()
 
 it('expires only the matching URL when older cached listings share a publisher ID', () => {
   const raw = { id: 'shared', occurrenceId: null, eventStartAt: NOW, eventEndAt: NOW + 2 * DAY };
-  const first = event({ ...raw, url: 'https://example.org/workshop?session=a', expiryAt: NOW + 3_600_000 });
-  const second = event({ ...raw, url: 'https://example.org/workshop?session=b' });
-  saveToCache(snapshot([first, second]));
+  const first = event({ ...raw, url: 'https://example.org/workshop#north', expiryAt: NOW + 3_600_000 });
+  const second = event({ ...raw, url: 'https://example.org/workshop#south' });
+  saveToCache(snapshot([first]));
+  saveToCache(snapshot([second]));
+  expect(new Set(loadFromCache().sections.events.map(row => row.occurrenceKey)).size).toBe(2);
   vi.setSystemTime(NOW + 3_600_000);
   expect(loadFromCache().sections.events.map(row => row.link)).toEqual([second.url]);
 });
