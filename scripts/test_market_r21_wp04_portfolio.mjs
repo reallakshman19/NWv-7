@@ -342,6 +342,7 @@ test('WP04-S10 Static export audit of index.js and shared file isolation', () =>
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',
+        'src/services/marketEquityPolicy.js',
         'src/utils/marketSession.js',
         'src/utils/marketSession.cert.test.js',
         'src/utils/configEvolution.cert.test.js',

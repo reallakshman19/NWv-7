@@ -470,6 +470,7 @@ test('WP10-G20 worktree & branch integrity: all modifications bounded within mar
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',
+        'src/services/marketEquityPolicy.js',
         'src/utils/marketSession.js',
         'src/utils/marketSession.cert.test.js',
         'src/utils/configEvolution.cert.test.js',

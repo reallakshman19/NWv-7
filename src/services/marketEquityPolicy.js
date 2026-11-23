@@ -30,12 +30,14 @@ function normalizedProvider(row) {
 
 function acceptableQuote(row, nowMs) {
   if (!row || typeof row !== 'object' ||
-      [row.sourceMode, row.source].some(value => String(value || '').toLowerCase() === 'seed')) return null;
+      [row.sourceMode, row.source, row.sourceProvider, row.provider]
+        .some(value => String(value || '').trim().toLowerCase() === 'seed')) return null;
   const symbol = canonicalEquitySymbol(row.symbol);
   const id = canonicalTrackedEquityId(symbol);
   if (!id || (row.id && row.id !== id) || (row.exchange && row.exchange !== 'NSE')) return null;
   const value = numeric(row.value ?? row.price);
-  const time = indexQuoteTime(row, nowMs);
+  // An ingestion timestamp cannot establish the provider's quote time.
+  const time = indexQuoteTime({ quoteAt: row.quoteAt }, nowMs);
   if (!(value > 0) || !time || time < nowMs - FIVE_DAYS) return null;
   if (row.currency && !['INR', '₹'].includes(row.currency)) return null;
   const provider = normalizedProvider(row);

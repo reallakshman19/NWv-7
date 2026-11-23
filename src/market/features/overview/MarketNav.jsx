@@ -46,6 +46,7 @@ export function MarketNav({
 
   const handleSelect = (id) => {
     setIsMoreOpen(false);
+    if (isMoreOpen) moreButtonRef.current?.focus({ preventScroll: true });
     if (typeof onNavigate === 'function') {
       onNavigate(id);
     }
@@ -53,6 +54,26 @@ export function MarketNav({
 
   const toggleMore = () => {
     setIsMoreOpen(prev => !prev);
+  };
+
+  const navigateMoreItems = (event) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    const items = [...event.currentTarget.querySelectorAll('button')];
+    const index = items.indexOf(document.activeElement);
+    const step = event.key === 'ArrowDown' ? 1 : -1;
+    const next = {
+      Home: 0,
+      End: items.length - 1,
+    }[event.key] ?? (index + step + items.length) % items.length;
+    const item = items[next];
+    if (!item) return;
+    event.preventDefault();
+    item.focus({ preventScroll: true });
+    const menu = menuRef.current;
+    const itemBounds = item.getBoundingClientRect();
+    const menuBounds = menu.getBoundingClientRect();
+    menu.scrollTop += Math.max(0, itemBounds.bottom - menuBounds.bottom)
+      + Math.min(0, itemBounds.top - menuBounds.top);
   };
 
   // Keyboard navigation & Escape key handling for the More menu dialog
@@ -63,7 +84,7 @@ export function MarketNav({
       if (e.key === 'Escape') {
         e.preventDefault();
         setIsMoreOpen(false);
-        moreButtonRef.current?.focus();
+        moreButtonRef.current?.focus({ preventScroll: true });
       }
     };
 
@@ -71,11 +92,11 @@ export function MarketNav({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isMoreOpen]);
 
-  // Focus the first item when More menu opens
+  // Focus the first item when More menu opens without scrolling the viewport
   useEffect(() => {
     if (isMoreOpen && menuRef.current) {
-      const firstButton = menuRef.current.querySelector('button');
-      firstButton?.focus();
+      const firstButton = menuRef.current.querySelector('[role=menuitem]');
+      firstButton?.focus({ preventScroll: true });
     }
   }, [isMoreOpen]);
 
@@ -103,6 +124,9 @@ export function MarketNav({
     <nav
       className={`market-nav ${className}`.trim()}
       aria-label="Market workspaces"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsMoreOpen(false);
+      }}
     >
       {/* Desktop navigation bar: All 9 workspaces */}
       <div className="market-nav__desktop" role="tablist" aria-label="Desktop workspaces">
@@ -173,7 +197,6 @@ export function MarketNav({
           ref={menuRef}
           id="market-more-menu"
           role="dialog"
-          aria-modal="true"
           aria-label="More market workspaces"
           className="market-nav__more-dialog"
         >
@@ -185,13 +208,13 @@ export function MarketNav({
               aria-label="Close more workspaces menu"
               onClick={() => {
                 setIsMoreOpen(false);
-                moreButtonRef.current?.focus();
+                moreButtonRef.current?.focus({ preventScroll: true });
               }}
             >
               ✕
             </button>
           </div>
-          <ul className="market-nav__more-list" role="menu">
+          <ul className="market-nav__more-list" role="menu" aria-label="Additional workspaces" onKeyDown={navigateMoreItems}>
             {MOBILE_MORE_IDS.map((id) => {
               const item = getWorkspaceDescriptor(id);
               const isSelected = activeId === id;

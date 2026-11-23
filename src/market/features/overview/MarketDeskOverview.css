@@ -95,11 +95,6 @@
   .md3-health-main { align-items: flex-start; }
 }
 
-@media print {
-  .md3-card-action, .md3-metric, .md3-health-actions { break-inside: avoid; }
-  .md3-card, .md3-health { break-inside: avoid; }
-}
-
 .md3-source-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 6px; }
 .md3-source-actions input { flex: 1 1 11rem; min-width: 0; max-width: 100%; color: var(--md3-ink); background: var(--md3-background); border: 1px solid var(--md3-border); border-radius: 7px; padding: 8px; font: inherit; }
 .md3-source-list, .md3-economy-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -114,7 +109,7 @@
 
 .md3-jump-links {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
 }
 .market-workspace .md3-jump-links button {
@@ -142,6 +137,7 @@
   .market-workspace .md3-card-action,
   .market-workspace .md3-fund-search label,
   .market-workspace .md3-source-actions button { font-size: max(14px, .58rem); }
+  .market-workspace .md3-jump-links button { padding: 6px 2px; font-size: max(13px, .52rem); }
   .md3-pulse-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .md3-pulse-row { min-height: 64px; gap: 4px; padding: 6px 8px; }
   .md3-pulse-identity strong { font-size: max(15px, .62rem); }
@@ -158,6 +154,134 @@
   .md3-source-observation, .md3-economy-list li { padding: 5px 0; }
 }
 @media (max-width: 280px) {
-  .md3-jump-links, .md3-pulse-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md3-jump-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md3-fund-search .md3-source-actions { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Sector Breakdown & Explorer in Overview */
+.md3-sector-explorer { display: grid; gap: 10px; margin-bottom: 8px; }
+.md3-sector-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.md3-sector-tab {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: max(13px, .55rem);
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--md3-border);
+  background: var(--md3-background);
+  color: var(--md3-muted);
+  cursor: pointer;
+  min-height: 44px;
+}
+.md3-sector-tab:hover { color: var(--md3-ink); border-color: var(--md3-accent); }
+.md3-sector-tab.is-active {
+  background: var(--md3-accent);
+  color: var(--md3-background);
+  border-color: var(--md3-accent);
+  font-weight: 700;
+}
+.md3-sector-panel {
+  display: grid;
+  gap: 10px;
+  background: var(--md3-background);
+  border: 1px solid var(--md3-border);
+  border-radius: 9px;
+  padding: 12px;
+}
+.md3-sector-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--md3-border);
+}
+.md3-sector-benchmark-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.md3-sector-title { font-size: max(15px, .65rem); font-weight: 750; color: var(--md3-ink); }
+.md3-sector-benchmark-badge {
+  font-size: max(12px, .5rem);
+  font-weight: 700;
+  color: var(--md3-accent);
+  text-decoration: none;
+  background: var(--md3-surface);
+  border: 1px solid var(--md3-border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.md3-sector-value { display: grid; gap: 3px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.md3-sector-value small { color: var(--md3-muted); overflow-wrap: anywhere; }
+.market-workspace .md3-sector-fund-btn {
+  font-size: max(13px, .52rem);
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.md3-sector-stock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+.md3-stock-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--md3-surface);
+  border: 1px solid var(--md3-border);
+  border-radius: 7px;
+  font-size: max(12px, .5rem);
+}
+.md3-stock-card-top { display: flex; justify-content: space-between; align-items: center; }
+.md3-stock-symbol {
+  font-weight: 750;
+  color: var(--md3-accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.md3-stock-exchange {
+  color: var(--md3-muted);
+  font-size: max(10px, .42rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--md3-background);
+  padding: 1px 4px;
+  border-radius: 4px;
+  border: 1px solid var(--md3-border);
+}
+.md3-stock-name { color: var(--md3-muted); font-size: max(12px, .5rem); line-height: 1.2; overflow-wrap: anywhere; }
+
+@media (max-width: 767px) {
+  .md3-sector-summary { flex-direction: column; align-items: flex-start; }
+  .market-workspace .md3-sector-fund-btn { width: 100%; text-align: center; }
+  .md3-sector-stock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media print {
+  .market-desk-r3c {
+    --md3-surface: #fff;
+    --md3-background: #fff;
+    --md3-border: #9ca3af;
+    --md3-ink: #111827;
+    --md3-muted: #374151;
+    --md3-accent: #1f2937;
+    font-size: 11pt;
+  }
+  .market-desk-r3c .md3-pulse-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .market-desk-r3c .md3-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .market-desk-r3c .md3-metrics .md3-metric { padding: 5px; font-size: 8pt; overflow-wrap: normal; }
+  .md3-metric, .md3-pulse-row, .md3-stock-card { break-inside: avoid; }
+  .md3-metric, .md3-pulse-row { min-height: 0; padding: 6px; overflow-wrap: anywhere; }
+  .md3-metric-label, .md3-metric-value, .md3-metric-detail { font-size: inherit; }
+  .md3-card, .md3-health { break-inside: avoid; }
+  .md3-jump-links { display: none; }
+  .md3-sector-tab.is-active { border-color: var(--md3-ink); color: var(--md3-ink); background: #e5e7eb; }
 }

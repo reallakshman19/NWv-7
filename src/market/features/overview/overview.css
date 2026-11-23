@@ -265,6 +265,7 @@
 
 /* Mobile More dialog dropdown */
 .market-nav__more-dialog {
+  display: none;
   position: absolute;
   top: 100%;
   right: clamp(12px, 2vw, 24px);
@@ -275,6 +276,18 @@
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
   padding: 12px;
+}
+
+@media (max-width: 767px) {
+  .market-nav__more-dialog {
+    display: block;
+    top: calc(100% + 4px);
+    right: 6px;
+    width: min(280px, calc(100vw - 20px));
+    max-height: min(65dvh, calc(100dvh - 175px));
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
 }
 
 .market-nav__more-header {
@@ -293,8 +306,8 @@
   color: var(--market-text-secondary);
   cursor: pointer;
   padding: 4px 8px;
-  min-height: 32px;
-  min-width: 32px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .market-nav__more-list {
@@ -305,6 +318,7 @@
 
 .market-nav__more-item {
   width: 100%;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

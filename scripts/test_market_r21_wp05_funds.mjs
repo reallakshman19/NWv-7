@@ -369,6 +369,7 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',
+        'src/services/marketEquityPolicy.js',
         'src/utils/marketSession.js',
         'src/utils/marketSession.cert.test.js',
         'src/utils/configEvolution.cert.test.js',

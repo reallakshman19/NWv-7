@@ -6,6 +6,7 @@ import { MarketDeskOverview } from './MarketDeskOverview.jsx';
 import { healthStore } from '../health/healthStore.js';
 import { recordMarketSourceObservation } from '../health/marketSourceRecorder.js';
 import { freeOpenMarketPayload } from '../../../services/marketFreeOpenPolicy.js';
+import { sanitizeMarketPayload } from '../../../services/indianMarketStableService.js';
 
 describe('Market R3C — actual Overview route acceptance', () => {
   beforeEach(() => {
@@ -75,7 +76,11 @@ describe('Market R3C — actual Overview route acceptance', () => {
     const quoteAt = new Date(Date.now() - 86400000).toISOString();
     render(<MarketDeskOverview hideNav data={{
       sourceMode: 'stale-cache',
-      indices: [{ symbol: '^NSEI', value: 24850.5, quoteAt, source: 'verified source' }]
+      indices: [
+        { symbol: '^NSEI', value: 99999, timestamp: new Date().toISOString(), sourceProvider: 'yahoo-chart' },
+        { symbol: '^NSEI', value: 24000, quoteAt: new Date(Date.now() - 172800000).toISOString(), source: 'verified source' },
+        { symbol: '^NSEI', value: 24850.5, quoteAt, source: 'verified source' }
+      ]
     }} />);
     const nifty = screen.getByRole('link', { name: /NIFTY 50/ });
     expect(nifty.textContent).toContain('24,850.5');
@@ -97,6 +102,47 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(screen.getByRole('link', { name: /NIFTY 50/ }).textContent).toContain('No saved value');
     expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('No saved value');
     expect(screen.queryByText('Last available')).toBeNull();
+  });
+
+  it('keeps sector prices link-only for public data and dates authorized retained observations', () => {
+    const quoteAt = new Date(Date.now() - 86400000).toISOString();
+    const expired = new Date(Date.now() - 6 * 86400000).toISOString();
+    const rows = {
+      sectorals: [
+        { symbol: '^NSEBANK', value: 99994, timestamp: new Date().toISOString(), sourceProvider: 'yahoo-chart' },
+        { symbol: '^NSEBANK', value: 99991, quoteAt, source: 'seed' },
+        { symbol: '^NSEBANK', value: 99992, quoteAt: expired, source: 'Vendor' },
+        { symbol: '^CNXIT', name: 'NIFTY Bank', value: 99993, quoteAt, source: 'Vendor' },
+        { symbol: '^NSEBANK', value: 12345, quoteAt, source: 'Vendor' }
+      ],
+      equities: [
+        { symbol: 'HDFCBANK', value: 99995, timestamp: new Date().toISOString(), sourceProvider: 'yahoo-chart', sourceAuthority: 'third-party' },
+        { symbol: 'HDFCBANK', value: 99996, quoteAt, sourceProvider: 'seed', sourceAuthority: 'third-party' },
+        { symbol: 'HDFCBANK', value: 1492, currency: 'INR', quoteAt, sourceProvider: 'Vendor', sourceAuthority: 'third-party' }
+      ]
+    };
+    const { container, rerender } = render(<MarketDeskOverview hideNav data={{ ...freeOpenMarketPayload(), ...rows }} />);
+    const panel = () => container.querySelector('.md3-sector-panel');
+    expect(within(panel()).getByRole('link', { name: 'NIFTY Bank' })).toBeTruthy();
+    expect(within(panel()).getByRole('link', { name: 'HDFCBANK' }).getAttribute('href'))
+      .toBe('https://www.nseindia.com/get-quotes/equity?symbol=HDFCBANK');
+    expect(panel().querySelectorAll('time')).toHaveLength(0);
+    expect(panel().textContent).not.toMatch(/12,345|1,492|\bNaN\b|constituents/i);
+
+    const retained = sanitizeMarketPayload({ ...rows, sourceMode: 'stale-cache', fetchedAt: Date.now() });
+    rerender(<MarketDeskOverview hideNav data={retained} />);
+    expect(panel().textContent).toContain('12,345');
+    expect(panel().textContent).toContain('1,492');
+    expect(panel().textContent).not.toMatch(/99,99[1-6]/);
+    expect(panel().querySelectorAll('time')).toHaveLength(2);
+    expect([...panel().querySelectorAll('time')].map(time => time.getAttribute('datetime')))
+      .toEqual([quoteAt, quoteAt]);
+    expect(within(panel()).getAllByText('Last available')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Energy', exact: true }));
+    expect(within(panel()).getByRole('link', { name: 'NIFTY Energy' }).getAttribute('href'))
+      .toBe('https://www.niftyindices.com/indices/equity/thematic-indices/nifty-energy');
+    expect(within(panel()).getByRole('link', { name: 'RELIANCE' })).toBeTruthy();
+    expect(panel().querySelectorAll('time')).toHaveLength(0);
   });
 
   it('routes key financial actions to canonical nine-workspace destinations', () => {

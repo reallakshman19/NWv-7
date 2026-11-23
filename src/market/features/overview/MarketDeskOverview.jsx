@@ -8,6 +8,8 @@
 import React, { useMemo, useState, useSyncExternalStore } from 'react';
 import { FiClock, FiExternalLink } from 'react-icons/fi';
 import { canonicalIndexId, getQualifiedIndexRows } from '../../../services/marketQuotePolicy.js';
+import { qualifyTrackedEquities } from '../../../services/marketEquityPolicy.js';
+import { TRACKED_NSE_METADATA, getNseQuoteUrl } from '../equity/equityMetadata.js';
 import { formatMarketTimestamp, isMarketSeedRow } from '../../../utils/marketSession.js';
 import { MarketNav } from './MarketNav.jsx';
 import { MarketSessionHeader } from './MarketSessionHeader.jsx';
@@ -83,19 +85,25 @@ function DeskCard({ id, title, action, destination, onNavigate, wide = false, ch
   );
 }
 
+const DISPLAY_QUOTE_MODES = new Set(['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache']);
+
+function getDatedIndexObservations(data) {
+  if (!DISPLAY_QUOTE_MODES.has(data?.sourceMode)) return [];
+  return getQualifiedIndexRows(data)
+    .filter(({ row }) => row.quoteAt != null && (row.sourceProvider || row.source) && !isMarketSeedRow(row))
+    .sort((a, b) => b.time - a.time);
+}
+
 function MarketPulse({ data }) {
-  const sourceMode = data?.sourceMode;
-  const canDisplayQuotes = ['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache'].includes(sourceMode);
-  const observations = canDisplayQuotes ? getQualifiedIndexRows(data) : [];
-  const isLastAvailable = sourceMode !== 'live';
+  const observations = getDatedIndexObservations(data);
+  const isLastAvailable = data?.sourceMode !== 'live';
 
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
         const indexId = canonicalIndexId(index);
         const observation = observations.find(({ id, row }) =>
-          (row.symbol === index.symbol || row.name === index.name || id === indexId) &&
-          (row.source || row.sourceProvider) && !isMarketSeedRow(row)
+          id === indexId || row.symbol === index.symbol || (!row.symbol && row.name === index.name)
         );
 
         return (
@@ -127,6 +135,143 @@ function MarketPulse({ data }) {
           </a>
         );
       })}
+    </div>
+  );
+}
+
+const CANONICAL_SECTORS = Object.freeze([
+  {
+    id: 'banking',
+    name: 'Banking & Financials',
+    benchmark: 'NIFTY Bank',
+    symbol: '^NSEBANK',
+    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-bank',
+    classification: /Banking|Financial Services/i,
+  },
+  {
+    id: 'it',
+    name: 'Information Technology',
+    benchmark: 'NIFTY IT',
+    symbol: '^CNXIT',
+    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-it',
+    classification: /Information Technology/i,
+  },
+  {
+    id: 'auto',
+    name: 'Automobiles',
+    benchmark: 'NIFTY Auto',
+    symbol: '^CNXAUTO',
+    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-auto',
+    classification: /Automobile/i,
+  },
+  {
+    id: 'pharma',
+    name: 'Pharma & Healthcare',
+    benchmark: 'NIFTY Pharma',
+    symbol: '^CNXPHARMA',
+    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-pharma',
+    classification: /Pharma|Healthcare/i,
+  },
+  {
+    id: 'fmcg',
+    name: 'Consumer Goods (FMCG)',
+    benchmark: 'NIFTY FMCG',
+    symbol: '^CNXFMCG',
+    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-fmcg',
+    classification: /Consumer Goods/i,
+  },
+  {
+    id: 'energy',
+    name: 'Energy',
+    benchmark: 'NIFTY Energy',
+    symbol: '^CNXENERGY',
+    url: 'https://www.niftyindices.com/indices/equity/thematic-indices/nifty-energy',
+    classification: /Energy|Petrochemicals/i,
+  },
+]);
+
+function SectorQuote({ value, time, source, isLastAvailable, currency = '' }) {
+  return (
+    <div className="md3-sector-value">
+      <strong>{currency}{value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+      {isLastAvailable && <small className="md3-pulse-caption"><FiClock aria-hidden="true" /> Last available</small>}
+      <small>{source} · <time dateTime={new Date(time).toISOString()}>{formatMarketTimestamp(time)}</time></small>
+    </div>
+  );
+}
+
+function SectorBreakdown({ data, onNavigate }) {
+  const [activeSector, setActiveSector] = useState(CANONICAL_SECTORS[0]);
+  const canDisplayQuotes = DISPLAY_QUOTE_MODES.has(data?.sourceMode);
+  const isLastAvailable = data?.sourceMode !== 'live';
+  const sectorId = canonicalIndexId({ ...activeSector, exchange: 'NSE' });
+  const benchmark = getDatedIndexObservations(data).find(({ id }) => id === sectorId);
+  const equities = canDisplayQuotes ? qualifyTrackedEquities(data.equities) : [];
+  const equityBySymbol = new Map(equities.map(quote => [quote.symbol, quote]));
+  const stocks = Object.values(TRACKED_NSE_METADATA)
+    .filter(({ sector }) => activeSector.classification.test(sector));
+
+  return (
+    <div className="md3-sector-explorer">
+      <div className="md3-sector-tabs" role="group" aria-label="Select market sector">
+        {CANONICAL_SECTORS.map(sector => (
+          <button
+            key={sector.id}
+            type="button"
+            aria-pressed={activeSector === sector}
+            className={'md3-sector-tab' + (activeSector === sector ? ' is-active' : '')}
+            onClick={() => setActiveSector(sector)}
+          >
+            {sector.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="md3-sector-panel">
+        <div className="md3-sector-summary">
+          <div>
+            <div className="md3-sector-benchmark-line">
+              <span className="md3-sector-title">Benchmark</span>
+              <a href={activeSector.url} target="_blank" rel="noopener noreferrer" className="md3-sector-benchmark-badge">
+                {activeSector.benchmark} <FiExternalLink aria-hidden="true" />
+              </a>
+            </div>
+            {benchmark && (
+              <SectorQuote value={benchmark.value} time={benchmark.time}
+                source={benchmark.row.sourceProvider || benchmark.row.source}
+                isLastAvailable={isLastAvailable} />
+            )}
+          </div>
+          <button type="button" className="md3-secondary md3-sector-fund-btn" onClick={() => onNavigate?.('funds')}>
+            Find mutual funds →
+          </button>
+        </div>
+
+        <div>
+          <div className="md3-compact-caption">Tracked stocks by industry · {stocks.length}</div>
+          <div className="md3-sector-stock-grid">
+            {stocks.map(({ symbol, name, exchange }) => {
+              const quote = equityBySymbol.get(symbol);
+              return (
+                <div key={symbol} className="md3-stock-card">
+                  <div className="md3-stock-card-top">
+                    <a href={getNseQuoteUrl(symbol)} target="_blank" rel="noopener noreferrer" className="md3-stock-symbol">
+                      {symbol} <FiExternalLink aria-hidden="true" />
+                    </a>
+                    <span className="md3-stock-exchange">{exchange}</span>
+                  </div>
+                  <span className="md3-stock-name">{name}</span>
+                  {quote && (
+                    <SectorQuote value={quote.value} time={Date.parse(quote.quoteAt)}
+                      source={quote.sourceProvider || quote.provider || quote.source}
+                      isLastAvailable={isLastAvailable} currency="₹" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -191,6 +336,7 @@ export function MarketDeskOverview({
           <button type="button" onClick={() => jumpToSection('md3-currency')}>Rates</button>
           <button type="button" onClick={() => jumpToSection('md3-funds')}>Find fund</button>
           <button type="button" onClick={() => jumpToSection('md3-briefing')}>News</button>
+          <button type="button" onClick={() => jumpToSection('md3-sectors')}>Sectors</button>
         </nav>
 
         <div className="md3-grid">
@@ -278,8 +424,9 @@ export function MarketDeskOverview({
             </div>
           </DeskCard>
 
-          <DeskCard id="md3-sectors" title="Movers & Sector References"
+          <DeskCard id="md3-sectors" title="Movers & Sector References" wide
             action="Explore sectors" destination="indices" onNavigate={marketNav}>
+            <SectorBreakdown data={data} onNavigate={marketNav} />
             <div className="md3-link-grid">
               <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">NSE breadth & sectors</a>
               <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">BSE index boards</a>
