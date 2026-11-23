@@ -1,8 +1,6 @@
 /**
- * On-demand, read-only REAL provider browser proof for Market R3D.
- * No scheduled collection, no publication of third-party rates/NAVs.
- * Run after `npm run build`, with Playwright Chromium installed.
- * This checks real cross-origin browser access, not merely a Node HTTP GET.
+ * Read-only proof of the built Market page against real browser providers.
+ * The report contains only source IDs, status and dates.
  */
 import { chromium } from 'playwright';
 import { evaluateFxObservation } from '../src/market/features/macro/fxFreshness.js';
@@ -13,64 +11,37 @@ const BASE = 'http://127.0.0.1:4173/';
 const REPORT = 'reports/market-r3d-browser-provider-live.json';
 const started = new Date().toISOString();
 const results = [];
+const sourceRequests = [];
 
-async function acquireInBrowser(page, id, url) {
-  const observation = await page.evaluate(async requestUrl => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 16000);
-    try {
-      const response = await fetch(requestUrl, { cache: 'no-store', signal: controller.signal });
-      if (!response.ok) return { ok: false, error: 'HTTP_' + response.status, httpStatus: response.status };
-      const payload = await response.json();
-      // Only the requested response is handled in memory. The report never
-      // serializes rates, NAVs, scheme names or user-specific search terms.
-      if (requestUrl.includes('frankfurter.dev')) {
-        const day = payload?.date;
-        const dateMs = typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day)
-          ? Date.parse(day + 'T00:00:00Z') : NaN;
-        const [expectedBase, expectedQuote] = new URL(requestUrl).pathname
-          .split('/').slice(-2).map(currency => currency.toUpperCase());
-        const valid = Number.isFinite(payload?.rate) && payload.rate > 0 &&
-          Number.isFinite(dateMs) && new Date(dateMs).toISOString().slice(0, 10) === day &&
-          dateMs <= Date.now() + 300000 &&
-          payload?.base === expectedBase && payload?.quote === expectedQuote;
-        return { ok: Boolean(valid), error: valid ? null : 'INVALID_FX_PROVIDER_PAYLOAD',
-          httpStatus: response.status, providerAsOf: valid ? day : null,
-          observationAgeHours: valid ? Math.round((Date.now() - dateMs) / 3600000) : null };
-      }
-      const row = payload?.data?.[0];
-      const originalDate = String(row?.date || '');
-      const dmy = /^(\d{2})-(\d{2})-(\d{4})$/.exec(originalDate);
-      const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(originalDate);
-      const parts = dmy ? [Number(dmy[3]), Number(dmy[2]), Number(dmy[1])]
-        : ymd ? [Number(ymd[1]), Number(ymd[2]), Number(ymd[3])] : null;
-      const asOf = parts ? Date.UTC(parts[0], parts[1] - 1, parts[2]) : NaN;
-      const checked = parts && Number.isFinite(asOf) &&
-        new Date(asOf).toISOString().slice(0, 10) ===
-          parts.map((x, i) => String(x).padStart(i === 0 ? 4 : 2, '0')).join('-') &&
-        asOf <= Date.now() + 300000;
-      const valid = payload?.status === 'SUCCESS' &&
-        Number(payload?.meta?.scheme_code) === 125497 &&
-        Number.isFinite(Number(row?.nav)) && Number(row.nav) > 0 &&
-        checked;
-      return { ok: Boolean(valid), error: valid ? null : 'INVALID_MFAPI_PROVIDER_PAYLOAD',
-        httpStatus: response.status,
-        providerClockPresent: Boolean(checked),
-        providerAsOf: valid ? new Date(asOf).toISOString().slice(0, 10) : null };
-    } catch (error) {
-      return { ok: false, error: String(error?.name || 'REQUEST_FAILED') + ': ' + String(error?.message || '').slice(0, 140) };
-    } finally {
-      clearTimeout(timer);
-    }
-  }, url);
-  const safe = { sourceId: id, ...observation };
-  if (id.startsWith('frankfurter-') && observation.ok) {
-    const classification = evaluateFxObservation(observation.providerAsOf);
-    safe.freshness = classification?.freshness ?? 'UNKNOWN';
-    safe.conversionEligible = Boolean(classification && classification.freshness !== 'EXPIRED');
+async function captureRate(page, label, sourceId) {
+  const row = page.getByRole('list', { name: 'Dated currency references' })
+    .getByRole('listitem').filter({ has: page.getByText(label, { exact: true }) });
+  await row.locator('time').waitFor({ timeout: 15000 });
+  const providerAsOf = await row.locator('time').getAttribute('datetime');
+  const classification = evaluateFxObservation(providerAsOf);
+  if (!classification) throw new Error('INVALID_FX_PROVIDER_DATE');
+  results.push({
+    sourceId, ok: true, providerAsOf, freshness: classification.freshness,
+    conversionEligible: classification.freshness !== 'EXPIRED'
+  });
+}
+
+async function captureNav(page) {
+  const code = '125497';
+  await page.getByRole('textbox', { name: 'Scheme name or code' }).fill(code);
+  await page.getByRole('button', { name: 'Search funds', exact: true }).click();
+  const latestReport = page.getByText(/Latest reported NAV/);
+  await latestReport.waitFor({ timeout: 15000 });
+  const providerAsOf = await latestReport.locator('time').getAttribute('datetime');
+  const matchingRequests = sourceRequests.filter(url =>
+    url.pathname === '/mf/' + code || url.pathname === '/mf/' + code + '/latest');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(providerAsOf) || !matchingRequests.length || matchingRequests.length > 2) {
+    throw new Error('INVALID_MFAPI_BROWSER_RESULT');
   }
-  results.push(safe);
-  return safe;
+  results.push({
+    sourceId: 'mfapi-scheme-' + code, ok: true, providerAsOf,
+    transport: matchingRequests.at(-1).pathname.endsWith('/latest') ? 'LATEST' : 'BOUNDED_HISTORY'
+  });
 }
 
 async function awaitPreview() {
@@ -88,20 +59,24 @@ let preview = null;
 let browser = null;
 try {
   preview = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview',
-    '--host', '127.0.0.1', '--port', '4173', '--strictPort'],
-  { stdio: 'ignore' });
+    '--host', '127.0.0.1', '--port', '4173', '--strictPort'], { stdio: 'ignore' });
   await awaitPreview();
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ serviceWorkers: 'block' });
   const page = await context.newPage();
-  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  for (const [id, url] of [
-    ['frankfurter-omr-inr', 'https://api.frankfurter.dev/v2/rate/omr/inr'],
-    ['frankfurter-usd-inr', 'https://api.frankfurter.dev/v2/rate/usd/inr'],
-    ['mfapi-scheme-125497', 'https://api.mfapi.in/mf/125497/latest']
-  ]) {
-    await acquireInBrowser(page, id, url);
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (['api.frankfurter.dev', 'api.mfapi.in'].includes(url.hostname)) sourceRequests.push(url);
+  });
+  await page.goto(BASE + '#/markets', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await captureRate(page, 'USD / INR', 'frankfurter-usd-inr');
+  const automaticallyRequested = sourceRequests.map(url => url.pathname + url.search);
+  if (automaticallyRequested.length !== 1 || automaticallyRequested[0] !== '/v2/rate/usd/inr?providers=ecb') {
+    throw new Error('UNEXPECTED_AUTOMATIC_PROVIDER_REQUESTS');
   }
+  await page.getByRole('button', { name: 'Check OMR / INR', exact: true }).click();
+  await captureRate(page, 'OMR / INR', 'frankfurter-omr-inr');
+  await captureNav(page);
   await context.close();
 } catch (error) {
   results.push({ sourceId: 'harness', ok: false, error: String(error?.message || error) });
@@ -112,9 +87,9 @@ try {
   const success = results.length === 3 && results.every(item => item.ok);
   const report = {
     verificationType: 'real-browser-cross-origin-acquisition',
-    source: 'Playwright Chromium from locally previewed actual built app origin',
+    source: 'Playwright Chromium on built Market page',
     startedAt: started, finishedAt: new Date().toISOString(),
-    sourceRequests: results.length,
+    sourceRequests: sourceRequests.length,
     status: success ? 'PASS' : 'HOLD',
     noRateOrNavValuesPublished: true,
     results
