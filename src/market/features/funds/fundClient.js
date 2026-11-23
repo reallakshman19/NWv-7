@@ -119,12 +119,27 @@ class FundClient {
       throw err;
     }
 
-    const url = `https://api.mfapi.in/mf/${canonicalCode}/latest`;
+    const schemeUrl = `https://api.mfapi.in/mf/${canonicalCode}`;
+    let url = schemeUrl + '/latest';
     if (!isAllowedMarketSourceUrl(MFAPI_SOURCE_ID, url)) {
       throw new Error(`Disallowed source URL host for scheme ${canonicalCode}`);
     }
 
-    const res = await fetchImpl(url, { signal });
+    const deadline = signal ?? AbortSignal.timeout(8000);
+    let windowStart;
+    let windowEnd;
+    let res;
+    try {
+      res = await fetchImpl(url, { signal: deadline });
+    } catch (error) {
+      // Some MFapi responses omit CORS on /latest. Use its documented
+      // scheme-history endpoint with a bounded date window on transport failure.
+      if (!(error instanceof TypeError) || deadline.aborted) throw error;
+      windowStart = new Date(now - 14 * 86400000).toISOString().slice(0, 10);
+      windowEnd = new Date(now).toISOString().slice(0, 10);
+      url = schemeUrl + '?startDate=' + windowStart + '&endDate=' + windowEnd;
+      res = await fetchImpl(url, { signal: deadline });
+    }
     if (res.status === 429) {
       const retryAfter = Number(res.headers?.get?.('Retry-After')) || null;
       this.setCooldown(retryAfter, now);
@@ -137,6 +152,9 @@ class FundClient {
       throw new Error(`NAV transport request failed (HTTP ${res.status})`);
     }
 
+    if (windowStart && Number(res.headers?.get?.('Content-Length')) > 128 * 1024) {
+      throw new Error('MFapi returned an oversized NAV window');
+    }
     const payload = await res.json();
     if (payload?.status !== 'SUCCESS' || !payload?.meta) {
       throw new Error(`MFapi returned unsuccessful payload status for scheme ${canonicalCode}`);
@@ -150,7 +168,19 @@ class FundClient {
       );
     }
 
-    const row = payload.data?.[0];
+    let row = payload.data?.[0];
+    if (windowStart) {
+      if (!Array.isArray(payload.data) || payload.data.length > 30) {
+        throw new Error('MFapi returned an unbounded NAV window');
+      }
+      const datedRows = payload.data.map(entry => ({
+        entry, date: normalizeDateToIso(entry?.date)
+      }));
+      if (datedRows.some(entry => !entry.date || entry.date < windowStart || entry.date > windowEnd)) {
+        throw new Error('MFapi returned NAV observations outside the requested window');
+      }
+      row = datedRows.sort((a, b) => b.date.localeCompare(a.date))[0]?.entry;
+    }
     if (!row) {
       throw new Error(`No NAV data row returned for scheme ${canonicalCode}`);
     }

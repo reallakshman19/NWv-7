@@ -1,7 +1,7 @@
 /**
  * NWv7 Market Desk R2.1 - WP-09 Source Health & Rights Card
  *
- * Displays live passive audit of all 11 registered sources in sourceRegistry.js.
+ * Displays live passive audit of the registered sources in sourceRegistry.js.
  * Strictly separates legal rights from reachability (UNKNOWN) and request state.
  */
 
@@ -41,7 +41,7 @@ export function SourceHealthCard({ sourceStates = null }) {
     <div className="health-section">
       <div className="health-section-header">
         <div>
-          <h3 className="health-section-title">Registered Market Sources (11 Total)</h3>
+          <h3 className="health-section-title">Registered Market Sources ({sources.length} Total)</h3>
           <p className="health-section-desc">
             Local request history and original provider dates. No automatic source polling or live-reachability assertion.
           </p>

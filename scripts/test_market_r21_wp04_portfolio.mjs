@@ -8,7 +8,7 @@ import { marketIsolationInput } from './market_r21_path_guard.mjs';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 import {
   validateTransactionInputs,
@@ -318,7 +318,7 @@ test('WP04-S10 Static export audit of index.js and shared file isolation', () =>
   assert.equal(PORTFOLIO_STORAGE_KEY, 'nw7.market-portfolio.v1');
 
   // Git diff against 2510cac78e4ec177efaaedfb8de2ac3504415813
-  const changedFiles = execSync('git diff --name-only $(git merge-base HEAD origin/main) HEAD', {
+  const changedFiles = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -336,6 +336,9 @@ test('WP04-S10 Static export audit of index.js and shared file isolation', () =>
         '.github/workflows/ci.yml',
         '.github/workflows/deploy.yml',
         '.github/workflows/market_r3d_browser_provider_live.yml',
+        '.github/workflows/market_economy_news.yml',
+        'public/data/market_economy_news.json',
+        'docs/market/FREE_OPEN_ONLY_RELEASE.md',
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',

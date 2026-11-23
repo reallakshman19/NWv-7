@@ -56,9 +56,13 @@ test('R3D-S02 a legacy Yahoo FX file is rejected at the publication boundary', (
 
 test('publication guard CLI checks a missing data root from a path containing spaces', () => {
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'nw7 market guard '));
-  const script = path.join(scratch, 'check_market_publication_assets.mjs');
+  const script = path.join(scratch, 'scripts', 'check_market_publication_assets.mjs');
+  const policyDir = path.join(scratch, 'src', 'market', 'contracts');
   try {
+    fs.mkdirSync(path.dirname(script), { recursive: true });
+    fs.mkdirSync(policyDir, { recursive: true });
     fs.copyFileSync('scripts/check_market_publication_assets.mjs', script);
+    fs.copyFileSync('src/market/contracts/economyNews.js', path.join(policyDir, 'economyNews.js'));
     const missingRoot = path.join(scratch, 'missing-publication-root');
     const processResult = spawnSync(process.execPath, [script, missingRoot], { encoding: 'utf8' });
     assert.equal(processResult.error, undefined);
@@ -67,8 +71,31 @@ test('publication guard CLI checks a missing data root from a path containing sp
     assert.equal(report.status, 'FAIL');
     assert.deepEqual(report.roots[0].errors, ['MISSING_DATA_ROOT']);
   } finally {
-    fs.rmSync(script, { force: true });
-    fs.rmdirSync(scratch);
+    fs.rmSync(scratch, { recursive: true, force: true });
+  }
+});
+
+test('official headline asset cannot carry quotes, unknown sources, or false dates', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'nw7-headlines-'));
+  try {
+    const data = path.join(root, 'data');
+    fs.mkdirSync(data);
+    for (const file of QUOTE_FREE_ASSETS) {
+      fs.copyFileSync(path.join('public/data', file), path.join(data, file));
+    }
+    const file = 'market_economy_news.json';
+    const prior = policyPayload(file);
+    const target = path.join(data, file);
+    fs.writeFileSync(target, JSON.stringify(prior));
+    assert.deepEqual(auditMarketPublicationRoot(root).errors, []);
+    for (const override of [
+      { nav: 123 }, { url: 'https://example.com/' }, { publishedOn: '2099-01-01' }
+    ]) {
+      fs.writeFileSync(target, JSON.stringify({ ...prior, items: [{ ...prior.items[0], ...override }] }));
+      assert.ok(auditMarketPublicationRoot(root).errors.some(error => error.startsWith(file + ':INVALID_ECONOMY_NEWS_')));
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 

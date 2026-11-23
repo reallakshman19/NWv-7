@@ -35,7 +35,7 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(screen.getByText('Currency Reference')).toBeTruthy();
-      expect(screen.getByText(/Zero-boot mode/)).toBeTruthy();
+      expect(screen.getByText(/Select a pair to check its reference rate/)).toBeTruthy();
       expect(screen.getByDisplayValue('100')).toBeTruthy();
     });
 
@@ -150,11 +150,12 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
       expect(screen.queryByText(/Creative Commons/i)).toBeNull();
     });
 
-    it('renders currency benchmark desk and verifies GDP surveys are removed', () => {
+    it('renders dated currency references without static rates', () => {
       render(<CurrencyMacroPanel />);
 
       expect(screen.getByText('Currency & FX Reference Desk')).toBeTruthy();
-      expect(screen.getByText('Major Gulf & Global Currency Benchmarks')).toBeTruthy();
+      expect(screen.getByRole('list', { name: 'Dated currency references' })).toBeTruthy();
+      expect(screen.queryByText('₹242.04')).toBeNull();
       expect(screen.getAllByText('OMR / INR').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('USD / INR').length).toBeGreaterThanOrEqual(1);
       // Verifies complete removal of GDP growth and macro indicators from trading view
@@ -186,7 +187,7 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
       fireEvent.click(refreshBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/1 OMR = 218.50 INR/)).toBeTruthy();
+        expect(screen.getAllByText(/1 OMR = 218.50 INR/)).toHaveLength(2);
       });
     });
   });

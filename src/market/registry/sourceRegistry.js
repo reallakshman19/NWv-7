@@ -22,9 +22,11 @@ export const MARKET_SOURCES = Object.freeze({
   'mfapi':entry('mfapi','MFapi','DIRECT_ON_DEMAND','BROWSER_DIRECT_CONDITIONAL',
     ['LINK','BROWSER_FETCH','LOCAL_CALCULATE'],'https://www.mfapi.in/docs/','Scheme-specific browser request; original NAV date'),
   'frankfurter':entry('frankfurter','Frankfurter','DIRECT_ON_DEMAND','BROWSER_DIRECT_CONDITIONAL',
-    ['LINK','BROWSER_FETCH','LOCAL_CALCULATE'],'https://frankfurter.dev/','Underlying central-bank terms still apply'),
+    ['LINK','BROWSER_FETCH','LOCAL_CALCULATE'],'https://frankfurter.dev/','Automatic USD/INR is ECB-derived; other pairs require a user request'),
   'world-bank':entry('world-bank','World Bank','LICENSED_OPEN_DATA','NO_PUBLICATION',
     ['LINK','BROWSER_FETCH','LOCAL_CALCULATE'],'https://data.worldbank.org/','Indicator-specific license review pending'),
+  'pib-economy-news':entry('pib-economy-news','Press Information Bureau','LICENSED_OPEN_DATA','OPEN_LICENSE_CONFIRMED',
+    ['LINK','BROWSER_FETCH'],'https://www.pib.gov.in/AllRelease.aspx?lang=1&reg=20','Attributed releases are validated by the economy feed contract'),
   'nwv7-market-news':entry('nwv7-market-news','NWv7 editorial','USER_LOCAL','LOCAL_ONLY',
     ['LOCAL_CALCULATE'],'https://reallakshman19.github.io/NWv-7/','Reuse qualified existing news only'),
   'personal-local':entry('personal-local','User device','USER_LOCAL','LOCAL_ONLY',
@@ -51,6 +53,7 @@ export const MARKET_SOURCE_HOSTS = Object.freeze({
   'mfapi':Object.freeze(['www.mfapi.in','api.mfapi.in']),
   'frankfurter':Object.freeze(['frankfurter.dev','api.frankfurter.dev']),
   'world-bank':Object.freeze(['data.worldbank.org','api.worldbank.org']),
+  'pib-economy-news':Object.freeze(['www.pib.gov.in','pib.gov.in']),
   'nwv7-market-news':Object.freeze(['reallakshman19.github.io']),
   'personal-local':Object.freeze([])
 });

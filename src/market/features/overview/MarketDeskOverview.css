@@ -101,12 +101,16 @@
   .md3-pulse-list { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* User-triggered browser-local quote lookup; no background polling. */
-.md3-personal-quotes { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 12px; margin-top: 12px; }
-.md3-personal-quotes > span { flex: 1 1 180px; font-size: .72rem; line-height: 1.4; color: var(--md3-muted); }
-.md3-quote-error { margin: 8px 0 0; color: var(--market-tone-warning, #facc15); font-size: .75rem; }
-
 @media print {
   .md3-card-action, .md3-metric, .md3-health-actions { break-inside: avoid; }
   .md3-card, .md3-health { break-inside: avoid; }
 }
+
+.md3-source-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 6px; }
+.md3-source-actions input { flex: 1 1 11rem; min-width: 0; max-width: 100%; color: var(--md3-ink); background: var(--md3-background); border: 1px solid var(--md3-border); border-radius: 7px; padding: 8px; font: inherit; }
+.md3-source-list, .md3-economy-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.md3-source-observation, .md3-economy-list li { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--md3-border, #334155); overflow-wrap: anywhere; }
+.md3-source-list button { max-width: 100%; text-align: start; white-space: normal; overflow-wrap: anywhere; }
+.md3-fund-search, .md3-economy { display: grid; gap: 8px; }
+.md3-fund-search a, .md3-economy a, .md3-source-observation a { color: var(--md3-accent, #93c5fd); }
+.md3-economy small { color: var(--md3-muted); }

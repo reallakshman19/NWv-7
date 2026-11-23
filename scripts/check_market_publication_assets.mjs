@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  ECONOMY_NEWS_ASSET, ECONOMY_NEWS_MAX_BYTES, validateEconomyNews
+} from '../src/market/contracts/economyNews.js';
 
 /**
  * Fail closed on quote-bearing public Market asset reintroduction.
@@ -143,7 +146,7 @@ export function auditMarketPublicationRoot(root, { required = true } = {}) {
   const financialNames = /(?:market|fx|forex|nav|fund|equity|stocks?|indices|quotes?|bhavcopy|^nse|^bse|^yahoo)/i;
   for (const name of files) {
     if (name.split('/').some(part => financialNames.test(part)) && !QUOTE_FREE_ASSETS.includes(name) &&
-        !forbiddenAssetNames.includes(name)) {
+        name !== ECONOMY_NEWS_ASSET && !forbiddenAssetNames.includes(name)) {
       errors.push('UNREVIEWED_FINANCIAL_PUBLIC_ASSET:' + name);
     }
   }
@@ -163,6 +166,23 @@ export function auditMarketPublicationRoot(root, { required = true } = {}) {
     } catch (e) {
       errors.push('INVALID_JSON:' + name + ':' + e.message);
     }
+  }
+  if (files.includes(ECONOMY_NEWS_ASSET)) {
+    try {
+      const asset = path.join(directory, ECONOMY_NEWS_ASSET);
+      if (fs.statSync(asset).size > ECONOMY_NEWS_MAX_BYTES) {
+        errors.push(ECONOMY_NEWS_ASSET + ':SOURCE_SIZE_LIMIT');
+      } else {
+        const payload = JSON.parse(fs.readFileSync(asset, 'utf8'));
+        errors.push(...validateEconomyNews(payload).map(error => ECONOMY_NEWS_ASSET + ':' + error));
+      }
+      checked.push(ECONOMY_NEWS_ASSET);
+    } catch (error) {
+      errors.push('INVALID_JSON:' + ECONOMY_NEWS_ASSET + ':' + error.message);
+    }
+  }
+  if (['public', 'dist'].includes(path.basename(root)) && !files.includes(ECONOMY_NEWS_ASSET)) {
+    errors.push('MISSING_ECONOMY_NEWS_ASSET:' + ECONOMY_NEWS_ASSET);
   }
   return { root, errors, filesChecked: checked };
 }

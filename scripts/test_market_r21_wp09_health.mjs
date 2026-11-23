@@ -3,7 +3,7 @@
  *
  * Verifies WP09-T01 through WP09-T38 covering:
  * - Zero-boot network silence
- * - 11-source registry coverage & rights
+ * - 12-source registry coverage & rights
  * - Genuine WP-00 error code validation
  * - Bounded 100-receipt local activity log (valid vs rejected classes)
  * - Versioned recoverable watchlist migration & conflict-aware rollback
@@ -96,18 +96,18 @@ test('WP09-T01 Passive health mounting executes exactly zero network fetches', (
   try {
     const states = buildInitialSourceStates();
     assert.equal(fetchCalled, false, 'No network fetch on initial states build');
-    assert.equal(Object.keys(states).length, 11);
+    assert.equal(Object.keys(states).length, 12);
   } finally {
     globalThis.fetch = originalFetch;
   }
 });
 
-test('WP09-T02 Covers all 11 registered sources with exact rights and publishers', () => {
+test('WP09-T02 Covers all 12 registered sources with exact rights and publishers', () => {
   const expectedSources = [
     'tradingview-bse', 'nse-indices', 'nse-equities', 'nse-ipo', 'bse-ipo',
-    'amfi-nfo', 'mfapi', 'frankfurter', 'world-bank', 'nwv7-market-news', 'personal-local'
+    'amfi-nfo', 'mfapi', 'frankfurter', 'world-bank', 'pib-economy-news', 'nwv7-market-news', 'personal-local'
   ];
-  assert.equal(ALL_SOURCE_IDS.length, 11);
+  assert.equal(ALL_SOURCE_IDS.length, 12);
   for (const id of expectedSources) {
     const s = getMarketSource(id);
     assert.ok(s, `Source ${id} must exist in registry`);
@@ -292,7 +292,7 @@ test('WP09-T11 Diagnostic export uses strict allowlist schema; contains zero por
   assert.ok(assertPayloadHasNoPortfolioData(jsonStr), 'Must have no portfolio data');
   const parsed = JSON.parse(jsonStr);
   assert.equal(parsed.schemaVersion, 1);
-  assert.equal(parsed.sources.length, 11);
+  assert.equal(parsed.sources.length, 12);
   assert.equal(parsed.storage.knownPayloadBytes, 2500);
   assert.equal(parsed.portfolio, undefined);
   assert.equal(parsed.lots, undefined);

@@ -9,7 +9,8 @@ NSE and BSE market data carries exchange/index licensing conditions. A scraper, 
 - India Indices and Equity: the optional, branded TradingView widget displays selected BSE end-of-day indices and shares directly from the provider. It loads only on user request, discloses the third-party connection and keeps provider links as a fallback. It does not populate the app's NSE watchlist, extract widget data or imply live NSE quotes. NSE/BSE official links and watchlist persistence remain available.
 - Funds: preserve direct user-triggered MFapi searches and selected/saved NAV lookup. Those lookups are browser-side and from a free public API, but its AMFI-derived NAV values are not bulk republished by NWv-7. Show source date and stale state; retain provider request caps. Fund SIP is local calculation, no provider dependency.
 - IPO/FPO: use official NSE/BSE public pages. BSE HTTP 403 or no refresh is `unverified`/`unavailable`, never zero confirmed issues.
-- Currency: use MIT-licensed Frankfurter v2 open API directly from the browser for OMR/INR, with visible attribution, date and 3-day freshness requirement. **Frankfurter does not own underlying central-bank data**, so do not republish rate datasets as public static JSON.
+- Currency: Market can request the ECB-derived USD/INR cross via Frankfurter when a browser enters without a usable cached rate. The ECB allows reuse subject to attribution and accurate presentation. Display the derived cross and its provider date, and apply the existing 36-hour warning and 72-hour conversion cutoff. OMR/INR remains user-triggered while its automatic-use terms are unresolved. Keep all rate observations browser-local.
+- Economy: publish only PIB Finance and Statistics release IDs, attributed headlines, dates and canonical links from the public English release index. The PIB reuse policy covers its own material. Keep RBI and MoSPI as outbound links. A failed collection leaves the last validated feed on Pages.
 
 ## Public assets and operational safeguards
 
@@ -22,6 +23,9 @@ The change lives in a **draft PR** after #177, and has **not modified main, GitH
 - NSE rights policy: https://www.nseindia.in/static/market-data/nse-data-policy
 - TejHQ data license caveat: https://huggingface.co/datasets/tejhq/indian-markets
 - Frankfurter free MIT software license and underlying data terms: https://frankfurter.dev/license/
+- ECB reuse terms: https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html
+- Frankfurter ECB-derived USD/INR reference API: https://api.frankfurter.dev/v2/rate/usd/inr?providers=ecb
+- PIB copyright policy: https://www.pib.gov.in/content/102_2_Copyright-Policy.aspx?lang=1&reg=30
 - Frankfurter OMR/INR reference API: https://api.frankfurter.dev/v2/rate/omr/inr
 - Frankfurter Central Bank of Oman provider: https://frankfurter.dev/providers/cbo/
 - MFapi free API docs: https://www.mfapi.in/docs/
@@ -33,4 +37,4 @@ The change lives in a **draft PR** after #177, and has **not modified main, GitH
 
 ## Release criteria
 
-Verify tests, build and browser behavior on the integrated candidate. All four public assets must contain **no copied quotes/NAV values**, and the Market workflow must have **no scheduled or manual data-writing job**. Preserve third-party attribution and honest source dates; TradingView independently renders its own widget and may be unavailable or subject to provider restrictions.
+Verify tests, build and browser behavior on the integrated candidate. All four public assets must contain **no copied quotes/NAV values**, and the scheduled Market Economy News Refresh must publish only the validated headline metadata feed. Preserve third-party attribution and honest source dates; TradingView independently renders its own widget and may be unavailable or subject to provider restrictions.
