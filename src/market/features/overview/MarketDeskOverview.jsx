@@ -20,6 +20,7 @@ import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
 import './MarketDeskOverview.css';
+import { fetchPersonalMarketPulse } from './personalQuoteOverride.js';
 
 const PULSE = [
   { id: 'nifty', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
@@ -73,14 +74,15 @@ function DeskCard({ id, title, action, destination, onNavigate, wide = false, ch
   );
 }
 
-function MarketPulse({ data }) {
+function MarketPulse({ data, localQuotes = [] }) {
   const freeOnly = data?.sourceMode === 'free-open-only' || !data?.sourceMode;
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
-        const row = freeOnly ? null : (data?.indices || []).find(item =>
-          item.symbol === index.symbol || item.name === index.name
-        );
+        const row = localQuotes.find(item => item.symbol === index.symbol || item.name === index.name) ||
+          (freeOnly ? null : (data?.indices || []).find(item =>
+            item.symbol === index.symbol || item.name === index.name
+          ));
         // Never display an undated or unowned exchange value.
         const value = Number(row?.value ?? row?.price);
         const qualified = row && Number.isFinite(value) && value > 0 && row.quoteAt &&
@@ -118,6 +120,19 @@ export function MarketDeskOverview({
   const { state: fundState } = useFundStore();
   const { state: macroState } = useMacroStore();
   const [healthExpanded, setHealthExpanded] = useState(false);
+  const [localQuotes, setLocalQuotes] = useState([]);
+  const [quoteLookup, setQuoteLookup] = useState({ loading: false, error: '' });
+  const checkPersonalQuotes = async () => {
+    setQuoteLookup({ loading: true, error: '' });
+    try {
+      const indices = await fetchPersonalMarketPulse();
+      setLocalQuotes(indices);
+      setQuoteLookup({ loading: false, error: '' });
+    } catch (error) {
+      setLocalQuotes([]);
+      setQuoteLookup({ loading: false, error: error?.message || 'Browser quote lookup failed.' });
+    }
+  };
   const marketNav = id => {
     if (R21_MARKET_WORKSPACE_IDS.includes(id) && typeof onNavigate === 'function') onNavigate(id);
   };
@@ -186,8 +201,16 @@ export function MarketDeskOverview({
         <div className="md3-grid">
           <DeskCard id="md3-pulse" title="India Market Pulse" wide
             action="All Indices & Sectors" destination="indices" onNavigate={marketNav}>
-            <MarketPulse data={data} />
-            <div className="md3-inline-note">Prices only appear when an authorized, dated source observation exists.</div>
+            <MarketPulse data={data} localQuotes={localQuotes} />
+            <div className="md3-personal-quotes">
+              <button type="button" className="md3-secondary" onClick={checkPersonalQuotes}
+                disabled={quoteLookup.loading}>
+                {quoteLookup.loading ? 'Checking provider…' : 'Check browser-local quotes'}
+              </button>
+              <span>Explicit, one-time browser lookup; no shared quote publication. Provider access terms apply.</span>
+            </div>
+            {quoteLookup.error && <p role="alert" className="md3-quote-error">{quoteLookup.error}</p>}
+            <div className="md3-inline-note">Prices appear only when the provider supplies a dated, qualified observation. Source links remain available.</div>
           </DeskCard>
 
           <DeskCard id="md3-watchlist" title="My Watchlist" action="Manage Watchlist"
