@@ -9,6 +9,8 @@ import {
   macroStore
 } from './index.js';
 
+const recentObservationDay = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+
 describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -66,7 +68,7 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
         ok: true,
         status: 200,
         json: async () => ({
-          date: '2026-11-20',
+          date: recentObservationDay,
           base: 'OMR',
           quote: 'INR',
           rate: 220.00
@@ -167,7 +169,7 @@ describe('Market Desk R2.1 WP-06 Currency and Macro Certification Suite', () => 
             ok: true,
             status: 200,
             json: async () => ({
-              date: '2026-11-20',
+              date: recentObservationDay,
               base: 'OMR',
               quote: 'INR',
               rate: 218.50
