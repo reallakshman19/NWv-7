@@ -2,7 +2,8 @@
 import React from 'react';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { NsePersonalQuote, validateNseReply } from './NsePersonalQuote.jsx';
+import { NsePersonalQuote } from './NsePersonalQuote.jsx';
+import { validateNseReply } from './nseReplyValidation.js';
 import { TradingViewNseFallback } from './TradingViewNseFallback.jsx';
 
 beforeEach(() => {
