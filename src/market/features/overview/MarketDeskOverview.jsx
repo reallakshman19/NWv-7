@@ -206,10 +206,8 @@ function SectorBreakdown({ data, onNavigate }) {
   const isLastAvailable = data?.sourceMode !== 'live';
   const sectorId = canonicalIndexId({ ...activeSector, exchange: 'NSE' });
   const benchmark = getDatedIndexObservations(data).find(({ id }) => id === sectorId);
-  const equityRows = canDisplayQuotes && Array.isArray(data.equities)
-    ? data.equities.filter(row => row?.quoteAt != null && !isMarketSeedRow(row))
-    : [];
-  const equityBySymbol = new Map(qualifyTrackedEquities(equityRows).map(quote => [quote.symbol, quote]));
+  const equities = canDisplayQuotes ? qualifyTrackedEquities(data.equities) : [];
+  const equityBySymbol = new Map(equities.map(quote => [quote.symbol, quote]));
   const stocks = Object.values(TRACKED_NSE_METADATA)
     .filter(({ sector }) => activeSector.classification.test(sector));
 

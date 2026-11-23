@@ -6,6 +6,7 @@ import { MarketDeskOverview } from './MarketDeskOverview.jsx';
 import { healthStore } from '../health/healthStore.js';
 import { recordMarketSourceObservation } from '../health/marketSourceRecorder.js';
 import { freeOpenMarketPayload } from '../../../services/marketFreeOpenPolicy.js';
+import { sanitizeMarketPayload } from '../../../services/indianMarketStableService.js';
 
 describe('Market R3C — actual Overview route acceptance', () => {
   beforeEach(() => {
@@ -128,7 +129,8 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(panel().querySelectorAll('time')).toHaveLength(0);
     expect(panel().textContent).not.toMatch(/12,345|1,492|\bNaN\b|constituents/i);
 
-    rerender(<MarketDeskOverview hideNav data={{ ...rows, sourceMode: 'stale-cache' }} />);
+    const retained = sanitizeMarketPayload({ ...rows, sourceMode: 'stale-cache', fetchedAt: Date.now() });
+    rerender(<MarketDeskOverview hideNav data={retained} />);
     expect(panel().textContent).toContain('12,345');
     expect(panel().textContent).toContain('1,492');
     expect(panel().textContent).not.toMatch(/99,99[1-6]/);
