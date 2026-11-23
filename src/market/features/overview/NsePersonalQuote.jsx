@@ -30,6 +30,7 @@ export function validateNseReply(data, symbol) {
   if (!quote || quote.symbol !== symbol || !Number.isFinite(quote.value) || quote.value <= 0) return null;
   if (quote.sourceTier === 'NSE_EOD_FALLBACK' && quote.priceType === 'END_OF_DAY_CLOSE') {
     if (typeof quote.priceDate !== 'string' || !DATE_ONLY.test(quote.priceDate) ||
+        !Number.isFinite(Date.parse(quote.priceDate + 'T00:00:00Z')) ||
         new Date(quote.priceDate + 'T00:00:00Z').toISOString().slice(0, 10) !== quote.priceDate) return null;
     return quote;
   }
