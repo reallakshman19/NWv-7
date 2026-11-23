@@ -519,11 +519,15 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
         location = item.get("city") or item.get("region") or ""
         # One event URL may be repeated under different IDs. A matching
         # headline and slot alone cannot identify the same source listing.
-        event_listing = (item.get("url") or item["id"]) if item.get("category") == "events" else None
+        event_listing = None
+        occurrence = item.get("occurrenceId")
+        if item.get("category") == "events":
+            event_listing = item.get("url") or item["id"]
+            occurrence = item.get("revisionOf") or occurrence
         key = (
             item.get("category"), location.casefold(),
             event_start, str(item.get('venue') or '').casefold(), item.get('sessionId'),
-            item.get('occurrenceId'), event_listing,
+            occurrence, event_listing,
             title_fingerprint(item.get("title", "")) or item["id"],
         )
         unique.setdefault(key, item)

@@ -179,6 +179,25 @@ def test_matching_event_headlines_do_not_discard_distinct_source_listings():
     assert {row["id"] for row in replay["items"]} == {first["id"], second["id"]}
 
 
+def test_revised_occurrences_sharing_a_source_page_stay_distinct():
+    shared = dict(title="Intro to Robotics Workshop", city="Chennai",
+                  venue="IIT Madras Research Park", url="https://example.org/robotics")
+    originals = [item(f"listing-{slot}", occurrenceId=f"occurrence-{slot}", **shared)
+                 for slot in ("a", "b")]
+    first = merge_upahead_snapshot({}, originals, NOW, fetched=True)
+    as_of = NOW + 3 * H_MS
+    revisions = [
+        item(f"revision-{slot}", revisionOf=f"occurrence-{slot}", observedAt=as_of,
+             eventStartAt=NOW + 2 * DAY_MS, eventEndAt=NOW + 3 * DAY_MS,
+             expiryAt=NOW + 3 * DAY_MS, **shared)
+        for slot in ("a", "b")
+    ]
+    for order in (revisions, revisions[::-1]):
+        updated = merge_upahead_snapshot(first, order, as_of, fetched=True)
+        assert [row["id"] for row in updated["items"]] == ["revision-a", "revision-b"]
+        assert not validate_snapshot(updated, as_of)["errors"]
+
+
 def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     rows = [item(f"event-{i}") for i in range(MAX_ACTIVE_ITEMS + 25)]
     rows += [item(f"alert-{i}", category="weather_alerts") for i in range(10)]
