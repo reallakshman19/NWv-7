@@ -74,6 +74,8 @@ test('rejects rehashed generations with invalid active lifecycle fields', async 
     ['status', 'CANCELLED', 'invalid-occurrence-status'],
     ['expiryAt', undefined, 'invalid-occurrence-expiry'],
     ['expiryAt', NOW + 1000, 'expired-active-occurrence'],
+    ['eventStartAt', String(NOW + 1000), 'invalid-occurrence-window'],
+    ['eventStartAt', NOW + 3 * 86400000, 'invalid-occurrence-window'],
   ]) {
     const payload = payloadFixture();
     if (value === undefined) delete payload.items[0][field];
@@ -82,6 +84,21 @@ test('rejects rehashed generations with invalid active lifecycle fields', async 
     assert.equal(result.status, 'INVALID');
     assert.equal(result.reason, reason);
   }
+});
+test('rejects a pending occurrence that expires before its start', async () => {
+  const payload = payloadFixture();
+  const pending = payload.items.pop();
+  pending.eventStartAt = pending.expiryAt + 1;
+  payload.pendingItems.push(pending);
+
+  const result = await checked(await fixture(payload));
+  assert.equal(result.status, 'INVALID');
+  assert.equal(result.reason, 'invalid-occurrence-window');
+});
+test('accepts an occurrence that expires at its start', async () => {
+  const payload = payloadFixture();
+  payload.items[0].expiryAt = payload.items[0].eventStartAt;
+  assert.equal((await checked(await fixture(payload))).status, 'VALID');
 });
 test('source alias cannot point to an unknown occurrence', async () => {
   const a = await fixture(); a.payload.sourceAliases[0].canonicalOccurrenceId = 'occ:nonexistent';

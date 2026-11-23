@@ -99,6 +99,21 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(retired["canonicalOccurrenceId"],
                          promoted["payload"]["sourceAliases"][0]["canonicalOccurrenceId"])
 
+    def test_cancellation_follows_a_verified_alias_without_reobserving_the_cancelled_listing(self):
+        cancelled = row(1, sessionId="session-001", status="CANCELLED")
+        corroborating = row(2, sessionId="session-001")
+        separate = row(3, sessionId="session-002")
+        bindings = bind(cancelled, corroborating, separate)
+        bindings[binding_alias(separate)]["authorityOccurrenceId"] = "session-002"
+        prior = json.loads(json.dumps(generate([cancelled])["ledger"]))
+
+        result = generate([corroborating, separate], bindings, prior)
+        self.assertEqual([item["title"] for item in result["payload"]["items"]], [separate["title"]])
+        retired, = result["payload"]["retiredOccurrences"]
+        self.assertEqual(retired["status"], "CANCELLED")
+        aliases = {item["alias"]: item["canonicalOccurrenceId"] for item in result["payload"]["sourceAliases"]}
+        self.assertEqual(aliases[binding_alias(corroborating)], retired["canonicalOccurrenceId"])
+
     def test_newer_same_alias_observation_cannot_hide_cancellation(self):
         original = row(1, revisionAt=NOW - 1)
         cancelled = row(1, revisionAt=NOW - 2, status="CANCELLED")

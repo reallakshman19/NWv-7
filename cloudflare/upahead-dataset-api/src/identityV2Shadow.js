@@ -107,6 +107,9 @@ export async function verifyGeneration(payload, manifest, opts = {}) {
     if (payload.items.includes(row) && row.expiryAt <= nowMs) {
       return fail('expired-active-occurrence');
     }
+    if (row.eventStartAt != null && (!time(row.eventStartAt) || row.expiryAt < row.eventStartAt)) {
+      return fail('invalid-occurrence-window');
+    }
   }
   for (const retired of payload.retiredOccurrences) {
     if (!record(retired) || !retired.canonicalOccurrenceId) return fail('invalid-retired-occurrence');
