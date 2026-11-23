@@ -161,6 +161,23 @@ def test_rescheduled_future_occurrence_resets_active_clock():
     assert entered["items"][0]["firstVisibleAt"] == NOW + 24 * DAY_MS
 
 
+def test_matching_event_headlines_do_not_discard_distinct_source_listings():
+    shared = dict(title="Intro to Robotics Workshop", city="Chennai",
+                  venue="IIT Madras Research Park")
+    first = item("listing-a", **shared)
+    second = item("listing-b", **shared)
+    forward = merge_upahead_snapshot({}, [first, second], NOW, fetched=True)
+    reverse = merge_upahead_snapshot({}, [second, first], NOW, fetched=True)
+
+    assert [row["url"] for row in forward["items"]] == [first["url"], second["url"]]
+    assert forward["items"] == reverse["items"]
+    assert forward["contentHash"] == reverse["contentHash"]
+    assert not validate_snapshot(forward, NOW)["errors"]
+
+    replay = merge_upahead_snapshot(forward, [second], NOW + 3 * H_MS, fetched=True)
+    assert {row["id"] for row in replay["items"]} == {first["id"], second["id"]}
+
+
 def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     rows = [item(f"event-{i}") for i in range(MAX_ACTIVE_ITEMS + 25)]
     rows += [item(f"alert-{i}", category="weather_alerts") for i in range(10)]

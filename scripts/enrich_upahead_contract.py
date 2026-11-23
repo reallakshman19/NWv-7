@@ -515,6 +515,11 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
         active.append(row)
     unique = {}
     for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):
+        if item.get("category") == "events":
+            # A shared headline, venue and start time can describe distinct
+            # sessions. Keep each event identity selected by the revision pass.
+            unique[identity(item)] = item
+            continue
         event_start = _ms(item.get("eventStartAt"))
         location = item.get("city") or item.get("region") or ""
         key = (
