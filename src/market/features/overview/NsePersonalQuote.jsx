@@ -7,7 +7,6 @@ const SYMBOLS = [
   'AXISBANK', 'BAJFINANCE', 'MARUTI', 'WIPRO', 'SUNPHARMA',
 ];
 
-const GATEWAY = import.meta.env?.VITE_NSE_PERSONAL_GATEWAY_URL || '';
 const fmtValue = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
 const fmtDate = new Intl.DateTimeFormat('en-IN', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
@@ -45,7 +44,7 @@ export function NsePersonalQuote() {
   const [symbol, setSymbol] = useState('RELIANCE');
   const [token, setToken] = useState('');
   const [state, setState] = useState({ loading: false, quote: null, error: '' });
-  const endpoint = endpointOf(GATEWAY);
+  const endpoint = endpointOf(import.meta.env?.VITE_NSE_PERSONAL_GATEWAY_URL || '');
 
   const check = async () => {
     if (!endpoint || !token.trim() || state.loading) return;
@@ -137,6 +136,8 @@ export function NsePersonalQuote() {
       <div className="md3-card-bottom">
         <a className="md3-provider-link" href={nseStockUrl}
           target="_blank" rel="noopener noreferrer">Open {symbol} on official NSE</a>
+        <a className="md3-provider-link" href="https://www.nseindia.in/market-data/live-equity-market"
+          target="_blank" rel="noopener noreferrer">View NSE equity market at source</a>
       </div>
     </section>
   );
