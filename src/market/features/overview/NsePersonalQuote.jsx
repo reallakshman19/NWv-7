@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TradingViewNseFallback } from './TradingViewNseFallback.jsx';
+import { validateNseReply } from './nseReplyValidation.js';
 
 const SYMBOLS = [
   'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'SBIN',
@@ -11,8 +12,6 @@ const fmtValue = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
 const fmtDate = new Intl.DateTimeFormat('en-IN', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata',
 });
-const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
-
 function endpointOf(value) {
   try {
     const url = new URL(value);
@@ -21,23 +20,6 @@ function endpointOf(value) {
   } catch {
     return null;
   }
-}
-
-/** Only render qualified, explicitly identified source modes. */
-export function validateNseReply(data, symbol) {
-  const quote = data?.quote;
-  if (!quote || quote.symbol !== symbol || !Number.isFinite(quote.value) || quote.value <= 0) return null;
-  if (quote.sourceTier === 'NSE_EOD_FALLBACK' && quote.priceType === 'END_OF_DAY_CLOSE') {
-    if (typeof quote.priceDate !== 'string' || !DATE_ONLY.test(quote.priceDate) ||
-        !Number.isFinite(Date.parse(quote.priceDate + 'T00:00:00Z')) ||
-        new Date(quote.priceDate + 'T00:00:00Z').toISOString().slice(0, 10) !== quote.priceDate) return null;
-    return quote;
-  }
-  if (quote.sourceTier === 'NSE_CM_PRIMARY' && quote.priceType === 'INTRADAY_OBSERVATION') {
-    if (typeof quote.quoteAt !== 'string' || !Number.isFinite(Date.parse(quote.quoteAt))) return null;
-    return quote;
-  }
-  return null;
 }
 
 export function NsePersonalQuote() {
