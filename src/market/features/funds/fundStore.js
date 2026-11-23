@@ -13,7 +13,7 @@ import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS } from '../../contr
 import { canonicalFundCode, planLegacySavedFunds, MAX_SAVED_FUNDS } from '../../contracts/instrumentIdentity.js';
 import { fundClient } from './fundClient.js';
 import { recordMarketSourceReceipt, recordMarketSourceFailure } from '../health/marketSourceRecorder.js';
-import { sanitizeAndSortNavHistory } from './fundMath.js';
+import { normalizeDateToIso, sanitizeAndSortNavHistory } from './fundMath.js';
 
 export const SAVED_FUNDS_STORAGE_KEY = MARKET_LEGACY_STORAGE_KEYS.funds; // 'nw7.market-saved-funds.v1'
 export const FUND_HISTORY_STORAGE_KEY = MARKET_R21_STORAGE_KEYS.selectedFundHistory; // 'nw7.market-fund-history.v1'
@@ -266,56 +266,45 @@ class FundStore {
     this.updateSnapshot();
   }
 
-  // Same-day IST cache lookup
+  // The provider date, independent of its retrieval clock, orders NAV values.
+  newestKnownNav(code, now = Date.now()) {
+    const inMemory = this.state.navByCode[code]?.value;
+    const history = this.state.historyCache[code];
+    const historyDate = normalizeDateToIso(history?.latestDate);
+    const nav = Number(history?.latestNav);
+    if (!historyDate || historyDate > getIstDayKey(now) ||
+        !Number.isFinite(nav) || nav <= 0 || !Number.isFinite(history.checkedAt) ||
+        history.checkedAt < 0 || history.checkedAt > now ||
+        (inMemory && inMemory.date >= historyDate)) {
+      return inMemory || null;
+    }
+    return {
+      schemeCode: code,
+      schemeName: history.schemeName,
+      category: history.category,
+      fundHouse: history.fundHouse,
+      plan: history.plan,
+      option: history.option,
+      isIdcw: history.isIdcw,
+      nav,
+      date: historyDate,
+      rawDate: historyDate,
+      delivery: 'cache',
+      checkedAt: history.checkedAt
+    };
+  }
+
   readCachedNav(code, now = Date.now()) {
     const canonical = canonicalFundCode(code);
     if (!canonical) return null;
 
-    // Check in-memory first
-    const inMemory = this.state.navByCode[canonical];
-    if (inMemory?.status === 'ready' && inMemory?.value) {
-      const checkedAt = inMemory.value.checkedAt;
-      if (
-        Number.isFinite(checkedAt) &&
-        checkedAt >= 0 && checkedAt <= now &&
-        now - checkedAt < ONE_DAY_MS &&
-        getIstDayKey(checkedAt) === getIstDayKey(now)
-      ) {
-        return { ...inMemory.value, delivery: 'cache' };
-      }
-    }
-
-    // Check history cache
-    const cachedHistory = this.state.historyCache[canonical];
-    if (cachedHistory?.checkedAt) {
-      const checkedAt = cachedHistory.checkedAt;
-      if (
-        Number.isFinite(checkedAt) &&
-        checkedAt >= 0 && checkedAt <= now &&
-        now - checkedAt < ONE_DAY_MS &&
-        getIstDayKey(checkedAt) === getIstDayKey(now) &&
-        Number.isFinite(Number(cachedHistory.latestNav)) &&
-        Number(cachedHistory.latestNav) > 0 &&
-        cachedHistory.latestDate
-      ) {
-        return {
-          schemeCode: canonical,
-          schemeName: cachedHistory.schemeName,
-          category: cachedHistory.category,
-          fundHouse: cachedHistory.fundHouse,
-          plan: cachedHistory.plan,
-          option: cachedHistory.option,
-          isIdcw: cachedHistory.isIdcw,
-          nav: cachedHistory.latestNav,
-          date: cachedHistory.latestDate,
-          rawDate: cachedHistory.latestDate,
-          delivery: 'cache',
-          checkedAt
-        };
-      }
-    }
-
-    return null;
+    const item = this.state.navByCode[canonical];
+    if (item?.status === 'error' || item?.status === 'cooldown') return null;
+    const value = this.newestKnownNav(canonical, now);
+    const checkedAt = value?.checkedAt;
+    if (!Number.isFinite(checkedAt) || checkedAt < 0 || checkedAt > now ||
+        getIstDayKey(checkedAt) !== getIstDayKey(now)) return null;
+    return { ...value, delivery: 'cache' };
   }
 
   // Network Fetch with request coalescing and concurrency limit
@@ -325,7 +314,12 @@ class FundStore {
       throw new Error(`Invalid scheme code format: ${code}`);
     }
 
-    // 1. Check same-day cache if not forcing
+    // Coalesce manual and ordinary checks for this scheme.
+    if (this.inflightRequests.has(canonical)) {
+      return this.inflightRequests.get(canonical);
+    }
+
+    // Check the same-day cache if not forcing.
     if (!force) {
       const cached = this.readCachedNav(canonical);
       if (cached) {
@@ -335,14 +329,9 @@ class FundStore {
       }
     }
 
-    // 2. Coalesce concurrent requests for the same scheme
-    if (this.inflightRequests.has(canonical)) {
-      return this.inflightRequests.get(canonical);
-    }
-
-    // 3. Mark loading
+    // Mark loading and preserve the latest known observation.
     this.state.navByCode[canonical] = {
-      ...(this.state.navByCode[canonical] || {}),
+      value: this.newestKnownNav(canonical),
       status: 'loading'
     };
     this.updateSnapshot();
@@ -351,6 +340,9 @@ class FundStore {
     const fetchPromise = (async () => {
       try {
         const item = await fundClient.fetchLatestNav(canonical, { signal });
+        if (this.newestKnownNav(canonical)?.date > item.date) {
+          throw new Error('MFapi returned an older NAV observation');
+        }
         recordMarketSourceReceipt(item.receipt);
         this.state.navByCode[canonical] = { status: 'ready', value: item };
         this.updateSnapshot();
@@ -362,7 +354,7 @@ class FundStore {
         const errorMsg = err.message || 'NAV fetch failed';
         // Retain the last observation with its original source date; a failed
         // network check must not erase historical evidence or mark it fresh.
-        const previous = this.state.navByCode[canonical]?.value;
+        const previous = this.newestKnownNav(canonical);
         this.state.navByCode[canonical] = {
           status,
           error: errorMsg,
