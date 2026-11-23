@@ -6,6 +6,9 @@
  * Provider widgets remain opt-in and no data request runs on mount.
  */
 import React, { useMemo, useState, useSyncExternalStore } from 'react';
+import { FiClock, FiExternalLink } from 'react-icons/fi';
+import { canonicalIndexId, getQualifiedIndexRows } from '../../../services/marketQuotePolicy.js';
+import { formatMarketTimestamp, isMarketSeedRow } from '../../../utils/marketSession.js';
 import { MarketNav } from './MarketNav.jsx';
 import { MarketSessionHeader } from './MarketSessionHeader.jsx';
 import { OverviewSlotErrorBoundary } from './OverviewSlotErrorBoundary.jsx';
@@ -74,31 +77,45 @@ function DeskCard({ id, title, action, destination, onNavigate, wide = false, ch
 }
 
 function MarketPulse({ data }) {
-  const freeOnly = data?.sourceMode === 'free-open-only' || !data?.sourceMode;
+  const sourceMode = data?.sourceMode;
+  const canDisplayQuotes = ['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache'].includes(sourceMode);
+  const observations = canDisplayQuotes ? getQualifiedIndexRows(data) : [];
+  const isLastAvailable = sourceMode !== 'live';
+
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
-        const row = freeOnly ? null : (data?.indices || []).find(item =>
-          item.symbol === index.symbol || item.name === index.name
+        const indexId = canonicalIndexId(index);
+        const observation = observations.find(({ id, row }) =>
+          (row.symbol === index.symbol || row.name === index.name || id === indexId) &&
+          (row.source || row.sourceProvider) && !isMarketSeedRow(row)
         );
-        // Never display an undated or unowned exchange value.
-        const value = Number(row?.value ?? row?.price);
-        const qualified = row && Number.isFinite(value) && value > 0 && row.quoteAt &&
-          (row.source || row.sourceProvider);
+
         return (
           <a key={index.id} className="md3-pulse-row" href={index.url}
             target="_blank" rel="noopener noreferrer">
             <span className="md3-pulse-identity">
               <strong>{index.name}</strong>
-              <small>{index.source} · Original source</small>
+              <small className="md3-pulse-caption">
+                {index.source} <FiExternalLink aria-hidden="true" />
+              </small>
             </span>
             <span className="md3-pulse-observation">
-              {qualified ? (
+              {observation ? (
                 <>
-                  <strong>{value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
-                  <small>As of {row.quoteAt}</small>
+                  <strong>{observation.value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+                  {isLastAvailable && (
+                    <small className="md3-pulse-caption md3-pulse-history">
+                      <FiClock aria-hidden="true" /> Last available
+                    </small>
+                  )}
+                  <small>
+                    <time dateTime={new Date(observation.time).toISOString()}>
+                      {formatMarketTimestamp(observation.time)}
+                    </time>
+                  </small>
                 </>
-              ) : <small>View at source</small>}
+              ) : <small>No saved value</small>}
             </span>
           </a>
         );

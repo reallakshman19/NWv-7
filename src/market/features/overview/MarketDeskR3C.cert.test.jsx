@@ -56,6 +56,34 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(4);
   });
 
+  it('shows a retained index value with a clock label and its original quote time', () => {
+    const quoteAt = new Date(Date.now() - 86400000).toISOString();
+    render(<MarketDeskOverview hideNav data={{
+      sourceMode: 'stale-cache',
+      indices: [{ symbol: '^NSEI', value: 24850.5, quoteAt, source: 'verified source' }]
+    }} />);
+    const nifty = screen.getByRole('link', { name: /NIFTY 50/ });
+    expect(nifty.textContent).toContain('24,850.5');
+    expect(nifty.querySelector('.md3-pulse-history svg')).toBeTruthy();
+    expect(nifty.textContent).toContain('Last available');
+    expect(nifty.querySelector('time').getAttribute('datetime')).toBe(quoteAt);
+    expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('No saved value');
+  });
+
+  it('keeps the official link when the saved observation has expired or has an invalid date', () => {
+    const expired = new Date(Date.now() - 6 * 86400000).toISOString();
+    render(<MarketDeskOverview hideNav data={{
+      sourceMode: 'stale-cache',
+      indices: [
+        { symbol: '^NSEI', value: 24850.5, quoteAt: expired, source: 'verified source' },
+        { symbol: '^BSESN', value: 82500, quoteAt: 'invalid', source: 'verified source' }
+      ]
+    }} />);
+    expect(screen.getByRole('link', { name: /NIFTY 50/ }).textContent).toContain('No saved value');
+    expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('No saved value');
+    expect(screen.queryByText('Last available')).toBeNull();
+  });
+
   it('routes key financial actions to canonical nine-workspace destinations', () => {
     const onNavigate = vi.fn();
     render(<MarketDeskOverview data={freeOpenMarketPayload()} hideNav onNavigate={onNavigate} />);
