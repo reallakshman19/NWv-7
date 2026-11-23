@@ -50,3 +50,30 @@
   .market-workspace__field-row > label { flex: 1 1 100%; width: 100%; }
   .market-workspace__field-row > label input { width: 100%; max-width: 100%; }
 }
+
+/* Keep the workspace selector visible at phone sizes, even with large app text. */
+@media (max-width: 767px) {
+  .market-workspace__header { padding: 8px 10px 0; }
+  .market-workspace__title { align-items: center; gap: 4px 8px; }
+  .market-workspace__title h1 { font-size: max(20px, .95rem); line-height: 1.15; }
+  .market-workspace__status { font-size: max(13px, .54rem); gap: 4px 8px; }
+  .market-workspace__status button { padding: 6px 8px; }
+  .market-workspace__body { padding: 8px 10px; }
+  .market-workspace__header .market-nav__mobile {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    overflow: visible;
+    padding: 4px 0 6px;
+  }
+  .market-workspace__header .market-nav__mobile-tab {
+    min-width: 0;
+    padding: 5px 3px;
+    font-size: max(13px, .56rem);
+    line-height: 1.2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+.market-workspace__diagnostics p { margin: 6px 0; }

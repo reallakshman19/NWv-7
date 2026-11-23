@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MarketDeskOverview } from './MarketDeskOverview.jsx';
 import { healthStore } from '../health/healthStore.js';
@@ -26,12 +26,12 @@ describe('Market R3C — actual Overview route acceptance', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { container } = render(<MarketDeskOverview data={payload} hideNav />);
     expect(screen.getByTestId('market-desk-r3c')).toBeTruthy();
-    expect(screen.getByRole('heading', { name: /Market at a glance/ })).toBeTruthy();
+    expect(screen.getByRole('navigation', { name: 'Jump to a Market section' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /India Market Pulse/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /My Watchlist/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Portfolio & Investment Lab/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Mutual Fund Quick Search/ })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: /Currency Rates & Converter/ })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /Currency Rates/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /BSE Provider Board/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Market Briefing/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Movers & Sector References/ })).toBeTruthy();
@@ -45,6 +45,21 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(container.textContent).not.toContain('SLA < 24h');
     expect(fetchMock).not.toHaveBeenCalled();
     expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
+  });
+
+  it('puts the four main data sections first and lets jump links focus them', () => {
+    const { container } = render(<MarketDeskOverview hideNav showSessionHeader={false} />);
+    const firstSections = Array.from(container.querySelectorAll('.md3-grid > section h2'))
+      .slice(0, 4).map(heading => heading.textContent);
+    expect(firstSections).toEqual([
+      'India Market Pulse', 'Currency Rates', 'Mutual Fund Quick Search', 'Market Briefing'
+    ]);
+    expect(screen.queryByRole('heading', { name: 'India Market Desk' })).toBeNull();
+    const links = within(screen.getByRole('navigation', { name: 'Jump to a Market section' }));
+    fireEvent.click(links.getByRole('button', { name: 'News' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Market Briefing' }));
+    fireEvent.click(links.getByRole('button', { name: 'Find fund' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Mutual Fund Quick Search' }));
   });
 
   it('does not render unlicensed index values even if free-mode payload includes them', () => {
@@ -88,11 +103,11 @@ describe('Market R3C — actual Overview route acceptance', () => {
     const onNavigate = vi.fn();
     render(<MarketDeskOverview data={freeOpenMarketPayload()} hideNav onNavigate={onNavigate} />);
     for (const [name, target] of [
-      ['All Indices & Sectors', 'indices'],
+      ['All indices', 'indices'],
       ['Manage Watchlist', 'equity'],
       ['Open Portfolio', 'portfolio'],
       ['Research funds', 'funds'],
-      ['Currency & Macro', 'currency-macro'],
+      ['All rates', 'currency-macro'],
       ['Launch Calculators', 'lab'],
       ['All Events & News', 'ipo-events'],
       ['Full Health Workspace', 'health']

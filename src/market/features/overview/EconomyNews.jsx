@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { publicDataUrl } from '../../../data/fetchClient.js';
 import { safeGetJson, safeSetJson } from '../../../data/safeStorage.js';
 import { boundedMarketJson } from '../../../services/marketJsonRequest.js';
@@ -9,6 +9,7 @@ import {
 
 import { recordMarketSourceFailure, recordMarketSourceObservation } from '../health/marketSourceRecorder.js';
 
+const PREVIEW_HEADLINES = 3;
 const CACHE_KEY = 'nw7.market.economy-news.v1';
 const SOURCE_LINKS = [
   ['PIB releases', PIB_RELEASES_URL],
@@ -25,6 +26,8 @@ export function EconomyNews() {
   const [briefing, setBriefing] = useState(readCachedBriefing);
   const [status, setStatus] = useState('loading');
   const [viewTime] = useState(Date.now);
+  const [expanded, setExpanded] = useState(false);
+  const listId = useId();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -58,6 +61,7 @@ export function EconomyNews() {
   }, []);
 
   const releases = recentEconomyNews(briefing, viewTime);
+  const visibleReleases = expanded ? releases : releases.slice(0, PREVIEW_HEADLINES);
   const checkedAt = briefing?.checkedAt;
   const delayed = checkedAt && viewTime - Date.parse(checkedAt) > 12 * 3600000;
   return (
@@ -66,8 +70,8 @@ export function EconomyNews() {
         <p role="status">Showing retained official releases.</p>
       )}
       {releases.length > 0 ? (
-        <ul className="md3-economy-list">
-          {releases.map(({ id, headline, url, publishedOn, ministry }) => (
+        <ul id={listId} className="md3-economy-list">
+          {visibleReleases.map(({ id, headline, url, publishedOn, ministry }) => (
             <li key={id}>
               <a href={url} target="_blank" rel="noopener noreferrer">{headline}</a>
               <small><time dateTime={publishedOn}>{publishedOn}</time> · {ministry} via PIB</small>
@@ -77,6 +81,12 @@ export function EconomyNews() {
       ) : (
         <p role="status">{status === 'loading' ? 'Checking for official releases…' :
           'Recent releases are unavailable here. Open an official source below.'}</p>
+      )}
+      {releases.length > PREVIEW_HEADLINES && (
+        <button type="button" className="md3-secondary" aria-expanded={expanded} aria-controls={listId}
+          onClick={() => setExpanded(value => !value)}>
+          {expanded ? 'Show fewer headlines' : `Show all ${releases.length} headlines`}
+        </button>
       )}
       {checkedAt && <small>Feed checked <time dateTime={checkedAt}>{checkedAt.slice(0, 16).replace('T', ' ')} UTC</time></small>}
       <div className="md3-link-grid">

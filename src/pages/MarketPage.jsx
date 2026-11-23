@@ -260,31 +260,32 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
   }, [data, sourceHealth, health]);
 
   return (
-    <div className="market-workspace__status">
-      <span>India session: {sessionState?.label || 'Estimated / unavailable'}</span>
-      <span>
-        Publication:{' '}
-        {data?.sourceMode === 'free-open-only'
-          ? 'Free/open mode — no redistributed quotes'
-          : time || 'Unavailable'}
-      </span>
-      {quality && (
-        <span title={quality.dimensions?.policyCompliance?.detail}>
-          Policy guard: {quality.dimensions?.policyCompliance?.status === 'PASS' ? 'No local violation detected' : 'Review required'}
-        </span>
-      )}
-      {loading && <span role="status">Refreshing quote publication…</span>}
-      <button
-        type="button"
-        aria-expanded={expanded}
-        aria-controls="market-data-status-details"
-        onClick={() => setExpanded(value => !value)}
-      >
-        Data status
-      </button>
+    <>
+      <div className="market-workspace__status">
+        <span>{sessionState?.label || 'Indicative session'}</span>
+        {loading && <span role="status">Checking sources…</span>}
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="market-data-status-details"
+          onClick={() => setExpanded(value => !value)}
+        >
+          Data status
+        </button>
+      </div>
       {expanded && (
         <div id="market-data-status-details" className="market-workspace__diagnostics">
           <strong>Source health</strong>
+          <p>
+            Publication:{' '}
+            {data?.sourceMode === 'free-open-only' ? 'Free/open mode — no redistributed quotes' : time || 'Unavailable'}
+          </p>
+          {quality && (
+            <p title={quality.dimensions?.policyCompliance?.detail}>
+              Policy guard: {quality.dimensions?.policyCompliance?.status === 'PASS' ? 'No local violation detected' : 'Review required'}
+            </p>
+          )}
+          {sessionState?.reason && <p>{sessionState.reason}</p>}
           <p>
             Publication time does not change the quote time shown on individual rows. Cached observations retain their
             source dates.
@@ -300,7 +301,7 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
           </dl>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -375,7 +376,13 @@ export default function MarketPage() {
     watchlist: <WatchlistSummary onNavigate={changeView} />,
     portfolio: <PortfolioSummary onOpenPortfolio={() => changeView('portfolio')} />,
     fundSearch: <FundQuickSearch />,
-    currency: <><MarketFxRates /><FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} /></>,
+    currency: <>
+      <MarketFxRates />
+      <details className="md3-converter">
+        <summary>Currency calculator</summary>
+        <FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} />
+      </details>
+    </>,
     marketBriefing: <EconomyNews />,
     events: <EventsQuickWidget onOpenEventsDesk={() => changeView('ipo-events')} />,
     sourceHealth: <SourceHealthCard />
@@ -418,7 +425,8 @@ export default function MarketPage() {
             onRefresh={refresh}
             refreshing={loading}
             currentWorkspace={view}
-            hideNav={true}
+            hideNav
+            showSessionHeader={false}
           />
         )}
 
