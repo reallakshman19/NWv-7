@@ -70,6 +70,22 @@ describe('Market R3A — portfolio safety and durability', () => {
     expect(portfolioStore.getSnapshot()).toBe(original);
   });
 
+  it('imports an exported portfolio as a separately selectable copy after reload', () => {
+    const original = portfolioStore.getSnapshot();
+    const exported = JSON.parse(portfolioStore.exportJson(original.activePortfolioId));
+    exported.portfolio.name = 'Imported copy';
+
+    expect(portfolioStore.importJson(JSON.stringify(exported), 'NEW_PORTFOLIO'))
+      .toEqual({ ok: true, importedCount: 1 });
+    portfolioStore.init();
+
+    const reloaded = portfolioStore.getSnapshot();
+    expect(new Set(reloaded.portfolios.map(portfolio => portfolio.id)).size).toBe(2);
+    expect(reloaded.portfolios.find(portfolio => portfolio.id === reloaded.activePortfolioId)?.name)
+      .toBe('Imported copy');
+    expect(portfolioStore.switchPortfolio(original.activePortfolioId).ok).toBe(true);
+  });
+
   it('reports the actual count for an import that replaces one portfolio', () => {
     const payload = JSON.stringify({ version: 1, portfolios: [
       { name: 'First import', transactions: [buy()] },

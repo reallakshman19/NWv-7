@@ -529,9 +529,15 @@ class PortfolioStore {
           active.updatedAt = new Date().toISOString();
         }
       } else if (mode === 'NEW_PORTFOLIO') {
-        for (const p of validatedPortfolios) {
-          state.portfolios.push(p);
-          state.activePortfolioId = p.id;
+        const usedIds = new Set(state.portfolios.map(portfolio => portfolio.id));
+        for (const portfolio of validatedPortfolios) {
+          let id = portfolio.id;
+          for (let suffix = 2; usedIds.has(id); suffix += 1) {
+            id = `${portfolio.id}-${suffix}`;
+          }
+          usedIds.add(id);
+          state.portfolios.push({ ...portfolio, id });
+          state.activePortfolioId = id;
         }
       } else if (mode === 'MERGE') {
         const active = state.portfolios.find(p => p.id === state.activePortfolioId);
