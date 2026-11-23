@@ -27,11 +27,11 @@ jobs:
           node-version: '22'
           cache: npm
       - name: Owner-only NSE MCP wire and failure fixtures
-        run: node --test cloudflare/nse-personal-mcp/index.test.mjs
+        run: node --test cloudflare/nse-personal-mcp/*.test.mjs
       - name: Install application dependencies
         run: npm ci
       - name: Verify NSE personal quote component and overview
-        run: npx vitest run --config vitest.config.js src/market/features/overview/NsePersonalQuote.cert.test.jsx src/market/features/overview/MarketDeskR3C.cert.test.jsx
+        run: npx vitest run --config vitest.config.js src/market/features/overview/NsePersonalQuote.cert.test.jsx src/market/features/overview/NseFallbacks.cert.test.jsx src/market/features/overview/MarketDeskR3C.cert.test.jsx
       - name: Build frontend without gateway credentials
         run: npm run build
       - name: Reject public market quote snapshot publication
