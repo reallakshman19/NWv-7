@@ -100,6 +100,12 @@
   .md3-metrics { grid-template-columns: minmax(0, 1fr); }
   .md3-pulse-list { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* User-triggered browser-local quote lookup; no background polling. */
+.md3-personal-quotes { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 12px; margin-top: 12px; }
+.md3-personal-quotes > span { flex: 1 1 180px; font-size: .72rem; line-height: 1.4; color: var(--md3-muted); }
+.md3-quote-error { margin: 8px 0 0; color: var(--market-tone-warning, #facc15); font-size: .75rem; }
+
 @media print {
   .md3-card-action, .md3-metric, .md3-health-actions { break-inside: avoid; }
   .md3-card, .md3-health { break-inside: avoid; }
