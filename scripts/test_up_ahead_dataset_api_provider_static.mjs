@@ -15,8 +15,9 @@ const dataset = read('src/data/datasets/upAheadDataset.js');
 const policy = read('src/data/datasets/upAheadProviderPolicy.js');
 const client = read('src/data/datasets/upAheadDatasetApiClient.js');
 const report = read('reports/NW-DP-004_up_ahead_dataset_api_provider_chain.md');
-const apiBranchIndex = dataset.indexOf('initialPolicy.shouldAttemptDatasetApi');
-const staticBranchIndex = dataset.indexOf('initialPolicy.shouldReadStatic');
+const staticFirstIndex = dataset.indexOf('const staticFirst = initialPolicy.shouldReadStatic');
+const apiBranchIndex = dataset.indexOf('initialPolicy.shouldAttemptDatasetApi && (!staticFirst || !hasUsableStatic)');
+const staticFallbackIndex = dataset.indexOf('!staticFirst && initialPolicy.shouldReadStatic && !hasFreshApi');
 
 assert(
   dataset.includes("from './upAheadDatasetApiClient.js'"),
@@ -24,8 +25,8 @@ assert(
 );
 
 assert(
-  apiBranchIndex >= 0 && staticBranchIndex >= 0 && apiBranchIndex < staticBranchIndex,
-  'API provider branch must appear before static fallback branch in load flow'
+  staticFirstIndex >= 0 && apiBranchIndex > staticFirstIndex && staticFallbackIndex > apiBranchIndex,
+  'Static-first branch must precede conditional Worker fallback; legacy static recovery must remain'
 );
 
 assert(

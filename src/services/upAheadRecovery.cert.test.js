@@ -65,8 +65,8 @@ describe('Up Ahead live-audit regressions', () => {
 
   it('retains both category routes for one source article without duplicate suggestions', () => {
     vi.useFakeTimers().setSystemTime(NOW);
-    const item = row('workshop', 'events', { title: 'Chennai workshop', eventStartAt: NOW + DAY,
-      plannerEligible: true, url: 'https://example.org/workshop', city: 'Chennai' });
+    const item = row('traffic-diversion', 'events', { title: 'Chennai traffic diversion for weekend parade', eventStartAt: NOW + DAY,
+      plannerEligible: true, url: 'https://example.org/traffic-diversion', city: 'Chennai' });
     const data = sanitizeUpAheadData({ fetchedAt: NOW, items: [item, { ...item, category: 'alerts' }] });
     const result = getVisibleUpAheadProjection({ data, settings });
     expect(result.eventItems).toHaveLength(1);

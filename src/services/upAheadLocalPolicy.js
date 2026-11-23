@@ -38,6 +38,19 @@ export function getAlertProvenance(item) {
   return official ? 'Official notice' : 'News report · verify with authority';
 }
 
+// News articles about an individual rescue or evacuation are not notices
+// addressed to residents. Browser-side filtering also protects retained v1
+// snapshots while the publisher transitions to the tighter Python rule.
+export function isActionableLocalAlert(item) {
+  const text = itemText(item);
+  // Same intent boundary as the GitHub publisher: a source reporting on an
+  // individual patient is not an actionable resident notice. Require concrete
+  // disruptions or instructions to the affected community.
+  const impact = /\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|(?:power|electricity|water)\s+supply(?:\s+(?:will|may|is|was|be|been|being|has|to|temporarily|scheduled|remain)){0,6}\s+(?:suspended|interrupted|cut|shut\s+off)|water (?:supply )?(?:cut|outage|interruption|shutdown)|road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|public transport (?:suspended|disruption)|evacuation order|evacuate (?:residents|homes|areas)|public safety (?:warning|advisory)|(?:residents|commuters|drivers) (?:warned|advised|urged) to|service (?:shutdown|suspension|disruption)|airport (?:closure|closed)|school (?:closure|closed))\b/i.test(text);
+  const publicHealth = /\b(?:boil[\s-]+water (?:advisory|warning|notice|order)|water[\s-]+contamination (?:warning|advisory|notice)|(?:tap|drinking) water (?:contamination|warning|advisory)|(?:contaminated|unsafe) (?:(?:tap|drinking) )?water.{0,80}(?:residents|advised|avoid drinking|boil|warning|advisory)|(?:residents|households) (?:are )?(?:warned|advised|urged) to (?:boil|avoid drinking) (?:(?:tap|drinking) )?water)\b/i.test(text);
+  return impact || publicHealth;
+}
+
 // Retained public records are subject to the same current admission rules.
 // Neither court notices nor long-term water-supply projects are civic actions.
 export function isActionableCivicNotice(item) {

@@ -55,14 +55,63 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
-  it('prefers usable API result before static fallback', async () => {
+  it('does not invoke Cloudflare when the GitHub Pages snapshot is fresh', async () => {
+    mocks.fetchStaticUpAheadData.mockResolvedValue({ ...visibleStatic, fetchedAt: Date.now() });
+    mocks.fetchUpAheadDatasetApiResponse.mockRejectedValue(new Error('Worker must not be contacted'));
+    const { load } = await import('./upAheadDataset.js');
+    const envelope = await load({ policy: 'smart' });
+
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchUpAheadDatasetApiResponse).not.toHaveBeenCalled();
+    expect(envelope.data.sourceMode).toBe('snapshot');
+    expect(envelope.freshness).toBe('fresh');
+    expect(envelope.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({ event: 'upAheadDataset.api_skipped_policy',
+        message: 'fresh-static-snapshot-avoids-worker' }),
+    ]));
+  });
+
+  it('does not let an HTTP-200 empty Worker fallback overwrite retained Pages coverage', async () => {
+    const cache = new Map();
+    vi.stubGlobal('localStorage', {
+      getItem: key => cache.get(key) || null,
+      setItem: (key, value) => cache.set(key, value),
+    });
+    const stalePages = { ...visibleStatic, fetchedAt: Date.now() - 18 * 60 * 60 * 1000 };
+    mocks.fetchStaticUpAheadData.mockResolvedValue(stalePages);
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(emptyData, {
+      source: 'fallback', reason: 'upstream-non-ok', freshness: 'unknown', ageSeconds: 'unknown',
+    }));
+    const { load } = await import('./upAheadDataset.js');
+    const envelope = await load({ policy: 'smart' });
+
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
+    expect(envelope.data.events.map(item => item.title)).toEqual(['Static event']);
+    expect(envelope.data.sourceMode).toBe('snapshot');
+    expect(envelope.diagnostics.map(item => item.event)).toContain('upAheadDataset.api_empty');
+    expect(JSON.parse(cache.get('upAhead_cache'))).toMatchObject({ sourceMode: 'snapshot' });
+  });
+
+  it('falls back to Cloudflare when the GitHub Pages snapshot is unavailable', async () => {
+    mocks.fetchStaticUpAheadData.mockResolvedValue(null);
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi));
+    const { load } = await import('./upAheadDataset.js');
+    const envelope = await load({ policy: 'smart' });
+
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
+    expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
+    expect(envelope.data.sourceMode).toBe('dataset-api');
+  });
+
+  it('uses API fallback when the static snapshot has no verifiable epoch', async () => {
     mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi));
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
 
     expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
-    expect(mocks.fetchStaticUpAheadData).not.toHaveBeenCalled();
+    expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
     expect(mocks.fetchLiveUpAheadData).not.toHaveBeenCalled();
     expect(envelope.data.sourceMode).toBe('dataset-api');
     expect(envelope.freshness).toBe('fresh');
@@ -114,19 +163,56 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     });
   });
 
-  it('retains active stale API items and checks for a newer published snapshot', async () => {
-    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse(visibleApi, {
+  it('retains distinct still-active dated Pages and stale API events without merging their identities', async () => {
+    const now = Date.now();
+    const eventStartAt = now + 24 * 60 * 60 * 1000;
+    const expiryAt = now + 48 * 60 * 60 * 1000;
+    // Source identity and explicit validity are essential. An undated, ID-less
+    // synthetic section is not a valid seven-day publisher retention fixture.
+    const staticEvent = {
+      id: 'pages-event-2026',
+      title: 'Static event',
+      category: 'events',
+      source: 'Pages calendar',
+      url: 'https://pages.example.org/occurrences/pages-event-2026',
+      city: 'Chennai',
+      observedAt: now - 18 * 60 * 60 * 1000,
+      eventStartAt,
+      expiryAt,
+    };
+    const apiEvent = {
+      id: 'api-event-2026',
+      title: 'API event',
+      category: 'events',
+      source: 'Independent organizer',
+      url: 'https://organizer.example.org/occurrences/api-event-2026',
+      city: 'Chennai',
+      observedAt: now - 12 * 60 * 60 * 1000,
+      eventStartAt,
+      expiryAt,
+    };
+    mocks.fetchStaticUpAheadData.mockResolvedValue({
+      fetchedAt: now - 18 * 60 * 60 * 1000,
+      sections: { events: [staticEvent] },
+      timeline: [], weekly_plan: [],
+    });
+    mocks.fetchUpAheadDatasetApiResponse.mockResolvedValue(apiResponse({
+      fetchedAt: now - 12 * 60 * 60 * 1000,
+      sections: { events: [apiEvent] },
+      timeline: [], weekly_plan: [],
+    }, {
       source: 'upstream',
       reason: 'ok',
       freshness: 'stale',
-      ageSeconds: '999999',
+      ageSeconds: '43200',
     }));
     const { load } = await import('./upAheadDataset.js');
 
     const envelope = await load({ policy: 'smart' });
 
     expect(mocks.fetchStaticUpAheadData).toHaveBeenCalledTimes(1);
-    expect(envelope.data.events.map(item => item.title)).toEqual(['API event', 'Static event']);
+    expect(mocks.fetchUpAheadDatasetApiResponse).toHaveBeenCalledTimes(1);
+    expect(envelope.data.events.map(item => item.title).sort()).toEqual(['API event', 'Static event']);
     expect(envelope.diagnostics.find(item => item.event === 'upAheadDataset.api_edge_diagnostics')?.details.freshness).toBe('stale');
   });
 
@@ -171,8 +257,9 @@ describe('NW-DP-004 Up Ahead dataset provider chain', () => {
     const { load } = await import('./upAheadDataset.js');
     const envelope = await load({ policy: 'smart' });
     expect(envelope).toMatchObject({ freshness: 'fresh', fetchedAt: staticEpoch });
-    expect(envelope.data).toMatchObject({ sourceMode: 'snapshot', raw: { fetchedAt: staticEpoch, datasetApiFreshness: null } });
-    expect(envelope.data.events.map(item => item.title)).toEqual(['API event', 'Static event']);
+    expect(mocks.fetchUpAheadDatasetApiResponse).not.toHaveBeenCalled();
+    expect(envelope.data).toMatchObject({ sourceMode: 'snapshot', raw: { fetchedAt: staticEpoch } });
+    expect(envelope.data.events.map(item => item.title)).toEqual(['Static event']);
   });
 
   it('merges raw snapshot items from the API during a forced refresh without clearing the retained feed', async () => {

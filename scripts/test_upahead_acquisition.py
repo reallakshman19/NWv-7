@@ -38,6 +38,58 @@ class AcquisitionRecovery(unittest.TestCase):
         self.assertFalse(collector.has_category_intent('shopping', 'Every day is a sale day as India picks up shopping occasions'))
         self.assertFalse(collector.has_category_intent('shopping', 'Amazon adapter vanished after going on sale'))
 
+    def test_rescue_news_is_not_a_local_disruption_alert(self):
+        headline = 'RAFO airlifts Russian national for medical emergency in Muscat'
+        self.assertFalse(collector.has_category_intent('alerts', headline))
+        self.assertFalse(collector.has_category_intent('alerts', 'Muscat patient medical evacuation completed'))
+        self.assertFalse(collector.has_category_intent('alerts', 'Chennai newspaper issues a general advisory'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Muscat water supply interruption on November 24'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Chennai traffic diversion for commuters tomorrow'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Residents advised to avoid flooded roads'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Evacuation order for residents following a fire'))
+
+    def test_F02_public_health_alerts_survive_and_medical_rescue_stays_excluded(self):
+        admitted = [
+            'Chennai boil-water advisory for contaminated tap water',
+            'Muscat water-contamination warning instructing residents to boil drinking water',
+            'Muscat contaminated tap water; residents advised to boil before drinking',
+            'Chennai public health advisory: residents warned to boil drinking water',
+            'Chennai power shutdown and traffic diversion tomorrow',
+            'Muscat medical evacuation reported; residents warned to boil drinking water',
+        ]
+        rejected = [
+            'RAFO airlifts Russian national for medical emergency in Muscat',
+            'Muscat medevac of an injured sailor on an offshore ship',
+            'Newspaper discusses the history of water-quality testing in Chennai',
+            'Officials deny rumors of water contamination',
+            'Muscat water conservation campaign asks households to save water',
+        ]
+        for title in admitted:
+            with self.subTest(title=title):
+                self.assertTrue(collector.has_category_intent('alerts', title))
+        for title in rejected:
+            with self.subTest(title=title):
+                self.assertFalse(collector.has_category_intent('alerts', title))
+
+    def test_utility_supply_notices_require_an_actual_interruption(self):
+        self.assertTrue(collector.has_category_intent('alerts', 'TANGEDCO: Power supply will be suspended in Chennai on Saturday.'))
+        self.assertTrue(collector.has_category_intent('alerts', 'Muscat water supply is temporarily interrupted on Saturday.'))
+        self.assertFalse(collector.has_category_intent('alerts', 'Chennai power supply will not be suspended on Saturday.'))
+
+    def test_existing_rescue_news_does_not_reenter_via_new_feed(self):
+        from types import SimpleNamespace
+        article = dict(title='RAFO airlifts Russian national for medical emergency',
+                       summary='Muscat evacuation to hospital on a merchant vessel',
+                       link='https://timesofoman.com/article/medical-evacuation',
+                       published_parsed=gmtime(NOW / 1000))
+        with patch.object(collector, '_safe_feed_parse',
+                          return_value=SimpleNamespace(entries=[article])):
+            rows, health = collector.fetch_category_items(
+                'alerts', 'Muscat',
+                [('https://timesofoman.com/feed', 'Times of Oman', 'times_of_oman')], NOW)
+        self.assertEqual(rows, [])
+        self.assertEqual(list(health.values())[0]['items'], 0)
+
     def test_date_only_today_and_ongoing_ranges_remain_plannable(self):
         item = dict(category='events', eventStartAt=NOW - 12 * 3_600_000,
                     datePrecision='day', expiryAt=NOW + DAY_MS, localityScore=1)

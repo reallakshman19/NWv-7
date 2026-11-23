@@ -226,6 +226,37 @@ INTENT = {
 
 
 def has_category_intent(category, text):
+    if category == 'alerts':
+        # Search query/category labels are NOT an actionable public alert.
+        # Demand concrete community impact or a water-safety instruction,
+        # then apply existing source city, publication and expiry gates.
+        impact = re.search(
+            r'\b(?:power (?:cut|shutdown|outage)|electricity (?:outage|cut)|'
+            r'(?:power|electricity|water)\s+supply(?:\s+(?:will|may|is|was|be|been|being|has|to|temporarily|scheduled|remain)){0,6}\s+(?:suspended|interrupted|cut|shut\s+off)|'
+            r'water (?:supply )?(?:cut|outage|interruption|shutdown)|'
+            r'road (?:closure|closed|blocked)|traffic (?:diversion|restriction|ban)|'
+            r'public transport (?:suspended|disruption)|'
+            r'evacuation order|evacuate (?:residents|homes|areas)|'
+            r'public safety (?:warning|advisory)|'
+            r'(?:residents|commuters|drivers) (?:warned|advised|urged) to|'
+            r'service (?:shutdown|suspension|disruption)|'
+            r'airport (?:closure|closed)|school (?:closure|closed))\b',
+            text, re.I)
+        # The earlier allowlist dropped issuer-backed public-health notices
+        # such as a boil-water advisory while excluding medical airlift news.
+        public_health = re.search(
+            r'\b(?:boil[\s-]+water (?:advisory|warning|notice|order)|'
+            r'water[\s-]+contamination (?:warning|advisory|notice)|'
+            r'(?:tap|drinking) water (?:contamination|warning|advisory)|'
+            r'(?:contaminated|unsafe) (?:(?:tap|drinking) )?water.{0,80}'
+            r'(?:residents|advised|avoid drinking|boil|warning|advisory)|'
+            r'(?:residents|households) (?:are )?(?:warned|advised|urged) to '
+            r'(?:boil|avoid drinking) (?:(?:tap|drinking) )?water)\b',
+            text, re.I)
+        # Do not reject a genuine residential warning merely because an
+        # article ALSO mentions a medical evacuation. Isolated rescue news
+        # matches neither positive action gate and therefore remains excluded.
+        return bool(impact or public_health)
     if category == 'civic':
         # A court issuing a notice, a political registration or a retrospective
         # road project is not a current service notice for residents.

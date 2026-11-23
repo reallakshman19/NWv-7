@@ -5,14 +5,23 @@ import {
   upAheadEventDayKey, upAheadPlannerDayKey, upAheadOccurrenceKey, sameUpAheadOccurrence, sameUpAheadDisplayOccurrence,
 } from './upAheadLifecycle.js';
 import { isActualOfferText } from './upAheadService.js';
-import { classifyRetailOffer, isLocalHoliday, matchesLocalAlert, isActionableCivicNotice } from './upAheadLocalPolicy.js';
+import { classifyRetailOffer, isLocalHoliday, matchesLocalAlert, isActionableCivicNotice, isActionableLocalAlert } from './upAheadLocalPolicy.js';
+import { groupReviewOnlyEventListings } from './upAheadReviewGrouping.js';
 import { matchesUpAheadLocation } from './upAheadLocation.js';
 
 export function getUpAheadPlannerSuggestions(data, savedPlan, blacklist, settings, now = Date.now()) {
   const locations = (settings?.locations || ['Chennai', 'Muscat']).map(location => String(location).toLowerCase().trim());
   const saved = Object.entries(savedPlan || {}).flatMap(([date, items]) => (items || []).map(item => ({ ...item, date: upAheadDateKey(item) || date })));
   const candidates = (data?.timeline || []).flatMap(day => day.items || []);
-  return mergeUpAheadItems(candidates, { preferEventCategory: true }).flatMap(item => {
+  // Ambiguous source-review groups must never auto-select a physical session
+  // or emit multiple duplicate Planner suggestions. Events/Suggested still
+  // expose every original listing for the user to choose independently.
+  const reviewGroups = groupReviewOnlyEventListings(candidates)
+    .filter(item => item.reviewGroupStatus === 'POSSIBLE_DUPLICATE_UNCONFIRMED');
+  const needsSourceChoice = new Set(reviewGroups.flatMap(item =>
+    item.reviewAlternateListings.map(source => source.id)));
+  const eligibleCandidates = candidates.filter(item => !(item.category === 'events' && item.sourceGroup === 'chennai-calendar' && needsSourceChoice.has(item.id)));
+  return mergeUpAheadItems(eligibleCandidates, { preferEventCategory: true }).flatMap(item => {
     const date = upAheadDateKey(item);
     const today = upAheadEventDayKey(now, item);
     const lastDay = addCalendarDays(today, 6);
@@ -33,6 +42,7 @@ export function getUpAheadPlannerSuggestions(data, savedPlan, blacklist, setting
       || (item.category === 'festivals' && !isLocalHoliday(item, locations))
       || (['alerts', 'weather_alerts', 'civic'].includes(item.category) && !matchesLocalAlert(item, locations))
       || (item.category === 'civic' && !isActionableCivicNotice(item))
+      || (item.category === 'alerts' && !isActionableLocalAlert(item))
       || saved.some(row => sameUpAheadDisplayOccurrence(row, item)) || blacklist?.has(key) || unambiguousLegacy) return [];
 
     const payload = buildPlannerMergePayload({ ...item, eventDateKey: date });

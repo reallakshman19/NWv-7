@@ -95,6 +95,39 @@ it('honors publisher retirement markers even when this browser never saw the can
   expect(loadFromCache()).toBeNull();
 });
 
+it('retains separate event listings when an older publisher reused their ID', () => {
+  const raw = { id: 'shared', occurrenceId: null, eventStartAt: NOW + DAY, eventEndAt: NOW + 2 * DAY };
+  const first = event({ ...raw, url: 'https://example.org/workshop?session=a' });
+  const second = event({ ...raw, url: 'https://example.org/workshop?session=b' });
+  saveToCache(snapshot([first, second]));
+  expect(loadFromCache().sections.events.map(row => row.link).sort()).toEqual([first.url, second.url]);
+  vi.setSystemTime(NOW + 3_600_000);
+  const scoped = (record, suffix) => ({ ...record, id: `event-source:${suffix}`, sourceObservationId: raw.id });
+  saveToCache(snapshot([scoped(first, 'a'), scoped(second, 'b')], Date.now()));
+  expect(loadFromCache().sections.events.map(row => row.link).sort()).toEqual([first.url, second.url]);
+  expect(new Set(loadFromCache().sections.events.map(row => row.occurrenceKey)).size).toBe(2);
+  localStorage.setItem('upAhead_planner', 'personal-plan-bytes');
+
+  saveToCache({ ...snapshot([scoped(second, 'b')], Date.now()), retiredRevisions: [{
+    identity: ['events', 'event-source:a'], sourceObservationId: raw.id, sourceListingUrl: first.url,
+    revisionAt: Date.now(), retiredAt: Date.now(),
+  }] });
+  saveToCache(snapshot([first, second]));
+  expect(loadFromCache().sections.events.map(row => row.link)).toEqual([second.url]);
+  expect(localStorage.getItem('upAhead_planner')).toBe('personal-plan-bytes');
+});
+
+it('expires only the matching URL when older cached listings share a publisher ID', () => {
+  const raw = { id: 'shared', occurrenceId: null, eventStartAt: NOW, eventEndAt: NOW + 2 * DAY };
+  const first = event({ ...raw, url: 'https://example.org/workshop#north', expiryAt: NOW + 3_600_000 });
+  const second = event({ ...raw, url: 'https://example.org/workshop#south' });
+  saveToCache(snapshot([first]));
+  saveToCache(snapshot([second]));
+  expect(new Set(loadFromCache().sections.events.map(row => row.occurrenceKey)).size).toBe(2);
+  vi.setSystemTime(NOW + 3_600_000);
+  expect(loadFromCache().sections.events.map(row => row.link)).toEqual([second.url]);
+});
+
 it('keeps the original legacy bytes when durable quarantine cannot be written', () => {
   const original = JSON.stringify({ sections: { alerts: [{ id: 'legacy', title: 'Notice' }] } });
   localStorage.setItem(CACHE_KEY, original);

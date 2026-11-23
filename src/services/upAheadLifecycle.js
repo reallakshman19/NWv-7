@@ -187,6 +187,12 @@ export function occurrenceLink(value) {
   }
 }
 
+function listingLink(item, exact = Boolean(item.sourceObservationId)) {
+  const url = item.link || item.url;
+  const canonical = occurrenceLink(url);
+  return canonical && exact ? new URL(url).href : canonical;
+}
+
 const textKey = value => String(value || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 const locationKey = item => JSON.stringify([textKey(item.locationCanonical || item.city || item.region), textKey(item.venue || item.venueName || item.address)]);
 const startKey = item => item.eventStartAt && !['day','range'].includes(item.datePrecision) && !/^\d{4}-\d{2}-\d{2}$/.test(String(item.eventStartAt)) ? String(upAheadTimeMs(item.eventStartAt)) : '';
@@ -212,9 +218,11 @@ function slot(item) {
 }
 function aliases(item) {
   const scope = JSON.stringify([slot(item), item.occurrenceId || item.revisionOf || '']);
+  const link = listingLink(item);
+  const idScope = item.publicationOnlyId && categoryKey(item) === 'event' && link
+    ? JSON.stringify([scope, listingLink(item, true)]) : scope;
   const keys = [item.hiddenKey, item.canonicalId, item.id, ...(item.upAheadIds || [])]
-    .filter(id => id && !/^https?:\/\//i.test(id)).map(id => `id:${id}:${scope}`);
-  const link = occurrenceLink(item.link || item.url);
+    .filter(id => id && !/^https?:\/\//i.test(id)).map(id => `id:${id}:${idScope}`);
   if (link) keys.push(`link:${link}:${scope}`);
   const title = textKey(item.title);
   if (title && !link && (!keys.length || (upAheadDateKey(item) && (item.city || item.locationCanonical || item.venue)))) keys.push(`title:${title}:${scope}`);
@@ -225,7 +233,7 @@ export function upAheadIdentityKeys(item) {
 }
 export function upAheadOccurrenceKey(item) {
   if (item.occurrenceKey) return item.occurrenceKey;
-  const link = occurrenceLink(item.link || item.url);
+  const link = listingLink(item);
   return lineageKeys(item).find(k => k.startsWith('occ:')) || (link ? `link:${link}:${slot(item)}` : aliases(item)[0] || `title:${textKey(item.title)}:${slot(item)}`);
 }
 export function sameUpAheadOccurrence(a, b) {
@@ -235,6 +243,12 @@ export function sameUpAheadOccurrence(a, b) {
   const explicitB = [b.occurrenceId, b.revisionOf].filter(Boolean);
   if (explicitA.length && explicitB.length && !explicitA.some(x => explicitB.includes(x))) return false;
   if (explicitA.some(x => explicitB.includes(x))) return true;
+  const scopedListing = a.sourceObservationId || b.sourceObservationId
+    || (a.publicationOnlyId && b.publicationOnlyId && a.id === b.id
+      && categoryKey(a) === 'event' && categoryKey(b) === 'event');
+  const linkA = scopedListing && listingLink(a, true);
+  const linkB = scopedListing && listingLink(b, true);
+  if (linkA && linkB && linkA !== linkB) return false;
   // Legacy canonical lineage is only accepted across dates with matching
   // first-seen evidence and a different observation/revision time. Equal
   // observation-time siblings are not revisions. Timed sessions need explicit
@@ -248,6 +262,7 @@ export function sameUpAheadOccurrence(a, b) {
   // identity across subsequent copies, but cannot bridge different slots.
   if (a.occurrenceKey && b.occurrenceKey && a.occurrenceKey === b.occurrenceKey && (explicitA.length || explicitB.length)) return true;
   if (slot(a) !== slot(b)) return false;
+  if (linkA && linkA === linkB) return true;
   return aliases(a).some(k => aliases(b).includes(k)) || Boolean(a.occurrenceKey && a.occurrenceKey === b.occurrenceKey);
 }
 
@@ -284,11 +299,40 @@ function combineOccurrence(existing, item, latest) {
   }
   return result;
 }
+
+function eventListingSourceId(item) {
+  if (!item.publicationOnlyId || categoryKey(item) !== 'event' || item.occurrenceId || item.revisionOf) return null;
+  return item.sourceObservationId || item.id || null;
+}
+
+function scopeReusedListingIds(rows) {
+  const firstLinks = new Map();
+  const reused = new Set();
+  for (const row of rows) {
+    const id = eventListingSourceId(row);
+    const link = id && listingLink(row, true);
+    if (!link) continue;
+    if (!firstLinks.has(id)) firstLinks.set(id, link);
+    else if (firstLinks.get(id) !== link) reused.add(id);
+  }
+  return rows.map(row => {
+    const sourceObservationId = eventListingSourceId(row);
+    if (!reused.has(sourceObservationId) || row.sourceObservationId || !listingLink(row, true)) return row;
+    const { occurrenceKey, ...unkeyed } = row;
+    const scoped = { ...row, sourceObservationId };
+    // Recalculate only an old generated key. Explicit persisted keys still
+    // represent their original identities.
+    if (occurrenceKey === upAheadOccurrenceKey(unkeyed)) delete scoped.occurrenceKey;
+    return scoped;
+  });
+}
+
 export function mergeUpAheadItems(items, { preferEventCategory = false } = {}) {
   const merged = [];
   // Process stable lineages first, so an older revision cannot bridge two
   // independent occurrences through a common article alias.
-  for (const row of [...(items || [])].filter(Boolean).sort(compareRevision)) {
+  const rows = scopeReusedListingIds((items || []).filter(Boolean));
+  for (const row of rows.sort(compareRevision)) {
     if (!row || !upAheadIdentityKeys(row).length) continue;
     const item = { ...row, occurrenceKey: upAheadOccurrenceKey(row) };
     const index = merged.findIndex(existing => preferEventCategory

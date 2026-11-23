@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import json
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 from prefetch_common import compute_content_hash, title_fingerprint
@@ -300,14 +301,22 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
     chosen: list[dict[str, Any]] = []
     chosen_ids: set[int] = set()
     selected_by_category = Counter()
-    active_bytes = 0
+    # Serialization size is additive for these JSON-indented list elements.
+    # A single row contributes its one-row wrapper growth; each additional row
+    # replaces the former closing item indent with a comma and sibling indent
+    # (net -2 bytes versus two independently wrapped single-item payloads).
+    # Computing a full growing JSON payload for every candidate was O(n²)
+    # bytes encoded per three-hour refresh. Precompute each row once instead.
+    empty_bytes = active_published_bytes([])
+    row_deltas = [active_published_bytes([row]) - empty_bytes for row in ordered]
+    active_bytes = empty_bytes
     byte_rejected_indexes: set[int] = set()
 
     def admit(index: int, row: dict[str, Any]) -> bool:
         nonlocal active_bytes
         if len(chosen) >= MAX_ACTIVE_ITEMS:
             return False
-        next_bytes = active_published_bytes([*chosen, row])
+        next_bytes = active_bytes + row_deltas[index] - (2 if chosen else 0)
         if next_bytes > MAX_ACTIVE_BYTES:
             byte_rejected_indexes.add(index)
             return False
@@ -328,6 +337,10 @@ def bound_active_items(items: list[dict[str, Any]]) -> tuple[list[dict[str, Any]
 
     rejected = [row for index, row in enumerate(ordered) if index not in chosen_ids]
     rejected_by_category = Counter(str(row.get("category") or "unknown") for row in rejected)
+    # Fail closed if the size arithmetic ever diverges from the actual v1
+    # publisher JSON encoding; never publish a byte-cap estimate as proof.
+    if active_bytes != active_published_bytes(chosen):
+        raise ValueError("UpAhead bounded publication byte accounting mismatch")
     metrics = {
         "maxActiveItems": MAX_ACTIVE_ITEMS,
         "maxActiveBytes": MAX_ACTIVE_BYTES,
@@ -448,6 +461,16 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
     return enriched
 
 
+def _event_source_observation(item):
+    if item.get("category") != "events" or item.get("revisionOf") or item.get("occurrenceId"):
+        return None
+    source_id = item.get("sourceObservationId") or item.get("id")
+    url = item.get("url")
+    if isinstance(source_id, str) and source_id and isinstance(url, str) and url:
+        return source_id, url
+    return None
+
+
 def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fetched: bool) -> dict:
     # The latest version of an occurrence can close it or move it to another day.
     # Apply that version before expiry and deduplication.
@@ -466,9 +489,36 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
     by_id = {}
     retained = [*existing.get('items', []), *existing.get('pendingItems', [])]
     observed_incoming = [{**row, 'observedAt': row.get('observedAt') or ts} if fetched else row for row in incoming]
-    for item in [*retained, *observed_incoming]:
-        if not isinstance(item, dict) or not item.get('id'):
+    observations = [row for row in [*retained, *observed_incoming] if isinstance(row, dict) and row.get("id")]
+    listing_urls = defaultdict(set)
+    scoped_source_ids = set()
+    for item in observations:
+        source = _event_source_observation(item)
+        if source:
+            source_id, url = source
+            listing_urls[source_id].add(url)
+            if item.get("sourceObservationId"):
+                scoped_source_ids.add(source_id)
+    for row in retired_revisions.values():
+        source_id, url = row.get("sourceObservationId"), row.get("sourceListingUrl")
+        if row["identity"][0] != "events" or not (isinstance(source_id, str) and source_id and isinstance(url, str) and url):
             continue
+        listing_urls[source_id].add(url)
+        if row["identity"][1] != source_id:
+            scoped_source_ids.add(source_id)
+
+    for item in observations:
+        source = _event_source_observation(item)
+        if source:
+            source_id, url = source
+            if source_id in scoped_source_ids or len(listing_urls[source_id]) > 1:
+                digest = sha256(json.dumps(source, ensure_ascii=False).encode("utf-8")).hexdigest()
+                item = {**item, "id": f"event-source:{digest}", "sourceObservationId": source_id}
+            # Keep old unscoped tombstones effective. A newer tombstone carrying
+            # a source URL only applies to the listing it actually retired.
+            prior = retired_revisions.get(("events", source_id))
+            if prior and prior.get("sourceListingUrl", url) == url and revision(item) <= prior["revisionAt"]:
+                continue
         key = identity(item)
         if key in retired_revisions and revision(item) <= retired_revisions[key]['revisionAt']:
             continue
@@ -499,16 +549,26 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
                 previous = retired_revisions.get(key)
                 retired_revisions[key] = dict(identity=list(key), revisionAt=revision(row),
                                               retiredAt=previous['retiredAt'] if previous and previous['revisionAt'] == revision(row) else ts)
+                source = _event_source_observation(row)
+                if source:
+                    retired_revisions[key].update(sourceObservationId=source[0], sourceListingUrl=source[1])
             continue
         active.append(row)
     unique = {}
-    for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):
+    for item in sorted(active, key=lambda row: (_ms(row.get("publishedAt")) or 0, str(row["id"])), reverse=True):
         event_start = _ms(item.get("eventStartAt"))
         location = item.get("city") or item.get("region") or ""
+        # One event URL may be repeated under different IDs. A matching
+        # headline and slot alone cannot identify the same source listing.
+        event_listing = None
+        occurrence = item.get("occurrenceId")
+        if item.get("category") == "events":
+            event_listing = item.get("url") or item["id"]
+            occurrence = item.get("revisionOf") or occurrence
         key = (
             item.get("category"), location.casefold(),
             event_start, str(item.get('venue') or '').casefold(), item.get('sessionId'),
-            item.get('occurrenceId'),
+            occurrence, event_listing,
             title_fingerprint(item.get("title", "")) or item["id"],
         )
         unique.setdefault(key, item)

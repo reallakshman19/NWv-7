@@ -161,6 +161,64 @@ def test_rescheduled_future_occurrence_resets_active_clock():
     assert entered["items"][0]["firstVisibleAt"] == NOW + 24 * DAY_MS
 
 
+def test_matching_event_headlines_do_not_discard_distinct_source_listings():
+    shared = dict(title="Intro to Robotics Workshop", city="Chennai",
+                  venue="IIT Madras Research Park")
+    first = item("listing-a", **shared)
+    second = item("listing-b", **shared)
+    repeat = item("listing-a-copy", url=first["url"], publishedAt=NOW - H_MS, **shared)
+    forward = merge_upahead_snapshot({}, [first, second, repeat], NOW, fetched=True)
+    reverse = merge_upahead_snapshot({}, [repeat, second, first], NOW, fetched=True)
+
+    assert [row["url"] for row in forward["items"]] == [first["url"], second["url"]]
+    assert forward["items"] == reverse["items"]
+    assert forward["contentHash"] == reverse["contentHash"]
+    assert not validate_snapshot(forward, NOW)["errors"]
+
+    replay = merge_upahead_snapshot(forward, [second], NOW + 3 * H_MS, fetched=True)
+    assert {row["id"] for row in replay["items"]} == {first["id"], second["id"]}
+
+
+def test_revised_occurrences_sharing_a_source_page_stay_distinct():
+    shared = dict(title="Intro to Robotics Workshop", city="Chennai",
+                  venue="IIT Madras Research Park", url="https://example.org/robotics")
+    originals = [item(f"listing-{slot}", occurrenceId=f"occurrence-{slot}", **shared)
+                 for slot in ("a", "b")]
+    first = merge_upahead_snapshot({}, originals, NOW, fetched=True)
+    as_of = NOW + 3 * H_MS
+    revisions = [
+        item(f"revision-{slot}", revisionOf=f"occurrence-{slot}", observedAt=as_of,
+             eventStartAt=NOW + 2 * DAY_MS, eventEndAt=NOW + 3 * DAY_MS,
+             expiryAt=NOW + 3 * DAY_MS, **shared)
+        for slot in ("a", "b")
+    ]
+    for order in (revisions, revisions[::-1]):
+        updated = merge_upahead_snapshot(first, order, as_of, fetched=True)
+        assert [row["id"] for row in updated["items"]] == ["revision-a", "revision-b"]
+        assert not validate_snapshot(updated, as_of)["errors"]
+
+
+def test_reused_event_source_id_keeps_distinct_urls_and_retires_only_one():
+    shared = item("shared", title="Chennai workshop")
+    first = {**shared, "url": "https://example.org/workshop?session=a"}
+    second = {**shared, "url": "https://example.org/workshop?session=b"}
+    forward = merge_upahead_snapshot({}, [first, second], NOW, fetched=True)
+    reverse = merge_upahead_snapshot({}, [second, first], NOW, fetched=True)
+    assert {row["url"] for row in forward["items"]} == {first["url"], second["url"]}
+    assert len({row["id"] for row in forward["items"]}) == 2
+    assert forward["items"] == reverse["items"]
+    assert forward["contentHash"] == reverse["contentHash"]
+
+    as_of = NOW + 3 * H_MS
+    cancellation = {**first, "observedAt": as_of, "expiryAt": as_of}
+    for previous in (forward, merge_upahead_snapshot({}, [first], NOW, fetched=True)):
+        retired = merge_upahead_snapshot(previous, [cancellation], as_of, fetched=True)
+        replayed = merge_upahead_snapshot(retired, [first, second], as_of + H_MS, fetched=True)
+        assert [row["url"] for row in replayed["items"]] == [second["url"]]
+        assert replayed["retiredRevisions"][0]["sourceListingUrl"] == first["url"]
+        assert not validate_snapshot(replayed, as_of + H_MS)["errors"]
+
+
 def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     rows = [item(f"event-{i}") for i in range(MAX_ACTIVE_ITEMS + 25)]
     rows += [item(f"alert-{i}", category="weather_alerts") for i in range(10)]
@@ -206,3 +264,104 @@ def test_policy_centralization_and_stamp():
     assert r["retention"]["activeItemCount"] == 1
     assert r["retention"]["maxActiveItems"] == MAX_ACTIVE_ITEMS
     assert not validate_snapshot(r, NOW)["errors"]
+
+
+def test_linear_byte_accounting_matches_exact_pretty_json_for_unicode_and_nested_rows():
+    """Capacity accounting must never estimate below published UTF-8 bytes."""
+    rows = [item(f"unicode-{i}", title=f"Workshop 😀 क़هوة {i}",
+                 metadata={"source": {"nested": ["ø", "€", i], "flag": bool(i % 2)}},
+                 category="weather_alerts" if i % 61 == 0 else "events")
+            for i in range(MAX_ACTIVE_ITEMS + 17)]
+    chosen, receipt = bound_active_items(rows)
+    assert receipt["activeBytes"] == active_published_bytes(chosen)
+    assert receipt["activeItemCount"] == len(chosen) == MAX_ACTIVE_ITEMS
+    assert receipt["rejectedSafetyAlertCount"] == 0
+    assert receipt["rejectedActiveCount"] == 17
+    assert receipt["activeBytes"] <= MAX_ACTIVE_BYTES
+
+
+def test_linear_capacity_is_order_invariant_and_zero_items_are_exact():
+    empty, empty_meta = bound_active_items([])
+    assert empty == []
+    assert empty_meta["activeBytes"] == active_published_bytes([])
+    rows = [item(f"source-{i}", category="events" if i % 5 else "shopping",
+                 summary="अخبار - 🔔 " * (i % 13 + 1)) for i in range(140)]
+    first, first_meta = bound_active_items(rows)
+    second, second_meta = bound_active_items(list(reversed(rows)))
+    assert [row["id"] for row in first] == [row["id"] for row in second]
+    assert first_meta == second_meta
+    assert first_meta["activeBytes"] == active_published_bytes(first)
+
+
+def test_linear_capacity_rejects_oversize_without_dropping_smaller_safety_alert():
+    rows = [
+        item("huge-event", description="€" * (MAX_ACTIVE_BYTES // 2)),
+        item("small-safety", category="weather_alerts", title="Weather alert"),
+    ]
+    chosen, result = bound_active_items(rows)
+    assert [row["id"] for row in chosen] == ["small-safety"]
+    assert result["rejectedActiveCount"] == 1
+    assert result["rejectedSafetyAlertCount"] == 0
+    assert result["activeBytes"] == active_published_bytes(chosen)
+
+
+def test_56_three_hour_refresh_intervals_cover_seven_day_cap_and_no_resurrection():
+    """57 publisher snapshots separated by exactly 3h (56 intervals = 7d).
+
+    Simulated publisher code, NOT 56 successful live runs or Pages/Worker proof.
+    Incoming source observations are independently reverified or omitted at
+    explicit cycles; unrelated refreshes must not renew source item clocks.
+    """
+    stale_offer = item("no-longer-verified-deal", category="shopping",
+                       eventStartAt=None, eventEndAt=None,
+                       expiryAt=NOW + 20 * DAY_MS, publishedAt=NOW, observedAt=NOW)
+    future_event = item("future-long-event", eventStartAt=NOW + 6 * DAY_MS,
+                        eventEndAt=NOW + 20 * DAY_MS, expiryAt=NOW + 20 * DAY_MS)
+    warning = item("official-warning", category="weather_alerts",
+                   source="oman-warnings", occurrenceId="oman-warnings:storm-A",
+                   eventStartAt=NOW, eventEndAt=NOW + 12 * DAY_MS,
+                   expiryAt=NOW + 12 * DAY_MS)
+    cancelled = item("cancelled-warning", category="weather_alerts",
+                     source="oman-warnings", occurrenceId="oman-warnings:storm-CANCEL",
+                     retireOccurrenceId="oman-warnings:storm-A",
+                     suppressionReason="Cancelled official warning",
+                     eventStartAt=NOW + 2 * DAY_MS, eventEndAt=None,
+                     expiryAt=NOW + 2 * DAY_MS - 1)
+
+    snap = {}
+    receipts = []
+    for cycle in range(57):
+        as_of = NOW + cycle * 3 * H_MS
+        incoming = [stale_offer, future_event, warning] if cycle == 0 else []
+        if cycle == 16:  # Two days: verified official cancellation
+            incoming = [{**cancelled, "observedAt": as_of}]
+        if cycle == 24:  # Three days: stale original bulletin replay
+            incoming = [{**warning, "observedAt": NOW}]
+        if cycle == 48:  # Six days: verified independent future event refresh
+            incoming = [{**future_event, "observedAt": as_of}]
+        snap = merge_upahead_snapshot(snap, incoming, as_of, fetched=True)
+        active = {row["id"] for row in snap["items"]}
+        receipts.append(active)
+        assert snap["fetchedAt"] == as_of
+        assert not validate_snapshot(snap, as_of)["errors"]
+        assert len(snap["items"]) <= MAX_ACTIVE_ITEMS
+        assert not (cycle >= 16 and "official-warning" in active)
+        assert not (cycle >= 56 and "no-longer-verified-deal" in active)
+        assert len(snap.get("retiredOccurrences", [])) <= 1
+
+    assert len(receipts) == 57
+    assert "no-longer-verified-deal" in receipts[48]
+    assert "no-longer-verified-deal" not in receipts[56]
+    assert "future-long-event" in receipts[56]
+    assert "official-warning" not in receipts[56]
+
+    # A subsequent offline replay must not slide clocks or reinstate tombstones;
+    # validator accurately reports stale publisher receipts, not false PASS.
+    day_eight = merge_upahead_snapshot(snap, [], NOW + 8 * DAY_MS, fetched=False)
+    remaining = {row["id"] for row in day_eight["items"]}
+    assert "no-longer-verified-deal" not in remaining
+    assert "official-warning" not in remaining
+    assert "future-long-event" in remaining
+    assert validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"]
+    assert all("stale" in error.lower()
+               for error in validate_snapshot(day_eight, NOW + 8 * DAY_MS)["errors"])

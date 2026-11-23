@@ -1,0 +1,172 @@
+# NW-UPAHEAD-IDENTITY-V2 — Occurrence contract and gated delivery
+
+**Governing issue:** [#200](https://github.com/reallakshman19/NWv-7/issues/200)  
+**Initial RCA baseline:** `c9c5420bdaa31fb5e91c4940d7af9b0b01347a82`  
+**Status:** P1/P2 shadow implementation in progress; **no production wire-up, merge or deploy**.  
+**Reviewer classification:** Exposed author/technical review; a separate genuine Stage-1 cold review must be frozen before design/PR disclosure.
+
+## Intended outcome
+
+One actionable card for each *source-verified* real-world occurrence, with complete provenance and safe separation of sessions, releases, hazard phases, products and store scopes. Distinguish raw observations, physical occurrences, canonical IDs, source aliases and Planner saved-plan IDs. A title, source URL or partial time slot is insufficient to prove occurrence equivalence.
+
+## Work packages and release gates
+
+| Gate | Module | Exit evidence |
+| --- | --- | --- |
+| 0 | Existing audit / owner authority / source custody | Issue #200 created; native independent reviewer and exact Stage-1 return *not yet confirmed*. Preserve original published November 21 and 22 snapshots. |
+| 1 | Typed source observation and trusted binding contract | Explicit external adjudication registry, evidence URLs, category/authority namespace and session conflict policy, plus source-derived positive and negative fixtures. |
+| 2 | Deterministic occurrence engine in `scripts/upahead_identity/` | Same ID and complete sorted projection for source-order permutations. No silent merge without separately supplied trusted evidence; unknown session conflict becomes REVIEW. Source aliases/provenance retained. |
+| 3 | Persistent cross-run ledger | Bounded storage with atomic schema validation, explicit observed-vs-verified timestamps, durable alias redirects, stable ID under reschedule, tombstone precedence, idempotent refresh. Never infer renewal from a JSON rebuild. |
+| 4 | Category-specific match decisions | Organizer session, official alert issuer/hazard/period, work/platform/date and retailer/SKU/channel/market separately; negative controls for parallel sessions and products. |
+| 5 | Publisher and retention | Source observations → resolved occurrences → lifecycle → validator → atomic GitHub snapshot. Eight three-hour refreshes, day 7/day 8, actual expiration, cancellation and upstream omissions. |
+| 6 | JS/Planner migration | Publisher canonical ID is authority; translate legacy alias IDs into persistent savedPlanId with backups and no destructive ambiguous rewrites. Actual browser save/refresh/reopen/remove and static/edge parity. |
+| 7 | Retail/source repair | Fix Ubuntu 26.04 runner incompatibility and obtain real verified online/offline offers, with truthful zero/unknown/stale diagnostic states. |
+| 8 | Independent acceptance/release | Exact-head CI, two real collections, source-to-published-to-browser evidence, independent Stage-2 negative controls, owner release approval and rollback receipts. |
+
+## Initial shadow-only interface
+
+`resolve_observations(observations, trusted_bindings={}, prior_ledger={})` returns a sorted shadow projection, a ledger draft, review candidates, explicit Planner alias redirect **proposals**, and a semantic digest. It is **not** invoked by the publisher and may not authorize publication.
+
+`binding_alias(source_observation)` returns a deterministic source-scoped alias that includes source/group, URL or ID and optional source record/session identifiers. An alias identifies a record, not a real event.
+
+The caller, *not* a raw source record, owns `trusted_bindings[alias]`. Each binding requires `authorityRole`, `authorityNamespace`, `authorityOccurrenceId`, `evidenceRefs` and `adjudicatedBy`. These are contract guards only: a subsequent work package must verify registry custody, reviewer approval and authoritative issuer scope. A `verified: true` claim inside an RSS item is **never** accepted as evidence by this module. Without a binding, records remain unmerged. A contradictory session binding is REVIEW, not a merge.
+
+Canonical IDs are based on the bound authority namespace and immutable native occurrence key, **not** mutable title/date or collector ordering. The ledger carries source aliases and evidence digests, retains unobserved prior records as historical entries for later lifecycle policy, and emits redirect *proposals* rather than rewriting Planner state automatically. Cancellation is sticky pending separately verified reinstatement rules.
+
+## Known limitations intentionally blocking live integration
+
+- The earlier 15 workshop variants remain distinct without an independently verified November organizer session ID. That is a safe *non-merge*, not a completed dedup fix.
+- The first resolver does not fetch original organizer/authority sources or validate curator permissions. It assumes supplied bindings are external and therefore MUST NOT accept unreviewed feed-supplied bindings in a live pipeline.
+- Source aliases with contradictory explicit slots reject input without verified revision custody; the remaining revision/cancellation authority model must be formalized before publication.
+- There is no bounded persistent ledger, purge, lifetime migration implementation, source-retention integration, JS/Planner wiring, production change, or browser verification in this PR slice.
+- `semanticDigest` is a source-level comparator, not a signed publication certificate. Source changes may change its value while canonical identity remains stable.
+- Concurrency, immutable receipts, archive caps, failed-source re-acquisition and publisher/edge parity require separate end-to-end gates.
+
+## Mandatory regression and opposite cases
+
+1. Three source titles for one **externally confirmed** organizer session → one canonical ID, three source aliases; the same three unconfirmed article variants → three `UNVERIFIED` identities until evidence arrives.
+2. Same venue, date and time but *different* program or session ID → distinct or REVIEW, never a silent merge.
+3. Source-order permutation and identical source revisions → bitwise-identical semantic results.
+4. Source-derived claims containing `verified` or `occurrenceId` do not elevate themselves to occurrence authority.
+5. Same authoritative source occurrence is rescheduled → ID preserved and original first-visible clock unchanged; cancellation tombstone cannot be undone by older source.
+6. Original unbound source alias is later verified → emits explicit migration proposal; never automatically rewrites a user plan.
+7. Cross-category identical authority ID never merges; invalid ledger schema fails closed.
+
+## Commands
+
+From repository root:
+
+```bash
+python -m unittest discover -s scripts -p 'test_upahead_identity_v2_shadow.py' -v
+```
+
+Run the existing UpAhead retention / JS / browser suites at the exact PR head before any further integration. Record actual source and browser receipts instead of treating this source-unit pass as product acceptance.
+
+
+## P-CF — Cloudflare UpAhead serving plane (MANDATORY, before release)
+**Status:** NOT_IMPLEMENTED for v2; current Worker code exists, production activation remains UNVERIFIED. This is part of issue #200, not a separate untracked WBS. Cross-reference existing operational-only [#107](https://github.com/reallakshman19/NWv-7/issues/107), which must not be re-scoped by this work.
+
+### Actual source-first baseline
+- `cloudflare/upahead-dataset-api/src/index.js` serves `GET /api/datasets/upAhead`; `UP_AHEAD_DATASET_URL` fetches the static GitHub Pages publication per request. This is an **HTTP proxy**, not an independent UpAhead occurrence publisher, nor an R2/KV/D1 durable store. Existing Worker responds with `X-NW-UpAhead-Source/Reason/Freshness/Age-Seconds`, CORS and no-cache.
+- A 12-hour header freshness classification uses the upstream `fetchedAt`/`lastUpdated` timestamp, **not** proof of verified expiry, occurrence membership or current authoritative generation.
+- On upstream timeout/bad JSON/invalid shape the Worker returns a syntactically valid **HTTP 200 empty fallback**, and the dataset client may next use static/retained data. Invariant: an empty fallback must never masquerade as a verified-zero canonical dataset.
+- `src/data/datasets/upAheadDatasetApiClient.js`, `upAheadDataset.js`, `upAheadProviderPolicy.js` decide Worker vs cache/static. Current source-selection may merge historical source rows unless bounded by a generation/alias-aware manifest. `VITE_API_BASE_URL` is optional, configuration-dependent. Deployed Worker URL, Cloudflare deployment/activation and real browser consumption have not been authenticated/observed here.
+
+### Target design
+**GitHub producer remains canonical occurrence authority; Cloudflare becomes an identity-preserving distribution and verification layer, not a second fuzzy-dedup engine.**
+1. **Versioned immutable publication:** publisher emits a release manifest with `schemaVersion`, `generationId`, `sourceCommit`, `retentionPolicyVersion`, `identityVersion`, `ledgerVersion`, `observedAt`, `publishedAt`, `semanticDigest`, `recordCounts` and accepted expiry/cancellation state. Digest covers canonical entries, aliases, revision/cancellation state, not just fetchedAt/number of rows. Producer retains immutable generation payload to permit rollback.
+2. **Cloudflare edge verification:** Worker validates manifest+payload, coherence of generation and digest, canonical identity uniqueness, expiry/cancellation constraints and bounded source freshness; return exact accepted-generation metadata to the browser. Reject mismatched/partially published/invalid generations, never return false 'fresh' from a recent fetch of old data.
+3. **Atomic authority / fallback:** atomic current-generation pointer owned by producer after publication checks. Choose an immutable manifest+asset-on-Pages design first (free existing infrastructure); optional **Cloudflare R2 last-known-good immutable objects** only after cost/quota/credential/operator approval. Never silently introduce KV/D1/R2 or change serving authority. `Cache-Control: no-cache` alone is not version coherency.
+4. **Failure semantics:** differentiate `VALID`, `STALE_VALID`, `INVALID`, `UPSTREAM_UNAVAILABLE`, `VERIFIED_EMPTY`, `NOT_CONFIGURED`. Return 503 (or explicit non-usable state) for unverified fallback, not an ordinary success dataset; preserve last independently verified generation only within validity boundaries, without reviving expired or cancelled items.
+5. **Frontend gating:** `upAheadDatasetApiClient` and `upAheadDataset` validate generation and source metadata before selecting/merging API, Pages and cache. Never combine records from incompatible generations as if one authoritative snapshot; saved Planner aliases resolve via the canonical ledger and cancelled IDs stay retired. Declare one serving authority per request, keep provenance for fallback.
+6. **Activation/rollback:** reuse #107 readiness and smoke harness, confirm real `VITE_API_BASE_URL` is configured in actual Pages build if edge mode intended. No live Worker host/secrets recorded in GitHub. Rollback to source-hash pinned Pages publication, not arbitrary older cache.
+
+### Mandatory Cloudflare proof cases
+- Same immutable generation from GitHub Pages, Worker, browser cache and service selection => identical canonical IDs, supported aliases, per-category counts, tombstones and semantic digest.
+- Newer generation updates a rescheduled occurrence across all surfaces; old cache and older Worker results cannot reintroduce duplicate source aliases or cancel a tombstone.
+- Upstream timeout, HTTP errors, invalid JSON, missing/downgraded identity manifest, digest mismatch, torn two-file publication, stale `fetchedAt`, partial category availability and verified zero each produce distinct safe states.
+- Worker returns the correct generation headers and avoids false success for empty fallback.
+- Two real consecutive publication cycles + deployed Worker smoke and browser DOM/source receipts, desktop/mobile and Planner reopen; include Worker-disabled static fallback.
+- 100, 1000 and policy-cap performance and free-tier CPU/request/response size budget. Verify no expensive per-request re-dedup or mandatory paid dependency.
+- **NO-GO** on any mismatched generation, false merge, resurrection, Planner alias loss, source integrity failure or unverified Cloudflare activation claim.
+
+### PR sequencing
+- **PR-A / present PR #201:** append verified edge inventory and *shadow-only manifest/parity test*, no live Worker behavior changes.
+- **PR-B/C:** implement publisher immutable publication manifest and ledger, then Workers edge validation/error semantics with paired failing-negative tests.
+- **PR-D:** integrate frontend generation-aware provider policy and Planner state migrations.
+- **PR-E:** real Pages↔Worker↔browser parity, health diagnostics, rollback and live activation evidence. Deployment of Cloudflare account resources requires separate explicit approval.
+
+### P-CF implementation slice 1 — opt-in Worker generation probe (committed, not activated)
+
+**Code:** `cloudflare/upahead-dataset-api/src/edgeV2Probe.js` and `index.js` expose `GET /api/datasets/upAhead/v2/verify` **only** when `UP_AHEAD_V2_SHADOW_ENABLED=true`. Existing `GET /api/datasets/upAhead` remains the unchanged v1 serving path. This endpoint returns metadata/status, not the v2 dataset itself; no frontend provider switches to v2. Endpoint returns 404 when disabled.
+
+When explicitly configured, the probe reads two operator-configured same-origin HTTPS URLs (`UP_AHEAD_V2_SHADOW_MANIFEST_URL`, `UP_AHEAD_V2_SHADOW_PAYLOAD_URL`) with bounded timeout (`UP_AHEAD_V2_SHADOW_TIMEOUT_MS`, default 3.5 s, hard ceiling 10 s), max payload 8 MB and max manifest 64 KB. The manifest cannot override or supply the upstream URLs. `identityV2Shadow.verifyGeneration` checks generation ID, source commit format, semantic SHA-256, canonical uniqueness, aliases, retired/cancelled membership, expiry and counts. Response: 200 for VALID including verified-empty, 422 for INVALID, 503 for NOT_CONFIGURED/UPSTREAM_UNAVAILABLE/STALE_VALID. The body contains bounded receipt metadata and no source URLs or raw observations.
+
+**Executed locally:** `node --test cloudflare/upahead-dataset-api/src/edgeV2Probe.test.mjs` — **16/16 PASS** against the actual Worker module (synthetic manifests, fixtures and mock fetch; no live Worker). The existing edge test orchestrator now includes this new test alongside the original 13 generation checker tests. Exact-head GitHub CI, live Cloudflare activation and browser parity remain separate gates.
+
+**CRITICAL LIMITS:** Two mutually consistent artifacts can still be attacker-provided; a SHA-256 pairing is *not* evidence of publisher authority, authentic organizer identity or an accepted ledger. A real publisher-issued and custody-verified immutable generation, atomic pointer, independent signature/source allowlist policy, Cloudflare operational activation, and frontend generation-aware selection are required **before ever enabling v2 serving**. No KV/R2/D1 resources are created in this slice. Do not set the shadow enablement flag on production without operator approval and verified immutable fixture URLs.
+
+**Next required code slice:** publisher-side deterministic v2 generation emitter and manifest/custody validation, shadow generation comparison against real source snapshots, then browser generation/Planner migration. Keep the PR draft and fail closed on unresolved source identity.
+
+
+## P3-A — Immutable publisher generation and local ledger (implemented shadow-only, 2026-11-22)
+
+**Implementation PR:** [#201](https://github.com/reallakshman19/NWv-7/pull/201). This is a completed **offline contract slice**, not P3 full operational acceptance.
+
+1. **Source custody:** `scripts/build_upahead_v2_shadow.py` consumes a frozen JSON observation array and optional *external* binding registry, with explicit SHA-256 byte pins, source commit and observed/published clocks. A matching hash is not issuer authority; actual original organizer/session custody and verified source approvals are still outstanding.
+2. **Canonical generation:** `scripts/upahead_identity/generation.py` converts evidence-gated resolver output to a version-2 `payload.json`, `manifest.json` and durable `ledger.json`. The published collection admits only `VERIFIED_BINDING` identities. Unverified/review cases are *quarantined*, not silently deduped; expired/cancelled occurrences become retired/tombstoned. No feed field may self-declare binding authority.
+3. **Portable digest:** Python canonical JSON and SHA-256 match the Cloudflare `identityV2Shadow.js` WebCrypto serializer for the guarded public v2 schema. Reordered source rows and object keys do not change generation identity. Unsupported floating-point public metadata and non-ASCII JSON keys fail closed; ordinary Unicode text values are supported.
+4. **Crash-safe writer:** `generations/<generationId>/{payload,manifest,ledger}.json` stores immutable byte content. `current.json` is switched *last*, via a single atomic replacement only after all three artifacts are staged/fsync'd. Earlier versions are retained. The explicit `expected_current_generation` fence, writer lock, immutability checks and pointer/content digests prevent accidental concurrent/stale replacement. Interrupted publication leaves the previous pointer authoritative.
+5. **CI mandatory gates:** `.github/workflows/ci.yml` and `scripts/run_up_ahead_edge_api_tests.mjs` now run both Python resolver/publisher tests and Node Python↔Cloudflare parity tests. The existing Worker v2 shadow/unit tests are retained, and `/api/datasets/upAhead` still follows v1 behavior.
+
+**Executed local proof:** 38/38 Python identity+immutable publisher tests; 34/34 Node generation, actual Worker route and cross-language parity tests. A separate source-derived *18-row excerpt* (not the complete original 98-row snapshot) was run with no approved bindings: all **18 quarantined, zero silently promoted**, as required by fail-closed policy. These tests do **not** certify real calendar-event equivalence or actual Cloudflare activation.
+
+**Hard blockers before P3 operational acceptance:** authentic organizer/issuer/retailer/platform binding registry and custody signatures, actual category-specific validity authority, source timeline and complete 98-row source replay, rolling seven-day retention/cap enforcement, production publisher integration, and real Pages/Worker/browser/Planner parity. The shadow writer must NEVER be wired as the public publisher based solely on passing synthetic tests.
+
+**Next scoped phase:** replay a complete immutable source snapshot with an independently verified binding registry, extend the bound ledger to handle actual category-specific revisions and operator recoverability, then build an authorized atomic publication candidate with separate roll-forward/rollback proofs. Preserve the current v1 serving stack until these gates pass.
+
+
+## P3-B — Full immutable source custody replay (implemented; authority verification still HOLD)
+
+**Exact historical source:** `public/data/up_ahead.json` at commit `c9c5420bdaa31fb5e91c4940d7af9b0b01347a82`, Git blob `7642efed72b6e733c7f9e5891c6a644317f71d16`, byte SHA-256 `7bb3d491cf4df3c8ef1f57c479655e3e58141a5cd7bd95012bfc6b70f6d2d2f3`. The original contains nonbreaking spaces; a visually identical Google Docs export is **not** a byte-identical custody copy. All replay uses the verified Git blob, not the transformed text. CI's full-history checkout reads the original immutable Git blob even when the current published JSON changes later.
+
+**Authentic source counts (original timestamp `1795310618380`):** 98 active + 11 pending = **109** current source records, **321** additional retired revision metadata identities. The exact resolver+pinned source generator replays **all 109**, retains 109 separately tracked canonical shadow IDs, quarantines all 109 as `UNVERIFIED`, promotes **0**, and never interprets the 321 retired v1 records as newly verified cancellation tombstones. Every current record lacks `sessionId` and `lastVerifiedAt`; none can establish a verified occurrence from raw source metadata alone.
+
+**Review-only workshop candidates:** Five distinct three-record cohorts, 15 records in total: AI & Bioinformatics; AI in Film Making; Drone Technology; Ethical Hacking and Cyber Security; IoT and Robotics ROS. These are **hypotheses for original-organizer adjudication**, not 5 verified event sessions. Records stay separate in published shadow identities until organizer booking/session receipts identify the same physical event. A sixth workshop type, Master Generative AI, is not included in these candidate merges. Different explicit session IDs, different category/locale/time/source, or different titles are negative review controls.
+
+**Implementation:** `scripts/upahead_identity/source_audit.py`, `scripts/audit_upahead_v2_source_snapshot.py`, `scripts/test_upahead_source_audit_v2_shadow.py`, and [replay evidence](https://github.com/reallakshman19/NWv-7/blob/feat/upahead-identity-v2-issue-200/reports/UPAHEAD_P3B_FULL_SOURCE_REPLAY_20261122.json). The audit validates raw SHA-256 + Git blob, source schema and alias uniqueness, retired revision uniqueness and non-resurrection, deterministic source-order replay, original record counts and the no-unverified-promotion invariant. The review-index normalizes titles **only to suggest candidates**, never to emit trusted bindings. It outputs a bounded, sanitized audit report, not user-visible canonical cards.
+
+**Executed locally:** **54 Python tests** (38 prior + 16 new exact-source/custody/negative tests) passed. Production publisher and Cloudflare remain unchanged. CI runs the same tests and a separately pinned historical Git-blob replay; no generated fixture overwrites `public/data/up_ahead.json`. GitHub exact-head CI status must be separately verified.
+
+**P3-B still not accepted as source authority:** This proves original source byte custody, *not* the truth of organizer sessions, official issuer alerts, OTT release platform dates or priced retailer promotions. Never fabricate `sessionId`, `lastVerifiedAt` or approved `trusted_bindings`. No operator-provided unreviewed binding registry may be recharacterized as independent verification. Required next milestone: get organizer/issuer original receipts, independently adjudicate SAME/DISTINCT/REVISION with reviewer custody and authoritative namespaces, create a versioned registry from that evidence, then replay 8 refresh cycles with actual category validity and rollback before any serving cutover.
+
+
+## P3-D — Seven-day retention: upgrade existing GitHub pipeline, do NOT introduce Cloudflare storage (2026-11-22)
+
+**Architecture decision (supersedes any P-CF requirement for a second serving plane, Worker verification route, R2/KV/D1 ledger, or operational v2 publisher):**
+
+- **One authority:** Existing `scripts/fetch_upahead_events.py` → `scripts/enrich_upahead_contract.py` → `public/data/up_ahead.json` on GitHub Pages. Do not replace production with `build_upahead_v2_shadow.py`; the v2 scripts remain offline source/identity proof only. Continue accepting valid, unmerged source records; quarantine only identity merge candidates that fail verification, not the entire working feed.
+- **Seven-day policy already exists:** central `config/upahead_retention_policy.json`: default 36h (alerts/civic), 48h (shopping/airlines/movies), source-expiry first, absolute 168h active ceiling except verified source refresh, individual category soft caps, 400 active/3 MB, 500 pending/1 MB, 100 quarantine/256 KB, 8 MB total snapshot. Pending future calendar events up to 180 days are bounded inside the same JSON, not kept in Cloudflare DB. Planner saves remain outside feed caps. 2,000 compact retired revision records are bounded to 7 days and do not create new storage systems.
+- **Cloudflare role reduced, not expanded:** Existing Worker `GET /api/datasets/upAhead` is unchanged and stateless. Remove the optional v2 verify endpoint and its test module from PR #201. On static hosts the browser reads GitHub Pages first; if the snapshot is usable *and fresh*, do not call Cloudflare at all. If Pages is absent or stale, the existing Worker is a fallback; explicit force-refresh can still request Worker. No new R2, KV, D1, Durable Objects, scheduled Worker, polling, new route or DB reads/writes.
+- **Publisher efficiency:** Existing `bound_active_items` used repeated serialization of a growing list (quadratic work). It now measures each candidate JSON row once (linear with the total serialized bytes), with an exact final pretty-JSON byte-accounting assertion. Fixed clocks, retention semantics, caps, safety-alert overflows, and v1 schema are unchanged. Added regression tests for Unicode/nested rows, maximum cap, order stability, zero records and oversize rows.
+- **Contract-preserving rollout:** `src/data/datasets/upAheadDataset.js` preserves v1 API fallback and provider diagnostics; the existing `upAheadDataset.providerChain.cert.test.js` now covers fresh static skipping Cloudflare, absent static using Cloudflare, degraded/stale responses and explicit force refresh. No Cloudflare account credentials or infrastructure changes.
+- **If 8 MB approaches its hard limit:** First refine source duplication and stale-retirement compaction *inside the existing publisher*, retaining the 7-day tombstone safety period and safety alerts. If growth proves sustained, introduce GitHub-hosted immutable category/city shard files plus one small atomic manifest and browser-on-demand loading after independent tests. **Do not introduce a Cloudflare database just to hold seven days**; require measured evidence and operator approval before changing storage.
+
+**Current status:** This is a **feature-branch engineering slice**, not a release. Verify exact-head GitHub CI, source freshness, 8-cycle publisher↔Pages↔browser parity, near-cap performance and Planner identity preservation. An old cached response may never turn an actual cancellation or source expiry back into an active record. Keep PR #201 DRAFT until independent review and explicit merge authorization.
+
+
+## P4 — Production quality corrective slice: alerts, offers, workshop presentation, Planner (2026-11-22)
+
+**Grounded publication findings:** Latest inspected committed GitHub `public/data/up_ahead.json` at `3cb8068a2f675b6dbb9d40e4991221a0ea587079` had 134 active + 14 pending, 0 shopping/airline offers, 9 alert/civic/weather-alert records and multiple Chennai workshop title variants. One `Times of Oman` story about a medical airlift was incorrectly classified as a resident-facing alert; reported power shutdowns and rain warnings are different and remain actionable. The separately published `public/data/retail_offers.json` had 63 product observations + 6 flyers last checked November 18; all had expired 24-hour observation freshness at inspection. Never re-label stale prices or undated offers as verified current promotions.
+
+**Actual retailer refresh RCA:** GitHub Actions scheduled `Retail Offers Refresh` failed on November 19 (run `44559914059`) and November 21 (run `44941134810`) **before running the collector**. Its browser install step failed: Playwright 1.59.1 does not support Chromium on the GitHub-provided `ubuntu26.04-x64` image. Pin both CI and publication jobs in `.github/workflows/retail_offers_refresh.yml` to `ubuntu-24.04`. Preserve the same 6-hour schedule, Playwright/browser extraction, caps (140 products, 16 flyers), 24-hour price-observation expiry, independent source URL/price validation and fail-closed GitHub-only JSON publication. CI on PR verifies tests; this cannot prove the *scheduled production refresh* works until the change reaches main and a real run succeeds.
+
+**Alerts:** Python `has_category_intent('alerts', text)` now requires a concrete public service disruption, mobility restriction, or order to residents, rejecting a medical-airlift news story. Browser `isActionableLocalAlert` applies equivalent rejection when rendering historical cached v1 records. Civic notices and time-scoped weather alerts retain their existing distinct route and source-date rules. Explicit positives and negatives live in `scripts/test_upahead_acquisition.py` and `src/services/upAheadLocalPolicy.alertAdmission.cert.test.js`. No widening based on discovery query or untrusted search tags.
+
+**Workshop card dedup:** `src/services/upAheadReviewGrouping.js` creates **display-only candidate groups** for the five observed chennai2go title variants. Same category, exact source group, city, venue, start clock and normalized title are *review gates*, not issuer-approved merge evidence. Different session IDs / occurrence IDs / times / source URL domains cannot silently combine; the original rows and URLs remain intact in `reviewAlternateListings`. UI shows one compact review card with all original source links and a separate `+ Plan this listing` action. It deliberately withholds the representative `+ Plan` control to force the user to choose an actual listing. SourceGroup now survives the existing JSON→browser display path. **No new dedup database or destructive publisher merge.**
+
+**Planner backward compatibility:** `src/utils/plannerSourceAlias.js` adds an exact-source-link + date + event slot + city + category compatibility test for the *same listed session* across publisher ID changes. Existing explicit savedPlanId, identity, notes and user-edited content are kept byte-for-byte and never background-migrated. Title-only matching, generic publisher homepages, mismatched source/session/occurrence/venue, changed dates or missing authoritative clocks fail closed. Tests prove no duplicate add and retained user bytes; this does not authorize mapping different source URLs of candidate workshops to one canonical ID.
+
+**Seven-day lifecycle:** Added an **eight-cycle fixed-clock replay** of the existing Python `merge_upahead_snapshot` and validator covering source-expired offers, future events, official cancellation, stale bulletin replay and day-eight eviction. This is **simulation only**. Genuine live proof requires eight separate real published GitHub snapshots covering the retention boundary over at least seven elapsed days, with original commit/blob identities, independent source freshness, cancellation non-resurrection, Planner-save retention and browser visibility checks. No retrospective evidence may be simulated or substituted for real production publication.
+
+**Acceptance / release hold:** All targeted CI and exact-head full CI must pass; scheduled retailer browser install and actual offer acquisition must succeed after authorized merge; verify no empty/stale sources are reported as real deals; independently adjudicate workshop events by the original organizer; observe live seven-day lifecycle and Planner migration under genuine refreshed data. Keep PR #201 DRAFT and Cloudflare Worker unchanged; merging, publishing and Cloudflare deployment require explicit owner approval.

@@ -230,6 +230,8 @@ function buildLegacyDisplayFromRanked(items = [], meta = {}) {
       planDate: eventDateKey,
       category: sectionKey,
       source: item.sourceDomain || item.source || sectionKey,
+      sourceGroup: item.sourceGroup ?? null,
+      ...(item.sourceObservationId && { sourceObservationId: item.sourceObservationId }),
       sourceMode: item.sourceMode || null,
       retailerId: item.retailerId || null,
       offerMarket: item.offerMarket || null,
@@ -375,6 +377,8 @@ function transformPythonItemsToDisplay(items = []) {
         locationCanonical: it.city || it.region || null,
         sourceDomain:      it.source,
         source:            it.source,
+        sourceGroup:       it.sourceGroup || null,
+        sourceObservationId: it.sourceObservationId,
         sourceMode:        it.sourceMode || null,
         retailerId:        it.retailerId || null,
         offerMarket:       it.offerMarket || null,
@@ -471,10 +475,20 @@ function publishedRevisionRetirements(data, now = Date.now()) {
       || !row.identity.every(value => typeof value === 'string' && value.length > 0)) continue;
     const retiredAt = upAheadTimeMs(row.retiredAt), revisionAt = upAheadTimeMs(row.revisionAt);
     if (!retiredAt || !revisionAt || retiredAt > now || retiredAt <= now - UP_AHEAD_SOURCE_LOOKBACK_MS) continue;
-    const key = JSON.stringify(row.identity), previous = unique.get(key);
+    const key = JSON.stringify([row.identity, row.sourceListingUrl]), previous = unique.get(key);
     if (!previous || revisionAt > previous.revisionAt) unique.set(key, { ...row, retiredAt, revisionAt });
   }
   return [...unique.values()].sort((a, b) => b.retiredAt - a.retiredAt).slice(0, 2000);
+}
+
+function matchesRetiredRevision(item, row) {
+  if (row.identity[0] !== item.category) return false;
+  if (row.sourceListingUrl) {
+    return row.sourceListingUrl === (item.link || item.url)
+      && row.sourceObservationId === (item.sourceObservationId || item.id);
+  }
+  return [item.revisionOf, item.occurrenceId, item.id, item.canonicalId, item.sourceObservationId]
+    .includes(row.identity[1]);
 }
 
 function pruneUpAheadData(data, retiredItems = new Map()) {
@@ -483,8 +497,7 @@ function pruneUpAheadData(data, retiredItems = new Map()) {
   const retired = publishedRetirements(data, now);
   const retiredOccurrences = new Set(retired.map(row => row.occurrenceId));
   const publishedRevisions = publishedRevisionRetirements(data, now);
-  const isActive = item => !publishedRevisions.some(row => row.identity[0] === item.category
-    && [item.revisionOf, item.occurrenceId, item.id, item.canonicalId].includes(row.identity[1])
+  const isActive = item => !publishedRevisions.some(row => matchesRetiredRevision(item, row)
     && row.revisionAt >= upAheadTimeMs(item.revisionAt || item.updatedAt || item.observedAt || item.publishedAt))
     && !retiredOccurrences.has(item.occurrenceId) && isUpAheadItemActive(item, now) && !upAheadIdentityKeys(item).some(key =>
     [key, `${item.category}:${key}`].some(retiredKey =>
