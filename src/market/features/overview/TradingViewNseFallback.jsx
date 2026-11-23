@@ -17,7 +17,6 @@ export function TradingViewNseFallback({ symbol }) {
   useEffect(() => {
     const host = hostRef.current;
     if (!enabled || !approvedSymbol || !host) return undefined;
-    setFailed(false);
     const widget = document.createElement('div');
     widget.className = 'tradingview-widget-container__widget';
     host.replaceChildren(widget);
@@ -52,7 +51,7 @@ export function TradingViewNseFallback({ symbol }) {
       </p>
       {!enabled ? (
         <button type="button" className="md3-secondary"
-          disabled={!approvedSymbol} onClick={() => setEnabled(true)}>
+          disabled={!approvedSymbol} onClick={() => { setFailed(false); setEnabled(true); }}>
           Open delayed provider widget
         </button>
       ) : (
