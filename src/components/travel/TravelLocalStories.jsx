@@ -18,43 +18,47 @@ export default function TravelLocalStories({ newsData, profile, limit = 5 }) {
 
   if (displayMode === 'hidden') return null;
 
-  if (displayMode === 'empty' || displayMode === 'low-quality') {
-    return (
-      <section className="travel-local-stories travel-local-stories--empty" data-travel-local-stories="empty">
-        <header>
-          <span>{profile.icon || '📍'} Travel local</span>
-          <strong>{profile.display}</strong>
-        </header>
-        <p>No strong {profile.display} local story match yet. Only verified city news published within the past {TRAVEL_NEWS_RETENTION_HOURS} hours is shown.</p>
-      </section>
-    );
-  }
+  const isEmpty = displayMode === 'empty' || displayMode === 'low-quality';
 
   return (
-    <section className="travel-local-stories" data-travel-local-stories="true">
-      <header>
-        <span>{profile.icon || '📍'} Travel local</span>
-        <strong>{profile.display} / {profile.countryLabel}</strong>
-      </header>
+    <section
+      className={`travel-local-stories${isEmpty ? ' travel-local-stories--empty' : ''}`}
+      data-travel-local-stories={isEmpty ? 'empty' : 'true'}
+    >
+      {/* Native disclosure gives keyboard and screen-reader users the same toggle.
+          The profile key closes it again whenever a different city is selected. */}
+      <details key={profile.key} className="travel-local-stories__disclosure">
+        <summary className="travel-local-stories__summary">
+          <span className="travel-local-stories__eyebrow">{profile.icon || '📍'} Travel local</span>
+          <span className="travel-local-stories__summary-location">
+            <strong>{profile.display} / {profile.countryLabel}</strong>
+            <span className="travel-local-stories__chevron" aria-hidden="true" />
+          </span>
+        </summary>
 
-      <div className="travel-local-stories__list">
-        {stories.map(story => (
-          <a
-            key={story.id || story.url || story.title}
-            href={storyUrl(story)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="travel-local-stories__item"
-          >
-            <strong>{sanitizeHtmlText(story.title || story.headline)}</strong>
-            <span>
-              {sanitizeHtmlText(story.source || story.sourceGroup || story._travelSection || 'Local source')}
-              {' · '}
-              {formatTravelStoryAge(story)}
-            </span>
-          </a>
-        ))}
-      </div>
+        {isEmpty ? (
+          <p>No strong {profile.display} local story match yet. Only verified city news published within the past {TRAVEL_NEWS_RETENTION_HOURS} hours is shown.</p>
+        ) : (
+          <div className="travel-local-stories__list">
+            {stories.map(story => (
+              <a
+                key={story.id || story.url || story.title}
+                href={storyUrl(story)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="travel-local-stories__item"
+              >
+                <strong>{sanitizeHtmlText(story.title || story.headline)}</strong>
+                <span>
+                  {sanitizeHtmlText(story.source || story.sourceGroup || story._travelSection || 'Local source')}
+                  {' · '}
+                  {formatTravelStoryAge(story)}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+      </details>
     </section>
   );
 }
