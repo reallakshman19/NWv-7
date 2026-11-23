@@ -299,6 +299,32 @@ test('WP05-S09 Formula Injection Protection & DDE Sanitization', () => {
   assert.equal(sanitizeCsvCell('HDFC Top 100'), 'HDFC Top 100');
 });
 
+test('latest NAV transport failure uses one bounded same-scheme history request', async () => {
+  const now = Date.UTC(2026, 10, 23, 12);
+  const urls = [];
+  const result = await fundClient.fetchLatestNav('125497', {
+    now,
+    fetchImpl: async url => {
+      urls.push(url);
+      if (url.endsWith('/latest')) throw new TypeError('Network request failed');
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          status: 'SUCCESS', meta: { scheme_code: 125497, scheme_name: 'Example Fund - Direct Growth' },
+          data: [{ date: '18-11-2026', nav: '91.25' }, { date: '20-11-2026', nav: '92.40' }]
+        })
+      };
+    }
+  });
+  assert.deepEqual(urls, [
+    'https://api.mfapi.in/mf/125497/latest',
+    'https://api.mfapi.in/mf/125497?startDate=2026-11-09&endDate=2026-11-23'
+  ]);
+  assert.equal(result.date, '2026-11-20');
+  assert.equal(result.nav, 92.4);
+  assert.equal(result.receipt.originalUrl, urls[1]);
+});
+
 test('WP05-S10 Static Export Audit and Path Isolation', () => {
   const indexContent = fs.readFileSync(
     path.resolve('src/market/features/funds/index.js'),
@@ -318,7 +344,7 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
   assert.equal(SAVED_FUNDS_STORAGE_KEY, 'nw7.market-saved-funds.v1');
   assert.equal(FUND_HISTORY_STORAGE_KEY, 'nw7.market-fund-history.v1');
 
-  // Verify path isolation against base commit 2510cac78e4ec177efaaedfb8de2ac3504415813
+  // Verify path isolation against the active main merge base.
   const changedFiles = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
