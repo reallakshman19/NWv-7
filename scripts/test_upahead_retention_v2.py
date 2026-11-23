@@ -198,6 +198,27 @@ def test_revised_occurrences_sharing_a_source_page_stay_distinct():
         assert not validate_snapshot(updated, as_of)["errors"]
 
 
+def test_reused_event_source_id_keeps_distinct_urls_and_retires_only_one():
+    shared = item("shared", title="Chennai workshop")
+    first = {**shared, "url": "https://example.org/workshop?session=a"}
+    second = {**shared, "url": "https://example.org/workshop?session=b"}
+    forward = merge_upahead_snapshot({}, [first, second], NOW, fetched=True)
+    reverse = merge_upahead_snapshot({}, [second, first], NOW, fetched=True)
+    assert {row["url"] for row in forward["items"]} == {first["url"], second["url"]}
+    assert len({row["id"] for row in forward["items"]}) == 2
+    assert forward["items"] == reverse["items"]
+    assert forward["contentHash"] == reverse["contentHash"]
+
+    as_of = NOW + 3 * H_MS
+    cancellation = {**first, "observedAt": as_of, "expiryAt": as_of}
+    for previous in (forward, merge_upahead_snapshot({}, [first], NOW, fetched=True)):
+        retired = merge_upahead_snapshot(previous, [cancellation], as_of, fetched=True)
+        replayed = merge_upahead_snapshot(retired, [first, second], as_of + H_MS, fetched=True)
+        assert [row["url"] for row in replayed["items"]] == [second["url"]]
+        assert replayed["retiredRevisions"][0]["sourceListingUrl"] == first["url"]
+        assert not validate_snapshot(replayed, as_of + H_MS)["errors"]
+
+
 def test_bounded_active_items_prioritizes_safety_and_never_silently_truncates():
     rows = [item(f"event-{i}") for i in range(MAX_ACTIVE_ITEMS + 25)]
     rows += [item(f"alert-{i}", category="weather_alerts") for i in range(10)]

@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import json
 import time
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 from prefetch_common import compute_content_hash, title_fingerprint
@@ -460,6 +461,16 @@ def enrich_snapshot(snapshot: dict[str, Any], now_ms: int | None = None) -> dict
     return enriched
 
 
+def _event_source_observation(item):
+    if item.get("category") != "events" or item.get("revisionOf") or item.get("occurrenceId"):
+        return None
+    source_id = item.get("sourceObservationId") or item.get("id")
+    url = item.get("url")
+    if isinstance(source_id, str) and source_id and isinstance(url, str) and url:
+        return source_id, url
+    return None
+
+
 def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fetched: bool) -> dict:
     # The latest version of an occurrence can close it or move it to another day.
     # Apply that version before expiry and deduplication.
@@ -478,9 +489,36 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
     by_id = {}
     retained = [*existing.get('items', []), *existing.get('pendingItems', [])]
     observed_incoming = [{**row, 'observedAt': row.get('observedAt') or ts} if fetched else row for row in incoming]
-    for item in [*retained, *observed_incoming]:
-        if not isinstance(item, dict) or not item.get('id'):
+    observations = [row for row in [*retained, *observed_incoming] if isinstance(row, dict) and row.get("id")]
+    listing_urls = defaultdict(set)
+    scoped_source_ids = set()
+    for item in observations:
+        source = _event_source_observation(item)
+        if source:
+            source_id, url = source
+            listing_urls[source_id].add(url)
+            if item.get("sourceObservationId"):
+                scoped_source_ids.add(source_id)
+    for row in retired_revisions.values():
+        source_id, url = row.get("sourceObservationId"), row.get("sourceListingUrl")
+        if row["identity"][0] != "events" or not (isinstance(source_id, str) and source_id and isinstance(url, str) and url):
             continue
+        listing_urls[source_id].add(url)
+        if row["identity"][1] != source_id:
+            scoped_source_ids.add(source_id)
+
+    for item in observations:
+        source = _event_source_observation(item)
+        if source:
+            source_id, url = source
+            if source_id in scoped_source_ids or len(listing_urls[source_id]) > 1:
+                digest = sha256(json.dumps(source, ensure_ascii=False).encode("utf-8")).hexdigest()
+                item = {**item, "id": f"event-source:{digest}", "sourceObservationId": source_id}
+            # Keep old unscoped tombstones effective. A newer tombstone carrying
+            # a source URL only applies to the listing it actually retired.
+            prior = retired_revisions.get(("events", source_id))
+            if prior and prior.get("sourceListingUrl", url) == url and revision(item) <= prior["revisionAt"]:
+                continue
         key = identity(item)
         if key in retired_revisions and revision(item) <= retired_revisions[key]['revisionAt']:
             continue
@@ -511,6 +549,9 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
                 previous = retired_revisions.get(key)
                 retired_revisions[key] = dict(identity=list(key), revisionAt=revision(row),
                                               retiredAt=previous['retiredAt'] if previous and previous['revisionAt'] == revision(row) else ts)
+                source = _event_source_observation(row)
+                if source:
+                    retired_revisions[key].update(sourceObservationId=source[0], sourceListingUrl=source[1])
             continue
         active.append(row)
     unique = {}
