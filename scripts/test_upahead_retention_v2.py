@@ -166,8 +166,9 @@ def test_matching_event_headlines_do_not_discard_distinct_source_listings():
                   venue="IIT Madras Research Park")
     first = item("listing-a", **shared)
     second = item("listing-b", **shared)
-    forward = merge_upahead_snapshot({}, [first, second], NOW, fetched=True)
-    reverse = merge_upahead_snapshot({}, [second, first], NOW, fetched=True)
+    repeat = item("listing-a-copy", url=first["url"], publishedAt=NOW - H_MS, **shared)
+    forward = merge_upahead_snapshot({}, [first, second, repeat], NOW, fetched=True)
+    reverse = merge_upahead_snapshot({}, [repeat, second, first], NOW, fetched=True)
 
     assert [row["url"] for row in forward["items"]] == [first["url"], second["url"]]
     assert forward["items"] == reverse["items"]

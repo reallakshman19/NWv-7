@@ -514,18 +514,16 @@ def merge_upahead_snapshot(existing: dict, incoming: list[dict], ts: int, *, fet
             continue
         active.append(row)
     unique = {}
-    for item in sorted(active, key=lambda row: row.get("publishedAt") or 0, reverse=True):
-        if item.get("category") == "events":
-            # A shared headline, venue and start time can describe distinct
-            # sessions. Keep each event identity selected by the revision pass.
-            unique[identity(item)] = item
-            continue
+    for item in sorted(active, key=lambda row: (_ms(row.get("publishedAt")) or 0, str(row["id"])), reverse=True):
         event_start = _ms(item.get("eventStartAt"))
         location = item.get("city") or item.get("region") or ""
+        # One event URL may be repeated under different IDs. A matching
+        # headline and slot alone cannot identify the same source listing.
+        event_listing = (item.get("url") or item["id"]) if item.get("category") == "events" else None
         key = (
             item.get("category"), location.casefold(),
             event_start, str(item.get('venue') or '').casefold(), item.get('sessionId'),
-            item.get('occurrenceId'),
+            item.get('occurrenceId'), event_listing,
             title_fingerprint(item.get("title", "")) or item["id"],
         )
         unique.setdefault(key, item)
