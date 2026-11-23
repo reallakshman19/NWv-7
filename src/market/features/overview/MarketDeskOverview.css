@@ -106,6 +106,18 @@
 .md3-personal-quotes > span { flex: 1 1 180px; font-size: .72rem; line-height: 1.4; color: var(--md3-muted); }
 .md3-quote-error { margin: 8px 0 0; color: var(--market-tone-warning, #facc15); font-size: .75rem; }
 
+
+/* Owner-only NSE quote: narrow-mobile-first, no wide scroll or credential persistence. */
+.md3-nse-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; align-items: end; }
+.md3-nse-form label { display: flex; flex-direction: column; gap: 5px; min-width: 0; font-size: .77rem; color: var(--md3-muted); }
+.md3-nse-form select, .md3-nse-form input { width: 100%; min-width: 0; min-height: 40px; font: inherit; font-size: .9rem; padding: 8px; border-radius: 7px; border: 1px solid var(--md3-border); background: var(--md3-background); color: var(--md3-ink); }
+.md3-nse-form > button { min-height: 40px; grid-column: 1 / -1; }
+.md3-nse-form > button:disabled { opacity: .5; cursor: not-allowed; }
+.md3-nse-result { display: grid; gap: 4px; margin: 10px 0 0; padding: 12px; border: 1px solid var(--md3-border); border-radius: 9px; background: var(--md3-background); font-variant-numeric: tabular-nums; }
+.md3-nse-result strong { font-size: 1.15rem; }
+.md3-nse-result small { font-size: .76rem; color: var(--md3-muted); }
+@media (max-width: 500px) { .md3-nse-form { grid-template-columns: minmax(0, 1fr); } }
+
 @media print {
   .md3-card-action, .md3-metric, .md3-health-actions { break-inside: avoid; }
   .md3-card, .md3-health { break-inside: avoid; }
