@@ -130,7 +130,7 @@ export function normalizeNseQuote(content, expectedSymbol, nowMs = Date.now()) {
  * Separate official NSE Bhavcopy MCP is a date-granular EOD source, not an
  * intraday quote. Never substitute a request timestamp for a trading date.
  */
-const DATE_ONLY = /^\\d{4}-\\d{2}-\\d{2}$/;
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 export function normalizeBhavcopyQuote(payload, expectedSymbol, nowMs = Date.now()) {
   if (!payload || typeof payload !== 'object' || payload.error || !Array.isArray(payload.quotes)) return null;
   const matches = payload.quotes.filter(q => String(q?.symbol || '').trim().toUpperCase() === expectedSymbol);
