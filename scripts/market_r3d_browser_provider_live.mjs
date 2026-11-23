@@ -5,6 +5,7 @@
  * This checks real cross-origin browser access, not merely a Node HTTP GET.
  */
 import { chromium } from 'playwright';
+import { evaluateFxObservation } from '../src/market/features/macro/fxFreshness.js';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 
@@ -27,9 +28,12 @@ async function acquireInBrowser(page, id, url) {
         const day = payload?.date;
         const dateMs = typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day)
           ? Date.parse(day + 'T00:00:00Z') : NaN;
+        const [expectedBase, expectedQuote] = new URL(requestUrl).pathname
+          .split('/').slice(-2).map(currency => currency.toUpperCase());
         const valid = Number.isFinite(payload?.rate) && payload.rate > 0 &&
-          Number.isFinite(dateMs) && dateMs <= Date.now() + 300000 &&
-          ['OMR', 'USD'].includes(payload?.base) && payload?.quote === 'INR';
+          Number.isFinite(dateMs) && new Date(dateMs).toISOString().slice(0, 10) === day &&
+          dateMs <= Date.now() + 300000 &&
+          payload?.base === expectedBase && payload?.quote === expectedQuote;
         return { ok: Boolean(valid), error: valid ? null : 'INVALID_FX_PROVIDER_PAYLOAD',
           httpStatus: response.status, providerAsOf: valid ? day : null,
           observationAgeHours: valid ? Math.round((Date.now() - dateMs) / 3600000) : null };
@@ -60,6 +64,11 @@ async function acquireInBrowser(page, id, url) {
     }
   }, url);
   const safe = { sourceId: id, ...observation };
+  if (id.startsWith('frankfurter-') && observation.ok) {
+    const classification = evaluateFxObservation(observation.providerAsOf);
+    safe.freshness = classification?.freshness ?? 'UNKNOWN';
+    safe.conversionEligible = Boolean(classification && classification.freshness !== 'EXPIRED');
+  }
   results.push(safe);
   return safe;
 }

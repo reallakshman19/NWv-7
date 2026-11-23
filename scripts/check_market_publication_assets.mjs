@@ -22,10 +22,63 @@ const EMPTY_PATHS = Object.freeze({
   'market_metrics.json': [
     'equities.indices', 'equities.globalIndices',
     'equities.movers.gainers', 'equities.movers.losers',
+    'equities.eodBhavcopy.sampleNse', 'equities.eodBhavcopy.sampleBse',
     'mutualFunds', 'fx', 'commodities'
   ],
   'market_source_health.json': []
 });
+
+const note = value => typeof value === 'string';
+const count = value => Number.isSafeInteger(value) && value >= 0;
+const symbols = value => Array.isArray(value) && value.every(symbol =>
+  typeof symbol === 'string' && /^[A-Z0-9][A-Z0-9&._-]*$/.test(symbol)
+);
+const commonMetadata = {
+  schemaVersion: 'market-free-open-v1', generatedAt: null, generated_at: null, fetchedAt: null
+};
+const sourceStatus = { status: note, reason: note };
+const POLICY_METADATA = {
+  'market_snapshot.json': {
+    ...commonMetadata, sourceMode: 'free-open-only', notice: note, ipoLastCheckedAt: null,
+    equityCoverage: { universeSize: count, quotedCount: 0, unavailableSymbols: symbols },
+    movers: { scope: note }, ipo: {}, fiidii: {}, errors: {},
+    sourceHealth: { indices: sourceStatus, equities: sourceStatus, ipo: sourceStatus }
+  },
+  'mutual_fund_snapshot.json': {
+    ...commonMetadata, sourceHealth: sourceStatus
+  },
+  'market_metrics.json': {
+    ...commonMetadata, asOf: { equities: null, mutualFunds: null, fx: null },
+    equities: { movers: {}, eodBhavcopy: { nseRows: 0, bseRows: 0 } },
+    sourceHealth: { ...commonMetadata, sections: {}, reason: note }
+  },
+  'market_source_health.json': {
+    ...commonMetadata,
+    validation: { status: 'HOLD', indices: 0, equities: 0, reason: note },
+    sources: { indices: sourceStatus, equities: sourceStatus, mutualFunds: sourceStatus, ipo: sourceStatus }
+  }
+};
+
+function checkMetadata(value, rule, field, emptyPaths, errors) {
+  if (rule === null || typeof rule !== 'object') {
+    const valid = typeof rule === 'function' ? rule(value) : value === rule;
+    if (!valid) errors.push('INVALID_POLICY_METADATA:' + field);
+    return;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    errors.push('INVALID_POLICY_METADATA:' + field);
+    return;
+  }
+  for (const [key, child] of Object.entries(value)) {
+    const childField = field ? field + '.' + key : key;
+    if (emptyPaths.includes(childField)) continue;
+    if (Object.hasOwn(rule, key)) {
+      checkMetadata(child, rule[key], childField, emptyPaths, errors);
+    } else {
+      errors.push('UNEXPECTED_POLICY_FIELD:' + childField);
+    }
+  }
+}
 
 function getPath(target, dotPath) {
   return dotPath.split('.').reduce((o, key) => o?.[key], target);
@@ -46,12 +99,14 @@ export function validateQuoteFreeFinancialAsset(name, payload, raw = '') {
   for (const clock of ['fetchedAt', 'generatedAt', 'generated_at']) {
     if (payload[clock] != null) errors.push('UNAUTHORIZED_PUBLICATION_CLOCK:' + clock);
   }
-  for (const field of EMPTY_PATHS[name]) {
+  const emptyPaths = EMPTY_PATHS[name];
+  for (const field of emptyPaths) {
     const rows = getPath(payload, field);
     if (!Array.isArray(rows) || rows.length) errors.push('NONEMPTY_FINANCIAL_DATA:' + field);
   }
-  // A policy asset must not carry quote, NAV, exchange-source, or injected
-  // endpoint values even in renamed/dormant nested records.
+  checkMetadata(payload, POLICY_METADATA[name], '', emptyPaths, errors);
+  // Reject known legacy sources and quote fields in the decoded policy data,
+  // including keys or endpoints that were escaped in the input text.
   const forbidden = [
     /yahoo[-_]yfinance/i,
     /query1\.finance\.yahoo\.com/i,
@@ -59,33 +114,35 @@ export function validateQuoteFreeFinancialAsset(name, payload, raw = '') {
     /"rate"\s*:/i,
     /"(?:price|nav|lastPrice|value|changePercent)"\s*:/i
   ];
+  const decoded = JSON.stringify(payload);
   for (const match of forbidden) {
-    if (match.test(raw || JSON.stringify(payload))) errors.push('FORBIDDEN_MARKET_PAYLOAD:' + match.source);
+    if (match.test(decoded) || match.test(raw)) errors.push('FORBIDDEN_MARKET_PAYLOAD:' + match.source);
   }
   return errors;
 }
 
-function listJson(root) {
-  const dir = path.join(root, 'data');
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter(name => name.endsWith('.json'));
+function listJson(directory) {
+  return fs.readdirSync(directory, { recursive: true, withFileTypes: true })
+    .filter(entry => (entry.isFile() || entry.isSymbolicLink()) && /\.json$/i.test(entry.name))
+    .map(entry => path.relative(directory, path.join(entry.parentPath, entry.name)).split(path.sep).join('/'));
 }
 
 export function auditMarketPublicationRoot(root, { required = true } = {}) {
-  const files = listJson(root);
+  const directory = path.join(root, 'data');
   const errors = [];
-  if (!fs.existsSync(path.join(root, 'data'))) {
+  if (!fs.existsSync(directory)) {
     return { root, errors: required ? ['MISSING_DATA_ROOT'] : [], filesChecked: [] };
   }
+  const files = listJson(directory);
   const forbiddenAssetNames = files.filter(name =>
-    /^(?:fx_snapshot|forex_snapshot|market_legacy_quotes)\b/i.test(name)
+    /^(?:fx_snapshot|forex_snapshot|market_legacy_quotes)\b/i.test(path.basename(name))
   );
   for (const name of forbiddenAssetNames) errors.push('FORBIDDEN_PUBLIC_FX_ASSET:' + name);
   // A new financial JSON filename must undergo its own licensing and data
   // contract review; otherwise a renamed exporter bypasses fixed-file checks.
-  const financialNames = /(?:market|fx|forex|nav|fund|equity|stocks?|indices|^nse|^bse|^yahoo)/i;
+  const financialNames = /(?:market|fx|forex|nav|fund|equity|stocks?|indices|quotes?|bhavcopy|^nse|^bse|^yahoo)/i;
   for (const name of files) {
-    if (financialNames.test(name) && !QUOTE_FREE_ASSETS.includes(name) &&
+    if (name.split('/').some(part => financialNames.test(part)) && !QUOTE_FREE_ASSETS.includes(name) &&
         !forbiddenAssetNames.includes(name)) {
       errors.push('UNREVIEWED_FINANCIAL_PUBLIC_ASSET:' + name);
     }

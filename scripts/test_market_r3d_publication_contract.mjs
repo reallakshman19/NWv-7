@@ -40,6 +40,14 @@ test('R3D-S02 a legacy Yahoo FX file is rejected at the publication boundary', (
     assert.ok(auditMarketPublicationRoot(root).errors.some(e =>
       e.includes('UNREVIEWED_FINANCIAL_PUBLIC_ASSET:nse_quotes.json')));
     fs.rmSync(path.join(root, 'data', 'nse_quotes.json'));
+    const archive = path.join(root, 'data', 'archive');
+    fs.mkdirSync(archive);
+    const archivedQuote = path.join(archive, 'market_snapshot.json');
+    fs.writeFileSync(archivedQuote, JSON.stringify({ indices: [{ name: 'Fixture', close: 999 }] }));
+    assert.ok(auditMarketPublicationRoot(root).errors.includes(
+      'UNREVIEWED_FINANCIAL_PUBLIC_ASSET:archive/market_snapshot.json'
+    ));
+    fs.rmSync(archivedQuote);
     assert.deepEqual(auditMarketPublicationRoot(root).errors, []);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -67,7 +75,11 @@ test('publication guard CLI checks a missing data root from a path containing sp
 test('R3D-S03 injected price, NAV, rate, quote row, timestamp and policy override all fail closed', () => {
   const market = policyPayload('market_snapshot.json');
   const nav = policyPayload('mutual_fund_snapshot.json');
+  const health = policyPayload('market_source_health.json');
   const probes = [
+    ['market_source_health.json', {
+      ...health, sources: { ...health.sources, indices: { ...health.sources.indices, close: 999 } }
+    }, 'UNEXPECTED_POLICY_FIELD:sources.indices.close'],
     ['market_snapshot.json', { ...market, sourceMode: 'live' }, 'SOURCE_MODE_NOT_FREE_OPEN_ONLY'],
     ['market_snapshot.json', { ...market, fetchedAt: new Date().toISOString() }, 'UNAUTHORIZED_PUBLICATION_CLOCK'],
     ['market_snapshot.json', { ...market, indices: [{ name: 'NIFTY', value: 1 }] }, 'NONEMPTY_FINANCIAL_DATA'],
