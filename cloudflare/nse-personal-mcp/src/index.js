@@ -15,7 +15,7 @@ const ALLOWED_SYMBOLS = new Set([
   'ITC', 'BHARTIARTL', 'KOTAKBANK', 'LT', 'HINDUNILVR',
   'AXISBANK', 'BAJFINANCE', 'MARUTI', 'WIPRO', 'SUNPHARMA',
 ]);
-const INSTANT = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(?::\\d{2}(?:\\.\\d+)?)?(?:Z|[+-]\\d{2}:\\d{2})$/i;
+const INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/i;
 const MAX_RESPONSE_CHARS = 140000;
 
 function json(value, status = 200, origin = null) {
@@ -53,11 +53,11 @@ function rpcBody(id, method, params) {
 function decodeRpc(text, contentType) {
   if (text.length > MAX_RESPONSE_CHARS) throw new Error('NSE_RESPONSE_TOO_LARGE');
   if (contentType.includes('text/event-stream')) {
-    const messages = text.split(/\\r?\\n\\r?\\n/);
+    const messages = text.split(/\r?\n\r?\n/);
     for (const event of messages) {
-      const data = event.split(/\\r?\\n/)
+      const data = event.split(/\r?\n/)
         .filter(line => line.startsWith('data:'))
-        .map(line => line.slice(5).trimStart()).join('\\n');
+        .map(line => line.slice(5).trimStart()).join('\n');
       if (data && data !== '[DONE]') {
         const candidate = JSON.parse(data);
         if ('result' in candidate || 'error' in candidate) return candidate;
