@@ -1,0 +1,11 @@
+name = "nw7-nse-personal-quote"
+main = "src/index.js"
+compatibility_date = "2026-11-23"
+workers_dev = true
+
+[vars]
+# Replace with the exact Github Pages origin. Never use "*" here.
+ALLOWED_ORIGIN = "https://reallakshman19.github.io"
+
+# MARKET_OWNER_TOKEN must be entered using "wrangler secret put MARKET_OWNER_TOKEN".
+# Do not put the owner secret in this file or in Vite env variables.
