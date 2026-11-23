@@ -89,6 +89,7 @@ function ActiveRetailOffersPanel({locations=['Chennai','Muscat'],channel='online
     if(!snapshot)return [];
     try{return selectRetailOffers(snapshot,{locations,channel,now});}catch{return [];}
   },[snapshot,locations,channel,now]);
+  const lastUpdateExpired=snapshot&&rows.length===0&&now-snapshot.fetchedAt>=policy.freshHours*3600000;
   const channelSources=sources.filter(source=>source.channels.includes(channel)||rows.some(row=>row.retailerId===source.id));
   const activeRetailer=channelSources.some(source=>source.id===retailerId)?retailerId:'all';
   const items=activeRetailer==='all'?rows:rows.filter(row=>row.retailerId===activeRetailer);
@@ -105,11 +106,13 @@ function ActiveRetailOffersPanel({locations=['Chennai','Muscat'],channel='online
       {channelSources.map(source=><button type="button" key={source.id}
         aria-pressed={activeRetailer===source.id} onClick={()=>{setRetailerId(source.id);setLimit(40);}}>{source.name} ({rows.filter(row=>row.retailerId===source.id).length})</button>)}
     </div>
-    {error&&<p className="ua-retail-note" role="status">{rows.length?`The latest update is unavailable. Showing unexpired cached ${channel==='offline'?'offers':'prices'}.`:'The retailer update is unavailable. Please refresh later.'}</p>}
+    {error&&!lastUpdateExpired&&<p className="ua-retail-note" role="status">{rows.length?`The latest update is unavailable. Showing unexpired cached ${channel==='offline'?'offers':'prices'}.`:'The retailer update is unavailable. Please refresh later.'}</p>}
     {loading&&!snapshot?<p role="status">Loading retailer offers…</p>:<>
       <p className="ua-retail-count">{items.length} current offer{items.length===1?'':'s'}{fromCache?' · Cached update':''}</p>
       {visible.length?<>{flyers.length>0&&<RetailFlyerCards items={flyers} onAddToPlan={onAddToPlan}/>} {priced.length>0&&<RetailOfferCards items={priced} onAddToPlan={onAddToPlan}/>}</>:<>
-        <p className="ua-retail-empty">No current {channel==='offline'?'in-store':'priced'} offers could be verified for {activeRetailer==='all'?'the selected locations':sources.find(source=>source.id===activeRetailer)?.name||'this retailer'}.</p>
+        {lastUpdateExpired?
+          <p className="ua-retail-empty" role="status">The last verified retailer update has expired. Last update: <time dateTime={new Date(snapshot.fetchedAt).toISOString()}>{new Date(snapshot.fetchedAt).toLocaleString()}</time>.</p>:
+          <p className="ua-retail-empty">No current {channel==='offline'?'in-store':'priced'} offers could be verified for {activeRetailer==='all'?'the selected locations':sources.find(source=>source.id===activeRetailer)?.name||'this retailer'}.</p>}
         {channelSources.filter(source=>activeRetailer==='all'||source.id===activeRetailer).length>0&&
           <aside aria-label="Retailer source directory" className="ua-retail-status">
             <strong>Check retailer sources directly</strong>

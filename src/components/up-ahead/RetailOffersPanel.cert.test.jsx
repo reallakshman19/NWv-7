@@ -68,6 +68,22 @@ describe('populated retailer offers',()=>{
   expect(screen.queryByRole('button',{name:'+ Plan today'})).toBeNull();
  });
 
+ it.each(['online','offline'])('reports an expired snapshot separately from a current empty %s update',channel=>{
+  const state=useRetailOffers();
+  const fetchedAt=now-(policy.freshHours+1)*3600000;
+  const snapshot={...state.snapshot,fetchedAt,items:[],flyers:[]};
+  useRetailOffers.mockReturnValue({...state,snapshot});
+  const {rerender}=render(<RetailOffersPanel channel={channel}/>);
+  const status=screen.getByRole('status');
+  expect(status.textContent).toContain('The last verified retailer update has expired');
+  expect(status.querySelector('time').dateTime).toBe(new Date(fetchedAt).toISOString());
+  expect(screen.queryByText(/No current .* offers could be verified/)).toBeNull();
+  useRetailOffers.mockReturnValue({...state,snapshot:{...snapshot,fetchedAt:now}});
+  rerender(<RetailOffersPanel channel={channel}/>);
+  expect(screen.queryByText(/last verified retailer update has expired/)).toBeNull();
+  expect(screen.getByText(/No current .* offers could be verified/)).toBeTruthy();
+ });
+
  it('passes a manual shopping intent to Planner without inventing an event date',async()=>{
   const save=vi.fn().mockReturnValue({ok:true});render(<RetailOffersPanel locations={['Muscat']} onAddToPlan={save}/>);
   fireEvent.click(screen.getByRole('button',{name:'+ Plan today'}));
