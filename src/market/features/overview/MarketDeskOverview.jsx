@@ -87,18 +87,23 @@ function DeskCard({ id, title, action, destination, onNavigate, wide = false, ch
 
 const DISPLAY_QUOTE_MODES = new Set(['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache']);
 
+function getDatedIndexObservations(data) {
+  if (!DISPLAY_QUOTE_MODES.has(data?.sourceMode)) return [];
+  return getQualifiedIndexRows(data)
+    .filter(({ row }) => row.quoteAt != null && (row.sourceProvider || row.source) && !isMarketSeedRow(row))
+    .sort((a, b) => b.time - a.time);
+}
+
 function MarketPulse({ data }) {
-  const sourceMode = data?.sourceMode;
-  const observations = DISPLAY_QUOTE_MODES.has(sourceMode) ? getQualifiedIndexRows(data) : [];
-  const isLastAvailable = sourceMode !== 'live';
+  const observations = getDatedIndexObservations(data);
+  const isLastAvailable = data?.sourceMode !== 'live';
 
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
         const indexId = canonicalIndexId(index);
         const observation = observations.find(({ id, row }) =>
-          (row.symbol === index.symbol || row.name === index.name || id === indexId) &&
-          (row.source || row.sourceProvider) && !isMarketSeedRow(row)
+          id === indexId || row.symbol === index.symbol || (!row.symbol && row.name === index.name)
         );
 
         return (
@@ -200,15 +205,11 @@ function SectorBreakdown({ data, onNavigate }) {
   const canDisplayQuotes = DISPLAY_QUOTE_MODES.has(data?.sourceMode);
   const isLastAvailable = data?.sourceMode !== 'live';
   const sectorId = canonicalIndexId({ ...activeSector, exchange: 'NSE' });
-  const benchmark = canDisplayQuotes
-    ? getQualifiedIndexRows(data)
-      .filter(({ id, row }) => id === sectorId
-        && (row.sourceProvider || row.source) && !isMarketSeedRow(row))
-      .sort((a, b) => b.time - a.time)[0]
-    : null;
-  const equityBySymbol = new Map(canDisplayQuotes
-    ? qualifyTrackedEquities(data.equities).map(quote => [quote.symbol, quote])
-    : []);
+  const benchmark = getDatedIndexObservations(data).find(({ id }) => id === sectorId);
+  const equityRows = canDisplayQuotes && Array.isArray(data.equities)
+    ? data.equities.filter(row => row?.quoteAt != null && !isMarketSeedRow(row))
+    : [];
+  const equityBySymbol = new Map(qualifyTrackedEquities(equityRows).map(quote => [quote.symbol, quote]));
   const stocks = Object.values(TRACKED_NSE_METADATA)
     .filter(({ sector }) => activeSector.classification.test(sector));
 

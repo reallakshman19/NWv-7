@@ -276,7 +276,8 @@
     font-size: 11pt;
   }
   .market-desk-r3c .md3-pulse-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .market-desk-r3c .md3-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .market-desk-r3c .md3-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+  .market-desk-r3c .md3-metrics .md3-metric { padding: 5px; font-size: 8pt; overflow-wrap: normal; }
   .md3-metric, .md3-pulse-row, .md3-stock-card { break-inside: avoid; }
   .md3-metric, .md3-pulse-row { min-height: 0; padding: 6px; overflow-wrap: anywhere; }
   .md3-metric-label, .md3-metric-value, .md3-metric-detail { font-size: inherit; }
