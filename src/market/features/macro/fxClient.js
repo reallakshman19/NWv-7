@@ -6,10 +6,10 @@
 
 import { isAllowedMarketSourceUrl } from '../../contracts/index.js';
 import { createSourceReceipt } from '../../contracts/sourceReceipt.js';
+import { evaluateFxObservation } from './fxFreshness.js';
+export { FRESHNESS_WINDOW_MS, EXPIRY_WINDOW_MS } from './fxFreshness.js';
 
 export const FRANKFURTER_SOURCE_ID = 'frankfurter';
-export const FRESHNESS_WINDOW_MS = 36 * 3600000;   // 36 hours: normal dated reference
-export const EXPIRY_WINDOW_MS = 72 * 3600000;      // 72 hours (3 calendar days): conversion expiry limit
 
 export class FxClient {
   /**
@@ -57,45 +57,15 @@ export class FxClient {
       throw new Error(`Invalid non-positive exchange rate returned for ${canonicalBase}/${canonicalQuote}`);
     }
 
-    if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      throw new Error(`Invalid provider date format: ${date}`);
+    const classification = evaluateFxObservation(date, now);
+    if (!classification) {
+      const candidateAsOf = typeof date === 'string' ? Date.parse(`${date}T00:00:00Z`) : NaN;
+      if (Number.isFinite(candidateAsOf) && candidateAsOf > now + 300000) {
+        throw new Error(`Provider clock is in the future: ${date}`);
+      }
+      throw new Error(`Invalid or malformed provider observation date: ${date}`);
     }
-
-    const asOf = Date.parse(date + 'T00:00:00Z');
-    if (!Number.isFinite(asOf) || new Date(asOf).toISOString().slice(0, 10) !== date) {
-      throw new Error(`Malformed observation date: ${date}`);
-    }
-
-    // Reject future clock (with 300s leeway for clock drift)
-    if (asOf > now + 300000) {
-      throw new Error(`Provider clock is in the future: ${date}`);
-    }
-
-    const ageMs = now - asOf;
-    let freshness;
-    let stale;
-    let isHistorical;
-    let warning = null;
-    let receiptState;
-
-    if (ageMs <= FRESHNESS_WINDOW_MS) {
-      freshness = 'FRESH';
-      stale = false;
-      isHistorical = false;
-      receiptState = 'READY';
-    } else if (ageMs <= EXPIRY_WINDOW_MS) {
-      freshness = 'DATED_WARNING';
-      stale = true;
-      isHistorical = false;
-      warning = 'Dated reference rate (over 36 hours old)';
-      receiptState = 'READY';
-    } else {
-      freshness = 'EXPIRED';
-      stale = true;
-      isHistorical = true;
-      warning = 'Reference rate expired for current-day conversion (over 72 hours old)';
-      receiptState = 'HISTORICAL';
-    }
+    const { asOf, freshness, stale, isHistorical, warning, receiptState } = classification;
 
     const checkedAtIso = new Date().toISOString();
 

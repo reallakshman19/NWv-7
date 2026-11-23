@@ -11,6 +11,8 @@ export {
   DEFAULT_OVERVIEW_SLOTS,
 } from './Overview.jsx';
 
+export { MarketDeskOverview } from './MarketDeskOverview.jsx';
+
 export {
   MarketNav,
   MOBILE_DIRECT_IDS,

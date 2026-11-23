@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { validateQuoteFreeFinancialAsset } from './check_market_publication_assets.mjs';
 
 const DATA_DIR = 'public/data';
 const CLOCK_SKEW_MS = Number(process.env.SNAPSHOT_CLOCK_SKEW_MINUTES || 15) * 60 * 1000;
@@ -102,11 +103,26 @@ for (const fileName of snapshotFiles()) {
   const snapshot = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   const maxAgeHours = DOMAIN_MAX_AGE_HOURS[fileName] || DEFAULT_MAX_AGE_HOURS;
   const timestamp = payloadTimestamp(snapshot);
+  // A license-restricted quote-free publication intentionally contains no
+  // market observation or freshness timestamp. Validate its policy, not age.
+  if (['market_snapshot.json', 'mutual_fund_snapshot.json'].includes(fileName) &&
+      snapshot?.schemaVersion === 'market-free-open-v1') {
+    const errors = validateQuoteFreeFinancialAsset(
+      fileName, snapshot, fs.readFileSync(fullPath, 'utf8')
+    );
+    assert(errors.length === 0, fileName + ' invalid quote-free manifest: ' + errors.join(', '));
+    checked.push({
+      fileName, maxAgeHours: null, ageHours: null,
+      mode: 'QUOTE_FREE_POLICY_ONLY', freshnessVerified: false
+    });
+    continue;
+  }
 
   const result = {
     fileName,
     maxAgeHours,
     ageHours: timestamp ? assertFresh({ label: fileName, timestamp, maxAgeHours, now }) : null,
+    freshnessVerified: Boolean(timestamp)
   };
 
   if (fileName === 'weather_snapshot.json') {

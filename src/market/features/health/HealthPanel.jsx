@@ -36,8 +36,7 @@ export function HealthPanel() {
         <div className="header-titles">
           <h2 className="workspace-main-title">Data Health, Rights & Privacy Governance</h2>
           <p className="workspace-subtitle">
-            Market Desk R2.1 operational control room. Real-time audit of source rights,
-            client-local privacy boundaries, non-destructive migrations, and concurrency controls.
+            On-device source receipts and access rights. No automatic polling or claim of current market availability.
           </p>
         </div>
 
@@ -45,15 +44,15 @@ export function HealthPanel() {
         <div className="quality-dimensions-bar" role="region" aria-label="Quality Governance Dimensions">
           <div className="dim-chip" title={dims.policyCompliance?.detail}>
             <span className="dim-label">Policy Compliance:</span>
-            <span className="dim-value text-success">100% Free/Open</span>
+            <span className="dim-value">{dims.policyCompliance?.status === 'PASS' ? 'No detected violation' : 'Review required'}</span>
           </div>
           <div className="dim-chip" title={dims.dataAvailability?.detail}>
             <span className="dim-label">Quote Availability:</span>
-            <span className="dim-value text-accent">Limited Free Tier</span>
+            <span className="dim-value">{dims.dataAvailability?.status === 'LIMITED_FREE_TIER' ? 'Native quotes restricted' : dims.dataAvailability?.status || 'Not checked'}</span>
           </div>
           <div className="dim-chip" title={dims.freshness?.detail}>
             <span className="dim-label">Freshness:</span>
-            <span className="dim-value text-success">Verified</span>
+            <span className="dim-value" aria-live="polite">{dims.freshness?.status === 'NOT_CHECKED' ? 'Not checked' : dims.freshness?.status === 'PASS' ? 'Dated observations recorded' : 'Review dated observations'}</span>
           </div>
           <div className="dim-chip" title={privacyDisclosure?.badgeText}>
             <span className="dim-label">Portfolio Privacy:</span>

@@ -9,7 +9,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { MARKET_R21_STORAGE_KEYS } from '../../contracts/storagePolicy.js';
-import { validateTransactionInputs, replayPortfolio, sortTransactions } from './portfolioAccounting.js';
+import { validateTransactionInputs, validateManualPriceMark, replayPortfolio, sortTransactions } from './portfolioAccounting.js';
 
 export const PORTFOLIO_STORAGE_KEY = MARKET_R21_STORAGE_KEYS.portfolio; // 'nw7.market-portfolio.v1'
 export const MAX_PORTFOLIOS = 5;
@@ -125,7 +125,8 @@ class PortfolioStore {
       const raw = window.localStorage.getItem(PORTFOLIO_STORAGE_KEY);
       if (!raw) {
         const defaultState = createDefaultPortfolioState();
-        this.saveToStorage(defaultState);
+        const saved = this.saveToStorage(defaultState);
+        if (!saved.ok) defaultState.storageWarning = saved.error;
         return defaultState;
       }
 
@@ -157,7 +158,9 @@ class PortfolioStore {
   }
 
   saveToStorage(stateToSave) {
-    if (typeof window === 'undefined' || !window.localStorage) return;
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { ok: false, error: 'Browser local storage is unavailable; portfolio changes were not saved' };
+    }
     try {
       const payload = JSON.stringify({
         version: stateToSave.version,
@@ -167,8 +170,9 @@ class PortfolioStore {
         portfolios: stateToSave.portfolios
       });
       window.localStorage.setItem(PORTFOLIO_STORAGE_KEY, payload);
+      return { ok: true };
     } catch (err) {
-      this.state.storageWarning = `Unable to persist changes to local storage: ${err.message}`;
+      return { ok: false, error: `Unable to save portfolio changes: ${err.message}` };
     }
   }
 
@@ -185,13 +189,22 @@ class PortfolioStore {
       ...this.state,
       revision: (this.state.revision || 0) + 1,
       lastModified: new Date().toISOString(),
-      portfolios: nextPortfolios
+      portfolios: nextPortfolios,
+      storageWarning: null
     };
 
     updater(nextState);
+    // Commit only after a durable browser write. A failed write must not
+    // look like success or silently replace the last persisted ledger.
+    const saved = this.saveToStorage(nextState);
+    if (!saved.ok) {
+      this.state = { ...this.state, storageWarning: saved.error };
+      this.updateSnapshot();
+      return saved;
+    }
     this.state = nextState;
-    this.saveToStorage(this.state);
     this.updateSnapshot();
+    return { ok: true };
   }
 
   subscribe = (listener) => {
@@ -232,7 +245,7 @@ class PortfolioStore {
     const newId = `p_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date().toISOString();
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       state.portfolios.push({
         id: newId,
         name: cleanName,
@@ -243,6 +256,7 @@ class PortfolioStore {
       });
       state.activePortfolioId = newId;
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return { ok: true, portfolioId: newId };
   }
@@ -251,9 +265,10 @@ class PortfolioStore {
     if (!this.state.portfolios.some(p => p.id === portfolioId)) {
       return { ok: false, error: 'Portfolio not found' };
     }
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       state.activePortfolioId = portfolioId;
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
     return { ok: true };
   }
 
@@ -262,7 +277,7 @@ class PortfolioStore {
     if (!cleanName) return { ok: false, error: 'Portfolio name cannot be empty' };
 
     let found = false;
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === portfolioId);
       if (p) {
         p.name = cleanName;
@@ -270,6 +285,7 @@ class PortfolioStore {
         found = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return found ? { ok: true } : { ok: false, error: 'Portfolio not found' };
   }
@@ -280,7 +296,7 @@ class PortfolioStore {
     }
 
     let deleted = false;
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const index = state.portfolios.findIndex(p => p.id === portfolioId);
       if (index !== -1) {
         state.portfolios.splice(index, 1);
@@ -290,6 +306,7 @@ class PortfolioStore {
         deleted = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return deleted ? { ok: true } : { ok: false, error: 'Portfolio not found' };
   }
@@ -304,7 +321,7 @@ class PortfolioStore {
     const targetId = portfolioId || this.state.activePortfolioId;
     let added = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p) {
         p.transactions.push(validation.sanitized);
@@ -313,6 +330,7 @@ class PortfolioStore {
         added = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return added
       ? { ok: true, transaction: validation.sanitized }
@@ -328,7 +346,7 @@ class PortfolioStore {
     const targetId = portfolioId || this.state.activePortfolioId;
     let updated = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p) {
         const index = p.transactions.findIndex(t => t.id === txId);
@@ -340,6 +358,7 @@ class PortfolioStore {
         }
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return updated
       ? { ok: true, transaction: validation.sanitized }
@@ -350,7 +369,7 @@ class PortfolioStore {
     const targetId = portfolioId || this.state.activePortfolioId;
     let deleted = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p) {
         const index = p.transactions.findIndex(t => t.id === txId);
@@ -361,37 +380,29 @@ class PortfolioStore {
         }
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return deleted ? { ok: true } : { ok: false, error: 'Transaction or portfolio not found' };
   }
 
   // Manual Price Mark Actions
   setManualPriceMark(portfolioId, instrumentKey, price, asOfDate) {
-    const numPrice = Number(price);
-    if (typeof numPrice !== 'number' || isNaN(numPrice) || numPrice <= 0) {
-      return { ok: false, error: 'Price mark must be a positive number' };
-    }
-
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(asOfDate || '')) {
-      return { ok: false, error: 'As-of date must be in YYYY-MM-DD format' };
-    }
+    const validation = validateManualPriceMark(instrumentKey, price, asOfDate);
+    if (!validation.ok) return { ok: false, error: validation.error };
 
     const targetId = portfolioId || this.state.activePortfolioId;
     let setMark = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p) {
         if (!p.manualPriceMarks) p.manualPriceMarks = {};
-        p.manualPriceMarks[instrumentKey] = {
-          price: Math.round(numPrice * 10000) / 10000,
-          asOfDate,
-          recordedAt: new Date().toISOString()
-        };
+        p.manualPriceMarks[instrumentKey] = validation.sanitized;
         p.updatedAt = new Date().toISOString();
         setMark = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return setMark ? { ok: true } : { ok: false, error: 'Portfolio not found' };
   }
@@ -400,7 +411,7 @@ class PortfolioStore {
     const targetId = portfolioId || this.state.activePortfolioId;
     let deleted = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p && p.manualPriceMarks && p.manualPriceMarks[instrumentKey]) {
         delete p.manualPriceMarks[instrumentKey];
@@ -408,6 +419,7 @@ class PortfolioStore {
         deleted = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return deleted ? { ok: true } : { ok: false, error: 'Mark or portfolio not found' };
   }
@@ -454,6 +466,17 @@ class PortfolioStore {
       return { ok: false, errors: ['No portfolio data found in JSON payload'] };
     }
 
+    if (!['REPLACE_ACTIVE', 'NEW_PORTFOLIO', 'MERGE'].includes(mode)) {
+      return { ok: false, errors: [`Unsupported import mode: ${mode}`] };
+    }
+
+    if (mode === 'NEW_PORTFOLIO' && this.state.portfolios.length + incomingPortfolios.length > MAX_PORTFOLIOS) {
+      return { ok: false, errors: [`Import would exceed the ${MAX_PORTFOLIOS}-portfolio limit`] };
+    }
+    if (mode !== 'NEW_PORTFOLIO' && !this.state.portfolios.some(p => p.id === this.state.activePortfolioId)) {
+      return { ok: false, errors: ['Active portfolio not found'] };
+    }
+
     // Pre-validate all transactions across all incoming portfolios
     const validatedPortfolios = [];
     for (const p of incomingPortfolios) {
@@ -471,18 +494,32 @@ class PortfolioStore {
         }
       }
 
+      const validatedMarks = {};
+      if (p.manualPriceMarks != null) {
+        if (typeof p.manualPriceMarks !== 'object' || Array.isArray(p.manualPriceMarks)) {
+          return { ok: false, errors: [`Portfolio "${p.name}" manual marks must be an object`] };
+        }
+        for (const [key, mark] of Object.entries(p.manualPriceMarks)) {
+          const res = validateManualPriceMark(key, mark?.price, mark?.asOfDate, mark?.recordedAt);
+          if (!res.ok) {
+            return { ok: false, errors: [`Portfolio "${p.name}" invalid price mark (${key}): ${res.error}`] };
+          }
+          validatedMarks[key] = res.sanitized;
+        }
+      }
+
       validatedPortfolios.push({
         id: p.id || `p_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         name: p.name,
         createdAt: p.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         transactions: sortTransactions(validTxList),
-        manualPriceMarks: (p.manualPriceMarks && typeof p.manualPriceMarks === 'object') ? p.manualPriceMarks : {}
+        manualPriceMarks: validatedMarks
       });
     }
 
     // Commit changes according to mode
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       if (mode === 'REPLACE_ACTIVE') {
         const active = state.portfolios.find(p => p.id === state.activePortfolioId);
         const source = validatedPortfolios[0];
@@ -492,11 +529,15 @@ class PortfolioStore {
           active.updatedAt = new Date().toISOString();
         }
       } else if (mode === 'NEW_PORTFOLIO') {
-        for (const p of validatedPortfolios) {
-          if (state.portfolios.length < MAX_PORTFOLIOS) {
-            state.portfolios.push(p);
-            state.activePortfolioId = p.id;
+        const usedIds = new Set(state.portfolios.map(portfolio => portfolio.id));
+        for (const portfolio of validatedPortfolios) {
+          let id = portfolio.id;
+          for (let suffix = 2; usedIds.has(id); suffix += 1) {
+            id = `${portfolio.id}-${suffix}`;
           }
+          usedIds.add(id);
+          state.portfolios.push({ ...portfolio, id });
+          state.activePortfolioId = id;
         }
       } else if (mode === 'MERGE') {
         const active = state.portfolios.find(p => p.id === state.activePortfolioId);
@@ -514,8 +555,10 @@ class PortfolioStore {
         }
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
-    return { ok: true, importedCount: validatedPortfolios.length };
+    const importedCount = mode === 'NEW_PORTFOLIO' ? validatedPortfolios.length : 1;
+    return { ok: true, importedCount };
   }
 
   // CSV Export / Import (Transactions only, with formula injection protection)
@@ -636,7 +679,7 @@ class PortfolioStore {
     const targetId = portfolioId || this.state.activePortfolioId;
     let committed = false;
 
-    this.mutate(state => {
+    const saveResult = this.mutate(state => {
       const p = state.portfolios.find(item => item.id === targetId);
       if (p) {
         if (mode === 'REPLACE') {
@@ -649,6 +692,7 @@ class PortfolioStore {
         committed = true;
       }
     });
+    if (!saveResult.ok) return { ok: false, error: saveResult.error, errors: [saveResult.error] };
 
     return committed
       ? { ok: true, importedCount: validatedTxs.length }

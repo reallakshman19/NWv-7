@@ -1,3 +1,18 @@
+/**
+ * Source-backed NSE Capital Market equity calendar for 2026 only.
+ * A year appearing in the legacy list is not evidence its list is complete.
+ */
+export const NSE_CAPITAL_MARKET_CALENDAR_AUTHORITY = Object.freeze({
+    2026: Object.freeze({
+        source: 'NSE',
+        circular: 'NSE/CMTR/71775',
+        published: '2025-12-12',
+        url: 'https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf',
+        weekdayHolidayCount: 15,
+        exceptionalSessionDates: Object.freeze(['2026-11-08'])
+    })
+});
+
 export const MARKET_TRADING_HOLIDAY_CALENDAR = {
     2024: [
         '2024-01-22', '2024-01-26', '2024-03-08', '2024-03-25', '2024-03-29',
@@ -10,9 +25,15 @@ export const MARKET_TRADING_HOLIDAY_CALENDAR = {
         '2025-04-18', '2025-05-01', '2025-08-15', '2025-10-02', '2025-10-20',
         '2025-11-05', '2025-12-25',
     ],
+    // NSE Capital Market circular NSE/CMTR/71775, 12 Dec 2025, 15 weekday closures.
+    // https://nsearchives.nseindia.com/content/circulars/CMTR71775.pdf
+    // Excludes weekend-only observances. A Sunday Muhurat special session
+    // (2026-11-08) must be treated separately, not as regular Sunday trading.
     2026: [
-        '2026-01-26', '2026-03-04', '2026-04-03', '2026-05-01',
-        '2026-10-02', '2026-12-25',
+        '2026-01-26', '2026-03-03', '2026-03-26', '2026-03-31',
+        '2026-04-03', '2026-04-14', '2026-05-01', '2026-05-28',
+        '2026-06-26', '2026-09-14', '2026-10-02', '2026-10-20',
+        '2026-11-10', '2026-11-24', '2026-12-25',
     ],
 };
 
@@ -75,9 +96,15 @@ export function normalizeMarketSettings(source = {}) {
         settings[key] = typeof raw[key] === 'boolean' ? raw[key] : DEFAULT_MARKET_SETTINGS[key];
     }
     const custom = Array.isArray(raw.tradingHolidays) ? raw.tradingHolidays : DEFAULT_MARKET_SETTINGS.tradingHolidays;
-    settings.tradingHolidays = [...new Set(custom.filter(validCalendarDate))].slice(0, 512);
-    settings.tradingHolidayYears = Array.isArray(raw.tradingHolidayYears)
-        ? [...new Set(raw.tradingHolidayYears.filter(year => Number.isInteger(year) && year >= 2020 && year <= 2100))]
+    // The old built-in list persisted March 4 as Holi. Remove that obsolete
+    // default while preserving other valid saved dates and the official calendar.
+    settings.tradingHolidays = [...new Set([
+        ...MARKET_TRADING_HOLIDAY_CALENDAR[2026],
+        ...custom.filter(date => date !== '2026-03-04' && validCalendarDate(date))
+    ])].slice(0, 512);
+    const customYears = Array.isArray(raw.tradingHolidayYears)
+        ? raw.tradingHolidayYears.filter(year => Number.isInteger(year) && year >= 2020 && year <= 2100)
         : DEFAULT_MARKET_SETTINGS.tradingHolidayYears;
+    settings.tradingHolidayYears = [...new Set([2026, ...customYears])].sort((a, b) => a - b);
     return settings;
 }

@@ -29,7 +29,9 @@ describe('WP-09 Health & Privacy Workspace UI', () => {
   it('renders root HealthPanel with header, quality dimensions, and tabs', () => {
     render(<HealthPanel />);
     expect(screen.getByText(/Data Health, Rights & Privacy Governance/i)).toBeTruthy();
-    expect(screen.getByText(/100% Free\/Open/i)).toBeTruthy();
+    expect(screen.getByText(/No detected violation/i)).toBeTruthy();
+    expect(screen.getByText(/Not checked/i)).toBeTruthy();
+    expect(screen.queryByText('Freshness: Verified')).toBeNull();
     expect(screen.getByRole('tab', { name: /Sources & Rights/i })).toBeTruthy();
     expect(screen.getByRole('tab', { name: /Local Activity Log/i })).toBeTruthy();
     expect(screen.getByRole('tab', { name: /Storage, Migration & Privacy/i })).toBeTruthy();

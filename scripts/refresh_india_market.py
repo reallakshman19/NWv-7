@@ -301,23 +301,12 @@ def main():
     if args.validate:
         print(json.dumps(validate(json.loads(Path(args.validate).read_text(encoding="utf-8")), now), indent=2))
         return
-    snapshot = acquire(now)
-    output = Path(args.output_dir)
-    output.mkdir(parents=True, exist_ok=True)
-    # Uncommitted attempt evidence survives a failed gate without changing the last
-    # published snapshot or its timestamps. Only qualified public files are staged.
-    (output / "market_refresh_attempt.json").write_bytes((json.dumps({"generatedAt": iso(now), "sources": snapshot["sourceHealth"]}, indent=2) + "\n").encode("utf-8"))
-    result = validate(snapshot, now)
-    payloads = {"market_snapshot.json": snapshot,
-                "mutual_fund_snapshot.json": {"generatedAt": iso(now), "mutualFunds": snapshot["mutualFunds"], "sourceHealth": snapshot["sourceHealth"]["mutualFunds"]},
-                "market_source_health.json": {"generatedAt": iso(now), "validation": result, "sources": snapshot["sourceHealth"]}}
-    for name, payload in payloads.items():
-        target = output / name
-        temporary = target.with_suffix(".tmp")
-        temporary.write_bytes((json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
-        temporary.replace(target)
-    print(json.dumps(result, indent=2))
-
+    # No public market quote publication is permitted. Keep the pure offline
+    # fixture parsers for legacy tests; block the writer before acquisition.
+    raise SystemExit(
+        "DISABLED_FREE_OPEN_ONLY: market quote publisher is retired; "
+        "no network acquisition or public file write is authorized."
+    )
 
 if __name__ == "__main__":
     main()

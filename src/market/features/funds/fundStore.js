@@ -12,6 +12,7 @@ import { useSyncExternalStore } from 'react';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS } from '../../contracts/storagePolicy.js';
 import { canonicalFundCode, planLegacySavedFunds, MAX_SAVED_FUNDS } from '../../contracts/instrumentIdentity.js';
 import { fundClient } from './fundClient.js';
+import { recordMarketSourceReceipt, recordMarketSourceFailure } from '../health/marketSourceRecorder.js';
 import { sanitizeAndSortNavHistory } from './fundMath.js';
 
 export const SAVED_FUNDS_STORAGE_KEY = MARKET_LEGACY_STORAGE_KEYS.funds; // 'nw7.market-saved-funds.v1'
@@ -275,7 +276,8 @@ class FundStore {
     if (inMemory?.status === 'ready' && inMemory?.value) {
       const checkedAt = inMemory.value.checkedAt;
       if (
-        typeof checkedAt === 'number' &&
+        Number.isFinite(checkedAt) &&
+        checkedAt >= 0 && checkedAt <= now &&
         now - checkedAt < ONE_DAY_MS &&
         getIstDayKey(checkedAt) === getIstDayKey(now)
       ) {
@@ -288,9 +290,12 @@ class FundStore {
     if (cachedHistory?.checkedAt) {
       const checkedAt = cachedHistory.checkedAt;
       if (
+        Number.isFinite(checkedAt) &&
+        checkedAt >= 0 && checkedAt <= now &&
         now - checkedAt < ONE_DAY_MS &&
         getIstDayKey(checkedAt) === getIstDayKey(now) &&
-        cachedHistory.latestNav &&
+        Number.isFinite(Number(cachedHistory.latestNav)) &&
+        Number(cachedHistory.latestNav) > 0 &&
         cachedHistory.latestDate
       ) {
         return {
@@ -342,17 +347,27 @@ class FundStore {
     };
     this.updateSnapshot();
 
+    const startedAt = Date.now();
     const fetchPromise = (async () => {
       try {
         const item = await fundClient.fetchLatestNav(canonical, { signal });
+        recordMarketSourceReceipt(item.receipt);
         this.state.navByCode[canonical] = { status: 'ready', value: item };
         this.updateSnapshot();
         return item;
       } catch (err) {
+        recordMarketSourceFailure('mfapi', err, startedAt);
         const isCooldown = err.status === 429 || fundClient.isCoolingDown();
         const status = isCooldown ? 'cooldown' : 'error';
         const errorMsg = err.message || 'NAV fetch failed';
-        this.state.navByCode[canonical] = { status, error: errorMsg };
+        // Retain the last observation with its original source date; a failed
+        // network check must not erase historical evidence or mark it fresh.
+        const previous = this.state.navByCode[canonical]?.value;
+        this.state.navByCode[canonical] = {
+          status,
+          error: errorMsg,
+          ...(previous ? { value: previous } : {})
+        };
         this.updateSnapshot();
         throw err;
       } finally {
@@ -384,7 +399,14 @@ class FundStore {
       }
     }
 
-    const history = await fundClient.fetchFundHistory(canonical, { signal, now });
+    let history;
+    try {
+      history = await fundClient.fetchFundHistory(canonical, { signal, now });
+      recordMarketSourceReceipt(history.receipt);
+    } catch (err) {
+      recordMarketSourceFailure('mfapi', err, now);
+      throw err;
+    }
 
     // Store in history cache
     const nextCache = { ...this.state.historyCache, [canonical]: history };

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
 import { canonicalIndexId, mergeQualifiedIndices } from '../services/marketQuotePolicy.js';
 import { formatMarketTimestamp } from '../utils/marketSession.js';
@@ -11,7 +11,7 @@ import {
 import { OPEN_SOURCE_REFERENCE_LINKS } from '../services/marketFreeOpenPolicy.js';
 
 // R2.1 Feature Modules
-import { MarketNav, Overview } from '../market/features/overview/index.js';
+import { MarketNav, MarketDeskOverview } from '../market/features/overview/index.js';
 import { IndexSectorPanel, MarketProviderBoard } from '../market/features/providers/index.js';
 import { EquityResearchPanel, WatchlistSummary } from '../market/features/equity/index.js';
 import { PortfolioPanel, PortfolioSummary } from '../market/features/portfolio/index.js';
@@ -197,8 +197,6 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         </p>
       )}
 
-      {freeOnly && regionAllowed && region === 'india' && <MarketProviderBoard group="indices" />}
-
       {!regionAllowed ? (
         <p role="status">This market region is hidden in Market settings.</p>
       ) : rows.length ? (
@@ -215,7 +213,7 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         </>
       ) : (
         <p role="status">
-          No qualified {region === 'india' ? 'India' : 'Global'} index observations match these filters. Refresh or consult the source.
+          No qualified {region === 'india' ? 'India' : 'Global'} native observations. {freeOnly ? 'See the official source links and provider board.' : 'Check the filters or refresh the source.'}
         </p>
       )}
 
@@ -237,10 +235,11 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
 function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) {
   const [expanded, setExpanded] = useState(false);
   const time = formatMarketTimestamp(data?.fetchedAt);
+  const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
 
   const quality = useMemo(() => {
     try {
-      const snap = healthStore?.getSnapshot ? healthStore.getSnapshot() : {};
+      const snap = health || {};
       return evaluateMarketQuality({
         sourceStates: snap.sourceStates || sourceHealth || {},
         receipts: snap.receipts || [],
@@ -248,13 +247,13 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
           indicesCount: data?.indices?.length || 0,
           moversCount: (data?.movers?.gainers?.length || 0) + (data?.movers?.losers?.length || 0),
           fundsCount: 0,
-          currenciesCount: 2
+          currenciesCount: snap.sourceStates?.frankfurter?.providerAsOf ? 1 : 0
         }
       });
     } catch {
       return null;
     }
-  }, [data, sourceHealth]);
+  }, [data, sourceHealth, health]);
 
   return (
     <div className="market-workspace__status">
@@ -266,8 +265,8 @@ function MarketDataStatus({ data, error, loading, sourceHealth, sessionState }) 
           : time || 'Unavailable'}
       </span>
       {quality && (
-        <span className="text-success" title={quality.dimensions?.policyCompliance?.detail}>
-          Policy: 100% Free/Open
+        <span title={quality.dimensions?.policyCompliance?.detail}>
+          Policy guard: {quality.dimensions?.policyCompliance?.status === 'PASS' ? 'No local violation detected' : 'Review required'}
         </span>
       )}
       {loading && <span role="status">Refreshing quote publication…</span>}
@@ -339,13 +338,17 @@ export default function MarketPage() {
   };
 
   const refresh = () => {
+    if ((rawMarketData || marketData)?.sourceMode === 'free-open-only') {
+      setRefreshResult('No native market-quote feed is enabled. Refresh currency rates and fund NAVs within their own workspaces.');
+      return;
+    }
     setRefreshResult('Checking the quote publication…');
     void Promise.resolve(refreshMarket?.(true))
       .then(result =>
         setRefreshResult(
           result?.ok === false
             ? `Refresh failed: ${result.error || 'Source unavailable'}`
-            : 'Refresh check finished. Individual quotes retain their original source times.'
+            : 'Market publication check completed; verify individual source dates.'
         )
       )
       .catch(failure => setRefreshResult(`Refresh failed: ${failure?.message || 'Source unavailable'}`));
@@ -361,7 +364,7 @@ export default function MarketPage() {
     fundSearch: <FundSummary onOpenFunds={() => changeView('funds')} />,
     currency: <FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} />,
     events: <EventsQuickWidget onOpenEventsDesk={() => changeView('ipo-events')} />,
-    sourceHealth: <SourceHealthCard sourceStates={healthStore.getSnapshot().sourceStates} />
+    sourceHealth: <SourceHealthCard />
   }), []);
 
   // Backwards compatibility check for mocked tests
@@ -393,7 +396,7 @@ export default function MarketPage() {
         {refreshResult && <p role="status" className="market-workspace__muted">{refreshResult}</p>}
 
         {view === 'overview' && (
-          <Overview
+          <MarketDeskOverview
             onNavigate={changeView}
             data={marketData || {}}
             settings={marketSettings}

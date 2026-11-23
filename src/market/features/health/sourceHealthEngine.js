@@ -68,21 +68,20 @@ export function applyReceiptToSourceState(sourceState, logRecord) {
     const r = logRecord.receipt;
     next.requestStatus = 'REQUESTED';
     next.lastTransportStatus = r.transportStatus;
-    next.lastResult = 'SUCCESS';
     next.lastChecked = r.checkedAt || logRecord.capturedAt;
-    next.providerAsOf = r.providerAsOf;
-    next.providerClockGranularity = r.providerClockGranularity;
     next.reasonCode = r.reasonCode;
     next.errorDetails = [];
-
-    // Observation status determination
-    if (r.state === 'READY') {
-      next.observationStatus = 'READY';
-    } else if (r.state === 'HISTORICAL') {
-      next.observationStatus = 'HISTORICAL';
-    } else if (r.state === 'NO_RESULTS') {
-      next.observationStatus = 'NO_RESULTS';
+    if (r.state === 'FAILED' || r.state === 'BLOCKED') {
+      next.lastResult = 'REQUEST_FAILED';
+      // Keep the original date of any last qualified observation. A failed
+      // refresh is not proof that old data became current or disappeared.
+      if (!next.providerAsOf) next.observationStatus = 'FAILED';
     } else {
+      next.lastResult = r.state === 'UNVERIFIED' ? 'UNVERIFIED' : 'SUCCESS';
+      if (r.providerAsOf) {
+        next.providerAsOf = r.providerAsOf;
+        next.providerClockGranularity = r.providerClockGranularity;
+      }
       next.observationStatus = r.state;
     }
   } else if (logRecord.recordClass === RECORD_CLASSES.REJECTED_ATTEMPT) {

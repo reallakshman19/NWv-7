@@ -5,10 +5,12 @@
  * Strictly separates legal rights from reachability (UNKNOWN) and request state.
  */
 
-import React from 'react';
+import React, { useSyncExternalStore } from 'react';
+import { healthStore } from './healthStore.js';
 
-export function SourceHealthCard({ sourceStates = {} }) {
-  const sources = Object.values(sourceStates);
+export function SourceHealthCard({ sourceStates = null }) {
+  const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
+  const sources = Object.values(sourceStates || health.sourceStates || {});
 
   const getStatusBadge = (source) => {
     if (source.rights === 'NO_PUBLICATION') {
@@ -20,8 +22,11 @@ export function SourceHealthCard({ sourceStates = {} }) {
     if (source.accessMode === 'PROVIDER_EMBED') {
       return <span className="health-badge badge-embed" title="Third-party provider visual embed; no extraction">PROVIDER EMBED</span>;
     }
+    if (source.lastResult === 'REQUEST_FAILED') {
+      return <span className="health-badge badge-danger" title="Latest request failed; original observation date is retained">LAST CHECK FAILED</span>;
+    }
     if (source.observationStatus === 'READY') {
-      return <span className="health-badge badge-success">READY</span>;
+      return <span className="health-badge badge-success">RECORDED</span>;
     }
     if (source.observationStatus === 'HISTORICAL') {
       return <span className="health-badge badge-warning">HISTORICAL</span>;
@@ -38,8 +43,7 @@ export function SourceHealthCard({ sourceStates = {} }) {
         <div>
           <h3 className="health-section-title">Registered Market Sources (11 Total)</h3>
           <p className="health-section-desc">
-            Passive audit of legal rights, access modes, and observation clocks.
-            Reachability is labeled UNKNOWN under zero-boot silence.
+            Local request history and original provider dates. No automatic source polling or live-reachability assertion.
           </p>
         </div>
       </div>
@@ -67,11 +71,15 @@ export function SourceHealthCard({ sourceStates = {} }) {
                 <span className="detail-value">{src.providerAsOf || '—'}</span>
               </div>
               <div className="detail-row">
+                <span className="detail-label">Last Request Result:</span>
+                <span className="detail-value">{src.lastResult || 'UNKNOWN'}</span>
+              </div>
+              <div className="detail-row">
                 <span className="detail-label">Last Checked:</span>
                 <span className="detail-value">{src.lastChecked ? new Date(src.lastChecked).toLocaleTimeString() : '—'}</span>
               </div>
               <div className="detail-row">
-                <span className="detail-label">Reachability:</span>
+                <span className="detail-label">Live Reachability:</span>
                 <span className="detail-value reachability-unknown" title="Passive desk executes zero polling on boot">
                   {src.currentReachability}
                 </span>
