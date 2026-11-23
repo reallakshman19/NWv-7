@@ -55,7 +55,8 @@ test('reject foreign exchange, wrong identity, missing clock, expired/future, no
     q('INFY',1000,undefined,{currency:'USD'}),q('INFY',1000,undefined,{sourceAuthority:'official'}),
     q('INFY',1000,undefined,{value:Infinity}),q('INFY',1000,undefined,{value:-10}),
     q('UNSUPPORTED',1000),q('INFY',1000,undefined,{sourceMode:'seed'}),
-    q('INFY',1000,undefined,{sourceProvider:'seed'})];
+    q('INFY',1000,undefined,{sourceProvider:'seed'}),
+    q('INFY',1000,undefined,{sourceProvider:null,provider:' Seed '})];
   assert.equal(qualifyTrackedEquities(attempts,now).length,0);
   assert.equal(mergeQualifiedEquities(null,{equities:attempts},now).summary.invalid,attempts.length);
 });

@@ -30,7 +30,8 @@ function normalizedProvider(row) {
 
 function acceptableQuote(row, nowMs) {
   if (!row || typeof row !== 'object' ||
-      [row.sourceMode, row.source, row.sourceProvider].some(value => String(value || '').toLowerCase() === 'seed')) return null;
+      [row.sourceMode, row.source, row.sourceProvider, row.provider]
+        .some(value => String(value || '').trim().toLowerCase() === 'seed')) return null;
   const symbol = canonicalEquitySymbol(row.symbol);
   const id = canonicalTrackedEquityId(symbol);
   if (!id || (row.id && row.id !== id) || (row.exchange && row.exchange !== 'NSE')) return null;
