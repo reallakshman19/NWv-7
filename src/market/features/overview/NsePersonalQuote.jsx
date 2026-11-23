@@ -65,7 +65,7 @@ export function NsePersonalQuote() {
         <>
           <div className="md3-nse-form">
             <label>NSE stock
-              <select value={symbol} onChange={event => { setSymbol(event.target.value); setState({ loading: false, quote: null, error: '' }); }}>
+              <select value={symbol} disabled={state.loading} onChange={event => { setSymbol(event.target.value); setState({ loading: false, quote: null, error: '' }); }}>
                 {SYMBOLS.map(value => <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
