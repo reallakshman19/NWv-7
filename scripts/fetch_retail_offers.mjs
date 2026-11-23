@@ -3,7 +3,6 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
-import { chromium } from 'playwright';
 import { parseRetailOffers, mergeRetailOffers } from './retail-offers/parseRetailOffers.mjs';
 import { collectRetailFlyers } from './retail-offers/collectRetailFlyers.mjs';
 
@@ -41,7 +40,11 @@ async function readHtml(source){
     return stdout;
   }
   if(source.mode==='browser'){
-    browser??=await chromium.launch({headless:true,...(executable?{executablePath:executable}:{})});
+    if(process.env.RETAIL_BROWSER_AVAILABLE==='0')throw Error('BROWSER_UNAVAILABLE');
+    if(!browser){
+      const { chromium }=await import('playwright');
+      browser=await chromium.launch({headless:true,...(executable?{executablePath:executable}:{})});
+    }
     const context=await browser.newContext({serviceWorkers:'block'});
     await context.route('**/*',route=>['image','media','font'].includes(route.request().resourceType())?route.abort():route.continue());
     try{
@@ -71,7 +74,7 @@ async function readHtml(source){
 const items=[];const retailers={...previous.retailers};const successful=[];
 function publicError(error){
   const message=String(error.message||error);
-  if(/^(HTTP_\d{3}|ACCESS_BLOCKED|NO_READABLE_DISCOUNTED_PRODUCTS|BODY_LIMIT|FOREIGN_MARKET_REDIRECT)$/.test(message))return message;
+  if(/^(HTTP_\d{3}|ACCESS_BLOCKED|BROWSER_UNAVAILABLE|NO_READABLE_DISCOUNTED_PRODUCTS|BODY_LIMIT|FOREIGN_MARKET_REDIRECT)$/.test(message))return message;
   if(/timeout|timed out|aborted/i.test(message))return 'FETCH_TIMEOUT';
   if(/executable|browserType.launch/i.test(message))return 'BROWSER_UNAVAILABLE';
   return 'SOURCE_UNAVAILABLE';
@@ -93,7 +96,9 @@ try{
       console.log(`${source.id}: ${retailers[source.id].error}`);
     }
   }
-}finally{await browser?.close();}
+}finally{
+  try{await browser?.close();}catch{console.warn('Retail Chromium cleanup failed');}
+}
 const offline=await collectRetailFlyers(config,readFlyerPage);
 for(const [id,health] of Object.entries(offline.health)){
   const parent=retailers[id];

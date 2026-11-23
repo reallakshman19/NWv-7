@@ -63,8 +63,13 @@ jobs:
         with:
           python-version: '3.12'
       - run: npm ci --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium for browser-backed retailers
+        id: retail_chromium
+        continue-on-error: true
+        run: timeout --kill-after=5s 90s npx playwright install --with-deps chromium
       - name: Collect bounded public retailer offers (no paid services)
+        env:
+          RETAIL_BROWSER_AVAILABLE: ${{ steps.retail_chromium.outcome == 'success' && '1' || '0' }}
         run: node scripts/fetch_retail_offers.mjs
       - name: Verify prices, source scope, expiry, deduplication and content digest
         run: node scripts/validate_retail_offers.mjs
