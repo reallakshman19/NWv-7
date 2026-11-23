@@ -71,8 +71,17 @@ describe('WP-01 Overview and Navigation Certification (WP01-T01 .. WP01-T15)', (
     const menuItems = within(dialog).getAllByRole('menuitem');
     expect(menuItems).toHaveLength(6);
 
+    expect(dialog.getAttribute('aria-modal')).toBeNull();
+    expect(document.activeElement).toBe(menuItems[0]);
+    fireEvent.keyDown(menuItems[0], { key: 'End' });
+    expect(document.activeElement).toBe(menuItems[5]);
+    fireEvent.keyDown(menuItems[5], { key: 'Escape' });
+    expect(document.activeElement).toBe(moreBtn);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(moreBtn);
+
     // Clicking a More item invokes onNavigate and closes dialog
-    fireEvent.click(menuItems[0]); // e.g. Indices & sectors
+    fireEvent.click(within(screen.getByRole('dialog')).getAllByRole('menuitem')[0]);
     expect(onNavigate).toHaveBeenCalledWith('indices');
     expect(screen.queryByRole('dialog')).toBeNull();
   });

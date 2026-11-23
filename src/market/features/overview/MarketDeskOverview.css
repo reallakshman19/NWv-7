@@ -89,80 +89,10 @@
   .md3-pulse-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 767px) {
-  .md3-metrics {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 8px;
-    padding-bottom: 4px;
-  }
-  .md3-metrics::-webkit-scrollbar { display: none; }
-  .md3-metric {
-    flex: 0 0 clamp(130px, 38vw, 160px);
-    scroll-snap-align: start;
-    min-width: 120px;
-    transition: transform 0.1s ease, border-color 0.15s ease;
-  }
-  .md3-metric:active {
-    transform: scale(0.96);
-  }
+  .md3-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .md3-grid { grid-template-columns: minmax(0, 1fr); }
   .md3-card--wide { grid-column: auto; }
   .md3-health-main { align-items: flex-start; }
-}
-
-@media print {
-  .md3-card-action, .md3-metric, .md3-health-actions { break-inside: avoid; }
-  .md3-card, .md3-health { break-inside: avoid; }
-  .md3-jump-links { display: none !important; }
-
-  /* Ensure all 4 pulse cards are visible in print */
-  .md3-pulse-list {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    overflow: visible !important;
-    gap: 8px !important;
-  }
-  .md3-pulse-row {
-    flex: none !important;
-    max-width: 100% !important;
-    min-height: auto !important;
-    border: 1px solid var(--md3-border) !important;
-  }
-
-  /* Ensure all 5 metrics are visible in print */
-  .md3-metrics {
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    overflow: visible !important;
-    gap: 8px !important;
-  }
-  .md3-metric {
-    display: grid !important;
-    flex: none !important;
-    min-width: 0 !important;
-    background: var(--md3-surface) !important;
-    border: 1px solid var(--md3-border) !important;
-  }
-
-  /* Ensure all sector tabs are visible in print */
-  .md3-sector-tabs {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    overflow: visible !important;
-    gap: 6px !important;
-  }
-  .md3-sector-tab {
-    display: inline-flex !important;
-    border: 1px solid var(--md3-border) !important;
-    background: var(--md3-background) !important;
-  }
-  .md3-sector-tab.is-active {
-    font-weight: 700 !important;
-    border-color: var(--md3-accent) !important;
-  }
 }
 
 .md3-source-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-block: 6px; }
@@ -179,7 +109,7 @@
 
 .md3-jump-links {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
 }
 .market-workspace .md3-jump-links button {
@@ -207,57 +137,9 @@
   .market-workspace .md3-card-action,
   .market-workspace .md3-fund-search label,
   .market-workspace .md3-source-actions button { font-size: max(14px, .58rem); }
-  .market-workspace .md3-card-action:active,
-  .market-workspace .md3-primary:active,
-  .market-workspace .md3-secondary:active {
-    transform: scale(0.97);
-  }
-  .md3-jump-links {
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 8px;
-    padding: 2px 0 6px;
-    margin-bottom: 2px;
-  }
-  .md3-jump-links::-webkit-scrollbar { display: none; }
-  .market-workspace .md3-jump-links button {
-    flex: 0 0 auto;
-    padding: 7px 14px;
-    border-radius: 9999px;
-    background: var(--md3-surface);
-    border: 1px solid var(--md3-border);
-    white-space: nowrap;
-    transition: background 0.15s ease, transform 0.1s ease;
-  }
-  .market-workspace .md3-jump-links button:active {
-    transform: scale(0.95);
-    background: var(--md3-accent);
-    color: var(--md3-background);
-  }
-  .md3-pulse-list {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 8px;
-    padding-bottom: 4px;
-  }
-  .md3-pulse-list::-webkit-scrollbar { display: none; }
-  .md3-pulse-row {
-    flex: 0 0 clamp(165px, 48vw, 220px);
-    scroll-snap-align: start;
-    min-height: 72px;
-    gap: 4px;
-    padding: 8px 10px;
-    border-radius: 9px;
-    transition: transform 0.1s ease, border-color 0.15s ease;
-  }
-  .md3-pulse-row:active {
-    transform: scale(0.98);
-  }
+  .market-workspace .md3-jump-links button { padding: 6px 2px; font-size: max(13px, .52rem); }
+  .md3-pulse-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .md3-pulse-row { min-height: 64px; gap: 4px; padding: 6px 8px; }
   .md3-pulse-identity strong { font-size: max(15px, .62rem); }
   .md3-pulse-row small { font-size: max(12px, .48rem); }
   .md3-compact-caption { font-size: max(13px, .54rem); }
@@ -272,21 +154,13 @@
   .md3-source-observation, .md3-economy-list li { padding: 5px 0; }
 }
 @media (max-width: 280px) {
-  .md3-pulse-row { flex: 0 0 85%; }
+  .md3-jump-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md3-fund-search .md3-source-actions { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Sector Breakdown & Explorer in Overview */
 .md3-sector-explorer { display: grid; gap: 10px; margin-bottom: 8px; }
-.md3-sector-tabs {
-  display: flex;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  gap: 6px;
-  padding-bottom: 2px;
-}
-.md3-sector-tabs::-webkit-scrollbar { display: none; }
+.md3-sector-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .md3-sector-tab {
   flex: 0 0 auto;
   font: inherit;
@@ -298,8 +172,7 @@
   background: var(--md3-background);
   color: var(--md3-muted);
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
+  min-height: 44px;
 }
 .md3-sector-tab:hover { color: var(--md3-ink); border-color: var(--md3-accent); }
 .md3-sector-tab.is-active {
@@ -340,12 +213,8 @@
   align-items: center;
   gap: 4px;
 }
-.md3-sector-value { font-size: 1.1rem; margin-top: 4px; display: flex; gap: 8px; align-items: baseline; }
-.md3-sector-actions-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.md3-sector-value { display: grid; gap: 3px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.md3-sector-value small { color: var(--md3-muted); overflow-wrap: anywhere; }
 .market-workspace .md3-sector-fund-btn {
   font-size: max(13px, .52rem);
   padding: 6px 12px;
@@ -388,23 +257,30 @@
   border-radius: 4px;
   border: 1px solid var(--md3-border);
 }
-.md3-stock-source-link {
-  color: var(--md3-accent);
-  font-size: max(11px, .46rem);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 2px;
-}
-.md3-stock-source-link:hover {
-  text-decoration: underline;
-}
-.md3-stock-name { color: var(--md3-muted); font-size: max(11px, .46rem); line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.md3-stock-name { color: var(--md3-muted); font-size: max(12px, .5rem); line-height: 1.2; overflow-wrap: anywhere; }
 
 @media (max-width: 767px) {
   .md3-sector-summary { flex-direction: column; align-items: flex-start; }
-  .md3-sector-actions-box { width: 100%; }
   .market-workspace .md3-sector-fund-btn { width: 100%; text-align: center; }
   .md3-sector-stock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media print {
+  .market-desk-r3c {
+    --md3-surface: #fff;
+    --md3-background: #fff;
+    --md3-border: #9ca3af;
+    --md3-ink: #111827;
+    --md3-muted: #374151;
+    --md3-accent: #1f2937;
+    font-size: 11pt;
+  }
+  .market-desk-r3c .md3-pulse-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .market-desk-r3c .md3-metrics { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .md3-metric, .md3-pulse-row, .md3-stock-card { break-inside: avoid; }
+  .md3-metric, .md3-pulse-row { min-height: 0; padding: 6px; overflow-wrap: anywhere; }
+  .md3-metric-label, .md3-metric-value, .md3-metric-detail { font-size: inherit; }
+  .md3-card, .md3-health { break-inside: avoid; }
+  .md3-jump-links { display: none; }
+  .md3-sector-tab.is-active { border-color: var(--md3-ink); color: var(--md3-ink); background: #e5e7eb; }
 }

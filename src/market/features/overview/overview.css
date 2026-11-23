@@ -265,6 +265,7 @@
 
 /* Mobile More dialog dropdown */
 .market-nav__more-dialog {
+  display: none;
   position: absolute;
   top: 100%;
   right: clamp(12px, 2vw, 24px);
@@ -279,42 +280,13 @@
 
 @media (max-width: 767px) {
   .market-nav__more-dialog {
-    position: absolute;
+    display: block;
     top: calc(100% + 4px);
     right: 6px;
-    left: auto;
-    bottom: auto;
     width: min(280px, calc(100vw - 20px));
-    max-width: calc(100vw - 20px);
-    border-radius: 12px;
-    border: 1px solid var(--market-border-color);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-    padding: 10px 12px;
-    max-height: 70vh;
+    max-height: min(65dvh, calc(100dvh - 175px));
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    z-index: 100;
-  }
-
-  .market-nav__more-header {
-    padding-bottom: 8px;
-    font-size: 0.88rem;
-  }
-
-  .market-nav__more-close {
-    min-height: 36px;
-    min-width: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-  }
-
-  .market-nav__more-item {
-    min-height: 42px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    transition: background 0.15s ease;
+    overscroll-behavior-y: contain;
   }
 }
 
@@ -334,8 +306,8 @@
   color: var(--market-text-secondary);
   cursor: pointer;
   padding: 4px 8px;
-  min-height: 32px;
-  min-width: 32px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .market-nav__more-list {
@@ -346,6 +318,7 @@
 
 .market-nav__more-item {
   width: 100%;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

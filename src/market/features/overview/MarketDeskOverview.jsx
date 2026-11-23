@@ -9,7 +9,7 @@ import React, { useMemo, useState, useSyncExternalStore } from 'react';
 import { FiClock, FiExternalLink } from 'react-icons/fi';
 import { canonicalIndexId, getQualifiedIndexRows } from '../../../services/marketQuotePolicy.js';
 import { qualifyTrackedEquities } from '../../../services/marketEquityPolicy.js';
-import { getEquityMetadata, getNseQuoteUrl } from '../equity/equityMetadata.js';
+import { TRACKED_NSE_METADATA, getNseQuoteUrl } from '../equity/equityMetadata.js';
 import { formatMarketTimestamp, isMarketSeedRow } from '../../../utils/marketSession.js';
 import { MarketNav } from './MarketNav.jsx';
 import { MarketSessionHeader } from './MarketSessionHeader.jsx';
@@ -85,10 +85,11 @@ function DeskCard({ id, title, action, destination, onNavigate, wide = false, ch
   );
 }
 
+const DISPLAY_QUOTE_MODES = new Set(['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache']);
+
 function MarketPulse({ data }) {
   const sourceMode = data?.sourceMode;
-  const canDisplayQuotes = ['live', 'snapshot', 'cache', 'stale-snapshot', 'stale-cache'].includes(sourceMode);
-  const observations = canDisplayQuotes ? getQualifiedIndexRows(data) : [];
+  const observations = DISPLAY_QUOTE_MODES.has(sourceMode) ? getQualifiedIndexRows(data) : [];
   const isLastAvailable = sourceMode !== 'live';
 
   return (
@@ -140,8 +141,7 @@ const CANONICAL_SECTORS = Object.freeze([
     benchmark: 'NIFTY Bank',
     symbol: '^NSEBANK',
     url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-bank',
-    symbols: Object.freeze(['HDFCBANK', 'ICICIBANK', 'SBIN', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE']),
-    fundCategory: 'Banking',
+    classification: /Banking|Financial Services/i,
   },
   {
     id: 'it',
@@ -149,8 +149,7 @@ const CANONICAL_SECTORS = Object.freeze([
     benchmark: 'NIFTY IT',
     symbol: '^CNXIT',
     url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-it',
-    symbols: Object.freeze(['TCS', 'INFY', 'WIPRO']),
-    fundCategory: 'Technology',
+    classification: /Information Technology/i,
   },
   {
     id: 'auto',
@@ -158,8 +157,7 @@ const CANONICAL_SECTORS = Object.freeze([
     benchmark: 'NIFTY Auto',
     symbol: '^CNXAUTO',
     url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-auto',
-    symbols: Object.freeze(['MARUTI']),
-    fundCategory: 'Automobile',
+    classification: /Automobile/i,
   },
   {
     id: 'pharma',
@@ -167,8 +165,7 @@ const CANONICAL_SECTORS = Object.freeze([
     benchmark: 'NIFTY Pharma',
     symbol: '^CNXPHARMA',
     url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-pharma',
-    symbols: Object.freeze(['SUNPHARMA']),
-    fundCategory: 'Pharma',
+    classification: /Pharma|Healthcare/i,
   },
   {
     id: 'fmcg',
@@ -176,39 +173,55 @@ const CANONICAL_SECTORS = Object.freeze([
     benchmark: 'NIFTY FMCG',
     symbol: '^CNXFMCG',
     url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-fmcg',
-    symbols: Object.freeze(['HINDUNILVR', 'ITC']),
-    fundCategory: 'Consumer',
+    classification: /Consumer Goods/i,
   },
   {
     id: 'energy',
-    name: 'Energy & Infrastructure',
+    name: 'Energy',
     benchmark: 'NIFTY Energy',
     symbol: '^CNXENERGY',
-    url: 'https://www.niftyindices.com/indices/equity/sectoral-indices/nifty-energy',
-    symbols: Object.freeze(['RELIANCE']),
-    fundCategory: 'Energy',
+    url: 'https://www.niftyindices.com/indices/equity/thematic-indices/nifty-energy',
+    classification: /Energy|Petrochemicals/i,
   },
 ]);
 
-function SectorBreakdown({ data, onNavigate }) {
-  const [activeSector, setActiveSector] = useState(CANONICAL_SECTORS[0].id);
-  const current = CANONICAL_SECTORS.find(s => s.id === activeSector) || CANONICAL_SECTORS[0];
+function SectorQuote({ value, time, source, isLastAvailable, currency = '' }) {
+  return (
+    <div className="md3-sector-value">
+      <strong>{currency}{value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
+      {isLastAvailable && <small className="md3-pulse-caption"><FiClock aria-hidden="true" /> Last available</small>}
+      <small>{source} · <time dateTime={new Date(time).toISOString()}>{formatMarketTimestamp(time)}</time></small>
+    </div>
+  );
+}
 
-  const sectoralObservations = Array.isArray(data?.sectorals) ? data.sectorals : [];
-  const qualifiedEquities = qualifyTrackedEquities(data?.equities || []);
-  const matchedSectorRow = sectoralObservations.find(r => r.symbol === current.symbol);
+function SectorBreakdown({ data, onNavigate }) {
+  const [activeSector, setActiveSector] = useState(CANONICAL_SECTORS[0]);
+  const canDisplayQuotes = DISPLAY_QUOTE_MODES.has(data?.sourceMode);
+  const isLastAvailable = data?.sourceMode !== 'live';
+  const sectorId = canonicalIndexId({ ...activeSector, exchange: 'NSE' });
+  const benchmark = canDisplayQuotes
+    ? getQualifiedIndexRows(data)
+      .filter(({ id, row }) => id === sectorId
+        && (row.sourceProvider || row.source) && !isMarketSeedRow(row))
+      .sort((a, b) => b.time - a.time)[0]
+    : null;
+  const equityBySymbol = new Map(canDisplayQuotes
+    ? qualifyTrackedEquities(data.equities).map(quote => [quote.symbol, quote])
+    : []);
+  const stocks = Object.values(TRACKED_NSE_METADATA)
+    .filter(({ sector }) => activeSector.classification.test(sector));
 
   return (
     <div className="md3-sector-explorer">
-      <div className="md3-sector-tabs" role="tablist" aria-label="Select market sector">
+      <div className="md3-sector-tabs" role="group" aria-label="Select market sector">
         {CANONICAL_SECTORS.map(sector => (
           <button
             key={sector.id}
             type="button"
-            role="tab"
-            aria-selected={activeSector === sector.id}
-            className={'md3-sector-tab' + (activeSector === sector.id ? ' is-active' : '')}
-            onClick={() => setActiveSector(sector.id)}
+            aria-pressed={activeSector === sector}
+            className={'md3-sector-tab' + (activeSector === sector ? ' is-active' : '')}
+            onClick={() => setActiveSector(sector)}
           >
             {sector.name}
           </button>
@@ -219,72 +232,40 @@ function SectorBreakdown({ data, onNavigate }) {
         <div className="md3-sector-summary">
           <div>
             <div className="md3-sector-benchmark-line">
-              <span className="md3-sector-title">{current.name}</span>
-              <a href={current.url} target="_blank" rel="noopener noreferrer" className="md3-sector-benchmark-badge">
-                {current.benchmark} <FiExternalLink aria-hidden="true" />
+              <span className="md3-sector-title">Benchmark</span>
+              <a href={activeSector.url} target="_blank" rel="noopener noreferrer" className="md3-sector-benchmark-badge">
+                {activeSector.benchmark} <FiExternalLink aria-hidden="true" />
               </a>
             </div>
-            {matchedSectorRow && (
-              <div className="md3-sector-value font-mono">
-                <strong>{Number(matchedSectorRow.value).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
-                <span className={Number(matchedSectorRow.change) >= 0 ? 'text-success' : 'text-danger'}>
-                  {Number(matchedSectorRow.change) >= 0 ? '+' : ''}{matchedSectorRow.changePercent}%
-                </span>
-              </div>
+            {benchmark && (
+              <SectorQuote value={benchmark.value} time={benchmark.time}
+                source={benchmark.row.sourceProvider || benchmark.row.source}
+                isLastAvailable={isLastAvailable} />
             )}
           </div>
-          <div className="md3-sector-actions-box">
-            <button
-              type="button"
-              className="md3-secondary md3-sector-fund-btn"
-              onClick={() => onNavigate?.('funds')}
-            >
-              Research {current.fundCategory} funds →
-            </button>
-          </div>
+          <button type="button" className="md3-secondary md3-sector-fund-btn" onClick={() => onNavigate?.('funds')}>
+            Find mutual funds →
+          </button>
         </div>
 
-        <div className="md3-sector-constituents">
-          <div className="md3-compact-caption">Tracked Key Constituents ({current.symbols.length} equities):</div>
+        <div>
+          <div className="md3-compact-caption">Tracked stocks by industry · {stocks.length}</div>
           <div className="md3-sector-stock-grid">
-            {current.symbols.map(sym => {
-              const meta = getEquityMetadata(sym);
-              const quoteUrl = getNseQuoteUrl(sym) || `https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(sym)}`;
-              const quote = qualifiedEquities.find(e => e.symbol === sym);
+            {stocks.map(({ symbol, name, exchange }) => {
+              const quote = equityBySymbol.get(symbol);
               return (
-                <div key={sym} className="md3-stock-card">
+                <div key={symbol} className="md3-stock-card">
                   <div className="md3-stock-card-top">
-                    <a
-                      href={quoteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="md3-stock-symbol"
-                    >
-                      {sym} <FiExternalLink aria-hidden="true" />
+                    <a href={getNseQuoteUrl(symbol)} target="_blank" rel="noopener noreferrer" className="md3-stock-symbol">
+                      {symbol} <FiExternalLink aria-hidden="true" />
                     </a>
-                    <span className="md3-stock-exchange">{meta?.exchange || 'NSE'}</span>
+                    <span className="md3-stock-exchange">{exchange}</span>
                   </div>
-                  <span className="md3-stock-name" title={meta?.name || sym}>
-                    {meta?.name || sym}
-                  </span>
-                  {quote ? (
-                    <div className="md3-stock-val font-mono">
-                      <strong>₹{Number(quote.value ?? quote.price).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</strong>
-                      {quote.changePercent != null && (
-                        <span className={Number(quote.changePercent) >= 0 ? 'text-success' : 'text-danger'}>
-                          {Number(quote.changePercent) >= 0 ? '+' : ''}{quote.changePercent}%
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <a
-                      href={quoteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="md3-stock-source-link"
-                    >
-                      Official quote ↗
-                    </a>
+                  <span className="md3-stock-name">{name}</span>
+                  {quote && (
+                    <SectorQuote value={quote.value} time={Date.parse(quote.quoteAt)}
+                      source={quote.sourceProvider || quote.provider || quote.source}
+                      isLastAvailable={isLastAvailable} currency="₹" />
                   )}
                 </div>
               );
@@ -447,7 +428,7 @@ export function MarketDeskOverview({
           <DeskCard id="md3-sectors" title="Movers & Sector References" wide
             action="Explore sectors" destination="indices" onNavigate={marketNav}>
             <SectorBreakdown data={data} onNavigate={marketNav} />
-            <div className="md3-link-grid" style={{ marginTop: '12px' }}>
+            <div className="md3-link-grid">
               <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">NSE breadth & sectors</a>
               <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">BSE index boards</a>
               <button type="button" onClick={() => marketNav('indices')}>Compare index references</button>
