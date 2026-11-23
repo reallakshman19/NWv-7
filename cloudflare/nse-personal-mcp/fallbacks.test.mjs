@@ -98,3 +98,23 @@ test('auth failure never touches either official source', async () => {
   assert.equal(res.status, 401);
   assert.equal(upstreamCalls, 0);
 });
+
+test('CM soft-error payload also activates the official EOD route', async () => {
+  const eod = mockedUpstreams();
+  const calls = [];
+  const fetchImpl = async (url, opts) => {
+    calls.push(url);
+    if (url === EOD) return eod.fetchImpl(url, opts);
+    const method = JSON.parse(opts.body).method;
+    if (method === 'initialize') return rpcReply({ protocolVersion: '2025-06-18' }, 1, 'cm-session');
+    if (method === 'notifications/initialized') return new Response(null, { status: 202 });
+    if (method === 'tools/call') return toolReply({ error: 'CM cache not available' });
+    throw Error('Unexpected method');
+  };
+  const response = await handleRequest(request(), env, fetchImpl, NOW);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.quote.sourceTier, 'NSE_EOD_FALLBACK');
+  assert.equal(result.quote.priceType, 'END_OF_DAY_CLOSE');
+  assert.deepEqual(calls, [CM, CM, CM, EOD, EOD, EOD]);
+});
