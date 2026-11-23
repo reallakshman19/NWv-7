@@ -1,0 +1,40 @@
+name: NSE Personal MCP Contract (no live publication)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cloudflare/nse-personal-mcp/**'
+      - 'src/market/features/overview/NsePersonalQuote.jsx'
+      - 'src/market/features/overview/MarketDeskOverview.jsx'
+      - 'src/market/features/overview/MarketDeskOverview.css'
+      - '.github/workflows/market_nse_personal_contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Owner-only NSE MCP wire and failure fixtures
+        run: node --test cloudflare/nse-personal-mcp/*.test.mjs
+      - name: Install application dependencies
+        run: npm ci
+      - name: Verify NSE personal quote component and overview
+        run: npx vitest run --config vitest.config.js src/market/features/overview/NsePersonalQuote.cert.test.jsx src/market/features/overview/NseFallbacks.cert.test.jsx src/market/features/overview/MarketDeskR3C.cert.test.jsx
+      - name: Build frontend without gateway credentials
+        run: npm run build
+      - name: Reject public market quote snapshot publication
+        run: node scripts/check_market_publication_assets.mjs public docs dist
+
+# No remote NSE calls, deployment secrets, schedule or production data publication.
