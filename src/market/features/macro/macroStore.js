@@ -13,7 +13,7 @@ import { recordMarketSourceReceipt, recordMarketSourceFailure, recordMarketSourc
 export const OMR_INR_STORAGE_KEY = 'nw7.omr-inr.frankfurter.v1';
 export const USD_INR_STORAGE_KEY = 'nw7.usd-inr.frankfurter.v1';
 
-const ONE_DAY_MS = 86400000;
+const RETAINED_RATE_MS = 7 * 86400000;
 
 function getStorageKeyForPair(base, quote) {
   const b = String(base).toUpperCase();
@@ -79,7 +79,7 @@ class MacroStore {
       const rate = Number(payload.rate);
       const classification = evaluateFxObservation(payload.date, now);
       if (checkedAt >= 0 && checkedAt <= now &&
-          now - checkedAt < ONE_DAY_MS &&
+          now - checkedAt < RETAINED_RATE_MS &&
           Number.isFinite(rate) && rate > 0 &&
           getStorageKeyForPair(payload.base, payload.quote) === key &&
           classification) {
@@ -88,6 +88,7 @@ class MacroStore {
           quote: payload.quote,
           rate,
           date: payload.date,
+          referenceProvider: payload.referenceProvider === 'ecb' && key === USD_INR_STORAGE_KEY ? 'ecb' : null,
           ...classification,
           checkedAt,
           payload
@@ -176,6 +177,10 @@ class MacroStore {
     const fetchPromise = (async () => {
       try {
         const result = await fxClient.fetchLatestRate(base, quote, { signal });
+        const existing = this.state.ratesByPair[pairKey]?.value;
+        if (existing?.date > result.date) {
+          throw new Error('The provider returned an older observation');
+        }
         recordMarketSourceReceipt(result.receipt);
 
         // Race protection
@@ -204,7 +209,7 @@ class MacroStore {
                 stale: true,
                 warning: `Rate refresh failed (${err.message}). Retained dated reference only.`
               },
-              error: null
+              error: err.message || 'Rate acquisition failed'
             };
           } else {
             this.state.ratesByPair[pairKey] = {

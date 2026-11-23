@@ -3,6 +3,7 @@ import React from 'react';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MarketPage from './MarketPage.jsx';
+import { macroStore } from '../market/features/macro/macroStore.js';
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
 
 vi.mock('../viewModels/useMarketPageViewModel.js', () => ({
@@ -90,8 +91,8 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     // Slot 2: Watchlist Summary
     expect(screen.getAllByText('My Watchlist').length).toBeGreaterThanOrEqual(1);
 
-    // Slot 3: Fund Summary
-    expect(screen.getAllByText('Mutual Funds Desk').length).toBeGreaterThanOrEqual(1);
+    // Slot 3: Fund lookup
+    expect(screen.getByRole('textbox', { name: 'Scheme name or code' })).toBeTruthy();
 
     // Slot 4: Currency Quick Tool
     expect(screen.getByText('Currency Reference')).toBeTruthy();
@@ -112,6 +113,61 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
 
     const scripts = document.querySelectorAll('script[src*="tradingview.com"]');
     expect(scripts.length).toBe(0);
+  });
+
+  it('loads the allowed FX reference once and keeps fund lookups and widgets user-triggered', async () => {
+    setupViewModel();
+    const now = new Date();
+    const providerDate = new Date(now - 86400000).toISOString().slice(0, 10);
+    const headline = 'Government publishes the latest fiscal release';
+    const fxUrl = 'https://api.frankfurter.dev/v2/rate/usd/inr?providers=ecb';
+    const fundUrl = 'https://api.mfapi.in/mf/125497/latest';
+    const fetchMock = vi.fn(async url => {
+      if (url === fxUrl) return response({ date: providerDate, base: 'USD', quote: 'INR', rate: 92.4 });
+      if (url.endsWith('market_economy_news.json')) return response({
+        schemaVersion: 'market-economy-news-v1', checkedAt: now.toISOString(),
+        items: [{
+          id: '2331234', headline, ministry: 'Ministry of Finance', publishedOn: providerDate,
+          url: 'https://www.pib.gov.in/PressReleaseDetail.aspx?PRID=2331234&lang=1&reg=20'
+        }]
+      });
+      if (url === fundUrl) return response({
+        status: 'SUCCESS',
+        meta: { scheme_code: 125497, scheme_name: 'Example Fund - Direct Plan - Growth' },
+        data: [{ date: providerDate, nav: '92.50' }]
+      });
+      throw new Error('Unexpected provider call: ' + url);
+    });
+    const response = payload => ({ ok: true, status: 200, json: async () => payload });
+    vi.stubGlobal('fetch', fetchMock);
+    macroStore.init();
+    try {
+      const page = render(<React.StrictMode><MarketPage /></React.StrictMode>);
+
+      expect(await screen.findByText(/ECB-derived cross via Frankfurter/)).toBeTruthy();
+      expect((await screen.findByRole('link', { name: headline })).getAttribute('href'))
+        .toBe('https://www.pib.gov.in/PressReleaseDetail.aspx?PRID=2331234&lang=1&reg=20');
+      expect(fetchMock.mock.calls.filter(([url]) => url === fxUrl)).toHaveLength(1);
+      expect(fetchMock.mock.calls.some(([url]) => /omr\/inr|mfapi|tradingview/.test(url))).toBe(false);
+
+      fireEvent.change(screen.getByRole('textbox', { name: 'Scheme name or code' }), { target: { value: '125497' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Search funds' }));
+      expect(await screen.findByText('Example Fund - Direct Plan - Growth')).toBeTruthy();
+      expect(screen.getByText(/Latest reported NAV/)).toBeTruthy();
+      expect(fetchMock.mock.calls.filter(([url]) => url === fundUrl)).toHaveLength(1);
+
+      page.unmount();
+      fetchMock.mockImplementation(async () => { throw new Error('offline'); });
+      render(<MarketPage />);
+      expect(await screen.findByText('Showing retained official releases.')).toBeTruthy();
+      expect(screen.getByRole('link', { name: headline })).toBeTruthy();
+      expect(screen.getByText(/ECB-derived cross via Frankfurter/)).toBeTruthy();
+    } finally {
+      cleanup();
+      localStorage.clear();
+      macroStore.init();
+      vi.unstubAllGlobals();
+    }
   });
 
   it('WP10-T04: navigates to Indices & Sectors workspace', () => {

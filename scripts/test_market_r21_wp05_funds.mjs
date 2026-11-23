@@ -8,7 +8,7 @@ import { marketIsolationInput } from './market_r21_path_guard.mjs';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 import {
   normalizeDateToIso,
@@ -319,7 +319,7 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
   assert.equal(FUND_HISTORY_STORAGE_KEY, 'nw7.market-fund-history.v1');
 
   // Verify path isolation against base commit 2510cac78e4ec177efaaedfb8de2ac3504415813
-  const changedFiles = execSync('git diff --name-only $(git merge-base HEAD origin/main) HEAD', {
+  const changedFiles = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -337,6 +337,9 @@ test('WP05-S10 Static Export Audit and Path Isolation', () => {
         '.github/workflows/ci.yml',
         '.github/workflows/deploy.yml',
         '.github/workflows/market_r3d_browser_provider_live.yml',
+        '.github/workflows/market_economy_news.yml',
+        'public/data/market_economy_news.json',
+        'docs/market/FREE_OPEN_ONLY_RELEASE.md',
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',

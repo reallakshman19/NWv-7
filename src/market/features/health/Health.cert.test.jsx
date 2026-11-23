@@ -42,7 +42,7 @@ describe('WP-09 Health & Privacy Workspace UI', () => {
     render(<HealthPanel />);
 
     // Default tab is Sources & Rights
-    expect(screen.getByText(/Registered Market Sources \(11 Total\)/i)).toBeTruthy();
+    expect(screen.getByText(/Registered Market Sources \(12 Total\)/i)).toBeTruthy();
 
     // Switch to Local Activity Log
     fireEvent.click(screen.getByRole('tab', { name: /Local Activity Log/i }));
@@ -57,15 +57,16 @@ describe('WP-09 Health & Privacy Workspace UI', () => {
     expect(screen.getByText(/Granular Cache Controls & Concurrency Guard/i)).toBeTruthy();
   });
 
-  it('renders SourceHealthCard with all 11 registered sources and badges', () => {
+  it('renders SourceHealthCard with all 12 registered sources and badges', () => {
     const states = buildInitialSourceStates();
     render(<SourceHealthCard sourceStates={states} />);
 
-    expect(screen.getByText(/Registered Market Sources \(11 Total\)/i)).toBeTruthy();
+    expect(screen.getByText(/Registered Market Sources \(12 Total\)/i)).toBeTruthy();
     expect(screen.getByText('TradingView')).toBeTruthy();
     expect(screen.getByText('AMFI')).toBeTruthy();
     expect(screen.getByText('MFapi')).toBeTruthy();
     expect(screen.getByText('Frankfurter')).toBeTruthy();
+    expect(screen.getByText('Press Information Bureau')).toBeTruthy();
     expect(screen.getByText('World Bank')).toBeTruthy();
 
     // World bank has NO_PUBLICATION badge

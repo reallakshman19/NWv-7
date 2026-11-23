@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useMarketPageViewModel } from '../viewModels/useMarketPageViewModel.js';
 import { canonicalIndexId, mergeQualifiedIndices } from '../services/marketQuotePolicy.js';
 import { formatMarketTimestamp } from '../utils/marketSession.js';
@@ -15,8 +15,12 @@ import { MarketNav, MarketDeskOverview } from '../market/features/overview/index
 import { IndexSectorPanel, MarketProviderBoard } from '../market/features/providers/index.js';
 import { EquityResearchPanel, WatchlistSummary } from '../market/features/equity/index.js';
 import { PortfolioPanel, PortfolioSummary } from '../market/features/portfolio/index.js';
-import { FundsPanel, FundSummary } from '../market/features/funds/index.js';
+import { FundsPanel } from '../market/features/funds/index.js';
 import { CurrencyMacroPanel, FXQuickConverter } from '../market/features/macro/index.js';
+import { MarketFxRates } from '../market/features/macro/MarketFxRates.jsx';
+import { macroStore } from '../market/features/macro/macroStore.js';
+import { EconomyNews } from '../market/features/overview/EconomyNews.jsx';
+import { FundQuickSearch } from '../market/features/overview/FundQuickSearch.jsx';
 import { IpoEventsPanel, EventsQuickWidget } from '../market/features/events/index.js';
 import { LabPanel } from '../market/features/lab/index.js';
 import {
@@ -356,13 +360,23 @@ export default function MarketPage() {
 
   const data = rawMarketData || marketData || null;
 
+  // ECB-derived USD/INR is cleared for first-visit informational display.
+  // OMR/INR retains explicit lookup while its automatic-use terms are unresolved.
+  const checkedInitialRate = useRef(false);
+  useEffect(() => {
+    if (checkedInitialRate.current) return;
+    checkedInitialRate.current = true;
+    void macroStore.fetchRate('USD', 'INR').catch(() => {});
+  }, []);
+
   // Overview Slots mapping
   const overviewSlots = useMemo(() => ({
     providerBoard: <MarketProviderBoard group="indices" onNavigate={changeView} />,
     watchlist: <WatchlistSummary onNavigate={changeView} />,
     portfolio: <PortfolioSummary onOpenPortfolio={() => changeView('portfolio')} />,
-    fundSearch: <FundSummary onOpenFunds={() => changeView('funds')} />,
-    currency: <FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} />,
+    fundSearch: <FundQuickSearch />,
+    currency: <><MarketFxRates /><FXQuickConverter onOpenMacroDesk={() => changeView('currency-macro')} /></>,
+    marketBriefing: <EconomyNews />,
     events: <EventsQuickWidget onOpenEventsDesk={() => changeView('ipo-events')} />,
     sourceHealth: <SourceHealthCard />
   }), []);

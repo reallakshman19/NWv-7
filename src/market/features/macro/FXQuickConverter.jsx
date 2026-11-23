@@ -66,7 +66,7 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
       <div className="fx-converter-header">
         <div className="fx-title-col">
           <h3 className="fx-converter-title">Currency Reference</h3>
-          <span className="fx-converter-subtitle">Central-bank benchmark rates</span>
+          <span className="fx-converter-subtitle">Dated FX reference rates</span>
         </div>
         <div className="fx-pair-selector-wrap">
           {SUPPORTED_CURRENCY_PAIRS.map(pair => (
@@ -134,7 +134,7 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
                 {formatRateBenchmark(rateData.rate, pairConfig.base, pairConfig.quote)}
               </span>
               <span className="fx-date-badge text-muted">
-                (As of {rateData.date})
+                (As of {rateData.date}) · {rateData.referenceProvider === 'ecb' ? 'ECB-derived cross' : 'Frankfurter blend'}
               </span>
               {effectiveFreshness?.freshness === 'DATED_WARNING' && (
                 <span className="portfolio-badge badge-warning" title={effectiveFreshness?.warning}>
@@ -153,7 +153,7 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
             </div>
           ) : (
             <div className="fx-rate-info">
-              <span className="text-muted">Zero-boot mode: No rate checked this session.</span>
+              <span className="text-muted">Select a pair to check its reference rate.</span>
             </div>
           )}
 
@@ -170,7 +170,7 @@ export function FXQuickConverter({ onOpenMacroDesk = null }) {
         </div>
 
         <p className="fx-disclaimer-text">
-          Indicative central-bank reference benchmark; actual retail remittance or commercial exchange counter rates vary by provider.
+          These reference rates are indicative. Providers set their own retail and remittance rates.
         </p>
       </div>
 

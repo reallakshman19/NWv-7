@@ -11,7 +11,7 @@ import { marketIsolationInput } from './market_r21_path_guard.mjs';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // Contract & Registry
 import {
@@ -445,7 +445,7 @@ test('WP10-G19 static export audit: all 9 feature index files export required ca
 // WP10-G20: Integrity of Shared Codebase and No Unauthorized Files
 // --------------------------------------------------------------------------
 test('WP10-G20 worktree & branch integrity: all modifications bounded within market desk', () => {
-  const changedFiles = execSync('git diff --name-only $(git merge-base HEAD origin/main) HEAD', {
+  const changedFiles = execFileSync('git', ['diff', '--name-only', 'origin/main...HEAD'], {
     encoding: 'utf-8'
   }).split('\n').map(s => s.trim()).filter(Boolean);
 
@@ -464,6 +464,9 @@ test('WP10-G20 worktree & branch integrity: all modifications bounded within mar
         '.github/workflows/ci.yml',
         '.github/workflows/deploy.yml',
         '.github/workflows/market_r3d_browser_provider_live.yml',
+        '.github/workflows/market_economy_news.yml',
+        'public/data/market_economy_news.json',
+        'docs/market/FREE_OPEN_ONLY_RELEASE.md',
         'public/data/fx_snapshot.json',
         'docs/data/fx_snapshot.json',
         'src/config/settings_market.js',

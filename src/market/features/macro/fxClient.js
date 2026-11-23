@@ -27,12 +27,14 @@ export class FxClient {
     const requestStartedMs = now;
     const requestStartedIso = new Date(requestStartedMs).toISOString();
 
-    const url = `https://api.frankfurter.dev/v2/rate/${canonicalBase.toLowerCase()}/${canonicalQuote.toLowerCase()}`;
+    const referenceProvider = canonicalBase === 'USD' && canonicalQuote === 'INR' ? 'ecb' : null;
+    const endpoint = `https://api.frankfurter.dev/v2/rate/${canonicalBase.toLowerCase()}/${canonicalQuote.toLowerCase()}`;
+    const url = referenceProvider ? endpoint + '?providers=' + referenceProvider : endpoint;
     if (!isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, url)) {
       throw new Error(`Disallowed source URL host for Frankfurter: ${url}`);
     }
 
-    const res = await fetchImpl(url, { signal });
+    const res = await fetchImpl(url, { signal: signal ?? AbortSignal.timeout(8000) });
     const transportStatus = res.status;
 
     if (!res.ok) {
@@ -90,6 +92,7 @@ export class FxClient {
       quote: canonicalQuote,
       rate,
       date,
+      referenceProvider,
       asOf,
       freshness,
       stale,
@@ -101,7 +104,8 @@ export class FxClient {
         date,
         base: canonicalBase,
         quote: canonicalQuote,
-        rate
+        rate,
+        ...(referenceProvider && { referenceProvider })
       }
     };
   }

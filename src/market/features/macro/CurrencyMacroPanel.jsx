@@ -13,6 +13,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useMacroStore } from './macroStore.js';
 import { evaluateFxObservation, canConvertFxRate } from './fxFreshness.js';
+import { MarketFxRates } from './MarketFxRates.jsx';
 import {
   SUPPORTED_CURRENCY_PAIRS,
   sanitizeCurrencyAmount,
@@ -185,7 +186,7 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
                     {formatRateBenchmark(rateData.rate, pairConfig.base, pairConfig.quote)}
                   </span>
                   <span className="fx-date-badge text-muted">
-                    (As of {rateData.date})
+                    (As of {rateData.date}) · {rateData.referenceProvider === 'ecb' ? 'ECB-derived cross' : 'Frankfurter blend'}
                   </span>
                   {effectiveFreshness?.freshness === 'DATED_WARNING' && (
                     <span className="portfolio-badge badge-warning" title={effectiveFreshness?.warning}>
@@ -204,7 +205,7 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
                 </div>
               ) : (
                 <div className="fx-rate-info">
-                  <span className="text-muted">Zero-boot mode: No rate checked this session.</span>
+                  <span className="text-muted">Select a pair to check its reference rate.</span>
                 </div>
               )}
 
@@ -219,7 +220,7 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
             </div>
 
             <div className="fx-policy-note">
-              <strong>Non-Remittance Notice:</strong> Rates represent indicative central-bank benchmarks (ECB/CBO) rather than commercial retail exchange or money-transfer counter rates.
+              <strong>Reference rates:</strong> Providers set their own retail and remittance rates.
             </div>
           </div>
 
@@ -271,68 +272,9 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
         </div>
       </section>
 
-      {/* SECTION 2: CURRENCY BENCHMARKS MATRIX & MULTI-CURRENCY DESK */}
       <section className="macro-section" aria-labelledby="multi-currency-heading">
-        <div className="macro-section-header">
-          <div>
-            <h3 id="multi-currency-heading" className="macro-section-title">Major Gulf &amp; Global Currency Benchmarks</h3>
-            <span className="macro-section-desc">Daily indicative central-bank exchange references vs Indian Rupee (INR)</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-          <div className="macro-panel-card" style={{ padding: '16px', borderLeft: '4px solid #10b981' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '1.05rem', color: '#f8fafc' }}>OMR / INR</strong>
-              <span className="portfolio-badge badge-source">CBO / ECB</span>
-            </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '8px 0', color: '#34d399', fontFamily: 'monospace' }}>
-              ₹242.04
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              30-Day Range: 216.20 — 242.50
-            </div>
-          </div>
-
-          <div className="macro-panel-card" style={{ padding: '16px', borderLeft: '4px solid #3b82f6' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '1.05rem', color: '#f8fafc' }}>USD / INR</strong>
-              <span className="portfolio-badge badge-source">ECB Reference</span>
-            </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '8px 0', color: '#60a5fa', fontFamily: 'monospace' }}>
-              ₹93.30
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              30-Day Range: 83.85 — 93.50
-            </div>
-          </div>
-
-          <div className="macro-panel-card" style={{ padding: '16px', borderLeft: '4px solid #8b5cf6' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '1.05rem', color: '#f8fafc' }}>EUR / INR</strong>
-              <span className="portfolio-badge badge-source">ECB Reference</span>
-            </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '8px 0', color: '#a78bfa', fontFamily: 'monospace' }}>
-              ₹89.15
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              30-Day Range: 88.20 — 90.10
-            </div>
-          </div>
-
-          <div className="macro-panel-card" style={{ padding: '16px', borderLeft: '4px solid #f59e0b' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <strong style={{ fontSize: '1.05rem', color: '#f8fafc' }}>GBP / INR</strong>
-              <span className="portfolio-badge badge-source">ECB Reference</span>
-            </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, margin: '8px 0', color: '#fbbf24', fontFamily: 'monospace' }}>
-              ₹106.80
-            </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-              30-Day Range: 105.10 — 108.20
-            </div>
-          </div>
-        </div>
+        <h3 id="multi-currency-heading" className="macro-section-title">Dated currency references</h3>
+        <MarketFxRates />
       </section>
 
       {/* SECTION 3: OFFICIAL REFERENCE LINKS & POLICY GUIDANCE */}
@@ -340,7 +282,7 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
         <h4 className="footer-section-title">Official Verification &amp; Reference Sources</h4>
         <div className="macro-links-grid">
           <a
-            href="https://www.cbo.gov.om/"
+            href="https://cbo.gov.om/Pages/DFESearch.aspx"
             target="_blank"
             rel="noopener noreferrer"
             className="macro-ext-link"

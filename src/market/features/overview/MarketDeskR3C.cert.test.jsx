@@ -31,13 +31,16 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(screen.getByRole('heading', { name: /My Watchlist/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Portfolio & Investment Lab/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Mutual Fund Quick Search/ })).toBeTruthy();
-    expect(screen.getByRole('heading', { name: /OMR \/ INR Currency Quick Tool/ })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: /Currency Rates & Converter/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /BSE Provider Board/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Market Briefing/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Movers & Sector References/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /IPO \/ NFO \/ Verified Events/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Data Provenance & Source Health/ })).toBeTruthy();
     expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(4);
+    expect(screen.getByRole('link', { name: /SENSEX/ }).getAttribute('href'))
+      .toBe('https://www.bseindices.com/indices-details/code/16');
+    expect(screen.queryByRole('button', { name: /browser-local quotes/i })).toBeNull();
     expect(container.textContent).not.toContain('Quote Unavailable');
     expect(container.textContent).not.toContain('SLA < 24h');
     expect(fetchMock).not.toHaveBeenCalled();
