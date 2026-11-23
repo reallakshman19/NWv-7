@@ -63,7 +63,7 @@ export function MarketNav({
       if (e.key === 'Escape') {
         e.preventDefault();
         setIsMoreOpen(false);
-        moreButtonRef.current?.focus();
+        moreButtonRef.current?.focus({ preventScroll: true });
       }
     };
 
@@ -71,11 +71,11 @@ export function MarketNav({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isMoreOpen]);
 
-  // Focus the first item when More menu opens
+  // Focus the first item when More menu opens without scrolling the viewport
   useEffect(() => {
     if (isMoreOpen && menuRef.current) {
       const firstButton = menuRef.current.querySelector('button');
-      firstButton?.focus();
+      firstButton?.focus({ preventScroll: true });
     }
   }, [isMoreOpen]);
 
@@ -185,7 +185,7 @@ export function MarketNav({
               aria-label="Close more workspaces menu"
               onClick={() => {
                 setIsMoreOpen(false);
-                moreButtonRef.current?.focus();
+                moreButtonRef.current?.focus({ preventScroll: true });
               }}
             >
               ✕
