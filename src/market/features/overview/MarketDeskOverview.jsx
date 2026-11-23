@@ -92,7 +92,7 @@ function MarketPulse({ data, localQuotes = [] }) {
             target="_blank" rel="noopener noreferrer">
             <span className="md3-pulse-identity">
               <strong>{index.name}</strong>
-              <small>{index.source} · Original source</small>
+              <small>{qualified ? `${row.sourceProvider} · Browser lookup` : `${index.source} · Original source`}</small>
             </span>
             <span className="md3-pulse-observation">
               {qualified ? (
