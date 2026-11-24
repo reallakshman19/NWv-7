@@ -21,7 +21,7 @@ describe('Market R3C — actual Overview route acceptance', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders a dense actionable desk rather than fabricated market prices or four blank quote cards', () => {
+  it('shows a provider-hosted index board rather than four dead price placeholders', () => {
     const payload = freeOpenMarketPayload();
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
@@ -38,14 +38,21 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(screen.getByRole('heading', { name: /Movers & Sector References/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /IPO \/ NFO \/ Verified Events/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Data Provenance & Source Health/ })).toBeTruthy();
-    expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(4);
+    expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(0);
+    expect(container.querySelector('[data-market-index-board="provider"]')).toBeTruthy();
     expect(screen.getByRole('link', { name: /SENSEX/ }).getAttribute('href'))
       .toBe('https://www.bseindices.com/indices-details/code/16');
     expect(screen.queryByRole('button', { name: /browser-local quotes/i })).toBeNull();
     expect(container.textContent).not.toContain('Quote Unavailable');
     expect(container.textContent).not.toContain('SLA < 24h');
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
+    const hostedScript = document.querySelector('script[src*="embed-widget-market-overview.js"]');
+    expect(hostedScript).toBeTruthy();
+    const config = JSON.parse(hostedScript.textContent);
+    expect(config.tabs[0].symbols.map(item => item.s)).toEqual([
+      'NSE:NIFTY', 'BSE:SENSEX', 'NSE:BANKNIFTY', 'BSE:BSE500'
+    ]);
+    expect(container.textContent).not.toContain('No saved value');
   });
 
   it('puts the four main data sections first and lets jump links focus them', () => {
@@ -68,8 +75,9 @@ describe('Market R3C — actual Overview route acceptance', () => {
       ...freeOpenMarketPayload(),
       indices: [{ symbol: '^NSEI', value: 9999999, quoteAt: '2026-11-20', source: 'test' }]
     }} hideNav />);
-    expect(container.querySelector('.md3-pulse-list').textContent).not.toContain('9,999,999');
-    expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(4);
+    expect(container.textContent).not.toContain('9,999,999');
+    expect(container.querySelectorAll('.md3-pulse-row')).toHaveLength(0);
+    expect(container.querySelector('[data-market-index-board="provider"]')).toBeTruthy();
   });
 
   it('shows a retained index value with a clock label and its original quote time', () => {
@@ -87,7 +95,7 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(nifty.querySelector('.md3-pulse-history svg')).toBeTruthy();
     expect(nifty.textContent).toContain('Last available');
     expect(nifty.querySelector('time').getAttribute('datetime')).toBe(quoteAt);
-    expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('No saved value');
+    expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('View original source');
   });
 
   it('keeps the official link when the saved observation has expired or has an invalid date', () => {
@@ -99,9 +107,10 @@ describe('Market R3C — actual Overview route acceptance', () => {
         { symbol: '^BSESN', value: 82500, quoteAt: 'invalid', source: 'verified source' }
       ]
     }} />);
-    expect(screen.getByRole('link', { name: /NIFTY 50/ }).textContent).toContain('No saved value');
-    expect(screen.getByRole('link', { name: /SENSEX/ }).textContent).toContain('No saved value');
+    expect(screen.getByRole('link', { name: /NIFTY 50/ })).toBeTruthy();
+    expect(screen.getByRole('link', { name: /SENSEX/ })).toBeTruthy();
     expect(screen.queryByText('Last available')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Reload index provider board' })).toBeTruthy();
   });
 
   it('keeps sector prices link-only for public data and dates authorized retained observations', () => {
