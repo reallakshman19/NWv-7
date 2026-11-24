@@ -26,6 +26,7 @@ export function createWatchlistStore({
   let isPersistent = true;
   let errorMessage = null;
   let cachedState = null;
+  let preserveUnreadableV2 = false;
   const subscribers = new Set();
 
   function invalidateCache() {
@@ -65,7 +66,7 @@ export function createWatchlistStore({
 
   function trySave() {
     invalidateCache();
-    if (!storage) {
+    if (!storage || preserveUnreadableV2) {
       isPersistent = false;
       return;
     }
@@ -106,14 +107,12 @@ export function createWatchlistStore({
       // Case 1: V2 exists
       try {
         const parsed = JSON.parse(v2Raw);
-        if (
-          parsed &&
-          typeof parsed === 'object' &&
-          parsed.schemaVersion === 2 &&
-          Array.isArray(parsed.keys)
-        ) {
+        // WP09 migration historically writes an array; accept both formats without rewriting.
+        const storedKeys = Array.isArray(parsed) ? parsed :
+          (parsed?.schemaVersion === 2 && Array.isArray(parsed.keys) ? parsed.keys : null);
+        if (storedKeys) {
           const valid = [];
-          for (const item of parsed.keys) {
+          for (const item of storedKeys) {
             const sym = fromCanonicalKey(item);
             if (sym && valid.length < maxLimit && !valid.includes(`NSE:${sym}`)) {
               valid.push(`NSE:${sym}`);
@@ -125,10 +124,12 @@ export function createWatchlistStore({
           return;
         }
         // Malformed V2
+        preserveUnreadableV2 = true;
         errorMessage = 'Watchlist V2 storage is malformed. Preserving existing records without overwrite.';
         isPersistent = false;
         return;
       } catch {
+        preserveUnreadableV2 = true;
         errorMessage = 'Watchlist V2 storage is corrupt. Preserving existing records without overwrite.';
         isPersistent = false;
         return;
