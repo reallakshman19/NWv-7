@@ -2,14 +2,7 @@ import React from 'react';
 import { BSE_GROUPS } from './bseCoverage.js';
 import { OPEN_SOURCE_REFERENCE_LINKS } from '../../../services/marketFreeOpenPolicy.js';
 
-const SECTOR_REFERENCES = Object.freeze([
-  { id: 'bank', name: 'NIFTY Bank', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-  { id: 'it', name: 'NIFTY IT', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-  { id: 'auto', name: 'NIFTY Auto', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-  { id: 'pharma', name: 'NIFTY Pharma', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-  { id: 'fmcg', name: 'NIFTY FMCG', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-  { id: 'metal', name: 'NIFTY Metal', url: 'https://www.nseindia.com/market-data/live-market-indices' },
-]);
+import { SECTOR_RESEARCH_CATALOG, selectSectorResearch, selectMarketBreadth } from '../indices/sectorResearchResolution.js';
 
 /**
  * IndexSectorPanel (WP-02)
@@ -25,6 +18,8 @@ export function IndexSectorPanel({
   className = '',
 }) {
   const normalizedGroup = BSE_GROUPS.includes(activeGroup) ? activeGroup : 'indices';
+  const sectors = SECTOR_RESEARCH_CATALOG.map(item => selectSectorResearch(item.id));
+  const breadth = selectMarketBreadth();
 
   const handleGroupSelect = (group) => {
     if (typeof onSelectProviderGroup === 'function') {
@@ -172,15 +167,15 @@ export function IndexSectorPanel({
           Verified benchmark paths on the National Stock Exchange live market platform:
         </p>
         <div className="sector-link-grid">
-          {SECTOR_REFERENCES.map((sector) => (
+          {sectors.map((sector) => (
             <a
               key={sector.id}
-              href={sector.url}
+              href={sector.referenceUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="sector-link-chip"
             >
-              {sector.name} ↗
+              {sector.displayName} ↗
             </a>
           ))}
         </div>
@@ -191,6 +186,7 @@ export function IndexSectorPanel({
         <h3 id="heading-movers" className="index-sector-panel__section-title">
           Market Movers & Live Exchange Overviews
         </h3>
+        {breadth.state === 'UNAVAILABLE' && <p role="status">Market breadth unavailable — no qualified exchange-wide dataset. Tracked shares are not exchange-wide advances or declines.</p>}
         <div className="movers-links-row">
           <a
             href={OPEN_SOURCE_REFERENCE_LINKS?.nseEquities || 'https://www.nseindia.com/market-data/live-equity-market'}

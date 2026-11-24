@@ -10,77 +10,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import {
-  alignComparativeHistory,
-  calculateTrailingReturns,
-  calculateMaxDrawdown,
-  calculateAnnualizedVolatility,
-  subtractCalendarPeriod
-} from './fundMath.js';
-import { FundNavChart, CHART_RANGES } from './FundNavChart.jsx';
-
-function buildComparisonOutcome(activeSelectedCodes, historyCache, horizon) {
-  if (activeSelectedCodes.length < 2) return null;
-
-  const schemesMap = {};
-  for (const code of activeSelectedCodes) {
-    const hist = historyCache[code];
-    if (hist && Array.isArray(hist.observations) && hist.observations.length > 0) {
-      schemesMap[code] = hist.observations;
-    } else {
-      // Missing history
-      return { isReady: false, missingCode: code };
-    }
-  }
-
-  // Find latest common reference date across funds
-  let minLatestDate = '9999-99-99';
-  for (const code of activeSelectedCodes) {
-    const obs = schemesMap[code];
-    const latest = obs[obs.length - 1].date;
-    if (latest < minLatestDate) minLatestDate = latest;
-  }
-
-  const rangeConfig = CHART_RANGES.find(r => r.id === horizon) || CHART_RANGES[2];
-  const startDate = subtractCalendarPeriod(minLatestDate, {
-    months: rangeConfig.months,
-    years: rangeConfig.years
-  });
-
-  const aligned = alignComparativeHistory(schemesMap, startDate);
-
-  // Compute metrics per scheme over aligned window
-  const metricsByScheme = {};
-  for (const code of activeSelectedCodes) {
-    const obs = schemesMap[code].filter(o => o.date >= startDate);
-    const trailing = calculateTrailingReturns(obs);
-    const mdd = calculateMaxDrawdown(obs);
-    const vol = calculateAnnualizedVolatility(obs);
-
-    const hist = historyCache[code];
-    metricsByScheme[code] = {
-      code,
-      name: hist.schemeName || `Scheme ${code}`,
-      category: hist.category || 'Mutual Fund',
-      plan: hist.plan || 'Direct',
-      option: hist.option || 'Growth',
-      isIdcw: hist.isIdcw || false,
-      latestNav: hist.latestNav,
-      latestDate: hist.latestDate,
-      returnPercent: trailing[horizon]?.returnPercent ?? null,
-      isCagr: trailing[horizon]?.isCagr ?? false,
-      mddPercent: mdd.mddPercent,
-      volatilityPercent: vol.volatilityPercent
-    };
-  }
-
-  return {
-    isReady: true,
-    alignedDates: aligned.alignedDates,
-    seriesByScheme: aligned.seriesByScheme,
-    metricsByScheme
-  };
-}
+import { buildComparisonOutcome } from './fundComparison.js';
+import { FundNavChart } from './FundNavChart.jsx';
 
 function FundCompareDialog({
   onClose,
@@ -198,7 +129,7 @@ function FundCompareDialog({
           {/* Status Notifications */}
           <div className="fund-compare-disclosure" role="note">
             <strong>Base-100 Rebase Convention:</strong> All schemes are indexed to 100 on the earliest shared observation date for the selected horizon.
-            Charts reflect relative growth from a common baseline, not identical initial risk. IDCW NAVs exclude cash distributions.
+            Metrics use shared observation dates only. Charts reflect relative growth from a common baseline, not identical initial risk. IDCW NAVs exclude cash distributions.
           </div>
 
           {loadingCode && (
@@ -226,7 +157,7 @@ function FundCompareDialog({
                     <tr>
                       <th>Scheme</th>
                       <th>Plan / Option</th>
-                      <th className="num">Latest NAV</th>
+                      <th className="num">Common-date NAV</th>
                       <th className="num">{horizon} Return</th>
                       <th className="num">Max Drawdown</th>
                       <th className="num">Volatility</th>
@@ -253,7 +184,7 @@ function FundCompareDialog({
                             {m.returnPercent !== null ? `${m.returnPercent >= 0 ? '+' : ''}${m.returnPercent.toFixed(2)}%` : 'Unavailable'}
                           </td>
                           <td className="num font-mono loss">
-                            {m.mddPercent !== null ? `-${m.mddPercent.toFixed(2)}%` : '—'}
+                            {m.mddPercent !== null ? `${m.mddPercent.toFixed(2)}%` : '—'}
                           </td>
                           <td className="num font-mono">
                             {m.volatilityPercent !== null ? `${m.volatilityPercent.toFixed(2)}%` : '—'}
@@ -267,7 +198,7 @@ function FundCompareDialog({
             </>
           ) : (
             <div className="fund-empty-state">
-              <p>Select at least 2 saved funds with complete historical observations to begin comparison.</p>
+              <p>{comparisonOutcome?.reason === 'INSUFFICIENT_COMMON_DATES' ? 'Insufficient shared observation dates for comparison.' : 'Select at least 2 saved funds with complete historical observations to begin comparison.'}</p>
             </div>
           )}
         </div>

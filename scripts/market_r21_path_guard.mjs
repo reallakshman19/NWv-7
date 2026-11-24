@@ -18,3 +18,11 @@ export function marketIsolationInput(changedFiles) {
   if (!Array.isArray(changedFiles)) throw new TypeError('Expected changed file paths');
   return changedFiles.some(isMarketSensitivePath) ? changedFiles : [];
 }
+
+/** Existing vNext assurance scope; no other workflow or executable report. */
+export function isMarketVNextAssurancePath(path) {
+  return typeof path === 'string' && (
+    path === '.github/workflows/market_vnext_responsive.yml' ||
+    /^reports\/market-vnext\/[A-Za-z0-9_-]+\.md$/.test(path)
+  );
+}

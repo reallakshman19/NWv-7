@@ -5,6 +5,7 @@
  */
 
 import { replayPortfolio } from './portfolioAccounting.js';
+import { isSourceClock } from '../../contracts/sourceReceipt.js';
 
 /**
  * Builds dated cash flows array from transactions and manual price marks.
@@ -81,6 +82,15 @@ export function buildPortfolioCashFlows(transactions = [], manualPriceMarks = {}
       };
     }
 
+    // All active marks must describe one terminal valuation date. Mixed dates
+    // cannot be silently advanced to the newest mark for XIRR.
+    const markDates = replayed.positions.filter(pos => pos.currentQty > 0).map(pos => pos.priceAsOfDate);
+    if (markDates.some(date => !isSourceClock(date,'day'))) {
+      return {ok:false,errorCode:'MISSING_MARK_DATE',message:'Active holdings lack valid as-of dates for valuation'};
+    }
+    if (new Set(markDates).size !== 1) {
+      return {ok:false,errorCode:'INCONSISTENT_DATES',message:'All active holdings require marks on the same terminal valuation date'};
+    }
     // Determine max mark date among active holdings
     let maxMarkDate = '';
     for (const pos of replayed.positions) {

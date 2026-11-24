@@ -229,7 +229,9 @@ export function calculateTrailingReturns(observations = [], asOfDate = null) {
       continue;
     }
 
-    const isLongTerm = (h.years >= 3) || (elapsedDays > 366);
+    // A weekend/holiday lookback can make a 1Y span exceed 366 days without
+    // changing its documented simple-return convention.
+    const isLongTerm = h.years >= 3;
 
     let returnPercent;
     if (!isLongTerm) {

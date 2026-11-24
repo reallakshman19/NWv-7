@@ -24,13 +24,14 @@ import { OPEN_SOURCE_REFERENCE_LINKS } from '../../../services/marketFreeOpenPol
 import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
+import { selectHeadlineIndexBoard } from '../indices/headlineIndexResolution.js';
 import './MarketDeskOverview.css';
 
 const PULSE = [
-  { id: 'nifty', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
-  { id: 'sensex', name: 'SENSEX', symbol: '^BSESN', url: 'https://www.bseindices.com/indices-details/code/16', source: 'BSE Indices' },
-  { id: 'bank', name: 'NIFTY Bank', symbol: '^NSEBANK', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
-  { id: 'bse500', name: 'BSE 500', symbol: '^BSE500', url: 'https://www.bseindices.com/indices-details/code/17/', source: 'BSE Indices' }
+  { id: 'nifty', instrumentId:'INDEX:NSE:NIFTY50', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
+  { id: 'sensex', instrumentId:'INDEX:BSE:SENSEX', name: 'SENSEX', symbol: '^BSESN', url: 'https://www.bseindices.com/indices-details/code/16', source: 'BSE Indices' },
+  { id: 'bank', instrumentId:'INDEX:NSE:BANKNIFTY', name: 'NIFTY Bank', symbol: '^NSEBANK', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
+  { id: 'bse500', instrumentId:'INDEX:BSE:BSE500', name: 'BSE 500', symbol: '^BSE500', url: 'https://www.bseindices.com/indices-details/code/17/', source: 'BSE Indices' }
 ];
 
 const DEFAULT_SLOTS = Object.freeze({
@@ -69,9 +70,9 @@ function jumpToSection(id) {
   heading.scrollIntoView?.({ block: 'start' });
 }
 
-function DeskCard({ id, title, action, destination, onNavigate, wide = false, children }) {
+function DeskCard({ id, title, action, destination, onNavigate, wide = false, children, layoutId }) {
   return (
-    <section className={'md3-card' + (wide ? ' md3-card--wide' : '')} aria-labelledby={id}>
+    <section className={'md3-card' + (wide ? ' md3-card--wide' : '')} aria-labelledby={id} data-layout={layoutId}>
       <div className="md3-card-head">
         <h2 id={id} tabIndex={-1}>{title}</h2>
         {destination && (
@@ -97,11 +98,13 @@ function getDatedIndexObservations(data) {
 function MarketPulse({ data }) {
   const observations = getDatedIndexObservations(data);
   const isLastAvailable = data?.sourceMode !== 'live';
+  const sourceStates = new Map(selectHeadlineIndexBoard().map(row => [row.instrumentId,row]));
 
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
         const indexId = canonicalIndexId(index);
+        const sourceState = sourceStates.get(index.instrumentId);
         const observation = observations.find(({ id, row }) =>
           id === indexId || row.symbol === index.symbol || (!row.symbol && row.name === index.name)
         );
@@ -130,7 +133,7 @@ function MarketPulse({ data }) {
                     </time>
                   </small>
                 </>
-              ) : <small>No saved value</small>}
+              ) : <small>{data?.sourceMode === 'free-open-only' && sourceState ? (sourceState.hostedAttemptAllowed ? 'Provider display on request' : 'Native price restricted') : 'No saved value'}</small>}
             </span>
           </a>
         );
@@ -331,16 +334,16 @@ export function MarketDeskOverview({
       {!hideNav && <MarketNav currentWorkspace={currentWorkspace} onNavigate={marketNav} />}
 
       <div className="md3-body">
-        <nav className="md3-jump-links" aria-label="Jump to a Market section">
+        <details className="md3-section-shortcuts"><summary>Section shortcuts</summary><div className="md3-jump-links" role="group" aria-label="Jump to a Market section">
           <button type="button" onClick={() => jumpToSection('md3-pulse')}>Indices</button>
           <button type="button" onClick={() => jumpToSection('md3-currency')}>Rates</button>
           <button type="button" onClick={() => jumpToSection('md3-funds')}>Find fund</button>
           <button type="button" onClick={() => jumpToSection('md3-briefing')}>News</button>
           <button type="button" onClick={() => jumpToSection('md3-sectors')}>Sectors</button>
-        </nav>
+        </div></details>
 
         <div className="md3-grid">
-          <DeskCard id="md3-pulse" title="India Market Pulse" wide
+          <DeskCard id="md3-pulse" layoutId="md3-pulse" title="India Market Pulse" wide
             action="All indices" destination="indices" onNavigate={marketNav}>
             <MarketPulse data={data} />
             {slots.providerBoard && (
@@ -349,38 +352,7 @@ export function MarketDeskOverview({
             )}
           </DeskCard>
 
-          <DeskCard id="md3-currency" title="Currency Rates"
-            action="All rates" destination="currency-macro" onNavigate={marketNav}>
-            <QualifiedSlot title="Currency Tool" workspace="currency-macro" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('currency-macro')}>
-                Check dated reference rate
-              </button>}>
-              {slots.currency}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-funds" title="Mutual Fund Quick Search"
-            action="Research funds" destination="funds" onNavigate={marketNav}>
-            <div className="md3-compact-caption">Saved: {fundState.savedCodes?.length || 0}/12 · Direct scheme lookup</div>
-            <QualifiedSlot title="Mutual Funds" workspace="funds" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('funds')}>
-                Find a fund by name or scheme code
-              </button>}>
-              {slots.fundSearch}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-briefing" title="Market Briefing"
-            action="All Events & News" destination="ipo-events" onNavigate={marketNav}>
-            <QualifiedSlot title="Events" workspace="ipo-events" onNavigate={marketNav}
-              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('ipo-events')}>
-                View dated events
-              </button>}>
-              {slots.marketBriefing}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-provider" title="BSE Provider Board" wide
+          <DeskCard id="md3-provider" layoutId="md3-provider" title="BSE Provider Board" wide
             action="Provider choices" destination="indices" onNavigate={marketNav}>
             <QualifiedSlot title="Provider Board" workspace="indices" onNavigate={marketNav}
               fallback={<a className="md3-provider-link" href="https://www.tradingview.com/markets/stocks-india/"
@@ -391,7 +363,17 @@ export function MarketDeskOverview({
             </QualifiedSlot>
           </DeskCard>
 
-          <DeskCard id="md3-watchlist" title="My Watchlist" action="Manage Watchlist"
+          <DeskCard id="md3-currency" layoutId="md3-currency" title="Currency Rates"
+            action="All rates" destination="currency-macro" onNavigate={marketNav}>
+            <QualifiedSlot title="Currency Tool" workspace="currency-macro" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('currency-macro')}>
+                Check dated reference rate
+              </button>}>
+              {slots.currency}
+            </QualifiedSlot>
+          </DeskCard>
+
+          <DeskCard id="md3-watchlist" layoutId="md3-watchlist" title="My Watchlist" action="Manage Watchlist"
             destination="equity" onNavigate={marketNav}>
             <div className="md3-compact-caption">Saved: {savedSymbols.length}/12 · Tracked NSE Universe: {knownSymbols.length}</div>
             <QualifiedSlot title="My Watchlist" workspace="equity" onNavigate={marketNav}
@@ -411,7 +393,7 @@ export function MarketDeskOverview({
             </QualifiedSlot>
           </DeskCard>
 
-          <DeskCard id="md3-portfolio" title="Portfolio & Investment Lab"
+          <DeskCard id="md3-portfolio" layoutId="md3-portfolio" title="Portfolio & Investment Lab"
             action="Open Portfolio" destination="portfolio" onNavigate={marketNav}>
             <QualifiedSlot title="Portfolio" workspace="portfolio" onNavigate={marketNav}
               fallback={<p className="md3-muted">Local holdings · Moving-average P&amp;L · Manual marks</p>}>
@@ -424,7 +406,28 @@ export function MarketDeskOverview({
             </div>
           </DeskCard>
 
-          <DeskCard id="md3-sectors" title="Movers & Sector References" wide
+          <DeskCard id="md3-funds" layoutId="md3-funds" title="Mutual Fund Quick Search"
+            action="Research funds" destination="funds" onNavigate={marketNav}>
+            <div className="md3-compact-caption">Saved: {fundState.savedCodes?.length || 0}/12 · Direct scheme lookup</div>
+            <QualifiedSlot title="Mutual Funds" workspace="funds" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('funds')}>
+                Find a fund by name or scheme code
+              </button>}>
+              {slots.fundSearch}
+            </QualifiedSlot>
+          </DeskCard>
+
+          <DeskCard id="md3-briefing" layoutId="md3-briefing" title="Market Briefing"
+            action="All Events & News" destination="ipo-events" onNavigate={marketNav}>
+            <QualifiedSlot title="Events" workspace="ipo-events" onNavigate={marketNav}
+              fallback={<button type="button" className="md3-primary" onClick={() => marketNav('ipo-events')}>
+                View dated events
+              </button>}>
+              {slots.marketBriefing}
+            </QualifiedSlot>
+          </DeskCard>
+
+          <DeskCard id="md3-sectors" layoutId="md3-sectors" title="Movers & Sector References" wide
             action="Explore sectors" destination="indices" onNavigate={marketNav}>
             <SectorBreakdown data={data} onNavigate={marketNav} />
             <div className="md3-link-grid">
@@ -435,7 +438,7 @@ export function MarketDeskOverview({
             <p className="md3-muted">Native gainers/losers unavailable under current source rights.</p>
           </DeskCard>
 
-          <DeskCard id="md3-events" title="IPO / NFO / Verified Events" wide
+          <DeskCard id="md3-events" layoutId="md3-events" title="IPO / NFO / Verified Events" wide
             action="Open IPO & Events Workspace" destination="ipo-events" onNavigate={marketNav}>
             <div className="md3-event-actions">
               <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIpo || 'https://www.nseindia.com/market-data/all-upcoming-issues-ipo'}

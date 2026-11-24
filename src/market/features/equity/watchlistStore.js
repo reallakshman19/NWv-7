@@ -9,7 +9,8 @@
  */
 import { useSyncExternalStore } from 'react';
 import { planLegacyNseWatchlist } from '../../contracts/instrumentIdentity.js';
-import { toCanonicalKey, fromCanonicalKey, MAX_WATCHLIST_LIMIT } from './equityModel.js';
+import { fromCanonicalKey, MAX_WATCHLIST_LIMIT } from './equityModel.js';
+import { resolveNseResearchKey } from './equityResearchResolution.js';
 
 export const WATCHLIST_V2_KEY = 'nw7.market-watchlist.v2';
 export const WATCHLIST_V1_KEY = 'nw7.india-watchlist.v1';
@@ -25,6 +26,8 @@ export function createWatchlistStore({
   let isPersistent = true;
   let errorMessage = null;
   let cachedState = null;
+  let preserveUnreadableV2 = false;
+  let persistedV2Raw = null;
   const subscribers = new Set();
 
   function invalidateCache() {
@@ -64,11 +67,18 @@ export function createWatchlistStore({
 
   function trySave() {
     invalidateCache();
-    if (!storage) {
+    if (!storage || preserveUnreadableV2) {
       isPersistent = false;
       return;
     }
     try {
+      // A stale store must not replace records saved by another tab or a
+      // migration. Keep the local edit in session memory and preserve disk.
+      if (storage.getItem(storageKeyV2) !== persistedV2Raw) {
+        isPersistent = false;
+        errorMessage = 'Another tab changed your watchlist. Local changes are session only; reload to read the saved records.';
+        return;
+      }
       const payload = {
         schemaVersion: 2,
         exchange: 'NSE',
@@ -76,7 +86,9 @@ export function createWatchlistStore({
         keys: [...keys],
         updatedAt: new Date().toISOString(),
       };
-      storage.setItem(storageKeyV2, JSON.stringify(payload));
+      const raw = JSON.stringify(payload);
+      storage.setItem(storageKeyV2, raw);
+      persistedV2Raw = raw;
       isPersistent = true;
       errorMessage = null;
     } catch {
@@ -97,22 +109,23 @@ export function createWatchlistStore({
     try {
       v2Raw = storage.getItem(storageKeyV2);
     } catch {
+      preserveUnreadableV2 = true;
       isPersistent = false;
+      errorMessage = 'Existing watchlist could not be read. Preserving stored records; local changes are session only.';
       return;
     }
+    persistedV2Raw = v2Raw;
 
-    if (v2Raw != null && v2Raw.trim() !== '') {
+    if (v2Raw != null) {
       // Case 1: V2 exists
       try {
         const parsed = JSON.parse(v2Raw);
-        if (
-          parsed &&
-          typeof parsed === 'object' &&
-          parsed.schemaVersion === 2 &&
-          Array.isArray(parsed.keys)
-        ) {
+        // WP09 migration historically writes an array; accept both formats without rewriting.
+        const storedKeys = Array.isArray(parsed) ? parsed :
+          (parsed?.schemaVersion === 2 && Array.isArray(parsed.keys) ? parsed.keys : null);
+        if (storedKeys) {
           const valid = [];
-          for (const item of parsed.keys) {
+          for (const item of storedKeys) {
             const sym = fromCanonicalKey(item);
             if (sym && valid.length < maxLimit && !valid.includes(`NSE:${sym}`)) {
               valid.push(`NSE:${sym}`);
@@ -124,10 +137,12 @@ export function createWatchlistStore({
           return;
         }
         // Malformed V2
+        preserveUnreadableV2 = true;
         errorMessage = 'Watchlist V2 storage is malformed. Preserving existing records without overwrite.';
         isPersistent = false;
         return;
       } catch {
+        preserveUnreadableV2 = true;
         errorMessage = 'Watchlist V2 storage is corrupt. Preserving existing records without overwrite.';
         isPersistent = false;
         return;
@@ -171,9 +186,7 @@ export function createWatchlistStore({
       return () => subscribers.delete(callback);
     },
     addKey(symbolOrKey) {
-      const canonical = symbolOrKey.startsWith('NSE:')
-        ? symbolOrKey
-        : toCanonicalKey(symbolOrKey);
+      const canonical = resolveNseResearchKey(symbolOrKey);
 
       if (!canonical) {
         return { ok: false, reason: 'Invalid NSE symbol format' };
@@ -191,9 +204,7 @@ export function createWatchlistStore({
       return { ok: true, keys: [...keys] };
     },
     removeKey(symbolOrKey) {
-      const canonical = symbolOrKey.startsWith('NSE:')
-        ? symbolOrKey
-        : toCanonicalKey(symbolOrKey);
+      const canonical = resolveNseResearchKey(symbolOrKey);
 
       if (!canonical || !keys.includes(canonical)) {
         return { ok: false, reason: 'Symbol not found in watchlist' };
@@ -233,7 +244,7 @@ export function createWatchlistStore({
       const added = [];
 
       for (const item of newKeys) {
-        const canonical = item.startsWith('NSE:') ? item : toCanonicalKey(item);
+        const canonical = resolveNseResearchKey(item);
         if (canonical && !existingSet.has(canonical) && (keys.length + added.length) < maxLimit) {
           existingSet.add(canonical);
           added.push(canonical);

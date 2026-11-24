@@ -16,7 +16,6 @@ import { useWatchlist, defaultWatchlistStore } from './watchlistStore.js';
 import { useEquityNote, defaultNotesStore, MAX_NOTE_LENGTH } from './notesStore.js';
 import {
   TRACKED_NSE_METADATA,
-  TRACKED_SYMBOLS,
   getEquityMetadata,
   getNseQuoteUrl,
   getNseAnnouncementsUrl,
@@ -28,6 +27,7 @@ import {
   generateWatchlistJson,
 } from './equityModel.js';
 import { ImportPreviewModal } from './ImportPreviewModal.jsx';
+import { searchTrackedEquities, selectEquityResearch } from './equityResearchResolution.js';
 import './equity.css';
 
 export function EquityResearchPanel({
@@ -54,13 +54,16 @@ export function EquityResearchPanel({
 
   const [selectedKey, setSelectedKey] = useState(() => keys[0] || 'NSE:RELIANCE');
   const [customInput, setCustomInput] = useState('');
+  const [researchQuery, setResearchQuery] = useState('');
   const [inputFeedback, setInputFeedback] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Selected item derived state
   const selectedSymbol = fromCanonicalKey(selectedKey) || 'RELIANCE';
   const selectedMeta = getEquityMetadata(selectedSymbol);
-  const selectedQuoteUrl = getNseQuoteUrl(selectedSymbol);
+  const research = selectEquityResearch(selectedKey);
+  const selectedQuoteUrl = research?.referenceUrl ?? null;
+  const searchResults = searchTrackedEquities(researchQuery);
   const selectedAnnouncementsUrl = getNseAnnouncementsUrl(selectedSymbol);
 
   // Notes state for selected symbol
@@ -339,8 +342,12 @@ export function EquityResearchPanel({
               </div>
             </div>
 
+            <label htmlFor="tracked-equity-search">Search tracked shares by name or symbol</label>
+            <input id="tracked-equity-search" className="market-equity-input" type="search"
+              value={researchQuery} onChange={event => setResearchQuery(event.target.value)} />
+            {searchResults.length === 0 && <p role="status">No matching tracked shares. Custom NSE symbols can be saved above; listings are not verified.</p>}
             <div className="market-equity-universe-grid">
-              {TRACKED_SYMBOLS.map((symbol) => {
+              {searchResults.map(({symbol}) => {
                 const meta = TRACKED_NSE_METADATA[symbol];
                 const canonical = `NSE:${symbol}`;
                 const isSaved = keys.includes(canonical);

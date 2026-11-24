@@ -82,6 +82,7 @@ export function EventTimeline({
                           Tentative
                         </span>
                       )}
+                      {!isConfirmed && !isTentative && <span className="portfolio-badge">{evt.verification === VERIFICATION_STATUSES.CANCELLED ? 'Cancelled' : evt.verification === VERIFICATION_STATUSES.SUPERSEDED ? 'Superseded' : 'Unverified'}</span>}
                       <span className="portfolio-badge badge-category">
                         {evt.category}
                       </span>
