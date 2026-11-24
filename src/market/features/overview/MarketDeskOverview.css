@@ -285,3 +285,38 @@
   .md3-jump-links { display: none; }
   .md3-sector-tab.is-active { border-color: var(--md3-ink); color: var(--md3-ink); background: #e5e7eb; }
 }
+
+
+/* R4 UX recovery — value-first hosted indices, Weather-parity mobile spacing. */
+.md3-index-hosted { display: grid; gap: 10px; min-width: 0; }
+.md3-index-hosted__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.md3-index-hosted__head > div { display: grid; gap: 2px; min-width: 0; }
+.md3-index-hosted__head strong { font-size: 1rem; font-weight: 750; }
+.md3-index-hosted__head small { font-size: .75rem; color: var(--md3-muted); }
+.market-workspace .md3-index-reload { display: inline-flex; align-items: center; gap: 6px; flex: 0 0 auto;
+  min-height: 38px; padding: 5px 11px; border: 1px solid var(--md3-border);
+  border-radius: 9px; color: var(--md3-ink); background: var(--md3-background); font: inherit; font-size: .8rem; }
+.md3-index-hosted__frame { min-height: 286px; width: 100%; min-width: 0; overflow: hidden;
+  border: 1px solid var(--md3-border); border-radius: 11px; background: var(--md3-background); }
+.md3-index-hosted__frame .tradingview-widget-container__widget { min-height: 286px; height: 100%; width: 100%; }
+.md3-index-hosted__frame iframe { max-width: 100%; border: 0; }
+.md3-index-hosted__status { min-height: 18px; color: var(--md3-muted); font-size: .76rem; line-height: 1.4; }
+.md3-index-hosted__sources { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.md3-index-hosted__sources a { min-width: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 9px 5px; min-height: 38px; font-size: .74rem; font-weight: 650;
+  border: 1px solid var(--md3-border); border-radius: 8px; color: var(--md3-accent);
+  background: var(--md3-background); text-decoration: none; }
+.md3-index-hosted__disclaimer { font-size: .7rem; line-height: 1.45; color: var(--md3-muted); margin: 0; }
+.md3-index-hosted__credit { font-size: .72rem; color: var(--md3-muted); text-decoration: underline; justify-self: end; }
+@media (max-width: 767px) {
+  /* The global bottom navigation plus Market tabs are already two levels.
+     Avoid a third full-width jump strip before any actual information. */
+  .market-desk-r3c .md3-jump-links { display: none; }
+  .market-desk-r3c .md3-grid { gap: 10px; }
+  .market-desk-r3c .md3-card-head, .market-desk-r3c .md3-card-content { padding: 10px; }
+  .md3-index-hosted { gap: 8px; }
+  .md3-index-hosted__head strong { font-size: .94rem; }
+  .md3-index-hosted__head small { font-size: .69rem; }
+  .md3-index-hosted__sources { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md3-index-hosted__frame, .md3-index-hosted__frame .tradingview-widget-container__widget { min-height: 272px; }
+}

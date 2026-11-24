@@ -25,6 +25,7 @@ import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
 import './MarketDeskOverview.css';
+import { MarketIndexProviderBoard } from './MarketIndexProviderBoard.jsx';
 
 const PULSE = [
   { id: 'nifty', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
@@ -97,6 +98,9 @@ function getDatedIndexObservations(data) {
 function MarketPulse({ data }) {
   const observations = getDatedIndexObservations(data);
   const isLastAvailable = data?.sourceMode !== 'live';
+  // An empty native quote feed is not four useful market cards. Fall back to
+  // a branded provider-hosted index board rather than four blank placeholders.
+  if (observations.length === 0) return <MarketIndexProviderBoard />;
 
   return (
     <div className="md3-pulse-list">
@@ -130,7 +134,7 @@ function MarketPulse({ data }) {
                     </time>
                   </small>
                 </>
-              ) : <small>No saved value</small>}
+               ) : <small>View original source</small>}
             </span>
           </a>
         );
@@ -343,7 +347,7 @@ export function MarketDeskOverview({
           <DeskCard id="md3-pulse" title="India Market Pulse" wide
             action="All indices" destination="indices" onNavigate={marketNav}>
             <MarketPulse data={data} />
-            {slots.providerBoard && (
+            {slots.providerBoard && getDatedIndexObservations(data).length > 0 && (
               <button type="button" className="md3-secondary md3-bse-jump"
                 onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
             )}

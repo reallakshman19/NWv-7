@@ -12,6 +12,7 @@ import { OPEN_SOURCE_REFERENCE_LINKS } from '../services/marketFreeOpenPolicy.js
 
 // R2.1 Feature Modules
 import { MarketNav, MarketDeskOverview } from '../market/features/overview/index.js';
+import { MarketIndexProviderBoard } from '../market/features/overview/MarketIndexProviderBoard.jsx';
 import { IndexSectorPanel, MarketProviderBoard } from '../market/features/providers/index.js';
 import { EquityResearchPanel, WatchlistSummary } from '../market/features/equity/index.js';
 import { PortfolioPanel, PortfolioSummary } from '../market/features/portfolio/index.js';
@@ -138,13 +139,13 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
           <h2 id="indices-heading">Indices</h2>
           <p>
             {freeOnly
-              ? 'Explore BSE reference prices below or verify directly with an exchange.'
+              ? 'India index quotes are displayed by an independent provider; official exchange pages remain available.'
               : 'Source-dated index points. One row per index.'}
           </p>
         </div>
-        <button type="button" onClick={onRefresh} disabled={loading || freeOnly}>
+        {!freeOnly && <button type="button" onClick={onRefresh} disabled={loading}>
           Refresh indices
-        </button>
+        </button>}
       </div>
 
       <div className="market-workspace__filters">
@@ -215,10 +216,13 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
             Visible rows: {breadth.up} up · {breadth.down} down · {breadth.flat} flat · {breadth.unknown} change unavailable.
           </p>
         </>
+      ) : region === 'india' ? (
+        <>
+          {!freeOnly && <p role="status">No qualified India native observations. Showing an independent delayed index board instead.</p>}
+          <MarketIndexProviderBoard />
+        </>
       ) : (
-        <p role="status">
-          No qualified {region === 'india' ? 'India' : 'Global'} native observations. {freeOnly ? 'See the official source links and provider board.' : 'Check the filters or refresh the source.'}
-        </p>
+        <p role="status">No qualified Global native observations. Check filters or source availability.</p>
       )}
 
       {/* R2.1 Enhanced Provider Displays & Sectors */}
