@@ -51,10 +51,11 @@ export function calcSip(options = {}) {
   if (r === 0) {
     futureValue = invested;
   } else {
-    const base = p * (Math.pow(1 + r, n) - 1) / r;
+    const base = p * Math.expm1(n * Math.log1p(r)) / r;
     futureValue = timing === 'BEGINNING_OF_MONTH' ? base * (1 + r) : base;
   }
 
+  if (![invested,futureValue].every(Number.isFinite)) return {ok:false,error:'INVALID_INPUT',message:'Calculated corpus exceeds numeric range'};
   const gain = futureValue - invested;
 
   return {
@@ -101,10 +102,9 @@ export function calcStepUpSip(options = {}) {
 
     totalInvested += pm;
 
-    const remainingMonths = timing === 'BEGINNING_OF_MONTH' ? (n - m + 1) : (n - m);
-    const compoundFactor = r === 0 ? 1 : Math.pow(1 + r, remainingMonths);
-    const itemFv = pm * compoundFactor;
-    futureValue += itemFv;
+    // Value at this month, not the final horizon value of contributions to date.
+    futureValue = timing === 'BEGINNING_OF_MONTH' ? (futureValue + pm) * (1 + r) : futureValue * (1 + r) + pm;
+    if (![pm,totalInvested,futureValue].every(Number.isFinite)) return {ok:false,error:'INVALID_INPUT',message:'Calculated corpus exceeds numeric range'};
 
     // End of year or end of term boundary
     if (m % 12 === 0 || m === n) {
@@ -114,7 +114,7 @@ export function calcStepUpSip(options = {}) {
         month: m,
         monthlyPayment: pm,
         totalInvestedToDate: totalInvested,
-        accumulatedValueToDate: futureValue // approximate horizon
+        accumulatedValueToDate: futureValue
       });
     }
   }
@@ -171,10 +171,11 @@ export function calcGoalSip(options = {}) {
     requiredMonthly = target / n;
   } else {
     const timingFactor = timing === 'BEGINNING_OF_MONTH' ? (1 + r) : 1;
-    requiredMonthly = (target * r) / ((Math.pow(1 + r, n) - 1) * timingFactor);
+    requiredMonthly = (target * r) / (Math.expm1(n * Math.log1p(r)) * timingFactor);
   }
 
   const totalInvested = requiredMonthly * n;
+  if (![requiredMonthly,totalInvested].every(Number.isFinite)) return {ok:false,error:'INVALID_INPUT',message:'Calculated contribution exceeds numeric range'};
   const totalGain = target - totalInvested;
 
   return {
