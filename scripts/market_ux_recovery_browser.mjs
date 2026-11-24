@@ -55,19 +55,19 @@ try {
     });
     await page.goto(BASE + '#/markets', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.locator('[data-market-index-board="provider"]').first().waitFor({ timeout: 12000 });
-    assert(await page.locator('#md3-pulse .md3-pulse-row').count() === 0,
+    assert(await page.locator('section[aria-labelledby="md3-pulse"] .md3-pulse-row').count() === 0,
       'FOUR_EMPTY_NATIVE_CARDS_' + width);
-    assert(await page.locator('#md3-pulse .md3-index-hosted__sources a').count() === 4,
+    assert(await page.locator('section[aria-labelledby="md3-pulse"] .md3-index-hosted__sources a').count() === 4,
       'NO_ORIGINAL_INDEX_SOURCE_LINKS_' + width);
     const initialWidgetCount = widgets.length;
     assert(initialWidgetCount >= 1, 'PROVIDER_EMBED_NOT_REQUESTED_' + width);
     await page.getByRole('button', { name: 'Reload index provider board' }).first().click();
-    await page.waitForFunction(() => document.querySelector('#md3-pulse .md3-index-hosted__status')?.textContent?.includes('Widget loaded'));
+    await page.waitForFunction(() => document.querySelector('section[aria-labelledby="md3-pulse"] .md3-index-hosted__status')?.textContent?.includes('Widget loaded'));
     assert(widgets.length === initialWidgetCount + 1, 'PROVIDER_RELOAD_MISSING_' + width);
     const layout = await page.evaluate(() => {
       const root = document.querySelector('#market-workspace');
       const view = document.documentElement;
-      const board = document.querySelector('#md3-pulse .md3-index-hosted');
+      const board = document.querySelector('section[aria-labelledby="md3-pulse"] .md3-index-hosted');
       const jump = document.querySelector('.md3-jump-links');
       const boardBox = board.getBoundingClientRect();
       const w = window.innerWidth;
