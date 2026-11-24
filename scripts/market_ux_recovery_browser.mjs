@@ -62,7 +62,7 @@ try {
     const initialWidgetCount = widgets.length;
     assert(initialWidgetCount >= 1, 'PROVIDER_EMBED_NOT_REQUESTED_' + width);
     await page.getByRole('button', { name: 'Reload index provider board' }).first().click();
-    await page.waitForFunction(() => document.querySelector('section[aria-labelledby="md3-pulse"] .md3-index-hosted__status')?.textContent?.includes('Widget loaded'));
+    await page.waitForFunction(() => document.querySelector('section[aria-labelledby="md3-pulse"] .md3-index-hosted__status')?.textContent?.toLowerCase().includes('widget loaded'));
     assert(widgets.length === initialWidgetCount + 1, 'PROVIDER_RELOAD_MISSING_' + width);
     const layout = await page.evaluate(() => {
       const root = document.querySelector('#market-workspace');
