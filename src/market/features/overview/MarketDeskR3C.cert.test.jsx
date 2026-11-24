@@ -27,7 +27,7 @@ describe('Market R3C — actual Overview route acceptance', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { container } = render(<MarketDeskOverview data={payload} hideNav />);
     expect(screen.getByTestId('market-desk-r3c')).toBeTruthy();
-    expect(screen.getByRole('navigation', { name: 'Jump to a Market section' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Jump to a Market section', hidden: true })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /India Market Pulse/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /My Watchlist/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Portfolio & Investment Lab/ })).toBeTruthy();
@@ -48,15 +48,18 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
   });
 
-  it('puts the four main data sections first and lets jump links focus them', () => {
+  it('puts headline and provider indices first, then FX and personal tools; optional section shortcuts focus targets', () => {
     const { container } = render(<MarketDeskOverview hideNav showSessionHeader={false} />);
     const firstSections = Array.from(container.querySelectorAll('.md3-grid > section h2'))
       .slice(0, 4).map(heading => heading.textContent);
     expect(firstSections).toEqual([
-      'India Market Pulse', 'Currency Rates', 'Mutual Fund Quick Search', 'Market Briefing'
+      'India Market Pulse', 'BSE Provider Board', 'Currency Rates', 'My Watchlist'
     ]);
     expect(screen.queryByRole('heading', { name: 'India Market Desk' })).toBeNull();
-    const links = within(screen.getByRole('navigation', { name: 'Jump to a Market section' }));
+    const shortcuts = container.querySelector('.md3-section-shortcuts');
+    expect(shortcuts.open).toBe(false);
+    shortcuts.open = true;
+    const links = within(screen.getByRole('group', { name: 'Jump to a Market section' }));
     fireEvent.click(links.getByRole('button', { name: 'News' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Market Briefing' }));
     fireEvent.click(links.getByRole('button', { name: 'Find fund' }));
