@@ -4,6 +4,7 @@ import {
   getWidgetSymbols,
   getBseTradingViewUrl,
 } from './bseCoverage.js';
+import { canAttemptHeadlineEmbed, HEADLINE_INDEX_WIDGET_URL } from '../indices/headlineIndexResolution.js';
 import './providers.css';
 
 const TIMEOUT_MS = 8000;
@@ -49,7 +50,12 @@ export function MarketProviderBoard({
   }
 
   const activeGroup = BSE_GROUPS.includes(internalGroup) ? internalGroup : 'indices';
-  const groupConfig = useMemo(() => getWidgetSymbols(activeGroup), [activeGroup]);
+  const groupConfig = useMemo(() => {
+    const config = getWidgetSymbols(activeGroup);
+    return activeGroup === 'indices'
+      ? { ...config, symbols:config.symbols.filter(item => canAttemptHeadlineEmbed(item.name)) }
+      : config;
+  }, [activeGroup]);
 
   const hostRef = useRef(null);
   const attemptId = useRef(0);
@@ -68,7 +74,7 @@ export function MarketProviderBoard({
 
   // Lifecycle management effect
   useEffect(() => {
-    if (!userConsented || !hostRef.current) {
+    if (!userConsented || !hostRef.current || groupConfig.symbols.length === 0) {
       return undefined;
     }
 
@@ -103,7 +109,7 @@ export function MarketProviderBoard({
       '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0f172a;">' +
       '<div class="tradingview-widget-container" style="height:100vh;width:100%">' +
       '<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>' +
-      '<script src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" type="text/javascript">' +
+      '<script src="' + HEADLINE_INDEX_WIDGET_URL + '" type="text/javascript">' +
       config + '</script></div></body></html>';
     const frame = document.createElement('iframe');
     frame.setAttribute('sandbox', 'allow-scripts allow-popups');
@@ -203,6 +209,7 @@ export function MarketProviderBoard({
           <div className="market-provider-board__consent-actions">
             <button
               type="button"
+              disabled={groupConfig.symbols.length === 0}
               className="market-provider-board__load-btn"
               onClick={handleConsent}
             >
@@ -226,6 +233,9 @@ export function MarketProviderBoard({
         className={`market-provider-board__body ${!userConsented ? 'is-hidden' : ''}`.trim()}
       >
         {/* Status notices */}
+        {groupConfig.symbols.length === 0 && userConsented && (
+          <p role="alert">No approved instruments are available for this provider display.</p>
+        )}
         {lifecycleState === 'LOADING_SCRIPT' && (
           <p className="market-provider-board__status" role="status">
             Connecting to TradingView embed service…
