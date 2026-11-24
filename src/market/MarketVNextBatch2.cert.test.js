@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { buildComparisonOutcome } from './features/funds/FundCompareModal.jsx';
+import { buildComparisonOutcome } from './features/funds/fundComparison.js';
 import { fundClient } from './features/funds/fundClient.js';
 import { FxClient } from './features/macro/fxClient.js';
 import { calculateEventStatus } from './features/events/ipoData.js';
