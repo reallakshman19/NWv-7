@@ -56,7 +56,7 @@ export function createPriceRefreshCoordinator({timeoutMs = 8000, maxRetries = 1}
       }
       return Promise.resolve(Object.freeze({state:decision.state,reasonCode:decision.reasonCode,observation:null,retainedObservation:null}));
     }
-    if (request.action === 'EMBED' || typeof acquire !== 'function') return Promise.resolve(failure('NATIVE_ADAPTER_REQUIRED'));
+    if (request.action !== 'BROWSER_FETCH' || typeof acquire !== 'function') return Promise.resolve(failure('NATIVE_ADAPTER_REQUIRED'));
     const key = keyFor(request);
     if (pending.has(key)) return pending.get(key);
     const work = run(request,acquire,key).finally(() => pending.delete(key));
