@@ -5,7 +5,7 @@
  */
 
 import { isAllowedMarketSourceUrl } from '../../contracts/index.js';
-import { createSourceReceipt } from '../../contracts/sourceReceipt.js';
+import { createSourceReceipt, isSourceClock } from '../../contracts/sourceReceipt.js';
 import { evaluateFxObservation } from './fxFreshness.js';
 export { FRESHNESS_WINDOW_MS, EXPIRY_WINDOW_MS } from './fxFreshness.js';
 
@@ -23,6 +23,9 @@ export class FxClient {
   async fetchLatestRate(base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch, now = Date.now() } = {}) {
     const canonicalBase = String(base).trim().toUpperCase();
     const canonicalQuote = String(quote).trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(canonicalBase) || !/^[A-Z]{3}$/.test(canonicalQuote) || canonicalBase === canonicalQuote) {
+      throw new Error('Invalid currency pair');
+    }
 
     const requestStartedMs = now;
     const requestStartedIso = new Date(requestStartedMs).toISOString();
@@ -124,7 +127,13 @@ export class FxClient {
   async fetchRateHistory(startDate, endDate, base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch } = {}) {
     const canonicalBase = String(base).trim().toUpperCase();
     const canonicalQuote = String(quote).trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(canonicalBase) || !/^[A-Z]{3}$/.test(canonicalQuote) || canonicalBase === canonicalQuote) {
+      throw new Error('Invalid currency pair');
+    }
 
+    if (!isSourceClock(startDate,'day') || !isSourceClock(endDate,'day') || startDate > endDate) {
+      throw new Error('Invalid FX history date range');
+    }
     const url = `https://api.frankfurter.dev/v2/rates?from=${startDate}&to=${endDate}&base=${canonicalBase.toLowerCase()}&quotes=${canonicalQuote.toLowerCase()}`;
     if (!isAllowedMarketSourceUrl(FRANKFURTER_SOURCE_ID, url)) {
       throw new Error(`Disallowed source URL host for Frankfurter: ${url}`);
@@ -147,7 +156,8 @@ export class FxClient {
       const d = String(row.date || '').trim();
       const r = Number(row.rate);
 
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue;
+      if (row.base !== canonicalBase || row.quote !== canonicalQuote) throw new Error('Historical currency pair mismatch');
+      if (!isSourceClock(d,'day') || d < startDate || d > endDate) throw new Error('Historical rate outside qualified date range');
       if (!Number.isFinite(r) || r <= 0) continue;
 
       // Deduplicate identical dates, reject conflicting duplicates
