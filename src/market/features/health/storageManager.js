@@ -92,7 +92,15 @@ export function executeWatchlistMigration(storage) {
     return { ok: false, error: 'STORAGE_UNAVAILABLE' };
   }
 
-  const rawLegacy = storage.getItem(MARKET_LEGACY_STORAGE_KEYS.watchlist);
+  let rawLegacy;
+  try {
+    if (storage.getItem(MARKET_R21_STORAGE_KEYS.watchlistV2) !== null) {
+      return { ok:false, error:'V2_ALREADY_EXISTS', message:'Existing V2 records preserved. Migration cannot overwrite them.' };
+    }
+    rawLegacy = storage.getItem(MARKET_LEGACY_STORAGE_KEYS.watchlist);
+  } catch {
+    return { ok:false, error:'STORAGE_UNAVAILABLE' };
+  }
   if (!rawLegacy) {
     return { ok: false, error: 'NO_LEGACY_WATCHLIST', message: 'No legacy watchlist found to migrate.' };
   }
@@ -139,7 +147,9 @@ export function executeWatchlistMigration(storage) {
   }
 
   // Verification readback
-  const readback = storage.getItem(MARKET_R21_STORAGE_KEYS.watchlistV2);
+  let readback;
+  try { readback = storage.getItem(MARKET_R21_STORAGE_KEYS.watchlistV2); }
+  catch { return {ok:false,error:'VERIFICATION_READBACK_FAILED'}; }
   if (readback !== v2String) {
     return {
       ok: false,
