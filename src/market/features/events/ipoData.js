@@ -165,7 +165,10 @@ export function parseIsoDateToKolkata(isoDate) {
  * @returns {{ temporalState: string, daysRemaining: number, label: string, isOngoing: boolean, isPast: boolean }}
  */
 export function calculateEventStatus(event, now = Date.now()) {
-  if (!event || !event.startDate) {
+  if (event?.verification === VERIFICATION_STATUSES.CANCELLED || event?.verification === VERIFICATION_STATUSES.SUPERSEDED) {
+    return {temporalState:event.verification,daysRemaining:0,label:event.verification === VERIFICATION_STATUSES.CANCELLED ? 'Cancelled' : 'Superseded by revised notice',isOngoing:false,isPast:false};
+  }
+  if (!event || !event.startDate || !Number.isFinite(now)) {
     return { temporalState: 'UNKNOWN', daysRemaining: 0, label: 'Date pending', isOngoing: false, isPast: false };
   }
 
@@ -173,7 +176,7 @@ export function calculateEventStatus(event, now = Date.now()) {
   const startStamp = parseIsoDateToKolkata(event.startDate);
   const endStamp = parseIsoDateToKolkata(event.endDate || event.startDate);
 
-  if (startStamp === null || endStamp === null) {
+  if (startStamp === null || endStamp === null || endStamp < startStamp) {
     return { temporalState: 'UNKNOWN', daysRemaining: 0, label: 'Invalid date', isOngoing: false, isPast: false };
   }
 
