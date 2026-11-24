@@ -9,7 +9,8 @@
  */
 import { useSyncExternalStore } from 'react';
 import { planLegacyNseWatchlist } from '../../contracts/instrumentIdentity.js';
-import { toCanonicalKey, fromCanonicalKey, MAX_WATCHLIST_LIMIT } from './equityModel.js';
+import { fromCanonicalKey, MAX_WATCHLIST_LIMIT } from './equityModel.js';
+import { resolveNseResearchKey } from './equityResearchResolution.js';
 
 export const WATCHLIST_V2_KEY = 'nw7.market-watchlist.v2';
 export const WATCHLIST_V1_KEY = 'nw7.india-watchlist.v1';
@@ -171,9 +172,7 @@ export function createWatchlistStore({
       return () => subscribers.delete(callback);
     },
     addKey(symbolOrKey) {
-      const canonical = symbolOrKey.startsWith('NSE:')
-        ? symbolOrKey
-        : toCanonicalKey(symbolOrKey);
+      const canonical = resolveNseResearchKey(symbolOrKey);
 
       if (!canonical) {
         return { ok: false, reason: 'Invalid NSE symbol format' };
@@ -191,9 +190,7 @@ export function createWatchlistStore({
       return { ok: true, keys: [...keys] };
     },
     removeKey(symbolOrKey) {
-      const canonical = symbolOrKey.startsWith('NSE:')
-        ? symbolOrKey
-        : toCanonicalKey(symbolOrKey);
+      const canonical = resolveNseResearchKey(symbolOrKey);
 
       if (!canonical || !keys.includes(canonical)) {
         return { ok: false, reason: 'Symbol not found in watchlist' };
@@ -233,7 +230,7 @@ export function createWatchlistStore({
       const added = [];
 
       for (const item of newKeys) {
-        const canonical = item.startsWith('NSE:') ? item : toCanonicalKey(item);
+        const canonical = resolveNseResearchKey(item);
         if (canonical && !existingSet.has(canonical) && (keys.length + added.length) < maxLimit) {
           existingSet.add(canonical);
           added.push(canonical);
