@@ -267,8 +267,8 @@ test('WP06-T10 weekend trading gap retention: preserves natural gaps without wee
   const mockFetch = createMockFetch({
     'api.frankfurter.dev/v2/rates': {
       body: [
-        { date: '2026-11-13', rate: 217.90 },
-        { date: '2026-11-16', rate: 218.05 }
+        { date: '2026-11-13', base: 'OMR', quote: 'INR', rate: 217.90 },
+        { date: '2026-11-16', base: 'OMR', quote: 'INR', rate: 218.05 }
       ]
     }
   });
@@ -291,8 +291,8 @@ test('WP06-T11 conflicting historical rate rejection: throws when contradictory 
   const mockFetch = createMockFetch({
     'api.frankfurter.dev/v2/rates': {
       body: [
-        { date: '2026-11-18', rate: 218.25 },
-        { date: '2026-11-18', rate: 225.00 } // Contradictory duplicate
+        { date: '2026-11-18', base: 'OMR', quote: 'INR', rate: 218.25 },
+        { date: '2026-11-18', base: 'OMR', quote: 'INR', rate: 225.00 } // Contradictory duplicate
       ]
     }
   });
