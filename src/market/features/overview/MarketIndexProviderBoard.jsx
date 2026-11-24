@@ -78,7 +78,7 @@ export function MarketIndexProviderBoard() {
         <button type="button" className="md3-index-reload" onClick={refresh}
           aria-label="Reload index provider board">↻ <span>Reload</span></button>
       </div>
-      <div className="md3-index-hosted__frame" ref={hostRef}
+      <div className="md3-index-hosted__frame tradingview-widget-container" ref={hostRef}
         aria-label="TradingView India indices hosted board"/>
       <div className="md3-index-hosted__status" role="status">
         {providerState === 'connecting'
