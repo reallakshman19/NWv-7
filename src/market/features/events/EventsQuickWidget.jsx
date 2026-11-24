@@ -19,7 +19,7 @@ function findNextEvent(events = [], now) {
   const list = [...events].sort((a, b) => (a.startDate < b.startDate ? -1 : 1));
   for (const evt of list) {
     const status = calculateEventStatus(evt, now);
-    if (!status.isPast) {
+    if (['UPCOMING','IN_PROGRESS'].includes(status.temporalState) && ['CONFIRMED_SCHEDULE','TENTATIVE'].includes(evt.verification)) {
       return { event: evt, status };
     }
   }
@@ -57,11 +57,12 @@ export function EventsQuickWidget({ onOpenEventsDesk = null, now = null }) {
             <div className="next-event-meta font-mono">
               <span>{nextEventInfo.event.startDate}</span>
               <span>· {nextEventInfo.event.authority}</span>
+              {nextEventInfo.event.verification === 'TENTATIVE' && <span>· Tentative</span>}
             </div>
           </div>
         ) : (
           <div className="next-event-banner">
-            <span className="text-muted">No upcoming calendar events scheduled.</span>
+            <span className="text-muted">No qualified upcoming calendar events in this list.</span>
           </div>
         )}
 
