@@ -307,6 +307,16 @@ class FundClient {
     }
 
     // Parse and sanitize observations (chronological date ASC)
+    const seen = new Map();
+    const today = new Date(now + 5 * 60 * 1000).toISOString().slice(0, 10);
+    for (const row of rawData) {
+      const date = normalizeDateToIso(row?.date);
+      const nav = Number(row?.nav);
+      if (!date || !Number.isFinite(nav) || nav <= 0) continue;
+      if (date > today) throw new Error('Future-dated historical NAV observation');
+      if (seen.has(date) && seen.get(date) !== nav) throw new Error('Conflicting NAV observations for ' + date);
+      seen.set(date, nav);
+    }
     const sorted = sanitizeAndSortNavHistory(rawData);
     if (sorted.length === 0) {
       throw new Error(`No valid historical NAV observations found for scheme ${canonicalCode}`);
@@ -321,6 +331,7 @@ class FundClient {
     }
 
     const schemeName = String(payload.meta.scheme_name || '').trim();
+    if (!schemeName) throw new Error('Missing scheme name in historical provider metadata');
     const nameUpper = schemeName.toUpperCase();
     const plan = nameUpper.includes('DIRECT') ? 'Direct' : (nameUpper.includes('REGULAR') ? 'Regular' : 'Standard');
     const isIdcw = nameUpper.includes('IDCW') || nameUpper.includes('DIVIDEND') || nameUpper.includes('INCOME DISTRIBUTION');
