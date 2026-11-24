@@ -29,7 +29,7 @@ export function createPriceRefreshCoordinator({timeoutMs = 8000, maxRetries = 1}
         ]);
         const qualified = qualifyPriceObservation({instrument:request.instrument,observation:result?.observation,receiptRecord:result?.receiptRecord});
         const previous = retained.get(key) ?? null;
-        if (!qualified.ok) return failure('UNQUALIFIED_RESPONSE',previous);
+        if (!qualified.ok || qualified.observation.sourceId !== request.sourceId || qualified.observation.kind !== request.kind) return failure('UNQUALIFIED_RESPONSE',previous);
         if (previous && (clock(qualified.observation) < clock(previous) ||
             (clock(qualified.observation) === clock(previous) && qualified.observation.value !== previous.value))) {
           return failure('OLDER_OR_CONFLICTING_OBSERVATION',previous);
@@ -64,7 +64,7 @@ export function createPriceRefreshCoordinator({timeoutMs = 8000, maxRetries = 1}
     return work;
   }
   async function refreshMany(jobs) {
-    return Promise.all(jobs.map(job => refresh(job.request,job.acquire).catch(() => failure('REFRESH_FAILED'))));
+    return Promise.all(jobs.map(job => Promise.resolve().then(() => refresh(job.request,job.acquire)).catch(() => failure('REFRESH_FAILED'))));
   }
   return Object.freeze({refresh,refreshMany});
 }
