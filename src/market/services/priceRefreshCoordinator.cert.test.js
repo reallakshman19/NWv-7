@@ -5,7 +5,7 @@ const instrument = {instrumentId:'FUND:125497',type:'FUND',currency:'INR',displa
 const request = {sourceId:'mfapi',action:'BROWSER_FETCH',instrument,kind:'NAV',url:'https://api.mfapi.in/mf/125497/latest'};
 const response = (date = '2026-11-23', value = 100, target = instrument) => ({
   observation:{instrumentId:target.instrumentId,sourceId:'mfapi',receiptId:'r1',kind:'NAV',currency:'INR',value,observedAt:date,tradingDate:date,validity:'VALID'},
-  receiptRecord:{id:'r1',receipt:{sourceId:'mfapi',publisher:'MFapi',accessMode:'DIRECT_ON_DEMAND',rights:'BROWSER_DIRECT_CONDITIONAL',state:'READY',validity:'VALID',providerClockGranularity:'day',providerAsOf:date,originalUrl:request.url,transportStatus:200}}
+  receiptRecord:{id:'r1',receipt:{sourceId:'mfapi',publisher:'MFapi',accessMode:'DIRECT_ON_DEMAND',rights:'BROWSER_DIRECT_CONDITIONAL',state:'READY',validity:'VALID',providerClockGranularity:'day',providerAsOf:date,originalUrl:'https://api.mfapi.in/mf/'+target.instrumentId.slice(5)+'/latest',transportStatus:200}}
 });
 describe('MP06 scoped refresh', () => {
   it('rejects unauthorized requests before adapter execution', async () => {

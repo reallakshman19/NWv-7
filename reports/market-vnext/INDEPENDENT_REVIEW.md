@@ -9,6 +9,7 @@
 - Grounding GE-IR218-01: main acead2494f23903fc039a29acdd4cadbf94139aa; drift is one weather snapshot commit, outside market code. Initial PR: draft, mergeable, no review threads. No AGENTS.md, master index or active claim records exist in the fetched tree.
 - REPORT_BASIS_HEAD: reviewed candidate plus the corrective file ledger below; the containing commit is the new candidate. Live checks and subsequent native PR returns are authoritative for its final disposition.
 - HANDOVER_READINESS: READY for CI follow-through; TAKEOVER_AUTHORITY: WRITE_ALLOWED by owner; APPENDIX_A_STATUS: NOT_REQUIRED for this standard software repair.
+- Last checkpoint: 31778388268802927a4d849085e837d915cd1c81. WP00, live provider acquisition and strengthened responsive proof passed. Six new screenshots were inspected; tablet card/heading/control compression is resolved. Responsive artifact SHA256: 046eeb2f567633835655121e2310fb4e8c2708e59e18580659fb38452cfa18cf. One existing sibling-fixture receipt URL is corrected in this follow-up; no production code changed after that browser proof.
 - Current stage: VALIDATE. Exact next action: retrieve CI and responsive/provider jobs on the corrective commit, inspect all six screenshots, reconcile this report in the same PR, then perform the authorized merge only if the bounded code checks pass.
 
 ## Independence and source basis
@@ -39,7 +40,9 @@ The original authority is baseline docs/market/FREE_OPEN_ONLY_RELEASE.md, docs/m
 | Incoming head full smoke gate | PASS | REMOTE_EXECUTION / inspected CI | Lint, unit and build passed on a2e33e7. Overall CI failed its later three scope checks, so not a whole-CI PASS. |
 | Incoming responsive artifact | CONTRADICTED for usability | ARTIFACT_INSPECTION / screenshots and strengthened contrary check | Run 45462364211, SHA256 c0bbbfa85a043e1cd678d78f981c1af69769675f2fa3237c3f78eccc485c024a. Page-overflow assertions passed, tablet usability did not. |
 | Incoming live provider report | PASS, bounded | ARTIFACT_INSPECTION of REMOTE_EXECUTION | Run 45462364272, artifact SHA256 1e33ffd1609d7a94c8ba6225f9c83ba7b88c67ce03ed89cc0e610794f0167dec. USD/INR and OMR/INR provider date 2026-11-24; MFapi 125497 date 2026-11-23. No values published. No four-index proof. |
-| Corrective head full CI and six-width proof | NOT_RUN at checkpoint | NOT_OBSERVED | Follow through on the exact containing commit; do not reuse incoming-head PASS as final proof. |
+| First corrective CI on 3177838 | FAIL | REMOTE_EXECUTION / inspected logs | 2317 unit tests passed, 7 skipped; one sibling-isolation fixture still reused the first scheme receipt URL. Corrected that fixture without changing its expected result or the wrong-receipt rejection. Build/later gates were not reached by main CI. |
+| First corrective browser/contract checks | PASS | REMOTE_EXECUTION and ARTIFACT_INSPECTION | WP00 run 45468099081, provider run 45468098714 and responsive run 45468098949 pass; all six screenshots inspected. |
+| Follow-up head full CI and browser proof | NOT_RUN at checkpoint | NOT_OBSERVED | Follow through on the exact containing commit; do not upgrade previous-head evidence to exact-head PASS. |
 
 ## Authority, risks and integration limits
 
@@ -54,7 +57,7 @@ Native NSE/equity/sector/breadth prices and four functioning headline values rem
 - scripts/market_vnext_responsive.mjs: internal clipping and card-width assertions.
 - src/market/features/funds/fundComparison.js and fundMath.js: shared lookback anchor and fixed-horizon return convention.
 - src/market/features/equity/watchlistStore.js: stale/unknown-byte preservation.
-- src/market/services/referenceAcquisition.js and contracts/priceObservation.js: cancellation, actual payload identity and receipt binding.
+- src/market/services/referenceAcquisition.js and contracts/priceObservation.js: cancellation, actual payload identity and receipt binding. priceRefreshCoordinator.cert.test.js now constructs a sibling fixture with its own scheme receipt URL; the independent wrong-receipt rejection remains unchanged.
 - src/market/features/overview/MarketDeskOverview.css: container sizing and summary wrapping.
 - reports/market-vnext/INDEPENDENT_REVIEW.md and RELEASE_GATE.md: current evidence, limits and continuation.
 
