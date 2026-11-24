@@ -24,13 +24,14 @@ import { OPEN_SOURCE_REFERENCE_LINKS } from '../../../services/marketFreeOpenPol
 import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
+import { selectHeadlineIndexBoard } from '../indices/headlineIndexResolution.js';
 import './MarketDeskOverview.css';
 
 const PULSE = [
-  { id: 'nifty', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
-  { id: 'sensex', name: 'SENSEX', symbol: '^BSESN', url: 'https://www.bseindices.com/indices-details/code/16', source: 'BSE Indices' },
-  { id: 'bank', name: 'NIFTY Bank', symbol: '^NSEBANK', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
-  { id: 'bse500', name: 'BSE 500', symbol: '^BSE500', url: 'https://www.bseindices.com/indices-details/code/17/', source: 'BSE Indices' }
+  { id: 'nifty', instrumentId:'INDEX:NSE:NIFTY50', name: 'NIFTY 50', symbol: '^NSEI', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
+  { id: 'sensex', instrumentId:'INDEX:BSE:SENSEX', name: 'SENSEX', symbol: '^BSESN', url: 'https://www.bseindices.com/indices-details/code/16', source: 'BSE Indices' },
+  { id: 'bank', instrumentId:'INDEX:NSE:BANKNIFTY', name: 'NIFTY Bank', symbol: '^NSEBANK', url: OPEN_SOURCE_REFERENCE_LINKS.nseIndices, source: 'NSE' },
+  { id: 'bse500', instrumentId:'INDEX:BSE:BSE500', name: 'BSE 500', symbol: '^BSE500', url: 'https://www.bseindices.com/indices-details/code/17/', source: 'BSE Indices' }
 ];
 
 const DEFAULT_SLOTS = Object.freeze({
@@ -97,11 +98,13 @@ function getDatedIndexObservations(data) {
 function MarketPulse({ data }) {
   const observations = getDatedIndexObservations(data);
   const isLastAvailable = data?.sourceMode !== 'live';
+  const sourceStates = new Map(selectHeadlineIndexBoard().map(row => [row.instrumentId,row]));
 
   return (
     <div className="md3-pulse-list">
       {PULSE.map(index => {
         const indexId = canonicalIndexId(index);
+        const sourceState = sourceStates.get(index.instrumentId);
         const observation = observations.find(({ id, row }) =>
           id === indexId || row.symbol === index.symbol || (!row.symbol && row.name === index.name)
         );
@@ -130,7 +133,7 @@ function MarketPulse({ data }) {
                     </time>
                   </small>
                 </>
-              ) : <small>No saved value</small>}
+              ) : <small>{data?.sourceMode === 'free-open-only' && sourceState ? (sourceState.hostedAttemptAllowed ? 'Provider display on request' : 'Native price restricted') : 'No saved value'}</small>}
             </span>
           </a>
         );
