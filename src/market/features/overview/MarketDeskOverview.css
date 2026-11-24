@@ -285,3 +285,31 @@
   .md3-jump-links { display: none; }
   .md3-sector-tab.is-active { border-color: var(--md3-ink); color: var(--md3-ink); background: #e5e7eb; }
 }
+
+/* Market vNext: index-first DOM order on mobile; research and personal rails on wide screens. */
+.md3-section-shortcuts { min-width: 0; color: var(--md3-muted); font-size: .8rem; }
+.md3-section-shortcuts summary { cursor: pointer; min-height: 44px; display: list-item; padding: 10px 0; }
+.md3-section-shortcuts[open] summary { margin-bottom: 4px; }
+.market-desk-r3c :is(.md3-card,.md3-card-content,.md3-stock-card) { min-width: 0; overflow-wrap: anywhere; }
+@media screen and (min-width: 1101px) {
+  .md3-grid {
+    grid-template-columns: minmax(0,2fr) minmax(0,1fr);
+    grid-template-areas: "pulse watchlist" "provider portfolio" "currency funds" "sectors briefing" "sectors events";
+    align-items: start;
+  }
+  .md3-grid > .md3-card--wide { grid-column: auto; }
+  .md3-grid > [data-layout="md3-pulse"] { grid-area: pulse; }
+  .md3-grid > [data-layout="md3-provider"] { grid-area: provider; }
+  .md3-grid > [data-layout="md3-currency"] { grid-area: currency; }
+  .md3-grid > [data-layout="md3-watchlist"] { grid-area: watchlist; }
+  .md3-grid > [data-layout="md3-portfolio"] { grid-area: portfolio; }
+  .md3-grid > [data-layout="md3-funds"] { grid-area: funds; }
+  .md3-grid > [data-layout="md3-sectors"] { grid-area: sectors; }
+  .md3-grid > [data-layout="md3-briefing"] { grid-area: briefing; }
+  .md3-grid > [data-layout="md3-events"] { grid-area: events; }
+}
+@media screen and (max-width: 767px) {
+  .md3-grid { grid-template-columns: minmax(0,1fr); }
+  .md3-section-shortcuts .md3-jump-links { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .market-desk-r3c .md3-card-action { min-height: 44px; white-space: normal; text-align: start; }
+}
