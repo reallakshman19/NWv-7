@@ -10,6 +10,7 @@
  * 5. Rejects future-dated or non-positive NAV observations fail-closed.
  */
 
+import { acquireQualifiedReference, projectReferenceObservation } from '../../services/referenceAcquisition.js';
 import { canonicalFundCode } from '../../contracts/instrumentIdentity.js';
 import { isAllowedMarketSourceUrl } from '../../registry/sourceRegistry.js';
 import { createSourceReceipt } from '../../contracts/sourceReceipt.js';
@@ -106,6 +107,19 @@ class FundClient {
    * @returns {Promise<object>}
    */
   async fetchLatestNav(code, { signal, fetchImpl = fetch, now = Date.now() } = {}) {
+    const canonical = canonicalFundCode(code);
+    if (!canonical) throw new Error(`Invalid fund scheme code format: ${code}`);
+    const request = {
+      sourceId:MFAPI_SOURCE_ID, action:'BROWSER_FETCH', kind:'NAV',
+      instrument:{instrumentId:'FUND:' + canonical,type:'FUND',currency:'INR',displayName:'Scheme ' + canonical},
+      url:'https://api.mfapi.in/mf/' + canonical + '/latest'
+    };
+    return acquireQualifiedReference(request, deadline => this.acquireLatestNav(canonical,{signal:deadline,fetchImpl,now}), {
+      signal, project:item => projectReferenceObservation(request,item,item.nav)
+    });
+  }
+
+  async acquireLatestNav(code, { signal, fetchImpl = fetch, now = Date.now() } = {}) {
     const canonicalCode = canonicalFundCode(code);
     if (!canonicalCode) {
       throw new Error(`Invalid fund scheme code format: ${code}`);
