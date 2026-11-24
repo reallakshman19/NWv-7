@@ -35,7 +35,11 @@ export function buildComparisonOutcome(activeSelectedCodes, historyCache, horizo
     years: rangeConfig.years
   });
 
-  const aligned = alignComparativeHistory(schemesMap, startDate);
+  // Preserve the shared on-or-before anchor selected by the existing seven-day
+  // return policy. Cutting at the target first loses weekend/holiday anchors.
+  const anchor = calculateTrailingReturns(shared.seriesByScheme[activeSelectedCodes[0]])[horizon];
+  const aligned = alignComparativeHistory(schemesMap,
+    horizon === 'ALL' ? shared.alignedDates[0] : (anchor?.startDate ?? startDate));
 
   if (aligned.alignedDates.length < 2) return {isReady:false,reason:'INSUFFICIENT_COMMON_DATES'};
 

@@ -7,7 +7,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { marketIsolationInput } from './market_r21_path_guard.mjs';
+import { marketIsolationInput, isMarketVNextAssurancePath } from './market_r21_path_guard.mjs';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -459,6 +459,7 @@ test('WP10-G20 worktree & branch integrity: all modifications bounded within mar
       file === 'src/services/marketWorkspaceRoute.js' ||
       file.startsWith('scripts/') ||
       file.startsWith('reports/market-r21/') ||
+      isMarketVNextAssurancePath(file) ||
       [
         '.github/workflows/market-r21-wp00-contracts.yml',
         '.github/workflows/ci.yml',

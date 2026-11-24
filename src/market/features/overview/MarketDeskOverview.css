@@ -8,6 +8,8 @@
   --md3-accent: var(--market-accent-primary, #38bdf8);
   width: 100%;
   min-width: 0;
+  container-type: inline-size;
+  container-name: market-overview;
   background: var(--md3-background);
   color: var(--md3-ink);
 }
@@ -291,6 +293,8 @@
 .md3-section-shortcuts summary { cursor: pointer; min-height: 44px; display: list-item; padding: 10px 0; }
 .md3-section-shortcuts[open] summary { margin-bottom: 4px; }
 .market-desk-r3c :is(.md3-card,.md3-card-content,.md3-stock-card) { min-width: 0; overflow-wrap: anywhere; }
+.market-desk-r3c :is(.market-watchlist-summary__title-row,.portfolio-summary-header,.md3-stock-card-top) { flex-wrap: wrap; gap: 8px; }
+.market-desk-r3c :is(.market-watchlist-summary__count-badge,.portfolio-summary-badge-wrap,.md3-stock-exchange) { flex-shrink: 0; white-space: nowrap; }
 @media screen and (min-width: 1101px) {
   .md3-grid {
     grid-template-columns: minmax(0,2fr) minmax(0,1fr);
@@ -312,4 +316,10 @@
   .md3-grid { grid-template-columns: minmax(0,1fr); }
   .md3-section-shortcuts .md3-jump-links { grid-template-columns: repeat(3,minmax(0,1fr)); }
   .market-desk-r3c .md3-card-action { min-height: 44px; white-space: normal; text-align: start; }
+}
+
+/* The application can constrain a tablet workspace below viewport width. */
+@container market-overview (max-width: 700px) {
+  .md3-grid { grid-template-columns: minmax(0,1fr); grid-template-areas: none; }
+  .md3-grid > .md3-card { grid-area: auto; grid-column: auto; }
 }

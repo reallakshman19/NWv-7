@@ -48,6 +48,17 @@ try{
       }));
       await page.screenshot({path:directory+'/overview-'+width+'.png',fullPage:true});
       requireProof(geometry.documentWidth<=width+1 && geometry.marketWidth<=geometry.marketClient+1,'HORIZONTAL_OVERFLOW:'+JSON.stringify(geometry));
+      const layout = await page.locator('.md3-grid').evaluate(grid => {
+        const cards = [...grid.querySelectorAll(':scope > section')];
+        const controls = [...grid.querySelectorAll('button,input,select,.market-watchlist-summary,.portfolio-summary-card')];
+        return {
+          minimumCard:Math.min(...cards.map(card=>card.getBoundingClientRect().width)),
+          requiredCard:Math.min(260,grid.clientWidth),
+          clippedControls:controls.filter(node=>node.clientWidth>0 && node.scrollWidth>node.clientWidth+2).length
+        };
+      });
+      requireProof(layout.minimumCard>=layout.requiredCard-2,'COMPRESSED_CARDS:'+JSON.stringify(layout));
+      requireProof(layout.clippedControls===0,'CLIPPED_CONTROLS:'+JSON.stringify(layout));
       if(width===320||width===1280){
         for(let i=0;i<ids.length;i++){
           const id=ids[i];

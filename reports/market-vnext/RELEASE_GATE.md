@@ -1,6 +1,6 @@
 # Market vNext — MP13–15 release evidence checklist
 
-Status: **HOLD / DO NOT MERGE**. Implementation branch only. This report is an engineering self-assessment, not independent approval.
+Status: **CORRECTIVE REVIEW IN VALIDATION**. The owner now explicitly requests review, fixes and merge. Bounded code integration requires current-head checks and responsive proof; restricted price sources and full programme/release certification remain unproven. See [independent review and corrective work report](INDEPENDENT_REVIEW.md). Repairs are self-assessed, not a distinct independent approval.
 
 ## Verified historical evidence
 

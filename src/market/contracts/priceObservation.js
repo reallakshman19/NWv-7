@@ -49,6 +49,22 @@ const sourceSupports = (sourceId, type, kind) => {
   return false;
 };
 
+// Host approval alone cannot bind a receipt for one scheme/pair to another.
+const receiptMatchesInstrument = (receipt, instrument) => {
+  if (receipt.sourceId === 'personal-local') return true;
+  try {
+    const path = new URL(receipt.originalUrl).pathname;
+    if (receipt.sourceId === 'mfapi') {
+      const schemePath = '/mf/' + instrument.instrumentId.slice(5);
+      return instrument.currency === 'INR' && (path === schemePath || path === schemePath + '/latest');
+    }
+    if (receipt.sourceId === 'frankfurter') {
+      return path === '/v2/rate/' + instrument.instrumentId.slice(3).toLowerCase();
+    }
+  } catch { /* Invalid receipts fail closed. */ }
+  return false;
+};
+
 /** receiptRecord must come from a trusted acquisition/repository boundary.
  * This checks the envelope, not the authenticity of an external response,
  * freshness, holiday calendars or provider-specific payload parsing.
@@ -68,6 +84,7 @@ export function qualifyPriceObservation({ instrument, observation, receiptRecord
   if (observation.validity !== 'VALID') errors.push('INVALID_OBSERVATION_VALIDITY');
   if (!isText(receiptRecord.id) || observation.receiptId !== receiptRecord.id ||
       observation.sourceId !== receipt.sourceId) errors.push('RECEIPT_MISMATCH');
+  if (!receiptMatchesInstrument(receipt, instrument)) errors.push('RECEIPT_INSTRUMENT_MISMATCH');
   const granularity = receipt.providerClockGranularity || 'instant';
   if (!['day','instant'].includes(granularity) ||
       !isSourceClock(observation.observedAt, granularity) ||

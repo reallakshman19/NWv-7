@@ -27,6 +27,7 @@ export function createWatchlistStore({
   let errorMessage = null;
   let cachedState = null;
   let preserveUnreadableV2 = false;
+  let persistedV2Raw = null;
   const subscribers = new Set();
 
   function invalidateCache() {
@@ -71,6 +72,13 @@ export function createWatchlistStore({
       return;
     }
     try {
+      // A stale store must not replace records saved by another tab or a
+      // migration. Keep the local edit in session memory and preserve disk.
+      if (storage.getItem(storageKeyV2) !== persistedV2Raw) {
+        isPersistent = false;
+        errorMessage = 'Another tab changed your watchlist. Local changes are session only; reload to read the saved records.';
+        return;
+      }
       const payload = {
         schemaVersion: 2,
         exchange: 'NSE',
@@ -78,7 +86,9 @@ export function createWatchlistStore({
         keys: [...keys],
         updatedAt: new Date().toISOString(),
       };
-      storage.setItem(storageKeyV2, JSON.stringify(payload));
+      const raw = JSON.stringify(payload);
+      storage.setItem(storageKeyV2, raw);
+      persistedV2Raw = raw;
       isPersistent = true;
       errorMessage = null;
     } catch {
@@ -99,11 +109,14 @@ export function createWatchlistStore({
     try {
       v2Raw = storage.getItem(storageKeyV2);
     } catch {
+      preserveUnreadableV2 = true;
       isPersistent = false;
+      errorMessage = 'Existing watchlist could not be read. Preserving stored records; local changes are session only.';
       return;
     }
+    persistedV2Raw = v2Raw;
 
-    if (v2Raw != null && v2Raw.trim() !== '') {
+    if (v2Raw != null) {
       // Case 1: V2 exists
       try {
         const parsed = JSON.parse(v2Raw);
