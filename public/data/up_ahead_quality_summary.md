@@ -2,24 +2,24 @@
 
 - Status: **WARN**
 - Contract: `upahead-lifecycle-v1`
-- Items: `130`
-- Visible items: `130`
-- Planner lifecycle eligible: `106`
+- Items: `126`
+- Visible items: `126`
+- Planner lifecycle eligible: `109`
 - Lookahead days: `7`
 - Planner past grace hours: `6`
 
 ## Category counts
 
-- alerts: 3
-- civic: 4
-- events: 74
-- festivals: 20
-- movies: 13
+- airlines: 1
+- alerts: 2
+- civic: 3
+- events: 79
+- festivals: 19
+- movies: 15
 - sports: 1
-- weather_alerts: 15
+- weather_alerts: 6
 
 ## Warnings
 
-- 2 acquisition sources failed; coverage is partial
+- 1 acquisition sources failed; coverage is partial
 - shopping: no currently active items
-- airlines: no currently active items
