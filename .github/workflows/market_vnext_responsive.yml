@@ -1,0 +1,43 @@
+name: Market vNext Responsive Browser Proof
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/market/**'
+      - 'src/pages/MarketPage.jsx'
+      - 'src/pages/MarketPage.workspaces.css'
+      - 'scripts/market_vnext_responsive.mjs'
+      - '.github/workflows/market_vnext_responsive.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-vnext-responsive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  responsive-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/market_vnext_responsive.mjs
+      - name: Upload synthetic responsive evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-vnext-responsive-proof
+          path: reports/market-vnext-responsive/
+          if-no-files-found: warn
