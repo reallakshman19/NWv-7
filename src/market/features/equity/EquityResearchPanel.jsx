@@ -11,7 +11,7 @@
  * - Cross-workpack handoff for Portfolio (WP-04) and News (WP-07) (P0-04).
  * - Transactional import preview & export (P0-05).
  */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useWatchlist, defaultWatchlistStore } from './watchlistStore.js';
 import { useEquityNote, defaultNotesStore, MAX_NOTE_LENGTH } from './notesStore.js';
 import {
@@ -53,10 +53,20 @@ export function EquityResearchPanel({
   } = useWatchlist(store);
 
   const [selectedKey, setSelectedKey] = useState(() => keys[0] || 'NSE:RELIANCE');
+  const detailHeading = useRef(null);
   const [customInput, setCustomInput] = useState('');
   const [researchQuery, setResearchQuery] = useState('');
   const [inputFeedback, setInputFeedback] = useState('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  const inspectSymbol = (key) => {
+    setSelectedKey(key);
+    if (!window.matchMedia?.('(max-width: 880px)').matches) return;
+    window.requestAnimationFrame(() => {
+      detailHeading.current?.focus({ preventScroll: true });
+      detailHeading.current?.scrollIntoView?.({ block: 'start' });
+    });
+  };
 
   // Selected item derived state
   const selectedSymbol = fromCanonicalKey(selectedKey) || 'RELIANCE';
@@ -254,7 +264,7 @@ export function EquityResearchPanel({
                       <button
                         type="button"
                         className="market-equity-watchlist-item__select-btn"
-                        onClick={() => setSelectedKey(key)}
+                        onClick={() => inspectSymbol(key)}
                         aria-pressed={isSelected}
                         aria-label={`Select ${sym} for research detail`}
                       >
@@ -371,7 +381,7 @@ export function EquityResearchPanel({
                       <button
                         type="button"
                         className="market-equity-btn market-equity-btn--tiny"
-                        onClick={() => setSelectedKey(canonical)}
+                        onClick={() => inspectSymbol(canonical)}
                       >
                         Inspect
                       </button>
@@ -417,7 +427,7 @@ export function EquityResearchPanel({
             <div className="market-equity-detail__header">
               <div>
                 <span className="market-equity-badge">NSE Equity</span>
-                <h3 className="market-equity-detail__title">{selectedSymbol}</h3>
+                <h3 className="market-equity-detail__title" ref={detailHeading} tabIndex={-1}>{selectedSymbol}</h3>
                 <p className="market-equity-detail__name">
                   {selectedMeta?.isCurated
                     ? selectedMeta.name

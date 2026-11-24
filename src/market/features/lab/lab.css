@@ -508,12 +508,14 @@
 
 .lab-card-header-row {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
 }
 
 .lab-card-actions-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 
@@ -534,7 +536,8 @@
 
 .lab-diag-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow-wrap: anywhere;
   gap: 0.5rem;
   font-size: 0.75rem;
   color: var(--text-secondary, #8b949e);
