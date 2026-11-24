@@ -1,0 +1,68 @@
+name: Market R4 Weather-Parity UX Qualification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/market/features/overview/**'
+      - 'src/pages/MarketPage.jsx'
+      - 'scripts/market_ux_recovery_browser.mjs'
+      - '.github/workflows/market_r4_ux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: market-r4-ux-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  market-ui-and-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependency lockfile
+        run: npm ci
+      - name: Focused UI + integration tests
+        run: >
+          npx vitest run --config vitest.config.js
+          src/market/features/overview/MarketIndexRecovery.cert.test.jsx
+          src/market/features/overview/MarketDeskR3C.cert.test.jsx
+          src/pages/MarketPage.cert.test.jsx
+          src/pages/MarketPage.partialFeed.cert.test.jsx
+      - name: Lint impacted components
+        run: >
+          npx eslint
+          src/market/features/overview/MarketIndexProviderBoard.jsx
+          src/market/features/overview/MarketDeskOverview.jsx
+          src/pages/MarketPage.jsx
+          src/market/features/overview/MarketIndexRecovery.cert.test.jsx
+      - name: Build for GitHub Pages
+        run: npm run build
+      - name: Check publication assets for prohibited exchange prices
+        run: node scripts/check_market_publication_assets.mjs public docs dist
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify first-screen usefulness, refresh and six viewport layouts
+        run: node scripts/market_ux_recovery_browser.mjs
+      - name: Upload visual fixture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-r4-ux-fixture-evidence
+          path: reports/market-ux-r4/
+          if-no-files-found: warn
+
+# PASS qualifies UI behaviour with a non-financial provider script fixture.
+# It DOES NOT prove live TradingView price rendering or grant data rights.
+# Real-source mobile screenshots and independent review remain mandatory before merge.
