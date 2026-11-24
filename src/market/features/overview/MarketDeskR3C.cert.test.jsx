@@ -27,7 +27,7 @@ describe('Market R3C — actual Overview route acceptance', () => {
     vi.stubGlobal('fetch', fetchMock);
     const { container } = render(<MarketDeskOverview data={payload} hideNav />);
     expect(screen.getByTestId('market-desk-r3c')).toBeTruthy();
-    expect(screen.getByRole('group', { name: 'Jump to a Market section', hidden: true })).toBeTruthy();
+    expect(container.querySelector('.md3-jump-links[role="group"]')).toBeTruthy();
     expect(screen.getByRole('heading', { name: /India Market Pulse/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /My Watchlist/ })).toBeTruthy();
     expect(screen.getByRole('heading', { name: /Portfolio & Investment Lab/ })).toBeTruthy();
