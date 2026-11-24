@@ -4,6 +4,7 @@
  * two-tier freshness enforcement (36h/72h), and immutable source receipts.
  */
 
+import { acquireQualifiedReference, projectReferenceObservation } from '../../services/referenceAcquisition.js';
 import { isAllowedMarketSourceUrl } from '../../contracts/index.js';
 import { createSourceReceipt, isSourceClock } from '../../contracts/sourceReceipt.js';
 import { evaluateFxObservation } from './fxFreshness.js';
@@ -21,6 +22,20 @@ export class FxClient {
    * @returns {Promise<object>}
    */
   async fetchLatestRate(base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch, now = Date.now() } = {}) {
+    const b = String(base).trim().toUpperCase(), q = String(quote).trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(b) || !/^[A-Z]{3}$/.test(q) || b === q) throw new Error('Invalid currency pair');
+    const endpoint = 'https://api.frankfurter.dev/v2/rate/' + b.toLowerCase() + '/' + q.toLowerCase();
+    const request = {
+      sourceId:FRANKFURTER_SOURCE_ID,action:'BROWSER_FETCH',kind:'FX_REFERENCE',
+      instrument:{instrumentId:'FX:' + b + '/' + q,type:'FX',currency:q,displayName:b + '/' + q},
+      url:b === 'USD' && q === 'INR' ? endpoint + '?providers=ecb' : endpoint
+    };
+    return acquireQualifiedReference(request, deadline => this.acquireLatestRate(b,q,{signal:deadline,fetchImpl,now}), {
+      signal, project:item => projectReferenceObservation(request,item,item.rate)
+    });
+  }
+
+  async acquireLatestRate(base = 'OMR', quote = 'INR', { signal, fetchImpl = fetch, now = Date.now() } = {}) {
     const canonicalBase = String(base).trim().toUpperCase();
     const canonicalQuote = String(quote).trim().toUpperCase();
     if (!/^[A-Z]{3}$/.test(canonicalBase) || !/^[A-Z]{3}$/.test(canonicalQuote) || canonicalBase === canonicalQuote) {
