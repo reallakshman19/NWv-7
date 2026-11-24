@@ -102,11 +102,13 @@ const SECTION_FEEDS = {
         "https://www.espn.com/espn/rss/news"
     ],
     entertainment: [
-        "https://www.bollywoodhungama.com/rss/news.xml",
+        // Match the published Sections source registry. Retire the HT cinema
+        // feeds after repeated 401 responses; do not bypass publisher gates.
+        "https://feeds.feedburner.com/ndtvmovies-latest",
         "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml",
-        "https://www.hindustantimes.com/feeds/rss/entertainment/tamil-cinema/rssfeed.xml", // Tamil
-        "https://www.hindustantimes.com/feeds/rss/entertainment/telugu-cinema/rssfeed.xml", // Telugu
-        "https://www.pinkvilla.com/rss/feed/entertainment" // General India Ent
+        "https://variety.com/feed/",
+        "https://deadline.com/feed/",
+        "https://www.thehindu.com/entertainment/movies/feeder/default.rss"
     ],
     social: [
         "https://news.google.com/rss/search?q=trending+India+social+media+viral&hl=en-IN&gl=IN&ceid=IN:en",

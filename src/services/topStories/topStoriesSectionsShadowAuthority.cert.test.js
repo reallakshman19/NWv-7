@@ -52,6 +52,11 @@ const registryAuthority = buildSectionsSourceRegistryAuthority(registry);
 const frozenRegistryAuthority = readJson(
   '../../../scripts/top-stories-shadow/fixtures/nw-cf-hybrid-001a-source-registry-authority.json',
 );
+// Current qualified roster is separately pinned; the frozen benchmark below
+// remains a historical replay oracle and must not be rewritten for feed fixes.
+const currentRegistryAuthority = readJson(
+  '../../../scripts/top-stories-shadow/fixtures/sections-source-registry-v4-entertainment-authority.json',
+);
 
 function buildEpoch(overrides = {}, authority = registryAuthority) {
   return createSectionsShadowInputEpoch({
@@ -81,11 +86,14 @@ function caseDStory() {
 }
 
 describe('NW-CF-HYBRID-001A shared Sections replay authority', () => {
-  it('conserves the exact current ten-section / 41-lane source registry', () => {
+  it('conserves the pinned current source registry without shrinking the frozen baseline', () => {
     expect(registryAuthority.sourceRegistryVersion).toBe(registry.policyVersion);
+    expect(registryAuthority.sectionCount).toBe(currentRegistryAuthority.sectionCount);
+    expect(registryAuthority.laneCount).toBe(currentRegistryAuthority.laneCount);
+    expect(registryAuthority.sourceRegistryDigest).toBe(currentRegistryAuthority.sourceRegistryDigest);
+    expect(registryAuthority.feedCounts).toEqual(currentRegistryAuthority.feedCounts);
     expect(registryAuthority.sectionCount).toBe(benchmark.expected.registrySectionCount);
-    expect(registryAuthority.laneCount).toBe(benchmark.expected.registryLaneCount);
-    expect(registryAuthority.sourceRegistryDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(registryAuthority.laneCount).toBeGreaterThanOrEqual(benchmark.expected.registryLaneCount);
 
     const reordered = {
       requiredCoverage: registry.requiredCoverage,
