@@ -7,21 +7,47 @@ on:
     paths:
       - '.github/workflows/weather_refresh.yml'
       - 'scripts/weather_snapshot_worker.py'
+      - 'scripts/test_weather_snapshot_worker.py'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/weather_refresh.yml'
+      - 'scripts/weather_snapshot_worker.py'
+      - 'scripts/test_weather_snapshot_worker.py'
   schedule:
     - cron: '23 */2 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: weather-snapshot-main
+  group: weather-snapshot-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
+  verify:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install requests
+      - run: python -m unittest scripts.test_weather_snapshot_worker -v
+      - name: Test live Open-Meteo collection without publication
+        if: github.event_name == 'workflow_dispatch'
+        run: python scripts/weather_snapshot_worker.py
+
   refresh:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Checkout publication branch
@@ -35,6 +61,8 @@ jobs:
           python-version: '3.12'
       - name: Install worker dependencies
         run: python -m pip install requests
+      - name: Test bounded retry and complete-snapshot publication
+        run: python -m unittest scripts.test_weather_snapshot_worker -v
       - name: Fetch and validate complete source-dated forecast
         run: |
           set -euo pipefail

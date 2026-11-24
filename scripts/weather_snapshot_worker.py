@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from time import sleep
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -20,7 +21,9 @@ import requests
 
 OUTPUT_WEATHER = "public/data/weather_snapshot.json"
 SCHEMA_VERSION = "1.0.0"
-REQUEST_TIMEOUT = 20
+REQUEST_TIMEOUT = (5, 20)
+REQUEST_RETRY_DELAYS = (1, 3)
+RETRYABLE_STATUS_CODES = {500, 502, 503, 504}
 MAX_WORKERS = 4
 
 DEFAULT_WEATHER_CITIES = ["chennai", "trichy", "muscat", "colombo"]
@@ -316,11 +319,28 @@ def build_weekly_forecast(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
     return days
 
 
+def fetch_forecast(location: Dict[str, Any]) -> Dict[str, Any]:
+    url = build_url(location)
+    for delay in (*REQUEST_RETRY_DELAYS, None):
+        try:
+            response = requests.get(url, timeout=REQUEST_TIMEOUT)
+            response.raise_for_status()
+        except (requests.Timeout, requests.ConnectionError, requests.HTTPError) as error:
+            if delay is None or isinstance(error, requests.exceptions.SSLError):
+                raise
+            if isinstance(error, requests.HTTPError) and (
+                error.response is None or error.response.status_code not in RETRYABLE_STATUS_CODES
+            ):
+                raise
+            print(f"Retrying Open-Meteo for {location['name']} in {delay}s ({type(error).__name__})")
+            sleep(delay)
+        else:
+            return response.json()
+
+
 def fetch_city(city_key: str) -> Dict[str, Any]:
     location = WEATHER_LOCATIONS[city_key]
-    response = requests.get(build_url(location), timeout=REQUEST_TIMEOUT)
-    response.raise_for_status()
-    payload = response.json()
+    payload = fetch_forecast(location)
     fetched_at = epoch_ms()
 
     current = payload.get("current") or {}
