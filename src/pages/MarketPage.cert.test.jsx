@@ -108,12 +108,18 @@ describe('NWv7 Market Desk R2.1 - WP-10 MarketPage Certification', () => {
     expect(screen.getByText(/Data Provenance & Source Health/i)).toBeTruthy();
   });
 
-  it('WP10-T03: zero-boot silence: mounting Overview injects 0 third-party TradingView script tags', () => {
+  it('WP10-T03: only the authorized branded index board may load on Market Overview', () => {
     setupViewModel();
     render(<MarketPage />);
 
     const scripts = document.querySelectorAll('script[src*="tradingview.com"]');
-    expect(scripts.length).toBe(0);
+    expect(scripts.length).toBe(1);
+    expect(scripts[0].src).toBe('https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js');
+    const config = JSON.parse(scripts[0].textContent);
+    expect(config.tabs[0].symbols.map(item => item.s)).toEqual([
+      'NSE:NIFTY', 'BSE:SENSEX', 'NSE:BANKNIFTY', 'BSE:BSE500',
+    ]);
+    expect(document.querySelectorAll('[data-market-index-board="provider"]')).toHaveLength(1);
   });
 
   it('loads the allowed FX reference once and keeps fund lookups and widgets user-triggered', async () => {
