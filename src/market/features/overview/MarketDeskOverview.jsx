@@ -347,7 +347,7 @@ export function MarketDeskOverview({
           <DeskCard id="md3-pulse" title="India Market Pulse" wide
             action="All indices" destination="indices" onNavigate={marketNav}>
             <MarketPulse data={data} />
-            {slots.providerBoard && (
+            {slots.providerBoard && getDatedIndexObservations(data).length > 0 && (
               <button type="button" className="md3-secondary md3-bse-jump"
                 onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
             )}
