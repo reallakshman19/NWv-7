@@ -6,7 +6,7 @@ import {
   calculateAnnualizedVolatility,
   subtractCalendarPeriod
 } from './fundMath.js';
-import { CHART_RANGES } from './FundNavChart.jsx';
+import { CHART_RANGES } from './fundChartRanges.js';
 
 export function buildComparisonOutcome(activeSelectedCodes, historyCache, horizon) {
   if (activeSelectedCodes.length < 2) return null;
