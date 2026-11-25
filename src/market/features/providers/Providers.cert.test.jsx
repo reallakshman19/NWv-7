@@ -167,6 +167,25 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     expect(screen.queryByText(/0\/16/i)).toBeNull();
   });
 
+  it('recovers from an unverified loaded frame without claiming a price', () => {
+    const { container } = render(<MarketProviderBoard group="indices" />);
+    fireEvent.click(screen.getByRole('button', { name: /Load BSE indices prices/i }));
+    const frame = container.querySelector('iframe');
+    fireEvent.load(frame);
+    fireEvent.click(screen.getByRole('button', { name: /Reload provider display/i }));
+    expect(container.querySelectorAll('iframe')).toHaveLength(1);
+    expect(container.querySelector('iframe')).not.toBe(frame);
+    expect(screen.getByText(/Connecting to TradingView embed service/i)).toBeTruthy();
+  });
+
+  it('restricts a single equity display to the approved BSE catalog symbol', () => {
+    const { container } = render(<MarketProviderBoard providerSymbol="BSE:RELIANCE" group="equities" />);
+    expect(container.querySelector('iframe')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Switch to BSE/i })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Load BSE:RELIANCE price' }));
+    expect(iframeConfig(container.querySelector('iframe')).symbolsGroups[0].symbols.map(s => s.name)).toEqual(['BSE:RELIANCE']);
+  });
+
   // --------------------------------------------------------------------------
   // WP02-T06: Ten load/hide/group-change cycles leave zero orphaned DOM nodes
   // --------------------------------------------------------------------------
