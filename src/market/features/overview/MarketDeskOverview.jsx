@@ -345,8 +345,12 @@ export function MarketDeskOverview({
         <div className="md3-grid">
           <DeskCard id="md3-pulse" layoutId="md3-pulse" title="India Market Pulse" wide
             action="All indices" destination="indices" onNavigate={marketNav}>
+            {slots.providerBoard && data?.sourceMode === 'free-open-only' && (
+              <button type="button" className="md3-primary md3-bse-jump"
+                onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
+            )}
             <MarketPulse data={data} />
-            {slots.providerBoard && (
+            {slots.providerBoard && data?.sourceMode !== 'free-open-only' && (
               <button type="button" className="md3-secondary md3-bse-jump"
                 onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
             )}
