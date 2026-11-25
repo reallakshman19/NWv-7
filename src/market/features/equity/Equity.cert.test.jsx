@@ -48,6 +48,23 @@ describe('WP-03 Equity Research & Watchlist Certification (WP03-T01 .. WP03-T18)
     expect(screen.getByText(/16 Tracked NSE Universe/i)).toBeTruthy();
   });
 
+  it('offers an explicit BSE reference for a curated equity and removes it on selection change', () => {
+    const store = createWatchlistStore({ storage: window.localStorage });
+    store.addKey('NSE:RELIANCE');
+    store.addKey('NSE:TCS');
+    store.addKey('NSE:SBIN');
+    const { container } = render(<EquityResearchPanel store={store} />);
+    expect(container.querySelector('iframe')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Load BSE:RELIANCE price' }));
+    expect(container.querySelector('iframe').getAttribute('srcdoc')).toContain('BSE:RELIANCE');
+    fireEvent.click(screen.getByRole('button', { name: /Select TCS for research detail/i }));
+    expect(container.querySelector('iframe')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Load BSE:TCS price' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Select SBIN for research detail/i }));
+    expect(screen.queryByRole('button', { name: /Load BSE:/i })).toBeNull();
+    expect(container.querySelector('iframe')).toBeNull();
+  });
+
   // --------------------------------------------------------------------------
   // WP03-T02 (MKT-010): Legacy V1 migration is non-destructive and preserves order
   // --------------------------------------------------------------------------
