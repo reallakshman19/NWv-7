@@ -179,7 +179,7 @@ export function MarketProviderBoard({
             BSE end-of-day reference — TradingView
           </h3>
           <p className="market-provider-board__subtitle">
-            Provider-hosted closing prices, not live NSE quotes. Check the date shown by TradingView.
+            Provider-hosted closing prices, not live NSE quotes. Check TradingView's displayed date.
           </p>
         </div>
 
