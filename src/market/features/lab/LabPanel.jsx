@@ -46,13 +46,13 @@ export function LabPanel() {
         ))}
       </nav>
 
-      <main className="lab-tab-content" role="tabpanel" aria-label={activeTab}>
+      <div className="lab-tab-content" role="tabpanel" aria-label={activeTab}>
         {activeTab === 'sip' && <SipLabPanel />}
         {activeTab === 'lumpsum' && <LumpsumLabPanel />}
         {activeTab === 'swp' && <SwpLabPanel />}
         {activeTab === 'xirr' && <XirrLabPanel />}
         {activeTab === 'prepay' && <PrepayVsInvestPanel />}
-      </main>
+      </div>
 
       <footer className="lab-footer-disclaimer" data-testid="universal-lab-disclaimer">
         <strong>Statutory Notice & Financial Disclaimer:</strong> All calculations, compounding projections, and portfolio simulations shown in the Investment Lab are mathematical models based on user-entered hypothetical inputs. They do not constitute investment advice, portfolio recommendations, or guarantees of future returns. Mutual fund and equity investments are subject to market risks. Past returns are not indicative of future performance.

@@ -96,7 +96,7 @@ function QuoteRow({ row, pinned, onPin, kind = 'index' }) {
   );
 }
 
-function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null, onNavigate = null }) {
+function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null }) {
   const [region, setRegion] = useState('india');
   const [scope, setScope] = useState('all');
   const [search, setSearch] = useState('');
@@ -136,15 +136,13 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
       <div className="market-workspace__panel-header">
         <div>
           <h2 id="indices-heading">Indices</h2>
-          <p>
-            {freeOnly
-              ? 'Explore BSE reference prices below or verify directly with an exchange.'
-              : 'Source-dated index points. One row per index.'}
-          </p>
+          {!freeOnly && <p>One source-dated observation per index.</p>}
         </div>
-        <button type="button" onClick={onRefresh} disabled={loading || freeOnly}>
-          Refresh indices
-        </button>
+        {!freeOnly && (
+          <button type="button" onClick={onRefresh} disabled={loading}>
+            Refresh indices
+          </button>
+        )}
       </div>
 
       <div className="market-workspace__filters">
@@ -187,20 +185,6 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
         )}
       </div>
 
-      {freeOnly && (
-        <p className="market-workspace__muted">
-          Official sources:{' '}
-          <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">
-            NSE indices
-          </a>{' '}
-          ·{' '}
-          <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">
-            BSE indices
-          </a>
-          . No copied quote values.
-        </p>
-      )}
-
       {!regionAllowed ? (
         <p role="status">This market region is hidden in Market settings.</p>
       ) : rows.length ? (
@@ -216,22 +200,28 @@ function IndexWorkspace({ data, settings = {}, loading = false, onRefresh = null
           </p>
         </>
       ) : (
-        <p role="status">
-          No qualified {region === 'india' ? 'India' : 'Global'} native observations. {freeOnly ? 'See the official source links and provider board.' : 'Check the filters or refresh the source.'}
+        <p role="status" className="market-workspace__index-status">
+          No qualified {region === 'india' ? 'India' : 'Global'} native observations.
+          {!freeOnly && ' Check the filters or refresh the source.'}
+          {freeOnly && (
+            <span className="market-workspace__index-sources">
+              <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">NSE indices</a>
+              <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">BSE indices</a>
+            </span>
+          )}
         </p>
       )}
 
-      {/* R2.1 Enhanced Provider Displays & Sectors */}
-      <IndexSectorPanel
-        activeGroup={providerGroup}
-        onSelectProviderGroup={setProviderGroup}
-        onNavigate={onNavigate}
-      />
-      <MarketProviderBoard
-        group={providerGroup}
-        onGroupChange={setProviderGroup}
-        onNavigate={onNavigate}
-      />
+      <div className="market-workspace__indices-grid">
+        <IndexSectorPanel
+          activeGroup={providerGroup}
+          onSelectProviderGroup={setProviderGroup}
+        />
+        <MarketProviderBoard
+          group={providerGroup}
+          onGroupChange={setProviderGroup}
+        />
+      </div>
     </section>
   );
 }
@@ -436,7 +426,6 @@ export default function MarketPage() {
             settings={marketSettings}
             loading={loading}
             onRefresh={refresh}
-            onNavigate={changeView}
           />
         )}
 

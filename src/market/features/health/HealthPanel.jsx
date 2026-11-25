@@ -102,7 +102,7 @@ export function HealthPanel() {
       </nav>
 
       {/* Main Tab Panels */}
-      <main className="health-tab-content">
+      <div className="health-tab-content">
         {activeTab === 'sources' && (
           <SourceHealthCard sourceStates={sourceStates} />
         )}
@@ -132,7 +132,7 @@ export function HealthPanel() {
             onPurgeCaches={(target) => healthStore.purgeCaches(target)}
           />
         )}
-      </main>
+      </div>
     </div>
   );
 }

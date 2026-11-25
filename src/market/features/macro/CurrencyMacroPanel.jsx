@@ -111,6 +111,11 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
       </div>
 
       {/* SECTION 1: CURRENCY BENCHMARK DESK */}
+      <section className="macro-section" aria-labelledby="multi-currency-heading">
+        <h3 id="multi-currency-heading" className="macro-section-title">Dated currency references</h3>
+        <MarketFxRates />
+      </section>
+
       <section className="macro-section" aria-labelledby="currency-desk-heading">
         <div className="macro-section-header">
           <div>
@@ -270,11 +275,6 @@ export function CurrencyMacroPanel({ onNavigateWorkspace = null }) {
             )}
           </div>
         </div>
-      </section>
-
-      <section className="macro-section" aria-labelledby="multi-currency-heading">
-        <h3 id="multi-currency-heading" className="macro-section-title">Dated currency references</h3>
-        <MarketFxRates />
       </section>
 
       {/* SECTION 3: OFFICIAL REFERENCE LINKS & POLICY GUIDANCE */}
