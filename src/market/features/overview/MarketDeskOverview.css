@@ -289,6 +289,15 @@
 }
 
 /* Market vNext: index-first DOM order on mobile; research and personal rails on wide screens. */
+.md3-pulse-list.md3-pulse-list--nse { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.md3-quote-panel, .md3-quote-widget { display: grid; gap: 6px; min-width: 0; }
+.md3-quote-panel { margin-block: 8px 12px; }
+.md3-quote-panel .md3-compact-caption { margin: 0; }
+.md3-quote-heading { margin: 0; font-size: .88rem; }
+.md3-quote-widget iframe {
+  display: block; width: 100%; border: 1px solid var(--md3-border); border-radius: 8px;
+}
+.md3-quote-source { color: var(--md3-accent); font-size: max(12px, .68rem); }
 .md3-section-shortcuts { min-width: 0; color: var(--md3-muted); font-size: .8rem; }
 .md3-section-shortcuts summary { cursor: pointer; min-height: 44px; display: list-item; padding: 10px 0; }
 .md3-section-shortcuts[open] summary { margin-bottom: 4px; }
@@ -300,6 +309,10 @@
     grid-template-columns: minmax(0,2fr) minmax(0,1fr);
     grid-template-areas: "pulse watchlist" "provider portfolio" "currency funds" "sectors briefing" "sectors events";
     align-items: start;
+  }
+  .md3-grid--provider-quotes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "pulse currency" "watchlist portfolio" "provider funds" "sectors briefing" "sectors events";
   }
   .md3-grid > .md3-card--wide { grid-column: auto; }
   .md3-grid > [data-layout="md3-pulse"] { grid-area: pulse; }
@@ -320,6 +333,6 @@
 
 /* The application can constrain a tablet workspace below viewport width. */
 @container market-overview (max-width: 700px) {
-  .md3-grid { grid-template-columns: minmax(0,1fr); grid-template-areas: none; }
+  .md3-grid, .md3-grid--provider-quotes { grid-template-columns: minmax(0,1fr); grid-template-areas: none; }
   .md3-grid > .md3-card { grid-area: auto; grid-column: auto; }
 }

@@ -93,7 +93,7 @@ async function checkProviderRecovery(browser) {
       requireProof(await board.count() === 1, 'PROVIDER_CARD_IDENTITY');
       await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).waitFor({ state: 'visible' });
       requireProof(attempts === 0 && await board.locator('iframe').count() === 0, 'PROVIDER_BEFORE_CONSENT');
-      await page.getByRole('button', { name: 'BSE closing prices', exact: true }).click();
+      await page.getByRole('button', { name: 'More BSE closing prices', exact: true }).click();
       requireProof(await page.locator('#md3-provider').evaluate(node => document.activeElement === node), 'PROVIDER_JUMP_WRONG_TARGET');
       requireProof(attempts === 0 && await board.locator('iframe').count() === 0, 'PROVIDER_JUMP_BYPASSED_CONSENT');
       await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).click();
@@ -170,7 +170,10 @@ try{
       requireProof(await navigation.locator('button').count()===(mobile?4:9),'NAVIGATION_COUNT');
       requireProof(await page.locator('.md3-grid > section').count()===9,'OVERVIEW_CARD_COUNT');
       const order=await page.locator('.md3-grid > section').evaluateAll(nodes=>nodes.map(n=>n.dataset.layout));
-      requireProof(order.slice(0,4).join(',')==='md3-pulse,md3-provider,md3-currency,md3-watchlist','OVERVIEW_ORDER');
+      requireProof(order.slice(0,4).join(',')==='md3-pulse,md3-currency,md3-watchlist,md3-provider','OVERVIEW_ORDER');
+      const inlineQuotes = page.locator('.md3-quote-widget iframe');
+      requireProof(await inlineQuotes.count()===3,'OVERVIEW_QUOTE_FRAME_COUNT');
+      requireProof((await inlineQuotes.first().getAttribute('src'))?.startsWith('data:text/html;charset=utf-8,'),'OVERVIEW_QUOTE_FRAME_ORIGIN');
       requireProof(await page.locator('.md3-section-shortcuts').getAttribute('open')===null,'SHORTCUTS_NOT_COLLAPSED');
       const geometry=await page.evaluate(()=>({
         documentWidth:document.documentElement.scrollWidth,viewport:window.innerWidth,
