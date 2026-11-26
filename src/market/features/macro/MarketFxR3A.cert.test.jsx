@@ -11,7 +11,9 @@ import { CurrencyMacroPanel } from './CurrencyMacroPanel.jsx';
 const NOW = Date.UTC(2026, 10, 22, 12);
 const observation = (base, date = '2026-11-22') => ({
   base, quote: 'INR', rate: base === 'OMR' ? 220 : 88, date,
-  payload: { base, quote: 'INR', rate: base === 'OMR' ? 220 : 88, date },
+  ...(base === 'USD' ? { referenceProvider: 'ecb' } : {}),
+  payload: { base, quote: 'INR', rate: base === 'OMR' ? 220 : 88, date,
+    ...(base === 'USD' ? { referenceProvider: 'ecb' } : {}) },
   checkedAt: NOW
 });
 
@@ -48,6 +50,63 @@ describe('Market R3A — FX freshness, conversion and concurrency regressions', 
     expect(entry.status).toBe('ready');
     expect(entry.value.freshness).toBe('EXPIRED');
     expect(entry.value.isHistorical).toBe(true);
+  });
+
+  it.each([
+    ['empty', null, 1],
+    ['fresh ECB', { referenceProvider: 'ecb', date: '2026-11-22' }, 0],
+    ['fresh legacy blend', { date: '2026-11-22' }, 1],
+    ['fresh explicitly non-ECB', { referenceProvider: 'blend', date: '2026-11-22' }, 1],
+    ['expired ECB', { referenceProvider: 'ecb', date: '2026-11-18' }, 1]
+  ])('qualifies automatic USD/INR lookup with %s cache', async (_label, cached, expectedCalls) => {
+    if (cached) localStorage.setItem('nw7.usd-inr.frankfurter.v1', JSON.stringify({
+      payload: { base: 'USD', quote: 'INR', rate: 81, ...cached }, checkedAt: NOW - 1000
+    }));
+    macroStore.init();
+    if (cached && cached.referenceProvider !== 'ecb') {
+      expect(macroStore.getSnapshot().ratesByPair['USD/INR']).toBeUndefined();
+    }
+    const fetch = vi.spyOn(fxClient, 'fetchLatestRate').mockResolvedValue(observation('USD'));
+    const result = await macroStore.fetchRate('USD', 'INR');
+    expect(fetch).toHaveBeenCalledTimes(expectedCalls);
+    expect(result.referenceProvider).toBe('ecb');
+    expect(result.rate).toBe(expectedCalls ? 88 : 81);
+    expect(macroStore.getSnapshot().ratesByPair['USD/INR'].value.referenceProvider).toBe('ecb');
+  });
+
+  it('never restores a legacy USD/INR blend if the authorized lookup fails', async () => {
+    const raw = JSON.stringify({
+      payload: { base: 'USD', quote: 'INR', rate: 81, date: '2026-11-22' }, checkedAt: NOW - 1000
+    });
+    localStorage.setItem('nw7.usd-inr.frankfurter.v1', raw);
+    macroStore.init();
+    const fetch = vi.spyOn(fxClient, 'fetchLatestRate').mockRejectedValue(new Error('offline'));
+    await expect(macroStore.fetchRate('USD', 'INR')).rejects.toThrow('offline');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(macroStore.getSnapshot().ratesByPair['USD/INR']).toMatchObject({ status: 'error' });
+    expect(macroStore.getSnapshot().ratesByPair['USD/INR'].value).toBeUndefined();
+    // Do not rewrite legacy storage as an ECB-derived rate.
+    expect(localStorage.getItem('nw7.usd-inr.frankfurter.v1')).toBe(raw);
+  });
+
+  it('rechecks in-memory provenance and excludes unqualified fallback data', async () => {
+    // Seed the pre-fix in-memory shape independently of storage admission.
+    const unqualified = { base: 'USD', quote: 'INR', rate: 81, date: '2026-11-22' };
+    macroStore.state.ratesByPair['USD/INR'] = { status: 'ready', value: unqualified };
+    const fetch = vi.spyOn(fxClient, 'fetchLatestRate').mockRejectedValue(new Error('offline'));
+    await expect(macroStore.fetchRate('USD', 'INR')).rejects.toThrow('offline');
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(macroStore.getSnapshot().ratesByPair['USD/INR'].value).toBeUndefined();
+  });
+
+  it('rejects an unqualified USD/INR response before storing it', async () => {
+    const result = observation('USD');
+    delete result.referenceProvider;
+    delete result.payload.referenceProvider;
+    vi.spyOn(fxClient, 'fetchLatestRate').mockResolvedValue(result);
+    await expect(macroStore.fetchRate('USD', 'INR')).rejects.toThrow('ECB-derived reference');
+    expect(macroStore.getSnapshot().ratesByPair['USD/INR'].value).toBeUndefined();
+    expect(localStorage.getItem('nw7.usd-inr.frankfurter.v1')).toBeNull();
   });
 
   it('settles both FX pairs when independent responses complete out of order', async () => {

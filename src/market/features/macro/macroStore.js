@@ -15,6 +15,12 @@ export const USD_INR_STORAGE_KEY = 'nw7.usd-inr.frankfurter.v1';
 
 const RETAINED_RATE_MS = 7 * 86400000;
 
+// Only the ECB-derived USD/INR route is authorized for automatic display.
+// Legacy blended/unknown provenance is not a usable observation for that pair.
+function hasAuthorizedReferenceProvider(key, observation) {
+  return key !== USD_INR_STORAGE_KEY || observation?.referenceProvider === 'ecb';
+}
+
 function getStorageKeyForPair(base, quote) {
   const b = String(base).toUpperCase();
   const q = String(quote).toUpperCase();
@@ -82,6 +88,7 @@ class MacroStore {
           now - checkedAt < RETAINED_RATE_MS &&
           Number.isFinite(rate) && rate > 0 &&
           getStorageKeyForPair(payload.base, payload.quote) === key &&
+          hasAuthorizedReferenceProvider(key, payload) &&
           classification) {
         return {
           base: payload.base,
@@ -151,12 +158,14 @@ class MacroStore {
     const pairKey = `${base.toUpperCase()}/${quote.toUpperCase()}`;
     const storageKey = getStorageKeyForPair(base, quote);
 
-    // Never treat a recently retrieved but expired observation as current.
+    // Recheck provenance as well as age before using an in-memory observation.
     const existingReady = this.state.ratesByPair[pairKey];
-    if (!force && existingReady?.status === 'ready' &&
-        evaluateFxObservation(existingReady.value?.date)?.freshness !== 'EXPIRED' &&
-        evaluateFxObservation(existingReady.value?.date)) {
-      return existingReady.value;
+    const qualifiedExisting = hasAuthorizedReferenceProvider(storageKey, existingReady?.value)
+      ? existingReady : undefined;
+    const freshness = evaluateFxObservation(qualifiedExisting?.value?.date);
+    if (!force && qualifiedExisting?.status === 'ready' &&
+        freshness && freshness.freshness !== 'EXPIRED') {
+      return qualifiedExisting.value;
     }
 
     if (this.inflightFx.has(pairKey)) {
@@ -167,7 +176,8 @@ class MacroStore {
     this.latestRequestByPair.set(pairKey, currentReqId);
 
     this.state.ratesByPair[pairKey] = {
-      ...this.state.ratesByPair[pairKey],
+      // Do not expose or retain an unqualified value while refreshing.
+      ...qualifiedExisting,
       status: 'loading',
       error: null
     };
@@ -177,6 +187,10 @@ class MacroStore {
     const fetchPromise = (async () => {
       try {
         const result = await fxClient.fetchLatestRate(base, quote, { signal });
+        if (!hasAuthorizedReferenceProvider(storageKey, result) ||
+            !hasAuthorizedReferenceProvider(storageKey, result.payload)) {
+          throw new Error('USD/INR requires an ECB-derived reference');
+        }
         const existing = this.state.ratesByPair[pairKey]?.value;
         if (existing?.date > result.date) {
           throw new Error('The provider returned an older observation');
@@ -200,7 +214,7 @@ class MacroStore {
         if (currentReqId === this.latestRequestByPair.get(pairKey)) {
           // If we have an existing cached rate, retain it with a warning
           const existing = this.state.ratesByPair[pairKey]?.value;
-          if (existing) {
+          if (existing && hasAuthorizedReferenceProvider(storageKey, existing)) {
             this.state.ratesByPair[pairKey] = {
               status: 'ready',
               value: {
