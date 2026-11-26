@@ -6,6 +6,7 @@ import { recordMarketSourceFailure } from '../health/marketSourceRecorder.js';
 
 const AMFI_NAV_URL = 'https://www.amfiindia.com/net-asset-value/nav-download';
 
+/** Shows the selected scheme's dated NAV and any retained NAV while it is rechecked. */
 export function FundQuickSearch() {
   const { state, actions } = useFundStore();
   const [query, setQuery] = useState('');
@@ -51,9 +52,8 @@ export function FundQuickSearch() {
     }
   };
 
-  const navState = selected && state.navByCode[selected.code];
-  const nav = navState?.value;
-  const navFailed = navState?.status === 'error' || navState?.status === 'cooldown';
+  const { status: navStatus, value: nav } = state.navByCode[selected?.code] || {};
+  const navFailed = navStatus === 'error' || navStatus === 'cooldown';
   return (
     <div className="md3-fund-search">
       <form onSubmit={onSearch}>
@@ -82,15 +82,17 @@ export function FundQuickSearch() {
       {selected && (
         <div className="md3-source-observation" aria-live="polite">
           <strong>{nav?.schemeName || selected.name}</strong>
-          {navState?.status === 'loading' && <span>Checking NAV…</span>}
+          <span>Scheme code {selected.code}</span>
+          {navStatus === 'loading' && <span>Checking NAV…</span>}
           {nav && <span>₹{nav.nav.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-            {' · '}{navFailed ? 'Retained NAV' : 'Latest reported NAV'} · <time dateTime={nav.date}>{nav.date}</time> · MFapi</span>}
+            {' · '}{navStatus === 'ready' ? 'Latest reported NAV' : 'Retained NAV'} · <time dateTime={nav.date}>{nav.date}</time> · MFapi</span>}
           {navFailed && (
-            <>
-              <span>{navState.status === 'cooldown' ? 'MFapi is rate-limiting lookups.' : 'The NAV check failed.'}</span>
-              <button type="button" className="md3-secondary"
-                onClick={() => load(selected.code, selected.name, true)}>Retry NAV</button>
-            </>
+            <span>{navStatus === 'cooldown' ? 'MFapi is rate-limiting lookups.' : 'The NAV check failed.'}</span>
+          )}
+          {(navStatus === 'ready' || navFailed) && (
+            <button type="button" className="md3-secondary" onClick={() => load(selected.code, selected.name, true)}>
+              {navFailed ? 'Retry NAV' : 'Refresh NAV'}
+            </button>
           )}
         </div>
       )}
