@@ -85,11 +85,14 @@ async function checkProviderRecovery(browser) {
       });
       const page = await context.newPage();
       await page.goto(base + '#/markets?view=overview', { waitUntil: 'domcontentloaded' });
-      const board = page.locator('#md3-provider');
+      // DeskCard assigns this ID to its h2, not to the containing section.
+      const board = page.locator('section[aria-labelledby="md3-provider"]');
+      requireProof(await board.count() === 1, 'PROVIDER_CARD_IDENTITY');
       await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).waitFor();
       requireProof(attempts === 0 && await board.locator('iframe').count() === 0, 'PROVIDER_BEFORE_CONSENT');
       await page.getByRole('button', { name: 'BSE closing prices', exact: true }).click();
-      requireProof(attempts === 0, 'PROVIDER_JUMP_BYPASSED_CONSENT');
+      requireProof(await page.locator('#md3-provider').evaluate(node => document.activeElement === node), 'PROVIDER_JUMP_WRONG_TARGET');
+      requireProof(attempts === 0 && await board.locator('iframe').count() === 0, 'PROVIDER_JUMP_BYPASSED_CONSENT');
       await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).click();
       const reload = board.getByRole('button', { name: 'Reload provider display', exact: true });
       await reload.waitFor({ timeout: 15000 });
@@ -103,10 +106,15 @@ async function checkProviderRecovery(browser) {
         await frame.getAttribute('referrerpolicy') === 'no-referrer', 'PROVIDER_ISOLATION');
       requireProof(await board.getByText(/quote rendering is unverified/i).isVisible(), 'PROVIDER_FALSE_SUCCESS');
       requireProof(attempts === 1 && await frame.count() === 1, 'PROVIDER_ATTEMPT_COUNT');
+      const firstFrame = await frame.elementHandle();
       await reload.click();
       await reload.waitFor({ timeout: 15000 });
-      // Waiting for the new unconfirmed state also requires the new iframe load.
       requireProof(attempts === 2 && await frame.count() === 1, 'PROVIDER_RETRY_COUNT');
+      requireProof(firstFrame && await firstFrame.evaluate(node => !node.isConnected), 'PROVIDER_RETRY_REUSED_FRAME');
+      await firstFrame.dispose();
+      if (mode === 'synthetic-content') await content.waitFor();
+      else requireProof(await content.count() === 0, 'BLOCKED_PROVIDER_RETRY_HAS_CONTENT');
+      requireProof(await board.getByText(/quote rendering is unverified/i).isVisible(), 'PROVIDER_RETRY_FALSE_SUCCESS');
       requireProof(await board.getByRole('link', { name: /S&P BSE SENSEX on TradingView/ }).isVisible(), 'PROVIDER_FALLBACK_MISSING');
       await board.getByRole('button', { name: 'Hide TradingView Board', exact: true }).click();
       await frame.waitFor({ state: 'detached' });
@@ -181,12 +189,14 @@ try{
     }catch(error){results.push({width,status:'FAIL',reason:String(error.message||error)});}
     finally{await context.close();}
   }
-  controls = { usdCache: await checkWarmUsdCache(browser), providerRecovery: await checkProviderRecovery(browser) };
+  // Preserve completed cache evidence even if the provider control fails later.
+  controls = { usdCache: await checkWarmUsdCache(browser), providerRecovery: null };
+  controls.providerRecovery = await checkProviderRecovery(browser);
 }catch(error){results.push({status:'FAIL',reason:String(error.message||error)});}
 finally{
   await browser?.close().catch(()=>{});
   preview?.kill('SIGTERM');
-  const status=controls&&results.length===widths.length&&results.every(row=>row.status==='PASS')?'PASS':'HOLD';
+  const status=controls?.usdCache?.length===3&&controls?.providerRecovery?.length===2&&results.length===widths.length&&results.every(row=>row.status==='PASS')?'PASS':'HOLD';
   await fs.mkdir(directory,{recursive:true});
   const report={status,checkedAt:new Date().toISOString(),verification:'built preview, external requests blocked or synthetic, fresh and seeded browser storage',results,controls};
   await fs.writeFile(directory+'/report.json',JSON.stringify(report,null,2)+'\n');
