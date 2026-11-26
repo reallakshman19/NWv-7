@@ -82,7 +82,7 @@ export function FundQuickSearch() {
       {selected && (
         <div className="md3-source-observation" aria-live="polite">
           <strong>{nav?.schemeName || selected.name}</strong>
-          {nav && <span>{['Scheme code ' + selected.code, nav.plan, nav.option].filter(Boolean).join(' · ')}</span>}
+          <span>Scheme code {selected.code}</span>
           {navStatus === 'loading' && <span>Checking NAV…</span>}
           {nav && <span>₹{nav.nav.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
             {' · '}{navStatus === 'ready' ? 'Latest reported NAV' : 'Retained NAV'} · <time dateTime={nav.date}>{nav.date}</time> · MFapi</span>}
@@ -99,9 +99,9 @@ export function FundQuickSearch() {
       {state.savedCodes.length > 0 && (
         <ul className="md3-source-list" aria-label="Saved fund schemes">
           {state.savedCodes.map(code => {
-            const name = state.navByCode[code]?.value?.schemeName || state.historyCache[code]?.schemeName;
-            return <li key={code}><button type="button" className="md3-secondary" onClick={() => load(code, name || 'Scheme ' + code)}>
-              {name ? `${name} (${code})` : `Scheme ${code}`}
+            const name = state.navByCode[code]?.value?.schemeName || state.historyCache[code]?.schemeName || 'Scheme ' + code;
+            return <li key={code}><button type="button" className="md3-secondary" onClick={() => load(code, name)}>
+              {name}
             </button></li>;
           })}
         </ul>
