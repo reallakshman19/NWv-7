@@ -80,23 +80,40 @@ export function CurrencyAndGoldQuotes() {
   );
 }
 
-/** Shows available BSE closes for saved NSE companies, or tracked examples for an empty watchlist. */
+/** @param {{ title: string, symbols: { s: string, d: string }[], caption: string | null }} props */
+function BseStockQuotePanel({ title, symbols, caption }) {
+  if (symbols.length === 0) return null;
+
+  return (
+    <div className="md3-quote-panel">
+      <h3 className="md3-quote-heading">{title}</h3>
+      {caption && <p className="md3-compact-caption">{caption}</p>}
+      <QuoteWidget title={title} symbols={symbols}
+        sourceUrl="https://www.tradingview.com/markets/stocks-india/" />
+    </div>
+  );
+}
+
+/**
+ * Shows BSE closes for saved NSE companies, or examples for an empty watchlist.
+ * @param {{ savedKeys: string[] }} props
+ */
 export function BseStockCloses({ savedKeys }) {
   const savedSymbols = new Set(savedKeys.map(key => fromCanonicalKey(key) || key));
   const symbols = savedSymbols.size
     ? BSE_STOCKS.filter(({ d }) => savedSymbols.has(d))
     : BSE_STOCKS.slice(0, 3);
+  const caption = savedSymbols.size ? 'BSE listings of your saved companies' : 'Selected tracked companies';
+  return <BseStockQuotePanel title="BSE stock closing prices" symbols={symbols} caption={caption} />;
+}
 
-  if (symbols.length === 0) return null;
-
-  return (
-    <div className="md3-quote-panel">
-      <h3 className="md3-quote-heading">BSE stock closing prices</h3>
-      <p className="md3-compact-caption">
-        {savedSymbols.size ? 'BSE listings of your saved companies' : 'Selected tracked companies'}
-      </p>
-      <QuoteWidget title="BSE stock closing prices" symbols={symbols}
-        sourceUrl="https://www.tradingview.com/markets/stocks-india/" />
-    </div>
-  );
+/**
+ * Shows the supported BSE listings for the active sector's tracked companies.
+ * A sector without supported listings has no embed.
+ * @param {{ stocks: { symbol: string }[] }} props
+ */
+export function BseSectorStockCloses({ stocks }) {
+  const trackedSymbols = new Set(stocks.map(({ symbol }) => symbol));
+  const symbols = BSE_STOCKS.filter(({ d }) => trackedSymbols.has(d));
+  return <BseStockQuotePanel title="BSE sector stock closing prices" symbols={symbols} caption={null} />;
 }

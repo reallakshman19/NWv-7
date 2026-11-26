@@ -25,7 +25,7 @@ import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
 import { selectHeadlineIndexBoard } from '../indices/headlineIndexResolution.js';
-import { BseIndexCloses, BseStockCloses, CurrencyAndGoldQuotes } from './MarketOverviewQuotes.jsx';
+import { BseIndexCloses, BseSectorStockCloses, BseStockCloses, CurrencyAndGoldQuotes } from './MarketOverviewQuotes.jsx';
 import './MarketDeskOverview.css';
 
 const PULSE = [
@@ -204,7 +204,8 @@ function SectorQuote({ value, time, source, isLastAvailable, currency = '' }) {
   );
 }
 
-function SectorBreakdown({ data, onNavigate }) {
+/** Uses the active industry's tracked companies for both the NSE links and the BSE closing board. */
+function SectorBreakdown({ data, onNavigate, showBseCloses }) {
   const [activeSector, setActiveSector] = useState(CANONICAL_SECTORS[0]);
   const canDisplayQuotes = DISPLAY_QUOTE_MODES.has(data?.sourceMode);
   const isLastAvailable = data?.sourceMode !== 'live';
@@ -275,6 +276,7 @@ function SectorBreakdown({ data, onNavigate }) {
             })}
           </div>
         </div>
+        {showBseCloses && <BseSectorStockCloses key={activeSector.id} stocks={stocks} />}
       </div>
     </div>
   );
@@ -435,7 +437,7 @@ export function MarketDeskOverview({
 
           <DeskCard id="md3-sectors" layoutId="md3-sectors" title="Movers & Sector References" wide
             action="Explore sectors" destination="indices" onNavigate={marketNav}>
-            <SectorBreakdown data={data} onNavigate={marketNav} />
+            <SectorBreakdown data={data} onNavigate={marketNav} showBseCloses={showProviderQuotes} />
             <div className="md3-link-grid">
               <a href={OPEN_SOURCE_REFERENCE_LINKS.nseIndices} target="_blank" rel="noopener noreferrer">NSE breadth & sectors</a>
               <a href={OPEN_SOURCE_REFERENCE_LINKS.bseIndices} target="_blank" rel="noopener noreferrer">BSE index boards</a>

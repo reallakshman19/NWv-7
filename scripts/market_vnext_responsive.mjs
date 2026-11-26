@@ -172,7 +172,7 @@ try{
       const order=await page.locator('.md3-grid > section').evaluateAll(nodes=>nodes.map(n=>n.dataset.layout));
       requireProof(order.slice(0,4).join(',')==='md3-pulse,md3-currency,md3-watchlist,md3-provider','OVERVIEW_ORDER');
       const inlineQuotes = page.locator('.md3-quote-widget iframe');
-      requireProof(await inlineQuotes.count()===3,'OVERVIEW_QUOTE_FRAME_COUNT');
+      requireProof(await inlineQuotes.count()===4,'OVERVIEW_QUOTE_FRAME_COUNT');
       requireProof((await inlineQuotes.first().getAttribute('src'))?.startsWith('data:text/html;charset=utf-8,'),'OVERVIEW_QUOTE_FRAME_ORIGIN');
       requireProof(await page.locator('.md3-section-shortcuts').getAttribute('open')===null,'SHORTCUTS_NOT_COLLAPSED');
       const geometry=await page.evaluate(()=>({
@@ -194,6 +194,13 @@ try{
       requireProof(layout.minimumCard>=layout.requiredCard-2,'COMPRESSED_CARDS:'+JSON.stringify(layout));
       requireProof(layout.clippedControls===0,'CLIPPED_CONTROLS:'+JSON.stringify(layout));
       if(width===320||width===1280){
+        const sectors = page.locator('section[aria-labelledby="md3-sectors"]');
+        const sectorFrame = sectors.getByTitle('BSE sector stock closing prices from TradingView');
+        requireProof(decodeURIComponent(await sectorFrame.getAttribute('src')).includes('BSE:HDFCBANK'),'BANKING_CLOSES_MISSING');
+        await sectors.getByRole('button',{name:'Automobiles',exact:true}).click();
+        const autoConfig = decodeURIComponent(await sectorFrame.getAttribute('src'));
+        requireProof(autoConfig.includes('BSE:MARUTI') && !autoConfig.includes('BSE:HDFCBANK'),'SECTOR_CLOSES_NOT_SWITCHED');
+        requireProof(await sectors.getByRole('link',{name:'NIFTY Auto',exact:true}).isVisible(),'AUTO_BENCHMARK_MISSING');
         for(let i=0;i<ids.length;i++){
           const id=ids[i];
           if(mobile){
