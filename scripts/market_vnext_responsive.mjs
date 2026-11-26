@@ -87,8 +87,11 @@ async function checkProviderRecovery(browser) {
       await page.goto(base + '#/markets?view=overview', { waitUntil: 'domcontentloaded' });
       // DeskCard assigns this ID to its h2, not to the containing section.
       const board = page.locator('section[aria-labelledby="md3-provider"]');
+      // DOMContentLoaded precedes the React route commit; count() does not auto-wait.
+      await page.locator('#market-overview-content').waitFor({ state: 'visible' });
+      await board.waitFor({ state: 'visible' });
       requireProof(await board.count() === 1, 'PROVIDER_CARD_IDENTITY');
-      await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).waitFor();
+      await board.getByRole('button', { name: 'Load BSE indices prices', exact: true }).waitFor({ state: 'visible' });
       requireProof(attempts === 0 && await board.locator('iframe').count() === 0, 'PROVIDER_BEFORE_CONSENT');
       await page.getByRole('button', { name: 'BSE closing prices', exact: true }).click();
       requireProof(await page.locator('#md3-provider').evaluate(node => document.activeElement === node), 'PROVIDER_JUMP_WRONG_TARGET');
@@ -108,6 +111,8 @@ async function checkProviderRecovery(browser) {
       requireProof(attempts === 1 && await frame.count() === 1, 'PROVIDER_ATTEMPT_COUNT');
       const firstFrame = await frame.elementHandle();
       await reload.click();
+      // Wait for the original frame to detach before accepting the new loaded state.
+      await firstFrame.waitForElementState('hidden', { timeout: 15000 });
       await reload.waitFor({ timeout: 15000 });
       requireProof(attempts === 2 && await frame.count() === 1, 'PROVIDER_RETRY_COUNT');
       requireProof(firstFrame && await firstFrame.evaluate(node => !node.isConnected), 'PROVIDER_RETRY_REUSED_FRAME');
