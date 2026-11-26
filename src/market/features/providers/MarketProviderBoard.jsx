@@ -5,6 +5,7 @@ import {
   getBseTradingViewUrl,
 } from './bseCoverage.js';
 import { canAttemptHeadlineEmbed, HEADLINE_INDEX_WIDGET_URL } from '../indices/headlineIndexResolution.js';
+import { createTradingViewFrameUrl, TRADINGVIEW_FRAME_SANDBOX } from './tradingViewFrame.js';
 import './providers.css';
 
 const TIMEOUT_MS = 8000;
@@ -100,7 +101,7 @@ export function MarketProviderBoard({
 
     // The data URL keeps this wrapper opaque even with allow-same-origin.
     // TradingView's nested HTTPS frame needs its own origin for browser APIs.
-    const config = JSON.stringify({
+    const src = createTradingViewFrameUrl(HEADLINE_INDEX_WIDGET_URL, {
       title: groupConfig.title,
       width: '100%',
       height: '100%',
@@ -108,19 +109,12 @@ export function MarketProviderBoard({
       showSymbolLogo: true,
       symbolsGroups: [{ name: groupConfig.title, symbols: groupConfig.symbols }],
       colorTheme: 'dark',
-    }).replace(/</g, '\\u003c');
-    const frameHtml =
-      '<!doctype html><html><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"></head>' +
-      '<body style="margin:0;background:#0f172a;">' +
-      '<div class="tradingview-widget-container" style="height:100vh;width:100%">' +
-      '<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>' +
-      '<script src="' + HEADLINE_INDEX_WIDGET_URL + '" type="text/javascript">' +
-      config + '</script></div></body></html>';
+    });
     const frame = document.createElement('iframe');
-    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
+    frame.setAttribute('sandbox', TRADINGVIEW_FRAME_SANDBOX);
     frame.setAttribute('referrerpolicy', 'no-referrer');
     frame.setAttribute('title', groupConfig.title + ' — provider-controlled reference display');
-    frame.setAttribute('src', 'data:text/html;charset=utf-8,' + encodeURIComponent(frameHtml));
+    frame.setAttribute('src', src);
     frame.style.height = '100%';
     frame.style.width = '100%';
     frame.style.border = '0';

@@ -48,12 +48,12 @@ describe('Market R3C — actual Overview route acceptance', () => {
     expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
   });
 
-  it('puts headline and provider indices first, then FX and personal tools; optional section shortcuts focus targets', () => {
+  it('puts indices and FX first, then personal tools and the provider board; section shortcuts focus targets', () => {
     const { container } = render(<MarketDeskOverview hideNav showSessionHeader={false} />);
     const firstSections = Array.from(container.querySelectorAll('.md3-grid > section h2'))
       .slice(0, 4).map(heading => heading.textContent);
     expect(firstSections).toEqual([
-      'India Market Pulse', 'BSE Provider Board', 'Currency Rates', 'My Watchlist'
+      'India Market Pulse', 'Currency Rates', 'My Watchlist', 'BSE Provider Board'
     ]);
     expect(screen.queryByRole('heading', { name: 'India Market Desk' })).toBeNull();
     const shortcuts = container.querySelector('.md3-section-shortcuts');

@@ -3,7 +3,7 @@
  *
  * Deliberately does not synthesize native exchange quotes. All actual figures
  * derive from qualified user-local state or explicit provider receipts.
- * Provider widgets remain opt-in and no data request runs on mount.
+ * Public quotes are rendered and attributed inside provider-hosted frames.
  */
 import React, { useMemo, useState, useSyncExternalStore } from 'react';
 import { FiClock, FiExternalLink } from 'react-icons/fi';
@@ -25,6 +25,7 @@ import { safeGetJson } from '../../../data/safeStorage.js';
 import { MARKET_LEGACY_STORAGE_KEYS, MARKET_R21_STORAGE_KEYS, R21_MARKET_WORKSPACE_IDS } from '../../contracts/index.js';
 import equityUniverse from '../../../config/marketEquityUniverse.json' with { type: 'json' };
 import { selectHeadlineIndexBoard } from '../indices/headlineIndexResolution.js';
+import { BseIndexCloses, BseStockCloses, CurrencyAndGoldQuotes } from './MarketOverviewQuotes.jsx';
 import './MarketDeskOverview.css';
 
 const PULSE = [
@@ -95,14 +96,14 @@ function getDatedIndexObservations(data) {
     .sort((a, b) => b.time - a.time);
 }
 
-function MarketPulse({ data }) {
+function MarketPulse({ data, indices }) {
   const observations = getDatedIndexObservations(data);
   const isLastAvailable = data?.sourceMode !== 'live';
   const sourceStates = new Map(selectHeadlineIndexBoard().map(row => [row.instrumentId,row]));
 
   return (
-    <div className="md3-pulse-list">
-      {PULSE.map(index => {
+    <div className={indices.length === 2 ? 'md3-pulse-list md3-pulse-list--nse' : 'md3-pulse-list'}>
+      {indices.map(index => {
         const indexId = canonicalIndexId(index);
         const sourceState = sourceStates.get(index.instrumentId);
         const observation = observations.find(({ id, row }) =>
@@ -133,7 +134,7 @@ function MarketPulse({ data }) {
                     </time>
                   </small>
                 </>
-              ) : <small>{data?.sourceMode === 'free-open-only' && sourceState ? (sourceState.hostedAttemptAllowed ? 'Provider display on request' : 'Native price restricted') : 'No saved value'}</small>}
+              ) : <small>{data?.sourceMode === 'free-open-only' && sourceState ? (sourceState.hostedAttemptAllowed ? 'Provider display on request' : 'Official NSE quotes') : 'No saved value'}</small>}
             </span>
           </a>
         );
@@ -284,6 +285,8 @@ export function MarketDeskOverview({
   onRefresh = null, refreshing = false, currentWorkspace = 'overview', hideNav = false, showSessionHeader = true
 }) {
   const slots = { ...DEFAULT_SLOTS, ...customSlots };
+  const showProviderQuotes = data?.sourceMode === 'free-open-only' && Boolean(slots.providerBoard);
+  const pulseIndices = showProviderQuotes ? PULSE.filter(index => index.source === 'NSE') : PULSE;
   const health = useSyncExternalStore(healthStore.subscribe, healthStore.getSnapshot);
   const { keys: watchlistKeys } = useWatchlist();
   const { state: portfolioState, actions: portfolioActions } = usePortfolioStore();
@@ -342,33 +345,20 @@ export function MarketDeskOverview({
           <button type="button" onClick={() => jumpToSection('md3-sectors')}>Sectors</button>
         </div></details>
 
-        <div className="md3-grid">
+        <div className={showProviderQuotes ? 'md3-grid md3-grid--provider-quotes' : 'md3-grid'}>
           <DeskCard id="md3-pulse" layoutId="md3-pulse" title="India Market Pulse" wide
             action="All indices" destination="indices" onNavigate={marketNav}>
-            {slots.providerBoard && data?.sourceMode === 'free-open-only' && (
-              <button type="button" className="md3-primary md3-bse-jump"
-                onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
-            )}
-            <MarketPulse data={data} />
-            {slots.providerBoard && data?.sourceMode !== 'free-open-only' && (
+            {showProviderQuotes && <BseIndexCloses />}
+            <MarketPulse data={data} indices={pulseIndices} />
+            {slots.providerBoard && (
               <button type="button" className="md3-secondary md3-bse-jump"
-                onClick={() => jumpToSection('md3-provider')}>BSE closing prices</button>
+                onClick={() => jumpToSection('md3-provider')}>More BSE closing prices</button>
             )}
           </DeskCard>
 
-          <DeskCard id="md3-provider" layoutId="md3-provider" title="BSE Provider Board" wide
-            action="Provider choices" destination="indices" onNavigate={marketNav}>
-            <QualifiedSlot title="Provider Board" workspace="indices" onNavigate={marketNav}
-              fallback={<a className="md3-provider-link" href="https://www.tradingview.com/markets/stocks-india/"
-                target="_blank" rel="noopener noreferrer">
-                Open TradingView India market boards
-              </a>}>
-              {slots.providerBoard}
-            </QualifiedSlot>
-          </DeskCard>
-
-          <DeskCard id="md3-currency" layoutId="md3-currency" title="Currency Rates"
+          <DeskCard id="md3-currency" layoutId="md3-currency" title={showProviderQuotes ? 'Currency & Gold' : 'Currency Rates'}
             action="All rates" destination="currency-macro" onNavigate={marketNav}>
+            {showProviderQuotes && <CurrencyAndGoldQuotes />}
             <QualifiedSlot title="Currency Tool" workspace="currency-macro" onNavigate={marketNav}
               fallback={<button type="button" className="md3-primary" onClick={() => marketNav('currency-macro')}>
                 Check dated reference rate
@@ -394,6 +384,18 @@ export function MarketDeskOverview({
                 })}
               </div>}>
               {slots.watchlist}
+            </QualifiedSlot>
+            {showProviderQuotes && <BseStockCloses savedKeys={savedSymbols} />}
+          </DeskCard>
+
+          <DeskCard id="md3-provider" layoutId="md3-provider" title="BSE Provider Board" wide
+            action="Provider choices" destination="indices" onNavigate={marketNav}>
+            <QualifiedSlot title="Provider Board" workspace="indices" onNavigate={marketNav}
+              fallback={<a className="md3-provider-link" href="https://www.tradingview.com/markets/stocks-india/"
+                target="_blank" rel="noopener noreferrer">
+                Open TradingView India market boards
+              </a>}>
+              {slots.providerBoard}
             </QualifiedSlot>
           </DeskCard>
 
