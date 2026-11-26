@@ -12,6 +12,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createTradingViewFrameUrl, TRADINGVIEW_FRAME_SANDBOX } from '../src/market/features/providers/tradingViewFrame.js';
 
 // Contract & Registry
 import {
@@ -513,8 +514,12 @@ test('WP10-G21 rejects bundled unlicensed quotes, false breadth, and host-page p
   assert.doesNotMatch(overview, /1,522 Advances|554 Declines|88 Unchanged/);
   const provider = fs.readFileSync(path.resolve('src/market/features/providers/MarketProviderBoard.jsx'), 'utf8');
   // The data URL keeps the wrapper opaque while the provider frame uses its own origin.
-  assert.match(provider, /allow-scripts allow-same-origin allow-popups/);
-  assert.match(provider, /frame\.setAttribute\('src', 'data:text\/html;charset=utf-8,' \+ encodeURIComponent\(frameHtml\)\)/);
+  const frameUrl = createTradingViewFrameUrl('https://s3.tradingview.com/embed.js', { title: 'BSE' });
+  assert.match(frameUrl, /^data:text\/html;charset=utf-8,/);
+  assert.equal(TRADINGVIEW_FRAME_SANDBOX, 'allow-scripts allow-same-origin allow-popups');
+  assert.match(provider, /const src = createTradingViewFrameUrl\(HEADLINE_INDEX_WIDGET_URL,/);
+  assert.match(provider, /frame\.setAttribute\('src', src\)/);
+  assert.match(provider, /frame\.setAttribute\('sandbox', TRADINGVIEW_FRAME_SANDBOX\)/);
   assert.match(provider, /no-referrer/);
   assert.doesNotMatch(provider, /frame\.setAttribute\('srcdoc'|document\.createElement\('script'\)/);
 });
