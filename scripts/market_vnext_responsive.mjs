@@ -63,7 +63,7 @@ async function checkWarmUsdCache(browser) {
   return results;
 }
 async function checkProviderRecovery(browser) {
-  // The outer srcdoc loads in both cases. The provider script is either
+  // The opaque data URL wrapper loads in both cases. The provider script is either
   // intercepted with a harmless synthetic marker or blocked entirely.
   // No real third-party requests, prices, scraping or widget success claim.
   const results = [];
@@ -100,13 +100,27 @@ async function checkProviderRecovery(browser) {
       const reload = board.getByRole('button', { name: 'Reload provider display', exact: true });
       await reload.waitFor({ timeout: 15000 });
       const frame = board.locator('iframe');
-      const content = board.frameLocator('iframe').getByText('SYNTHETIC PROVIDER CONTENT', { exact: true });
+      const wrapper = board.frameLocator('iframe');
+      const content = wrapper.getByText('SYNTHETIC PROVIDER CONTENT', { exact: true });
       if (mode === 'synthetic-content') await content.waitFor();
       else requireProof(await content.count() === 0, 'BLOCKED_PROVIDER_HAS_CONTENT');
-      const srcdoc = await frame.getAttribute('srcdoc');
-      requireProof(srcdoc.includes('BSE:SENSEX') && srcdoc.includes('BSE:BSE500') && !srcdoc.includes('NSE:'), 'PROVIDER_WRONG_IDENTITY');
-      requireProof(await frame.getAttribute('sandbox') === 'allow-scripts allow-popups' &&
+      const wrapperSrc = await frame.getAttribute('src');
+      requireProof(wrapperSrc?.startsWith('data:text/html;charset=utf-8,') &&
+        await frame.getAttribute('srcdoc') === null, 'PROVIDER_WRONG_WRAPPER');
+      const wrapperHtml = decodeURIComponent(wrapperSrc.split(',')[1]);
+      requireProof(wrapperHtml.includes('BSE:SENSEX') && wrapperHtml.includes('BSE:BSE500') && !wrapperHtml.includes('NSE:'), 'PROVIDER_WRONG_IDENTITY');
+      requireProof(await frame.getAttribute('sandbox') === 'allow-scripts allow-same-origin allow-popups' &&
         await frame.getAttribute('referrerpolicy') === 'no-referrer', 'PROVIDER_ISOLATION');
+      // Assert the enforced browser boundary as well as the iframe configuration.
+      const parentAccessDenied = await wrapper.locator('body').evaluate(() => {
+        if (window.origin !== 'null') return false;
+        try {
+          return window.parent.document === null;
+        } catch (error) {
+          return error.name === 'SecurityError';
+        }
+      });
+      requireProof(parentAccessDenied, 'PROVIDER_WRAPPER_CAN_ACCESS_APP');
       requireProof(await board.getByText(/quote rendering is unverified/i).isVisible(), 'PROVIDER_FALSE_SUCCESS');
       requireProof(attempts === 1 && await frame.count() === 1, 'PROVIDER_ATTEMPT_COUNT');
       const firstFrame = await frame.elementHandle();

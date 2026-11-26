@@ -56,7 +56,9 @@ describe('WP-03 Equity Research & Watchlist Certification (WP03-T01 .. WP03-T18)
     const { container } = render(<EquityResearchPanel store={store} />);
     expect(container.querySelector('iframe')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Load BSE:RELIANCE price' }));
-    expect(container.querySelector('iframe').getAttribute('srcdoc')).toContain('BSE:RELIANCE');
+    // Inspect the selected symbol in the wrapper without loading the provider.
+    const wrapperSrc = container.querySelector('iframe').getAttribute('src');
+    expect(decodeURIComponent(wrapperSrc.split(',')[1])).toContain('BSE:RELIANCE');
     fireEvent.click(screen.getByRole('button', { name: /Select TCS for research detail/i }));
     expect(container.querySelector('iframe')).toBeNull();
     expect(screen.getByRole('button', { name: 'Load BSE:TCS price' })).toBeTruthy();

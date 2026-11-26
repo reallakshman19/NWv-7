@@ -23,9 +23,10 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+// Decode the app-generated wrapper to inspect its configuration without fetching TradingView.
 function iframeConfig(frame) {
-  const srcdoc = frame?.getAttribute('srcdoc') || '';
-  const match = srcdoc.match(/<script[^>]*>([\s\S]*?)<\/script>/);
+  const wrapperHtml = decodeURIComponent(frame?.getAttribute('src')?.split(',')[1] ?? '');
+  const match = wrapperHtml.match(/<script[^>]*>([\s\S]*?)<\/script>/);
   return match ? JSON.parse(match[1]) : null;
 }
 
@@ -53,9 +54,11 @@ describe('WP-02 Provider Displays and Indices Certification (WP02-T01 .. WP02-T1
     // Exactly one TradingView embed script inserted
     const scripts = container.querySelectorAll('iframe');
     expect(scripts).toHaveLength(1);
-    expect(scripts[0].getAttribute('srcdoc')).toContain('https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js');
-    expect(scripts[0].getAttribute('sandbox')).toBe('allow-scripts allow-popups');
-    expect(scripts[0].getAttribute('sandbox')).not.toContain('allow-same-origin');
+    const wrapperSrc = scripts[0].getAttribute('src');
+    expect(wrapperSrc).toMatch(/^data:text\/html;charset=utf-8,/);
+    expect(scripts[0].hasAttribute('srcdoc')).toBe(false);
+    expect(decodeURIComponent(wrapperSrc.split(',')[1])).toContain('https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js');
+    expect(scripts[0].getAttribute('sandbox')).toBe('allow-scripts allow-same-origin allow-popups');
     expect(scripts[0].getAttribute('referrerpolicy')).toBe('no-referrer');
     expect(document.querySelectorAll('script[src*="tradingview.com"]')).toHaveLength(0);
 
