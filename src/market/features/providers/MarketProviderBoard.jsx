@@ -27,6 +27,7 @@ export function MarketProviderBoard({
   onGroupChange,
   onNavigate,
   className = '',
+  providerSymbol = null,
 }) {
   const [internalGroup, setInternalGroup] = useState(
     BSE_GROUPS.includes(group) ? group : 'indices'
@@ -49,13 +50,16 @@ export function MarketProviderBoard({
     }
   }
 
-  const activeGroup = BSE_GROUPS.includes(internalGroup) ? internalGroup : 'indices';
+  const activeGroup = providerSymbol ? 'equities' : BSE_GROUPS.includes(internalGroup) ? internalGroup : 'indices';
   const groupConfig = useMemo(() => {
     const config = getWidgetSymbols(activeGroup);
+    if (providerSymbol) {
+      return { ...config, symbols: config.symbols.filter(item => item.name === providerSymbol) };
+    }
     return activeGroup === 'indices'
       ? { ...config, symbols:config.symbols.filter(item => canAttemptHeadlineEmbed(item.name)) }
       : config;
-  }, [activeGroup]);
+  }, [activeGroup, providerSymbol]);
 
   const hostRef = useRef(null);
   const attemptId = useRef(0);
@@ -94,8 +98,8 @@ export function MarketProviderBoard({
       }
     }, TIMEOUT_MS);
 
-    // Provider script executes only inside an opaque-origin sandboxed iframe.
-    // In particular, NEVER append the TradingView script to the host document.
+    // The data URL keeps this wrapper opaque even with allow-same-origin.
+    // TradingView's nested HTTPS frame needs its own origin for browser APIs.
     const config = JSON.stringify({
       title: groupConfig.title,
       width: '100%',
@@ -106,16 +110,17 @@ export function MarketProviderBoard({
       colorTheme: 'dark',
     }).replace(/</g, '\\u003c');
     const frameHtml =
-      '<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#0f172a;">' +
+      '<!doctype html><html><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"></head>' +
+      '<body style="margin:0;background:#0f172a;">' +
       '<div class="tradingview-widget-container" style="height:100vh;width:100%">' +
       '<div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>' +
       '<script src="' + HEADLINE_INDEX_WIDGET_URL + '" type="text/javascript">' +
       config + '</script></div></body></html>';
     const frame = document.createElement('iframe');
-    frame.setAttribute('sandbox', 'allow-scripts allow-popups');
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups');
     frame.setAttribute('referrerpolicy', 'no-referrer');
     frame.setAttribute('title', groupConfig.title + ' — provider-controlled reference display');
-    frame.setAttribute('srcdoc', frameHtml);
+    frame.setAttribute('src', 'data:text/html;charset=utf-8,' + encodeURIComponent(frameHtml));
     frame.style.height = '100%';
     frame.style.width = '100%';
     frame.style.border = '0';
@@ -160,6 +165,7 @@ export function MarketProviderBoard({
     setRetryCount(c => c + 1);
   };
 
+  const loadLabel = providerSymbol ? `Load ${providerSymbol} price` : `Load ${groupConfig.title} prices`;
   const otherGroup = activeGroup === 'indices' ? 'equities' : 'indices';
   const otherGroupLabel = activeGroup === 'indices' ? 'BSE Equities' : 'BSE Indices';
 
@@ -174,19 +180,19 @@ export function MarketProviderBoard({
             BSE end-of-day reference — TradingView
           </h3>
           <p className="market-provider-board__subtitle">
-            Provider script runs in a sandboxed, opaque-origin iframe; no native quote extraction or app storage.
+            Open a TradingView symbol page to check the observation date.
           </p>
         </div>
 
         <div className="market-provider-board__controls">
-          <button
+          {!providerSymbol && <button
             type="button"
             className="market-provider-board__btn market-provider-board__switch-btn"
             onClick={() => handleGroupToggle(otherGroup)}
             aria-label={`Switch to ${otherGroupLabel}`}
           >
             Switch to {otherGroupLabel}
-          </button>
+          </button>}
           {userConsented && (
             <button
               type="button"
@@ -213,7 +219,7 @@ export function MarketProviderBoard({
               className="market-provider-board__load-btn"
               onClick={handleConsent}
             >
-              Load {groupConfig.title} prices
+              {loadLabel}
             </button>
             {typeof onNavigate === 'function' && (
               <button
@@ -243,9 +249,12 @@ export function MarketProviderBoard({
         )}
 
         {lifecycleState === 'EMBED_UNCONFIRMED' && (
-          <p className="market-provider-board__status market-provider-board__status--loaded" role="status">
-            Provider frame loaded; quote rendering is unverified. Check the provider's dates and values.
-          </p>
+          <div className="market-provider-board__recovery">
+            <p className="market-provider-board__status market-provider-board__status--loaded" role="status">
+              Provider frame loaded; quote rendering is unverified. If prices are blank, retry or open a provider link below.
+            </p>
+            <button type="button" className="market-provider-board__btn" onClick={handleRetry}>Reload provider display</button>
+          </div>
         )}
 
         {lifecycleState === 'SCRIPT_ERROR' && (
@@ -278,7 +287,7 @@ export function MarketProviderBoard({
         <div
           ref={hostRef}
           className="tradingview-widget-container"
-          style={{ height: '380px', width: '100%' }}
+          style={{ height: providerSymbol ? '260px' : '380px', minHeight: providerSymbol ? '260px' : '380px', width: '100%' }}
         />
 
         {/* Required Provider Attribution (WP02-T10) */}

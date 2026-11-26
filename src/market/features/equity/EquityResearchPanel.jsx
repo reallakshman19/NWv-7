@@ -28,6 +28,8 @@ import {
 } from './equityModel.js';
 import { ImportPreviewModal } from './ImportPreviewModal.jsx';
 import { searchTrackedEquities, selectEquityResearch } from './equityResearchResolution.js';
+import { MarketProviderBoard } from '../providers/MarketProviderBoard.jsx';
+import { BSE_CATALOG } from '../providers/bseCoverage.js';
 import './equity.css';
 
 export function EquityResearchPanel({
@@ -71,6 +73,8 @@ export function EquityResearchPanel({
   // Selected item derived state
   const selectedSymbol = fromCanonicalKey(selectedKey) || 'RELIANCE';
   const selectedMeta = getEquityMetadata(selectedSymbol);
+  // Curated cross-listed references only; never treat BSE prices as NSE quotes.
+  const bseReference = selectedMeta?.isCurated ? BSE_CATALOG[`BSE:${selectedSymbol}`] : null;
   const research = selectEquityResearch(selectedKey);
   const selectedQuoteUrl = research?.referenceUrl ?? null;
   const searchResults = searchTrackedEquities(researchQuery);
@@ -467,6 +471,10 @@ export function EquityResearchPanel({
                 </a>
               )}
             </div>
+
+            {bseReference?.group === 'equities' && bseReference.widgetVerified && (
+              <MarketProviderBoard key={bseReference.key} providerSymbol={bseReference.key} group="equities" compact />
+            )}
 
             {/* CROSS-WORKPACK INTEGRATION ACTIONS (P0-04) */}
             <div className="market-equity-detail__cross-actions">

@@ -18,9 +18,11 @@ describe('MP04 provider board preflight integration', () => {
     expect(container.querySelector('iframe')).toBeNull();
     fireEvent.click(screen.getByRole('button',{name:'Load BSE indices prices'}));
     const frame = container.querySelector('iframe');
-    expect(frame.getAttribute('srcdoc')).toContain('BSE:SENSEX');
-    expect(frame.getAttribute('srcdoc')).not.toContain('BSE:BSE500');
-    expect(frame.getAttribute('sandbox')).toBe('allow-scripts allow-popups');
+    // The tested URL holds only the app-generated configuration.
+    const wrapperHtml = decodeURIComponent(frame.getAttribute('src').split(',')[1]);
+    expect(wrapperHtml).toContain('BSE:SENSEX');
+    expect(wrapperHtml).not.toContain('BSE:BSE500');
+    expect(frame.getAttribute('sandbox')).toBe('allow-scripts allow-same-origin allow-popups');
     fireEvent.load(frame);
     expect(screen.getByText(/quote rendering is unverified/i)).toBeTruthy();
   });

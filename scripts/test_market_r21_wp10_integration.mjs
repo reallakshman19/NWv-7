@@ -512,7 +512,9 @@ test('WP10-G21 rejects bundled unlicensed quotes, false breadth, and host-page p
   const overview = fs.readFileSync(path.resolve('src/market/features/overview/Overview.jsx'), 'utf8');
   assert.doesNotMatch(overview, /1,522 Advances|554 Declines|88 Unchanged/);
   const provider = fs.readFileSync(path.resolve('src/market/features/providers/MarketProviderBoard.jsx'), 'utf8');
-  assert.match(provider, /allow-scripts allow-popups/);
+  // The data URL keeps the wrapper opaque while the provider frame uses its own origin.
+  assert.match(provider, /allow-scripts allow-same-origin allow-popups/);
+  assert.match(provider, /frame\.setAttribute\('src', 'data:text\/html;charset=utf-8,' \+ encodeURIComponent\(frameHtml\)\)/);
   assert.match(provider, /no-referrer/);
-  assert.doesNotMatch(provider, /allow-same-origin|document\.createElement\('script'\)/);
+  assert.doesNotMatch(provider, /frame\.setAttribute\('srcdoc'|document\.createElement\('script'\)/);
 });

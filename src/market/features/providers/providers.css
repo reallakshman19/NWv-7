@@ -182,7 +182,7 @@
 }
 
 .market-provider-board__status--loaded {
-  color: var(--market-tone-success);
+  color: var(--market-tone-warning);
   font-style: normal;
   font-weight: 500;
 }
@@ -542,3 +542,14 @@
     padding: 10px;
   }
 }
+
+/* Unverified frames always retain an explicit recovery action. */
+.market-provider-board__recovery {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.market-provider-board--compact { padding: 10px; gap: 8px; }
+.market-provider-board--compact .market-provider-board__consent-box { padding: 10px; }
+.market-provider-board__load-btn { max-width: 100%; white-space: normal; }
