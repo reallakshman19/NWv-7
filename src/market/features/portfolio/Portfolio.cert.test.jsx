@@ -143,7 +143,8 @@ describe('WP-04 Portfolio Certification Test Suite', () => {
 
     // Mark modal opens
     expect(screen.getByRole('dialog', { name: /Manual Price Mark: NSE:INFY/i })).toBeDefined();
-    expect(screen.getByText(/In accordance with \$0 budget/i)).toBeDefined();
+    expect(screen.getByRole('link', { name: /View INFY on NSE/i }).getAttribute('href'))
+      .toBe('https://www.nseindia.com/get-quotes/equity?symbol=INFY');
 
     // Fill mark
     fireEvent.change(screen.getByLabelText(/Unit Price/i), { target: { value: '120' } });

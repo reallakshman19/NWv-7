@@ -1,10 +1,11 @@
 /**
  * NWv7 Market Desk R2.1 - WP-04 Price Mark Modal
- * Enables user to enter or update manual price valuation marks for holdings.
- * Strictly adheres to zero-cost, no-quote-feed policy.
+ * Shows the NSE quote link when available and saves a user-entered price and date for the holding.
  */
 
 import React, { useState } from 'react';
+import { parseInstrumentKey } from '../../contracts/instrumentIdentity.js';
+import { equityQuoteUrl } from '../../../services/indiaMarketTools.js';
 
 function PriceMarkDialog({
   onClose,
@@ -16,6 +17,8 @@ function PriceMarkDialog({
   const [price, setPrice] = useState(() => (currentMark && typeof currentMark.price === 'number') ? String(currentMark.price) : '');
   const [asOfDate, setAsOfDate] = useState(() => currentMark?.asOfDate || new Date().toISOString().slice(0, 10));
   const [error, setError] = useState(null);
+  const instrument = parseInstrumentKey(instrumentKey);
+  const quoteUrl = instrument?.exchange === 'NSE' ? equityQuoteUrl(instrument.symbol) : null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -69,11 +72,18 @@ function PriceMarkDialog({
 
         <form onSubmit={handleSubmit} className="portfolio-modal-form">
           <div className="portfolio-disclaimer-box">
-            <strong>Manual Valuation Mark:</strong>
+            <strong>Price source</strong>
             <p>
-              In accordance with $0 budget and zero-unlicensed-quote policy, prices are entered manually by the user.
-              This mark is stored locally and used to compute current value, unrealized P&L, and XIRR.
+              Enter the price per unit for this listing and the date shown by the exchange or your broker.
+              Your saved mark is used for current value, unrealized P&amp;L, and XIRR.
             </p>
+            {quoteUrl && (
+              <p>
+                <a href={quoteUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit' }}>
+                  View {instrument.symbol} on NSE ↗
+                </a>
+              </p>
+            )}
           </div>
 
           {error && (
