@@ -1,10 +1,10 @@
 # Sections Prefetch Quality Report
 
-- Status: **PASS**
+- Status: **WARN**
 - Schema: `2`
-- Content hash: `38621a5b2924`
+- Content hash: `8da00967b34e`
 - Sections: `10`
-- Stories: `298`
+- Stories: `283`
 - Source groups: `15`
 - Retain hours: `36`
 
@@ -13,12 +13,16 @@
 | Section | Stories | Sources | Thin |
 |---|---:|---:|---|
 | topStories | 30 | 3 | False |
-| india | 30 | 3 | False |
-| tn | 30 | 3 | False |
+| india | 30 | 2 | False |
+| tn | 23 | 2 | False |
 | trichy | 30 | 3 | False |
-| muscat | 28 | 2 | False |
+| muscat | 30 | 3 | False |
 | world | 30 | 4 | False |
-| business | 30 | 5 | False |
+| business | 30 | 4 | False |
 | technology | 30 | 3 | False |
-| sports | 30 | 4 | False |
-| entertainment | 30 | 2 | False |
+| sports | 30 | 3 | False |
+| entertainment | 20 | 1 | True |
+
+## Warnings
+
+- Section entertainment has weak source diversity: 1 source group(s)
